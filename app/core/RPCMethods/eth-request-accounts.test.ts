@@ -195,8 +195,10 @@ describe('requestEthereumAccountsHandler', () => {
 
       await handler(baseRequest);
       expect(trackDappViewedEvent).toHaveBeenCalledWith(
-        'http://test.com',
-        mockAccounts.length,
+        {
+          hostname: 'http://test.com',
+          numberOfConnectedAccounts: mockAccounts.length,
+        }
       );
     });
   });

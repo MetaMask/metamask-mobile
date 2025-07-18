@@ -37,6 +37,7 @@ import {
   ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -243,6 +244,40 @@ const Login: React.FC = () => {
     setBiometryChoice(newBiometryChoice);
   };
 
+  const navigateToHome = async () => {
+    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
+    if (onboardingWizard) {
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+    } else {
+      setOnboardingWizardStep(1);
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+    }
+  };
+
+  const checkMetricsUISeen = async (): Promise<void> => {
+    const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+      OPTIN_META_METRICS_UI_SEEN,
+    );
+
+    if (!isOptinMetaMetricsUISeen) {
+      navigation.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
+            },
+          },
+        ],
+      });
+    } else {
+      navigateToHome();
+    }
+  };
+
   const onLogin = async () => {
     try {
       const locked = !passwordRequirementsMet(password);
@@ -270,14 +305,8 @@ const Login: React.FC = () => {
       );
       Keyboard.dismiss();
 
-      // Get onboarding wizard state
-      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-      if (onboardingWizard) {
-        navigation.replace(Routes.ONBOARDING.HOME_NAV);
-      } else {
-        setOnboardingWizardStep(1);
-        navigation.replace(Routes.ONBOARDING.HOME_NAV);
-      }
+      await checkMetricsUISeen();
+
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');
       setLoading(false);
@@ -333,6 +362,7 @@ const Login: React.FC = () => {
   const tryBiometric = async () => {
     fieldRef.current?.blur();
     try {
+      setLoading(true);
       await trace(
         {
           name: TraceName.LoginBiometricAuthentication,
@@ -342,16 +372,17 @@ const Login: React.FC = () => {
           await Authentication.appTriggeredAuth();
         },
       );
-      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-      if (!onboardingWizard) setOnboardingWizardStep(1);
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+
+      await checkMetricsUISeen();
+
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-      setLoading(true);
       setPassword('');
       setHasBiometricCredentials(false);
+      setLoading(false);
       fieldRef.current?.clear();
     } catch (tryBiometricError) {
       setHasBiometricCredentials(true);
+      setLoading(false);
       Logger.log(tryBiometricError);
     }
     fieldRef.current?.blur();
@@ -484,10 +515,7 @@ const Login: React.FC = () => {
               )}
             </View>
 
-            <View
-              style={styles.ctaWrapper}
-              testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-            >
+            <View style={styles.ctaWrapper}>
               {renderSwitch()}
 
               <Button
@@ -506,6 +534,7 @@ const Login: React.FC = () => {
                   )
                 }
                 isDisabled={password.length === 0}
+                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               />
 
               <Button

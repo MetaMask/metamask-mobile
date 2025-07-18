@@ -97,3 +97,7 @@ export async function addMMOriginatedTransaction(
 
   return transactionMeta;
 }
+
+export function get4ByteCode(data: string) {
+  return data.slice(0, 10).toLowerCase();
+}

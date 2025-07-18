@@ -3,12 +3,21 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
 import GetStarted from './GetStarted/GetStarted';
+import { useSelector } from 'react-redux';
+import { getOrders } from '../../../../../../reducers/fiatOrders';
+import {
+  FIAT_ORDER_STATES,
+  FIAT_ORDER_PROVIDERS,
+} from '../../../../../../constants/on-ramp';
+import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcessing';
+import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 
 const Root = () => {
   const navigation = useNavigation();
   const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
   const { checkExistingToken, getStarted } = useDepositSDK();
   const hasCheckedToken = useRef(false);
+  const orders = useSelector(getOrders);
 
   useEffect(() => {
     const initializeFlow = async () => {
@@ -21,11 +30,46 @@ const Root = () => {
 
   useEffect(() => {
     if (initialRoute === null || !getStarted) return;
-    navigation.reset({
-      index: 0,
-      routes: [{ name: initialRoute, params: { animationEnabled: false } }],
-    });
-  }, [getStarted, initialRoute, navigation]);
+
+    const createdOrder = orders.find(
+      (order) =>
+        order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT &&
+        order.state === FIAT_ORDER_STATES.CREATED,
+    );
+
+    const pendingOrder = orders.find(
+      (order) =>
+        order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT &&
+        order.state === FIAT_ORDER_STATES.PENDING,
+    );
+
+    if (createdOrder) {
+      const [routeName, params] = createBankDetailsNavDetails({
+        orderId: createdOrder.id,
+      });
+      navigation.reset({
+        index: 0,
+        routes: [
+          { name: routeName, params: { ...params, animationEnabled: false } },
+        ],
+      });
+    } else if (pendingOrder) {
+      const [routeName, params] = createOrderProcessingNavDetails({
+        orderId: pendingOrder.id,
+      });
+      navigation.reset({
+        index: 0,
+        routes: [
+          { name: routeName, params: { ...params, animationEnabled: false } },
+        ],
+      });
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: initialRoute, params: { animationEnabled: false } }],
+      });
+    }
+  }, [getStarted, initialRoute, navigation, orders]);
 
   return <GetStarted />;
 };

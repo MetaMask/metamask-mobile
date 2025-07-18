@@ -4,6 +4,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
+import { DepositOrderType } from '@consensys/native-ramps-sdk';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
@@ -105,6 +106,39 @@ const testOrders: DeepPartial<FiatOrder>[] = [
       },
     },
   },
+  {
+    id: 'test-deposit-order-1',
+    account: MOCK_ADDRESS,
+    network: '1',
+    cryptoAmount: '100',
+    orderType: DepositOrderType.Deposit,
+    state: FIAT_ORDER_STATES.COMPLETED,
+    createdAt: 1697242033399,
+    provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+    cryptocurrency: 'USDC',
+    amount: '100',
+    currency: 'USD',
+    data: {
+      cryptoCurrency: 'USDC',
+      providerOrderLink: 'https://transak.com/order/123',
+    },
+  },
+  {
+    id: 'test-deposit-order-2',
+    account: MOCK_ADDRESS,
+    network: '1',
+    cryptoAmount: '20',
+    orderType: DepositOrderType.Deposit,
+    state: FIAT_ORDER_STATES.CREATED,
+    createdAt: 1697242033399,
+    provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+    cryptocurrency: 'USDT',
+    amount: '20',
+    currency: 'USD',
+    data: {
+      cryptoCurrency: 'USDT',
+    },
+  },
 ];
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
@@ -202,6 +236,63 @@ describe('OrdersList', () => {
           "OrderDetails",
           {
             "orderId": "test-order-2",
+          },
+        ],
+      ]
+    `);
+  });
+
+  it('navigates to deposit order details when pressing deposit order item', () => {
+    render(<OrdersList />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
+    fireEvent.press(screen.getByRole('button', { name: /USDC Deposit/ }));
+    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
+      [
+        [
+          "OrderDetails",
+          {
+            "orderId": "test-order-2",
+          },
+        ],
+        [
+          "DepositOrderDetails",
+          {
+            "orderId": "test-deposit-order-1",
+          },
+        ],
+      ]
+    `);
+    expect(mockNavigate).toHaveBeenCalledWith('DepositOrderDetails', {
+      orderId: 'test-deposit-order-1',
+    });
+  });
+
+  it('navigates to deposit flow when pressing created deposit order item', () => {
+    render(<OrdersList />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
+    fireEvent.press(screen.getByRole('button', { name: /USDT Deposit/ }));
+    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
+      [
+        [
+          "OrderDetails",
+          {
+            "orderId": "test-order-2",
+          },
+        ],
+        [
+          "DepositOrderDetails",
+          {
+            "orderId": "test-deposit-order-1",
+          },
+        ],
+        [
+          "Deposit",
+          {
+            "screen": "DepositRoot",
           },
         ],
       ]

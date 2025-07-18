@@ -33,6 +33,16 @@ const Routes = {
     KYC_PROCESSING: 'KycProcessing',
     KYC_WEBVIEW: 'KycWebview',
     PROVIDER_WEBVIEW: 'ProviderWebview',
+    ORDER_PROCESSING: 'OrderProcessing',
+    ORDER_DETAILS: 'DepositOrderDetails',
+    BANK_DETAILS: 'BankDetails',
+    MODALS: {
+      ID: 'DepositModals',
+      TOKEN_SELECTOR: 'DepositTokenSelectorModal',
+      REGION_SELECTOR: 'DepositRegionSelectorModal',
+      PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
+      UNSUPPORTED_REGION: 'DepositUnsupportedRegionModal',
+    },
   },
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
@@ -82,6 +92,7 @@ const Routes = {
     },
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
+    OPTIN_METRICS: 'OptinMetrics',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -181,6 +192,7 @@ const Routes = {
       QUOTE_INFO_MODAL: 'QuoteInfoModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
+      BLOCKAID_MODAL: 'BlockaidModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -228,7 +240,9 @@ const Routes = {
   },
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
+    WALLET_DETAILS: 'MultichainWalletDetails',
   },
+  SOLANA_NEW_FEATURE_CONTENT: 'SolanaNewFeatureContentView',
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',

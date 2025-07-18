@@ -130,27 +130,26 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
   }
 
   return (
-    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
+    <View
+      style={styles.wrapper}
+      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
+    >
       <DeFiPositionsControlBar />
-      <View>
-        <FlatList
-          testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
-          data={formattedDeFiPositions}
-          renderItem={({
-            item: { chainId, protocolId, protocolAggregate },
-          }) => (
-            <DeFiPositionsListItem
-              chainId={chainId}
-              protocolId={protocolId}
-              protocolAggregate={protocolAggregate}
-              privacyMode={privacyMode}
-            />
-          )}
-          keyExtractor={(protocolChainAggregate) =>
-            `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
-          }
-        />
-      </View>
+      <FlatList
+        testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}
+        data={formattedDeFiPositions}
+        renderItem={({ item: { chainId, protocolId, protocolAggregate } }) => (
+          <DeFiPositionsListItem
+            chainId={chainId}
+            protocolId={protocolId}
+            protocolAggregate={protocolAggregate}
+            privacyMode={privacyMode}
+          />
+        )}
+        keyExtractor={(protocolChainAggregate) =>
+          `${protocolChainAggregate.chainId}-${protocolChainAggregate.protocolAggregate.protocolDetails.name}`
+        }
+      />
     </View>
   );
 };

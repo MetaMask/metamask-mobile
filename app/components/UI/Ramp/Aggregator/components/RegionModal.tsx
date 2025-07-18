@@ -20,7 +20,7 @@ import ModalDragger from '../../../../Base/ModalDragger';
 import { useTheme } from '../../../../../util/theme';
 import RegionAlert from './RegionAlert';
 import { RampType, Region, ScreenLocation } from '../types';
-import useAnalytics from '../hooks/useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import createModalStyles from './modals/Modal.styles';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';

@@ -83,6 +83,10 @@ function isRedesignedTransaction({
     return confirmationRedesignFlags?.approve;
   }
 
+  if (transactionType === TransactionType.deployContract) {
+    return confirmationRedesignFlags?.contract_deployment;
+  }
+
   return false;
 }
 

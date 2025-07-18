@@ -359,6 +359,32 @@ describe('AccountConnect', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('renders correctly with request including only chains', () => {
+    const { toJSON } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+              },
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
+                },
+              }),
+            },
+            permissionRequestId: 'test',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   describe('AccountConnectMultiSelector handlers', () => {
     it('invokes onEditNetworks and renders multiconnect network selector', async () => {
             // Render the container component with necessary props

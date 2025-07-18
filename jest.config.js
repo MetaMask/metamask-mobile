@@ -12,12 +12,21 @@ process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
 
-process.env.MM_SMART_ACCOUNT_UI_ENABLED = 'true';
+process.env.ANDROID_APPLE_CLIENT_ID = 'androidAppleClientId';
+process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID = 'androidGoogleWebClientId';
+
+process.env.IOS_GOOGLE_CLIENT_ID = 'iosGoogleClientId';
+process.env.IOS_GOOGLE_REDIRECT_URI = 'iosGoogleRedirectUri';
 
 const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/app/.*/__snapshots__/.*',
+    '<rootDir>/.*\\.snap$',
+  ],
   transformIgnorePatterns: [
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|expo-file-system)))',
   ],

@@ -2,6 +2,8 @@ import { BigNumber } from 'bignumber.js';
 import { Hex, add0x } from '@metamask/utils';
 import { Interface } from '@ethersproject/abi';
 
+import { strings } from '../../../../../locales/i18n';
+import { TOKEN_VALUE_UNLIMITED_THRESHOLD } from '../constants/approve';
 import {
   APPROVALS_LIST,
   APPROVAL_TYPES,
@@ -88,4 +90,28 @@ export function updateApprovalAmount(
   }
 
   return iface.encodeFunctionData(name, [decoded[0], value]) as Hex;
+}
+
+export function calculateApprovalTokenAmount(
+  amount: string,
+  decimals = 18,
+): { amount: string; rawAmount: string } {
+  const amountInDecimals = new BigNumber(amount ?? 0).div(
+    10 ** (decimals),
+  );
+  const isUnlimited = amountInDecimals.gt(TOKEN_VALUE_UNLIMITED_THRESHOLD);
+  const rawAmount = amountInDecimals.toString();
+  return {
+    amount: isUnlimited ? strings('confirm.unlimited') : rawAmount,
+    rawAmount,
+  };
+}
+
+export function calculateTokenBalance(
+  tokenBalance?: string,
+  decimals?: number,
+): string {
+  return new BigNumber(tokenBalance ?? '0')
+    .div(new BigNumber(10).pow(decimals ?? 0))
+    .toString();
 }

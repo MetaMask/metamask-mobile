@@ -11,7 +11,7 @@ exports[`DepositTextField should render default settings correctly 1`] = `
 >
   <Label
     style={{}}
-    variant="sHeadingSMRegular"
+    variant="sBodyMD"
   >
     Test Label
   </Label>

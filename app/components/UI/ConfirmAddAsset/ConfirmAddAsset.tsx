@@ -219,8 +219,9 @@ const ConfirmAddAsset = () => {
               size: ButtonSize.Lg,
             },
             {
-              onPress: () => {
-                addTokenList();
+              onPress: async () => {
+                await addTokenList();
+                goToWalletPage();
               },
               label: strings('swaps.Import'),
               variant: ButtonVariants.Primary,

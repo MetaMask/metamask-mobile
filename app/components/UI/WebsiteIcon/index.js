@@ -110,10 +110,12 @@ class WebsiteIcon extends PureComponent {
     let title = this.props.title;
 
     if (title !== undefined) {
-      title =
-        typeof this.props.title === 'string'
-          ? this.props.title.substring(0, 1)
-          : getHost(url).substring(0, 1);
+      if (typeof this.props.title === 'string') {
+        title = this.props.title.substring(0, 1);
+      } else {
+        const host = url && getHost(url);
+        title = host ? host.substring(0, 1) : '';
+      }
     }
 
     if (title && (!apiLogoUrl?.uri || renderIconUrlError)) {

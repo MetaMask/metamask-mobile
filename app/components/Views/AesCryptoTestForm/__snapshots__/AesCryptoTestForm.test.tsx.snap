@@ -24,9 +24,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
               "paddingVertical": 5,
@@ -40,9 +39,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -62,9 +60,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
               "paddingVertical": 5,
@@ -125,9 +122,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -149,9 +145,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
               "paddingVertical": 5,
@@ -237,9 +232,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -261,9 +255,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
               "paddingVertical": 5,
@@ -349,9 +342,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -373,9 +365,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
               "paddingVertical": 5,
@@ -436,9 +427,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -460,9 +450,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
               "paddingVertical": 5,
@@ -548,9 +537,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -572,9 +560,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
               "paddingVertical": 5,
@@ -635,9 +622,8 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }

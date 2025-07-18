@@ -429,6 +429,12 @@ const ManualBackupStep2 = ({
   const validateSeedPhrase = () => {
     const isSuccess = validateWords();
     if (isSuccess) {
+      trackOnboarding(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
+        ).build(),
+        saveOnboardingEvent,
+      );
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         params: {

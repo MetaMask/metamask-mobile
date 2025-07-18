@@ -25,7 +25,6 @@ import expo.modules.ReactNativeHostWrapper
 
 import cl.json.ShareApplication
 import io.branch.rnbranch.RNBranchModule
-import com.airbnb.android.react.lottie.LottiePackage
 import io.metamask.nativeModules.PreventScreenshotPackage
 import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativesdk.NativeSDKPackage
@@ -41,7 +40,6 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             override fun getPackages(): List<ReactPackage> {
                 val packages = PackageList(this).packages.toMutableList()
                 // Add all our custom packages
-                packages.add(LottiePackage())
                 packages.add(PreventScreenshotPackage())
                 packages.add(RCTMinimizerPackage())
                 packages.add(NativeSDKPackage())

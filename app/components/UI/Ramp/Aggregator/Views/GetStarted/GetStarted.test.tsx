@@ -88,7 +88,7 @@ jest.mock('../../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('GetStarted', () => {
   afterEach(() => {

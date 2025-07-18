@@ -1,3 +1,19 @@
+import { JsonRpcRequest } from '@metamask/utils';
+import {
+  GetCallsStatusCode,
+  SendCalls,
+} from '@metamask/eth-json-rpc-middleware';
+import {
+  TransactionControllerState,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
+
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../util/test/accountsControllerTestUtils';
+// eslint-disable-next-line import/no-namespace
+import * as TransactionsSelectors from '../../selectors/smartTransactionsController';
+// eslint-disable-next-line import/no-namespace
+import * as RelayUtils from './transaction-relay.ts';
+import Engine from '../Engine';
 import {
   AtomicCapabilityStatus,
   getAccounts,
@@ -5,16 +21,6 @@ import {
   getCapabilities,
   processSendCalls,
 } from './eip5792';
-import Engine from '../Engine';
-import {
-  GetCallsStatusCode,
-  SendCalls,
-} from '@metamask/eth-json-rpc-middleware';
-import { JsonRpcRequest } from '@metamask/utils';
-import {
-  TransactionControllerState,
-  TransactionStatus,
-} from '@metamask/transaction-controller';
 
 const MOCK_ACCOUNT = '0x1234';
 
@@ -26,6 +32,7 @@ jest.mock('../Engine', () => ({
     KeyringController: {
       state: {
         isUnlocked: true,
+        keyrings: [],
       },
     },
     PermissionController: {
@@ -44,12 +51,24 @@ jest.mock('../Engine', () => ({
     },
     TransactionController: {
       addTransactionBatch: jest.fn().mockResolvedValue({ batchId: 123 }),
+      addTransaction: jest.fn().mockResolvedValue({ batchId: 123 }),
       isAtomicBatchSupported: jest.fn().mockResolvedValue([true]),
     },
     PreferencesController: {
       state: {
         dismissSmartAccountSuggestionEnabled: false,
       },
+    },
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
     },
   },
   controllerMessenger: {
@@ -67,11 +86,51 @@ jest.mock('../Engine', () => ({
             ],
           },
         };
+      if (type === 'PreferencesController:getState')
+        return { useTransactionSimulations: true };
     }),
   },
 }));
 
 const MockEngine = jest.mocked(Engine);
+
+jest.mock('../../store/index.ts', () => ({
+  store: {
+    getState: () => ({
+      swaps: { '0x123': { isLive: true }, hasOnboarded: false, isLive: true },
+      engine: {
+        backgroundState: {
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          NetworkController: {
+            selectedNetworkClientId: '1',
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                ticker: 'ETH',
+                nickname: 'Ethereum Mainnet',
+                rpcEndpoints: [],
+              },
+              '0x123': {
+                chainId: '0x123',
+                ticker: 'ETH',
+                nickname: 'Dummy Mainnet',
+                rpcEndpoints: [],
+              },
+            },
+            providerConfig: {
+              chainId: '0x1',
+            },
+          },
+          SmartTransactionsController: {
+            smartTransactionsState: {
+              liveness: 'live',
+            },
+          },
+        },
+      },
+    }),
+  },
+}));
 
 describe('getAccounts', () => {
   it('list of account addresses', async () => {
@@ -100,6 +159,11 @@ describe('processSendCalls', () => {
         data: '0x654365436543',
         value: '0x3B9ACA00',
       },
+      {
+        to: '0xbc2114a988e9CEf5bA63548D432024f34B487048',
+        data: '0x789078907890',
+        value: '0x1DCD6500',
+      },
     ],
   } as SendCalls;
   const MOCK_REQUEST = {
@@ -113,17 +177,41 @@ describe('processSendCalls', () => {
   } as JsonRpcRequest;
 
   it('creates transaction instance for batch request', async () => {
+    const { TransactionController } = Engine.context;
     const result = await processSendCalls(MOCK_PARAMS, MOCK_REQUEST);
     expect(
       Engine.context.TransactionController.addTransactionBatch,
     ).toHaveBeenCalledTimes(1);
     expect(result.id).toStrictEqual(123);
+    expect(TransactionController.addTransactionBatch).toHaveBeenCalled();
+  });
+
+  it('creates transaction instance for batch request with single nested transaction', async () => {
+    const { TransactionController } = Engine.context;
+    const result = await processSendCalls(
+      { ...MOCK_PARAMS, calls: [MOCK_PARAMS.calls[0]] },
+      MOCK_REQUEST,
+    );
+    expect(
+      Engine.context.TransactionController.addTransactionBatch,
+    ).toHaveBeenCalledTimes(1);
+    expect(result.id).toBeDefined();
+    expect(TransactionController.addTransaction).toHaveBeenCalled();
   });
 
   it('throw error if wrong version of request is used', async () => {
     expect(async () => {
       await processSendCalls(
         { ...MOCK_PARAMS, version: '3.0.0' },
+        MOCK_REQUEST,
+      );
+    }).rejects.toThrow('Version not supported: Got 3.0.0, expected 2.0.0');
+  });
+
+  it('throw error if wrong version of request is used and there is single nested transaction', async () => {
+    expect(async () => {
+      await processSendCalls(
+        { ...MOCK_PARAMS, calls: [MOCK_PARAMS.calls[0]], version: '3.0.0' },
         MOCK_REQUEST,
       );
     }).rejects.toThrow('Version not supported: Got 3.0.0, expected 2.0.0');
@@ -136,6 +224,21 @@ describe('processSendCalls', () => {
     expect(async () => {
       await processSendCalls(MOCK_PARAMS, MOCK_REQUEST);
     }).rejects.toThrow('EIP-7702 not supported on chain: 0xaa36a7');
+    Engine.context.TransactionController.isAtomicBatchSupported = jest
+      .fn()
+      .mockResolvedValue([true]);
+  });
+
+  it('does not throw error if TransactionController.isAtomicBatchSupported returns false if there is single nested transactions', async () => {
+    const { TransactionController } = Engine.context;
+    Engine.context.TransactionController.isAtomicBatchSupported = jest
+      .fn()
+      .mockResolvedValue([false]);
+    await processSendCalls(
+      { ...MOCK_PARAMS, calls: [MOCK_PARAMS.calls[0]] },
+      MOCK_REQUEST,
+    );
+    expect(TransactionController.addTransaction).toHaveBeenCalled();
     Engine.context.TransactionController.isAtomicBatchSupported = jest
       .fn()
       .mockResolvedValue([true]);
@@ -238,6 +341,17 @@ describe('processSendCalls', () => {
         networkClientId: 'linea',
       } as JsonRpcRequest);
     }).rejects.toThrow('EIP-7702 upgrade disabled by the user');
+  });
+
+  it('does not throw error if user has enabled preference dismissSmartAccountSuggestionEnabled if there is single nested transaction', async () => {
+    const { TransactionController } = Engine.context;
+    Engine.context.PreferencesController.state.dismissSmartAccountSuggestionEnabled =
+      true;
+    await processSendCalls({ ...MOCK_PARAMS, calls: [MOCK_PARAMS.calls[0]] }, {
+      ...MOCK_REQUEST,
+      networkClientId: 'linea',
+    } as JsonRpcRequest);
+    expect(TransactionController.addTransaction).toHaveBeenCalled();
   });
 
   describe('getCallsStatus', () => {
@@ -437,10 +551,13 @@ describe('processSendCalls', () => {
               ],
             },
           };
+        if (type === 'PreferencesController:getState')
+          return { useTransactionSimulations: true };
       });
-    });
-
-    it('includes atomic capability if already upgraded', async () => {
+      jest
+        .spyOn(TransactionsSelectors, 'selectSmartTransactionsEnabled')
+        .mockReturnValue(true);
+      jest.spyOn(RelayUtils, 'isRelaySupported').mockResolvedValue(true);
       Engine.context.TransactionController.isAtomicBatchSupported = jest
         .fn()
         .mockResolvedValueOnce([
@@ -450,11 +567,16 @@ describe('processSendCalls', () => {
             isSupported: true,
           },
         ]);
+    });
 
+    it('includes atomic capability if already upgraded', async () => {
       const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
 
       expect(capabilities).toStrictEqual({
         [CHAIN_ID_MOCK]: {
+          alternateGasFees: {
+            supported: true,
+          },
           atomic: {
             status: AtomicCapabilityStatus.Supported,
           },
@@ -471,6 +593,7 @@ describe('processSendCalls', () => {
             delegationAddress: undefined,
             isSupported: false,
             upgradeContractAddress: DELEGATION_ADDRESS_MOCK,
+            relaySupportedForChain: true,
           },
         ]);
 
@@ -478,6 +601,9 @@ describe('processSendCalls', () => {
 
       expect(capabilities).toStrictEqual({
         [CHAIN_ID_MOCK]: {
+          alternateGasFees: {
+            supported: true,
+          },
           atomic: {
             status: AtomicCapabilityStatus.Ready,
           },
@@ -489,6 +615,9 @@ describe('processSendCalls', () => {
       Engine.context.TransactionController.isAtomicBatchSupported = jest
         .fn()
         .mockResolvedValueOnce([]);
+      jest
+        .spyOn(TransactionsSelectors, 'selectSmartTransactionsEnabled')
+        .mockReturnValue(false);
 
       const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
 
@@ -510,6 +639,38 @@ describe('processSendCalls', () => {
               ],
             },
           };
+        if (type === 'PreferencesController:getState')
+          return { useTransactionSimulations: true };
+      });
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([]);
+      jest
+        .spyOn(TransactionsSelectors, 'selectSmartTransactionsEnabled')
+        .mockReturnValue(false);
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({});
+    });
+
+    it('does not return alternateGasFees if transaction simulations are not enabled', async () => {
+      Engine.controllerMessenger.call = jest.fn().mockImplementation((type) => {
+        if (type === 'NetworkController:getNetworkClientById')
+          return { configuration: { chainId: CHAIN_ID_MOCK } };
+        if (type === 'AccountsController:getState')
+          return {
+            internalAccounts: {
+              accounts: [
+                {
+                  address: FROM_MOCK,
+                  metadata: { keyring: { type: 'un-supported' } },
+                },
+              ],
+            },
+          };
+        if (type === 'PreferencesController:getState')
+          return { useTransactionSimulations: false };
       });
       Engine.context.TransactionController.isAtomicBatchSupported = jest
         .fn()
@@ -518,6 +679,47 @@ describe('processSendCalls', () => {
       const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
 
       expect(capabilities).toStrictEqual({});
+    });
+
+    it('does not return alternateGasFees if smart transaction are not supported and also not 7702', async () => {
+      jest
+        .spyOn(TransactionsSelectors, 'selectSmartTransactionsEnabled')
+        .mockReturnValue(false);
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([]);
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({});
+    });
+
+    it('does not return alternateGasFees if smart transaction are not supported and also 7702 but not relay of transaction', async () => {
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([
+          {
+            chainId: CHAIN_ID_MOCK,
+            delegationAddress: undefined,
+            isSupported: false,
+            upgradeContractAddress: DELEGATION_ADDRESS_MOCK,
+            relaySupportedForChain: true,
+          },
+        ]);
+      jest.spyOn(RelayUtils, 'isRelaySupported').mockResolvedValue(false);
+      jest
+        .spyOn(TransactionsSelectors, 'selectSmartTransactionsEnabled')
+        .mockReturnValue(false);
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({
+        [CHAIN_ID_MOCK]: {
+          atomic: {
+            status: AtomicCapabilityStatus.Ready,
+          },
+        },
+      });
     });
   });
 });

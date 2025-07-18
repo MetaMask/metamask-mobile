@@ -30,8 +30,15 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
-  get tabScrollViewIdentifier() {
-    return Matchers.getIdentifier(RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW);
+  get tabScrollViewTextIdentifier() {
+    return Matchers.getIdentifier(
+      RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT,
+    );
+  }
+  get tabScrollViewQRCodeIdentifier() {
+    return Matchers.getIdentifier(
+      RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE,
+    );
   }
 
   get revealSecretRecoveryPhraseButton() {
@@ -94,14 +101,14 @@ class RevealSecretRecoveryPhrase {
   async scrollToCopyToClipboardButton() {
     await Gestures.scrollToElement(
       this.revealCredentialCopyToClipboardButton,
-      this.tabScrollViewIdentifier,
+      this.tabScrollViewTextIdentifier,
     );
   }
 
   async scrollToQR() {
     await Gestures.scrollToElement(
       this.revealCredentialQRCodeImage,
-      this.tabScrollViewIdentifier,
+      this.tabScrollViewQRCodeIdentifier,
     );
   }
 }

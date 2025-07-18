@@ -179,9 +179,18 @@ export const sortMultichainAccountsByLastSelected = (
   );
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getCaipAccountIdsFromSubject(subject: any) {
+/**
+ * Generic function to extract data from a subject using a provided extractor.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @param extractor - A function that extracts data from a caveat.
+ * @returns An array of data extracted from the subject.
+ */
+function getDataFromSubject<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  subject: any,
+  extractor: (caveat: { type: string, value: Caip25CaveatValue }) => T[],
+): T[] {
   const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
     return [];
@@ -190,80 +199,77 @@ function getCaipAccountIdsFromSubject(subject: any) {
   const caveat = caveats.find(
     ({ type }: CaveatConstraint) => type === Caip25CaveatType,
   );
-  if (caveat) {
-    return getCaipAccountIdsFromCaip25CaveatValue(caveat.value);
-  }
+  return caveat ? extractor(caveat) : [];
+}
 
-  return [];
+/**
+ * Helper function to extract CAIP account IDs from a subject.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @returns An array of CAIP account IDs.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getCaipAccountIdsFromSubject(subject: any): CaipAccountId[] {
+  return getDataFromSubject(subject, (caveat) =>
+    getCaipAccountIdsFromCaip25CaveatValue(caveat.value)
+  );
+}
+
+/**
+ * Helper function to extract EVM addresses from a subject.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @returns An array of EVM addresses.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getEvmAddessesFromSubject(subject: any): Hex[] {
+  return getDataFromSubject(subject, (caveat) => {
+    const ethAccounts = getEthAccounts(caveat.value);
+    return sortEvmAccountsByLastSelected(ethAccounts);
+  });
+}
+
+/**
+ * Helper function to extract permitted scopes from a subject.
+ *
+ * @param subject - The subject object containing permissions and caveats.
+ * @returns An array of permitted CAIP chain IDs.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getPermittedScopesFromSubject(subject: any): CaipChainId[] {
+  return getDataFromSubject(subject, (caveat) =>
+    getAllScopesFromCaip25CaveatValue(caveat.value)
+  );
 }
 
 export const getPermittedCaipAccountIdsByHostname = (
-  // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any,
   hostname: string,
 ): CaipAccountId[] => {
-  const { subjects } = state;
-  const subject = subjects[hostname];
-  return subject ? getCaipAccountIdsFromSubject(subject) : [];
-};
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getEvmAddessesFromSubject(subject: any) {
-  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
-  if (!caveats) {
+  const subject = state.subjects?.[hostname];
+  if (!subject) {
     return [];
   }
-
-  const caveat = caveats.find(
-    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
-  );
-  if (caveat) {
-    const ethAccounts = getEthAccounts(caveat.value);
-    return sortEvmAccountsByLastSelected(ethAccounts);
-  }
-
-  return [];
-}
+  return getCaipAccountIdsFromSubject(subject);
+};
 
 export const getPermittedEvmAddressesByHostname = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  state: any,
+  state: { subjects: Record<string, unknown> },
   hostname: string,
 ): Hex[] => {
-  const { subjects } = state;
-  const subject = subjects[hostname];
-  return subject ? getEvmAddessesFromSubject(subject) : [];
-};
-
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getPermittedScopesFromSubject(subject: any) {
-  const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
-  if (!caveats) {
+  const subject = state.subjects[hostname];
+  if (!subject) {
     return [];
   }
-
-  const caveat = caveats.find(
-    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
-  );
-  if (caveat) {
-    return getAllScopesFromCaip25CaveatValue(caveat.value);
-  }
-
-  return [];
-}
+  return getEvmAddessesFromSubject(subject);
+};
 
 export const getPermittedCaipChainIdsByHostname = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  state: any,
+  state: { subjects: Record<string, unknown> },
   hostname: string,
 ): CaipChainId[] => {
-  const { subjects } = state;
-  const subject = subjects[hostname];
+  const subject = state.subjects?.[hostname];
   if (!subject) {
     return [];
   }
@@ -561,7 +567,7 @@ export const removePermittedChain = (
  * array if no accounts are permitted or the wallet is locked. Returns any permitted
  * accounts if the wallet is locked and `ignoreLock` is true. This lock bypass is needed
  * for the `eth_requestAccounts` & `wallet_getPermission` handlers both of which
- * return permissioned accounts to the dapp when the wallet is locked.
+ * return permitted accounts to the dapp when the wallet is locked.
  *
  * @param {string} origin - The origin whose exposed accounts to retrieve.
  * @param {object} [options] - The options object

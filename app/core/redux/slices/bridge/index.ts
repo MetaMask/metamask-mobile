@@ -2,7 +2,10 @@ import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
 import { uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
@@ -14,7 +17,10 @@ import {
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
 } from '@metamask/bridge-controller';
-import { BridgeToken } from '../../../../components/UI/Bridge/types';
+import {
+  BridgeToken,
+  BridgeViewMode,
+} from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { selectGasFeeControllerEstimates } from '../../../../selectors/gasFeeController';
 import { MetaMetrics } from '../../../Analytics';
@@ -23,6 +29,7 @@ import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagContr
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
+import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -37,6 +44,7 @@ export interface BridgeState {
   selectedDestChainId: Hex | CaipChainId | undefined;
   slippage: string | undefined;
   isSubmittingTx: boolean;
+  bridgeViewMode: BridgeViewMode | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -49,6 +57,7 @@ export const initialState: BridgeState = {
   selectedDestChainId: undefined,
   slippage: '0.5',
   isSubmittingTx: false,
+  bridgeViewMode: undefined,
 };
 
 const name = 'bridge';
@@ -67,6 +76,9 @@ const slice = createSlice({
   name,
   initialState,
   reducers: {
+    setBridgeViewMode: (state, action: PayloadAction<BridgeViewMode>) => {
+      state.bridgeViewMode = action.payload;
+    },
     setSourceAmount: (state, action: PayloadAction<string | undefined>) => {
       state.sourceAmount = action.payload;
     },
@@ -152,6 +164,11 @@ export const selectSourceAmount = createSelector(
 export const selectDestAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAmount,
+);
+
+export const selectBridgeViewMode = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.bridgeViewMode,
 );
 
 /**
@@ -342,9 +359,7 @@ export const selectBridgeQuotes = createSelector(
 
 export const selectIsSolanaSourced = createSelector(
   selectSourceToken,
-  (sourceToken) =>
-    sourceToken?.chainId &&
-    isSolanaChainId(sourceToken.chainId),
+  (sourceToken) => sourceToken?.chainId && isSolanaChainId(sourceToken.chainId),
 );
 
 export const selectIsEvmToSolana = createSelector(
@@ -388,6 +403,20 @@ export const selectIsSubmittingTx = createSelector(
   (bridgeState) => bridgeState.isSubmittingTx,
 );
 
+export const selectIsUnifiedSwapsEnabled = createSelector(
+  selectBridgeFeatureFlags,
+  selectChainId,
+  (bridgeFeatureFlags, chainId) => {
+    if (
+      isUnifiedSwapsEnvVarEnabled() &&
+      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isUnifiedUIEnabled
+    ) {
+      return true;
+    }
+    return false;
+  },
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -400,4 +429,5 @@ export const {
   setSlippage,
   setDestAddress,
   setIsSubmittingTx,
+  setBridgeViewMode,
 } = actions;

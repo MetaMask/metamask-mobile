@@ -51,8 +51,10 @@ export const mockEvents = {
           confirmation_redesign: {
             signatures: false,
             staking_confirmations: false,
+            contract_deployment: false,
             contract_interaction: false,
             transfer: false,
+            approve: false,
           },
         },
       ],
@@ -74,8 +76,35 @@ export const mockEvents = {
           confirmation_redesign: {
             signatures: true,
             staking_confirmations: true,
+            contract_deployment: true,
             contract_interaction: true,
             transfer: true,
+            approve: true,
+          },
+        },
+      ],
+      responseCode: 200,
+    },
+
+    remoteFeatureFlagsRedesignedConfirmationsFlask: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev',
+      response: [
+        {
+          mobileMinimumVersions: {
+            appMinimumBuild: 1243,
+            appleMinimumOS: 6,
+            androidMinimumAPIVersion: 21,
+          },
+        },
+        {
+          confirmation_redesign: {
+            signatures: true,
+            staking_confirmations: true,
+            contract_deployment: true,
+            contract_interaction: true,
+            transfer: true,
+            approve: true,
           },
         },
       ],
@@ -177,6 +206,7 @@ export const mockEvents = {
     segmentTrack: {
       urlEndpoint: E2E_METAMETRICS_TRACK_URL,
       responseCode: 200,
+      response: { success: true },
     },
   },
 };

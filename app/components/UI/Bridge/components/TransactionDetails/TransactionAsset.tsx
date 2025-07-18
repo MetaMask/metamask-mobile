@@ -27,6 +27,7 @@ import { StyleSheet } from 'react-native';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
 import { BridgeToken } from '../../types';
 import { ethers } from 'ethers';
+import { TransactionType } from '@metamask/transaction-controller';
 
 const styles = StyleSheet.create({
   tokenIcon: {
@@ -53,12 +54,14 @@ interface TransactionAssetProps {
   token: BridgeToken;
   tokenAmount: string;
   chainId: Hex | CaipChainId;
+  txType: TransactionType;
 }
 
 const TransactionAsset = ({
   token,
   tokenAmount,
   chainId,
+  txType,
 }: TransactionAssetProps) => {
   const networkName =
     NETWORK_TO_SHORT_NETWORK_NAME_MAP[chainId as AllowedBridgeChainIds];
@@ -110,13 +113,15 @@ const TransactionAsset = ({
         <Text variant={TextVariant.BodyLGMedium}>
           {tokenAmount} {token.symbol}
         </Text>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Alternative}
+        {txType === TransactionType.bridge && (
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
           style={styles.networkName}
-        >
-          {networkName}
-        </Text>
+          >
+            {networkName}
+          </Text>
+        )}
       </Box>
     </Box>
   );

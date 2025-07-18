@@ -23,6 +23,8 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import/no-namespace
 import * as Networks7702 from '../confirmations/hooks/7702/useEIP7702Networks';
+// eslint-disable-next-line import/no-namespace
+import * as AddressUtils from '../../../util/address';
 import { act } from '@testing-library/react-hooks';
 import { RPC } from '../../../constants/network';
 
@@ -677,6 +679,16 @@ describe('AccountActions', () => {
         network7702List: [],
         networkSupporting7702Present: false,
       });
+
+      const { queryByText } = renderWithProvider(<AccountActions />, {
+        state: initialState,
+      });
+
+      expect(queryByText('Switch to Smart account')).toBeNull();
+    });
+
+    it('option should not be displayed for hardware wallet accounts', () => {
+      jest.spyOn(AddressUtils, 'isHardwareAccount').mockReturnValue(true);
 
       const { queryByText } = renderWithProvider(<AccountActions />, {
         state: initialState,

@@ -6,8 +6,8 @@ const styleSheet = () =>
       flex: 1,
     },
     bodyTextContainer: {
+      paddingBottom: 8,
       paddingHorizontal: 16,
-      paddingBottom: 16,
     },
     row: {
       flexDirection: 'row',
@@ -19,6 +19,7 @@ const styleSheet = () =>
       paddingTop: 2,
     },
     footer: {
+      paddingTop: 16,
       paddingHorizontal: 16,
       paddingBottom: 16,
     },

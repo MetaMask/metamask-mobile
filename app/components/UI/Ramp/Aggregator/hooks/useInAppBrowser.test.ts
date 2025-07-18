@@ -34,7 +34,7 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
-jest.mock('./useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockHandleSuccessfulOrder = jest.fn();
 jest.mock('./useHandleSuccessfulOrder', () => () => mockHandleSuccessfulOrder);

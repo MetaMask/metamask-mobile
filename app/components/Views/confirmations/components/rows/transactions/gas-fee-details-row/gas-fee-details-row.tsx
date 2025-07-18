@@ -1,27 +1,27 @@
+import { TransactionBatchMeta, TransactionMeta } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { TransactionMeta } from '@metamask/transaction-controller';
-
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
-import Icon, {
-  IconSize,
-  IconName,
-} from '../../../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../../../locales/i18n';
-import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
-import { useStyles } from '../../../../../../../component-library/hooks';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../../component-library/components/Texts/Text/Text';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import { useFeeCalculations } from '../../../../hooks/gas/useFeeCalculations';
-import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
+import { useFeeCalculationsTransactionBatch } from '../../../../hooks/gas/useFeeCalculationsTransactionBatch';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
+import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
+import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
+import { GasSpeed } from '../../../gas/gas-speed';
 import { GasFeeModal } from '../../../modals/gas-fee-modal';
-import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
-import { GasSpeed } from '../../../gas/gas-speed';
+import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './gas-fee-details-row.styles';
-
 
 const EstimationInfo = ({
   hideFiatForTestnet,
@@ -45,21 +45,49 @@ const EstimationInfo = ({
   );
 };
 
+const SingleEstimateInfo = ({ hideFiatForTestnet }: { hideFiatForTestnet: boolean }) => {
+  const transactionMetadata = useTransactionMetadataRequest();
+  const feeCalculations = useFeeCalculations(transactionMetadata as TransactionMeta);
+
+  return (
+    <EstimationInfo
+      hideFiatForTestnet={hideFiatForTestnet}
+      feeCalculations={feeCalculations}
+    />
+  );
+};
+
+const BatchEstimateInfo = ({ hideFiatForTestnet }: { hideFiatForTestnet: boolean }) => {
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
+  const feeCalculations = useFeeCalculationsTransactionBatch(transactionBatchesMetadata as TransactionBatchMeta);
+
+  return (
+    <EstimationInfo
+      hideFiatForTestnet={hideFiatForTestnet}
+      feeCalculations={feeCalculations}
+    />
+  );
+};
+
 const ClickableEstimationInfo = ({
   hideFiatForTestnet,
-  feeCalculations,
   onPress,
 }: {
   hideFiatForTestnet: boolean;
-  feeCalculations: ReturnType<typeof useFeeCalculations>;
   onPress: () => void;
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
+
+  const transactionMetadata = useTransactionMetadataRequest();
+  const feeCalculations = useFeeCalculations(
+    transactionMetadata as TransactionMeta,
+  );
+
   return (
     <TouchableOpacity onPress={onPress} style={styles.editButton}>
       <Icon
         name={IconName.Edit}
-        size={IconSize.Sm}
+        size={IconSize.Md}
         color={theme.colors.info.default}
         style={styles.editIcon}
       />
@@ -71,13 +99,26 @@ const ClickableEstimationInfo = ({
   );
 };
 
+const RenderEstimationInfo = ({
+  transactionBatchesMetadata,
+  hideFiatForTestnet,
+}: {
+  transactionBatchesMetadata: TransactionBatchMeta | undefined;
+  hideFiatForTestnet: boolean;
+}) => {
+  if (transactionBatchesMetadata) {
+    return <BatchEstimateInfo hideFiatForTestnet={hideFiatForTestnet} />;
+  }
+  return <SingleEstimateInfo hideFiatForTestnet={hideFiatForTestnet} />;
+};
+
 const GasFeesDetailsRow = ({ disableUpdate = false }) => {
   const [gasModalVisible, setGasModalVisible] = useState(false);
   const { styles } = useStyles(styleSheet, {});
+
   const transactionMetadata = useTransactionMetadataRequest();
-  const feeCalculations = useFeeCalculations(
-    transactionMetadata as TransactionMeta,
-  );
+  const transactionBatchesMetadata = useTransactionBatchesMetadata();
+
   const hideFiatForTestnet = useHideFiatForTestnet(
     transactionMetadata?.chainId,
   );
@@ -102,15 +143,14 @@ const GasFeesDetailsRow = ({ disableUpdate = false }) => {
         >
           <View style={styles.valueContainer}>
             {disableUpdate ? (
-              <EstimationInfo
+              <RenderEstimationInfo
+                transactionBatchesMetadata={transactionBatchesMetadata}
                 hideFiatForTestnet={hideFiatForTestnet}
-                feeCalculations={feeCalculations}
               />
             ) : (
               <ClickableEstimationInfo
                 onPress={() => setGasModalVisible(true)}
                 hideFiatForTestnet={hideFiatForTestnet}
-                feeCalculations={feeCalculations}
               />
             )}
           </View>

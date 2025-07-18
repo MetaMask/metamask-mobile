@@ -8,7 +8,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     title: {
-      textAlign: 'center',
+      marginBottom: 16,
     },
     getStartedImageWrapper: {
       alignItems: 'center',
@@ -19,24 +19,17 @@ const styleSheet = (params: { theme: Theme }) => {
       alignSelf: 'center',
     },
     bulletPointContainer: {
-      marginBottom: 16,
-      paddingHorizontal: 16,
+      marginVertical: 8,
       flexDirection: 'row',
     },
     bulletPointContent: {
       flex: 1,
-      paddingLeft: 12,
-    },
-    bulletPointTitle: {
-      fontWeight: 'bold',
+      marginLeft: 12,
     },
     bulletPointDescription: {
       fontSize: 14,
       lineHeight: 20,
-      opacity: 0.8,
-    },
-    checkIcon: {
-      color: theme.colors.success.default,
+      color: theme.colors.text.alternative,
     },
   });
 };

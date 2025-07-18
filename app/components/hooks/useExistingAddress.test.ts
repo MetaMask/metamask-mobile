@@ -15,6 +15,17 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
+// Mock isRemoveGlobalNetworkSelectorEnabled utility
+const mockIsRemoveGlobalNetworkSelectorEnabled = jest
+  .fn()
+  .mockReturnValue(false);
+
+jest.mock('../../util/networks', () => ({
+  ...jest.requireActual('../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: () =>
+    mockIsRemoveGlobalNetworkSelectorEnabled(),
+}));
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
@@ -43,7 +54,7 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('useExistingAddress', () => {
-  it('should return existing address from accounts controller', async () => {
+  it('returns existing address from accounts controller', async () => {
     const { result } = renderHookWithProvider(
       () => useExistingAddress(MOCK_ADDRESS_1),
       {
@@ -52,7 +63,7 @@ describe('useExistingAddress', () => {
     );
     expect(result?.current?.name).toEqual('Account 1');
   });
-  it('should return existing address from address book', async () => {
+  it('returns existing address from address book', async () => {
     const { result } = renderHookWithProvider(
       () => useExistingAddress(MOCK_ADDRESS_2),
       {
@@ -61,7 +72,15 @@ describe('useExistingAddress', () => {
     );
     expect(result?.current?.name).toEqual('Account 2');
   });
-  it('should return undefined address not in identities or address book', async () => {
+  it('returns undefined address not in identities or address book', async () => {
+    const { result } = renderHookWithProvider(() => useExistingAddress('0x2'), {
+      state: mockInitialState,
+    });
+    expect(result?.current).toBeUndefined();
+  });
+
+  it('returns existing address from all chain IDs when isRemoveGlobalNetworkSelectorEnabled is true', () => {
+    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
     const { result } = renderHookWithProvider(() => useExistingAddress('0x2'), {
       state: mockInitialState,
     });

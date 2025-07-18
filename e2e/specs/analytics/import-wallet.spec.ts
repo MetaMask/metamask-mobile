@@ -46,9 +46,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
         testSpecificMock,
-        launchArgs: {
-          sendMetaMetricsinE2E: true,
-        },
       },
       async ({ mockServer }: { mockServer: MockttpServer }) => {
         await importWalletWithRecoveryPhrase({
@@ -220,9 +217,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
         testSpecificMock,
-        launchArgs: {
-          sendMetaMetricsinE2E: true,
-        },
       },
       async ({ mockServer }: { mockServer: MockttpServer }) => {
         await importWalletWithRecoveryPhrase({

@@ -20,8 +20,30 @@ import { startMockServer, stopMockServer } from '../api-mocking/mock-server';
 import { AnvilSeeder } from '../seeder/anvil-seeder';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
-export const DEFAULT_TEST_DAPP_PATH = path.join('..', '..', 'node_modules', '@metamask', 'test-dapp', 'dist');
-export const DEFAULT_MULTICHAIN_TEST_DAPP_PATH = path.join('..', '..', 'node_modules', '@metamask', 'test-dapp-multichain', 'build');
+export const DEFAULT_TEST_DAPP_PATH = path.join(
+  '..',
+  '..',
+  'node_modules',
+  '@metamask',
+  'test-dapp',
+  'dist',
+);
+export const DEFAULT_MULTICHAIN_TEST_DAPP_PATH = path.join(
+  '..',
+  '..',
+  'node_modules',
+  '@metamask',
+  'test-dapp-multichain',
+  'build',
+);
+export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join(
+  '..',
+  '..',
+  'node_modules',
+  '@metamask',
+  'test-dapp-solana',
+  'dist',
+);
 
 // While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
 const getFixturesPort =
@@ -33,7 +55,7 @@ const FIXTURE_SERVER_URL = `http://localhost:${getFixturesPort()}/state.json`;
 // Helper constant for multichain testing
 export const DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS = {
   dapp: true,
-  multichainDapp: true
+  multichainDapp: true,
 };
 
 // checks if server has already been started
@@ -178,7 +200,8 @@ export const stopFixtureServer = async (fixtureServer) => {
  * @param {Object} options - An object containing configuration options.
  * @param {Object} options.fixture - The fixture to load.
  * @param {boolean} [options.dapp] - The dapp to load.
- * @param {boolean} [options.multichainDapp=false] 
+ * @param {boolean} [options.multichainDapp=false]
+ * @param {string} [options.dappPath] - The dapp path to use.
  * @param {Object} [options.ganacheOptions] - The test specific mock to load for test.
  * @param {import('detox/detox').LanguageAndLocale} [options.languageAndLocale] - The language and locale to use for the app.
  * @param {Object} [options.launchArgs] - Additional launch arguments for the app.

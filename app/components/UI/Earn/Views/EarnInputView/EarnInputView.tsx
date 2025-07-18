@@ -67,6 +67,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { doesTokenRequireAllowanceReset } from '../../utils';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -774,40 +775,48 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
-      <InputDisplay
-        isOverMaximum={isOverMaximum}
-        balanceText={balanceText}
-        balanceValue={balanceValue}
-        amountToken={amountToken}
-        amountFiatNumber={amountFiatNumber}
-        isFiat={isFiat}
-        asset={token}
-        currentCurrency={currentCurrency}
-        handleCurrencySwitch={handleCurrencySwitchWithTracking}
-        currencyToggleValue={currencyToggleValue}
-      />
-      <View style={styles.rewardsRateContainer}>
-        {isStablecoinLendingEnabled ? (
-          <EarnTokenSelector
-            token={token}
-            action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
-          />
-        ) : (
-          <EstimatedAnnualRewardsCard
-            estimatedAnnualRewards={estimatedAnnualRewards}
-            onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
-              event: MetaMetricsEvents.TOOLTIP_OPENED,
-              properties: {
-                selected_provider: EVENT_PROVIDERS.CONSENSYS,
-                text: 'Tooltip Opened',
-                location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-                tooltip_name: 'MetaMask Pool Estimated Rewards',
-              },
-            })}
-            isLoading={isLoadingEarnMetadata}
-          />
-        )}
-      </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        <InputDisplay
+          isOverMaximum={isOverMaximum}
+          balanceText={balanceText}
+          balanceValue={balanceValue}
+          amountToken={amountToken}
+          amountFiatNumber={amountFiatNumber}
+          isFiat={isFiat}
+          asset={token}
+          currentCurrency={currentCurrency}
+          handleCurrencySwitch={handleCurrencySwitchWithTracking}
+          currencyToggleValue={currencyToggleValue}
+        />
+        <View style={styles.rewardsRateContainer}>
+          {isStablecoinLendingEnabled ? (
+            <>
+              <View style={styles.spacer} />
+              <EarnTokenSelector
+                token={token}
+                action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
+              />
+            </>
+          ) : (
+            <EstimatedAnnualRewardsCard
+              estimatedAnnualRewards={estimatedAnnualRewards}
+              onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+                event: MetaMetricsEvents.TOOLTIP_OPENED,
+                properties: {
+                  selected_provider: EVENT_PROVIDERS.CONSENSYS,
+                  text: 'Tooltip Opened',
+                  location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+                  tooltip_name: 'MetaMask Pool Estimated Rewards',
+                },
+              })}
+              isLoading={isLoadingEarnMetadata}
+            />
+          )}
+        </View>
+      </ScrollView>
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={handleQuickAmountPressWithTracking}

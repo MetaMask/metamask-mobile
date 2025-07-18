@@ -21,6 +21,9 @@ const styleSheet = (params: { theme: Theme }) => {
     calendarIcon: {
       color: theme.colors.icon.default,
     },
+    footerContent: {
+      gap: 8,
+    },
   });
 };
 

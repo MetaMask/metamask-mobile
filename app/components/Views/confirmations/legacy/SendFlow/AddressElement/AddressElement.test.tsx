@@ -6,6 +6,8 @@ import { renderShortAddress } from '../../../../../../util/address';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { RootState } from '../../../../../../reducers';
+import { EngineState } from '../../../../../../core/Engine';
 
 jest.unmock('react-redux');
 
@@ -15,6 +17,16 @@ const mockedNetworkControllerState = mockNetworkState({
   nickname: 'Ethereum Mainnet',
   ticker: 'ETH',
 });
+
+const mockIsRemoveGlobalNetworkSelectorEnabled = jest
+  .fn()
+  .mockReturnValue(false);
+
+jest.mock('../../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: () =>
+    mockIsRemoveGlobalNetworkSelectorEnabled(),
+}));
 
 jest.mock('../../../../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
@@ -58,7 +70,12 @@ const initialState = {
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderComponent = (state: any) =>
+const renderComponent = (
+  state: Partial<RootState> & { engine: { backgroundState: EngineState } },
+  options?: {
+    displayNetworkBadge?: boolean;
+  },
+) =>
   renderWithProvider(
     <AddressElement
       address={'0xd018538C87232FF95acbCe4870629b75640a78E7'}
@@ -67,6 +84,7 @@ const renderComponent = (state: any) =>
       onIconPress={() => null}
       testID="address-element"
       chainId="0x1"
+      displayNetworkBadge={options?.displayNetworkBadge}
     />,
     { state },
   );
@@ -82,5 +100,38 @@ describe('AddressElement', () => {
     const { getByText } = renderComponent(initialState);
     const addressText = getByText(renderShortAddress(address));
     expect(addressText).toBeDefined();
+  });
+
+  it('renders the network badge when displayNetworkBadge is true and the isRemoveGlobalNetworkSelectorEnabled feature flag is enabled', () => {
+    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+    const { getByTestId } = renderComponent(
+      {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            NetworkController: {
+              ...backgroundState.NetworkController,
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  name: 'Ethereum Mainnet',
+                  chainId: '0x1',
+                  blockExplorerUrls: [],
+                  rpcEndpoints: [],
+                  defaultRpcEndpointIndex: 0,
+                  nativeCurrency: 'ETH',
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        displayNetworkBadge: true,
+      },
+    );
+
+    const networkBadge = getByTestId('network-avatar-image');
+    expect(networkBadge).toBeDefined();
   });
 });

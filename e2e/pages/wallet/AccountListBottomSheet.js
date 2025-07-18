@@ -8,6 +8,7 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/C
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import TestHelpers from '../../helpers';
+import Assertions from '../../utils/Assertions';
 
 class AccountListBottomSheet {
   get accountList() {
@@ -85,10 +86,7 @@ class AccountListBottomSheet {
   }
 
   async tapEditAccountActionsAtIndex(index) {
-    const accountActionsButton = Matchers.getElementByID(
-      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
-    );
-    await Gestures.waitAndTap(accountActionsButton);
+    await Gestures.tapAtIndex(Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS), index);
   }
 
   async accountNameInList(accountName) {
@@ -129,6 +127,17 @@ class AccountListBottomSheet {
 
   async tapConnectAccountsButton() {
     await Gestures.waitAndTap(this.connectAccountsButton);
+  }
+
+  async scrollToAccount(index) {
+    await Gestures.scrollToElement(
+      Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index),
+      by.id(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+    );
+  }
+
+  async scrollToBottomOfAccountList() {
+    await Gestures.swipe(this.accountList, 'up', 'fast');
   }
 }
 

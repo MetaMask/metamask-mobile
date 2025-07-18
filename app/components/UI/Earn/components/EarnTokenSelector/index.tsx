@@ -72,7 +72,7 @@ const EarnTokenSelector = ({
           chainId={token.chainId ?? ''}
           ticker={token.ticker ?? ''}
           big={false}
-          biggest={false}
+          biggest
           testID={`earn-token-selector-${token.symbol}-${token.chainId}`}
           style={styles.networkAvatar}
         />
@@ -115,12 +115,22 @@ const EarnTokenSelector = ({
 
   const renderEndAccessory = () => (
     <View style={styles.endAccessoryContainer}>
-      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        color={TextColor.Success}
+        numberOfLines={1}
+      >
         {`${apr}% APR`}
       </Text>
 
       {token?.balanceFormatted !== undefined && (
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+        <Text
+          style={styles.balanceText}
+          variant={TextVariant.BodySMMedium}
+          color={TextColor.Alternative}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {token?.balanceFormatted}
         </Text>
       )}

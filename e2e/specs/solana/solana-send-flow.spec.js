@@ -19,7 +19,8 @@ const EXPECTED_CONFIRMATION = '0.002 SOL was successfully sent';
 const RECIPIENT_SHORT_ADDRESS = 'EjiyBUW...GgtXt';
 const RECENT_TRANSACTION_INDEX = 0;
 
-describe(
+// TODO: Enable when we come back after the new feature view is released
+describe.skip(
   SmokeNetworkExpansion('Solana Token Transfer Functionality'),
   () => {
     beforeAll(async () => {

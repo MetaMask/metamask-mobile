@@ -20,7 +20,7 @@ export const HD_ACCOUNT: Account = {
 };
 
 export const SIMPLE_KEYPAIR_ACCOUNT: Account = {
-  name: 'Account 5',
+  name: 'Account 4',
   index: 4,
   address: DEFAULT_FIXTURE_ACCOUNT,
 };

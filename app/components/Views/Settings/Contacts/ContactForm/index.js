@@ -32,10 +32,27 @@ import {
 } from '../../../../../constants/error';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
-import { selectEvmChainId } from '../../../../../selectors/networkController';
+import {
+  selectEvmChainId,
+  selectNetworkConfigurations,
+} from '../../../../../selectors/networkController';
 import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
+import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
+import {
+  getNetworkImageSource,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../../../util/networks';
+import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -59,6 +76,22 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       color: colors.text.default,
+    },
+    networkSelector: {
+      ...fontStyles.normal,
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      borderRadius: 5,
+      borderWidth: 2,
+      borderColor: colors.border.default,
+      padding: 10,
+    },
+    networkSelectorNetworkName: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
     },
     resolvedInput: {
       ...fontStyles.normal,
@@ -131,18 +164,24 @@ class ContactForm extends PureComponent {
      */
     addressBook: PropTypes.object,
     /**
+     * Object that represents the network configuration
+     */
+    networkConfigurations: PropTypes.object,
+    /**
+     * The current chain ID of the app
+     */
+    chainId: PropTypes.string,
+    /**
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Network chainId
-     */
-    chainId: PropTypes.string,
   };
 
   state = {
     name: null,
     address: null,
+    originalContactChainId: '',
+    contactChainId: '',
     addressError: null,
     toEnsName: null,
     toEnsAddress: null,
@@ -151,11 +190,14 @@ class ContactForm extends PureComponent {
     memo: null,
     editable: true,
     inputWidth: Platform.OS === 'android' ? '99%' : undefined,
+    openNetworkSelector: false,
   };
 
   actionSheet = React.createRef();
   addressInput = React.createRef();
   memoInput = React.createRef();
+
+  sheetRef = React.createRef();
 
   updateNavBar = () => {
     const { navigation, route } = this.props;
@@ -180,11 +222,16 @@ class ContactForm extends PureComponent {
         this.setState({ inputWidth: '100%' });
       }, 100);
     if (mode === EDIT) {
-      const { addressBook, chainId, internalAccounts } = this.props;
-      const networkAddressBook = addressBook[chainId] || {};
+      const { addressBook, internalAccounts } = this.props;
+      const completeAndFlattenedAddressBook = Object.entries(addressBook)
+        .filter(([addressBookChainId, _]) => addressBookChainId !== '*')
+        .map(([_, addressDict]) => Object.values(addressDict))
+        .flat();
       const address = this.props.route.params?.address ?? '';
       const contact =
-        networkAddressBook[address] ||
+        completeAndFlattenedAddressBook.find(
+          (contact) => contact.address === address,
+        ) ||
         (address &&
           internalAccounts.find((account) =>
             areAddressesEqual(account.address, address),
@@ -193,6 +240,8 @@ class ContactForm extends PureComponent {
         address,
         name: contact?.name ?? '',
         memo: contact?.memo ?? '',
+        contactChainId: contact?.chainId ?? this.props.chainId ?? '',
+        originalContactChainId: contact?.chainId ?? this.props.chainId ?? '',
         addressReady: true,
         editable: false,
       });
@@ -224,6 +273,7 @@ class ContactForm extends PureComponent {
 
   validateAddressOrENSFromInput = async (address) => {
     const { addressBook, internalAccounts, chainId } = this.props;
+    const { contactChainId } = this.state;
 
     const {
       addressError,
@@ -235,7 +285,7 @@ class ContactForm extends PureComponent {
       address,
       addressBook,
       internalAccounts,
-      chainId,
+      contactChainId || chainId,
     );
 
     this.setState({
@@ -267,14 +317,32 @@ class ContactForm extends PureComponent {
   };
 
   saveContact = () => {
-    const { name, address, memo, toEnsAddress } = this.state;
-    const { chainId, navigation } = this.props;
+    const {
+      name,
+      address,
+      memo,
+      toEnsAddress,
+      contactChainId,
+      originalContactChainId,
+    } = this.state;
+    const { navigation, chainId } = this.props;
     const { AddressBookController } = Engine.context;
+
+    const wasChainIdChanged = contactChainId !== originalContactChainId;
+
     if (!name || !address) return;
+
+    if (wasChainIdChanged) {
+      AddressBookController.delete(
+        originalContactChainId,
+        toChecksumAddress(address),
+      );
+    }
+
     AddressBookController.set(
       toChecksumAddress(toEnsAddress || address),
       name,
-      chainId,
+      contactChainId || chainId,
       memo,
     );
     navigation.pop();
@@ -282,8 +350,13 @@ class ContactForm extends PureComponent {
 
   deleteContact = () => {
     const { AddressBookController } = Engine.context;
-    const { chainId, navigation, route } = this.props;
-    AddressBookController.delete(chainId, this.contactAddressToRemove);
+    const { navigation, route } = this.props;
+    const { originalContactChainId } = this.state;
+
+    AddressBookController.delete(
+      originalContactChainId,
+      this.contactAddressToRemove,
+    );
     route.params.onDelete();
     navigation.pop();
   };
@@ -299,6 +372,14 @@ class ContactForm extends PureComponent {
         origin: Routes.SETTINGS.CONTACT_FORM,
       }),
     );
+  };
+
+  setSelectedNetwork = (contactChainId) => {
+    this.setState({ contactChainId });
+  };
+
+  setOpenNetworkSelector = (openNetworkSelector) => {
+    this.setState({ openNetworkSelector });
   };
 
   createActionSheetRef = (ref) => {
@@ -339,10 +420,20 @@ class ContactForm extends PureComponent {
       inputWidth,
       toEnsAddress,
       errorContinue,
+      contactChainId,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
+
+    const networkName =
+      this.props.networkConfigurations[contactChainId]?.name ||
+      this.props.networkConfigurations[this.props.chainId]?.name ||
+      '';
+    const isAddMode = editable && mode === ADD;
+    const isEditMode = editable && mode === EDIT;
+    const isRemoveGlobalNetworkSelectorFeatureFlagEnabled =
+      isRemoveGlobalNetworkSelectorEnabled();
 
     return (
       <SafeAreaView
@@ -371,14 +462,17 @@ class ContactForm extends PureComponent {
               testID={AddContactViewSelectorsIDs.NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
-
             <Text style={styles.label}>{strings('address_book.address')}</Text>
             <View
               style={[styles.input, editable ? {} : styles.textInputDisaled]}
             >
               <View style={styles.inputWrapper}>
                 <TextInput
-                  editable={editable}
+                  editable={
+                    (editable &&
+                      !isRemoveGlobalNetworkSelectorFeatureFlagEnabled) ||
+                    isAddMode
+                  }
                   autoCapitalize={'none'}
                   autoCorrect={false}
                   onChangeText={this.onChangeAddress}
@@ -389,6 +483,12 @@ class ContactForm extends PureComponent {
                   style={[
                     styles.textInput,
                     inputWidth ? { width: inputWidth } : {},
+                    isEditMode &&
+                    isRemoveGlobalNetworkSelectorFeatureFlagEnabled
+                      ? {
+                          color: colors.text.alternative,
+                        }
+                      : {},
                   ]}
                   value={toEnsName || address}
                   ref={this.addressInput}
@@ -403,7 +503,9 @@ class ContactForm extends PureComponent {
                 )}
               </View>
 
-              {editable && (
+              {((editable &&
+                !isRemoveGlobalNetworkSelectorFeatureFlagEnabled) ||
+                isAddMode) && (
                 <TouchableOpacity
                   onPress={this.onScan}
                   style={styles.iconWrapper}
@@ -444,6 +546,54 @@ class ContactForm extends PureComponent {
                 />
               </View>
             </View>
+
+            {isRemoveGlobalNetworkSelectorFeatureFlagEnabled && (
+              <>
+                <Text style={styles.label}>
+                  {strings('address_book.network')}
+                </Text>
+                <TouchableOpacity
+                  disabled={!editable}
+                  style={[styles.networkSelector]}
+                  onPress={() => {
+                    if (this.state.editable) {
+                      this.setOpenNetworkSelector(true);
+                    }
+                  }}
+                  onLongPress={() => {
+                    if (this.state.editable) {
+                      this.setOpenNetworkSelector(true);
+                    }
+                  }}
+                  testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
+                >
+                  <View style={styles.networkSelectorNetworkName}>
+                    <Avatar
+                      variant={AvatarVariant.Network}
+                      size={AvatarSize.Sm}
+                      name={networkName}
+                      imageSource={getNetworkImageSource({
+                        chainId: contactChainId || this.props.chainId,
+                      })}
+                    />
+                    <Text>{networkName}</Text>
+                  </View>
+                  {!!editable && (
+                    <ButtonIcon
+                      iconName={IconName.ArrowDown}
+                      iconColor={IconColor.Default}
+                      onPress={() => {
+                        if (this.state.editable) {
+                          this.setOpenNetworkSelector(true);
+                        }
+                      }}
+                      accessibilityRole="button"
+                      style={styles.buttonIcon}
+                    />
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
           </View>
 
           {addressError && (
@@ -497,6 +647,14 @@ class ContactForm extends PureComponent {
             theme={themeAppearance}
           />
         </KeyboardAwareScrollView>
+        {this.state.openNetworkSelector ? (
+          <NetworkListBottomSheet
+            selectedNetwork={this.state.contactChainId}
+            setSelectedNetwork={this.setSelectedNetwork}
+            setOpenNetworkSelector={this.setOpenNetworkSelector}
+            sheetRef={this.sheetRef}
+          />
+        ) : null}
       </SafeAreaView>
     );
   };
@@ -508,6 +666,7 @@ const mapStateToProps = (state) => ({
   addressBook: selectAddressBook(state),
   internalAccounts: selectInternalAccounts(state),
   chainId: selectEvmChainId(state),
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 export default connect(mapStateToProps)(ContactForm);

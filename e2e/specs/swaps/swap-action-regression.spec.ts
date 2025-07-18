@@ -139,6 +139,9 @@ describe(Regression('Multiple Swaps from Actions'), () => {
           'Max slippage 0%',
         );
       }
+      // This call is needed because otherwise the device never becomes idle
+      await device.disableSynchronization();
+
       await QuoteView.tapOnGetQuotes();
       await Assertions.checkIfVisible(SwapView.quoteSummary);
       await Assertions.checkIfVisible(SwapView.gasFee);

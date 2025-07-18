@@ -7,6 +7,8 @@ import { AddressBookEntry } from '@metamask/address-book-controller';
 import { selectAddressBook } from '../../selectors/addressBookController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 import { selectEvmChainId } from '../../selectors/networkController';
+import { useMemo } from 'react';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../util/networks';
 
 type AccountInfo = Pick<AddressBookEntry, 'name' | 'address'>;
 
@@ -17,13 +19,27 @@ const useExistingAddress = (address?: string): AccountInfo | undefined => {
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
 
+  const filteredAddressBook = useMemo(() => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      return Object.values(addressBook).reduce(
+        (acc, networkAddressBook) => ({
+          ...acc,
+          ...networkAddressBook,
+        }),
+        {},
+      );
+    }
+
+    return addressBook[chainId] || {};
+  }, [addressBook, chainId]);
+
   if (!address || !isEvmSelected) return;
+
   // TODO: [SOLANA] Revisit this before shipping, Address Book controller should support non evm networks
-  const networkAddressBook = addressBook[chainId] || {};
   const checksummedAddress = toChecksumAddress(address);
 
   const matchingAddressBookEntry: AddressBookEntry | undefined =
-    networkAddressBook?.[checksummedAddress];
+    filteredAddressBook?.[checksummedAddress];
 
   if (matchingAddressBookEntry) {
     return {

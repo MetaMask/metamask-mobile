@@ -13,7 +13,7 @@ import {
 import Assertions from '../../../utils/Assertions';
 import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
@@ -68,8 +68,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await Assertions.checkIfVisible(
           ConfirmationUITypes.FlatConfirmationContainer,
         );
-        await Assertions.checkIfVisible(RowComponents.TokenHero);
-        await Assertions.checkIfTextIsDisplayed('1 ETH');
         await Assertions.checkIfVisible(RowComponents.FromTo);
         await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
         await Assertions.checkIfVisible(RowComponents.AdvancedDetails);

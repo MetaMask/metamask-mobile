@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { InteractionManager } from 'react-native';
 import Modal from 'react-native-modal';
 import { useIsFocused } from '@react-navigation/native';
 import NetworkInfo from '../../UI/NetworkInfo';
@@ -12,12 +13,12 @@ import {
 } from '../../../actions/onboardNetwork';
 import { toggleInfoNetworkModal } from '../../../actions/modals';
 import { getIsNetworkOnboarded } from '../../../util/networks';
-import { InteractionManager } from 'react-native';
 
 const InfoNetworkModal = () => {
   const prevNetwork = useRef<string>();
 
   const isFocused = useIsFocused();
+
   const theme = useTheme();
   const dispatch = useDispatch();
   const infoNetworkModalVisible = useSelector(

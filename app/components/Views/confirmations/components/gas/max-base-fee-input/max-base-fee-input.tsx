@@ -16,7 +16,7 @@ import {
 } from '../../../../../../util/conversions';
 import { limitToMaximumDecimalPlaces } from '../../../../../../util/number';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
-import { validateMaxBaseFee } from '../../../utils/gas-validations';
+import { validateMaxBaseFee } from '../../../utils/validations/gas';
 import styleSheet from './max-base-fee-input.styles';
 
 const InfoLabel = ({ children }: { children: React.ReactNode }) => {

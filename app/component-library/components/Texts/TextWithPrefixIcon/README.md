@@ -12,7 +12,7 @@ Props for the Prefix Icon.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconProps](../../Icons/Icon.types.ts)                                              | Yes                                                     |
+| [IconProps](../../Icons/Icon.types.ts)              | Yes                                                     |
 
 ### `variant`
 
@@ -20,7 +20,7 @@ Optional enum to select between Typography variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [TextVariant](../Text/Text.types.ts#L6)                   | No                                                      | BodyMD                                                |
+| [TextVariant](../Text/Text.types.ts#L6)             | No                                                      | BodyMD                                                 |
 
 ## Usage
 
@@ -29,7 +29,7 @@ Optional enum to select between Typography variants.
 import TextWithPrefixIcon from 'app/component-library/components/Texts/TextWithPrefixIcon';
 import { TextVariant } from 'app/component-library/components/Texts/Text';
 
-<TextWithPrefixIcon variant={TextVariant.HeadingSMRegular} iconProps={SAMPLE_ICON_PROPS}>
-    {SAMPLE_TEXT}
+<TextWithPrefixIcon variant={TextVariant.BodyMD} iconProps={SAMPLE_ICON_PROPS}>
+  {SAMPLE_TEXT}
 </TextWithPrefixIcon>;
 ```

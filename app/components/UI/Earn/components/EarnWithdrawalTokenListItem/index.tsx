@@ -53,8 +53,14 @@ const EarnWithdrawalTokenListItem = ({
           >
             <EarnNetworkAvatar token={earnToken} />
           </BadgeWrapper>
-          <View>
-            <Text variant={TextVariant.BodyMDMedium}>{earnToken.name}</Text>
+          <View style={styles.textContainer}>
+            <Text
+              numberOfLines={1}
+              variant={TextVariant.BodyMDMedium}
+              ellipsizeMode="tail"
+            >
+              {earnToken.name}
+            </Text>
             <Text
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}

@@ -9,8 +9,7 @@ import { TextVariant } from '../../../../Texts/Text';
 
 // Defaults
 export const DEFAULT_CELLBASE_AVATAR_SIZE = AvatarSize.Md;
-export const DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT =
-  TextVariant.HeadingSMRegular;
+export const DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT = TextVariant.BodyMD;
 export const DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT =
   TextVariant.BodyMD;
 export const DEFAULT_CELLBASE_AVATAR_TERTIARYTEXT_TEXTVARIANT =

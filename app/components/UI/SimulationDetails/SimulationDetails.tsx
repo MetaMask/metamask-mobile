@@ -71,9 +71,7 @@ const ErrorContent: React.FC<{
  * Content when there are no balance changes.
  */
 const EmptyContent: React.FC = () => (
-  <Text>
-    {strings('simulation_details.no_balance_changes')}
-  </Text>
+  <Text>{strings('simulation_details.no_balance_changes')}</Text>
 );
 
 /**
@@ -95,7 +93,7 @@ const HeaderLayout: React.FC<{
   return (
     <View style={styles.headerContainer}>
       <View style={styles.innerHeaderContainer}>
-        <Text variant={TextVariant.BodyMDMedium}>
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
           {strings('simulation_details.title')}
         </Text>
         <Pressable onPress={() => setIsModalVisible(true)}>
@@ -130,11 +128,19 @@ const SimulationDetailsLayout: React.FC<{
   isTransactionsRedesign: boolean;
   noBalanceChanges?: boolean;
   children?: React.ReactNode;
-}> = ({ inHeader, children, isTransactionsRedesign, noBalanceChanges = false }) => {
-  const { styles } = useStyles(styleSheet, { isTransactionsRedesign, noBalanceChanges });
+}> = ({
+  inHeader,
+  children,
+  isTransactionsRedesign,
+  noBalanceChanges = false,
+}) => {
+  const { styles } = useStyles(styleSheet, {
+    isTransactionsRedesign,
+    noBalanceChanges,
+  });
   return (
-    <View 
-      style={isTransactionsRedesign ? styles.redesignedRowContainer : {}} 
+    <View
+      style={isTransactionsRedesign ? styles.redesignedRowContainer : {}}
       testID={ConfirmationRowComponentIDs.SIMULATION_DETAILS}
     >
       <View style={[styles.container]}>
@@ -226,7 +232,10 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   const empty = balanceChanges.length === 0;
   if (empty) {
     return (
-      <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign} noBalanceChanges>
+      <SimulationDetailsLayout
+        isTransactionsRedesign={isTransactionsRedesign}
+        noBalanceChanges
+      >
         <EmptyContent />
       </SimulationDetailsLayout>
     );

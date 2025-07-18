@@ -104,7 +104,7 @@ jest.mock('../../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('../../hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
 jest.mock('../../hooks/useFiatCurrencies', () => () => ({
   currentFiatCurrency: {

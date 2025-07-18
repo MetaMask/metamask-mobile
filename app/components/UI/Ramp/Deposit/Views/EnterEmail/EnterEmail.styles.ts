@@ -12,6 +12,9 @@ const styleSheet = () =>
       flex: 1,
       flexDirection: 'column',
     },
+    footerContent: {
+      gap: 8,
+    },
   });
 
 export default styleSheet;

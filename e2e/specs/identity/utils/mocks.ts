@@ -14,23 +14,23 @@ interface MockResponse {
 
 export async function mockIdentityServices(server: Mockttp) {
   // Auth
-  mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
-  mockAPICall(server, AuthMocks.getMockAuthLoginResponse());
-  mockAPICall(server, AuthMocks.getMockAuthAccessTokenResponse());
+  await mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
+  await mockAPICall(server, AuthMocks.getMockAuthLoginResponse());
+  await mockAPICall(server, AuthMocks.getMockAuthAccessTokenResponse());
 
   // Storage
   const userStorageMockttpControllerInstance =
     new UserStorageMockttpController();
 
-  userStorageMockttpControllerInstance.setupPath(
+  await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.accounts,
     server,
   );
-  userStorageMockttpControllerInstance.setupPath(
+  await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.networks,
     server,
   );
-  userStorageMockttpControllerInstance.setupPath(
+  await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.addressBook,
     server,
   );
@@ -63,7 +63,7 @@ const getE2ESrpIdentifierForPublicKey = (publicKey: string) => {
   return nextIdentifier;
 };
 
-function mockAPICall(server: Mockttp, response: MockResponse) {
+async function mockAPICall(server: Mockttp, response: MockResponse) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {
@@ -82,7 +82,7 @@ function mockAPICall(server: Mockttp, response: MockResponse) {
     requestRuleBuilder = server.forDelete('/proxy');
   }
 
-  requestRuleBuilder
+  await requestRuleBuilder
     ?.matching((request) => {
       const url = getDecodedProxiedURL(request.url);
 

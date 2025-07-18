@@ -67,13 +67,8 @@ have to have all these workarounds in the tests
   }
 
   // Handle Solana New feature sheet
-  if (solanaSheetAction === 'dismiss') {
-    await SolanaNewFeatureSheet.tapNotNowButton();
-  } else if (solanaSheetAction === 'create') {
-    await SolanaNewFeatureSheet.tapCreateAccountButton();
-  } else if (solanaSheetAction === 'viewAccount') {
-    await SolanaNewFeatureSheet.tapViewAccountButton();
-  }
+  await Assertions.checkIfVisible(SolanaNewFeatureSheet.notNowButton);
+  await SolanaNewFeatureSheet.tapNotNowButton();
 };
 
 export const skipNotificationsDeviceSettings = async () => {
@@ -91,6 +86,21 @@ export const skipNotificationsDeviceSettings = async () => {
     /* eslint-disable no-console */
 
     console.log('The notification device alert modal is not visible');
+  }
+};
+
+export const dismissProtectYourWalletModal = async () => {
+  try {
+    await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
+    await ProtectYourWalletModal.tapRemindMeLaterButton();
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
+    await Assertions.checkIfNotVisible(
+      ProtectYourWalletModal.collapseWalletModal,
+    );
+  } catch {
+    // eslint-disable-next-line no-console
+    console.log('The protect your wallet modal is not visible');
   }
 };
 
@@ -209,17 +219,14 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
-  await this.skipNotificationsDeviceSettings();
+  await skipNotificationsDeviceSettings();
 
   // Dismissing to protect your wallet modal
-  await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
-  await ProtectYourWalletModal.tapRemindMeLaterButton();
-  await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-  await SkipAccountSecurityModal.tapSkipButton();
+  await dismissProtectYourWalletModal();
 
   // 'should dismiss the onboarding wizard'
   // dealing with flakiness on bitrise.
-  await this.closeOnboardingModals('dismiss');
+  await closeOnboardingModals('dismiss');
 };
 
 export const addLocalhostNetwork = async () => {

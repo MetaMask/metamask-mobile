@@ -309,10 +309,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   }
 
   return (
-    <View
-      style={styles.base}
-      testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
-    >
+    <View style={styles.base}>
       <View style={styles.bannerContainer}>
         <FlatList
           data={visibleSlides}
@@ -327,6 +324,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
             );
             setSelectedIndex(newIndex);
           }}
+          testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
         />
       </View>
       {!isSingleSlide && renderProgressDots}

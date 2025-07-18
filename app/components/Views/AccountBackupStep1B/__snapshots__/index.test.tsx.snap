@@ -787,5 +787,6 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
+  <View />
 </RCTSafeAreaView>
 `;

@@ -3,6 +3,7 @@ import {
   getEstimatedAnnualRewards,
   sortByHighestRewards,
   sortByHighestApr,
+  sortByHighestBalance,
   doesTokenRequireAllowanceReset,
 } from '.';
 import {
@@ -203,6 +204,60 @@ describe('tokenUtils', () => {
 
     it('returns empty array if input is empty', () => {
       expect(sortByHighestApr([])).toEqual([]);
+    });
+  });
+
+  describe('sortByHighestBalance', () => {
+    const tokens = [
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.ETH,
+        ),
+        balanceFiatNumber: 50.5,
+      }),
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.DAI,
+        ),
+        balanceFiatNumber: 100.25,
+      }),
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.USDC,
+        ),
+        balanceFiatNumber: 10.75,
+      }),
+    ];
+
+    it('sorts tokens by highest balance', () => {
+      const sorted = sortByHighestBalance(tokens);
+
+      expect(sorted[0].balanceFiatNumber).toBe(100.25);
+      expect(sorted[1].balanceFiatNumber).toBe(50.5);
+      expect(sorted[2].balanceFiatNumber).toBe(10.75);
+    });
+
+    it('handles tokens with zero balance', () => {
+      const tokensWithZero = [
+        ...tokens,
+        createMockEarnToken({
+          ...getCreateMockTokenOptions(
+            CHAIN_IDS.MAINNET,
+            TOKENS_WITH_DEFAULT_OPTIONS.USDT,
+          ),
+          balanceFiatNumber: 0,
+        }),
+      ];
+      const sorted = sortByHighestBalance(tokensWithZero);
+
+      expect(sorted[sorted.length - 1].balanceFiatNumber).toBe(0);
+    });
+
+    it('returns empty array if input is empty', () => {
+      expect(sortByHighestBalance([])).toEqual([]);
     });
   });
 

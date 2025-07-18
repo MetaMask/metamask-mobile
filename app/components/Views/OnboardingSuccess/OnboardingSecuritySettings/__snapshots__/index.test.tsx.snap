@@ -33,9 +33,8 @@ exports[`OnboardingSecuritySettings should render correctly 1`] = `
             {
               "color": "#121314",
               "flex": 1,
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 18,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -85,9 +84,8 @@ exports[`OnboardingSecuritySettings should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
             "marginTop": 8,
@@ -100,9 +98,8 @@ exports[`OnboardingSecuritySettings should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
             }

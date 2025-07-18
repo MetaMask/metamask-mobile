@@ -20,6 +20,9 @@ const styleSheet = (params: { theme: Theme }) => {
       fontSize: 14,
       color: theme.colors.primary.default,
     },
+    footerContent: {
+      gap: 8,
+    },
   });
 };
 

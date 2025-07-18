@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end',
       alignItems: 'center',
       flexWrap: 'wrap',
       paddingBottom: 8,
@@ -23,6 +23,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       minHeight: 38,
       paddingEnd: 4,
+      marginRight: 'auto', 
     },
     value: {
       color: theme.colors.text.default,

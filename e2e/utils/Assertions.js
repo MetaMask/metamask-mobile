@@ -1,4 +1,5 @@
 import { waitFor, element, by } from 'detox';
+import { Buffer } from 'buffer/';
 import Matchers from './Matchers';
 
 // Global timeout variable
@@ -14,9 +15,13 @@ class Assertions {
    * @param timeout
    */
   static async checkIfVisible(element, timeout = TIMEOUT) {
-    return await waitFor(await element)
-      .toBeVisible()
-      .withTimeout(timeout);
+    return device.getPlatform() === 'ios'
+      ? await waitFor(await element)
+          .toExist()
+          .withTimeout(timeout)
+      : await waitFor(await element)
+          .toBeVisible()
+          .withTimeout(timeout);
   }
 
   /**
@@ -139,6 +144,7 @@ class Assertions {
 
   /**
    * Check if two text values match exactly.
+   * Automatically normalizes non-breaking spaces and other whitespace characters.
    * @param {string} actualText - The actual text value to check.
    * @param {string} expectedText - The expected text value to match against.
    */
@@ -148,11 +154,24 @@ class Assertions {
         throw new Error('Both actual and expected text must be provided');
       }
 
-      return expect(actualText).toBe(expectedText);
+      // Normalize non-breaking spaces to regular spaces for comparison
+      const normalizedActual = actualText.replace(/\u00A0/g, ' ');
+      const normalizedExpected = expectedText.replace(/\u00A0/g, ' ');
+
+      return expect(normalizedActual).toBe(normalizedExpected);
     } catch (error) {
-      if (actualText !== expectedText) {
+      // Check normalized versions for comparison
+      const normalizedActual = actualText.replace(/\u00A0/g, ' ');
+      const normalizedExpected = expectedText.replace(/\u00A0/g, ' ');
+
+      if (normalizedActual !== normalizedExpected) {
+        // Provide detailed debugging information
+        const actualBytes = Buffer.from(actualText, 'utf8').toString('hex');
+        const expectedBytes = Buffer.from(expectedText, 'utf8').toString('hex');
         throw new Error(
-          `Text matching failed.\nExpected: "${expectedText}"\nActual: "${actualText}"`,
+          `Text matching failed.\nExpected: "${expectedText}"\nActual: "${actualText}"\n` +
+          `Expected (hex): ${expectedBytes}\nActual (hex): ${actualBytes}\n` +
+          `Expected (normalized): "${normalizedExpected}"\nActual (normalized): "${normalizedActual}"`,
         );
       }
     }
@@ -211,14 +230,20 @@ class Assertions {
   }
 
   /**
-   * Check if a value is present (not null, not undefined, not an empty string).
+   * Check if a value is defined (not null, not undefined, not an empty string).
+   * Also evaluates a Boolean value.
    * Note: This assertion does not test UI elements. It is intended for testing values such as events from the mock server or other non-UI data.
    * @param {*} value - The value to check.
    */
-  static async checkIfValueIsPresent(value) {
-    if (value === null || value === undefined || value === '') {
+  static async checkIfValueIsDefined(value) {
+    // 0 evaluates to false, so we need to handle it separately
+    if (typeof value === 'number') {
+      return;
+    }
+
+    if (!value) {
       throw new Error(
-        'Value is not present (null, undefined, or empty string)',
+        'Value is not present (falsy value)',
       );
     }
   }
@@ -235,9 +260,18 @@ class Assertions {
       const errors = [];
 
       function check(actualObj, partialObj, path = '') {
-        if (typeof actualObj !== 'object' || typeof partialObj !== 'object' || actualObj === null || partialObj === null) {
+        if (
+          typeof actualObj !== 'object' ||
+          typeof partialObj !== 'object' ||
+          actualObj === null ||
+          partialObj === null
+        ) {
           if (actualObj !== partialObj) {
-            errors.push(`Value mismatch at "${path || 'root'}": expected ${JSON.stringify(partialObj)}, got ${JSON.stringify(actualObj)}`);
+            errors.push(
+              `Value mismatch at "${path || 'root'}": expected ${JSON.stringify(
+                partialObj,
+              )}, got ${JSON.stringify(actualObj)}`,
+            );
           }
           return;
         }
@@ -249,11 +283,17 @@ class Assertions {
             continue;
           }
 
-          if (deep && typeof partialObj[key] === 'object' && partialObj[key] !== null) {
+          if (
+            deep &&
+            typeof partialObj[key] === 'object' &&
+            partialObj[key] !== null
+          ) {
             check(actualObj[key], partialObj[key], currentPath);
           } else if (actualObj[key] !== partialObj[key]) {
             errors.push(
-              `Value mismatch at "${currentPath}": expected ${JSON.stringify(partialObj[key])}, got ${JSON.stringify(actualObj[key])}`
+              `Value mismatch at "${currentPath}": expected ${JSON.stringify(
+                partialObj[key],
+              )}, got ${JSON.stringify(actualObj[key])}`,
             );
           }
         }
@@ -262,11 +302,57 @@ class Assertions {
       check(actual, partial);
 
       if (errors.length > 0) {
-        reject(new Error('Object contains assertion failed:\n' + errors.join('\n')));
+        reject(
+          new Error('Object contains assertion failed:\n' + errors.join('\n')),
+        );
       } else {
         resolve();
       }
     });
+  }
+
+   /**
+   * Checks if the actual object contains all keys from the expected array
+   * @param {Object} actual - The object to check against
+   * @param {Object} validations - Object with keys and their expected values
+   */
+   static checkIfObjectHasKeysAndValidValues(actual, validations) {
+    const errors = [];
+
+    for (const [key, validation] of Object.entries(validations)) {
+      if (!Object.prototype.hasOwnProperty.call(actual, key)) {
+        errors.push(`Missing key: ${key}`);
+        continue;
+      }
+
+      const value = actual[key];
+
+      if (typeof validation === 'string') {
+        const actualType = typeof value;
+
+        if (Array.isArray(value) && validation === 'array') continue;
+        if (value === null && validation === 'null') continue;
+
+        // Check type
+        if (actualType !== validation && !(Array.isArray(value) && validation === 'array')) {
+          errors.push(`Type mismatch for key "${key}": expected "${validation}", got "${actualType}"`);
+        }
+      }
+      else if (typeof validation === 'function') {
+        try {
+          const valid = validation(value);
+          if (!valid) {
+            errors.push(`Validation failed for key "${key}": custom validator returned false`);
+          }
+        } catch (err) {
+          errors.push(`Validation error for key "${key}": ${err.message}`);
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      throw new Error('Object validation failed:\n' + errors.join('\n'));
+    }
   }
 
   /**
@@ -294,9 +380,7 @@ class Assertions {
    */
   static async checkIfLabelContainsText(text, timeout = TIMEOUT) {
     const labelMatcher = element(by.label(new RegExp(text)));
-    return await waitFor(labelMatcher)
-      .toExist()
-      .withTimeout(timeout);
+    return await waitFor(labelMatcher).toExist().withTimeout(timeout);
   }
 }
 

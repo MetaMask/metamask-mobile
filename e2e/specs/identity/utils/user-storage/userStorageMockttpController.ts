@@ -37,18 +37,21 @@ export interface UserStorageResponseData {
   SrpIdentifier?: string;
 }
 
-export enum UserStorageMockttpControllerEvents {
-  GET_NOT_FOUND = 'GET_NOT_FOUND',
-  GET_SINGLE = 'GET_SINGLE',
-  GET_ALL = 'GET_ALL',
-  PUT_SINGLE = 'PUT_SINGLE',
-  PUT_BATCH = 'PUT_BATCH',
-  DELETE_NOT_FOUND = 'DELETE_NOT_FOUND',
-  DELETE_SINGLE = 'DELETE_SINGLE',
-  DELETE_ALL = 'DELETE_ALL',
-  DELETE_BATCH_NOT_FOUND = 'DELETE_BATCH_NOT_FOUND',
-  DELETE_BATCH = 'DELETE_BATCH',
-}
+export const UserStorageMockttpControllerEvents = {
+  GET_NOT_FOUND: 'GET_NOT_FOUND',
+  GET_SINGLE: 'GET_SINGLE',
+  GET_ALL: 'GET_ALL',
+  PUT_SINGLE: 'PUT_SINGLE',
+  PUT_BATCH: 'PUT_BATCH',
+  DELETE_NOT_FOUND: 'DELETE_NOT_FOUND',
+  DELETE_SINGLE: 'DELETE_SINGLE',
+  DELETE_ALL: 'DELETE_ALL',
+  DELETE_BATCH_NOT_FOUND: 'DELETE_BATCH_NOT_FOUND',
+  DELETE_BATCH: 'DELETE_BATCH',
+} as const;
+
+// Helper type for converting const objects to enum-like types
+export type AsEnum<T> = T[keyof T];
 
 export class UserStorageMockttpController {
   paths: Map<

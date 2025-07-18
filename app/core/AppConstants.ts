@@ -11,6 +11,7 @@ const SECURITY_ALERTS_API_URL =
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
+  METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE,
   DEFAULT_LOCK_TIMEOUT: 30000,
   DEFAULT_SEARCH_ENGINE: 'Google',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
@@ -141,7 +142,8 @@ export default {
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
-    SMART_ACCOUNTS: 'https://metamask.io/smart-accounts/',
+    SMART_ACCOUNTS:
+      'https://support.metamask.io/configure/accounts/what-is-a-smart-account/#what-are-metamask-smart-accounts',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
     EARN_RISK_DISCLOSURE: 'https://consensys.io/earn-risk-disclosures',
     ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:

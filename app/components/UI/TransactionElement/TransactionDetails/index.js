@@ -38,11 +38,11 @@ import {
   selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectTokensByAddress } from '../../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
+import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -67,7 +67,6 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
 } from '../../../../constants/urls';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import Tag from '../../../../component-library/components/Tags/Tag';
 import TagBase from '../../../../component-library/base-components/TagBase';
 
 const createStyles = (colors) =>
@@ -268,6 +267,7 @@ class TransactionDetails extends PureComponent {
         primaryCurrency,
         swapsTransactions,
         swapsTokens,
+        txChainId: transactionObject.chainId,
       });
       this.setState({ updatedTransactionDetails: decodedTx[1] });
     } catch (e) {
@@ -551,9 +551,18 @@ const mapStateToProps = (state, ownProps) => ({
   ticker: isPerDappSelectedNetworkEnabled()
     ? selectTickerByChainId(state, ownProps.transactionObject.chainId)
     : selectEvmTicker(state),
-  tokens: selectTokensByAddress(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  conversionRate: selectConversionRate(state),
+  tokens: selectTokensByChainIdAndAddress(
+    state,
+    ownProps.transactionObject.chainId,
+  ),
+  contractExchangeRates: selectContractExchangeRatesByChainId(
+    state,
+    ownProps.transactionObject.chainId,
+  ),
+  conversionRate: selectConversionRateByChainId(
+    state,
+    ownProps.transactionObject.chainId,
+  ),
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),

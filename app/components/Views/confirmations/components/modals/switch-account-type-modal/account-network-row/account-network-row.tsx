@@ -140,7 +140,14 @@ const AccountNetworkRow = ({
           imageSource={networkImage}
         />
         <View style={styles.name_section}>
-          <Text variant={TextVariant.BodyMDBold}>{name}</Text>
+          <Text
+            variant={TextVariant.BodyMDBold}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={styles.network_name}
+          >
+            {name}
+          </Text>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {addressSupportSmartAccount
               ? strings('confirm.7702_functionality.smartAccountLabel')
@@ -154,7 +161,11 @@ const AccountNetworkRow = ({
         ) : (
           <Button
             variant={ButtonVariants.Link}
-            label={strings('confirm.7702_functionality.switch')}
+            label={
+              addressSupportSmartAccount
+                ? strings('confirm.7702_functionality.switchBack')
+                : strings('confirm.7702_functionality.switch')
+            }
             onPress={onSwitch}
           />
         )}

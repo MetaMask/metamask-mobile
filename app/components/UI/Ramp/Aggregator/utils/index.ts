@@ -16,8 +16,7 @@ import {
   toTokenMinimalUnit,
 } from '../../../../../util/number';
 import { RampType } from '../types';
-import { getOrders, FiatOrder } from '../../../../../reducers/fiatOrders';
-import { RootState } from '../../../../../reducers';
+import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -169,11 +168,6 @@ export function getOrderAmount(order: FiatOrder) {
     }
   }
   return amount;
-}
-
-export function stateHasOrder(state: RootState, order: FiatOrder) {
-  const orders = getOrders(state);
-  return orders.some((o) => o.id === order.id);
 }
 
 export function isBuyQuotes(

@@ -277,7 +277,9 @@ describe('Confirm', () => {
       .mockReturnValue({ isRedesignedEnabled: true });
 
     const { getByText } = renderWithProvider(<Confirm />, {
-      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+      state: getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: false },
+      }),
     });
 
     await act(async () => {

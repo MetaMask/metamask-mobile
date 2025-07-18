@@ -39,13 +39,16 @@ class RequestPaymentView {
     await Gestures.typeTextAndHideKeyboard(this.tokenSearchInput, token);
   }
 
-  async tapOnToken(token: string): Promise<void> {
-    const tokenElement = await Matchers.getElementByText(token, 1);
+  async tapOnToken(token: string) {
+    const tokenElement = await Matchers.getElementByText(token, 0);
     await Gestures.waitAndTap(Promise.resolve(tokenElement));
   }
 
   async typeInTokenAmount(amount: number | string): Promise<void> {
-    await Gestures.typeTextAndHideKeyboard(this.requestAmountInput, String(amount));
+    await Gestures.typeTextAndHideKeyboard(
+      this.requestAmountInput,
+      String(amount),
+    );
   }
 }
 

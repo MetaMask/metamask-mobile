@@ -1,12 +1,12 @@
 import React from 'react';
-
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Networks';
-import AccountNetworkRow from './account-network-row';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+
+import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../../../../reducers';
 import { mockTransaction } from '../../../../../../../util/test/confirm-data-helpers';
-import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
+import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Networks';
+import AccountNetworkRow from './account-network-row';
 
 const MOCK_NETWORK = {
   chainId: '0xaa36a7',
@@ -86,7 +86,7 @@ describe('Account Network Row', () => {
     );
 
     expect(getByText('Smart Account')).toBeTruthy();
-    expect(getByText('Switch')).toBeTruthy();
+    expect(getByText('Switch back')).toBeTruthy();
   });
 
   it('renders correctly for standard account', () => {
@@ -282,7 +282,7 @@ describe('Account Network Row', () => {
         { state: MOCK_STATE },
       );
 
-      fireEvent.press(getByText('Switch'));
+      fireEvent.press(getByText('Switch back'));
 
       expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
     });

@@ -845,6 +845,12 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         }),
       );
 
+      // Wait for the setTimeout to be called before checking for navigation
+      // as the navigation is handled by a setTimeout to avoid a race condition
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 
       mockTrackEvent.mockClear();

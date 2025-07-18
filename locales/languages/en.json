@@ -417,7 +417,7 @@
     "paste": "Paste",
     "hide_all": "Hide all",
     "srp": "Secret Recovery Phrase",
-    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching.",
     "learn_more_link": "Learn more",
     "create_password_cta": "Create password",
     "pass_flow": "Continue with Flow",
@@ -479,6 +479,30 @@
       "quoteFetchError": "Failed to fetch quote.",
       "kycFormsFetchError": "Failed to fetch KYC forms."
     },
+    "token_modal": {
+      "select_a_token": "Select a Token",
+      "search_by_name_or_address": "Search token by name or address",
+      "no_tokens_found": "No tokens match \"{{searchString}}\""
+    },
+    "region_modal": {
+      "select_a_region": "Select a region",
+      "search_by_country": "Search by country",
+      "no_regions_found": "No regions match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "Select a Payment Method"
+    },
+    "payment_duration": {
+      "instant": "Instant",
+      "1_to_2_days": "1 to 2 days"
+    },
+    "unsupported_region_modal": {
+      "title": "Region not supported",
+      "message": "We're sorry, but we don't support deposits in %{regionName} yet. Please try a different region or contact support for assistance.",
+      "description": "We're sorry, but we don't support deposits in your region yet. Please try a different region or contact support for assistance.",
+      "select_different_region": "Select a different region",
+      "exit_to_wallet_home": "Exit to wallet home"
+    },
     "get_started": {
       "title": "Top up your wallet with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
@@ -504,7 +528,13 @@
       "submit_button": "Submit",
       "loading": "Verifying code...",
       "invalid_code_error": "Invalid code",
-      "validation_error": "Please enter a valid code"
+      "validation_error": "Please enter a valid code",
+      "need_help": "Need help?",
+      "resend_code_description": "Didn't receive the code?",
+      "resend_code_error": "Error resending code.",
+      "resend_code_button": "Resend it",
+      "resend_cooldown": "Resend code in {{seconds}} seconds",
+      "contact_support": "Contact support"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -515,7 +545,14 @@
     "basic_info": {
       "title": "Enter your basic info",
       "continue": "Continue",
-      "subtitle": "To begin verifying your identity, we need some basic information."
+      "subtitle": "To begin verifying your identity, we need some basic information.",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "phone_number": "Phone Number",
+      "date_of_birth": "Date of Birth",
+      "social_security_number": "Social Security Number",
+      "enter_phone_number": "Enter phone number",
+      "select_region": "Select region"
     },
     "enter_address": {
       "title": "Enter your address",
@@ -540,9 +577,71 @@
       "success_description": "You can now enter your payment info and complete your deposit.",
       "success_button": "Complete your order"
     },
+    "provider_webview": {
+      "title": "Deposit",
+      "webview_received_error": "Webview received error: %{code}"
+    },
     "kyc_webview": {
       "title": "Verifying your identity",
       "webview_received_error": "WebView received error status code: {{code}}"
+    },
+    "order_processing": {
+      "title": "Processing deposit",
+      "button": "Close",
+      "description": "Card purchases typically take a few minutes",
+      "bank_transfer_description": "Bank transfers typically take a few business days",
+      "success_title": "Deposit complete",
+      "success_description": "Your deposit of {{amount}} {{currency}} was successful!",
+      "error_title": "Deposit failed",
+      "error_description": "We were unable to complete your deposit",
+      "cancel_order_description": "You requested a cancellation of your deposit.",
+      "error_button": "Try again",
+      "contact_support_button": "Contact support",
+      "account": "Account",
+      "network": "Network",
+      "order_id": "Order ID",
+      "fees": "Fees",
+      "total": "Total",
+      "view_order_details_in_transak": "View order details in Transak",
+      "no_order_found": "No order found",
+      "back_to_wallet": "Back to Wallet",
+      "cancel_order_button": "Cancel order"
+    },
+    "order_details": {
+      "title": "Deposit Order"
+    },
+    "bank_details": {
+      "title": "{{paymentMethod}} bank transfer",
+      "button": "Transfer sent",
+      "button_cancel": "Cancel order",
+      "main_title": "To complete your order",
+      "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
+      "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
+      "show_bank_info": "Show bank information",
+      "hide_bank_info": "Hide bank information",
+      "transfer_amount": "Transfer amount",
+      "account_holder_name": "Account holder name",
+      "beneficiary_name": "Beneficiary name",
+      "routing_number": "Routing number",
+      "account_number": "Account number",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "account_type": "Account type",
+      "bank_name": "Bank name",
+      "bank_address": "Bank address",
+      "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
+      "error_message": "We were unable to confirm your bank transfer. Please try again.",
+      "cancel_order_error": "We were unable to cancel your order. Please try again."
+    },
+    "notifications": {
+      "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+      "deposit_failed_description": "Verify your payment method and card support",
+      "deposit_cancelled_title": "Your deposit was cancelled",
+      "deposit_cancelled_description": "You requested a cancellation of your deposit.",
+      "deposit_completed_title": "Your deposit of {{amount}} {{currency}} was successful!",
+      "deposit_completed_description": "Your {{currency}} is now available in your wallet",
+      "deposit_pending_title": "Processing your deposit of {{currency}}",
+      "deposit_pending_description": "This should only take a few minutes..."
     }
   },
   "receive": {
@@ -597,6 +696,10 @@
     "solana": {
       "title": "Solana is now supported",
       "subtitle": "Create a Solana account to get started"
+    },
+    "smartAccount": {
+      "title": "Start using smart accounts",
+      "subtitle": "Same address, smarter features"
     },
     "backupAndSync": {
       "title": "Introducing backup and sync",
@@ -1264,9 +1367,9 @@
     "check_status_button": "Check Status",
     "delete_metrics_confirm_modal_title": "Delete MetaMetrics data?",
     "delete_metrics_confirm_modal_description": "We are about to remove all your MetaMetrics data. Are you sure?",
-    "delete_wallet_data_title": "Delete wallet",
+    "delete_wallet_data_title": "Reset wallet",
     "delete_wallet_data_description": "This will remove all wallet related data from your device. Your accounts exist on the blockchain and are not related to MetaMask. You can always recover your accounts using your Secret Recovery Phrase.",
-    "delete_wallet_data_button": "Delete wallet",
+    "delete_wallet_data_button": "Reset wallet",
     "delete_data_status_title": "Deletion Task Status",
     "delete_data_status_description": "The current status is",
     "delete_metrics_error_title": "We are unable to delete this data right now.",
@@ -1393,6 +1496,9 @@
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "dismiss_smart_account_update_heading": "Dismiss \"Switch to Smart Account\" suggestion",
     "dismiss_smart_account_update_desc": "Turn this on to no longer see the \"Switch to Smart Account\" suggestion on any account. Smart accounts unlocks faster transactions, lower network fees and more flexibility on payment for those.",
+    "use_smart_account_heading": "Use smart account",
+    "use_smart_account_desc": "Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.",
+    "use_smart_account_learn_more": "Learn more.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
     "smart_transactions_opt_in_desc_supported_networks": "Turn on Smart Transactions for more reliable and secure transactions on supported networks.",
     "smart_transactions_learn_more": "Learn more.",
@@ -1666,7 +1772,8 @@
     "url_redirection_alert_title": "You are about to visit  an external link",
     "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
     "label": "Scan a QR code",
-    "open_settings": "Settings"
+    "open_settings": "Settings",
+    "camera_not_available": "Camera not available"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -2097,7 +2204,8 @@
     "add_input_placeholder": "Public address (0x), or ENS",
     "between_account": "Transfer between my accounts",
     "others": "Others",
-    "memo": "Memo"
+    "memo": "Memo",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
@@ -3777,17 +3885,12 @@
     "show_display_nft_media_content_5": "Settings > Security and privacy."
   },
   "solana_new_feature_content": {
-    "title": "Solana on MetaMask",
-    "create_solana_account": "Create Solana account",
+    "title": "solana is here",
+    "title_description": "Import your wallet, explore, trade and send it. Native Solana support is now live on MetaMask.",
     "not_now": "Not now",
     "view_solana_account": "View Solana account",
-    "feature_1_title": "Send, receive, and swap tokens",
-    "feature_1_description": "Transfer and transact with tokens such as SOL, USDC, and more.",
-    "feature_2_title": "Import Solana accounts",
-    "feature_2_description": "Import a Secret Recovery Phrase to migrate your Solana account from an other wallet.",
-    "feature_3_title": "More features coming soon",
-    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon.",
-    "learn_more": "Learn more about Solana accounts"
+    "learn_more": "Learn more about Solana accounts",
+    "import_your_wallet": "Import your wallet"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
@@ -3993,7 +4096,8 @@
     "estimated_unstaking_time": "1 to 11 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
-    "select_a_token": "Select a token",
+    "select_a_token_to_deposit": "Select a token to deposit",
+    "select_a_token_to_withdraw": "Select a token to withdraw",
     "you_could_earn_up_to": "You could earn up to",
     "per_year_on_your_tokens": "per year on your tokens",
     "deposit": "Deposit",
@@ -4110,6 +4214,8 @@
       "part3": "."
     },
     "label": {
+      "amount": "Amount",
+      "value": "Value",
       "account": "Account",
       "balance": "Balance",
       "interacting_with": "Interacting with",
@@ -4119,8 +4225,7 @@
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",
-      "switching_to": "Switching To",
-      "value": "Value"
+      "switching_to": "Switching To"
     },
     "title": {
       "signature": "Signature request",
@@ -4129,19 +4234,29 @@
       "permit_NFTs": "Withdrawal request",
       "signature_siwe": "Sign-in request",
       "contract_interaction": "Transaction request",
+      "contract_deployment": "Deploy a contract",
       "transfer": "Transfer request",
       "switch_account_type": "Account update",
       "approve": "Approve request"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
+      "permit_revoke": "You're removing someone's permission to spend tokens from your account.",
       "permit_NFTs": "This site wants permission to withdraw your NFTs.",
+      "permit_revoke_NFTs": "This site would like to reset the withdraw limit for your NFTs",
       "signature": "Review request details before you confirm.",
       "signature_siwe": "A site wants you to sign in to prove you own this account.",
       "contract_interaction": "Review request details before you confirm.",
       "switch_to_smart_account": "You're switching to a smart account.",
-      "switch_to_standard_account": "You're switching back to a standard account (EOA)."
+      "switch_to_standard_account": "You're switching back to a standard account (EOA).",
+      "contract_deployment": "This site wants you to deploy a contract",
+      "decrease_allowance": "This site wants decrease the spending cap for your tokens."
     },
+    "spending_cap": "Spending cap",
+    "withdraw": "Withdraw",
+    "nfts": "NFTs",
+    "permission_from": "Permission from",
+    "spender": "Spender",
     "request_from": "Request from",
     "staking_from": "Staking from",
     "signing_in_with": "Signing in with",
@@ -4194,6 +4309,7 @@
       "smartAccountLabel": "Smart Account",
       "standardAccountLabel": "Standard Account",
       "switch": "Switch",
+      "switchBack": "Switch back",
       "splashpage": {
         "accept": "Yes",
         "betterTransaction": "Faster transactions, lower fees",
@@ -4209,6 +4325,14 @@
         "upgradeBannerTitle": "Switch to smart account"
       },
       "includes_transaction": "Includes {{transactionCount}} transactions"
+    },
+    "edit_spending_cap_modal": {
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_empty_error": "Spending cap cannot be empty",
+      "invalid_number_error": "Spending cap must be a number",
+      "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -4280,6 +4404,11 @@
     "description": "Rates update every {{refreshRate}} seconds, so tap Get new quote when you're ready.",
     "get_new_quote": "Get new quote"
   },
+  "blockaid_modal": {
+    "simulation_title": "Transaction failed in simulation",
+    "validation_title": "Transaction failed validation",
+    "go_back": "Go back"
+  },
   "bridge_transaction_details": {
     "status": "Status",
     "date": "Date",
@@ -4344,6 +4473,13 @@
     "accounts_list": {
       "details": "Details"
     },
+    "wallet_details": {
+      "wallet_name": "Wallet Name",
+      "balance": "Balance",
+      "add_account": "Add account",
+      "back_up": "Back up",
+      "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
+    },
     "smart_account": {
       "title": "Enable Smart Account",
       "description": "You can enable smart account features on supported networks.",
@@ -4372,7 +4508,7 @@
     "export_credentials": {
       "export_private_key": "Private key",
       "private_key_warning_title": "Never disclose this key.",
-      "private_key_warning_description": "Anyone with your private key can stead any assets held in your account.",
+      "private_key_warning_description": "Anyone with your private key can steal any assets held in your account.",
       "credential_as_text": "Text",
       "credential_as_qr": "QR code",
       "export_mnemonic": "Export mnemonic",
@@ -4381,7 +4517,7 @@
     "reveal_private_key": {
       "title": "Show private key",
       "banner_title": "Never disclose this key.",
-      "banner_description": "Anyone with your private key can stead any assets held in your account.",
+      "banner_description": "Anyone with your private key can steal any assets held in your account.",
       "enter_password": "Enter your password",
       "password_placeholder": "Password",
       "next": "Next",

@@ -1,4 +1,4 @@
-import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
+import { BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -12,6 +12,7 @@ import { SwapsControllerState } from '@metamask/swaps-controller';
 import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
+import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
 
 const MAX_TOP_TOKENS = 30;
 
@@ -19,10 +20,10 @@ interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
 }
 
-export const useTopTokens = ({ chainId }: UseTopTokensProps): { 
-  topTokens: BridgeToken[] | undefined, 
+export const useTopTokens = ({ chainId }: UseTopTokensProps): {
+  topTokens: BridgeToken[] | undefined,
   remainingTokens: BridgeToken[] | undefined,
-  pending: boolean 
+  pending: boolean
 } => {
   const swapsChainCache: SwapsControllerState['chainCache'] = useSelector(selectChainCache);
   const swapsTopAssets = useMemo(
@@ -78,7 +79,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
       chainId,
       BridgeClientId.MOBILE,
       handleFetch,
-      BRIDGE_PROD_API_BASE_URL,
+      BRIDGE_API_BASE_URL,
     );
 
     // Convert from BridgeAsset type to BridgeToken type
@@ -120,18 +121,18 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
 
     // Helper function to add a token if it's not already added and we haven't reached the limit
     const addTokenIfNotExists = (token: BridgeToken) => {
-      if (result.length >= MAX_TOP_TOKENS) return false;
-
       const normalizedAddress = isSolanaChainId(token.chainId)
         ? token.address // Solana addresses are case-sensitive
         : token.address.toLowerCase(); // EVM addresses are case-insensitive
 
       if (!addedAddresses.has(normalizedAddress)) {
         addedAddresses.add(normalizedAddress);
-        result.push(token);
-        return true;
+        if (result.length < MAX_TOP_TOKENS) {
+          result.push(token);
+        } else {
+          remainingTokensList.push(token);
+        }
       }
-      return false;
     };
 
     // First add top assets from feature flags or swaps
@@ -148,26 +149,29 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): {
       }
     }
 
-    // Then add remaining unique bridge tokens until we reach the limit
-    if (result.length < MAX_TOP_TOKENS) {
-      for (const token of Object.values(bridgeTokens)) {
-        if (result.length >= MAX_TOP_TOKENS) {
-          remainingTokensList.push(token);
-        } else {
-          addTokenIfNotExists(token);
-        }
+    // Then iterate through all bridge tokens to either add to top tokens or remaining tokens
+    for (const token of Object.values(bridgeTokens)) {
+      const normalizedAddress = isSolanaChainId(token.chainId)
+        ? token.address // Solana addresses are case-sensitive
+        : token.address.toLowerCase(); // EVM addresses are case-insensitive
+
+      // Skip if already added to top tokens
+      if (addedAddresses.has(normalizedAddress)) {
+        continue;
       }
+
+      addTokenIfNotExists(token);
     }
 
-    return { 
-      topTokens: result, 
+    return {
+      topTokens: result,
       remainingTokens: remainingTokensList
     };
   }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
-  return { 
-    topTokens, 
+  return {
+    topTokens,
     remainingTokens,
-    pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false 
+    pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false
   };
 };

@@ -8,6 +8,8 @@ interface UseFetchTokenRatesMultiResult {
   error: Error | null;
 }
 
+const PRICE_API_URL = 'https://price.api.cx.metamask.io/v3/spot-prices';
+
 export const useFetchTokenRatesMulti = ({
   tokens,
   fiatCurrency,
@@ -24,8 +26,7 @@ export const useFetchTokenRatesMulti = ({
       setIsLoading(true);
       try {
         const assetIds = tokens.map((token) => token.assetId).join(',');
-        const baseUrl = 'https://price.api.cx.metamask.io/v3/spot-prices';
-        const url = new URL(baseUrl);
+        const url = new URL(PRICE_API_URL);
         const params = new URLSearchParams({
           assetIds,
           vsCurrency: fiatCurrency.id,
@@ -38,12 +39,13 @@ export const useFetchTokenRatesMulti = ({
         >;
 
         const newRates: Record<string, number | null> = {};
+        const responseKeys = Object.keys(response);
 
         tokens.forEach((token) => {
-          const responseKey = Object.keys(response).find(
+          const responseKey = responseKeys.find(
             (key) => key.toLowerCase() === token.assetId.toLowerCase(),
           );
-          newRates[token.symbol] = responseKey
+          newRates[token.assetId] = responseKey
             ? response[responseKey][fiatCurrency.id.toLowerCase()]
             : null;
         });

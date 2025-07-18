@@ -152,6 +152,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
       onSwipeComplete={close}
       swipeDirection={'down'}
       propagateSwipe
+      useNativeDriver
     >
       <KeyboardAwareScrollView
         contentContainerStyle={styles.keyboardAwareWrapper}
