@@ -23,6 +23,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { usePayAsset } from '../../../hooks/transactions/usePayAsset';
 import { useParams } from '../../../../../../util/navigation/navUtils';
+import { strings } from '../../../../../../../locales/i18n';
 
 export function PayWithModal() {
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
@@ -114,6 +115,7 @@ export function PayWithModal() {
       renderTokenItem={renderItem}
       tokensList={filteredTokensList}
       pending={pending}
+      title={strings('pay_with_modal.title')}
     />
   );
 }
