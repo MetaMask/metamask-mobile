@@ -16,6 +16,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import type {
   PerpsNavigationParamList,
   Position,
@@ -61,10 +62,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const absoluteSize = Math.abs(parseFloat(position.size));
 
   const handleCardPress = async () => {
-    // await triggerSelectionHaptic();
-    navigation.navigate('PerpsPositionDetails', {
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.POSITION_DETAILS,
       position,
-      action: 'view',
     });
   };
 
@@ -74,9 +74,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       onClose(position);
     } else {
       // Navigate to position details with close action
-      navigation.navigate('PerpsPositionDetails', {
+      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
+        screen: Routes.PERPS.POSITION_DETAILS,
         position,
-        action: 'close',
       });
     }
   };
@@ -87,7 +87,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       onEdit(position);
     } else {
       // Navigate to position details with edit action
-      navigation.navigate('PerpsPositionDetails', {
+      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
         position,
         action: 'edit',
       });
