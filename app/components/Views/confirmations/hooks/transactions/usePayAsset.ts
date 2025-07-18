@@ -6,9 +6,9 @@ import {
 } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
-import { ChainId } from '@metamask/controller-utils';
 import { useCallback } from 'react';
 import { RootState } from '../../../../../reducers';
+import { Hex } from '@metamask/utils';
 
 export function usePayAsset() {
   const dispatch = useDispatch();
@@ -22,7 +22,7 @@ export function usePayAsset() {
 
   const defaultPayAsset: PayAsset = {
     address: EMPTY_ADDRESS,
-    chainId: transactionChainId ?? ChainId.mainnet,
+    chainId: transactionChainId as Hex,
   };
 
   const setPayAsset = useCallback(
