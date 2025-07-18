@@ -2766,6 +2766,8 @@ trigger_map:
     pipeline: pr_regression_e2e_pipeline
   - push_branch: main
     pipeline: app_launch_times_and_expo_pipeline
+  - push_branch: test/performance-e2e-*
+    pipeline: smoke_e2e_performance_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'v*.*.*'
