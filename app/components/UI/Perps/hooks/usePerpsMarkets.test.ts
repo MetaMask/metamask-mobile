@@ -59,6 +59,7 @@ const mockProvider = {
   initialize: jest.fn(),
   isReadyToTrade: jest.fn(),
   deposit: jest.fn(),
+  validateDeposit: jest.fn(),
 } as const;
 
 const mockPerpsController = Engine.context.PerpsController as jest.Mocked<
