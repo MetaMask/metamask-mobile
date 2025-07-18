@@ -10,7 +10,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import type {
   PerpsNavigationParamList,
@@ -23,14 +27,18 @@ import {
   formatPositionSize,
 } from '../../utils/formatUtils';
 import { calculatePnLPercentageFromUnrealized } from '../../utils/pnlCalculations';
-import { createStyles } from './PerpsPositionCard.styles';
+import styleSheet from './PerpsPositionCard.styles';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
+import RemoteImage from '../../../../Base/RemoteImage';
 
 interface PerpsPositionCardProps {
   position: Position;
   onClose?: (position: Position) => void;
   onEdit?: (position: Position) => void;
   disabled?: boolean;
+  expanded?: boolean;
+  showIcon?: boolean;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -38,10 +46,12 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onClose,
   onEdit,
   disabled,
+  expanded = true, // Default to expanded for backward compatibility
+  showIcon = false, // Default to not showing icon
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const { assetUrl } = usePerpsAssetMetadata(position.coin);
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) >= 0;
@@ -94,20 +104,34 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={expanded ? styles.expandedContainer : styles.collapsedContainer}
       onPress={handleCardPress}
       testID="PerpsPositionCard"
       disabled={disabled}
     >
-      {/* Header */}
+      {/* Header - Always shown */}
       <View style={styles.header}>
+        {/* Icon Section - Conditionally shown */}
+        {showIcon && (
+          <View style={styles.perpIcon}>
+            {assetUrl ? (
+              <RemoteImage
+                source={{ uri: assetUrl }}
+                style={styles.tokenIcon}
+              />
+            ) : (
+              <Icon name={IconName.Coin} size={IconSize.Md} />
+            )}
+          </View>
+        )}
+
         <View style={styles.headerLeft}>
           <View style={styles.headerRow}>
             <Text variant={TextVariant.BodySMBold} color={TextColor.Default}>
               {position.leverage.value}x{' '}
               <Text
                 variant={TextVariant.BodySMMedium}
-                color={isLong ? TextColor.Success : TextColor.Error}
+                color={TextColor.Default}
               >
                 {direction}
               </Text>
@@ -137,88 +161,110 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         </View>
       </View>
 
-      {/* Body */}
-      <View style={styles.body}>
-        <View style={styles.bodyRow}>
-          <View style={styles.bodyItem}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.entry_price')}
-            </Text>
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(position.entryPrice)}
-            </Text>
+      {/* Body - Only shown when expanded */}
+      {expanded && (
+        <View style={styles.body}>
+          <View style={styles.bodyRow}>
+            <View style={styles.bodyItem}>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                {strings('perps.position.card.entry_price')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {formatPrice(position.entryPrice)}
+              </Text>
+            </View>
+            <View style={styles.bodyItem}>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                {strings('perps.position.card.market_price')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {formatPrice(position.liquidationPrice || position.entryPrice)}
+              </Text>
+            </View>
+            <View style={styles.bodyItem}>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                {strings('perps.position.card.liquidity_price')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {position.liquidationPrice
+                  ? formatPrice(position.liquidationPrice)
+                  : 'N/A'}
+              </Text>
+            </View>
           </View>
-          <View style={styles.bodyItem}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.market_price')}
-            </Text>
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(position.liquidationPrice || position.entryPrice)}
-            </Text>
-          </View>
-          <View style={styles.bodyItem}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.liquidity_price')}
-            </Text>
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {position.liquidationPrice
-                ? formatPrice(position.liquidationPrice)
-                : 'N/A'}
-            </Text>
+
+          <View style={styles.bodyRow}>
+            <View style={styles.bodyItem}>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                {strings('perps.position.card.take_profit')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {strings('perps.position.card.not_set')}
+              </Text>
+            </View>
+            <View style={styles.bodyItem}>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                {strings('perps.position.card.stop_loss')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {strings('perps.position.card.not_set')}
+              </Text>
+            </View>
+            <View style={styles.bodyItem}>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                {strings('perps.position.card.margin')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {formatPrice(position.marginUsed)}
+              </Text>
+            </View>
           </View>
         </View>
+      )}
 
-        <View style={styles.bodyRow}>
-          <View style={styles.bodyItem}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.take_profit')}
-            </Text>
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {strings('perps.position.card.not_set')}
-            </Text>
-          </View>
-          <View style={styles.bodyItem}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.stop_loss')}
-            </Text>
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {strings('perps.position.card.not_set')}
-            </Text>
-          </View>
-          <View style={styles.bodyItem}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-              {strings('perps.position.card.margin')}
-            </Text>
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(position.marginUsed)}
-            </Text>
-          </View>
+      {/* Footer - Only shown when expanded */}
+      {expanded && (
+        <View style={styles.footer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Md}
+            width={ButtonWidthTypes.Auto}
+            label={strings('perps.position.card.edit_tpsl')}
+            onPress={handleEditPress}
+            disabled={disabled}
+            style={styles.footerButton}
+            testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
+          />
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Md}
+            width={ButtonWidthTypes.Auto}
+            label={strings('perps.position.card.close_position')}
+            onPress={handleClosePress}
+            disabled={disabled}
+            style={styles.footerButton}
+            testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
+          />
         </View>
-      </View>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Md}
-          width={ButtonWidthTypes.Auto}
-          label={strings('perps.position.card.edit_tpsl')}
-          onPress={handleEditPress}
-          disabled={disabled}
-          style={styles.footerButton}
-          testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
-        />
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Md}
-          width={ButtonWidthTypes.Auto}
-          label={strings('perps.position.card.close_position')}
-          onPress={handleClosePress}
-          disabled={disabled}
-          style={styles.footerButton}
-          testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
-        />
-      </View>
+      )}
     </TouchableOpacity>
   );
 };

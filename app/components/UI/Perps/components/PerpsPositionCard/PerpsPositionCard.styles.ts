@@ -1,19 +1,48 @@
 import { StyleSheet } from 'react-native';
-import type { Colors } from '../../../../../util/theme/models';
+import type { Theme } from '../../../../../util/theme/models';
 
-export const createStyles = (colors: Colors) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return StyleSheet.create({
     container: {
       backgroundColor: colors.background.section,
       borderRadius: 12,
       padding: 16,
       marginVertical: 6,
     },
+    expandedContainer: {
+      backgroundColor: colors.background.section,
+      borderRadius: 12,
+      padding: 16,
+      marginVertical: 6,
+    },
+    collapsedContainer: {
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 12,
+      marginVertical: 4,
+    },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       marginBottom: 8,
+    },
+    perpIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      marginRight: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    tokenIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
     },
     headerLeft: {
       flex: 1,
@@ -50,3 +79,6 @@ export const createStyles = (colors: Colors) =>
       flex: 1,
     },
   });
+};
+
+export default styleSheet;

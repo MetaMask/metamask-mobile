@@ -7,7 +7,7 @@ import Text, {
 import { useStyles } from '../../../../component-library/hooks';
 import type { Theme } from '../../../../util/theme/models';
 import { PerpsTabControlBar } from '../components/PerpsTabControlBar';
-import { PerpsPositionListItem } from '../components/PerpsPositionListItem';
+import PerpsPositionCard from '../components/PerpsPositionCard';
 import { usePerpsTrading } from '../hooks';
 import type { Position } from '../controllers/types';
 import { strings } from '../../../../../locales/i18n';
@@ -132,9 +132,11 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
         </View>
         <View>
           {positions.map((position, index) => (
-            <PerpsPositionListItem
+            <PerpsPositionCard
               key={`${position.coin}-${index}`}
               position={position}
+              expanded={false}
+              showIcon
             />
           ))}
         </View>
