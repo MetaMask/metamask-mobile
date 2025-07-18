@@ -8,6 +8,7 @@ import {
 } from './';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
+import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
 
@@ -28,6 +29,12 @@ const mockControllerMessenger = jest.fn();
 const mockAddDiscoveredAccounts = jest.fn();
 const mockGetAccountByAddress = jest.fn().mockReturnValue(mockExpectedAccount);
 
+// Mock for seedless onboarding
+const mockSelectSeedlessOnboardingLoginFlow = jest.fn();
+const mockAddNewSeedPhraseBackup = jest.fn();
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+
 const hdKeyring = {
   getAccounts: () => {
     mockGetAccounts();
@@ -42,6 +49,17 @@ const hdKeyring = {
 const mockSnapClient = {
   addDiscoveredAccounts: mockAddDiscoveredAccounts,
 };
+
+jest.mock('../../selectors/seedlessOnboardingController', () => ({
+  selectSeedlessOnboardingLoginFlow: (state: unknown) =>
+    mockSelectSeedlessOnboardingLoginFlow(state),
+}));
+
+jest.mock('../../util/trace', () => ({
+  ...jest.requireActual('../../util/trace'),
+  trace: (options: unknown) => mockTrace(options),
+  endTrace: (options: unknown) => mockEndTrace(options),
+}));
 
 const createMockState = (hasVault: boolean) => ({
   engine: {
@@ -81,7 +99,8 @@ jest.mock('../../core/Engine', () => ({
       getAccountByAddress: () => mockGetAccountByAddress(),
     },
     SeedlessOnboardingController: {
-      addNewSeedPhraseBackup: jest.fn().mockResolvedValue(undefined),
+      addNewSeedPhraseBackup: (seed: Uint8Array, keyringId: string) =>
+        mockAddNewSeedPhraseBackup(seed, keyringId),
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
@@ -103,7 +122,11 @@ describe('MultiSRP Actions', () => {
   describe('importNewSecretRecoveryPhrase', () => {
     it('imports new SRP', async () => {
       mockGetKeyringsByType.mockResolvedValue([]);
-      mockAddNewKeyring.mockResolvedValue({ getAccounts: () => [testAddress] });
+      mockAddNewKeyring.mockResolvedValue({
+        getAccounts: () => [testAddress],
+        id: 'keyring-id-123',
+      });
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
 
       await importNewSecretRecoveryPhrase(testMnemonic);
 
@@ -131,7 +154,74 @@ describe('MultiSRP Actions', () => {
       expect(mockAddNewKeyring).not.toHaveBeenCalled();
     });
 
+    describe('seedless onboarding login flow', () => {
+      beforeEach(() => {
+        mockGetKeyringsByType.mockResolvedValue([]);
+        mockAddNewKeyring.mockResolvedValue({
+          getAccounts: () => [testAddress],
+          id: 'keyring-id-123',
+        });
+        mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+      });
+
+      it('successfully adds seed phrase backup when seedless onboarding is enabled', async () => {
+        mockAddNewSeedPhraseBackup.mockResolvedValue(undefined);
+
+        const result = await importNewSecretRecoveryPhrase(testMnemonic);
+
+        expect(mockSelectSeedlessOnboardingLoginFlow).toHaveBeenCalled();
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: TraceName.OnboardingAddSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        expect(mockAddNewSeedPhraseBackup).toHaveBeenCalledWith(
+          expect.any(Uint8Array),
+          'keyring-id-123',
+        );
+        expect(mockEndTrace).toHaveBeenCalledWith({
+          name: TraceName.OnboardingAddSrp,
+          data: { success: true },
+        });
+        expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+        expect(result.address).toBe(testAddress);
+        expect(mockAddDiscoveredAccounts).toHaveBeenCalled();
+      });
+
+      it('handles error when seed phrase backup fails and traces error', async () => {
+        mockAddNewSeedPhraseBackup.mockRejectedValue(
+          new Error('Backup failed'),
+        );
+
+        await expect(
+          async () => await importNewSecretRecoveryPhrase(testMnemonic),
+        ).rejects.toThrow('Backup failed');
+
+        expect(mockSelectSeedlessOnboardingLoginFlow).toHaveBeenCalled();
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: TraceName.OnboardingAddSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        expect(mockAddNewSeedPhraseBackup).toHaveBeenCalledWith(
+          expect.any(Uint8Array),
+          'keyring-id-123',
+        );
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: TraceName.OnboardingAddSrpError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage: 'Backup failed' },
+        });
+        expect(mockEndTrace).toHaveBeenCalledWith({
+          name: TraceName.OnboardingAddSrpError,
+        });
+        expect(mockEndTrace).toHaveBeenCalledWith({
+          name: TraceName.OnboardingAddSrp,
+          data: { success: false },
+        });
+      });
+    });
+
     it('calls addNewSeedPhraseBackup when seedless onboarding login flow is active', async () => {
+      mockAddNewSeedPhraseBackup.mockResolvedValue(undefined);
       mockGetKeyringsByType.mockResolvedValue([]);
       mockAddNewKeyring.mockResolvedValue({
         id: 'test-keyring-id',
@@ -144,9 +234,10 @@ describe('MultiSRP Actions', () => {
 
       await importNewSecretRecoveryPhrase(testMnemonic);
 
-      expect(
-        Engine.context.SeedlessOnboardingController.addNewSeedPhraseBackup,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), 'test-keyring-id');
+      expect(mockAddNewSeedPhraseBackup).toHaveBeenCalledWith(
+        expect.any(Uint8Array),
+        'test-keyring-id',
+      );
     });
   });
 
