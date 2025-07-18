@@ -1992,12 +1992,11 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  # TODO: This is exactly the same as build_android_release_and_upload_sourcemaps, remove once consolidated
   build_android_rc_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
-      - build_android_main_prod
+      - build_android_main_rc
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -2517,12 +2516,11 @@ workflows:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
       - build_ios_main_prod
-  # TODO: This is exactly the same as build_ios_release_and_upload_sourcemaps, remove once consolidated
   build_ios_rc_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
-      - build_ios_main_prod
+      - build_ios_main_rc
   build_ios_beta:
     envs:
       - METAMASK_BUILD_TYPE: "beta"

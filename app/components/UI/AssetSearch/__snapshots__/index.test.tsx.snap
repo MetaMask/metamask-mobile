@@ -13,8 +13,7 @@ exports[`AssetSearch should render correctly 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "justifyContent": "center",
-        "margin": 16,
-        "marginBottom": 0,
+        "marginTop": 16,
       },
     ]
   }
