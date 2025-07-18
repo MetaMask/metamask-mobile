@@ -10,7 +10,7 @@ import {
   useEIP7702Networks,
 } from '../../../../confirmations/hooks/7702/useEIP7702Networks';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import AccountNetworkRow from '../../../../confirmations/components/modals/switch-account-type-modal/account-network-row';
+import AccountNetworkRow from '../../../../AccountNetworkRow/account-network-row';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
