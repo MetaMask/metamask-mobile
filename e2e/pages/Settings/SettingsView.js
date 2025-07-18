@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
@@ -51,9 +51,7 @@ class SettingsView {
   }
 
   get backupAndSyncSectionButton() {
-    return Matchers.getElementByID(
-      SettingsViewSelectorsIDs.BACKUP_AND_SYNC,
-    );
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
   }
 
   get alertButton() {
@@ -88,52 +86,76 @@ class SettingsView {
   }
 
   async tapGeneralSettings() {
-    await Gestures.waitAndTap(this.generalSettingsButton);
+    await Gestures.waitAndTap(this.generalSettingsButton, {
+      elemDescription: 'Settings - General Settings Button',
+    });
   }
 
   async tapAdvancedTitle() {
-    await Gestures.waitAndTap(this.advancedButton);
+    await Gestures.waitAndTap(this.advancedButton, {
+      elemDescription: 'Settings - Advanced Settings Button',
+    });
   }
 
   async tapContactsSettings() {
-    await Gestures.waitAndTap(this.contactsSettingsButton);
+    await Gestures.waitAndTap(this.contactsSettingsButton, {
+      elemDescription: 'Settings - Contacts Settings Button',
+    });
   }
 
   async tapSecurityAndPrivacy() {
-    await Gestures.waitAndTap(this.securityAndPrivacyButton);
+    await Gestures.waitAndTap(this.securityAndPrivacyButton, {
+      elemDescription: 'Settings - Security and Privacy Button',
+    });
   }
 
   async tapNetworks() {
-    await Gestures.waitAndTap(this.networksButton);
+    await Gestures.waitAndTap(this.networksButton, {
+      elemDescription: 'Settings - Networks Button',
+    });
   }
 
   async tapNotifications() {
-    await Gestures.waitAndTap(this.notificationsButton);
+    await Gestures.waitAndTap(this.notificationsButton, {
+      elemDescription: 'Settings - Notifications Button',
+    });
   }
 
   async tapContacts() {
-    await Gestures.waitAndTap(this.contactsSettingsButton);
+    await Gestures.waitAndTap(this.contactsSettingsButton, {
+      elemDescription: 'Settings - Contacts Settings Button',
+    });
   }
 
   async tapAesCryptoTestForm() {
-    await Gestures.waitAndTap(this.aesCryptoTestForm);
+    await Gestures.waitAndTap(this.aesCryptoTestForm, {
+      elemDescription: 'Settings - AES Crypto Test Form Button',
+    });
   }
 
   async tapLock() {
     await this.scrollToLockButton();
-    await Gestures.waitAndTap(this.lockSettingsButton);
+    await Gestures.waitAndTap(this.lockSettingsButton, {
+      elemDescription: 'Settings - Lock Settings Button',
+    });
   }
   async tapContactSupport() {
     await this.scrollToLockButton();
-    await Gestures.waitAndTap(this.contactSupportButton);
+    await Gestures.waitAndTap(this.contactSupportButton, {
+      elemDescription: 'Settings - Contact Support Button',
+    });
   }
 
   async tapYesAlertButton() {
-    await Gestures.tap(this.alertButton);
+    await Gestures.tap(this.alertButton, {
+      elemDescription: 'Settings - Alert Yes Button',
+    });
   }
 
   async tapBackupAndSync() {
-    await Gestures.tap(this.backupAndSyncSectionButton);
+    await Gestures.tap(this.backupAndSyncSectionButton, {
+      elemDescription: 'Settings - Backup and Sync Section Button',
+    });
   }
 }
 

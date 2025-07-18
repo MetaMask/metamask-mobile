@@ -1,6 +1,6 @@
 import { MetaMetricsOptInSelectorsIDs } from '../../selectors/Onboarding/MetaMetricsOptIn.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class MetaMetricsOptIn {
   get container() {
@@ -27,14 +27,26 @@ class MetaMetricsOptIn {
     );
   }
 
+  async swipeContentUp() {
+    await Gestures.swipe(this.optInMetricsContent, 'up', {
+      speed: 'fast',
+      percentage: 0.9,
+      elemDescription: 'Opt-in Metrics Privacy Policy Content',
+    });
+  }
+
   async tapAgreeButton() {
-    await Gestures.swipe(this.optInMetricsContent, 'up', 'fast', 0.9);
-    await Gestures.waitAndTap(this.iAgreeButton);
+    await this.swipeContentUp();
+    await Gestures.waitAndTap(this.iAgreeButton, {
+      elemDescription: 'Opt-in Metrics I Agree Button',
+    });
   }
 
   async tapNoThanksButton() {
-    await Gestures.swipe(this.optInMetricsContent, 'up', 'fast', 0.9);
-    await Gestures.waitAndTap(this.noThanksButton);
+    await this.swipeContentUp();
+    await Gestures.waitAndTap(this.noThanksButton, {
+      elemDescription: 'Opt-in Metrics No Thanks Button',
+    });
   }
 }
 

@@ -1,8 +1,13 @@
 import React from 'react';
+import { initialState } from '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { TokenInputArea, TokenInputAreaType, calculateFontSize, getDisplayAmount } from '.';
-import { initialState } from '../../_mocks_/initialState';
+import {
+  TokenInputArea,
+  TokenInputAreaType,
+  calculateFontSize,
+  getDisplayAmount,
+} from '.';
 
 const mockOnTokenPress = jest.fn();
 const mockOnFocus = jest.fn();
@@ -104,6 +109,8 @@ describe('getDisplayAmount', () => {
 
   it('parses amount for destination type', () => {
     const amount = '1234567890123456789.12345';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe('1234567890123456789.12345');
+    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe(
+      '1234567890123456789.12345',
+    );
   });
 });

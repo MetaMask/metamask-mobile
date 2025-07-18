@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { InteractionManager, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 // External dependencies.
 import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
@@ -99,21 +99,19 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const _onSelectAccount = useCallback(
     (address: string) => {
-      InteractionManager.runAfterInteractions(() => {
-        Engine.setSelectedAddress(address);
-        sheetRef.current?.onCloseBottomSheet();
-        onSelectAccount?.(address);
+      Engine.setSelectedAddress(address);
+      sheetRef.current?.onCloseBottomSheet();
+      onSelectAccount?.(address);
 
-        // Track Event: "Switched Account"
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
-            .addProperties({
-              source: 'Wallet Tab',
-              number_of_accounts: accounts?.length,
-            })
-            .build(),
-        );
-      });
+      // Track Event: "Switched Account"
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+          .addProperties({
+            source: 'Wallet Tab',
+            number_of_accounts: accounts?.length,
+          })
+          .build(),
+      );
     },
     [accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );

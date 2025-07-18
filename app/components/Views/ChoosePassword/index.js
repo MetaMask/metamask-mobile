@@ -21,6 +21,7 @@ import {
   passwordSet,
   passwordUnset,
   seedphraseNotBackedUp,
+  setExistingUser,
 } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
@@ -36,7 +37,6 @@ import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
-  EXISTING_USER,
   TRUE,
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
@@ -71,6 +71,8 @@ import Button, {
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
+import Routes from '../../../constants/navigation/Routes';
+import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 
@@ -211,6 +213,10 @@ class ChoosePassword extends PureComponent {
      */
     seedphraseNotBackedUp: PropTypes.func,
     /**
+     * Action to set existing user flag
+     */
+    setExistingUser: PropTypes.func,
+    /**
      * Action to save onboarding event
      */
     saveOnboardingEvent: PropTypes.func,
@@ -218,6 +224,10 @@ class ChoosePassword extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -246,6 +256,8 @@ class ChoosePassword extends PureComponent {
     eventBuilder.addProperties(properties);
     trackOnboarding(eventBuilder.build(), this.props.saveOnboardingEvent);
   };
+
+  getOauth2LoginSuccess = () => this.props.route.params?.oauthLoginSuccess;
 
   headerLeft = () => {
     const { navigation } = this.props;
@@ -343,22 +355,28 @@ class ChoosePassword extends PureComponent {
     const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit = passwordsMatch && isSelected;
-
-    if (!canSubmit) return;
     if (loading) return;
+    if (!canSubmit) {
+      if (
+        password !== '' &&
+        confirmPassword !== '' &&
+        password !== confirmPassword
+      ) {
+        this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          wallet_setup_type: 'import',
+          error_type: strings('choose_password.password_dont_match'),
+        });
+      }
+      return;
+    }
     if (!passwordRequirementsMet(password)) {
       this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: strings('choose_password.password_length_error'),
       });
       return;
-    } else if (password !== confirmPassword) {
-      this.track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-        wallet_setup_type: 'import',
-        error_type: strings('choose_password.password_dont_match'),
-      });
-      return;
     }
+
     const provider = this.props.route.params?.provider;
     this.track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
       account_type: provider ? `metamask_${provider}` : 'metamask',
@@ -373,11 +391,16 @@ class ChoosePassword extends PureComponent {
         this.state.rememberMe,
       );
 
-      if (previous_screen === ONBOARDING) {
+      authType.oauth2Login = this.getOauth2LoginSuccess();
+
+      Logger.log('previous_screen', previous_screen);
+      if (previous_screen.toLowerCase() === ONBOARDING.toLowerCase()) {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
-          if (Device.isIos) await this.handleRejectedOsBiometricPrompt();
+          if (Device.isIos) {
+            await this.handleRejectedOsBiometricPrompt();
+          }
         }
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
@@ -388,7 +411,36 @@ class ChoosePassword extends PureComponent {
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
-      this.props.navigation.replace('AccountBackupStep1');
+
+      if (authType.oauth2Login) {
+        if (this.props.metrics.isEnabled()) {
+          this.props.navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS,
+                params: { showPasswordHint: true },
+              },
+            ],
+          });
+        } else {
+          this.props.navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              this.props.navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.SUCCESS,
+                    params: { showPasswordHint: true },
+                  },
+                ],
+              });
+            },
+          });
+        }
+      } else {
+        this.props.navigation.replace('AccountBackupStep1');
+      }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
         password_strength: getPasswordStrengthWord(this.state.passwordStrength),
@@ -405,7 +457,7 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      this.props.setExistingUser(true);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);
@@ -435,6 +487,9 @@ class ChoosePassword extends PureComponent {
       false,
       false,
     );
+
+    const oauth2LoginSuccess = this.getOauth2LoginSuccess();
+    newAuthData.oauth2Login = oauth2LoginSuccess;
     try {
       await Authentication.newWalletAndKeychain(
         this.state.password,
@@ -645,12 +700,17 @@ class ChoosePassword extends PureComponent {
             resetScrollToCoords={{ x: 0, y: 0 }}
           >
             <View style={styles.container}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('choose_password.steps', {
-                  currentStep: 1,
-                  totalSteps: 3,
-                })}
-              </Text>
+              {!this.getOauth2LoginSuccess() && (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('choose_password.steps', {
+                    currentStep: 1,
+                    totalSteps: 3,
+                  })}
+                </Text>
+              )}
 
               <View
                 style={styles.passwordContainer}
@@ -807,7 +867,9 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Default}
                       >
-                        {strings('import_from_seed.learn_more')}
+                        {this.getOauth2LoginSuccess()
+                          ? strings('import_from_seed.learn_more_social_login')
+                          : strings('import_from_seed.learn_more')}
                         <Text
                           variant={TextVariant.BodyMD}
                           color={TextColor.Primary}
@@ -851,8 +913,12 @@ const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
+  setExistingUser: (value) => dispatch(setExistingUser(value)),
 });
 
 const mapStateToProps = (state) => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(ChoosePassword));

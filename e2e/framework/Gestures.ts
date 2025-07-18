@@ -27,6 +27,7 @@ export default class Gestures {
       checkVisibility?: boolean;
       checkEnabled?: boolean;
       elemDescription?: string;
+      delay?: number;
     },
     point?: { x: number; y: number },
   ) => {
@@ -50,6 +51,13 @@ export default class Gestures {
       checkEnabled,
     });
 
+    if (options.delay) {
+      await new Promise((resolve) => setTimeout(resolve, options.delay));
+    } else {
+      await new Promise((resolve) =>
+        setTimeout(resolve, BASE_DEFAULTS.actionDelay),
+      );
+    }
     await el.tap(point);
     const successMessage = elemDescription
       ? `✅ Successfully tapped element: ${elemDescription}`
@@ -90,7 +98,8 @@ export default class Gestures {
 
   /**
    * Wait for an element to be visible and then tap it with enhanced options
-   * This is the same as tap() - keeping it for backwards compatibility
+   * This is the same as tap() - but with an additional delay before the tap.
+   * This is useful for cases where the element might not be immediately ready for interaction.
    * @returns A Promise that resolves when the tap is successful
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
@@ -104,14 +113,16 @@ export default class Gestures {
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
+      delay = 500,
     } = options;
 
-    const fn = () =>
-      this.tapWithChecks(elem, {
+    const fn = async () =>
+      await this.tapWithChecks(elem, {
         checkStability,
         checkVisibility,
         checkEnabled,
         elemDescription,
+        delay,
       });
 
     return Utilities.executeWithRetry(fn, {
@@ -398,9 +409,8 @@ export default class Gestures {
       },
     );
   }
-
   /**
-   * Scroll to element with dynamic retry
+   * Scroll to element with dynamic retry and platform-specific adjustments
    * @returns A Promise that resolves when the scroll is successful
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
@@ -419,11 +429,23 @@ export default class Gestures {
     return Utilities.executeWithRetry(
       async () => {
         const target = (await targetElement) as Detox.IndexableNativeElement;
-        const scrollable = await scrollableContainer; // This is only working when it's awaited
-        await waitFor(target)
-          .toBeVisible()
-          .whileElement(scrollable)
-          .scroll(scrollAmount, direction);
+        const scrollable = await scrollableContainer;
+
+        if (device.getPlatform() === 'android') {
+          const scrollableElement = element(scrollable);
+          try {
+            await waitFor(target).toBeVisible().withTimeout(100);
+            return;
+          } catch {
+            await scrollableElement.scroll(scrollAmount / 2, direction); // Decrease scroll amount for Android to avoid overshooting
+            await waitFor(target).toBeVisible().withTimeout(100);
+          }
+        } else {
+          await waitFor(target)
+            .toBeVisible()
+            .whileElement(scrollable)
+            .scroll(scrollAmount, direction);
+        }
       },
       {
         timeout,
@@ -503,18 +525,38 @@ export default class Gestures {
 
   /**
    * Legacy method: Clear the text field
-   * @deprecated Use typeText() with clearFirst option instead for better error handling and retry mechanisms
+   * @deprecated Use typeText() with clearFirst option or the replaceText() from Gestures.ts instead for better error handling and retry mechanisms
    */
-  static async clearField(elem: DetoxElement, timeout = 2500): Promise<void> {
+  static async clearField(
+    elem: DetoxElement,
+    options: GestureOptions = {},
+  ): Promise<void> {
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      checkStability = false,
+      checkEnabled = true,
+      checkVisibility = true,
+      elemDescription,
+    } = options;
+
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
-        await waitFor(el).toBeVisible().withTimeout(timeout);
+        const el = (await Utilities.checkElementReadyState(elem, {
+          timeout,
+          checkStability,
+          checkVisibility,
+          checkEnabled,
+        })) as Detox.IndexableNativeElement;
+
+        await new Promise((resolve) =>
+          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
+        );
         await el.replaceText('');
       },
       {
         timeout,
-        description: 'Cleared field',
+        description: 'clearField()',
+        elemDescription,
       },
     );
   }

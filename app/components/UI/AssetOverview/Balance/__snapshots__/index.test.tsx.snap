@@ -30,11 +30,11 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     onPress={[Function]}
     style={
       {
-        "alignItems": "flex-start",
+        "alignItems": "center",
         "flex": 1,
         "flexDirection": "row",
-        "paddingHorizontal": 15,
-        "paddingVertical": 14,
+        "height": 64,
+        "paddingHorizontal": 16,
       }
     }
     testID="asset-DAI"
@@ -54,10 +54,10 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
-              "height": 32,
+              "borderRadius": 20,
+              "height": 40,
               "overflow": "hidden",
-              "width": 32,
+              "width": 40,
             }
           }
         >
@@ -174,12 +174,9 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "alignSelf": "flex-start",
             "color": "#121314",
-            "flex": 1,
             "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "justifyContent": "flex-start",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -206,7 +203,6 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
       style={
         {
           "alignItems": "flex-end",
-          "alignSelf": "flex-end",
           "flexShrink": 0,
         }
       }
@@ -278,11 +274,11 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     onPress={[Function]}
     style={
       {
-        "alignItems": "flex-start",
+        "alignItems": "center",
         "flex": 1,
         "flexDirection": "row",
-        "paddingHorizontal": 15,
-        "paddingVertical": 14,
+        "height": 64,
+        "paddingHorizontal": 16,
       }
     }
     testID="asset-DAI"
@@ -302,10 +298,10 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
-              "height": 32,
+              "borderRadius": 20,
+              "height": 40,
               "overflow": "hidden",
-              "width": 32,
+              "width": 40,
             }
           }
         >
@@ -422,12 +418,9 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "alignSelf": "flex-start",
             "color": "#121314",
-            "flex": 1,
             "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "justifyContent": "flex-start",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -454,7 +447,6 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
       style={
         {
           "alignItems": "flex-end",
-          "alignSelf": "flex-end",
           "flexShrink": 0,
         }
       }

@@ -30,10 +30,6 @@ export const HOWTO_MANAGE_METAMETRICS =
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
-// SES
-export const SES_URL =
-  'https://github.com/endojs/endo/blob/master/packages/ses/README.md';
-
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
 export const KEYSTONE_LEARN_MORE =
@@ -52,6 +48,7 @@ export const LINEA_SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.lineascan.build';
 export const LINEA_MAINNET_BLOCK_EXPLORER = 'https://lineascan.build';
 export const MAINNET_BLOCK_EXPLORER = 'https://etherscan.io';
 export const SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.etherscan.io';
+export const BASE_MAINNET_BLOCK_EXPLORER_URL = 'https://basescan.org';
 
 // Rpcs
 export const MAINNET_DEFAULT_RPC_URL = `https://mainnet.infura.io/v3/${infuraProjectId}`;

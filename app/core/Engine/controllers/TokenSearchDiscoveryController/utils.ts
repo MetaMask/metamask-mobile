@@ -16,6 +16,7 @@ const getPortfolioApiBaseUrl = () => {
     case 'production':
     case 'beta':
     case 'rc':
+    case 'exp':
       return PORTFOLIO_API_URL.prod;
     default:
       return PORTFOLIO_API_URL.dev;

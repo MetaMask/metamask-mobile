@@ -27,33 +27,39 @@ class QuoteView {
   }
 
   get searchToken(): TypableElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.SEARCH_TOKEN) as TypableElement;
+    return Matchers.getElementByID(
+      QuoteViewSelectorIDs.SEARCH_TOKEN,
+    ) as TypableElement;
   }
 
   get maxSlippage(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.MAX_SLIPPAGE);
   }
 
- async enterSwapAmount(amount: string) {
-  for (const digit of amount) {
-    const button = Matchers.getElementByText(digit);
-    await Gestures.waitAndTap(button);
+  async enterSwapAmount(amount: string) {
+    for (const digit of amount) {
+      const button = Matchers.getElementByText(digit);
+      await Gestures.waitAndTap(button, {
+        delayBeforeTap: 500,
+      });
+    }
   }
-}
 
   async tapOnSelectSourceToken() {
-    await Gestures.waitAndTap(this.sourceToken);
+    await Gestures.waitAndTap(this.sourceToken, {
+      delayBeforeTap: 1000,
+    });
   }
 
   async tapOnSelectDestToken() {
     await Gestures.waitAndTap(this.destToken, {
-      experimentalWaitForStability: true,
+      delayBeforeTap: 1000,
     });
   }
 
   async tapSearchToken() {
     await Gestures.waitAndTap(this.searchToken, {
-      experimentalWaitForStability: true,
+      delayBeforeTap: 1000,
     });
   }
 
@@ -63,12 +69,14 @@ class QuoteView {
 
   async selectToken(symbol: string, index: number = 1): Promise<void> {
     const token = Matchers.getElementByText(symbol, index);
-    await Gestures.waitAndTap(token);
+    await Gestures.waitAndTap(token, {
+      delayBeforeTap: 1000,
+    });
   }
 
   async tapOnGetQuotes() {
     await Gestures.waitAndTap(this.getQuotes, {
-      experimentalWaitForStability: true,
+      delayBeforeTap: 1000,
     });
   }
 

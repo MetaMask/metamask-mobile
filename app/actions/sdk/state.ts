@@ -4,6 +4,7 @@ export interface WC2Metadata {
   url: string;
   name: string;
   icon: string;
+  lastVerifiedUrl?: string;
 }
 export interface SDKState {
   connections: SDKSessions;

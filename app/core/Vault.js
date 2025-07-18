@@ -12,7 +12,14 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
-import { toFormattedAddress, areAddressesEqual } from '../util/address';
+import ReduxService from './redux';
+import { areAddressesEqual } from '../util/address';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from './Engine/controllers/seedless-onboarding-controller/error';
+
+import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 
 /**
  * Restore the given serialized QR keyring.
@@ -126,6 +133,7 @@ export const recreateVaultWithNewPassword = async (
   password,
   newPassword,
   selectedAddress,
+  skipSeedlessOnboardingPWChange = false,
 ) => {
   const { KeyringController, AccountsController } = Engine.context;
   const hdKeyringsWithMetadata = KeyringController.state.keyrings.filter(
@@ -211,6 +219,31 @@ export const recreateVaultWithNewPassword = async (
 
   // START: Restoring keyrings
 
+  const { SeedlessOnboardingController } = Engine.context;
+  let seedlessChangePasswordError = null;
+  if (
+    !skipSeedlessOnboardingPWChange &&
+    selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
+  ) {
+    try {
+      await SeedlessOnboardingController.changePassword(newPassword, password);
+    } catch (error) {
+      Logger.error(
+        error,
+        '[recreateVaultWithNewPassword] seedless onboarding pw change error',
+      );
+      // restore keyring with old password if seedless onboarding pw change fails
+      await KeyringController.createNewVaultAndRestore(
+        password,
+        primaryKeyringSeedPhrase,
+      );
+      seedlessChangePasswordError = new SeedlessOnboardingControllerError(
+        error || 'Password change failed',
+        SeedlessOnboardingControllerErrorType.ChangePasswordError,
+      );
+    }
+  }
+
   if (serializedQrKeyring !== undefined) {
     await restoreQRKeyring(serializedQrKeyring);
   }
@@ -272,6 +305,12 @@ export const recreateVaultWithNewPassword = async (
       )
     ) {
       Engine.setSelectedAddress(selectedAddress);
+
+      // If seedless change password failed, throw the error message
+      // note the vault is recreated successfully, but the password is not changed
+      if (seedlessChangePasswordError) {
+        throw seedlessChangePasswordError;
+      }
       return;
     }
   }
