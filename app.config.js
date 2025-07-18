@@ -24,7 +24,13 @@ module.exports = {
         subdomains: '*',
       },
     ],
-
+    [
+      '@intercom/intercom-react-native',
+      {
+        androidApiKey: 'KEY_HERE',
+        iosApiKey: 'KEY_HERE'
+      }
+    ],
     'expo-apple-authentication',
   ],
   ios: {
