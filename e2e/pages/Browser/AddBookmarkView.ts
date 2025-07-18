@@ -1,20 +1,22 @@
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class AddFavoritesView {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONTAINER);
   }
 
-  get addBookmarkButton() {
+  get addBookmarkButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
-  async tapAddBookmarksButton() {
-    await Gestures.waitAndTap(this.addBookmarkButton);
+  async tapAddBookmarksButton(): Promise<void> {
+    await Gestures.waitAndTap(this.addBookmarkButton, {
+      description: 'Tap on the add bookmark button',
+    });
   }
 }
 
