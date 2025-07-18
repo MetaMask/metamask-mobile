@@ -12,11 +12,18 @@ import { getFixturesServerPort } from '../../../../../e2e/fixtures/utils';
 import FixtureServer from '../../../../../e2e/fixtures/fixture-server';
 import { navigateToSampleFeature } from '../utils';
 import Assertions from '../../../../../e2e/utils/Assertions';
+import { 
+  initializePerformance,
+  saveTestSuitePerformanceMetrics,
+} from '../../../../../e2e/utils/redux-performance-utils';
 
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Sample Feature'), () => {
   beforeAll(async () => {
+    // Initialize performance tracking
+    initializePerformance('SampleFeature', 'sample-feature-counter');
+
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
@@ -28,6 +35,8 @@ describe(Regression('Sample Feature'), () => {
   });
 
   afterAll(async () => {
+    // Save performance metrics for the test suite
+    await saveTestSuitePerformanceMetrics('SampleFeature', 'sample-feature-counter');
     await stopFixtureServer(fixtureServer);
   });
 
