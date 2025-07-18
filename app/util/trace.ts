@@ -512,7 +512,7 @@ function startTrace(request: TraceRequest): TraceContext {
 
   const callback = (span: Span | undefined) => {
     const end = (timestamp?: number) => {
-      if (span && span?.end !== undefined) {
+      if (span?.end !== undefined) {
         span?.end(timestamp);
       }
     };
