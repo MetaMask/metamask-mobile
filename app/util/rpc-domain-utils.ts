@@ -116,6 +116,26 @@ function parseDomain(url: string): string | undefined {
   }
 }
 
+// Allowed provider domains for RPC endpoint validation
+const ALLOWED_PROVIDER_DOMAINS = new Set(['infura.io', 'alchemyapi.io']);
+
+/**
+ * Check if a hostname is an allowed provider domain or legitimate subdomain
+ * @param hostname - The hostname to check
+ * @returns True if the hostname is allowed, false otherwise
+ */
+function isAllowedProviderDomain(hostname: string): boolean {
+  // Check exact match first
+  if (ALLOWED_PROVIDER_DOMAINS.has(hostname)) {
+    return true;
+  }
+
+  // Check if it's a legitimate subdomain of any allowed domain
+  return [...ALLOWED_PROVIDER_DOMAINS].some((allowedDomain) =>
+    hostname.endsWith(`.${allowedDomain}`),
+  );
+}
+
 /**
  * Extracts the domain from an RPC URL for analytics tracking
  * @param rpcUrl - The RPC URL to extract domain from
@@ -126,23 +146,22 @@ export function extractRpcDomain(rpcUrl: string): RpcDomainStatus | string {
   if (!domain) {
     return RpcDomainStatus.Invalid;
   }
+
   // Check if this is a known domain
   if (isKnownDomain(domain)) {
     return domain;
   }
-  // Special case for Infura subdomains - always return the actual domain
-  // even if not in the known domains list
-  if (domain.includes('infura.io')) {
+
+  // Check if it's an allowed provider domain (Infura, Alchemy, etc.)
+  if (isAllowedProviderDomain(domain)) {
     return domain;
   }
-  // Special case for Alchemy subdomains
-  if (domain.endsWith('alchemyapi.io')) {
-    return domain;
-  }
+
   // Special case for local/development nodes
   if (domain === 'localhost' || domain === '127.0.0.1') {
     return RpcDomainStatus.Private;
   }
+
   // For all other domains, return "private" for privacy
   return RpcDomainStatus.Private;
 }
