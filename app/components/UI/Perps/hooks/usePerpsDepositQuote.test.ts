@@ -1102,9 +1102,6 @@ describe('usePerpsDepositQuote', () => {
         { state },
       );
 
-      // Initial state - for direct deposits, quoteFetchedTime may be null initially
-      const initialQuoteFetchedTime = result.current.quoteFetchedTime;
-
       // Change token
       const newToken: PerpsToken = {
         address: '0x1234567890123456789012345678901234567890',
