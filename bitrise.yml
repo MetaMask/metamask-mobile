@@ -2063,6 +2063,7 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_android_qa:
       after_run:
         - build_android_qa_prod
@@ -2567,47 +2568,10 @@ workflows:
       - YARN_COMMAND: 'build:ios:qa:prod'
     after_run:
       - _ios_build_template
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_qa:
-    before_run:
-      - code_setup
     after_run:
-      - _upload_ipa_to_browserstack
-      - notify_failure
-    steps:
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - build_version: $VERSION_NUMBER
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
-          title: iOS Sourcemaps & Build
-          is_always_run: false
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: ios/build/output/MetaMask-QA.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: ios/build/output/MetaMask-QA.ipa
-          title: Deploy iOS IPA
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: ios/build/MetaMask-QA.xcarchive
-          title: Deploy Symbols File
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
-            - deploy_path: sourcemaps/ios/index.js.map
-          title: Deploy Source Map
+      - build_ios_qa_prod
   _upload_ipa_to_browserstack:
     steps:
       - script@1:
