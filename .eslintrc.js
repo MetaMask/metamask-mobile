@@ -121,8 +121,6 @@ module.exports = {
       files: [
         'app/component-library/**/*.{js,ts,tsx}',
         'app/components/**/*.{js,ts,tsx}',
-        'app/**/*.{js,ts,tsx}',
-        'storybook/**/*.{js,ts,tsx}',
       ],
       plugins: ['tailwindcss'],
       rules: {
