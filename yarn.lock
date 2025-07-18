@@ -4757,11 +4757,6 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.8.0.tgz#fc32e07746689459c4b049dc581d1dbda5545686"
   integrity sha512-+70fkgjhVJeJ+nJqnburIM3UAsfvxat1Low9HMPobLbv64FIdB4Nzu5ct3qojNQ58r5sK01tg5UoFIJYslaVrg==
 
-"@metamask-previews/design-tokens@^8.1.0-preview.a7d80d5":
-  version "8.1.0-preview.a7d80d5"
-  resolved "https://registry.npmjs.org/@metamask-previews/design-tokens/-/design-tokens-8.1.0-preview.a7d80d5.tgz#98a8cc510316d8dbeb39476d2d5bf34c5f9a6079"
-  integrity sha512-6HCRd6ULuj2FAbDSNtSKE74bEG2fwmUVfTGUaynEZoiwx3FS44JQqWsEFybf1HObd+kkdv7JfOwIjxBkgsAfPQ==
-
 "@metamask/abi-utils@^2.0.3":
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-2.0.4.tgz#20908c1d910f7a17a89fdf5778a5c59d5cb8b8be"
