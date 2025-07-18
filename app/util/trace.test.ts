@@ -10,8 +10,8 @@ import {
   TraceName,
   TRACES_CLEANUP_INTERVAL,
   flushBufferedTraces,
-  bufferTraceStartCall,
-  bufferTraceEndCall,
+  bufferTraceStartCallLocal,
+  bufferTraceEndCallLocal,
   discardBufferedTraces,
   updateCachedConsent,
 } from './trace';
@@ -431,8 +431,8 @@ describe('Trace', () => {
     it('should clear buffer and not process traces when consent is not given', async () => {
       storageGetItemMock.mockResolvedValue(DENIED);
 
-      bufferTraceStartCall({ name: TraceName.Middleware });
-      bufferTraceEndCall({ name: TraceName.Middleware });
+      bufferTraceStartCallLocal({ name: TraceName.Middleware });
+      bufferTraceEndCallLocal({ name: TraceName.Middleware });
 
       await flushBufferedTraces();
 

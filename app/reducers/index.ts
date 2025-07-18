@@ -34,7 +34,6 @@ import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
-import bufferedTracesReducer, { BufferedTraceState } from './bufferedTraces';
 import { isTest } from '../util/test/utils';
 
 /**
@@ -125,7 +124,6 @@ export interface RootState {
   bridge: StateFromReducer<typeof bridgeReducer>;
   banners: BannersState;
   performance?: PerformanceState;
-  bufferedTraces: BufferedTraceState;
 }
 
 const baseReducers = {
@@ -162,7 +160,6 @@ const baseReducers = {
   bridge: bridgeReducer,
   banners: bannersReducer,
   confirmationMetrics: confirmationMetricsReducer,
-  bufferedTraces: bufferedTracesReducer,
 };
 
 if (isTest) {

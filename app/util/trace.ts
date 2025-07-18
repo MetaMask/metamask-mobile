@@ -11,15 +11,8 @@ import {
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
-import ReduxService from '../core/redux/ReduxService';
-import {
-  addBufferedTrace,
-  clearBufferedTraces,
-} from '../actions/bufferedTraces';
-import { selectBufferedTraces } from '../selectors/bufferedTraces';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
-import { BufferedTrace } from '../reducers/bufferedTraces';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
@@ -155,7 +148,6 @@ export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const tracesByKey: Map<string, PendingTrace> = new Map();
 
-// Local buffer for traces with skipReduxBuffering flag
 const localBufferedTraces: BufferedTrace[] = [];
 
 export interface PendingTrace {
@@ -219,11 +211,6 @@ export interface TraceRequest {
    */
   op?: string;
 
-  /**
-   * Set to true when tracing from within Redux selectors to prevent infinite loops.
-   * Uses local memory buffering instead of Redux actions when consent is not given.
-   */
-  selectorSafe?: boolean;
 }
 /**
  * A request to end a pending trace.
@@ -251,15 +238,16 @@ export interface EndTraceRequest {
    */
   data?: Record<string, TraceValue>;
 
-  /**
-   * Set to true when tracing from within Redux selectors to prevent infinite loops.
-   * Uses local memory buffering instead of Redux actions when consent is not given.
-   */
-  selectorSafe?: boolean;
 }
 
 interface SentrySpanWithName extends Span {
   _name?: string;
+}
+
+interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
+  type: 'start' | 'end';
+  request: T;
+  parentTraceName?: string; // Track parent trace name for reconnecting during flush
 }
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
@@ -298,12 +286,7 @@ export function endTrace(request: EndTraceRequest): void {
   const id = getTraceId(request);
 
   if (getCachedConsent() !== true) {
-    // Check if we should skip Redux buffering
-    if (request.selectorSafe) {
-      bufferTraceEndCallLocal(request);
-    } else {
-      bufferTraceEndCall(request);
-    }
+    bufferTraceEndCallLocal(request);
     return;
   }
 
@@ -335,17 +318,6 @@ export function endTrace(request: EndTraceRequest): void {
 }
 
 /**
- * Safely get the Redux store, returning null if not initialized
- */
-function getStoreIfReady() {
-  try {
-    return ReduxService.store;
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Create a buffered trace object for start trace requests
  */
 function createBufferedStartTrace(
@@ -364,25 +336,6 @@ function createBufferedStartTrace(
 }
 
 /**
- * Buffer a trace start call with parent context information
- * @param {*} request - trace request
- * @param {string | undefined} parentTraceName - parent trace name for reconnection
- */
-export function bufferTraceStartCall(
-  request: TraceRequest,
-  parentTraceName?: string,
-) {
-  const storeInstance = getStoreIfReady();
-  if (!storeInstance) {
-    return;
-  }
-
-  storeInstance.dispatch(
-    addBufferedTrace(createBufferedStartTrace(request, parentTraceName)),
-  );
-}
-
-/**
  * Create a buffered trace object for end trace requests
  */
 function createBufferedEndTrace(request: EndTraceRequest): BufferedTrace {
@@ -396,22 +349,9 @@ function createBufferedEndTrace(request: EndTraceRequest): BufferedTrace {
 }
 
 /**
- * Buffer a trace end call
- * @param {*} request - end trace request
+ * Buffer a trace start call in local memory
  */
-export function bufferTraceEndCall(request: EndTraceRequest) {
-  const storeInstance = getStoreIfReady();
-  if (!storeInstance) {
-    return;
-  }
-
-  storeInstance.dispatch(addBufferedTrace(createBufferedEndTrace(request)));
-}
-
-/**
- * Buffer a trace start call in local memory (for selectorSafe cases)
- */
-function bufferTraceStartCallLocal(
+export function bufferTraceStartCallLocal(
   request: TraceRequest,
   parentTraceName?: string,
 ) {
@@ -419,9 +359,9 @@ function bufferTraceStartCallLocal(
 }
 
 /**
- * Buffer a trace end call in local memory (for selectorSafe cases)
+ * Buffer a trace end call in local memory
  */
-function bufferTraceEndCallLocal(request: EndTraceRequest) {
+export function bufferTraceEndCallLocal(request: EndTraceRequest) {
   localBufferedTraces.push(createBufferedEndTrace(request));
 }
 
@@ -429,30 +369,14 @@ function bufferTraceEndCallLocal(request: EndTraceRequest) {
  * Flushes buffered traces to Sentry when consent is given
  */
 export async function flushBufferedTraces() {
-  const storeInstance = getStoreIfReady();
-  if (!storeInstance) {
+
+  if (localBufferedTraces.length === 0) {
     return;
   }
-
-  const reduxBufferedTraces = selectBufferedTraces(storeInstance.getState());
-  const localBufferedTracesCopy = [...localBufferedTraces];
-
-  // Combine Redux buffered traces with local buffered traces
-  const allBufferedTraces = [
-    ...reduxBufferedTraces,
-    ...localBufferedTracesCopy,
-  ];
-
-  if (allBufferedTraces.length === 0) {
-    return;
-  }
-
-  storeInstance.dispatch(clearBufferedTraces());
-  localBufferedTraces.length = 0;
 
   const activeSpans = new Map<string, Span>();
 
-  for (const bufferedItem of allBufferedTraces) {
+  for (const bufferedItem of localBufferedTraces) {
     if (bufferedItem.type === 'start') {
       const traceKey = getTraceKey(bufferedItem.request);
 
@@ -483,6 +407,10 @@ export async function flushBufferedTraces() {
       activeSpans.delete(traceKey);
     }
   }
+
+  // Clear local buffer after flushing
+  localBufferedTraces.length = 0;
+
 }
 
 // Cache consent state to avoid async checks in trace functions
@@ -516,11 +444,6 @@ export function updateCachedConsent(consent: boolean) {
 }
 
 export function discardBufferedTraces() {
-  const storeInstance = getStoreIfReady();
-  if (!storeInstance) {
-    return;
-  }
-  storeInstance.dispatch(clearBufferedTraces());
   localBufferedTraces.length = 0; // Clear local buffer as well
 }
 
@@ -535,21 +458,14 @@ function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
       parentTraceName = parentSpan._name;
     }
 
-    // Check if we should skip Redux buffering
-    if (request.selectorSafe) {
-      bufferTraceStartCallLocal(request, parentTraceName);
-      const result = fn(undefined);
-      bufferTraceEndCallLocal({
-        name: request.name,
-        id: request.id,
-        selectorSafe: true,
-      });
-      return result;
-    }
-    bufferTraceStartCall(request, parentTraceName);
+    bufferTraceStartCallLocal(request, parentTraceName);
     const result = fn(undefined);
-    bufferTraceEndCall({ name: request.name, id: request.id });
+    bufferTraceEndCallLocal({
+      name: request.name,
+      id: request.id,
+    });
     return result;
+   
   }
 
   const callback = (span: Span | undefined) => {
@@ -595,13 +511,8 @@ function startTrace(request: TraceRequest): TraceContext {
       parentTraceName = parentSpan._name;
     }
 
-    // Check if we should skip Redux buffering
-    if (request.selectorSafe) {
-      bufferTraceStartCallLocal(request, parentTraceName);
-      return { _buffered: true, _name: name, _id: id, _local: true };
-    }
-    bufferTraceStartCall(request, parentTraceName);
-    return { _buffered: true, _name: name, _id: id };
+    bufferTraceStartCallLocal(request, parentTraceName);
+    return { _buffered: true, _name: name, _id: id, _local: true };
   }
 
   const callback = (span: Span | undefined) => {
