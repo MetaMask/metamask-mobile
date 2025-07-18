@@ -53,7 +53,11 @@ import { endTrace, trace, TraceName } from '../../../util/trace';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
-import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
+import {
+  SEEDLESS_ONBOARDING_ENABLED,
+  BuildType,
+} from '../../../core/OAuthService/OAuthLoginHandlers/constants';
+import AppConstants from '../../../core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -534,6 +538,11 @@ class Onboarding extends PureComponent {
             resizeMode="contain"
           />
         </View>
+
+        <Text> METAMASK_ENVIRONMENT: {process.env.METAMASK_ENVIRONMENT}</Text>
+        <Text> METAMASK_BUILD_TYPE: {process.env.METAMASK_BUILD_TYPE}</Text>
+        <Text> BuidType: {BuildType}</Text>
+        <Text> IS_DEV: {AppConstants.IS_DEV}</Text>
 
         <Text
           variant={TextVariant.BodyMD}
