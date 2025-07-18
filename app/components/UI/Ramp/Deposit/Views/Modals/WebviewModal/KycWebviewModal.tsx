@@ -5,15 +5,17 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import WebviewModal, { WebviewModalParams } from './WebviewModal';
 import useUserDetailsPolling from '../../../hooks/useUserDetailsPolling';
 import { KycStatus } from '../../../constants';
-import { createKycProcessingNavDetails } from '../../KycProcessing/KycProcessing';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import { useDepositRouting } from '../../../hooks/useDepositRouting';
 
 interface KycWebviewModalParams extends WebviewModalParams {
   quote: BuyQuote;
+  cryptoCurrencyChainId: string;
+  paymentMethodId: string;
 }
 
 export const createKycWebviewModalNavigationDetails =
@@ -24,7 +26,13 @@ export const createKycWebviewModalNavigationDetails =
 
 function KycWebviewModal() {
   const navigation = useNavigation();
-  const { quote } = useParams<KycWebviewModalParams>();
+  const { quote, cryptoCurrencyChainId, paymentMethodId } =
+    useParams<KycWebviewModalParams>();
+
+  const { routeAfterAuthentication } = useDepositRouting({
+    cryptoCurrencyChainId,
+    paymentMethodId,
+  });
 
   const {
     userDetails: userDetailsPolling,
@@ -52,7 +60,7 @@ function KycWebviewModal() {
     ) {
       stopPolling();
       if (quote) {
-        navigation.navigate(...createKycProcessingNavDetails({ quote }));
+        routeAfterAuthentication(quote);
       }
     }
   }, [
