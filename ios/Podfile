@@ -22,8 +22,6 @@ if linkage != nil
   $RNFirebaseAsStaticFramework = true
 end
 
-
-
 # react_native_post_install:
 # Disabled to fix SentryPrivate Xcode 15 build error
 # - https://github.com/getsentry/sentry-react-native/issues/3322
@@ -78,7 +76,7 @@ def common_target_logic
       'ios'
     ]
   end
-  
+
   config = use_native_modules!(config_command)
 
   use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
@@ -96,11 +94,10 @@ def common_target_logic
   pod 'GzipSwift'
 
   # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
-  pod 'OpenSSL-Universal', :modular_headers => true  
+  pod 'OpenSSL-Universal', :modular_headers => true
 
   use_react_native!(
     :path => config[:reactNativePath],
-    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
@@ -137,16 +134,6 @@ end
 config = use_native_modules!(config_command)
 
 post_install do |installer|
-
-  if ENV['GITHUB_CI'] == 'true'
-    installer.pods_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
-      end
-    end
-  end
-
-
   react_native_post_install(
     installer,
     config[:reactNativePath],
@@ -154,24 +141,22 @@ post_install do |installer|
     :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
   )
 
-
-
   # Modify RCT-Folly Portability.h to disable coroutines
   Dir.glob(installer.sandbox.root + "RCT-Folly/folly/Portability.h") do |file|
     begin
       # First try to make the file writable
       system "chmod +w #{file}"
-      
+
       contents = File.read(file)
       modified_contents = contents.gsub(/#define FOLLY_HAS_COROUTINES 1/, '#define FOLLY_HAS_COROUTINES 0')
-      
+
       # Try writing with elevated privileges if needed
       if !File.writable?(file)
         system "sudo chmod +w #{file}"
       end
-      
+
       File.write(file, modified_contents)
-      
+
       # Optionally restore original permissions
       system "chmod -w #{file}"
     rescue => e
