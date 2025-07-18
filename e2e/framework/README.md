@@ -88,7 +88,7 @@ e2e/
 │   ├── index.ts                # Main entry point
 │   ├── types.ts                # TypeScript type definitions
 │   ├── .eslintrc.js            # ESLint configuration
-│   └── fixtures/               # Framework fixtures
+│   └── fixtures/               # Framework fixtures (⚠️ still being tested)
 │       ├── FixtureBuilder.ts   # Builder for test fixtures
 │       ├── FixtureHelper.ts    # Helper functions for fixtures
 │       ├── FixtureServer.ts    # Server for fixture data
