@@ -20,8 +20,10 @@ export function PrivacyOverlay() {
       setShowOverlay((prevOverlayState: boolean) => {
         switch (action) {
           case 'background':
+          case 'inactive':
           case 'blur':
             return true;
+          case 'active':
           case 'focus':
             return false;
           default:
