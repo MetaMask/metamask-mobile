@@ -38,11 +38,7 @@ export const recreateVaultWithNewPassword = async (
     throw new Error('No selected address');
   }
 
-  try {
-    await KeyringController.verifyPassword(password);
-  } catch (error) {
-    throw new Error('Invalid password');
-  }
+  await KeyringController.verifyPassword(password);
 
   let seedlessChangePasswordError = null;
   await KeyringController.changePassword(newPassword);
