@@ -18,6 +18,7 @@ import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
 import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
+import HL from './HL_symbol_mint_green.png';
 import XRPLEVM_TOKEN from './xrp-logo.png';
 import SEI from './sei.png';
 import MONAD_TESTNET from './monad-testnet-logo.png';
@@ -74,4 +75,5 @@ export default {
   EDU,
   ABSTRACT,
   OMNI: OMNI_TOKEN,
+  HL,
 };

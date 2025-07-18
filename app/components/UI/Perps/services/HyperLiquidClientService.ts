@@ -10,6 +10,7 @@ import {
   HYPERLIQUID_TRANSPORT_CONFIG,
 } from '../constants/hyperLiquidConfig';
 import type { HyperLiquidNetwork } from '../types/config';
+import { strings } from '../../../../../locales/i18n';
 import type { CandleData } from '../types';
 
 /**
@@ -122,7 +123,7 @@ export class HyperLiquidClientService {
    */
   public ensureInitialized(): void {
     if (!this.isInitialized()) {
-      throw new Error('HyperLiquid SDK clients not properly initialized');
+      throw new Error(strings('perps.errors.clientNotInitialized'));
     }
   }
 
@@ -146,7 +147,7 @@ export class HyperLiquidClientService {
   public getExchangeClient(): ExchangeClient {
     this.ensureInitialized();
     if (!this.exchangeClient) {
-      throw new Error('ExchangeClient not available after initialization');
+      throw new Error(strings('perps.errors.exchangeClientNotAvailable'));
     }
     return this.exchangeClient;
   }
@@ -157,7 +158,7 @@ export class HyperLiquidClientService {
   public getInfoClient(): InfoClient {
     this.ensureInitialized();
     if (!this.infoClient) {
-      throw new Error('InfoClient not available after initialization');
+      throw new Error(strings('perps.errors.infoClientNotAvailable'));
     }
     return this.infoClient;
   }
@@ -299,7 +300,10 @@ export class HyperLiquidClientService {
           );
         } catch (error) {
           DevLogger.log('HyperLiquid: Error closing WebSocket connection', {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error:
+              error instanceof Error
+                ? error.message
+                : strings('perps.errors.unknownError'),
             timestamp: new Date().toISOString(),
           });
         }
