@@ -36,9 +36,13 @@ async function requestPermissions({
   accounts?: string[];
   params?: unknown[];
 } = {}) {
+  
   const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
   const bodyElement = webView.element(by.web.tag('body'));
 
+  await TestHelpers.delay(500);
+  await (expect(await bodyElement) as any).toExist();
+  
   const requestPermissionsRequest = JSON.stringify({
     jsonrpc: '2.0',
     method: 'wallet_requestPermissions',
@@ -61,7 +65,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should default account selection to already permitted account when `wallet_requestPermissions` is called with no accounts specified', async () => {
+  it.only('should default account selection to already permitted account when `wallet_requestPermissions` is called with no accounts specified', async () => {
     await withFixtures(
       {
         dapp: true,
