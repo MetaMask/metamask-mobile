@@ -236,8 +236,10 @@ export const useDepositRouting = ({
                 amount_source: Number(order.fiatAmount),
                 amount_destination: Number(order.cryptoAmount),
                 exchange_rate: Number(order.exchangeRate),
-                gas_fee: Number(order.networkFees),
-                processing_fee: Number(order.partnerFees),
+                gas_fee: order.networkFees ? Number(order.networkFees) : 0,
+                processing_fee: order.partnerFees
+                  ? Number(order.partnerFees)
+                  : 0,
                 total_fee: Number(order.totalFeesFiat),
                 payment_method_id: order.paymentMethod,
                 country: selectedRegion?.isoCode || '',

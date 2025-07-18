@@ -121,8 +121,10 @@ const OrderProcessing = () => {
           amount_source: Number(order.data.fiatAmount),
           amount_destination: Number(order.cryptoAmount),
           exchange_rate: Number(order.data.exchangeRate),
-          gas_fee: Number(order.data.networkFees),
-          processing_fee: Number(order.data.partnerFees),
+          gas_fee: order.data.networkFees ? Number(order.data.networkFees) : 0,
+          processing_fee: order.data.partnerFees
+            ? Number(order.data.partnerFees)
+            : 0,
           total_fee: Number(order.data.totalFeesFiat),
           payment_method_id: order.data.paymentMethod,
           country: selectedRegion?.isoCode || '',
