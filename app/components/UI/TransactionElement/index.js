@@ -40,10 +40,7 @@ import {
   useBridgeTxHistoryData,
 } from '../../../util/bridge/hooks/useBridgeTxHistoryData';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
-import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
 import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
-import { decimalToHex } from '../../../util/conversions';
-import { addHexPrefix } from '../../../util/number';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
@@ -54,12 +51,9 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import {
-  formatChainIdToCaip,
-  formatChainIdToHex,
-  isSolanaChainId,
-} from '@metamask/bridge-controller';
 import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -707,6 +701,11 @@ const mapStateToProps = (state, ownProps) => ({
   swapsTokens: swapsControllerTokens(state),
   ticker: selectTickerByChainId(state, ownProps.txChainId),
   conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
+  contractExchangeRates: selectContractExchangeRatesByChainId(
+    state,
+    ownProps.txChainId,
+  ),
+  tokens: selectTokensByChainIdAndAddress(state, ownProps.txChainId),
 });
 
 TransactionElement.contextType = ThemeContext;
