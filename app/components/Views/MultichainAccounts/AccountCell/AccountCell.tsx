@@ -52,7 +52,6 @@ export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
           // TODO: REPLACE WITH ACTUAL BALANCE
           '$1234567890.00'
         }
-        {`${isSelected}`}
       </Text>
       <TouchableOpacity
         style={styles.accountDetailsMenu}
