@@ -36,13 +36,12 @@ async function requestPermissions({
   accounts?: string[];
   params?: unknown[];
 } = {}) {
-  
   const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
   const bodyElement = webView.element(by.web.tag('body'));
 
   await TestHelpers.delay(500);
   await (expect(await bodyElement) as any).toExist();
-  
+
   const requestPermissionsRequest = JSON.stringify({
     jsonrpc: '2.0',
     method: 'wallet_requestPermissions',
