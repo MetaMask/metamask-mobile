@@ -50,6 +50,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
@@ -214,8 +215,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         Logger.log('authData', authData);
         setBiometryType(authData.availableBiometryType);
         setHasBiometricCredentials(
-          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
-            !route?.params?.locked,
+          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
         );
         setBiometryPreviouslyDisabled(!!previouslyDisabled);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
@@ -570,7 +570,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     !oauthLoginSuccess &&
     biometryChoice &&
     biometryType &&
-    hasBiometricCredentials
+    hasBiometricCredentials &&
+    !route?.params?.locked
   );
 
   const lottieSrc = useMemo(
