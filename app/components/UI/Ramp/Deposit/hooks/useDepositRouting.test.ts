@@ -43,6 +43,8 @@ let mockGetOrder = jest.fn().mockResolvedValue({
   cryptoAmount: '0.05',
   exchangeRate: '2000',
   totalFeesFiat: '2.50',
+  networkFees: '2.50',
+  partnerFees: '2.50',
   paymentMethod: 'credit_debit_card',
   fiatCurrency: 'USD',
 });
@@ -170,6 +172,8 @@ describe('useDepositRouting', () => {
       walletAddress: '0x123',
       cryptoCurrency: 'USDC',
       network: 'ethereum',
+      networkFees: '5.99',
+      partnerFees: '5.99',
     });
 
     mockUseHandleNewOrder.mockReturnValue(
@@ -717,6 +721,8 @@ describe('useDepositRouting', () => {
         cryptoAmount: '0.05',
         exchangeRate: '2000',
         totalFeesFiat: '2.50',
+        networkFees: '0',
+        partnerFees: '0',
         paymentMethod: 'credit_debit_card',
         fiatCurrency: 'USD',
       };
