@@ -41,16 +41,15 @@ const createStyles = (theme: Theme) =>
       paddingBottom: 16,
       justifyContent: 'center',
       paddingTop: 8,
+      paddingHorizontal: 16,
     },
     limitedAllowanceWarningContainer: {
       paddingTop: 8,
       borderTopWidth: 1,
       borderColor: theme.colors.border.muted,
       marginTop: 12,
-      marginHorizontal: 16,
     },
     addFundsButtonContainer: {
-      paddingHorizontal: 16,
       paddingTop: 18,
       width: '100%',
     },

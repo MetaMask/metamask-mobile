@@ -5,6 +5,12 @@ import { ARBITRARY_ALLOWANCE } from '../constants';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
 import Logger from '../../../../util/Logger';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 /**
  * Hook to retrieve allowances for supported tokens.
@@ -16,8 +22,13 @@ export const useGetAllowances = (selectedAddress?: string) => {
   const fetchAllowances = useCallback(async () => {
     if (sdk && selectedAddress) {
       try {
+        trace({
+          name: TraceName.Card,
+          op: TraceOperation.CardGetSupportedTokensAllowances,
+        });
         const supportedTokensAllowances =
           await sdk.getSupportedTokensAllowances(selectedAddress);
+
         const supportedTokens = sdk.supportedTokens;
 
         const mappedAllowances = supportedTokensAllowances.map((token) => {
@@ -57,6 +68,10 @@ export const useGetAllowances = (selectedAddress?: string) => {
         const filteredAllowances = mappedAllowances.filter(
           Boolean,
         ) as CardTokenAllowance[];
+
+        endTrace({
+          name: TraceName.Card,
+        });
 
         return filteredAllowances;
       } catch (error) {

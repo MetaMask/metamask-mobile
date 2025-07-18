@@ -10,6 +10,12 @@ import { strings } from '../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
 import BigNumber from 'bignumber.js';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 /**
  * React hook to fetch and determine the priority card token for a given user address.
@@ -78,7 +84,14 @@ export const useGetPriorityCardToken = (selectedAddress?: string) => {
       }
 
       try {
+        trace({
+          name: TraceName.Card,
+          op: TraceOperation.CardGetPriorityToken,
+        });
         const cardTokenAllowances = await fetchAllowances();
+        endTrace({
+          name: TraceName.Card,
+        });
 
         if (!cardTokenAllowances || cardTokenAllowances.length === 0) {
           const supportedTokens = sdk.supportedTokens;

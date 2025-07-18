@@ -84,7 +84,8 @@ const CardHome = () => {
     isLoading: isLoadingPriorityToken,
     error: errorPriorityToken,
   } = useGetPriorityCardToken(currentAddress);
-  const { mainBalance, secondaryBalance } = useAssetBalance(priorityToken);
+  const { mainBalance, secondaryBalance, asset } =
+    useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { goToBridge } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
@@ -95,6 +96,7 @@ const CardHome = () => {
       decimals: priorityToken?.decimals,
       symbol: priorityToken?.symbol,
       name: priorityToken?.name,
+      image: asset?.image,
     } as BridgeToken,
   });
 

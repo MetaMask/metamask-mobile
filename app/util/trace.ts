@@ -68,6 +68,7 @@ export enum TraceName {
   QRTabSwitcher = 'QR Tab Switcher',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
+  Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
   EarnDepositSpendingCapScreen = 'Earn Deposit Spending Cap Screen',
@@ -108,6 +109,9 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
   DiscoverAccounts = 'discover.accounts',
+  CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
+  CardGetPriorityToken = 'card.get.priority.token',
+  CardIdentifyCardholder = 'card.identify.cardholder',
 }
 
 const ID_DEFAULT = 'default';

@@ -438,6 +438,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   "borderRadius": 8,
                                   "justifyContent": "center",
                                   "paddingBottom": 16,
+                                  "paddingHorizontal": 16,
                                   "paddingTop": 8,
                                 }
                               }
@@ -445,7 +446,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                               <View
                                 style={
                                   {
-                                    "paddingHorizontal": 16,
                                     "paddingTop": 18,
                                     "width": "100%",
                                   }
@@ -1057,6 +1057,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   "borderRadius": 8,
                                   "justifyContent": "center",
                                   "paddingBottom": 16,
+                                  "paddingHorizontal": 16,
                                   "paddingTop": 8,
                                 }
                               }
@@ -1064,7 +1065,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                               <View
                                 style={
                                   {
-                                    "paddingHorizontal": 16,
                                     "paddingTop": 18,
                                     "width": "100%",
                                   }
