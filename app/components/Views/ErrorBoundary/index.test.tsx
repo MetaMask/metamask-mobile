@@ -2,9 +2,12 @@ import React, { useEffect } from 'react';
 import { View, Alert } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import ErrorBoundary, {Fallback} from './';
-import {MetricsEventBuilder} from '../../../core/Analytics/MetricsEventBuilder';
-import { captureSentryFeedback, captureExceptionForced } from '../../../util/sentry/utils';
+import ErrorBoundary, { Fallback } from './';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import {
+  captureSentryFeedback,
+  captureExceptionForced,
+} from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
 
 const mockTrackEvent = jest.fn();
@@ -271,7 +274,7 @@ describe('ErrorBoundary', () => {
           navigation={mockNavigation}
           error={mockError}
           useOnboardingErrorHandling
-        />
+        />,
       );
       expect(toJSON()).toMatchSnapshot();
     });
@@ -286,20 +289,23 @@ describe('ErrorBoundary', () => {
         >
           <MockThrowComponent />
         </ErrorBoundary>,
-        { state: initialState }
+        { state: initialState },
       );
 
       expect(mockTrackEvent).toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(mockError, expect.objectContaining({
-        View: 'Login',
-        ErrorBoundary: true,
-      }));
+      expect(Logger.error).toHaveBeenCalledWith(
+        mockError,
+        expect.objectContaining({
+          View: 'Login',
+          ErrorBoundary: true,
+        }),
+      );
     });
 
     it('renders onboarding error fallback with correct props', () => {
       const { getByText } = renderWithProvider(
         <Fallback {...onboardingProps} />,
-        { state: initialState }
+        { state: initialState },
       );
 
       expect(getByText('An error occurred')).toBeTruthy();
@@ -310,7 +316,7 @@ describe('ErrorBoundary', () => {
     it('calls captureExceptionForced and navigates to onboarding when Send report is pressed in onboarding mode', async () => {
       const { getByText } = renderWithProvider(
         <Fallback {...onboardingProps} />,
-        { state: initialState }
+        { state: initialState },
       );
 
       const sendReportButton = getByText('Send report');
@@ -322,7 +328,7 @@ describe('ErrorBoundary', () => {
           expect.objectContaining({
             view: onboardingProps.onboardingErrorConfig.view,
             context: 'ErrorBoundary forced report',
-          })
+          }),
         );
         expect(mockNavigation.reset).toHaveBeenCalledWith({
           routes: [{ name: 'OnboardingRootNav' }],
@@ -333,7 +339,7 @@ describe('ErrorBoundary', () => {
     it('navigates to onboarding when Try again is pressed in onboarding mode', () => {
       const { getByText } = renderWithProvider(
         <Fallback {...onboardingProps} />,
-        { state: initialState }
+        { state: initialState },
       );
 
       const tryAgainButton = getByText('Try again');

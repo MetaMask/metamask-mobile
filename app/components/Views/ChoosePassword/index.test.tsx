@@ -869,7 +869,9 @@ describe('ChoosePassword', () => {
         'newWalletAndKeychain',
       );
       mockNewWalletAndKeychain
-        .mockRejectedValueOnce(new Error('SeedlessOnboardingController - Auth server is down'))
+        .mockRejectedValueOnce(
+          new Error('SeedlessOnboardingController - Auth server is down'),
+        )
         .mockResolvedValueOnce(undefined);
 
       const props: ChoosePasswordProps = {
@@ -936,7 +938,9 @@ describe('ChoosePassword', () => {
         'newWalletAndKeychain',
       );
       mockNewWalletAndKeychain
-        .mockRejectedValueOnce(new Error('SeedlessOnboardingController - Auth server is down'))
+        .mockRejectedValueOnce(
+          new Error('SeedlessOnboardingController - Auth server is down'),
+        )
         .mockResolvedValueOnce(undefined);
 
       const props: ChoosePasswordProps = {

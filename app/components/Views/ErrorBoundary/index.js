@@ -15,7 +15,10 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
-import { captureSentryFeedback, captureExceptionForced } from '../../../util/sentry/utils';
+import {
+  captureSentryFeedback,
+  captureExceptionForced,
+} from '../../../util/sentry/utils';
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
@@ -237,7 +240,8 @@ export const Fallback = (props) => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state) => state.security.dataCollectionForMarketing,
   );
-  const dataCollectionForMarketing = isDataCollectionForMarketingEnabled && !isOnboardingError;
+  const dataCollectionForMarketing =
+    isDataCollectionForMarketingEnabled && !isOnboardingError;
 
   const toggleModal = () => {
     setModalVisible((visible) => !visible);
@@ -292,9 +296,7 @@ export const Fallback = (props) => {
       }
     : handleContactSupport;
 
-  const onSecondary = isOnboardingError
-    ? navigateToOnboarding
-    : handleTryAgain;
+  const onSecondary = isOnboardingError ? navigateToOnboarding : handleTryAgain;
 
   return (
     <View style={styles.container}>
@@ -371,9 +373,7 @@ export const Fallback = (props) => {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={onSecondary}>
-          <Text style={styles.buttonText}>
-            {secondaryButtonText}
-          </Text>
+          <Text style={styles.buttonText}>{secondaryButtonText}</Text>
         </TouchableOpacity>
       </View>
       <Modal
@@ -504,7 +504,7 @@ class ErrorBoundary extends Component {
     Logger.error(error, {
       View: this.props.view,
       ErrorBoundary: true,
-      ...errorInfo
+      ...errorInfo,
     });
   }
 

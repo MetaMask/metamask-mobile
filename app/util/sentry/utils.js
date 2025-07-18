@@ -595,7 +595,10 @@ export async function captureExceptionForced(error, extra = {}) {
       tags: { forced_reporting: true },
     });
   } catch (sentryError) {
-    console.error('Failed to capture exception with forced Sentry:', sentryError);
+    console.error(
+      'Failed to capture exception with forced Sentry:',
+      sentryError,
+    );
   }
 }
 

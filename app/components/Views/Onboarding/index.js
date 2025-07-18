@@ -461,7 +461,10 @@ class Onboarding extends PureComponent {
     let errorMessage = 'oauth_error';
     if (error instanceof OAuthError) {
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
-      if (error.code !== OAuthErrorType.UserCancelled && error.code !== OAuthErrorType.UserDismissed) {
+      if (
+        error.code !== OAuthErrorType.UserCancelled &&
+        error.code !== OAuthErrorType.UserDismissed
+      ) {
         this.handleOAuthLoginError(error);
         return;
       }
@@ -495,7 +498,7 @@ class Onboarding extends PureComponent {
       // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
       this.setState({
         loading: false,
-        errorToThrow: new Error(`OAuth login failed: ${error.message}`)
+        errorToThrow: new Error(`OAuth login failed: ${error.message}`),
       });
     }
   };
@@ -652,13 +655,17 @@ class Onboarding extends PureComponent {
       <ErrorBoundary
         navigation={this.props.navigation}
         view="Onboarding"
-        useOnboardingErrorHandling={!!errorToThrow && !this.props.metrics.isEnabled()}
+        useOnboardingErrorHandling={
+          !!errorToThrow && !this.props.metrics.isEnabled()
+        }
       >
         <ThrowErrorIfNeeded />
         <View
           style={[
             baseStyles.flexGrow,
-            { backgroundColor: importedColors.gettingStartedPageBackgroundColor },
+            {
+              backgroundColor: importedColors.gettingStartedPageBackgroundColor,
+            },
           ]}
           testID={OnboardingSelectorIDs.CONTAINER_ID}
         >
@@ -721,4 +728,7 @@ const mapDispatchToProps = (dispatch) => ({
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(withMetricsAwareness(Onboarding));
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Onboarding));

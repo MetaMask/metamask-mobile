@@ -826,9 +826,15 @@ describe('Onboarding', () => {
   });
 
   describe('ErrorBoundary Tests', () => {
-    const mockOAuthService = jest.requireMock('../../../core/OAuthService/OAuthService');
-    const mockCreateLoginHandler = jest.requireMock('../../../core/OAuthService/OAuthLoginHandlers').createLoginHandler;
-    const { OAuthError, OAuthErrorType } = jest.requireMock('../../../core/OAuthService/error');
+    const mockOAuthService = jest.requireMock(
+      '../../../core/OAuthService/OAuthService',
+    );
+    const mockCreateLoginHandler = jest.requireMock(
+      '../../../core/OAuthService/OAuthLoginHandlers',
+    ).createLoginHandler;
+    const { OAuthError, OAuthErrorType } = jest.requireMock(
+      '../../../core/OAuthService/error',
+    );
 
     beforeEach(() => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
@@ -855,14 +861,17 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+      );
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(call =>
-        call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-        call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
@@ -902,14 +911,17 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+      );
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
 
-      const navCall = mockNavigate.mock.calls.find(call =>
-        call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-        call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
       );
 
       const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;

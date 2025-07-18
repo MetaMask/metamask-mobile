@@ -351,24 +351,29 @@ class ChoosePassword extends PureComponent {
 
   isOAuthPasswordCreationError = (error, authType) =>
     authType.oauth2Login &&
-      error.message &&
-      error.message.includes('SeedlessOnboardingController');
+    error.message &&
+    error.message.includes('SeedlessOnboardingController');
 
   handleOAuthPasswordCreationError = (error, authType) => {
     // If user has already consented to analytics, report error using regular Sentry
     if (this.props.metrics.isEnabled()) {
-      authType.oauth2Login && captureException(error, {
-        tags: {
-          view: 'ChoosePassword',
-          context: 'OAuth password creation failed - user consented to analytics',
-        },
-      });
+      authType.oauth2Login &&
+        captureException(error, {
+          tags: {
+            view: 'ChoosePassword',
+            context:
+              'OAuth password creation failed - user consented to analytics',
+          },
+        });
     } else {
       // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
-      authType.oauth2Login && this.setState({
-        loading: false,
-        errorToThrow: new Error(`OAuth password creation failed: ${error.message}`)
-      });
+      authType.oauth2Login &&
+        this.setState({
+          loading: false,
+          errorToThrow: new Error(
+            `OAuth password creation failed: ${error.message}`,
+          ),
+        });
     }
   };
 
@@ -953,7 +958,9 @@ class ChoosePassword extends PureComponent {
       <ErrorBoundary
         navigation={this.props.navigation}
         view="ChoosePassword"
-        useOnboardingErrorHandling={!!errorToThrow && !this.props.metrics.isEnabled()}
+        useOnboardingErrorHandling={
+          !!errorToThrow && !this.props.metrics.isEnabled()
+        }
       >
         <ThrowErrorIfNeeded />
         {this.renderContent()}
