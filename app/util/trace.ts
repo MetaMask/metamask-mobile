@@ -367,13 +367,16 @@ export function bufferTraceEndCallLocal(request: EndTraceRequest) {
  * Flushes buffered traces to Sentry when consent is given
  */
 export async function flushBufferedTraces() {
-  if (localBufferedTraces.length === 0) {
+  const localBufferedTracesCopy = [...localBufferedTraces];
+
+  if (localBufferedTracesCopy.length === 0) {
     return;
   }
 
+  localBufferedTraces.length = 0;
   const activeSpans = new Map<string, Span>();
 
-  for (const bufferedItem of localBufferedTraces) {
+  for (const bufferedItem of localBufferedTracesCopy) {
     if (bufferedItem.type === 'start') {
       const traceKey = getTraceKey(bufferedItem.request);
 
@@ -404,9 +407,6 @@ export async function flushBufferedTraces() {
       activeSpans.delete(traceKey);
     }
   }
-
-  // Clear local buffer after flushing
-  localBufferedTraces.length = 0;
 }
 
 // Cache consent state to avoid async checks in trace functions
@@ -494,6 +494,7 @@ function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
 }
 
 function startTrace(request: TraceRequest): TraceContext {
+  console.log('startTrace', request);
   const { name, startTime: requestStartTime } = request;
   const startTime = requestStartTime ?? getPerformanceTimestamp();
   const id = getTraceId(request);
@@ -511,8 +512,11 @@ function startTrace(request: TraceRequest): TraceContext {
   }
 
   const callback = (span: Span | undefined) => {
+    console.log('callback', span);
     const end = (timestamp?: number) => {
-      span?.end(timestamp);
+      if (span && span.end !== undefined) {
+        span?.end(timestamp);
+      }
     };
 
     if (span) {

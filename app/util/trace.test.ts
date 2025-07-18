@@ -73,11 +73,6 @@ describe('Trace', () => {
   const setMeasurementMock = jest.mocked(setMeasurement);
   const setTagMock = jest.fn();
 
-  const bufferedTracesModule = jest.requireMock('../selectors/bufferedTraces');
-  const selectBufferedTracesMock = jest.mocked(
-    bufferedTracesModule.selectBufferedTraces,
-  );
-
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -93,9 +88,7 @@ describe('Trace', () => {
       fn({ setTag: setTagMock } as unknown as Scope),
     );
 
-    // Mock selectBufferedTraces to return empty array by default
-    selectBufferedTracesMock.mockReturnValue([]);
-
+    flushBufferedTraces();
     // Reset consent state to false by default
     updateCachedConsent(false);
   });
@@ -108,11 +101,14 @@ describe('Trace', () => {
         callbackExecuted = true;
       });
 
+      endTrace({ name: NAME_MOCK });
+
       expect(callbackExecuted).toBe(true);
     });
 
     it('returns value from callback', () => {
       const result = trace({ name: NAME_MOCK }, () => true);
+      endTrace({ name: NAME_MOCK });
       expect(result).toBe(true);
     });
 
@@ -128,6 +124,8 @@ describe('Trace', () => {
         },
         () => true,
       );
+
+      endTrace({ name: NAME_MOCK });
 
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
 
@@ -161,9 +159,11 @@ describe('Trace', () => {
         parentContext: PARENT_CONTEXT_MOCK,
       });
 
-      expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
+      endTrace({ name: NAME_MOCK });
 
-      expect(startSpanManualMock).toHaveBeenCalledTimes(1);
+      expect(withIsolationScopeMock).toHaveBeenCalledTimes(3);
+
+      expect(startSpanManualMock).toHaveBeenCalledTimes(3);
       expect(startSpanManualMock).toHaveBeenCalledWith(
         {
           name: NAME_MOCK,
@@ -192,6 +192,7 @@ describe('Trace', () => {
         data: DATA_MOCK,
         parentContext: PARENT_CONTEXT_MOCK,
       });
+      endTrace({ name: NAME_MOCK });
 
       // Sentry functions should not be called when consent is denied
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(0);
@@ -212,6 +213,7 @@ describe('Trace', () => {
         parentContext: PARENT_CONTEXT_MOCK,
         startTime: 123,
       });
+      endTrace({ name: NAME_MOCK });
 
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(1);
 
@@ -391,6 +393,8 @@ describe('Trace', () => {
         parentContext: PARENT_CONTEXT_MOCK,
       });
 
+      endTrace({ name: NAME_MOCK });
+
       jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL + 1000);
 
       expect(spanEndMock).toHaveBeenCalledTimes(1);
@@ -459,7 +463,12 @@ describe('Trace', () => {
           request: { name: TraceName.NestedTest1, id: 'test2' },
         },
       ];
-      selectBufferedTracesMock.mockReturnValue(mockBufferedTraces);
+
+      mockBufferedTraces.forEach((trace) => {
+        trace.type === 'start'
+          ? bufferTraceStartCallLocal(trace.request)
+          : bufferTraceEndCallLocal(trace.request);
+      });
 
       storageGetItemMock.mockResolvedValue(AGREED);
       updateCachedConsent(true);
@@ -489,7 +498,12 @@ describe('Trace', () => {
           request: { name: TraceName.NetworkSwitch, id: 'request2' },
         },
       ];
-      selectBufferedTracesMock.mockReturnValue(mockBufferedTraces);
+
+      mockBufferedTraces.forEach((trace) => {
+        trace.type === 'start'
+          ? bufferTraceStartCallLocal(trace.request)
+          : bufferTraceEndCallLocal(trace.request);
+      });
 
       updateCachedConsent(true);
 
