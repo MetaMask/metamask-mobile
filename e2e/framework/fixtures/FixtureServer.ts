@@ -2,7 +2,11 @@ import { getFixturesServerPort } from './FixtureUtils';
 import Koa, { Context } from 'koa';
 import { isObject, mapValues } from 'lodash';
 import FixtureBuilder from './FixtureBuilder';
-import { logger } from '../logger';
+import { createLogger } from '../logger';
+
+const logger = createLogger({
+  origin: 'FixtureServer',
+});
 
 const CURRENT_STATE_KEY = '__CURRENT__';
 const DEFAULT_STATE_KEY = '__DEFAULT__';

@@ -1,6 +1,6 @@
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types';
-import { logger } from './logger';
+import { createLogger } from './logger';
 
 const TEST_CONFIG_DEFAULTS = {
   timeout: 15000,
@@ -9,6 +9,10 @@ const TEST_CONFIG_DEFAULTS = {
   stabilityCheckInterval: 200,
   stabilityCheckCount: 3,
 };
+
+const logger = createLogger({
+  origin: 'Utilities',
+});
 
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking

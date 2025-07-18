@@ -9,12 +9,14 @@ export enum LogLevel {
 export interface LoggerOptions {
   prefix?: string;
   colors?: boolean;
+  origin?: string;
 }
 
 export class Logger {
   private level: LogLevel;
   private prefix: string;
   private colors: boolean;
+  private origin: string;
 
   // ANSI color codes
   private readonly colorCodes = {
@@ -43,9 +45,10 @@ export class Logger {
 
   constructor(options: LoggerOptions = {}) {
     this.prefix = options.prefix || 'E2E Framework';
-    this.colors = options.colors !== false; // Default to true
+    this.colors = options.colors !== false;
+    this.origin = options.origin || '';
 
-    // Read log level from environment variable
+    // We're purposefully setting this to debug while improving the e2e framework
     const envLevel: string = 'debug';
     switch (envLevel) {
       case 'error':
@@ -81,8 +84,9 @@ export class Logger {
   ): string {
     const levelStr = this.colorize(`[${level.toUpperCase()}]`, color);
     const prefixStr = this.colorize(`[${this.prefix}]`, 'cyan');
+    const originStr = this.colorize(`[${this.origin}]`, 'gray');
 
-    return `${prefixStr} ${levelStr} ${message}`;
+    return `${prefixStr} ${levelStr} ${originStr} ${message}`;
   }
 
   private log(
