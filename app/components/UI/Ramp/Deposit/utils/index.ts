@@ -5,9 +5,11 @@ import {
   DepositFiatCurrency,
   DepositPaymentMethod,
   USDC_BASE_TOKEN,
+  USDC_BSC_TOKEN,
   USDC_LINEA_TOKEN,
   USDC_TOKEN,
   USDT_BASE_TOKEN,
+  USDT_BSC_TOKEN,
   USDT_LINEA_TOKEN,
   USDT_TOKEN,
 } from '../constants';
@@ -31,9 +33,11 @@ const TRANSAK_CRYPTO_IDS: Record<string, string> = {
   [USDC_TOKEN.assetId]: 'USDC',
   [USDC_LINEA_TOKEN.assetId]: 'USDC',
   [USDC_BASE_TOKEN.assetId]: 'USDC',
+  [USDC_BSC_TOKEN.assetId]: 'USDC',
   [USDT_TOKEN.assetId]: 'USDT',
   [USDT_LINEA_TOKEN.assetId]: 'USDT',
   [USDT_BASE_TOKEN.assetId]: 'USDT',
+  [USDT_BSC_TOKEN.assetId]: 'USDT',
 };
 
 const TRANSAK_FIAT_IDS: Record<string, string> = {
@@ -45,6 +49,7 @@ const TRANSAK_CHAIN_IDS: Record<string, string> = {
   'eip155:1': 'ethereum',
   'eip155:59144': 'linea',
   'eip155:8453': 'base',
+  'eip155:56': 'bsc',
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': 'solana',
 };
 
@@ -219,9 +224,11 @@ const TRANSAK_ID_TO_ASSET_ID: Record<
   'ethereum/usdc': USDC_TOKEN.assetId,
   'linea/usdc': USDC_LINEA_TOKEN.assetId,
   'base/usdc': USDC_BASE_TOKEN.assetId,
+  'bsc/usdc': USDC_BSC_TOKEN.assetId,
   'ethereum/usdt': USDT_TOKEN.assetId,
   'linea/usdt': USDT_LINEA_TOKEN.assetId,
   'base/usdt': USDT_BASE_TOKEN.assetId,
+  'bsc/usdt': USDT_BSC_TOKEN.assetId,
 };
 
 /**
