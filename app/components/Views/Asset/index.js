@@ -35,7 +35,6 @@ import {
   areAddressesEqual,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { toLowerCaseEquals } from '../../../util/general';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -74,7 +73,7 @@ import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
@@ -678,7 +677,7 @@ const mapStateToProps = (state, { route }) => {
     route.params?.chainId &&
     isNonEvmChainId(route.params.chainId)
   ) {
-    const solanaTransactionData = selectSolanaAccountTransactions(state);
+    const solanaTransactionData = selectNonEvmTransactions(state);
     const solanaTransactions = solanaTransactionData?.transactions || [];
 
     const assetAddress = route.params?.address?.toLowerCase();

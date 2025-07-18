@@ -5492,17 +5492,17 @@
     "@open-rpc/schema-utils-js" "^2.0.5"
     jsonschema "^1.4.1"
 
-"@metamask/multichain-network-controller@^0.8.0":
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.8.0.tgz#4e5e966119095483f25d1e35ff30d5b660bae580"
-  integrity sha512-H3urzjkPXvgyOO/BdY/TCovGDu/IS7e9E1BJp3eW3yHQreZB6DPht/8ASlR3iFkm7TvWxo2XIbQxIy1Nnq5LpA==
+"@metamask/multichain-network-controller@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.10.0.tgz#acaf910285c82dc813470bf7f345bb485e366dde"
+  integrity sha512-OTGr62t3coxqg+B5q3m7VpnLdMzczo3jMNaHuhDZUHcvGJ234h4MryB/PD9Etp4qIqYVb2iZ7nr0vSeXAwmC6A==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.9.0"
+    "@metamask/controller-utils" "^11.11.0"
     "@metamask/keyring-api" "^18.0.0"
     "@metamask/keyring-internal-api" "^6.2.0"
     "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/utils" "^11.4.2"
     "@solana/addresses" "^2.0.0"
     lodash "^4.17.21"
 

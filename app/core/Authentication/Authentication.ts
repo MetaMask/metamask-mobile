@@ -47,6 +47,7 @@ import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { SolScope } from '@metamask/keyring-api';
 import { recreateVaultWithNewPassword } from '../Vault';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
@@ -136,7 +137,7 @@ class AuthenticationService {
           setSelectedAccount: false,
         },
       );
-      await client.addDiscoveredAccounts(primaryHdKeyringId);
+      await client.addDiscoveredAccounts(primaryHdKeyringId, SolScope.Mainnet);
 
       await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
     };
