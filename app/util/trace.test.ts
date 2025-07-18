@@ -45,15 +45,6 @@ jest.mock('../core/redux/ReduxService', () => ({
   },
 }));
 
-jest.mock('../actions/bufferedTraces', () => ({
-  addBufferedTrace: jest.fn(),
-  clearBufferedTraces: jest.fn(),
-}));
-
-jest.mock('../selectors/bufferedTraces', () => ({
-  selectBufferedTraces: jest.fn(),
-}));
-
 const NAME_MOCK = TraceName.Middleware;
 const ID_MOCK = 'testId';
 const PARENT_CONTEXT_MOCK = {
