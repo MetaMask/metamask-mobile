@@ -56,6 +56,8 @@ import { appMetadataControllerInit } from '../controllers/app-metadata-controlle
 import { seedlessOnboardingControllerInit } from '../controllers/seedless-onboarding-controller';
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
+import { samplePetnamesControllerInit } from '../../../features/SampleFeature/controllers/sample-petnames-controller-init.ts';
+import { SamplePetnamesController } from '@metamask/sample-controllers';
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
 import { perpsControllerInit } from '../controllers/perps-controller';
 
@@ -92,6 +94,9 @@ jest.mock(
   '../controllers/defi-positions-controller/defi-positions-controller-init',
 );
 jest.mock('../../../multichain-accounts/controllers/account-tree-controller');
+jest.mock(
+  '../../../features/SampleFeature/controllers/sample-petnames-controller-init',
+);
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
@@ -139,6 +144,9 @@ describe('initModularizedControllers', () => {
     seedlessOnboardingControllerInit,
   );
   const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
+  const mockSamplePetnamesControllerInit = jest.mocked(
+    samplePetnamesControllerInit,
+  );
   const mockPerpsControllerInit = jest.mocked(perpsControllerInit);
 
   function buildModularizedControllerRequest(
@@ -175,6 +183,7 @@ describe('initModularizedControllers', () => {
           AppMetadataController: mockAppMetadataControllerInit,
           DeFiPositionsController: mockDeFiPositionsControllerInit,
           SeedlessOnboardingController: mockSeedlessOnboardingControllerInit,
+          SamplePetnamesController: mockSamplePetnamesControllerInit,
           PerpsController: mockPerpsControllerInit,
         },
         persistedState: {},
@@ -252,6 +261,9 @@ describe('initModularizedControllers', () => {
     mockAccountTreeControllerInit.mockReturnValue({
       controller: {} as unknown as AccountTreeController,
     });
+    mockSamplePetnamesControllerInit.mockReturnValue({
+      controller: {} as unknown as SamplePetnamesController,
+    });
   });
 
   it('initializes controllers', () => {
@@ -280,6 +292,9 @@ describe('initModularizedControllers', () => {
     expect(controllers.controllersByName.TransactionController).toBeDefined();
     expect(controllers.controllersByName.GasFeeController).toBeDefined();
     expect(controllers.controllersByName.SignatureController).toBeDefined();
+    expect(
+      controllers.controllersByName.SamplePetnamesController,
+    ).toBeDefined();
   });
 
   it('initializes function including initMessenger', () => {

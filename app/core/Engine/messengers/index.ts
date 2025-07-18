@@ -34,9 +34,12 @@ import { getNotificationServicesPushControllerMessenger } from './notifications/
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
 import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
-
 import { getApprovalControllerMessenger } from './approval-controller-messenger';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
+///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
+
 /**
  * The messengers for the controllers that have been.
  */
@@ -137,6 +140,12 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getSeedlessOnboardingControllerMessenger,
     getInitMessenger: noop,
   },
+  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+  SamplePetnamesController: {
+    getMessenger: getSamplePetnamesControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ///: END:ONLY_INCLUDE_IF
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,
     getInitMessenger: noop,

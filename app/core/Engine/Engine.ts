@@ -228,6 +228,9 @@ import {
 } from './controllers/multichain-router/constants';
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
+///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
+///: END:ONLY_INCLUDE_IF
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
@@ -1274,6 +1277,9 @@ export class Engine {
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+        SamplePetnamesController: samplePetnamesControllerInit,
+        ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
       },
       persistedState: initialState as EngineState,
@@ -1646,6 +1652,9 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController: controllersByName.SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
       PerpsController: perpsController,
     };
 
@@ -2370,6 +2379,9 @@ export default {
       PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
     return {
@@ -2425,6 +2437,9 @@ export default {
       PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
+      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
+      SamplePetnamesController,
+      ///: END:ONLY_INCLUDE_IF
     };
   },
 

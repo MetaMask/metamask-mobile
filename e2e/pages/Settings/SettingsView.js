@@ -157,6 +157,21 @@ class SettingsView {
       elemDescription: 'Settings - Backup and Sync Section Button',
     });
   }
+
+  get developerOptionsButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.DEVELOPER_OPTIONS);
+  }
+
+  async scrollToDeveloperOptions() {
+    await Gestures.scrollToElement(
+      this.developerOptionsButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async tapDeveloperOptions() {
+    await Gestures.waitAndTap(this.developerOptionsButton);
+  }
 }
 
 export default new SettingsView();
