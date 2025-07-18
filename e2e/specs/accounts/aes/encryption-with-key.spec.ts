@@ -3,7 +3,7 @@ import TestHelpers from '../../../helpers.js';
 import Assertions from '../../../framework/Assertions';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView.js';
-import { loginToApp } from '../../../viewHelper.js';
+import { loginToApp } from '../../../viewHelper';
 import AesCryptoTestForm from '../../../pages/Settings/AesCryptoTestForm.ts';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
 import { withFixtures } from '../../../fixtures/fixture-helper.js';

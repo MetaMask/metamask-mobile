@@ -1,7 +1,6 @@
 'use strict';
 /* eslint-disable no-console */
 import { Mockttp, MockttpServer } from 'mockttp';
-import { loginToApp } from '../../viewHelper.js';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
@@ -28,6 +27,7 @@ import { startMockServer } from './helpers/swap-mocks';
 import SoftAssert from '../../utils/SoftAssert.ts';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment.ts';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
+import { loginToApp } from '../../viewHelper';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 

@@ -1,4 +1,4 @@
-import { loginToApp } from '../../../viewHelper.js';
+import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView.js';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';

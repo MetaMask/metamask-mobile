@@ -1,5 +1,5 @@
 'use strict';
-import { loginToApp } from '../../viewHelper.js';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import {
   loadFixture,

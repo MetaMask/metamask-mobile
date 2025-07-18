@@ -10,7 +10,7 @@ import {
 } from '../../fixtures/fixture-helper.js';
 import FixtureServer from '../../fixtures/fixture-server.js';
 import { getFixturesServerPort } from '../../fixtures/utils.js';
-import { loginToApp } from '../../viewHelper.js';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';

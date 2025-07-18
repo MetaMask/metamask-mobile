@@ -2,7 +2,7 @@ import {
   CreateNewWallet,
   importWalletWithRecoveryPhrase,
   loginToApp,
-} from '../../../viewHelper.js';
+} from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView.js';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
