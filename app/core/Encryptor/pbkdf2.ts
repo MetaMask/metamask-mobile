@@ -29,7 +29,7 @@ const pbkdf2 = async (
     // @ts-expect-error - Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'string'.
     { name: KDF_ALGORITHM, salt, iterations, hash: 'SHA-512' },
     key,
-    bytesLengthToBitsLength(keyLength)
+    bytesLengthToBitsLength(keyLength),
   );
 
   return new Uint8Array(derivedBits);

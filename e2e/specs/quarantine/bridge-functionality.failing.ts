@@ -1,6 +1,6 @@
 'use strict';
 import { loginToApp } from '../../viewHelper.js';
-import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import {
   loadFixture,
   startFixtureServer,
@@ -24,7 +24,10 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js';
 import NetworkListModal from '../../pages/Network/NetworkListModal.js';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../fixtures/utils.js';
 import { startMockServer } from '../bridge/bridge-mocks.js';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { localNodeOptions, testSpecificMock } from '../bridge/constants.js';
@@ -334,7 +337,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
           },
         );
       }, 'Unified SwapBridge Completed: Should have the correct properties');
-
 
     await Promise.all([
       checkEventCount,

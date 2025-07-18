@@ -1,4 +1,8 @@
-import { setDestToken, selectDestToken, selectBridgeViewMode } from '../../../../../core/redux/slices/bridge';
+import {
+  setDestToken,
+  selectDestToken,
+  selectBridgeViewMode,
+} from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
 import { selectChainId } from '../../../../../selectors/networkController';
@@ -10,10 +14,12 @@ import { getNativeSourceToken } from '../useInitialSourceToken';
 export const useInitialDestToken = (initialSourceToken?: BridgeToken) => {
   const dispatch = useDispatch();
   const chainId = useSelector(selectChainId);
-  const destToken  = useSelector(selectDestToken);
+  const destToken = useSelector(selectDestToken);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
 
-  const isSwap = bridgeViewMode === BridgeViewMode.Swap || bridgeViewMode === BridgeViewMode.Unified;
+  const isSwap =
+    bridgeViewMode === BridgeViewMode.Swap ||
+    bridgeViewMode === BridgeViewMode.Unified;
 
   if (destToken) return;
 

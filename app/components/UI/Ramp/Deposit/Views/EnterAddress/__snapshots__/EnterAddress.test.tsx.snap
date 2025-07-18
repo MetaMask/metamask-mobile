@@ -174,7 +174,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                     }
                   }
                 >
-                  Enter your address
+                  Verify your identity
                 </Text>
               </TouchableOpacity>
             </View>
@@ -583,22 +583,44 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     testID="deposit-progress-step-3"
                                   />
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginBottom": 20,
+                                      "gap": 8,
+                                      "marginBottom": 16,
                                       "marginTop": 24,
                                     }
                                   }
                                 >
-                                  Please enter your most recent permanent address.
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Bold",
+                                        "fontSize": 24,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 32,
+                                      }
+                                    }
+                                  >
+                                    Enter your address
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#9ca1af",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Use your most recent permanent address.
+                                  </Text>
+                                </View>
                                 <View
                                   style={
                                     [
@@ -934,23 +956,18 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         activeOpacity={0.7}
                                         onPress={[Function]}
                                         style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "backgroundColor": "#ffffff",
-                                              "borderColor": "#b7bbc8",
-                                              "borderRadius": 8,
-                                              "borderWidth": 1,
-                                              "flexDirection": "row",
-                                              "justifyContent": "space-between",
-                                              "minHeight": 48,
-                                              "paddingHorizontal": 16,
-                                              "paddingVertical": 12,
-                                            },
-                                            {
-                                              "borderColor": "#ca3542",
-                                            },
-                                          ]
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "#b7bbc8",
+                                            "borderRadius": 8,
+                                            "borderWidth": 1,
+                                            "flexDirection": "row",
+                                            "justifyContent": "space-between",
+                                            "minHeight": 48,
+                                            "paddingHorizontal": 16,
+                                            "paddingVertical": 12,
+                                          }
                                         }
                                         testID="state-input"
                                       >
@@ -1576,7 +1593,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Enter your address
+                  Verify your identity
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1985,22 +2002,44 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     testID="deposit-progress-step-3"
                                   />
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginBottom": 20,
+                                      "gap": 8,
+                                      "marginBottom": 16,
                                       "marginTop": 24,
                                     }
                                   }
                                 >
-                                  Please enter your most recent permanent address.
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Bold",
+                                        "fontSize": 24,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 32,
+                                      }
+                                    }
+                                  >
+                                    Enter your address
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#9ca1af",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Use your most recent permanent address.
+                                  </Text>
+                                </View>
                                 <View
                                   style={
                                     [
@@ -2306,21 +2345,18 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         activeOpacity={0.7}
                                         onPress={[Function]}
                                         style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "backgroundColor": "#ffffff",
-                                              "borderColor": "#b7bbc8",
-                                              "borderRadius": 8,
-                                              "borderWidth": 1,
-                                              "flexDirection": "row",
-                                              "justifyContent": "space-between",
-                                              "minHeight": 48,
-                                              "paddingHorizontal": 16,
-                                              "paddingVertical": 12,
-                                            },
-                                            undefined,
-                                          ]
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "#b7bbc8",
+                                            "borderRadius": 8,
+                                            "borderWidth": 1,
+                                            "flexDirection": "row",
+                                            "justifyContent": "space-between",
+                                            "minHeight": 48,
+                                            "paddingHorizontal": 16,
+                                            "paddingVertical": 12,
+                                          }
                                         }
                                         testID="state-input"
                                       >
@@ -2916,7 +2952,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                     }
                   }
                 >
-                  Enter your address
+                  Verify your identity
                 </Text>
               </TouchableOpacity>
             </View>
@@ -3325,22 +3361,44 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     testID="deposit-progress-step-3"
                                   />
                                 </View>
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginBottom": 20,
+                                      "gap": 8,
+                                      "marginBottom": 16,
                                       "marginTop": 24,
                                     }
                                   }
                                 >
-                                  Please enter your most recent permanent address.
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Bold",
+                                        "fontSize": 24,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 32,
+                                      }
+                                    }
+                                  >
+                                    Enter your address
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#9ca1af",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Use your most recent permanent address.
+                                  </Text>
+                                </View>
                                 <View
                                   style={
                                     [
