@@ -1,3 +1,4 @@
+/* eslint-disable import/no-commonjs */
 /**
  * Tailwind CSS Configuration for MetaMask Mobile
  *
