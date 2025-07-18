@@ -43,7 +43,7 @@ export const getNativeSourceToken = (
  * @example
  * createTokenFromCaip('eip155:1/slip44:60') // Native ETH token
  * createTokenFromCaip('eip155:1/erc20:0xa0b86a33e6776d02b5c07b4e92b1b3a8e1b9b1a4') // ERC20 token
- * createTokenFromCaip('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/spltoken:4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R') // Solana token
+ * createTokenFromCaip('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R') // Solana token
  */
 export const createTokenFromCaip = (
   caipAssetType: string,
