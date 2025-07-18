@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useMemo } from 'react';
-import { shallowEqual, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 
 import { AccountSelectorState, State } from '@metamask/snaps-sdk';
@@ -7,7 +7,6 @@ import { createAccountList, createChainIdList } from '@metamask/snaps-utils';
 import { SnapUISelector } from '../SnapUISelector/SnapUISelector';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { Account, useAccounts } from '../../hooks/useAccounts';
-import { RootState } from '../../../reducers';
 import Avatar, {
   AvatarAccountType,
   AvatarVariant,
@@ -26,6 +25,10 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import AccountNetworkIndicator from '../../UI/AccountNetworkIndicator';
+import { useStyles } from '../../hooks/useStyles';
+import { stylesheet } from './SnapUIAccountSelector.styles';
+import { strings } from '../../../../locales/i18n';
+import { selectUseBlockieIcon } from '../../../selectors/settings';
 
 export interface SnapUIAccountSelectorElementProps {
   account: Account;
@@ -53,14 +56,13 @@ export const SnapUIAccountSelectorElement: FunctionComponent<
 
   const fiatBalance = assets?.fiatBalance.split('\n')[0] || '';
 
+  const { styles } = useStyles(stylesheet, {});
   return (
     <Box
       flexDirection={FlexDirection.Row}
       alignItems={AlignItems.center}
       gap={16}
-      style={{
-        flex: 1,
-      }}
+      style={styles.base}
     >
       <Avatar
         variant={AvatarVariant.Account}
@@ -82,7 +84,7 @@ export const SnapUIAccountSelectorElement: FunctionComponent<
       <Box
         flexDirection={FlexDirection.Column}
         alignItems={AlignItems.flexEnd}
-        style={{ marginLeft: 'auto' }}
+        style={styles.balance}
       >
         <SensitiveText
           length={SensitiveTextLength.Long}
@@ -133,13 +135,7 @@ export const SnapUIAccountSelector: FunctionComponent<
 }) => {
   const { snapId } = useSnapInterfaceContext();
   const { accounts: internalAccounts, ensByAccountAddress } = useAccounts();
-  const accountAvatarType = useSelector(
-    (state: RootState) =>
-      state.settings.useBlockieIcon
-        ? AvatarAccountType.Blockies
-        : AvatarAccountType.JazzIcon,
-    shallowEqual,
-  );
+  const useBlockieIcon = useSelector(selectUseBlockieIcon);
 
   const privacyMode = useSelector(selectPrivacyMode);
 
@@ -179,7 +175,9 @@ export const SnapUIAccountSelector: FunctionComponent<
       account={account}
       ensName={ensByAccountAddress[account.address]}
       privacyMode={privacyMode}
-      avatarType={accountAvatarType}
+      avatarType={
+        useBlockieIcon ? AvatarAccountType.Blockies : AvatarAccountType.JazzIcon
+      }
     />
   ));
 
@@ -201,7 +199,7 @@ export const SnapUIAccountSelector: FunctionComponent<
 
   return (
     <SnapUISelector
-      title={'Select account'}
+      title={strings('snap_ui.account_selector.title')}
       options={options}
       {...props}
       optionComponents={optionComponents}
