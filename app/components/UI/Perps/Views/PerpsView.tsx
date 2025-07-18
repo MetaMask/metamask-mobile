@@ -5,14 +5,16 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { Theme } from '../../../../util/theme/models';
 import ScreenView from '../../../Base/ScreenView';
+import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Import PerpsController hooks
 import {
@@ -28,6 +30,7 @@ import {
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import PerpsLoader from '../components/PerpsLoader';
+import { PerpsNavigationParamList } from '../types/navigation';
 
 interface PerpsViewProps {}
 
@@ -67,16 +70,14 @@ const styleSheet = (params: { theme: Theme }) => {
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+
   const [isLoading, setIsLoading] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [result, setResult] = useState<string>('');
 
   // Use state hooks
   const cachedAccountState = usePerpsAccount();
-  DevLogger.log(
-    'PerpsView: cachedAccountState from Redux:',
-    cachedAccountState,
-  );
   const { getAccountState } = usePerpsTrading();
   const { toggleTestnet } = usePerpsNetworkConfig();
   const currentNetwork = usePerpsNetwork();
@@ -96,8 +97,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     setResult('');
 
     try {
-      DevLogger.log('Perps: Getting account balance...');
-
       const accountState = await getAccountState();
 
       const resultLines = [
@@ -112,16 +111,15 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       ];
 
       setResult(resultLines.join('\n'));
-      DevLogger.log(
-        'Perps: Account balance retrieved successfully',
-        accountState,
-      );
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      const fullErrorMessage = `❌ Failed to get account balance: ${errorMessage}`;
+        error instanceof Error
+          ? error.message
+          : strings('perps.errors.unknownError');
+      const fullErrorMessage = strings('perps.errors.accountBalanceFailed', {
+        error: errorMessage,
+      });
       setResult(fullErrorMessage);
-      DevLogger.log('Perps: Failed to get account balance', error);
     } finally {
       setIsLoading(false);
     }
@@ -129,20 +127,11 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
   // Automatically load account state on mount and when network changes
   useEffect(() => {
-    DevLogger.log(
-      'PerpsView: Component mounted or network changed, auto-loading account state',
-      {
-        currentNetwork,
-        isConnected,
-        isInitialized,
-      },
-    );
-
     // Only load account state if we're connected and initialized
     if (isConnected && isInitialized) {
-      getAccountState().catch((error) => {
-        DevLogger.log('PerpsView: Failed to auto-load account state', error);
-      });
+      // Fire and forget - errors are already handled in getAccountState
+      // and stored in the controller's state
+      getAccountState();
     }
   }, [getAccountState, currentNetwork, isConnected, isInitialized]);
 
@@ -151,13 +140,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     setResult('');
 
     try {
-      DevLogger.log('Perps: Toggling testnet...', {
-        currentNetworkBefore: currentNetwork,
-        buttonLabel: `Switch to ${
-          currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
-        }`,
-      });
-
       const toggleResult = await toggleTestnet();
 
       if (toggleResult.success) {
@@ -165,20 +147,21 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
         setResult(
           `✅ Successfully switched to ${newNetwork}\n🔄 Current UI shows: ${currentNetwork.toUpperCase()}`,
         );
-        DevLogger.log('Perps: Network toggled successfully', {
-          toggledTo: toggleResult.isTestnet,
-          uiStillShows: currentNetwork,
-          shouldShowDifferent: toggleResult.isTestnet ? 'testnet' : 'mainnet',
-        });
       } else {
-        setResult(`❌ Failed to toggle network: ${toggleResult.error}`);
-        DevLogger.log('Perps: Failed to toggle network', toggleResult.error);
+        setResult(
+          strings('perps.errors.networkToggleFailed', {
+            error: toggleResult.error,
+          }),
+        );
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      setResult(`❌ Failed to toggle network: ${errorMessage}`);
-      DevLogger.log('Perps: Failed to toggle network', error);
+        error instanceof Error
+          ? error.message
+          : strings('perps.errors.unknownError');
+      setResult(
+        strings('perps.errors.networkToggleFailed', { error: errorMessage }),
+      );
     } finally {
       setIsToggling(false);
     }
@@ -187,6 +170,10 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   const handleRetryConnection = async () => {
     resetError();
     await reconnect();
+  };
+
+  const handlePositionsNavigation = async () => {
+    navigation.navigate(Routes.PERPS.POSITIONS);
   };
 
   // Show connection error screen if there's an error
@@ -265,11 +252,30 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
+            label="Deposit Funds"
+            onPress={() => navigation.navigate(Routes.PERPS.DEPOSIT)}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
             label={`Switch to ${
               currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
             }`}
             onPress={handleToggleTestnet}
             loading={isToggling}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Positions"
+            onPress={handlePositionsNavigation}
+            loading={isLoading}
             style={styles.button}
           />
         </View>

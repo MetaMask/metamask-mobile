@@ -13,14 +13,17 @@ import {
 import { Mockttp } from 'mockttp';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../fixtures/utils.js';
 import { Regression } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import Ganache from '../../../app/util/test/ganache';
-import { localNodeOptions, testSpecificMock } from './helpers/constants'
+import { localNodeOptions, testSpecificMock } from './helpers/constants';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { startMockServer } from './helpers/swap-mocks';
 
@@ -43,9 +46,7 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
 
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withGanacheNetwork('0x1')
-      .build();
+    const fixture = new FixtureBuilder().withGanacheNetwork('0x1').build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
@@ -116,4 +117,3 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     },
   );
 });
-

@@ -21,7 +21,8 @@ import LoginView from '../../pages/wallet/LoginView.js';
 
 const fixtureServer = new FixtureServer();
 const isIOS = device.getPlatform() === 'ios';
-(isIOS ? describe : describe.skip)(Regression('Auto-Lock'), () => {  beforeAll(async () => {
+(isIOS ? describe : describe.skip)(Regression('Auto-Lock'), () => {
+  beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withImportedAccountKeyringController()

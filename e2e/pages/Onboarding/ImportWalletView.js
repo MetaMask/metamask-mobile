@@ -9,9 +9,7 @@ class ImportWalletView {
   }
 
   get title() {
-    return Matchers.getElementByID(
-      ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
-    );
+    return Matchers.getElementByID(ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID);
   }
 
   get newPasswordInput() {
@@ -47,20 +45,14 @@ class ImportWalletView {
   }
 
   async enterSecretRecoveryPhrase(secretRecoveryPhrase) {
-    await Gestures.replaceText(
-      this.seedPhraseInput,
-      secretRecoveryPhrase,
-      {
-        elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
-      }
-    );
+    await Gestures.replaceText(this.seedPhraseInput, secretRecoveryPhrase, {
+      elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
+    });
   }
   async clearSecretRecoveryPhraseInputBox() {
-    await Gestures.clearField(this.seedPhraseInput, 
-      {
-        elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
-      }
-    );
+    await Gestures.clearField(this.seedPhraseInput, {
+      elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
+    });
   }
 
   async tapContinueButton() {

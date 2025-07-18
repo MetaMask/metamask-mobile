@@ -412,11 +412,7 @@ function TokenSelectModal({
             />
             {searchString.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>
-                <Icon
-                  name="close-circle"
-                  size={20}
-                  style={styles.searchIcon}
-                />
+                <Icon name="close-circle" size={20} style={styles.searchIcon} />
               </TouchableOpacity>
             )}
           </View>

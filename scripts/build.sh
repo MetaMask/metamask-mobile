@@ -147,7 +147,7 @@ remapEnvVariableQA() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-remapEnvVariableRelease() {
+remapEnvVariableProduction() {
   	echo "Remapping release env variable names to match production values"
   	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
   	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
@@ -173,14 +173,6 @@ remapFlaskEnvVariables() {
 	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-}
-
-remapEnvVariableProduction() {
-  	echo "Remapping Production env variable names to match Production values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
-    remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
-    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
 }
 
 remapEnvVariableBeta() {
@@ -430,31 +422,16 @@ generateIosBinary() {
 
 }
 
-buildIosRelease(){
-  if [ "$MODE" != "main" ]; then
-    # For main Mode variables are already remapped
-  	remapEnvVariableRelease
-  fi
-
+# Builds the Main binary for production
+buildIosMainProduction(){
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 
 	prebuild_ios
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateIosBinary "MetaMask"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
-	fi
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask"
 }
 
 # Builds the Main binary for local development
@@ -484,23 +461,13 @@ buildIosQaLocal() {
 	generateIosBinary "MetaMask-QA" "Debug"
 }
 
-buildIosFlaskRelease(){
+# Builds the Flask binary for production
+buildIosFlaskProduction(){
 	prebuild_ios
 
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateIosBinary "MetaMask-Flask"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask"  --configuration Release --simulator "iPhone 13 Pro"
-	fi
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask-Flask"
 }
 
 buildIosReleaseE2E(){
@@ -578,63 +545,40 @@ buildAndroidQA(){
 	#  fi
 }
 
-buildAndroidRelease(){
-    if [ "$MODE" != "main" ]; then
-      # For main Mode variables are already remapped
-    	remapEnvVariableRelease
-    fi
-
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask || true
-	fi
-
+# Builds the Main APK for production
+buildAndroidMainProduction(){
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 	prebuild_android
 
-	# GENERATE APK
-	cd android && ./gradlew assembleProdRelease --no-daemon --max-workers 2
+	# Generate APK for production
+	cd android && ./gradlew assembleProdRelease --build-cache --parallel
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleProdRelease
-	fi
+	# Generate AAB bundle for production
+	./gradlew bundleProdRelease
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum
-	fi
+	# Generate checksum
+	yarn build:android:checksum
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/prod/release/app-prod-release.apk
-	fi
+	# Change directory back out
+	cd ..
 }
 
-buildAndroidFlaskRelease(){
-	# remap flask env variables to match what the app expects
-	remapFlaskEnvVariables
-
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask.flask || true
-	fi
+# Builds the Flask APK for production
+buildAndroidFlaskProduction(){
 	prebuild_android
 
-	# GENERATE APK
-	cd android && ./gradlew assembleFlaskRelease --no-daemon --max-workers 2
+	# Generate APK for production
+	cd android && ./gradlew assembleFlaskRelease --build-cache --parallel
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleFlaskRelease
-	fi
+	# Generate AAB bundle for production
+	./gradlew bundleFlaskRelease
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum:flask
-	fi
+	# Generate checksum
+	yarn build:android:checksum:flask
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/flask/release/app-flask-release.apk
-	fi
+	# Change directory back out
+	cd ..
 }
 
 buildAndroidReleaseE2E(){
@@ -652,13 +596,13 @@ buildAndroid() {
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildAndroidMainLocal
 		else
-			buildAndroidRelease
+			buildAndroidMainProduction
 		fi
 	elif [ "$MODE" == "flask" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildAndroidFlaskLocal
 		else
-			buildAndroidFlaskRelease
+			buildAndroidFlaskProduction
 		fi
 	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
@@ -699,13 +643,13 @@ buildIos() {
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildIosMainLocal
 		else
-			buildIosRelease
+			buildIosMainProduction
 		fi
 	elif [ "$MODE" == "flask" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildIosFlaskLocal
 		else
-			buildIosFlaskRelease
+			buildIosFlaskProduction
 		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
@@ -803,7 +747,7 @@ if [ "$MODE" == "main" ]; then
 elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
 	# TODO: Map environment variables based on environment
 	remapFlaskEnvVariables
-elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" || [ "$MODE" == "QA"] ]; then
+elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" ] || [ "$MODE" == "QA" ]; then
 	# TODO: Map environment variables based on environment
 	remapEnvVariableQA
 fi

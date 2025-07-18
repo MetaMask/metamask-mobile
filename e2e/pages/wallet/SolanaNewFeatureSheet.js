@@ -8,24 +8,34 @@ import Matchers from '../../framework/Matchers.ts';
 class SolanaNewFeatureSheet {
   // Sheet container
   get sheetContainer() {
-    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET);
+    return Matchers.getElementByID(
+      SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET,
+    );
   }
 
-  // Create Account button
-  get createAccountButton() {
-    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON);
+  // Import Account button
+  get importAccountButton() {
+    return Matchers.getElementByID(
+      SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON,
+    );
   }
 
   get learnMoreButton() {
-    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON);
+    return Matchers.getElementByID(
+      SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON,
+    );
   }
 
   get notNowButton() {
-    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON);
+    return Matchers.getElementByID(
+      SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON,
+    );
   }
 
   get addAccountButton() {
-    return Matchers.getElementByID(SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET);
+    return Matchers.getElementByID(
+      SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET,
+    );
   }
 
   get carouselLogo() {
@@ -33,16 +43,12 @@ class SolanaNewFeatureSheet {
   }
 
   // Interaction methods
-  async tapCreateAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton, {
-      elemDescription: 'Solana New Feature Sheet Create Account Button',
-    });
+  async tapImportAccountButton() {
+    await Gestures.waitAndTap(this.importAccountButton);
   }
 
   async tapViewAccountButton() {
-    await Gestures.waitAndTap(this.createAccountButton, { //Create account testID is used for both create and view account actions
-      elemDescription: 'Solana New Feature Sheet View Account Button',
-    });
+    await Gestures.waitAndTap(this.importAccountButton); //Create account testID is used for both create and view account actions
   }
 
   async tapAddAccountButton() {
@@ -52,7 +58,6 @@ class SolanaNewFeatureSheet {
   async tapLearnMoreButton() {
     await Gestures.waitAndTap(this.learnMoreButton);
   }
-
 
   async tapNotNowButton() {
     await Gestures.waitAndTap(this.notNowButton, {

@@ -12,6 +12,10 @@ const mockStopPolling = jest.fn();
 const mockStartPolling = jest.fn();
 const mockHandleApprovedKycFlow = jest.fn();
 
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
 const mockKycForms = { forms: [] };
 const mockQuote = {
   id: 'test-quote-id',
@@ -55,16 +59,16 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: (...args: unknown[]) => mockUseDepositSdkMethod(...args),
 }));
 
-jest.mock('../../hooks/useUserDetailsPolling', () => ({
-  __esModule: true,
-  default: () => mockUseUserDetailsPolling,
-  KycStatus: {
+jest.mock('../../hooks/useUserDetailsPolling', () => {
+  const mockHook = () => mockUseUserDetailsPolling;
+  mockHook.KycStatus = {
     NOT_SUBMITTED: 'NOT_SUBMITTED',
     SUBMITTED: 'SUBMITTED',
     APPROVED: 'APPROVED',
     REJECTED: 'REJECTED',
-  },
-}));
+  };
+  return mockHook;
+});
 
 jest.mock('../../../../../UI/Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
@@ -92,6 +96,7 @@ describe('KycProcessing Component', () => {
     mockUseUserDetailsPolling.loading = false;
     mockUseUserDetailsPolling.error = null;
     mockHandleApprovedKycFlow.mockClear();
+    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -161,6 +166,58 @@ describe('KycProcessing Component', () => {
       await waitFor(() => {
         expect(mockHandleApprovedKycFlow).toHaveBeenCalledWith(mockQuote);
       });
+    });
+  });
+
+  describe('Analytics tracking', () => {
+    it('tracks RAMPS_KYC_APPLICATION_APPROVED event when KYC status is approved', () => {
+      mockUseUserDetailsPolling.userDetails = {
+        kyc: { l1: { status: KycStatus.APPROVED, type: 'STANDARD' } },
+      };
+
+      render(KycProcessing);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_KYC_APPLICATION_APPROVED',
+        {
+          ramp_type: 'DEPOSIT',
+          kyc_type: 'STANDARD',
+        },
+      );
+    });
+
+    it('tracks RAMPS_KYC_APPLICATION_FAILED event when KYC status is rejected', () => {
+      mockUseUserDetailsPolling.userDetails = {
+        kyc: { l1: { status: KycStatus.REJECTED, type: 'SIMPLE' } },
+      };
+
+      render(KycProcessing);
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_KYC_APPLICATION_FAILED',
+        {
+          ramp_type: 'DEPOSIT',
+          kyc_type: 'SIMPLE',
+        },
+      );
+    });
+
+    it('does not track analytics event when KYC status is pending', () => {
+      mockUseUserDetailsPolling.userDetails = {
+        kyc: { l1: { status: KycStatus.SUBMITTED, type: 'STANDARD' } },
+      };
+
+      render(KycProcessing);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track analytics event when user details are not available', () => {
+      mockUseUserDetailsPolling.userDetails = null;
+
+      render(KycProcessing);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 });

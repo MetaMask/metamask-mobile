@@ -133,7 +133,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
     trace({ name: TraceName.EarnDepositScreen });
     await Engine.context.NetworkController.setActiveNetwork(networkClientId);
-    
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
         .addProperties({

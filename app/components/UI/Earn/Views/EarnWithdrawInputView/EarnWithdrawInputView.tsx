@@ -311,7 +311,7 @@ const EarnWithdrawInputView = () => {
 
   const handleLendingWithdrawalFlow = useCallback(async () => {
     trace({ name: TraceName.EarnWithdrawReviewScreen });
-    
+
     if (shouldLogStablecoinEvent()) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
@@ -395,7 +395,10 @@ const EarnWithdrawInputView = () => {
 
     if (isStakingDepositRedesignedEnabled) {
       // start trace between user initiating withdrawal and the redesigned confirmation screen loading
-      trace({ name: TraceName.EarnWithdrawConfirmationScreen, data: { experience: EARN_EXPERIENCES.POOLED_STAKING } });
+      trace({
+        name: TraceName.EarnWithdrawConfirmationScreen,
+        data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+      });
 
       // this prevents the user from adding the transaction withdrawal into the
       // controller state multiple times

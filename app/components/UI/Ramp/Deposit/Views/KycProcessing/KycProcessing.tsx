@@ -21,7 +21,6 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import Button, {
@@ -34,9 +33,11 @@ import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { getCryptoCurrencyFromTransakId } from '../../utils';
 import { KycStatus } from '../../constants';
 import Logger from '../../../../../../util/Logger';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface KycProcessingParams {
   quote: BuyQuote;
+  kycUrl?: string;
 }
 
 export const createKycProcessingNavDetails =
@@ -46,6 +47,7 @@ const KycProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote } = useParams<KycProcessingParams>();
+  const trackEvent = useAnalytics();
 
   const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
 
@@ -73,7 +75,7 @@ const KycProcessing = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.kyc_processing.title') },
+        { title: strings('deposit.kyc_processing.navbar_title') },
         theme,
       ),
     );
@@ -88,8 +90,8 @@ const KycProcessing = () => {
   }, [kycForms, startPolling, stopPolling]);
 
   const handleRetryVerification = useCallback(() => {
-    navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
-  }, [navigation, quote]);
+    // TODO: Implement retry logic for KYC verification?
+  }, []);
 
   const handleContinue = useCallback(async () => {
     try {
@@ -105,6 +107,26 @@ const KycProcessing = () => {
   const error = userDetailsError || kycFormsError;
   const hasPendingForms = kycForms && kycForms.forms.length > 0;
   const kycStatus = userDetails?.kyc?.l1?.status;
+
+  useEffect(() => {
+    if (kycStatus === KycStatus.REJECTED) {
+      trackEvent('RAMPS_KYC_APPLICATION_FAILED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: userDetails?.kyc?.l1?.type || '',
+      });
+    } else if (kycStatus === KycStatus.APPROVED) {
+      trackEvent('RAMPS_KYC_APPLICATION_APPROVED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: userDetails?.kyc?.l1?.type || '',
+      });
+    }
+  }, [
+    kycStatus,
+    hasPendingForms,
+    trackEvent,
+    quote.quoteId,
+    userDetails?.kyc?.l1?.type,
+  ]);
 
   if (error || kycStatus === KycStatus.REJECTED || hasPendingForms) {
     return (
@@ -123,7 +145,7 @@ const KycProcessing = () => {
                 {strings('deposit.kyc_processing.error_heading')}
               </Text>
               <Text variant={TextVariant.BodyMD} style={styles.description}>
-                {strings('deposit.kyc_processing.error_description')}
+                {error || strings('deposit.kyc_processing.error_description')}
               </Text>
             </View>
           </ScreenLayout.Content>

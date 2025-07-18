@@ -6,6 +6,8 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
+import { Dispatch } from 'redux';
+import { connect } from 'react-redux';
 import Text from '../../../component-library/components/Texts/Text';
 import {
   TextColor,
@@ -27,12 +29,20 @@ import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
+import {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../core/Analytics/MetaMetrics.types';
+import {
+  OnboardingActionTypes,
+  saveOnboardingEvent as saveEvent,
+} from '../../../actions/onboarding';
 
 import AccountStatusImg from '../../../images/account_status.png';
 
 interface AccountStatusProps {
   type?: 'found' | 'not_exist';
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
 interface AccountRouteParams {
@@ -40,7 +50,10 @@ interface AccountRouteParams {
   oauthLoginSuccess?: boolean;
 }
 
-const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
+const AccountStatus = ({
+  type = 'not_exist',
+  saveOnboardingEvent,
+}: AccountStatusProps) => {
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -52,7 +65,10 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   const isSmallScreen = Dimensions.get('window').width < 375;
 
   const track = (event: IMetaMetricsEvent) => {
-    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(event).build(),
+      saveOnboardingEvent,
+    );
   };
 
   const navigateNextScreen = (
@@ -136,4 +152,9 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   );
 };
 
-export default AccountStatus;
+const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
+    dispatch(saveEvent(eventArgs)),
+});
+
+export default connect(null, mapDispatchToProps)(AccountStatus);

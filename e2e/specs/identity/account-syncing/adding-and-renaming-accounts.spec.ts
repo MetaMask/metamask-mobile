@@ -8,10 +8,7 @@ import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import {
-  withIdentityFixtures,
-  createSharedUserStorageController,
-} from '../utils/withIdentityFixtures';
+import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers.ts';
 import {
   UserStorageMockttpControllerEvents,
@@ -21,6 +18,7 @@ import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.j
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet.js';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
 import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
+import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(
   SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
@@ -29,7 +27,7 @@ describe(
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
-      sharedUserStorageController = createSharedUserStorageController();
+      sharedUserStorageController = createUserStorageController();
     });
 
     const DEFAULT_ACCOUNT_NAME = 'Account 1';
@@ -80,7 +78,7 @@ describe(
             );
 
           await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapCreateAccount();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
           await waitUntilEventsEmittedNumberEquals(1);
 
           await Assertions.expectElementToBeVisible(
@@ -145,7 +143,7 @@ describe(
           // Add another new EVM account
           await WalletView.tapIdenticon();
           await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapCreateAccount();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
 
           await waitUntilEventsEmittedNumberEquals(2);
         },

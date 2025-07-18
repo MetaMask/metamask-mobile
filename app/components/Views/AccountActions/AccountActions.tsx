@@ -338,13 +338,15 @@ const AccountActions = () => {
         return;
       }
 
-      await removeHardwareAccount();
+      sheetRef.current?.onCloseBottomSheet(async () => {
+        await removeHardwareAccount();
 
-      await selectFirstAccount();
+        await selectFirstAccount();
 
-      await forgetDeviceIfRequired();
+        await forgetDeviceIfRequired();
 
-      setBlockingModalVisible(false);
+        setBlockingModalVisible(false);
+      });
     }
   }, [
     blockingModalVisible,

@@ -14,8 +14,12 @@ export function getModuleState() {
   return {
     knownDomainsSet,
     initPromise,
-    setKnownDomainsSet: (value: Set<string> | null) => { knownDomainsSet = value; },
-    setInitPromise: (value: Promise<void> | null) => { initPromise = value; }
+    setKnownDomainsSet: (value: Set<string> | null) => {
+      knownDomainsSet = value;
+    },
+    setInitPromise: (value: Promise<void> | null) => {
+      initPromise = value;
+    },
   };
 }
 
@@ -71,7 +75,7 @@ export async function initializeRpcProviderDomains(): Promise<void> {
       state.setKnownDomainsSet(new Set<string>());
     }
   })();
-  
+
   state.setInitPromise(promise);
   return promise;
 }
@@ -100,7 +104,8 @@ export const RpcDomainStatus = {
   Unknown: 'unknown',
 } as const;
 
-export type RpcDomainStatus = typeof RpcDomainStatus[keyof typeof RpcDomainStatus];
+export type RpcDomainStatus =
+  (typeof RpcDomainStatus)[keyof typeof RpcDomainStatus];
 
 function parseDomain(url: string): string | undefined {
   try {
@@ -153,20 +158,27 @@ export function getNetworkRpcUrl(chainId: string): string {
     const { NetworkController } = Engine.context;
 
     // Find network clientID for chainID
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId as `0x${string}`);
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      chainId as `0x${string}`,
+    );
     if (!networkClientId) {
       return 'unknown';
     }
 
     // Get network config
-    const networkConfig = NetworkController.getNetworkConfigurationByNetworkClientId(networkClientId);
+    const networkConfig =
+      NetworkController.getNetworkConfigurationByNetworkClientId(
+        networkClientId,
+      );
     if (!networkConfig) {
       return 'unknown';
     }
 
     // Check if there is a direct rpcUrl property (legacy format)
     if ('rpcUrl' in networkConfig && networkConfig.rpcUrl) {
-      return typeof networkConfig.rpcUrl === 'string' ? networkConfig.rpcUrl : 'unknown';
+      return typeof networkConfig.rpcUrl === 'string'
+        ? networkConfig.rpcUrl
+        : 'unknown';
     }
 
     // If we use rpcEndpoints array
@@ -183,7 +195,7 @@ export function getNetworkRpcUrl(chainId: string): string {
     Logger.error(
       error instanceof Error
         ? error
-        : new Error(`Error getting RPC URL: ${String(error)}`)
+        : new Error(`Error getting RPC URL: ${String(error)}`),
     );
     return 'unknown';
   }
