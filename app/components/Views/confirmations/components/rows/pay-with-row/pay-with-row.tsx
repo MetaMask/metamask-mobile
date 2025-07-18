@@ -15,6 +15,10 @@ export function PayWithRow() {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [navigation]);
 
+  if (process.env.MM_CONFIRMATION_INTENTS !== 'true') {
+    return null;
+  }
+
   return (
     <>
       <InfoSection>
