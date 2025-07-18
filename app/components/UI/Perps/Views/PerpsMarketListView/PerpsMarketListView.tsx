@@ -165,11 +165,9 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
   };
 
   const loadPositions = useCallback(async () => {
-    console.log('loadPositions');
     setPositionsLoading(true);
     try {
       const positionsData = await getPositions();
-      console.log('positionsData: ', positionsData);
       setPositions(positionsData || []);
     } catch (positionsError) {
       DevLogger.log('Failed to load positions:', positionsError);
