@@ -62,36 +62,24 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const absoluteSize = Math.abs(parseFloat(position.size));
 
   const handleCardPress = async () => {
+    // await triggerSelectionHaptic();
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.POSITION_DETAILS,
-      position,
+      params: {
+        position,
+        action: 'view',
+      },
     });
   };
 
   const handleClosePress = () => {
     // await triggerSelectionHaptic();
-    if (onClose) {
-      onClose(position);
-    } else {
-      // Navigate to position details with close action
-      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
-        screen: Routes.PERPS.POSITION_DETAILS,
-        position,
-      });
-    }
+    onClose?.(position);
   };
 
   const handleEditPress = () => {
     // await triggerSelectionHaptic();
-    if (onEdit) {
-      onEdit(position);
-    } else {
-      // Navigate to position details with edit action
-      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
-        position,
-        action: 'edit',
-      });
-    }
+    onEdit?.(position);
   };
 
   const pnlNum = parseFloat(position.unrealizedPnl);

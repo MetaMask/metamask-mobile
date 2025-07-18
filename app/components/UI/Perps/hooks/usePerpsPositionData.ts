@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import type { PriceUpdate } from '../controllers/types';
 import type { CandleData } from '../types';
+import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 
 interface UsePerpsPositionDataProps {
   coin: string;
@@ -15,6 +16,9 @@ export const usePerpsPositionData = ({
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  // Get connection state from the provider
+  const { isConnected, isInitialized } = usePerpsConnection();
 
   const fetchHistoricalCandles = useCallback(async () => {
     const historicalData =
@@ -46,8 +50,13 @@ export const usePerpsPositionData = ({
     }
   }, [coin]);
 
-  // Load historical candles
+  // Load historical candles only when SDK is ready
   useEffect(() => {
+    // Only fetch data if SDK is initialized and connected
+    if (!isInitialized || !isConnected || !coin) {
+      return;
+    }
+
     setIsLoadingHistory(true);
     const loadHistoricalData = async () => {
       try {
@@ -61,16 +70,21 @@ export const usePerpsPositionData = ({
     };
 
     loadHistoricalData();
-  }, [fetchHistoricalCandles]);
+  }, [fetchHistoricalCandles, isInitialized, isConnected, coin]);
 
-  // Subscribe to price updates for 24-hour data
+  // Subscribe to price updates only when SDK is ready
   useEffect(() => {
+    // Only subscribe if SDK is initialized and connected
+    if (!isInitialized || !isConnected || !coin) {
+      return;
+    }
+
     const unsubscribe = subscribeToPriceUpdates();
 
     return () => {
       unsubscribe();
     };
-  }, [subscribeToPriceUpdates]);
+  }, [subscribeToPriceUpdates, isInitialized, isConnected, coin]);
 
   return {
     candleData,
