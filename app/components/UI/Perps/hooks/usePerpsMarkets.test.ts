@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react-native';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import { PerpsMarketData } from '../Views/PerpsMarketListView/PerpsMarketListView.types';
+import type { PerpsMarketData } from '../controllers/types';
 
 // Mock dependencies
 jest.mock('../../../../util/Logger');

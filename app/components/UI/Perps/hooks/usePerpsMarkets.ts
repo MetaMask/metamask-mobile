@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
-import { PerpsMarketData } from '../Views/PerpsMarketListView/PerpsMarketListView.types';
+import type { PerpsMarketData } from '../controllers/types';
 
 export interface UsePerpsMarketsResult {
   /**

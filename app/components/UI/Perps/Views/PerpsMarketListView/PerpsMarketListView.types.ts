@@ -1,37 +1,4 @@
-/**
- * Market data for perps trading (UI-friendly format)
- * Protocol-agnostic interface that works with any perpetual futures provider
- */
-export interface PerpsMarketData {
-  /**
-   * Token symbol (e.g., 'BTC', 'ETH')
-   */
-  symbol: string;
-  /**
-   * Full token name
-   */
-  name: string;
-  /**
-   * Maximum leverage available (e.g., '40x', '25x')
-   */
-  maxLeverage: string;
-  /**
-   * Current price as formatted string
-   */
-  price: string;
-  /**
-   * 24h price change as formatted string
-   */
-  change24h: string;
-  /**
-   * 24h price change percentage
-   */
-  change24hPercent: string;
-  /**
-   * Trading volume as formatted string
-   */
-  volume: string;
-}
+import type { PerpsMarketData } from '../../controllers/types';
 
 /**
  * Generic market data interface that can be implemented by any protocol
