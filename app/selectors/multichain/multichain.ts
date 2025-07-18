@@ -307,13 +307,9 @@ export const getMultichainNetworkAggregatedBalance = (
   multichainBalances: MultichainBalancesControllerState['balances'],
   multichainAssets: MultichainAssetsControllerState['accountsAssets'],
   multichainAssetsRates: MultichainAssetsRatesControllerState['conversionRates'],
-  nonEvmChainId: SupportedCaipChainId,
 ): MultichainNetworkAggregatedBalance => {
   const assetIds = multichainAssets?.[account.id] || [];
   const balances = multichainBalances?.[account.id] || {};
-
-  // Find the native asset for this chain
-  const nativeAsset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
 
   // Default values for native token
   let totalNativeTokenBalance: Balance | undefined;
@@ -322,11 +318,6 @@ export const getMultichainNetworkAggregatedBalance = (
 
   for (const assetId of assetIds) {
     const { chainId } = parseCaipAssetType(assetId);
-
-    if (chainId !== nonEvmChainId) {
-      continue;
-    }
-
     const balance = balances[assetId] || { amount: '0', unit: '' };
 
     // Safely handle undefined rate
@@ -337,8 +328,7 @@ export const getMultichainNetworkAggregatedBalance = (
         : new BigNumber(0);
     fiatBalances[assetId] = balanceInFiat.toString();
 
-    // Only update native token balance if this is the native asset
-    if (assetId === nativeAsset) {
+    if (MULTICHAIN_NETWORK_TO_ASSET_TYPES[chainId]?.[0] !== undefined) {
       totalNativeTokenBalance = balance;
     }
 
@@ -373,7 +363,6 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
       multichainBalances,
       assets,
       assetsRates,
-      nonEvmNetworkChainId,
     ): MultichainNetworkAggregatedBalance => {
       if (!selectedAccount) {
         return {
@@ -388,7 +377,6 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
         multichainBalances,
         assets,
         assetsRates,
-        nonEvmNetworkChainId,
       );
     },
   );
@@ -409,7 +397,6 @@ export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
       multichainBalances,
       assets,
       assetsRates,
-      nonEvmNetworkChainId,
     ): MultichainNetworkAggregatedBalanceForAllAccounts => {
       return internalAccounts.reduce(
         (acc, account) => ({
@@ -419,7 +406,6 @@ export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
             multichainBalances,
             assets,
             assetsRates,
-            nonEvmNetworkChainId,
           ),
         }),
         {},
