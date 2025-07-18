@@ -1,23 +1,7 @@
 import { AccountGroup } from '@metamask/account-tree-controller';
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './AccountCell.styles';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { Box } from '../../../UI/Box/Box';
-import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../../UI/Box/box.types';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import { AccountCell } from './AccountCell';
+import { View } from 'react-native';
+import AccountCell from './AccountCell';
 import { mockTheme } from '../../../../util/theme';
 
 const SAMPLE_ACCOUNT_GROUP = {
