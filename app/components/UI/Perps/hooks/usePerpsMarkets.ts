@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { PerpsMarketData } from '../Views/PerpsMarketListView/PerpsMarketListView.types';
+import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 
 export interface UsePerpsMarketsResult {
   /**
@@ -62,8 +63,20 @@ export const usePerpsMarkets = (
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Get connection state from the provider
+  const { isConnected, isInitialized } = usePerpsConnection();
+
   const fetchMarketData = useCallback(
     async (isRefresh = false): Promise<void> => {
+      // Only fetch data if SDK is initialized and connected
+      if (!isInitialized || !isConnected) {
+        Logger.log('Perps: Skipping market data fetch - SDK not ready', {
+          isInitialized,
+          isConnected,
+        });
+        return;
+      }
+
       if (isRefresh) {
         setIsRefreshing(true);
       } else {
@@ -104,7 +117,7 @@ export const usePerpsMarkets = (
         setIsRefreshing(false);
       }
     },
-    [], // Remove markets.length dependency to prevent unnecessary re-renders
+    [isInitialized, isConnected], // Add connection dependencies
   );
 
   const refresh = useCallback(

@@ -16,17 +16,38 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 8,
-      marginVertical: 16,
-    },
-    headerSpacer: {
-      width: 24,
+      marginTop: 32,
+      marginBottom: 16,
     },
     headerTitle: {
       flex: 1,
-      textAlign: 'center',
+      textAlign: 'left',
     },
-    closeButton: {
+    searchButton: {
       padding: 4,
+    },
+    tabContainer: {
+      flexDirection: 'row',
+      marginBottom: 16,
+      borderWidth: 1,
+      marginHorizontal: 16,
+      borderRadius: 12,
+      borderColor: colors.border.muted,
+      padding: 2,
+    },
+    tabButton: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tabButtonActive: {
+      backgroundColor: colors.background.defaultPressed,
+    },
+    tabButtonInactive: {
+      backgroundColor: colors.background.default,
     },
     listContainer: {
       flex: 1,
@@ -122,7 +143,12 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
     },
     searchContainer: {
-      paddingHorizontal: 16,
+      marginHorizontal: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      borderRadius: 12,
+      padding: 2,
     },
     searchInputContainer: {
       flexDirection: 'row',
@@ -130,7 +156,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.muted,
       borderRadius: 12,
       paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingVertical: 8,
     },
     searchIcon: {
       marginRight: 10,

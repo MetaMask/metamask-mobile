@@ -353,7 +353,9 @@ const WalletActions = () => {
 
   const onPerps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PERPS.ROOT);
+      navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
     });
   }, [closeBottomSheetAndNavigate, navigate]);
 

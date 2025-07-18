@@ -746,6 +746,9 @@
     "withdraw": "Withdraw",
     "refresh_balance": "Refresh Balance",
     "add_funds": "Add funds",
+    "perpetuals": "Perpetuals",
+    "perpetual_markets": "Perpetual markets",
+    "your_positions": "Your positions",
     "deposit": {
       "title": "Amount to deposit",
       "pay_with": "Pay with",

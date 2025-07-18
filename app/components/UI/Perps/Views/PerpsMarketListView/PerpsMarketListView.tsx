@@ -21,6 +21,8 @@ import Text, {
 import { useNavigation } from '@react-navigation/native';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import { usePerpsConnection } from '../../providers/PerpsConnectionProvider';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import styleSheet from './PerpsMarketListView.styles';
 import {
   PerpsMarketData,
@@ -75,12 +77,40 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'markets' | 'positions'>(
+    'markets',
+  );
 
   const navigation = useNavigation();
 
   const { markets, isLoading, error, refresh, isRefreshing } = usePerpsMarkets({
     enablePolling: false,
   });
+
+  const {
+    isConnected,
+    isInitialized,
+    error: connectionError,
+  } = usePerpsConnection();
+
+  // Debug logging
+  useEffect(() => {
+    DevLogger.log('PerpsMarketListView: Connection state', {
+      isConnected,
+      isInitialized,
+      connectionError,
+      marketsCount: markets.length,
+      isLoading,
+      error,
+    });
+  }, [
+    isConnected,
+    isInitialized,
+    connectionError,
+    markets.length,
+    isLoading,
+    error,
+  ]);
 
   useEffect(() => {
     if (markets.length > 0) {
@@ -185,18 +215,58 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerSpacer} />
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.HeadingMD}
             color={TextColor.Default}
             style={styles.headerTitle}
           >
-            {strings('perps.perpetual_markets')}
+            {strings('perps.perpetuals')}
           </Text>
-          <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-            <Icon name={IconName.Close} size={IconSize.Md} />
+          <TouchableOpacity style={styles.searchButton} onPress={handleClose}>
+            <Icon name={IconName.Search} size={IconSize.Md} />
           </TouchableOpacity>
         </View>
+
+        {/* Tab Buttons */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === 'markets'
+                ? styles.tabButtonActive
+                : styles.tabButtonInactive,
+            ]}
+            onPress={() => setActiveTab('markets')}
+          >
+            <Text
+              variant={TextVariant.BodyMDBold}
+              color={
+                activeTab === 'markets' ? TextColor.Default : TextColor.Muted
+              }
+            >
+              {strings('perps.perpetual_markets')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === 'positions'
+                ? styles.tabButtonActive
+                : styles.tabButtonInactive,
+            ]}
+            onPress={() => setActiveTab('positions')}
+          >
+            <Text
+              variant={TextVariant.BodyMDBold}
+              color={
+                activeTab === 'positions' ? TextColor.Default : TextColor.Muted
+              }
+            >
+              {strings('perps.your_positions')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
