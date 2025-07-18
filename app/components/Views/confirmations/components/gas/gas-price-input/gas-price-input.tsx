@@ -38,9 +38,10 @@ export const GasPriceInput = ({
 
   const handleChange = useCallback(
     (text: string) => {
-      validateGasPriceCallback(text);
-      setValue(text);
-      const updatedGasPrice = add0x(decGWEIToHexWEI(text) as Hex);
+      const normalizedText = text.replace(',', '.');
+      validateGasPriceCallback(normalizedText);
+      setValue(normalizedText);
+      const updatedGasPrice = add0x(decGWEIToHexWEI(normalizedText) as Hex);
       onChange(updatedGasPrice);
     },
     [onChange, validateGasPriceCallback],

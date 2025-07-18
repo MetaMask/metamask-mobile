@@ -66,9 +66,10 @@ export const MaxBaseFeeInput = ({
 
   const handleChange = useCallback(
     (text: string) => {
-      validateMaxBaseFeeCallback(text);
-      setValue(text);
-      const updatedMaxBaseFee = add0x(decGWEIToHexWEI(text) as Hex);
+      const normalizedText = text.replace(',', '.');
+      validateMaxBaseFeeCallback(normalizedText);
+      setValue(normalizedText);
+      const updatedMaxBaseFee = add0x(decGWEIToHexWEI(normalizedText) as Hex);
       onChange(updatedMaxBaseFee);
     },
     [onChange, validateMaxBaseFeeCallback],

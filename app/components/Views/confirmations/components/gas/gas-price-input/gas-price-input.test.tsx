@@ -35,9 +35,9 @@ describe('GasPriceInput', () => {
     );
 
     const input = getByTestId('gas-price-input');
-    fireEvent.changeText(input, '30000');
+    fireEvent.changeText(input, '30000,03');
 
-    expect(mockOnChange).toHaveBeenCalledWith('0x1b48eb57e000');
-    expect(validateGasPrice).toHaveBeenCalledWith('30000');
+    expect(mockOnChange).toHaveBeenCalledWith('0x1b48ed21a380');
+    expect(validateGasPrice).toHaveBeenCalledWith('30000.03');
   });
 });

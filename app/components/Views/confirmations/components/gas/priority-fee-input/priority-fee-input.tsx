@@ -64,9 +64,10 @@ export const PriorityFeeInput = ({
 
   const handleChange = useCallback(
     (text: string) => {
-      validatePriorityFeeCallback(text);
-      setValue(text);
-      const updatedPriorityFee = add0x(decGWEIToHexWEI(text) as Hex);
+      const normalizedText = text.replace(',', '.');
+      validatePriorityFeeCallback(normalizedText);
+      setValue(normalizedText);
+      const updatedPriorityFee = add0x(decGWEIToHexWEI(normalizedText) as Hex);
       onChange(updatedPriorityFee);
     },
     [onChange, validatePriorityFeeCallback],

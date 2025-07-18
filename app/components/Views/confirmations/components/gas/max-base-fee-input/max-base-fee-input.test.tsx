@@ -74,7 +74,7 @@ describe('MaxBaseFeeInput', () => {
     );
 
     const input = getByTestId('max-base-fee-input');
-    fireEvent.changeText(input, '0.03');
+    fireEvent.changeText(input, '0,03');
 
     expect(mockOnChange).toHaveBeenCalledWith('0x1c9c380');
     expect(validateMaxBaseFee).toHaveBeenCalledWith('0.03', '0.03');
