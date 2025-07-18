@@ -23,6 +23,10 @@ const styleSheet = (params: { theme: Theme }) => {
     arrowContainer: {
       marginLeft: 12,
     },
+    balanceText: {
+      borderRadius: 4,
+      paddingHorizontal: 4,
+    },
   });
 };
 

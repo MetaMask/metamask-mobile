@@ -14,6 +14,11 @@ export { usePerpsAccount } from './usePerpsAccount';
 
 // Live data hooks (WebSocket subscriptions)
 export { usePerpsPositionData } from './usePerpsPositionData';
+
+// Animation hooks
+export { useColorPulseAnimation } from './useColorPulseAnimation';
+export { useBalanceComparison } from './useBalanceComparison';
+export type { PulseColor } from './useColorPulseAnimation';
 // - usePerpsPrices (removed with Live Market Prices component)
 
 // Removed for minimal PR:

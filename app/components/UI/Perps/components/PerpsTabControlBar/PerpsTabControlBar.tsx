@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { TouchableOpacity, View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,
@@ -12,15 +12,17 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsTabControlBar.styles';
-import { usePerpsTrading } from '../../hooks';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import {
+  usePerpsTrading,
+  useColorPulseAnimation,
+  useBalanceComparison,
+} from '../../hooks';
 import { AccountState } from '../../controllers';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { formatPerpsFiat } from '../../utils/formatUtils';
 
 export const PerpsTabControlBar: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AccountState>({
     totalBalance: '',
     availableBalance: '',
@@ -28,14 +30,29 @@ export const PerpsTabControlBar: React.FC = () => {
     unrealizedPnl: '',
   });
 
-  const { getAccountState } = usePerpsTrading();
+  const { getAccountState, subscribeToPositions } = usePerpsTrading();
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Use the reusable hooks
+  const { startPulseAnimation, getAnimatedStyle, stopAnimation } =
+    useColorPulseAnimation();
+  const { compareAndUpdateBalance } = useBalanceComparison();
 
   const getAccountBalance = useCallback(async () => {
-    setIsLoading(true);
-
     try {
       const accountState = await getAccountState();
-      setResult(accountState);
+
+      // Compare with previous balance and get animation type
+      const balanceChange = compareAndUpdateBalance(accountState.totalBalance);
+
+      // Start pulse animation with appropriate color
+      try {
+        startPulseAnimation(balanceChange);
+      } catch (animationError) {
+        DevLogger.log('PerpsTabControlBar: Animation error:', animationError);
+      } finally {
+        setResult(accountState);
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -44,15 +61,63 @@ export const PerpsTabControlBar: React.FC = () => {
       const fullErrorMessage = strings('perps.errors.accountBalanceFailed', {
         error: errorMessage,
       });
-      DevLogger.log(fullErrorMessage);
-    } finally {
-      setIsLoading(false);
+      DevLogger.log(
+        'PerpsTabControlBar: Error getting account balance:',
+        fullErrorMessage,
+      );
     }
-  }, [getAccountState]);
+  }, [getAccountState, startPulseAnimation, compareAndUpdateBalance]);
 
+  // Auto-refresh setup with WebSocket subscription + polling fallback
   useEffect(() => {
+    // Initial load
     getAccountBalance();
-  }, [getAccountBalance]);
+
+    // Set up WebSocket subscription for real-time position updates
+    let unsubscribePositions: (() => void) | null = null;
+
+    try {
+      unsubscribePositions = subscribeToPositions({
+        callback: (_positions) => {
+          // Position updates often include balance changes
+          // Refresh account state when positions change
+          DevLogger.log(
+            'PerpsTabControlBar: Position update received, refreshing balance',
+          );
+          getAccountBalance();
+        },
+      });
+    } catch (error) {
+      DevLogger.log(
+        'PerpsTabControlBar: Failed to subscribe to positions, using polling only',
+        error,
+      );
+    }
+
+    // Fallback polling every 60 seconds for balance updates
+    refreshIntervalRef.current = setInterval(() => {
+      DevLogger.log(
+        'PerpsTabControlBar: Auto-refreshing balance (60s interval)',
+      );
+      getAccountBalance();
+    }, 60000); // 60 seconds
+
+    return () => {
+      // Cleanup WebSocket subscription
+      if (unsubscribePositions) {
+        unsubscribePositions();
+      }
+
+      // Cleanup polling interval
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+
+      // Cleanup animations
+      stopAnimation();
+    };
+  }, [getAccountBalance, subscribeToPositions, stopAnimation]);
 
   const handlePress = () => {
     getAccountBalance();
@@ -68,13 +133,11 @@ export const PerpsTabControlBar: React.FC = () => {
         >
           {strings('perps.hyperliquid_usdc_balance')}
         </Text>
-        {isLoading ? (
-          <Skeleton height={24} width={80} />
-        ) : (
+        <Animated.View style={[styles.balanceText, getAnimatedStyle()]}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {formatPerpsFiat(result.totalBalance)}
+            {formatPerpsFiat(result.totalBalance || '0')}
           </Text>
-        )}
+        </Animated.View>
       </View>
       <View style={styles.arrowContainer}>
         <Icon

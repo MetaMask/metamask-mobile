@@ -53,7 +53,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
   return (
     <View style={styles.wrapper}>
-      <PerpsTabControlBar fiatBalance="$250.00" />
+      <PerpsTabControlBar />
       <View style={styles.content}>
         <View style={styles.headerContainer}>
           <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
