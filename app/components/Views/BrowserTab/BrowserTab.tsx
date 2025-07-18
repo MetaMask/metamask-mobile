@@ -408,9 +408,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             chainId: activeChainId,
           });
           if (type === 'ipfs-ns') {
-            gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${
-              query || ''
-            }`;
+            gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''
+              }`;
             const response = await fetch(gatewayUrl, {
               headers: {
                 'User-Agent': 'MetaMask Mobile Browser',
@@ -422,13 +421,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               return null;
             }
           } else if (type === 'swarm-ns') {
-            gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-              pathname || '/'
-            }${query || ''}`;
+            gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
+              }${query || ''}`;
           } else if (type === 'ipns-ns') {
-            gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-              pathname || '/'
-            }${query || ''}`;
+            gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
+              }${query || ''}`;
           }
           return {
             url: gatewayUrl,
@@ -606,8 +603,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         const disctinctId = await getMetaMetricsId();
         const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-                injectedBookmarks || bookmarks,
-              )};
+          injectedBookmarks || bookmarks,
+        )};
               window.__mmSearchEngine = "${searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
@@ -984,31 +981,37 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const sendActiveAccount = useCallback(
       async (targetUrl?: string) => {
-        try {
-          const urlToCheck = targetUrl || resolvedUrlRef.current;
-          if (!urlToCheck) return;
-          const hostname = new URLParse(urlToCheck).hostname;
-          const permissionsControllerState =
-            Engine.context.PermissionController.state;
+        // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
+        const urlToCheck =
+          targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
 
-          // Get permitted accounts specifically for the target hostname
-          const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
-            permissionsControllerState,
-            hostname,
-          );
-
-          // Only send account information if the target URL has explicit permissions
-          if (permittedAccountsForTarget.length > 0) {
-            notifyAllConnections({
-              method: NOTIFICATION_NAMES.accountsChanged,
-              params: permittedAccountsForTarget,
-            });
-          }
-        } catch (err) {
-          Logger.log(err as Error, 'Error in sendActiveAccount');
+        if (!urlToCheck) {
+          // If no URL to check, send empty accounts
+          notifyAllConnections({
+            method: NOTIFICATION_NAMES.accountsChanged,
+            params: [],
+          });
           return;
         }
-        // Use the target URL if provided, otherwise use current resolved URL
+
+        // Get permitted accounts for the target URL
+        const permissionsControllerState =
+          Engine.context.PermissionController.state;
+        let hostname = '' // notifyAllConnections will return empty array if ''
+        try {
+          hostname = new URLParse(urlToCheck).hostname;
+        } catch (err) {
+          Logger.log('Error parsing WebView URL', err);
+        }
+        const permittedAcc = getPermittedEvmAddressesByHostname(
+          permissionsControllerState,
+          hostname,
+        );
+
+        notifyAllConnections({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: permittedAcc,
+        });
       },
       [notifyAllConnections],
     );
@@ -1035,8 +1038,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return false;
         }
 
-        // Only send active account for the specific URL being navigated to
-        // This ensures we only send account info to sites that have explicit permissions
         sendActiveAccount(nativeEvent.url);
 
         iconRef.current = undefined;
@@ -1395,6 +1396,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             event,
           )}`,
         );
+
         // Handles force resolves url when going back since the behavior slightly differs that results in onLoadEnd not being called
         if (navigationType === 'backforward') {
           const payload = {
