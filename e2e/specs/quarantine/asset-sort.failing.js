@@ -1,23 +1,23 @@
-import { SmokeNetworkAbstractions } from '../../../tags';
-import WalletView from '../../../pages/wallet/WalletView';
-import SortModal from '../../../pages/wallet/TokenSortBottomSheet';
+import { SmokeNetworkAbstractions } from '../../tags';
+import WalletView from '../../pages/wallet/WalletView';
+import SortModal from '../../pages/wallet/TokenSortBottomSheet';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../../fixtures/fixture-builder';
+} from '../../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
-} from '../../../fixtures/fixture-helper';
-import FixtureServer from '../../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../../fixtures/utils';
-import { loginToApp } from '../../../viewHelper';
-import Assertions from '../../../utils/Assertions';
-import ConfirmAddAssetView from '../../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
-import TestHelpers from '../../../helpers';
+} from '../../fixtures/fixture-helper';
+import FixtureServer from '../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../fixtures/utils';
+import { loginToApp } from '../../viewHelper';
+import Assertions from '../../utils/Assertions';
+import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
+import TestHelpers from '../../helpers';
 
-import Tenderly from '../../../tenderly';
-import { CustomNetworks } from '../../../resources/networks.e2e';
-import ImportTokensView from '../../../pages/wallet/ImportTokenFlow/ImportTokensView';
+import Tenderly from '../../tenderly';
+import { CustomNetworks } from '../../resources/networks.e2e';
+import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 
 const fixtureServer = new FixtureServer();
 
