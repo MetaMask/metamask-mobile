@@ -49,6 +49,17 @@ export const USDC_BSC_TOKEN: DepositCryptoCurrency = {
     'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/56/erc20/0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d.png',
 };
 
+export const USDC_SOLANA_TOKEN: DepositCryptoCurrency = {
+  assetId:
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  decimals: 6,
+  name: 'USD Coin',
+  symbol: 'USDC',
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
+};
+
 export const USDT_TOKEN: DepositCryptoCurrency = {
   assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
   chainId: 'eip155:1',
@@ -94,6 +105,7 @@ export const ALL_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
   USDC_LINEA_TOKEN,
   USDC_BASE_TOKEN,
   USDC_BSC_TOKEN,
+  USDC_SOLANA_TOKEN,
   USDT_TOKEN,
   USDT_LINEA_TOKEN,
   USDT_BASE_TOKEN,
@@ -105,6 +117,7 @@ export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
   USDC_LINEA_TOKEN,
   USDC_BASE_TOKEN,
   USDC_BSC_TOKEN,
+  // USDC_SOLANA_TOKEN,
   USDT_TOKEN,
   USDT_LINEA_TOKEN,
   USDT_BASE_TOKEN,
