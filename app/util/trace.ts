@@ -210,7 +210,6 @@ export interface TraceRequest {
    * Custom operation name to associate with the trace.
    */
   op?: string;
-
 }
 /**
  * A request to end a pending trace.
@@ -237,7 +236,6 @@ export interface EndTraceRequest {
    * These will be set as attributes on the span.
    */
   data?: Record<string, TraceValue>;
-
 }
 
 interface SentrySpanWithName extends Span {
@@ -369,7 +367,6 @@ export function bufferTraceEndCallLocal(request: EndTraceRequest) {
  * Flushes buffered traces to Sentry when consent is given
  */
 export async function flushBufferedTraces() {
-
   if (localBufferedTraces.length === 0) {
     return;
   }
@@ -410,7 +407,6 @@ export async function flushBufferedTraces() {
 
   // Clear local buffer after flushing
   localBufferedTraces.length = 0;
-
 }
 
 // Cache consent state to avoid async checks in trace functions
@@ -465,7 +461,6 @@ function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
       id: request.id,
     });
     return result;
-   
   }
 
   const callback = (span: Span | undefined) => {
