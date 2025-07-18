@@ -50,10 +50,9 @@ describe('BlockaidModal', () => {
   });
 
   it('should render validation modal and handle close', () => {
-    const { getByText } = renderWithProvider(
-      <BlockaidModal />,
-      { state: mockInitialState }
-    );
+    const { getByText } = renderWithProvider(<BlockaidModal />, {
+      state: mockInitialState,
+    });
 
     // Test that the component renders
     expect(getByText('Transaction Warning')).toBeTruthy();
@@ -69,10 +68,9 @@ describe('BlockaidModal', () => {
   it('should render simulation modal with different route params', () => {
     // Test that the component can handle different error types and messages
     // This covers the conditional logic for errorType in the component
-    const { getByText } = renderWithProvider(
-      <BlockaidModal />,
-      { state: mockInitialState }
-    );
+    const { getByText } = renderWithProvider(<BlockaidModal />, {
+      state: mockInitialState,
+    });
 
     // The component should render regardless of error type
     expect(getByText('Transaction Warning')).toBeTruthy();
@@ -81,20 +79,18 @@ describe('BlockaidModal', () => {
 
   it('should handle error message display correctly', () => {
     // Test that error messages are displayed properly
-    const { getByText } = renderWithProvider(
-      <BlockaidModal />,
-      { state: mockInitialState }
-    );
+    const { getByText } = renderWithProvider(<BlockaidModal />, {
+      state: mockInitialState,
+    });
 
     // Verify error message is rendered
     expect(getByText('Test error message')).toBeTruthy();
   });
 
   it('should call handleClose when close button is pressed', () => {
-    const { getByText } = renderWithProvider(
-      <BlockaidModal />,
-      { state: mockInitialState }
-    );
+    const { getByText } = renderWithProvider(<BlockaidModal />, {
+      state: mockInitialState,
+    });
 
     const closeButton = getByText('Go Back');
     fireEvent.press(closeButton);

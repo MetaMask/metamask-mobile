@@ -63,7 +63,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
         hash: HashAlgorithmQuickCrypto.Sha512,
       },
       baseKey,
-      256
+      256,
     );
 
     return Buffer.from(derivedBits).toString('base64');
@@ -85,7 +85,7 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
       { name: CipherAlgorithmQuickCrypto.Cbc, iv: ivBuffer },
       // @ts-expect-error - This should be as CryptoKey but the type is not exported
       cryptoKey,
-      dataBuffer
+      dataBuffer,
     );
     return Buffer.from(encryptedData).toString('base64');
   };
@@ -134,9 +134,15 @@ class QuickCryptoEncryptionLibrary implements EncryptionLibrary {
    * @param key - The key to export.
    * @returns A promise that resolves to the exported key as a base64 string.
    */
-  exportKey = async (importFormat: 'raw' | 'jwk', key: unknown): Promise<string> => {
-    // @ts-expect-error - This should be as CryptoKey but the type is not exported
-    const keyBuffer = await Crypto.subtle.exportKey(importFormat, key) as ArrayBuffer;
+  exportKey = async (
+    importFormat: 'raw' | 'jwk',
+    key: unknown,
+  ): Promise<string> => {
+    const keyBuffer = (await Crypto.subtle.exportKey(
+      importFormat,
+      // @ts-expect-error - This should be as CryptoKey but the type is not exported
+      key,
+    )) as ArrayBuffer;
     const base64Key = Buffer.from(keyBuffer).toString('base64');
     return base64Key;
   };

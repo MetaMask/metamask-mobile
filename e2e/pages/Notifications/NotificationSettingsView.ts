@@ -75,8 +75,9 @@ class NotificationsSettingsView {
 
   // Checking the toggle state within the method due to flaky behavior
 
-
-  async tapPushNotificationsToggleAndVerifyState(expectedToggleState: ToggleState) {
+  async tapPushNotificationsToggleAndVerifyState(
+    expectedToggleState: ToggleState,
+  ) {
     return this.toggleElement(
       {
         element: this.pushNotificationsToggle,
@@ -98,7 +99,9 @@ class NotificationsSettingsView {
     );
   }
 
-  async tapFeatureAnnouncementsToggleAndVerifyState(expectedToggleState: ToggleState) {
+  async tapFeatureAnnouncementsToggleAndVerifyState(
+    expectedToggleState: ToggleState,
+  ) {
     return this.toggleElement(
       {
         element: this.featureAnnouncementsToggle,
