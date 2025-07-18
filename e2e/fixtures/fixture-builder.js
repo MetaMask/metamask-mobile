@@ -80,7 +80,7 @@ class FixtureBuilder {
       '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
-      '@MetaMask:solanaFeatureModalShown': 'false'
+      '@MetaMask:solanaFeatureModalShown': 'false',
     };
     return this;
   }
@@ -304,7 +304,7 @@ class FixtureBuilder {
                       'eth_signTypedData_v4',
                     ],
                     type: 'eip155:eoa',
-                    scopes: ['eip155:0']
+                    scopes: ['eip155:0'],
                   },
                 },
                 selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
@@ -834,8 +834,14 @@ class FixtureBuilder {
       isMultichainOrigin: false,
     };
 
-    const caip25CaveatValueWithChains = setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds);
-    const caip25CaveatValueWithDefaultAccount = setEthAccounts(caip25CaveatValueWithChains, [DEFAULT_FIXTURE_ACCOUNT]);
+    const caip25CaveatValueWithChains = setPermittedEthChainIds(
+      defaultCaip25CaveatValue,
+      chainIds,
+    );
+    const caip25CaveatValueWithDefaultAccount = setEthAccounts(
+      caip25CaveatValueWithChains,
+      [DEFAULT_FIXTURE_ACCOUNT],
+    );
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
@@ -1022,6 +1028,288 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Creates a fixture with multiple accounts in the vault.
+   * Generates a configurable number of Ethereum addresses for testing.
+   *
+   * @param {number} numberOfAccounts - The number of accounts to generate (default: 20)
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withMultipleAccounts(numberOfAccounts = 20) {
+    // Generate multiple Ethereum addresses for testing
+    const generateEthereumAddresses = (count) => {
+      const addresses = [];
+      for (let i = 0; i < count; i++) {
+        // Generate a more realistic Ethereum address
+        // Use a deterministic approach based on index for consistent testing
+        const baseAddress = '0x7F987E62895a5B3C7d352D1476c776e3dEc7A415';
+        // Increment the last two hex characters to create unique addresses
+        const lastTwoChars = baseAddress.slice(-2);
+        const lastTwoHex = parseInt(lastTwoChars, 16);
+        const newLastTwoHex = (lastTwoHex + i) % 256;
+        const newLastTwoChars = newLastTwoHex.toString(16).padStart(2, '0');
+        const newAddress = baseAddress.slice(0, -2) + newLastTwoChars;
+        addresses.push(newAddress);
+      }
+      return addresses;
+    };
+
+    const accounts = generateEthereumAddresses(numberOfAccounts);
+
+    // Populate KeyringController with proper structure
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts,
+          type: 'HD Key Tree',
+          metadata: {
+            id: '01JX9NJ15HPNS6RRRYBCKDK33R',
+            name: '',
+          },
+        },
+        { type: 'QR Hardware Wallet Device', accounts: [] },
+      ],
+      vault:
+        '{"cipher":"T+MXWPPwXOh8RLxpryUuoFCObwXqNQdwak7FafAoVeXOehhpuuUDbjWiHkeVs9slsy/uzG8z+4Va+qyz4dlRnd/Gvc/2RbHTAb/LG1ECk1rvLZW23JPGkBBVAu36FNGCTtT+xrF4gRzXPfIBVAAgg40YuLJWkcfVty6vGcHr3R3/9gpsqs3etrF5tF4tHYWPEhzhhx6HN6Tr4ts3G9sqgyEhyxTLCboAYWp4lsq2iTEl1vQ6T/UyBRNhfDj8RyQMF6hwkJ0TIq2V+aAYkr5NJguBBSi0YKPFI/SGLrin9/+d66gcOSFhIH0GhUbez3Yf54852mMtvOH8Vj7JZc664ukOvEdJIpvCw1CbtA9TItyVApkjQypLtE+IdV3sT5sy+v0mK7Xc054p6+YGiV8kTiTG5CdlI4HkKvCOlP9axwXP0aRwc4ffsvp5fKbnAVMf9+otqmOmlA5nCKdx4FOefTkr/jjhMlTGV8qUAJ2c6Soi5X02fMcrhAfdUtFxtUqHovOh3KzOe25XhjxZ6KCuix8OZZiGtbNDu3xJezPc3vzkTFwF75ubYozLDvw8HzwI+D5Ifn0S3q4/hiequ6NGiR3Dd0BIhWODSvFzbaD7BKdbgXhbJ9+3FXFF9Xkp74msFp6o7nLsx02ywv/pmUNqQhwtVBfoYhcFwqZZQlOPKcH8otguhSvZ7dPgt7VtUuf8gR23eAV4ffVsYK0Hll+5n0nZztpLX4jyFZiV/kSaBp+D2NZM2dnQbsWULKOkjo/1EpNBIjlzjXRBg5Ui3GgT3JXUDx/2GmJXceacrbMcos3HC2yfxwUTXC+yda4IrBx/81eYb7sIjEVNxDuoBxNdRLKoxwmAJztxoQLF3gRexS45QKoFZZ0kuQ9MqLyY6HDK","iv":"3271713c2b35a7c246a2a9b263365c3d","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"l4e+sn/jdsaofDWIB/cuGQ=="}',
+    });
+
+    // Update AccountsController with internal accounts
+    const internalAccounts = {};
+    accounts.forEach((address, index) => {
+      const accountId = `account-${index + 1}-${address.slice(-8)}`;
+      internalAccounts[accountId] = {
+        address,
+        id: accountId,
+        metadata: {
+          name: `Account ${index + 1}`,
+          importTime: Date.now(),
+          keyring: {
+            type: 'HD Key Tree',
+          },
+          lastSelected: Date.now() - index * 1000, // Ensure proper ordering
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        type: 'eip155:eoa',
+        scopes: ['eip155:1'], // Mainnet scope
+      };
+    });
+
+    merge(this.fixture.state.engine.backgroundState.AccountsController, {
+      internalAccounts: {
+        accounts: internalAccounts,
+        selectedAccount: Object.keys(internalAccounts)[0], // Select the first account
+      },
+    });
+
+    // Update PreferencesController with account identities
+    const identities = {};
+    accounts.forEach((address, index) => {
+      identities[address] = {
+        name: `Account ${index + 1}`,
+        address,
+        importTime: Date.now(),
+        lastSelected: Date.now() - index * 1000, // Ensure proper ordering
+      };
+    });
+
+    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
+      identities,
+      selectedAddress: accounts[0], // Select the first account
+    });
+
+    // Update AccountTrackerController with account balances
+    const accountsByChainId = {};
+    accounts.forEach((address) => {
+      if (!accountsByChainId[1]) {
+        accountsByChainId[1] = {}; // Mainnet chain ID
+      }
+      if (!accountsByChainId[64]) {
+        accountsByChainId[64] = {}; // BSC chain ID
+      }
+      accountsByChainId[1][address] = {
+        balance: '0x0',
+      };
+      accountsByChainId[64][address] = {
+        balance: '0x0',
+      };
+    });
+
+    merge(this.fixture.state.engine.backgroundState.AccountTrackerController, {
+      accountsByChainId,
+    });
+
+    return this;
+  }
+
+  withRealAccounts({
+    hdAccounts = 1,
+    simpleAccounts = 0,
+    qrAccounts = 0,
+  } = {}) {
+    // Generate Ethereum addresses for different account types
+    const generateEthereumAddresses = (count, startIndex = 0) => {
+      const addresses = [];
+      for (let i = 0; i < count; i++) {
+        const baseAddress = '0x1234567890123456789012345678901234567890';
+        // Increment the last two hex characters to create unique addresses
+        const lastTwoChars = baseAddress.slice(-2);
+        const lastTwoHex = parseInt(lastTwoChars, 16);
+        const newLastTwoHex = (lastTwoHex + startIndex + i) % 256;
+        const newLastTwoChars = newLastTwoHex.toString(16).padStart(2, '0');
+        const newAddress = baseAddress.slice(0, -2) + newLastTwoChars;
+        addresses.push(newAddress);
+      }
+      return addresses;
+    };
+
+    const hdAddresses = generateEthereumAddresses(hdAccounts, 0);
+    const simpleAddresses = generateEthereumAddresses(
+      simpleAccounts,
+      hdAccounts,
+    );
+    const qrAddresses = generateEthereumAddresses(
+      qrAccounts,
+      hdAccounts + simpleAccounts,
+    );
+
+    // Build keyrings array
+    const keyrings = [];
+
+    // Add HD Key Tree keyring if there are HD accounts
+    if (hdAccounts > 0) {
+      keyrings.push({
+        accounts: hdAddresses,
+        type: 'HD Key Tree',
+        metadata: {
+          id: '01JX9NJ15HPNS6RRRYBCKDK33R',
+          name: '',
+        },
+      });
+    }
+
+    // Add Simple Key Pair keyring if there are simple accounts
+    if (simpleAccounts > 0) {
+      keyrings.push({
+        accounts: simpleAddresses,
+        type: 'Simple Key Pair',
+        metadata: {
+          id: '01JX9NZWRAVQKES02TWSN8GD91',
+          name: '',
+        },
+      });
+    }
+
+    // Add QR Hardware Wallet keyring if there are QR accounts
+    if (qrAccounts > 0) {
+      keyrings.push({
+        accounts: qrAddresses,
+        type: 'QR Hardware Wallet Device',
+        metadata: {
+          id: '01JXA9KQBWD60ZB6STX279GQMF',
+          name: '',
+        },
+      });
+    }
+
+    // Populate KeyringController
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings,
+      vault:
+        '{"cipher":"T+MXWPPwXOh8RLxpryUuoFCObwXqNQdwak7FafAoVeXOehhpuuUDbjWiHkeVs9slsy/uzG8z+4Va+qyz4dlRnd/Gvc/2RbHTAb/LG1ECk1rvLZW23JPGkBBVAu36FNGCTtT+xrF4gRzXPfIBVAAgg40YuLJWkcfVty6vGcHr3R3/9gpsqs3etrF5tF4tHYWPEhzhhx6HN6Tr4ts3G9sqgyEhyxTLCboAYWp4lsq2iTEl1vQ6T/UyBRNhfDj8RyQMF6hwkJ0TIq2V+aAYkr5NJguBBSi0YKPFI/SGLrin9/+d66gcOSFhIH0GhUbez3Yf54852mMtvOH8Vj7JZc664ukOvEdJIpvCw1CbtA9TItyVApkjQypLtE+IdV3sT5sy+v0mK7Xc054p6+YGiV8kTiTG5CdlI4HkKvCOlP9axwXP0aRwc4ffsvp5fKbnAVMf9+otqmOmlA5nCKdx4FOefTkr/jjhMlTGV8qUAJ2c6Soi5X02fMcrhAfdUtFxtUqHovOh3KzOe25XhjxZ6KCuix8OZZiGtbNDu3xJezPc3vzkTFwF75ubYozLDvw8HzwI+D5Ifn0S3q4/hiequ6NGiR3Dd0BIhWODSvFzbaD7BKdbgXhbJ9+3FXFF9Xkp74msFp6o7nLsx02ywv/pmUNqQhwtVBfoYhcFwqZZQlOPKcH8otguhSvZ7dPgt7VtUuf8gR23eAV4ffVsYK0Hll+5n0nZztpLX4jyFZiV/kSaBp+D2NZM2dnQbsWULKOkjo/1EpNBIjlzjXRBg5Ui3GgT3JXUDx/2GmJXceacrbMcos3HC2yfxwUTXC+yda4IrBx/81eYb7sIjEVNxDuoBxNdRLKoxwmAJztxoQLF3gRexS45QKoFZZ0kuQ9MqLyY6HDK","iv":"3271713c2b35a7c246a2a9b263365c3d","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"l4e+sn/jdsaofDWIB/cuGQ=="}',
+    });
+
+    // Combine all addresses for AccountsController
+    const allAddresses = [...hdAddresses, ...simpleAddresses, ...qrAddresses];
+
+    // Update AccountsController with internal accounts
+    const internalAccounts = {};
+    allAddresses.forEach((address, index) => {
+      const accountId = `account-${index + 1}-${address.slice(-8)}`;
+      let keyringType = 'HD Key Tree';
+      if (index >= hdAccounts && index < hdAccounts + simpleAccounts) {
+        keyringType = 'Simple Key Pair';
+      } else if (index >= hdAccounts + simpleAccounts) {
+        keyringType = 'QR Hardware Wallet Device';
+      }
+
+      internalAccounts[accountId] = {
+        address,
+        id: accountId,
+        metadata: {
+          name: `Account ${index + 1}`,
+          importTime: Date.now(),
+          keyring: {
+            type: keyringType,
+          },
+          lastSelected: Date.now() - index * 1000, // Ensure proper ordering
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        type: 'eip155:eoa',
+        scopes: ['eip155:1'], // Mainnet scope
+      };
+    });
+
+    merge(this.fixture.state.engine.backgroundState.AccountsController, {
+      internalAccounts: {
+        accounts: internalAccounts,
+        selectedAccount: Object.keys(internalAccounts)[0], // Select the first account
+      },
+    });
+
+    // Update PreferencesController with account identities
+    const identities = {};
+    allAddresses.forEach((address, index) => {
+      identities[address] = {
+        name: `Account ${index + 1}`,
+        address,
+        importTime: Date.now(),
+        lastSelected: Date.now() - index * 1000, // Ensure proper ordering
+      };
+    });
+
+    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
+      identities,
+      selectedAddress: allAddresses[0], // Select the first account
+    });
+
+    // Update AccountTrackerController with account balances
+    const accountsByChainId = {};
+    allAddresses.forEach((address) => {
+      if (!accountsByChainId[1]) {
+        accountsByChainId[1] = {}; // Mainnet chain ID
+      }
+      if (!accountsByChainId[64]) {
+        accountsByChainId[64] = {}; // BSC chain ID
+      }
+      accountsByChainId[1][address] = {
+        balance: '0x0',
+      };
+      accountsByChainId[64][address] = {
+        balance: '0x0',
+      };
+    });
+
+    merge(this.fixture.state.engine.backgroundState.AccountTrackerController, {
+      accountsByChainId,
+    });
+
+    return this;
+  }
+
   withImportedAccountKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
@@ -1040,7 +1328,33 @@ class FixtureBuilder {
     return this;
   }
 
-  withImportedHdKeyringController() {
+  withProfileSyncingEnabled() {
+    // Enable AuthenticationController - user must be signed in for profile syncing
+    merge(this.fixture.state.engine.backgroundState.AuthenticationController, {
+      isSignedIn: true,
+    });
+
+    // Enable UserStorageController with all profile syncing features
+    merge(this.fixture.state.engine.backgroundState.UserStorageController, {
+      isBackupAndSyncEnabled: true,
+      isBackupAndSyncUpdateLoading: false,
+      isAccountSyncingEnabled: true,
+      isContactSyncingEnabled: true,
+      hasAccountSyncingSyncedAtLeastOnce: true,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
+      isContactSyncingInProgress: false,
+    });
+
+    // Enable basic functionality in settings (required for profile syncing)
+    merge(this.fixture.state.settings, {
+      basicFunctionalityEnabled: true,
+    });
+
+    return this;
+  }
+
+  withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
         {
@@ -1063,33 +1377,6 @@ class FixtureBuilder {
       // TODO: update this
       vault:
         '{"cipher":"IpV+3goe8Vey0mmfHz6DT0NiLwcTbjeglBI+WckZ/HeW0JcyE6kK9rBaqiZ+I0adwWAysIf/OanwvpE5YkYw9xYEkVXDUBQ/0lmscFGatXl24hadMdD01MRkKH6qyjUUw6ZqqmFnIRFbSwwYtD1X8UaRDhX+k/vnzAD9ETFW2cUpji7n5VU5hJQYOaCDO6hUxzE55scp2k68bDm/26EJ5SVgcsDXP/BW/MKnsqGGLAIPtQbVYUVChQ9D150WJif3HLJS1p0SSdGluL85JBLEQqShbBRZ3SiAHtJilf3oQBJB/YcAM6j6Uo7Sf+gAhc7cOvMYQ+YrTc+0Solzfa2OkLemskd4IOIVj6vWY+w0TPLo1IYSR1mFE2JVXE064zhUO0PKXME1qENQTiQCAAIfeEBwfdbQfrv92Zo/nU4VFyzdC3Rf+WPmWjLMXkZYqb1PdwhcgY85EpdFcjZAtcye6VF2iBTO0nMmZIyUabI/3RFizUgKtTlNH/H4NOLTm2HwUHOwAe4pxBbtEIFyuqo050n7UAJftN14Lp+/0kmraguFvsf0sg+AWXK5Tk9Bmkqm74bCuvmDCw2l28/+VEXOiYvytr9105NstlOnG/MmIJoYx8NkIJr5jMSCRtX8byBGRT+lhNq70CjWZIub5USmHkRdx1AuBAipQCdTjisaS2QRPwcA7M4PFbE2ltil1TavcRGRo+xa5nKji04jsx9AotAKkCqUPTOFr/h+WazGtx5+LWTAGXPUe9YtUraBCABXdnNhq7t7dXR7ivaZLkl6oXhQN6u2wmGRRvg3D36gddFVgDcqNafk/y82e0uWAu3F9VrGynYd0t7txkmzup1J19kpBlv7YVWy17J2MT3/PkatNrqdo21qFlhnYAcYKBC52MMInaY8qwQWXLMPud+cDdSR7QDLefl2AQEvH+hyzh2DI6d3Wri17LjujvSRdcwjAitylxnz9k4H2IAgJLlXIh5W69C+JdsNzoHanuJd+Hk=","iv":"68e751a7883bd7119118ebd2b3d30a6f","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"pOiYCrlywkH4UDFq/IHIKg=="}',
-    });
-    return this;
-  }
-
-  withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController() {
-    merge(this.fixture.state.engine.backgroundState.KeyringController, {
-      keyrings: [
-        {
-          type: 'HD Key Tree',
-          accounts: [DEFAULT_FIXTURE_ACCOUNT, DEFAULT_FIXTURE_ACCOUNT_2],
-          metadata: {
-            id: '01JN61V4CZ5WSJXSS7END4FJQ9',
-            name: '',
-          },
-        },
-        {
-          type: 'HD Key Tree',
-          accounts: [DEFAULT_IMPORTED_FIXTURE_ACCOUNT],
-          metadata: {
-            id: '01JN61V9ACE7ZA3ZRZFPYFYCJ1',
-            name: '',
-          },
-        },
-      ],
-      // TODO: update this
-      vault:
-        '{"cipher":"wWIegxm+og31XAr34sZAkaf+wsuIycthFqmLa2mA0zxD0HSJKp1uITa4dJ94uGN10RgaDHHRmqpLzMqx7l7W+LiG6KMkdaPiZUqDLq3zdQVecY+rwWt+G4DZbIrZC6jUMopKTdvSv0Lrzb3fRnsQ1sDJ4R99OY8Dvhloc4V+rgi43rLc4eT7DB7zLlK0GuUtxfZwStJVeq5lBlYsVNrsZF2kfBCZQxqZGxLlSk6qaIP8HNY/ptttB/ZdOBjYYPqZkr5J5oUhmiIQDqN+MqsjUrOEmfz9fP3HIi8IxCFGA94G1tvDClMHMqpzwYsBQpcA0k7NJiSc+UdB8dcilXQLXF33PvQKSbgVeXuNkgKgnWPGtsGxPTJ0gIxCBxsW0MmyYvyBsHO8BoocflrOaqkXvSwmXUja9aQwHdZAmayvxWXnIE4MRAD1nLnvXdMO+qY+nW3yCvw5R6DoNBtnQIk9cKCuj2UL0/fxhNDdfbK8rhTyPZMRqRH2dhhuji71V+OeQBPV1/R0srvSUggOfSmcxVNe+ok5SJdzJpCavXE4/JVwTPe1Jrr/uz4AC4R2ih7lDBPFZnNXy7uSRn0lZWbKZFoM6jkLO7oTn9UN1C+YcteyNqkDiYGNJ0zxjuMzU/r6aJGAlvKGCkvBph3ON9vfD2ARAwpSSIFckh4a6t37vmKzmpsW7tQE95uqJHe7h+KMraWxtqlCCWB6BsJkpbm0BqjBdg8zUH8pP0GA0un3KCJjUEfTOWw+Yn69IkJQzX1Jyr5Hepzt500Va7K7kDDlFG4KFUt5RO80GnT7jtRGPGjPx29pKK2Zp61dmP5BZu+0xnXMlSGozJv+dgRCsZuzqvzUu5/44jYpggHrApNk5hhw0crBeovV+EgHE2VVnGNdLwwSngJ00b/cUnCUsPW0FjR7IscaI96eslFAPkdZXr70zXPVzA/NiE05ADciMoZxD8Qv8dGGU+yQMnDo2wABv+YEroO3VOtJiKBPqIB0GC0=","iv":"1ccda0516bc876f905e08e76bad201b9","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"E9val7NN4h2AfX/pwUkd9aa2iNyn+LwIurZXIdxlG/o="}',
     });
     return this;
   }
@@ -1133,7 +1420,7 @@ class FixtureBuilder {
     return this;
   }
 
-/**
+  /**
    * Sets up a minimal Solana fixture with mainnet configuration
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
    */
@@ -1147,10 +1434,10 @@ class FixtureBuilder {
           chainId: SolScope.Mainnet,
           name: 'Solana Mainnet',
           nativeCurrency: `${SolScope.Mainnet}/${SOLANA_TOKEN}`,
-          isEvm: false
-        }
+          isEvm: false,
+        },
       },
-      isEvmSelected: false
+      isEvmSelected: false,
     };
 
     return this;

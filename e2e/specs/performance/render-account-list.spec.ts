@@ -34,9 +34,10 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount() // Creates 5 accounts
+          .withMultipleAccounts(12)
           .withPopularNetworks() // Adds multiple networks
           .withTokens(loadTestTokens) // Adds test tokens
+          .withProfileSyncingEnabled()
           .build(),
         restartDevice: true,
       },
@@ -78,13 +79,14 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
           // Fallback: just verify the account list is visible and functional
           await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
         }
+        await Assertions.checkIfTextIsDisplayed("Account 5");
 
         const renderEndTime = Date.now();
         const renderTime = renderEndTime - renderStartTime;
 
         // Log performance metrics
         console.log('========== ACCOUNT LIST LOAD TESTING RESULTS ==========');
-        console.log(`Configuration: 5 accounts, popular networks, 10 tokens`);
+        console.log(`Configuration: 12 accounts, popular networks, 10 tokens`);
         console.log(`Navigation to account list: ${navigationTime}ms`);
         console.log(`Account list render time: ${renderTime}ms`);
         console.log(`Total time: ${navigationTime + renderTime}ms`);
@@ -146,7 +148,11 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController() // 3 accounts
+          .withRealAccounts({ 
+            hdAccounts: 8,    // 8 HD accounts across multiple keyrings
+            simpleAccounts: 3, // 3 Simple Key Pair accounts
+            qrAccounts: 1      // 1 QR Hardware Wallet account
+          }) // Creates 12 accounts total
           .withPopularNetworks()
           .withTokens(heavyTokenLoad)
           .build(),
@@ -165,7 +171,7 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
         const totalTime = endTime - startTime;
 
         console.log('========== HEAVY LOAD TEST RESULTS ==========');
-        console.log(`Configuration: 3 accounts, popular networks, 50 tokens`);
+        console.log(`Configuration: 12 accounts, popular networks, 50 tokens`);
         console.log(`Total time to render account list: ${totalTime}ms`);
         console.log('=============================================');
 
@@ -205,7 +211,11 @@ describe(SmokeWalletPlatform('Account List Load Testing'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withImportedAccountKeyringController() // Minimal 2 accounts
+          .withRealAccounts({ 
+            hdAccounts: 1,     // 1 HD account
+            simpleAccounts: 1, // 1 Simple Key Pair account
+            qrAccounts: 0      // No QR accounts
+          }) // Creates 2 accounts total
           .withTokens(minimalTokens)
           .build(),
         restartDevice: true,
