@@ -442,7 +442,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       const depositResult = await deposit(depositParams);
 
       if (depositResult.success && depositResult.txHash) {
-        navigation.navigate('PerpsDepositProcessing', {
+        navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
           amount: sourceAmount,
           fromToken: sourceToken.symbol,
           transactionHash: depositResult.txHash,

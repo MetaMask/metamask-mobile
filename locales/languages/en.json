@@ -981,6 +981,14 @@
       "positions": "Positions",
       "result": "Result:"
     },
+    "buttons": {
+      "get_account_balance": "Get Account Balance",
+      "deposit_funds": "Deposit Funds",
+      "switch_to_mainnet": "Switch to Mainnet",
+      "switch_to_testnet": "Switch to Testnet",
+      "view_markets": "View Markets",
+      "positions": "Positions"
+    },
     "connection": {
       "connecting": "Connecting to Perps...",
       "initializing": "Initializing Perps controller...",
@@ -992,7 +1000,13 @@
     },
     "chart": {
       "no_data": "No chart data available"
-    }
+    },
+    "perpetual_markets": "Perpetual Markets",
+    "search": "Search",
+    "token_volume": "Token Volume",
+    "last_price_24h_change": "Last Price / 24h Change",
+    "failed_to_load_market_data": "Failed to load market data",
+    "tap_to_retry": "Tap to retry"
   },
   "receive": {
     "title": "Receive"
