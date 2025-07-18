@@ -478,10 +478,7 @@ class AuthenticationService {
       if (authData.oauth2Login) {
         // if seedless flow - rehydrate
         await this.rehydrateSeedPhrase(password, authData);
-      } else if (
-        selectSeedlessOnboardingLoginFlow(ReduxService.store.getState()) &&
-        (await this.checkIsSeedlessPasswordOutdated())
-      ) {
+      } else if (await this.checkIsSeedlessPasswordOutdated()) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
         await this.syncPasswordAndUnlockWallet(password);
       } else {
@@ -757,6 +754,7 @@ class AuthenticationService {
       await this.lockApp({ locked: true });
       throw err;
     }
+    this.resetPassword();
     // releaseLock();
   };
 
