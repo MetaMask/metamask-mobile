@@ -43,6 +43,7 @@ import type {
   GetSupportedPathsParams,
   InitializeResult,
   IPerpsProvider,
+  PerpsMarketData,
   LiveDataConfig,
   MarketInfo,
   OrderResult,
@@ -625,35 +626,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const metaAndCtxs = await infoClient.metaAndAssetCtxs();
       const assetCtxs = metaAndCtxs?.[1] || [];
 
-      // Transform to UI-friendly format using the same logic as the marketDataTransform utility
-      return perpsMeta.universe.map((asset, index) => {
-        const symbol = asset.name;
-        const currentPrice = parseFloat(allMids[symbol] || '0');
-
-        // Get the corresponding asset context using array index
-        const assetCtx = assetCtxs[index];
-
-        // Calculate 24h change
-        const prevDayPrice = assetCtx
-          ? parseFloat(assetCtx.prevDayPx || '0')
-          : 0;
-        const change24h = currentPrice - prevDayPrice;
-        const change24hPercent =
-          prevDayPrice > 0 ? (change24h / prevDayPrice) * 100 : 0;
-
-        // Format volume (dayNtlVlm is daily notional volume)
-        const volume = assetCtx ? parseFloat(assetCtx.dayNtlVlm || '0') : 0;
-
-        return {
-          symbol,
-          name: symbol, // HyperLiquid uses symbol as name
-          maxLeverage: `${asset.maxLeverage}x`,
-          price: formatPrice(currentPrice),
-          change24h: formatChange(change24h),
-          change24hPercent: formatPercentage(change24hPercent),
-          volume: formatVolume(volume),
-        };
-      });
+      // Transform to UI-friendly format using private utility method
+      return this.transformMarketData(perpsMeta.universe, assetCtxs, allMids);
     } catch (error) {
       DevLogger.log('Error getting market data with prices:', error);
       return [];
@@ -892,5 +866,45 @@ export class HyperLiquidProvider implements IPerpsProvider {
     } catch (error) {
       return createErrorResult(error, { success: false });
     }
+  }
+
+  /**
+   * Private utility: Transform HyperLiquid market data to UI-friendly format
+   * @param universe - HyperLiquid universe data
+   * @param assetCtxs - HyperLiquid asset contexts
+   * @param allMids - HyperLiquid mid prices
+   * @returns Transformed market data ready for UI consumption
+   */
+  private transformMarketData(
+    universe: { name: string; maxLeverage: number }[],
+    assetCtxs: { prevDayPx?: string; dayNtlVlm?: string }[],
+    allMids: Record<string, string>,
+  ): PerpsMarketData[] {
+    return universe.map((asset, index) => {
+      const symbol = asset.name;
+      const currentPrice = parseFloat(allMids[symbol] || '0');
+
+      // Get the corresponding asset context using array index
+      const assetCtx = assetCtxs[index];
+
+      // Calculate 24h change
+      const prevDayPrice = assetCtx ? parseFloat(assetCtx.prevDayPx || '0') : 0;
+      const change24h = currentPrice - prevDayPrice;
+      const change24hPercent =
+        prevDayPrice > 0 ? (change24h / prevDayPrice) * 100 : 0;
+
+      // Format volume (dayNtlVlm is daily notional volume)
+      const volume = assetCtx ? parseFloat(assetCtx.dayNtlVlm || '0') : 0;
+
+      return {
+        symbol,
+        name: symbol, // HyperLiquid uses symbol as name
+        maxLeverage: `${asset.maxLeverage}x`,
+        price: formatPrice(currentPrice),
+        change24h: formatChange(change24h),
+        change24hPercent: formatPercentage(change24hPercent),
+        volume: formatVolume(volume),
+      };
+    });
   }
 }
