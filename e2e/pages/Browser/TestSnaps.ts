@@ -78,6 +78,7 @@ class TestSnaps {
   async navigateToTestSnap() {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
+    await Browser.waitForBrowserPageToLoad();
   }
 
   async tapButton(buttonLocator: keyof typeof TestSnapViewSelectorWebIDS) {
