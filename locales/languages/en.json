@@ -737,6 +737,7 @@
   "perps": {
     "title": "Perps Trading",
     "unknown_network": "Unknown Network",
+    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
     "deposit": {
       "title": "Amount to deposit",
       "pay_with": "Pay with",

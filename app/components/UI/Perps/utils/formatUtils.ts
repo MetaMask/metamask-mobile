@@ -4,6 +4,27 @@
 import { formatWithThreshold } from '../../../../util/assets';
 
 /**
+ * Formats a balance value as USD currency with appropriate decimal places
+ * Uses the existing formatWithThreshold utility for consistency
+ * @param balance - The balance value to format (string or number)
+ * @returns Formatted balance string with currency symbol (e.g., "$1,234.56")
+ */
+export const formatPerpsFiat = (balance: string | number): string => {
+  const num = typeof balance === 'string' ? parseFloat(balance) : balance;
+
+  if (isNaN(num)) {
+    return '$0.00';
+  }
+
+  return formatWithThreshold(num, 0.0001, 'en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+/**
  * Formats a price value as USD currency with appropriate decimal places
  * Uses the existing formatWithThreshold utility for consistency
  * @param price - The price value to format (string or number)
