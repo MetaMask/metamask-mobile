@@ -49,7 +49,9 @@ describe('EditSpendingCapModal', () => {
     expect(
       getByText('confirm.edit_spending_cap_modal.description'),
     ).toBeOnTheScreen();
-    expect(getByText('confirm.edit_spending_cap_modal.account_balance : 1000')).toBeOnTheScreen();
+    expect(
+      getByText('confirm.edit_spending_cap_modal.account_balance : 1000'),
+    ).toBeOnTheScreen();
   });
 
   it('renders buttons with correct labels', () => {
