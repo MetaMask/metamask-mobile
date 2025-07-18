@@ -1101,7 +1101,6 @@
   },
   "defi_positions": {
     "loading_positions": "Memuat posisi DeFi...",
-    "no_positions": "Belum ada posisi",
     "error_cannot_load_page": "Kami tidak dapat memuat halaman ini.",
     "error_visit_again": "Coba kunjungi lagi nanti.",
     "single_token": "Hanya {{symbol}}",

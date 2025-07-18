@@ -1101,7 +1101,6 @@
   },
   "defi_positions": {
     "loading_positions": "DeFi pozisyonları yükleniyor...",
-    "no_positions": "Henüz pozisyon yok",
     "error_cannot_load_page": "Bu sayfayı yükleyemedik.",
     "error_visit_again": "Daha sonra tekrar ziyaret etmeyi deneyin.",
     "single_token": "Yalnızca {{symbol}}",

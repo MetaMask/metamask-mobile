@@ -35,7 +35,10 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
         await Assertions.checkIfVisible(WalletView.defiTabContainer);
         await Assertions.checkIfVisible(WalletView.defiNetworkFilter);
         await Assertions.checkIfTextIsDisplayed(
-          WalletViewSelectorsText.DEFI_NO_POSITIONS,
+          WalletViewSelectorsText.DEFI_NO_VISIBLE_POSITIONS,
+        );
+        await Assertions.checkIfTextIsDisplayed(
+          WalletViewSelectorsText.DEFI_NOT_SUPPORTED,
         );
       },
     );

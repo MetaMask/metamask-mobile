@@ -1101,7 +1101,6 @@
   },
   "defi_positions": {
     "loading_positions": "DeFi-Positionen werden geladen ...",
-    "no_positions": "Noch keine Positionen",
     "error_cannot_load_page": "Wir konnten diese Seite nicht laden.",
     "error_visit_again": "Versuchen Sie es später erneut.",
     "single_token": "Nur {{symbol}}",
