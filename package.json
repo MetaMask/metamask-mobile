@@ -157,6 +157,7 @@
     "sha256-uint8array": "0.10.3",
     "express": "4.21.2",
     "nanoid": "^3.3.8",
+    "ganache/@trufflesuite/uws-js-unofficial/ws": "^8.17.1",
     "**/@ethersproject/signing-key/elliptic": "^6.6.1",
     "**/@walletconnect/utils/elliptic": "^6.6.1",
     "@metamask/keyring-controller/@ethereumjs/tx": "npm:@ethereumjs/tx@5.4.0",
@@ -667,7 +668,8 @@
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>@reown/appkit-controllers>viem>ws>bufferutil": false,
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>@reown/appkit-utils>viem>ws>bufferutil": false,
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>viem>ws>bufferutil": false,
-      "@metamask/test-dapp-solana>@solana/web3.js>rpc-websockets>bufferutil": false
+      "@metamask/test-dapp-solana>@solana/web3.js>rpc-websockets>bufferutil": false,
+      "ganache>@trufflesuite/uws-js-unofficial>bufferutil": false
     }
   },
   "packageManager": "yarn@1.22.22",
