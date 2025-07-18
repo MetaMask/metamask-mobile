@@ -23,8 +23,20 @@ import ReduxService from '../../core/redux';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 
-export async function importNewSecretRecoveryPhrase(mnemonic: string) {
+interface ImportNewSecretRecoveryPhraseOptions {
+  shouldSelectAccount: boolean;
+  waitForDiscoveredAccounts: boolean;
+}
+
+export async function importNewSecretRecoveryPhrase(
+  mnemonic: string,
+  options: ImportNewSecretRecoveryPhraseOptions = {
+    shouldSelectAccount: true,
+    waitForDiscoveredAccounts: true,
+  },
+) {
   const { KeyringController } = Engine.context;
+  const { shouldSelectAccount, waitForDiscoveredAccounts } = options;
 
   // Convert input mnemonic to codepoints
   const mnemonicWords = mnemonic.toLowerCase().split(' ');
@@ -99,12 +111,19 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     WalletClientType.Solana,
   );
 
-  discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
-    newKeyring.id,
-  );
+  if (waitForDiscoveredAccounts) {
+    discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
+      newKeyring.id,
+    );
+  } else {
+    multichainClient.addDiscoveredAccounts(newKeyring.id);
+  }
+
   ///: END:ONLY_INCLUDE_IF
 
-  Engine.setSelectedAddress(newAccountAddress);
+  if (shouldSelectAccount) {
+    Engine.setSelectedAddress(newAccountAddress);
+  }
 
   return { address: newAccountAddress, discoveredAccountsCount };
 }
