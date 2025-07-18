@@ -113,6 +113,8 @@ export class OAuthService {
           socialLoginEmail: accountName,
           refreshToken: data.refresh_token,
           revokeToken: data.revoke_token,
+          accessToken: data.access_token,
+          metadataAccessToken: data.metadata_access_token,
         });
       Logger.log('handleCodeFlow: result', result);
       return {
