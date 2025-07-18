@@ -798,7 +798,7 @@ const AppFlow = () => {
   );
 };
 
-type DeepLinkQueuedItem = {
+interface DeepLinkQueuedItem {
   uri: string;
   func: () => void;
 }
@@ -948,7 +948,7 @@ const App: React.FC = () => {
         return;
       }
       DevLogger.log(`handleDeeplink:: got initial URL ${url}`);
-      handleURL(url);            
+      handleURL(url);
     });
 
     if (Device.isAndroid()) {
@@ -984,7 +984,7 @@ const App: React.FC = () => {
         if (!uri) {
           return;
         }
-        
+
         DevLogger.log(`branch.io handleDeeplink:: adding ${uri} to queue. Got ${JSON.stringify(opts)} from branch.io`);
         queueOfHandleDeeplinkFunctions.current =
           queueOfHandleDeeplinkFunctions.current.concat([
