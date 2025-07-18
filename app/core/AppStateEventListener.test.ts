@@ -76,7 +76,6 @@ describe('AppStateEventListener', () => {
       .mockReturnValue({} as unknown as ReduxStore);
     const mockAttribution = {
       attributionId: 'test123',
-      utm: 'test_utm',
       utm_source: 'source',
       utm_medium: 'medium',
       utm_campaign: 'campaign',
