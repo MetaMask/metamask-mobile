@@ -122,49 +122,53 @@ jobs:
   #     smoke-category: multichain-api
   #     use_prebuilt_apps: true
 
-  # smoke-accounts-ios:
-  #   name: "Accounts Smoke (iOS)"
-  #   if: github.event.label.name == 'Run E2E Smoke Test'
-  #   uses: ./.github/workflows/run-e2e-mobile.yml
-  #   with:
-  #     test-suite-name: smoke-accounts-ios
-  #     platform: ios
-  #     test_suite_tag: ".*SmokeAccounts.*"
-  #     smoke-category: accounts
-  #     use_prebuilt_apps: true
+  smoke-accounts-ios:
+    name: "Accounts Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-accounts-ios
+      platform: ios
+      test_suite_tag: ".*SmokeAccounts.*"
+      smoke-category: accounts
+      use_prebuilt_apps: true
+    secrets: inherit
 
-  # smoke-accounts-android:
-  #   name: "Accounts Smoke (Android)"
-  #   if: github.event.label.name == 'Run E2E Smoke Test'
-  #   uses: ./.github/workflows/run-e2e-mobile.yml
-  #   with:
-  #     test-suite-name: smoke-accounts-android
-  #     platform: android
-  #     test_suite_tag: ".*SmokeAccounts.*"
-  #     smoke-category: accounts
-  #     use_prebuilt_apps: true
+  smoke-accounts-android:
+    name: "Accounts Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-accounts-android
+      platform: android
+      test_suite_tag: ".*SmokeAccounts.*"
+      smoke-category: accounts
+      use_prebuilt_apps: true
+    secrets: inherit
 
-  # smoke-network-abstraction-ios:
-  #   name: "Network Abstraction Smoke (iOS)"
-  #   if: github.event.label.name == 'Run E2E Smoke Test'
-  #   uses: ./.github/workflows/run-e2e-mobile.yml
-  #   with:
-  #     test-suite-name: smoke-network-abstraction-ios
-  #     platform: ios
-  #     test_suite_tag: ".*SmokeNetworkAbstraction.*"
-  #     smoke-category: network-abstraction
-  #     use_prebuilt_apps: true
+  smoke-network-abstraction-ios:
+    name: "Network Abstraction Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-network-abstraction-ios
+      platform: ios
+      test_suite_tag: ".*SmokeNetworkAbstraction.*"
+      smoke-category: network-abstraction
+      use_prebuilt_apps: true
+    secrets: inherit
 
-  # smoke-network-abstraction-android:
-  #   name: "Network Abstraction Smoke (Android)"
-  #   if: github.event.label.name == 'Run E2E Smoke Test'
-  #   uses: ./.github/workflows/run-e2e-mobile.yml
-  #   with:
-  #     test-suite-name: smoke-network-abstraction-android
-  #     platform: android
-  #     test_suite_tag: ".*SmokeNetworkAbstraction.*"
-  #     smoke-category: network-abstraction
-  #     use_prebuilt_apps: true
+  smoke-network-abstraction-android:
+    name: "Network Abstraction Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-network-abstraction-android
+      platform: android
+      test_suite_tag: ".*SmokeNetworkAbstraction.*"
+      smoke-category: network-abstraction
+      use_prebuilt_apps: true
+    secrets: inherit
 
   # smoke-network-expansion-ios:
   #   name: "Network Expansion Smoke (iOS)"
