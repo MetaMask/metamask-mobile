@@ -5,6 +5,7 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import {
   WIRE_TRANSFER_PAYMENT_METHOD,
   SEPA_PAYMENT_METHOD,
+  REDIRECTION_URL,
 } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 
@@ -682,17 +683,17 @@ describe('useDepositRouting', () => {
       expect(handler).toBeDefined();
 
       await handler({
-        url: 'https://metamask.io/success?orderId=test-order-id',
+        url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
       expect(mockHandleNewOrder).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
-        orderId: 'order-id',
+        orderId: '/providers/transak-native/orders/test-order-id',
       });
     });
 
-    it('does nothing when URL does not start with metamask.io', async () => {
+    it('does nothing when URL does not start with REDIRECTION_URL', async () => {
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
@@ -720,7 +721,7 @@ describe('useDepositRouting', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('does nothing when metamask.io URL has no orderId', async () => {
+    it('does nothing when REDIRECTION_URL has no orderId', async () => {
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
@@ -740,7 +741,7 @@ describe('useDepositRouting', () => {
 
       jest.clearAllMocks();
 
-      await handler({ url: 'https://metamask.io/success' });
+      await handler({ url: REDIRECTION_URL });
 
       expect(mockGetOrder).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -751,6 +752,8 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
+      const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
+      mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
       mockGetOrder = jest.fn().mockRejectedValue(new Error('Get order failed'));
 
@@ -769,11 +772,14 @@ describe('useDepositRouting', () => {
       jest.clearAllMocks();
 
       await handler({
-        url: 'https://metamask.io/success?orderId=test-order-id',
+        url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
+        orderId: '/providers/transak-native/orders/test-order-id',
+      });
+      expect(mockHandleNewOrder).not.toHaveBeenCalled();
     });
 
     it('handles error when getOrder returns null', async () => {
@@ -781,6 +787,8 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
+      const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
+      mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
       mockGetOrder = jest.fn().mockResolvedValue(null);
 
@@ -799,11 +807,14 @@ describe('useDepositRouting', () => {
       jest.clearAllMocks();
 
       await handler({
-        url: 'https://metamask.io/success?orderId=test-order-id',
+        url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
+        orderId: '/providers/transak-native/orders/test-order-id',
+      });
+      expect(mockHandleNewOrder).not.toHaveBeenCalled();
     });
   });
 
