@@ -12,7 +12,7 @@ export const E2E_METAMETRICS_TRACK_URL = 'https://metametrics.test/track';
  * Returns true if the build type or environment is QA
  * TODO: The new config should only check for METAMASK_BUILD_TYPE since qa is a target
  */
-export const IS_QA =
+export const isQa =
   process.env.METAMASK_BUILD_TYPE === 'qa' ||
   process.env.METAMASK_ENVIRONMENT === 'qa';
 /**
