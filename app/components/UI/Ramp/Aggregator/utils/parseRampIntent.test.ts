@@ -1,64 +1,242 @@
 import parseRampIntent from './parseRampIntent';
+import { SOLANA_NETWORK, SOLANA_ASSET_ID } from '../types';
 
 describe('parseRampIntent', () => {
-  it('returns undefined if pathParams do not contain necessary fields', () => {
-    const pathParams = {};
-    const result = parseRampIntent(pathParams);
-    expect(result).toBeUndefined();
-  });
+  describe('Legacy EVM Support', () => {
+    it('returns undefined if pathParams do not contain necessary fields', () => {
+      const pathParams = {};
+      const result = parseRampIntent(pathParams);
+      expect(result).toBeUndefined();
+    });``
 
-  it('returns a RampIntent object if pathParams contain necessary fields', () => {
-    const pathParams = {
-      address: '0x1234567890',
-      chainId: '1',
-      amount: '10',
-      currency: 'usd',
-    };
-    const result = parseRampIntent(pathParams);
-    expect(result).toEqual({
-      address: '0x1234567890',
-      chainId: '1',
-      amount: '10',
-      currency: 'usd',
+    it('returns a RampIntent object if pathParams contain necessary fields', () => {
+      const pathParams = {
+        address: '0x1234567890',
+        chainId: '1',
+        amount: '10',
+        currency: 'usd',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        address: '0x1234567890',
+        chainId: '1',
+        amount: '10',
+        currency: 'usd',
+      });
+    });
+
+    it('handles legacy EVM format with chainId/address in currency parameter', () => {
+      const pathParams = {
+        amount: '10',
+        currency: '1/0x1234567890123456789012345678901234567890',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        chainId: '1',
+        address: '0x1234567890123456789012345678901234567890',
+        amount: '10',
+      });
+    });
+
+    it('defaults to Ethereum mainnet if address is provided but chainId is missing', () => {
+      const pathParams = {
+        address: '0x1234567890',
+        amount: '10',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        address: '0x1234567890',
+        chainId: '1',
+        amount: '10',
+      });
+    });
+
+    it('removes undefined values from the result', () => {
+      const pathParams = {
+        address: '0x1234567890',
+        chainId: '1',
+        amount: undefined,
+        currency: undefined,
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        address: '0x1234567890',
+        chainId: '1',
+      });
     });
   });
 
-  it('defaults to chainId 1 if token address is defined but chainId is not', () => {
-    const pathParams = {
-      address: '0x1234567890',
-      chainId: undefined,
-      amount: '10',
-      currency: 'usd',
-    };
-    const result = parseRampIntent(pathParams);
-    expect(result).toEqual({
-      address: '0x1234567890',
-      chainId: '1',
-      amount: '10',
-      currency: 'usd',
+  describe('CAIP-19 Support', () => {
+    it('handles CAIP-19 format in assetId parameter (preferred format)', () => {
+      const pathParams = {
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        amount: '10',
+        currency: 'usd',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        amount: '10',
+        currency: 'usd',
+      });
+    });
+
+    it('handles CAIP-19 format in chainId parameter (alternative format)', () => {
+      const pathParams = {
+        chainId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        amount: '10',
+        currency: 'usd',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        chainId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        amount: '10',
+        currency: 'usd',
+      });
+    });
+
+    it('handles Solana CAIP-19 format in assetId parameter', () => {
+      const pathParams = {
+        assetId: `${SOLANA_NETWORK}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        amount: '10',
+        currency: 'usd',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        assetId: `${SOLANA_NETWORK}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        amount: '10',
+        currency: 'usd',
+      });
+    });
+
+    it('handles Solana CAIP-19 format in chainId parameter', () => {
+      const pathParams = {
+        chainId: `${SOLANA_NETWORK}/${SOLANA_ASSET_ID}`,
+        amount: '10',
+        currency: 'usd',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        chainId: `${SOLANA_NETWORK}/${SOLANA_ASSET_ID}`,
+        assetId: `${SOLANA_NETWORK}/${SOLANA_ASSET_ID}`,
+        amount: '10',
+        currency: 'usd',
+      });
+    });
+
+    it('handles CAIP-19 format with slip44 asset type', () => {
+      const pathParams = {
+        assetId: 'eip155:1/slip44:60',
+        amount: '10',
+        currency: 'usd',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        assetId: 'eip155:1/slip44:60',
+        amount: '10',
+        currency: 'usd',
+      });
     });
   });
 
-  it('returns a RampIntent object with only defined fields', () => {
-    const pathParams = {
-      address: '0x1234567890',
-      chainId: '76',
-      amount: '10',
-      currency: 'usd',
-      extraneaous: 'field',
-    };
-    const result = parseRampIntent(pathParams);
-    expect(result).toEqual({
-      address: '0x1234567890',
-      chainId: '76',
-      amount: '10',
-      currency: 'usd',
+  describe('Mixed Format Support', () => {
+    it('handles legacy EVM chainId with CAIP-19 assetId', () => {
+      const pathParams = {
+        chainId: '1',
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        amount: '10',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        chainId: '1',
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        amount: '10',
+      });
+    });
+
+    it('handles CAIP-19 chainId with legacy EVM address', () => {
+      const pathParams = {
+        chainId: 'eip155:1',
+        address: '0x1234567890',
+        amount: '10',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        chainId: 'eip155:1',
+        address: '0x1234567890',
+        amount: '10',
+      });
+    });
+
+    it('prioritizes assetId over chainId when both contain CAIP-19 format', () => {
+      const pathParams = {
+        chainId: 'eip155:137/erc20:0x1234567890123456789012345678901234567890',
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        amount: '10',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        chainId: 'eip155:137/erc20:0x1234567890123456789012345678901234567890',
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        amount: '10',
+      });
     });
   });
 
-  it('returns a RampIntent object with only defined values', () => {
-    const pathParams = { chainId: '56', amount: undefined, address: undefined };
-    const result = parseRampIntent(pathParams);
-    expect(result).toEqual({ chainId: '56' });
+  describe('Edge Cases', () => {
+    it('returns undefined for empty pathParams', () => {
+      const pathParams = {};
+      const result = parseRampIntent(pathParams);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined for pathParams with only undefined values', () => {
+      const pathParams = {
+        address: undefined,
+        chainId: undefined,
+        amount: undefined,
+        currency: undefined,
+        assetId: undefined,
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toBeUndefined();
+    });
+
+    it('handles invalid legacy EVM format in currency parameter', () => {
+      const pathParams = {
+        amount: '10',
+        currency: 'invalid/format',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        amount: '10',
+        currency: 'invalid/format',
+      });
+    });
+
+    it('handles partial CAIP-19 format gracefully', () => {
+      const pathParams = {
+        chainId: 'eip155:1',
+        amount: '10',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        chainId: 'eip155:1',
+        amount: '10',
+      });
+    });
+
+    it('handles invalid CAIP-19 format gracefully', () => {
+      const pathParams = {
+        assetId: 'invalid:format',
+        amount: '10',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        assetId: 'invalid:format',
+        amount: '10',
+      });
+    });
   });
 });
