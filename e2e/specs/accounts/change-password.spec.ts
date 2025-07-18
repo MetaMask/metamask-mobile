@@ -12,15 +12,15 @@ import FixtureServer from '../../fixtures/fixture-server.js';
 import { getFixturesServerPort } from '../../fixtures/utils.js';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import SettingsView from '../../pages/Settings/SettingsView.js';
+import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
-import WalletView from '../../pages/wallet/WalletView.js';
+import WalletView from '../../pages/wallet/WalletView';
 import ChangePasswordView from '../../pages/Settings/SecurityAndPrivacy/ChangePasswordView.js';
-import LoginView from '../../pages/wallet/LoginView.js';
+import LoginView from '../../pages/wallet/LoginView';
 import Matchers from '../../utils/Matchers.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../utils/Assertions.js';
-import ToastModal from '../../pages/wallet/ToastModal.js';
+import ToastModal from '../../pages/wallet/ToastModal';
 
 const fixtureServer = new FixtureServer();
 describe(Regression('change password'), () => {

@@ -25,7 +25,7 @@ import { getEventsPayloads } from '../analytics/helpers';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { startMockServer } from './helpers/swap-mocks';
 import SoftAssert from '../../utils/SoftAssert.ts';
-import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment.ts';
+import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import { loginToApp } from '../../viewHelper';
 
