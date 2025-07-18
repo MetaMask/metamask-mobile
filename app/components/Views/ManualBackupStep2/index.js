@@ -444,6 +444,7 @@ const ManualBackupStep2 = ({
           type: 'success',
           onClose: () => goNext(),
           onPrimaryButtonPress: () => goNext(),
+          closeOnPrimaryButtonPress: true,
         },
       });
     } else {
@@ -456,6 +457,7 @@ const ManualBackupStep2 = ({
           type: 'error',
           onClose: () => generateMissingWords(),
           onPrimaryButtonPress: () => generateMissingWords(),
+          closeOnPrimaryButtonPress: true,
         },
       });
     }

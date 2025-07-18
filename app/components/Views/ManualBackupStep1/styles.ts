@@ -109,8 +109,7 @@ export const createStyles = (colors: any) =>
       alignItems: 'flex-start',
     },
     text: {
-      marginBottom: 10,
-      marginTop: 20,
+      marginBottom: 8,
       justifyContent: 'center',
     },
     buttonWrapper: {
