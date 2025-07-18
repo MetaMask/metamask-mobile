@@ -494,7 +494,7 @@ export class NetworkSettings extends PureComponent {
     validatedSymbol: true,
     initialState: undefined,
     enableAction: false,
-    inputWidth: { width: '99%' },
+    inputWidth: { width: '100%' },
     showPopularNetworkModal: false,
     popularNetwork: {},
     showWarningModal: false,
