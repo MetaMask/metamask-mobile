@@ -17,6 +17,7 @@ import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import ToastModal from '../../pages/wallet/ToastModal';
 
 describe(Regression('Transaction'), () => {
 
@@ -46,6 +47,9 @@ describe(Regression('Transaction'), () => {
 
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
+        if (device.getPlatform() === 'ios') {
+          await NetworkEducationModal.tapNetworkName(ETHEREUM_NAME);
+        }
         await NetworkEducationModal.tapGotItButton();
 
         await SendView.inputAddress(RECIPIENT);
@@ -55,6 +59,8 @@ describe(Regression('Transaction'), () => {
         await AmountView.tapNextButton();
 
         await TransactionConfirmationView.tapConfirmButton();
+        await Assertions.checkIfVisible(ToastModal.notificationTitle);
+        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await TabBarComponent.tapActivity();
         await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },

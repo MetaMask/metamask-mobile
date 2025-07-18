@@ -678,15 +678,10 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                       </RCTScrollView>
                       <View
                         style={
-                          [
-                            {
-                              "flexDirection": "row",
-                              "padding": 16,
-                            },
-                            {
-                              "opacity": 0.3,
-                            },
-                          ]
+                          {
+                            "flexDirection": "row",
+                            "padding": 16,
+                          }
                         }
                       >
                         <TouchableOpacity

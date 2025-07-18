@@ -3,7 +3,6 @@ import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import BuildQuote from './BuildQuote';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
-
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();

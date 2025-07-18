@@ -14,7 +14,7 @@ import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeWalletPlatform } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { MockttpServer } from 'mockttp';
@@ -24,7 +24,7 @@ import { arrangeTestUtils } from '../utils/helpers';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 
 describe(
-  SmokeWalletPlatform('Contact syncing - syncs previously synced contacts'),
+  SmokeIdentity('Contact syncing - syncs previously synced contacts'),
   () => {
     let mockServer: MockttpServer;
     let userStorageMockttpController: UserStorageMockttpController;

@@ -104,6 +104,10 @@ import {
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
 
+const formatNetworkRpcUrl = (rpcUrl) => {
+  return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
+};
+
 const createStyles = (colors) =>
   StyleSheet.create({
     base: {
@@ -1677,9 +1681,6 @@ export class NetworkSettings extends PureComponent {
       this.context.themeAppearance || themeAppearanceLight;
     const styles = createStyles(colors);
 
-    const formatNetworkRpcUrl = (rpcUrl) => {
-      return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
-    };
     const inputStyle = [
       styles.input,
       inputWidth,

@@ -10,7 +10,7 @@ import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeWalletPlatform } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 
 import { MockttpServer } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
@@ -22,7 +22,7 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 import { arrangeTestUtils } from '../utils/helpers';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 
-describe(SmokeWalletPlatform('Contact syncing - syncs new contacts'), () => {
+describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
   const NEW_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
   let mockServer: MockttpServer;

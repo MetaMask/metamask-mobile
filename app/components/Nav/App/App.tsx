@@ -33,6 +33,7 @@ import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
   LAST_APP_VERSION,
+  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
@@ -143,9 +144,9 @@ import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
-import { RootState } from '../../../reducers';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -586,6 +587,19 @@ const MultichainAccountDetails = () => {
   );
 };
 
+const SolanaNewFeatureContentView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen
+      name={Routes.SOLANA_NEW_FEATURE_CONTENT}
+      component={SolanaNewFeatureContent}
+    />
+  </Stack.Navigator>
+);
+
 const MultichainWalletDetails = () => {
   const route = useRoute();
 
@@ -715,6 +729,11 @@ const AppFlow = () => {
         component={MultichainAccountDetails}
       />
       <Stack.Screen
+        name={Routes.SOLANA_NEW_FEATURE_CONTENT}
+        component={SolanaNewFeatureContentView}
+        options={{ animationEnabled: true }}
+      />
+      <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
         component={MultichainWalletDetails}
       />
@@ -790,10 +809,6 @@ const App: React.FC = () => {
 
   const isFirstRender = useRef(true);
 
-  const isMetaMetricsUISeen = useSelector(
-    (state: RootState) => state.user.isMetaMetricsUISeen,
-  );
-
   if (isFirstRender.current) {
     trace({
       name: TraceName.NavInit,
@@ -826,19 +841,25 @@ const App: React.FC = () => {
             },
           );
 
-          if (!isMetaMetricsUISeen) {
-            navigation.navigate(Routes.ONBOARDING.ROOT_NAV, {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-                params: {
-                  onContinue: () =>
-                    navigation.reset({
-                      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-                    }),
+          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
+            OPTIN_META_METRICS_UI_SEEN,
+          );
+
+          if (!isOptinMetaMetricsUISeen) {
+            const resetParams = {
+              routes: [
+                {
+                  name: Routes.ONBOARDING.ROOT_NAV,
+                  params: {
+                    screen: Routes.ONBOARDING.NAV,
+                    params: {
+                      screen: Routes.ONBOARDING.OPTIN_METRICS,
+                    },
+                  },
                 },
-              },
-            });
+              ],
+            };
+            navigation.reset(resetParams);
           } else {
             navigation.reset({
               routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
@@ -864,7 +885,7 @@ const App: React.FC = () => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigation, queueOfHandleDeeplinkFunctions, isMetaMetricsUISeen]);
+  }, [navigation, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(
     ({

@@ -10,13 +10,22 @@ import { passwordRequirementsMet } from '../../../util/password';
 import { trace } from '../../../util/trace';
 import StorageWrapper from '../../../store/storage-wrapper';
 
+const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
+const mockReset = jest.fn();
+const mockGoBack = jest.fn();
+const mockRoute = jest.fn();
+
 // Mock dependencies
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
+      replace: mockReplace,
+      reset: mockReset,
+      goBack: mockGoBack,
     }),
     useRoute: () => ({
       params: {
@@ -35,14 +44,30 @@ const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
     cancel: jest.fn(),
   };
 });
+
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
 
-const mockNavigate = jest.fn();
-const mockReplace = jest.fn();
+// mock useNavigation
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      replace: mockReplace,
+    }),
+    useRoute: () => mockRoute(),
+  };
+});
 
-const mockRoute = jest.fn();
+// mock useRoutee
+
+jest
+  .spyOn(InteractionManager, 'runAfterInteractions')
+  .mockImplementation(mockRunAfterInteractions);
+
 // mock useNavigation
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
