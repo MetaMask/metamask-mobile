@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Browser from './BrowserView';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import {
   TestSnapViewSelectorWebIDS,
@@ -14,10 +14,11 @@ import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallS
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
-import Utilities from '../../utils/Utilities';
+import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import { waitForTestSnapsToLoad } from '../../viewHelper';
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.25.0/';
@@ -78,7 +79,7 @@ class TestSnaps {
   async navigateToTestSnap() {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
-    await Browser.waitForBrowserPageToLoad();
+    await waitForTestSnapsToLoad();
   }
 
   async tapButton(buttonLocator: keyof typeof TestSnapViewSelectorWebIDS) {
@@ -162,7 +163,7 @@ class TestSnaps {
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
     )) as IndexableWebElement;
 
-    await Utilities.waitUntil(
+    await Utilities.executeWithRetry(
       async () => {
         try {
           await this.tapButton('getWebSocketState');

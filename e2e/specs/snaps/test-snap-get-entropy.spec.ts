@@ -32,7 +32,6 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
     // Navigate to test snaps URL once for all tests
     await TabBarComponent.tapBrowser();
     await TestSnaps.navigateToTestSnap();
-    await Assertions.checkIfVisible(BrowserView.browserScreenID);
   });
 
   afterAll(async () => {
