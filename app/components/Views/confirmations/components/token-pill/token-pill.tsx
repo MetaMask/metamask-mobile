@@ -58,7 +58,7 @@ export const TokenPill: React.FC<TokenPillProps> = ({ address, chainId }) => {
           testID="token-pill-icon"
           icon={token?.image}
           symbol={token?.symbol}
-          small
+          style={styles.tokenIcon}
         />
       </BadgeWrapper>
       <Text testID="token-pill-symbol">{token?.symbol}</Text>
