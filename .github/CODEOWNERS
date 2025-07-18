@@ -3,6 +3,7 @@
 
 # Design System Team
 app/component-library/               @MetaMask/design-system-engineers
+tailwind.config.js                   @MetaMask/design-system-engineers
 
 # Platform Team
 .github/CODEOWNERS                                          @MetaMask/mobile-platform

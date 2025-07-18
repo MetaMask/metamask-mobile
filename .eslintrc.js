@@ -13,7 +13,12 @@ module.exports = {
     'plugin:react/recommended',
   ],
   // ESLint can find the plugin without the `eslint-plugin-` prefix. Ex. `eslint-plugin-react-compiler` -> `react-compiler`
-  plugins: ['@typescript-eslint', '@metamask/design-tokens', 'react-compiler'],
+  plugins: [
+    '@typescript-eslint',
+    '@metamask/design-tokens',
+    'react-compiler',
+    'tailwindcss',
+  ],
   overrides: [
     {
       files: ['e2e/**/*.{js,ts}'],
@@ -110,6 +115,29 @@ module.exports = {
             message: 'Avoid using global network selectors in confirmations',
           },
         ],
+      },
+    },
+    {
+      files: [
+        'app/component-library/**/*.{js,ts,tsx}',
+        'app/components/**/*.{js,ts,tsx}',
+      ],
+      plugins: ['tailwindcss'],
+      rules: {
+        'tailwindcss/classnames-order': 'error',
+        'tailwindcss/enforces-negative-arbitrary-values': 'error',
+        'tailwindcss/enforces-shorthand': 'error',
+        'tailwindcss/no-arbitrary-value': 'off', // There are legitimate reasons to use arbitrary values but we should specifically error on static colors
+        'tailwindcss/no-custom-classname': 'error',
+        'tailwindcss/no-contradicting-classname': 'error',
+        'tailwindcss/no-unnecessary-arbitrary-value': 'error',
+      },
+      settings: {
+        tailwindcss: {
+          callees: ['twClassName', 'tw'],
+          config: './tailwind.config.js',
+          tags: ['tw'], // Enable template literal support for tw`classnames`
+        },
       },
     },
   ],
