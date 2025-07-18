@@ -88,52 +88,48 @@ const OrderProcessing = () => {
   useEffect(() => {
     if (!order) return;
 
-    if (order.state === FIAT_ORDER_STATES.COMPLETED) {
+    const isCompleted = order.state === FIAT_ORDER_STATES.COMPLETED;
+    const isFailed = order.state === FIAT_ORDER_STATES.FAILED;
+
+    if (isCompleted || isFailed) {
       if (hasDepositOrderField(order.data, 'cryptoCurrency')) {
         const cryptoCurrency = getCryptoCurrencyFromTransakId(
           (order.data as DepositOrder).cryptoCurrency,
         );
 
-        trackEvent('RAMPS_TRANSACTION_COMPLETED', {
-          ramp_type: 'DEPOSIT',
+        const baseAnalyticsData = {
+          ramp_type: 'DEPOSIT' as const,
           amount_source: Number(order.data.fiatAmount),
           amount_destination: Number(order.cryptoAmount),
           exchange_rate: Number(order.data.exchangeRate),
-          gas_fee: Number(order.data.networkFees),
-          processing_fee: Number(order.data.partnerFees),
-          total_fee: Number(order.data.totalFeesFiat),
           payment_method_id: order.data.paymentMethod,
           country: selectedRegion?.isoCode || '',
           chain_id: cryptoCurrency?.chainId || '',
           currency_destination:
             selectedWalletAddress || order.data.walletAddress,
           currency_source: order.data.fiatCurrency,
-        });
-      }
-    } else if (order.state === FIAT_ORDER_STATES.FAILED) {
-      if (hasDepositOrderField(order.data, 'cryptoCurrency')) {
-        const cryptoCurrency = getCryptoCurrencyFromTransakId(
-          order.data.cryptoCurrency,
-        );
+        };
 
-        trackEvent('RAMPS_TRANSACTION_FAILED', {
-          ramp_type: 'DEPOSIT',
-          amount_source: Number(order.data.fiatAmount),
-          amount_destination: Number(order.cryptoAmount),
-          exchange_rate: Number(order.data.exchangeRate),
-          gas_fee: order.data.networkFees ? Number(order.data.networkFees) : 0,
-          processing_fee: order.data.partnerFees
-            ? Number(order.data.partnerFees)
-            : 0,
-          total_fee: Number(order.data.totalFeesFiat),
-          payment_method_id: order.data.paymentMethod,
-          country: selectedRegion?.isoCode || '',
-          chain_id: cryptoCurrency?.chainId || '',
-          currency_destination:
-            selectedWalletAddress || order.data.walletAddress,
-          currency_source: order.data.fiatCurrency,
-          error_message: order.data.statusDescription || 'transaction_failed',
-        });
+        if (isCompleted) {
+          trackEvent('RAMPS_TRANSACTION_COMPLETED', {
+            ...baseAnalyticsData,
+            gas_fee: Number(order.data.networkFees),
+            processing_fee: Number(order.data.partnerFees),
+            total_fee: Number(order.data.totalFeesFiat),
+          });
+        } else if (isFailed) {
+          trackEvent('RAMPS_TRANSACTION_FAILED', {
+            ...baseAnalyticsData,
+            gas_fee: order.data.networkFees
+              ? Number(order.data.networkFees)
+              : 0,
+            processing_fee: order.data.partnerFees
+              ? Number(order.data.partnerFees)
+              : 0,
+            total_fee: Number(order.data.totalFeesFiat),
+            error_message: order.data.statusDescription || 'transaction_failed',
+          });
+        }
       }
     }
   }, [
