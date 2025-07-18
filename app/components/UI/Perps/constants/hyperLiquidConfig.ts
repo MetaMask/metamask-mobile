@@ -17,6 +17,26 @@ export const ARBITRUM_TESTNET_CHAIN_ID = '421614';
 export const ARBITRUM_MAINNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_MAINNET_CHAIN_ID}`;
 export const ARBITRUM_TESTNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_TESTNET_CHAIN_ID}`;
 
+// Hyperliquid chain constants
+export const HYPERLIQUID_MAINNET_CHAIN_ID = '0x3e7'; // 999 in decimal
+export const HYPERLIQUID_TESTNET_CHAIN_ID = '0x3e6'; // 998 in decimal (assumed)
+
+// Token constants
+export const USDC_SYMBOL = 'USDC';
+export const USDC_NAME = 'USD Coin';
+export const USDC_DECIMALS = 6;
+export const TOKEN_DECIMALS = 18;
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+// Network constants
+export const ARBITRUM_SEPOLIA_CHAIN_ID = '0x66eee'; // 421614 in decimal
+
+// USDC token addresses
+export const USDC_ARBITRUM_MAINNET_ADDRESS =
+  '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
+export const USDC_ARBITRUM_TESTNET_ADDRESS =
+  '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d';
+
 // WebSocket endpoints
 export const HYPERLIQUID_ENDPOINTS: HyperLiquidEndpoints = {
   mainnet: 'wss://api.hyperliquid.xyz/ws',
@@ -77,11 +97,26 @@ export const FEE_RATES: FeeRatesConfig = {
   limit: 0.0001, // 0.01% limit order fee
 };
 
+// MetaMask fee for deposits (temporary placeholder)
+export const METAMASK_DEPOSIT_FEE = '$0.00';
+
 // Risk management constants
 export const RISK_MANAGEMENT: RiskManagementConfig = {
   maintenanceMargin: 0.05, // 5% maintenance margin for liquidation
   fallbackMaxLeverage: 20, // Fallback when market data unavailable
   fallbackBalancePercent: 0.1, // Default balance percentage if no balance
+};
+
+// Deposit constants
+export const DEPOSIT_CONFIG = {
+  estimatedGasLimit: 150000, // Estimated gas limit for bridge deposit
+  defaultSlippage: 1, // 1% default slippage for bridge quotes
+  bridgeQuoteTimeout: 1000, // 1 second timeout for bridge quotes
+  refreshRate: 30000, // 30 seconds quote refresh rate
+  estimatedTime: {
+    directDeposit: '3-5 seconds', // Direct USDC deposit on Arbitrum
+    sameChainSwap: '30-60 seconds', // Swap on same chain before deposit
+  },
 };
 
 // Type helpers
@@ -114,3 +149,8 @@ export function getSupportedAssets(isTestnet?: boolean): CaipAssetId[] {
     (config) => config[network],
   );
 }
+
+// CAIP asset namespace constants
+export const CAIP_ASSET_NAMESPACES = {
+  ERC20: 'erc20',
+} as const;

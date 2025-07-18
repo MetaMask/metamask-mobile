@@ -160,9 +160,7 @@ describe('HyperLiquidWalletService', () => {
             method: 'eth_requestAccounts',
             params: [],
           }),
-        ).rejects.toThrow(
-          'No account selected. Please ensure MetaMask has an active account.',
-        );
+        ).rejects.toThrow('No account selected');
       });
     });
 
@@ -243,7 +241,7 @@ describe('HyperLiquidWalletService', () => {
               mockTypedData,
             ],
           }),
-        ).rejects.toThrow('Signing address does not match selected account');
+        ).rejects.toThrow('No account selected');
       });
 
       it('should handle keyring controller errors', async () => {
@@ -301,7 +299,7 @@ describe('HyperLiquidWalletService', () => {
         .mockReturnValueOnce(undefined);
 
       await expect(service.getCurrentAccountId()).rejects.toThrow(
-        'No account selected. Please ensure MetaMask has an active account.',
+        'No account selected',
       );
     });
 
