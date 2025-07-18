@@ -3,7 +3,6 @@ import { Alert } from 'react-native';
 import UrlParser from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
-import Logger from '../../../util/Logger';
 
 export interface DeeplinkUrlParams {
   uri: string;
