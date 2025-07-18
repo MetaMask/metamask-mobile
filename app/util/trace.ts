@@ -494,7 +494,6 @@ function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
 }
 
 function startTrace(request: TraceRequest): TraceContext {
-  console.log('startTrace', request);
   const { name, startTime: requestStartTime } = request;
   const startTime = requestStartTime ?? getPerformanceTimestamp();
   const id = getTraceId(request);
@@ -512,9 +511,8 @@ function startTrace(request: TraceRequest): TraceContext {
   }
 
   const callback = (span: Span | undefined) => {
-    console.log('callback', span);
     const end = (timestamp?: number) => {
-      if (span && span.end !== undefined) {
+      if (span && span?.end !== undefined) {
         span?.end(timestamp);
       }
     };

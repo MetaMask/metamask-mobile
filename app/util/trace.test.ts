@@ -464,10 +464,10 @@ describe('Trace', () => {
         },
       ];
 
-      mockBufferedTraces.forEach((trace) => {
-        trace.type === 'start'
-          ? bufferTraceStartCallLocal(trace.request)
-          : bufferTraceEndCallLocal(trace.request);
+      mockBufferedTraces.forEach((t) => {
+        t.type === 'start'
+          ? bufferTraceStartCallLocal(t.request)
+          : bufferTraceEndCallLocal(t.request);
       });
 
       storageGetItemMock.mockResolvedValue(AGREED);
@@ -499,10 +499,10 @@ describe('Trace', () => {
         },
       ];
 
-      mockBufferedTraces.forEach((trace) => {
-        trace.type === 'start'
-          ? bufferTraceStartCallLocal(trace.request)
-          : bufferTraceEndCallLocal(trace.request);
+      mockBufferedTraces.forEach((t) => {
+        t.type === 'start'
+          ? bufferTraceStartCallLocal(t.request)
+          : bufferTraceEndCallLocal(t.request);
       });
 
       updateCachedConsent(true);
