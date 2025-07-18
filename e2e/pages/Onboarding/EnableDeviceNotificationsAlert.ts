@@ -1,23 +1,25 @@
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 import { EnableDeviceNotificationsAlertSelectorText } from '../../selectors/Onboarding/EnableDeviceNotificationsAlert.selectors';
 
 class EnableDeviceNotificationsAlert {
-  get stepOneContainer() {
+  get stepOneContainer(): DetoxElement {
     return Matchers.getSystemElementByText(
       EnableDeviceNotificationsAlertSelectorText.CONTAINER,
     );
   }
 
-  get getEnableDeviceNotificationsButton() {
+  get getEnableDeviceNotificationsButton(): DetoxElement {
     return Matchers.getSystemElementByText(
       EnableDeviceNotificationsAlertSelectorText.YES_BUTTON,
     );
   }
 
-  async tapOnEnableDeviceNotificationsButton() {
-    await Gestures.waitAndTap(this.getEnableDeviceNotificationsButton);
+  async tapOnEnableDeviceNotificationsButton(): Promise<void> {
+    await Gestures.waitAndTap(this.getEnableDeviceNotificationsButton, {
+      elemDescription: 'Enable Device Notifications Button',
+    });
   }
 }
 
