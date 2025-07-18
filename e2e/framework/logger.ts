@@ -86,7 +86,9 @@ export class Logger {
     const prefixStr = this.colorize(`[${this.prefix}]`, 'cyan');
     const originStr = this.colorize(`[${this.origin}]`, 'gray');
 
-    return `${prefixStr} ${levelStr} ${originStr} ${message}`;
+    return `${prefixStr} ${levelStr}${
+      this.origin !== '' ? ` ${originStr}` : ''
+    } ${message}`;
   }
 
   private log(
