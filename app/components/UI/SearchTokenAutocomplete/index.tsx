@@ -43,6 +43,9 @@ import NetworkImageComponent from '../NetworkImages';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
+    container: {
+      flex: 1,
+    },
     base: {
       padding: 16,
     },
@@ -81,11 +84,6 @@ const createStyles = (colors: any) =>
       gap: 10,
     },
     buttonIconContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    container: {
-      backgroundColor: colors.background.default,
       flexDirection: 'row',
       alignItems: 'center',
     },
@@ -362,7 +360,7 @@ const SearchTokenAutocomplete = ({
   ]);
 
   return (
-    <View>
+    <View style={styles.container}>
       <ScrollView>
         <View>
           {renderTokenDetectionBanner()}
