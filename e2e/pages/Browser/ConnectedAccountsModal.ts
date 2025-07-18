@@ -6,9 +6,14 @@ import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selec
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import TestHelpers from '../../helpers';
-import type { IndexableNativeElement, NativeElement, IndexableSystemElement } from 'detox/detox';
-type DetoxElement = Promise<IndexableNativeElement | NativeElement | IndexableSystemElement>;
-
+import type {
+  IndexableNativeElement,
+  NativeElement,
+  IndexableSystemElement,
+} from 'detox/detox';
+type DetoxElement = Promise<
+  IndexableNativeElement | NativeElement | IndexableSystemElement
+>;
 
 class ConnectedAccountsModal {
   get container(): DetoxElement {
@@ -160,7 +165,11 @@ class ConnectedAccountsModal {
   }
 
   async scrollToBottomOfModal(): Promise<void> {
-    await Gestures.swipe(this.title as Promise<IndexableNativeElement>, 'down', 'fast');
+    await Gestures.swipe(
+      this.title as Promise<IndexableNativeElement>,
+      'down',
+      'fast',
+    );
   }
 
   async tapConnectMoreAccountsButton(): Promise<void> {

@@ -76,7 +76,6 @@ exports[`Collectibles should render correctly collectibles 1`] = `
               "flex": 1,
               "flexDirection": "row",
               "height": 64,
-              "paddingHorizontal": 16,
             }
           }
           testID="asset-undefined"

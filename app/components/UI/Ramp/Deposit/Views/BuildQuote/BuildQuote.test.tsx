@@ -22,8 +22,10 @@ const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockGetQuote = jest.fn();
 const mockRouteAfterAuthentication = jest.fn();
+const mockNavigateToVerifyIdentity = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
+const mockTrackEvent = jest.fn();
 
 const createMockSDKReturn = (overrides = {}) => ({
   isAuthenticated: false,
@@ -67,15 +69,20 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useDepositTokenExchange', () =>
-  jest.fn(() => mockUseDepositTokenExchange()),
+jest.mock(
+  '../../hooks/useDepositTokenExchange',
+  () => () => mockUseDepositTokenExchange(),
 );
 
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
     routeAfterAuthentication: mockRouteAfterAuthentication,
+    navigateToVerifyIdentity: mockNavigateToVerifyIdentity,
   })),
 }));
+
+// Mock the analytics hook like in the aggregator test
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('react-native', () => {
   const actualReactNative = jest.requireActual('react-native');
@@ -108,6 +115,8 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
+    // Ensure trackEvent mock is reset
+    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -185,6 +194,66 @@ describe('BuildQuote Component', () => {
         },
       });
     });
+
+    it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
+      render(BuildQuote);
+      const payWithButton = screen.getByText('Pay with');
+      fireEvent.press(payWithButton);
+
+      act(() =>
+        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId(
+          'credit_debit_card',
+        ),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_PAYMENT_METHOD_SELECTED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: 'US',
+          payment_method_id: 'credit_debit_card',
+          is_authenticated: false,
+        },
+      );
+    });
+  });
+
+  describe('Token Selection', () => {
+    it('navigates to token selection when token button is pressed', () => {
+      render(BuildQuote);
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositTokenSelectorModal',
+        params: {
+          handleSelectAssetId: expect.any(Function),
+          selectedAssetId:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        },
+      });
+    });
+
+    it('tracks RAMPS_TOKEN_SELECTED event when token is selected', () => {
+      render(BuildQuote);
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
+
+      act(() =>
+        mockNavigate.mock.calls[0][1].params.handleSelectAssetId(
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        ),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+        chain_id: 'eip155:1',
+        currency_destination:
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        currency_source: 'USD',
+        is_authenticated: false,
+      });
+    });
   });
 
   describe('Keypad Functionality', () => {
@@ -231,7 +300,34 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('navigates to EnterEmail when user is not authenticated', async () => {
+    it('tracks RAMPS_ORDER_PROPOSED event when continue is pressed', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('calls navigateToVerifyIdentity when user is not authenticated', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
@@ -242,10 +338,8 @@ describe('BuildQuote Component', () => {
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('EnterEmail', {
+        expect(mockNavigateToVerifyIdentity).toHaveBeenCalledWith({
           quote: mockQuote,
-          paymentMethodId: 'credit_debit_card',
-          cryptoCurrencyChainId: 'eip155:1',
         });
       });
     });
@@ -268,8 +362,52 @@ describe('BuildQuote Component', () => {
       });
     });
 
+    it('tracks RAMPS_ORDER_SELECTED event when user is authenticated and quote is successful', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        conversionPrice: 2000,
+        feeBreakdown: [
+          { type: 'network_fee', value: 0.01 },
+          { type: 'transak_fee', value: 0.02 },
+        ],
+        totalFee: 0.03,
+        paymentMethod: 'credit_debit_card',
+        fiatCurrency: 'USD',
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0.01,
+          processing_fee: 0.02,
+          total_fee: 0.03,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
+        });
+      });
+    });
+
     it('displays error when quote fetch fails', async () => {
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
 
       render(BuildQuote);
@@ -284,8 +422,36 @@ describe('BuildQuote Component', () => {
       });
     });
 
+    it('tracks RAMPS_ORDER_FAILED event when quote fetch fails', async () => {
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
     it('displays error when quote is falsy', async () => {
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: false });
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockReturnValue(null);
 
       render(BuildQuote);
@@ -300,10 +466,40 @@ describe('BuildQuote Component', () => {
       });
     });
 
+    it('tracks RAMPS_ORDER_FAILED event when quote is falsy', async () => {
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockReturnValue(null);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
     it('displays error when routeAfterAuthentication throws', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
 
-      mockUseDepositSDK.mockReturnValue({ isAuthenticated: true });
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
       mockGetQuote.mockResolvedValue(mockQuote);
       mockRouteAfterAuthentication.mockRejectedValue(
         new Error('Routing failed'),
@@ -318,6 +514,47 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(screen.toJSON()).toMatchSnapshot();
+      });
+    });
+
+    it('tracks RAMPS_ORDER_FAILED event when routeAfterAuthentication throws', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        paymentMethod: 'credit_debit_card',
+        fiatCurrency: 'USD',
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockRouteAfterAuthentication.mockRejectedValue(
+        new Error('Routing failed'),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
+          error_message: 'BuildQuote - Error handling authentication',
+          is_authenticated: true,
+        });
       });
     });
   });

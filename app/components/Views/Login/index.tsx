@@ -24,9 +24,14 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import {
+  OnboardingActionTypes,
+  saveOnboardingEvent as saveEvent,
+} from '../../../actions/onboarding';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { useDispatch } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
+import { Dispatch } from 'redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
@@ -46,6 +51,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
@@ -89,20 +95,31 @@ import OAuthService from '../../../core/OAuthService/OAuthService';
 import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
-import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import { AnimationObject } from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics } from '../../hooks/useMetrics';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
 const EmptyRecordConstant = {};
 
+interface LoginProps {
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
+}
+
 /**
  * View where returning users can authenticate
  */
-const Login: React.FC = () => {
+const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [disabledInput, setDisabledInput] = useState(false);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -118,6 +135,7 @@ const Login: React.FC = () => {
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
+  const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
     useRoute<
@@ -136,7 +154,18 @@ const Login: React.FC = () => {
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
 
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+  useEffect(() => {
+    // first error if seedless password is outdated
+    if (isSeedlessPasswordOutdated) {
+      setError(strings('login.seedless_password_outdated'));
+    }
+  }, [isSeedlessPasswordOutdated]);
+
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
+
   const track = (
     event: IMetaMetricsEvent,
     properties: Record<string, string | boolean | number>,
@@ -145,6 +174,7 @@ const Login: React.FC = () => {
       MetricsEventBuilder.createEventBuilder(event)
         .addProperties(properties)
         .build(),
+      saveOnboardingEvent,
     );
   };
 
@@ -188,8 +218,7 @@ const Login: React.FC = () => {
         Logger.log('authData', authData);
         setBiometryType(authData.availableBiometryType);
         setHasBiometricCredentials(
-          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
-            !route?.params?.locked,
+          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
         );
         setBiometryPreviouslyDisabled(!!previouslyDisabled);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
@@ -271,7 +300,7 @@ const Login: React.FC = () => {
       OPTIN_META_METRICS_UI_SEEN,
     );
 
-    if (!isOptinMetaMetricsUISeen) {
+    if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
       navigation.reset({
         routes: [
           {
@@ -332,11 +361,15 @@ const Login: React.FC = () => {
   const handleSeedlessOnboardingControllerError = (
     seedlessError: Error,
   ): void => {
-    if (
-      seedlessError instanceof SeedlessOnboardingControllerRecoveryError
-    ) {
+    if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
+      // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
+      if (seedlessError.data?.numberOfAttempts !== undefined) {
+        setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+      }
       if (typeof seedlessError.data?.remainingTime === 'number') {
-        tooManyAttemptsError(seedlessError.data.remainingTime).catch(() => null);
+        tooManyAttemptsError(seedlessError.data.remainingTime).catch(
+          () => null,
+        );
         return;
       }
     }
@@ -348,50 +381,137 @@ const Login: React.FC = () => {
     setError(errMessage);
 
     // If user has already consented to analytics, report error using regular Sentry
-    if (isAnalyticsEnabled()) {
-      oauthLoginSuccess && captureException(seedlessError, {
-        tags: {
-          view: 'Login',
-          context: 'OAuth rehydration failed - user consented to analytics',
-        },
-      });
+    if (isMetricsEnabled()) {
+      oauthLoginSuccess &&
+        captureException(seedlessError, {
+          tags: {
+            view: 'Login',
+            context: 'OAuth rehydration failed - user consented to analytics',
+          },
+        });
     } else {
       // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
-      oauthLoginSuccess && setErrorToThrow(new Error(`OAuth rehydration failed: ${seedlessError.message}`));
+      oauthLoginSuccess &&
+        setErrorToThrow(
+          new Error(`OAuth rehydration failed: ${seedlessError.message}`),
+        );
+    }
+  };
+
+  const handlePasswordError = (loginErrorMessage: string) => {
+    if (oauthLoginSuccess) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+        account_type: 'social',
+        failed_attempts: rehydrationFailedAttempts,
+      });
+    }
+
+    setLoading(false);
+    setError(strings('login.invalid_password'));
+    trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
+  };
+
+  const handleLoginError = async (loginErr: unknown) => {
+    const loginError = loginErr as Error;
+    const loginErrorMessage = loginError.toString();
+
+    if (isSeedlessOnboardingControllerError(loginError)) {
+      setLoading(false);
+      handleSeedlessOnboardingControllerError(loginError);
+      return;
+    }
+
+    const isPasswordError =
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
+      toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
+      loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET);
+
+    if (isPasswordError) {
+      handlePasswordError(loginErrorMessage);
+      return;
+    }
+
+    if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
+      Alert.alert(
+        strings('login.security_alert_title'),
+        strings('login.security_alert_desc'),
+      );
+      setLoading(false);
+      return;
+    }
+
+    if (
+      containsErrorMessage(loginError, VAULT_ERROR) ||
+      containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
+    ) {
+      await handleVaultCorruption();
+      return;
+    }
+
+    if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
+      setLoading(false);
+      updateBiometryChoice(false);
+      return;
+    }
+
+    setLoading(false);
+    setError(loginErrorMessage);
+  };
+
+  const performAuthentication = async () => {
+    const authType = await Authentication.componentAuthenticationType(
+      biometryChoice,
+      rememberMe,
+    );
+    if (isSeedlessPasswordOutdated) {
+      await Authentication.submitLatestGlobalSeedlessPassword(
+        password,
+        authType,
+      );
+    } else if (oauthLoginSuccess) {
+      await Authentication.rehydrateSeedPhrase(password, authType);
+    } else {
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.Login,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
     }
   };
 
   const onLogin = async () => {
+    if (oauthLoginSuccess) {
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
+        account_type: 'social',
+        biometrics: biometryChoice,
+      });
+    }
+
     try {
       const locked = !passwordRequirementsMet(password);
       if (locked) {
-        // This will be caught by the catch block below
         throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
       }
       if (loading || locked) return;
 
       setLoading(true);
       setError(null);
-      const authType = await Authentication.componentAuthenticationType(
-        biometryChoice,
-        rememberMe,
-      );
+
+      await performAuthentication();
+      Keyboard.dismiss();
 
       if (oauthLoginSuccess) {
-        await Authentication.rehydrateSeedPhrase(password, authType);
-      } else {
-        await trace(
-          {
-            name: TraceName.AuthenticateUser,
-            op: TraceOperation.Login,
-          },
-          async () => {
-            await Authentication.userEntryAuth(password, authType);
-          },
-        );
+        track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
+          account_type: 'social',
+          biometrics: biometryChoice,
+          failed_attempts: rehydrationFailedAttempts,
+        });
       }
-
-      Keyboard.dismiss();
 
       await checkMetricsUISeen();
 
@@ -401,54 +521,8 @@ const Login: React.FC = () => {
       setHasBiometricCredentials(false);
       fieldRef.current?.clear();
     } catch (loginErr: unknown) {
-      const loginError = loginErr as Error;
-      const loginErrorMessage = loginError.toString();
-
-      if (
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
-        toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID_2) ||
-        loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET)
-      ) {
-        setLoading(false);
-        setError(strings('login.invalid_password'));
-        trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
-        return;
-      } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
-        Alert.alert(
-          strings('login.security_alert_title'),
-          strings('login.security_alert_desc'),
-        );
-        setLoading(false);
-      } else if (
-        containsErrorMessage(loginError, VAULT_ERROR) ||
-        containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
-      ) {
-        try {
-          await handleVaultCorruption();
-        } catch (vaultCorruptionErr: unknown) {
-          const vaultCorruptionError = vaultCorruptionErr as Error;
-          // we only want to display this error to the user IF we fail to handle vault corruption
-          Logger.error(
-            vaultCorruptionError,
-            'Failed to handle vault corruption',
-          );
-          setLoading(false);
-          setError(strings('login.clean_vault_error'));
-        }
-      } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
-        setLoading(false);
-        updateBiometryChoice(false);
-      } else if (
-        isSeedlessOnboardingControllerError(loginError)
-      ) {
-        setLoading(false);
-        handleSeedlessOnboardingControllerError(loginError);
-      } else {
-        setLoading(false);
-        setError(loginErrorMessage);
-      }
-      Logger.error(loginError, 'Failed to unlock');
+      await handleLoginError(loginErr);
+      Logger.error(loginErr as Error, 'Failed to unlock');
     }
   };
 
@@ -482,10 +556,13 @@ const Login: React.FC = () => {
   };
 
   const toggleWarningModal = () => {
-    track(MetaMetricsEvents.FORGOT_PASSWORD, {});
+    track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
+      params: {
+        oauthLoginSuccess,
+      },
     });
   };
 
@@ -518,11 +595,13 @@ const Login: React.FC = () => {
     !oauthLoginSuccess &&
     biometryChoice &&
     biometryType &&
-    hasBiometricCredentials
+    hasBiometricCredentials &&
+    !route?.params?.locked
   );
 
   const lottieSrc = useMemo(
-    () => (password.length > 0 ? ConcealingFox : SearchingFox),
+    () =>
+      (password.length > 0 ? ConcealingFox : SearchingFox) as AnimationObject,
     [password.length],
   );
 
@@ -538,7 +617,7 @@ const Login: React.FC = () => {
     <ErrorBoundary
       navigation={navigation}
       view="Login"
-      useOnboardingErrorHandling={!!errorToThrow && !isAnalyticsEnabled()}
+      useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
     >
       <ThrowErrorIfNeeded />
       <SafeAreaView style={styles.mainWrapper}>
@@ -675,4 +754,9 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
+    dispatch(saveEvent(eventArgs)),
+});
+
+export default connect(null, mapDispatchToProps)(Login);

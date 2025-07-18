@@ -4,5 +4,5 @@ export const StakeViewSelectors = {
   STAKE_CONTAINER: enContent.stake.stake_eth,
   UNSTAKE_CONTAINER: enContent.stake.unstake_eth,
   CONTINUE: enContent.stake.continue,
-  REVIEW_BUTTON: enContent.stake.review
+  REVIEW_BUTTON: enContent.stake.review,
 };

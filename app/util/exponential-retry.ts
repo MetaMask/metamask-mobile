@@ -46,8 +46,13 @@ export async function retryWithExponentialDelay<T>(
       }
 
       // Calculate and wait for the delay
-      const delay = calculateExponentialRetryDelay(attempt, baseDelay, maxDelay, jitter);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      const delay = calculateExponentialRetryDelay(
+        attempt,
+        baseDelay,
+        maxDelay,
+        jitter,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 

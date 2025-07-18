@@ -6,7 +6,8 @@ import { Json, JsonRpcRequest } from '@metamask/utils';
 import { handleSnapRequest } from '../Snaps/utils';
 import Engine from '../Engine';
 
-export const BITCOIN_WALLET_SNAP_ID: SnapId = 'npm:@metamask/bitcoin-wallet-snap' as SnapId;
+export const BITCOIN_WALLET_SNAP_ID: SnapId =
+  'npm:@metamask/bitcoin-wallet-snap' as SnapId;
 
 export const BITCOIN_WALLET_NAME: string = 'Bitcoin';
 

@@ -3,7 +3,7 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
-import { InteractionManager } from 'react-native';
+import { BackHandler, InteractionManager } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core';
 import { passwordRequirementsMet } from '../../../util/password';
@@ -22,7 +22,14 @@ import { parseVaultValue } from '../../../util/validators';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import { VAULT_ERROR } from './constants';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
-import Logger from '../../../util/Logger';
+import { useMetrics } from '../../hooks/useMetrics';
+import {
+  OPTIN_META_METRICS_UI_SEEN,
+  ONBOARDING_WIZARD,
+  BIOMETRY_CHOICE_DISABLED,
+  TRUE,
+} from '../../../constants/storage';
+import { strings } from '../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -44,14 +51,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockMetricsIsEnabled = jest.fn().mockReturnValue(false);
+// Metrics mocks
 const mockTrackEvent = jest.fn();
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    isEnabled: mockMetricsIsEnabled,
-    trackEvent: mockTrackEvent,
-  }),
-}));
 
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
@@ -106,7 +107,7 @@ jest.mock('../../../store/storage-wrapper', () => ({
 // Mock setOnboardingWizardStep action
 jest.mock('../../../actions/wizard', () => ({
   __esModule: true,
-  default: jest.fn(),
+  default: jest.fn(() => ({ type: 'SET_ONBOARDING_WIZARD_STEP' })),
 }));
 jest.mock('../../../core/Authentication', () => ({
   getType: jest.fn().mockResolvedValue({
@@ -156,10 +157,37 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
 }));
 
+// Define mocks outside so they can be accessed in tests
+const mockMetricsTrackEvent = jest.fn();
+const mockMetricsCreateEventBuilder = jest.fn((eventName) => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({ name: eventName }),
+}));
+
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  withMetricsAwareness: jest.fn((Component) => (props: any) => (
+    <Component
+      {...props}
+      metrics={{
+        trackEvent: mockMetricsTrackEvent,
+        createEventBuilder: mockMetricsCreateEventBuilder,
+      }}
+    />
+  )),
+  MetaMetricsEvents: {
+    ERROR_SCREEN_VIEWED: 'Error Screen Viewed',
+  },
+}));
+const mockBackHandlerAddEventListener = jest.fn();
+const mockBackHandlerRemoveEventListener = jest.fn();
+
 describe('Login', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockMetricsTrackEvent.mockClear();
+    mockMetricsCreateEventBuilder.mockClear();
     mockReplace.mockClear();
     mockGoBack.mockClear();
     mockRoute.mockClear();
@@ -179,6 +207,15 @@ describe('Login', () => {
       if (callback) await callback();
     });
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+    (useMetrics as jest.Mock).mockReturnValue({
+      isEnabled: () => false,
+      trackEvent: mockTrackEvent,
+    });
+    mockBackHandlerAddEventListener.mockClear();
+    mockBackHandlerRemoveEventListener.mockClear();
+
+    BackHandler.addEventListener = mockBackHandlerAddEventListener;
+    BackHandler.removeEventListener = mockBackHandlerRemoveEventListener;
   });
 
   it('renders matching snapshot', () => {
@@ -204,6 +241,211 @@ describe('Login', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
+        params: {
+          oauthLoginSuccess: false,
+        },
+      });
+    });
+
+    describe('checkMetricsUISeen', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+        mockRoute.mockReturnValue({
+          params: {
+            locked: false,
+            oauthLoginSuccess: false,
+          },
+        });
+      });
+
+      it('should navigate to opt-in metrics when UI not seen and metrics disabled', async () => {
+        // Arrange
+        (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+          if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
+          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
+          return Promise.resolve(null);
+        });
+
+        (useMetrics as jest.Mock).mockReturnValue({
+          isEnabled: () => false,
+          trackEvent: mockTrackEvent,
+        });
+
+        (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
+          undefined,
+        );
+        (
+          Authentication.componentAuthenticationType as jest.Mock
+        ).mockResolvedValueOnce({
+          currentAuthType: 'password',
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+        // Act
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'validPassword123');
+        });
+
+        await act(async () => {
+          fireEvent.press(loginButton);
+        });
+
+        // Wait for async operations to complete
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Assert
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [
+            {
+              name: Routes.ONBOARDING.ROOT_NAV,
+              params: {
+                screen: Routes.ONBOARDING.NAV,
+                params: {
+                  screen: Routes.ONBOARDING.OPTIN_METRICS,
+                },
+              },
+            },
+          ],
+        });
+      });
+
+      it('should navigate to home when UI not seen but metrics enabled', async () => {
+        // Arrange
+        (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+          if (key === OPTIN_META_METRICS_UI_SEEN) return Promise.resolve(null);
+          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
+          return Promise.resolve(null);
+        });
+
+        (useMetrics as jest.Mock).mockReturnValue({
+          isEnabled: () => true,
+          trackEvent: mockTrackEvent,
+        });
+
+        (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
+          undefined,
+        );
+        (
+          Authentication.componentAuthenticationType as jest.Mock
+        ).mockResolvedValueOnce({
+          currentAuthType: 'password',
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+        // Act
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'validPassword123');
+        });
+
+        await act(async () => {
+          fireEvent.press(loginButton);
+        });
+
+        // Wait for async operations to complete
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Assert
+        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      });
+
+      it('should navigate to home when UI seen and metrics disabled', async () => {
+        // Arrange
+        (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+          if (key === OPTIN_META_METRICS_UI_SEEN)
+            return Promise.resolve('true');
+          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
+          return Promise.resolve(null);
+        });
+
+        (useMetrics as jest.Mock).mockReturnValue({
+          isEnabled: () => false,
+          trackEvent: mockTrackEvent,
+        });
+
+        (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
+          undefined,
+        );
+        (
+          Authentication.componentAuthenticationType as jest.Mock
+        ).mockResolvedValueOnce({
+          currentAuthType: 'password',
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+        // Act
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'validPassword123');
+        });
+
+        await act(async () => {
+          fireEvent.press(loginButton);
+        });
+
+        // Wait for async operations to complete
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Assert
+        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      });
+
+      it('should navigate to home when UI seen and metrics enabled', async () => {
+        // Arrange
+        (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+          if (key === OPTIN_META_METRICS_UI_SEEN)
+            return Promise.resolve('true');
+          if (key === ONBOARDING_WIZARD) return Promise.resolve(null);
+          return Promise.resolve(null);
+        });
+
+        (useMetrics as jest.Mock).mockReturnValue({
+          isEnabled: () => true,
+          trackEvent: mockTrackEvent,
+        });
+
+        (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
+          undefined,
+        );
+        (
+          Authentication.componentAuthenticationType as jest.Mock
+        ).mockResolvedValueOnce({
+          currentAuthType: 'password',
+        });
+
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+        const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+        // Act
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'validPassword123');
+        });
+
+        await act(async () => {
+          fireEvent.press(loginButton);
+        });
+
+        // Wait for async operations to complete
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Assert
+        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
     });
   });
@@ -254,6 +496,111 @@ describe('Login', () => {
     });
   });
 
+  describe('Password Error Handling', () => {
+    beforeEach(() => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should handle WRONG_PASSWORD_ERROR', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Decrypt failed'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
+    });
+
+    it('should handle WRONG_PASSWORD_ERROR_ANDROID', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error(
+          'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
+        ),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
+    });
+
+    it('should handle PASSWORD_REQUIREMENTS_NOT_MET error', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Password requirements not met'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
+    });
+
+    it('should handle generic error (else case)', async () => {
+      (Authentication.userEntryAuth as jest.Mock).mockRejectedValue(
+        new Error('Some unexpected error'),
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        'Error: Some unexpected error',
+      );
+    });
+  });
+
   describe('Passcode Authentication', () => {
     beforeEach(() => {
       (StorageWrapper.getItem as jest.Mock).mockReset();
@@ -273,6 +620,81 @@ describe('Login', () => {
       });
 
       expect(passcodeType).toHaveBeenCalledWith(AUTHENTICATION_TYPE.PASSCODE);
+    });
+  });
+
+  describe('Biometric Authentication Setup', () => {
+    beforeEach(() => {
+      (StorageWrapper.getItem as jest.Mock).mockReset();
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+    });
+
+    it('biometric authentication is setup when availableBiometryType is present', async () => {
+      (Authentication.getType as jest.Mock).mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'TouchID',
+      });
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Should render biometric button when biometric is available
+      expect(getByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeTruthy();
+    });
+
+    it('biometric button is not shown when device is locked', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: true,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      (Authentication.getType as jest.Mock).mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: 'FaceID',
+      });
+
+      const { queryByTestId } = renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Should NOT render biometric button when device is locked
+      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
+    });
+
+    it('biometric button is not shown when previously disabled', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === BIOMETRY_CHOICE_DISABLED) return Promise.resolve(TRUE);
+        return Promise.resolve(null);
+      });
+
+      (Authentication.getType as jest.Mock).mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: 'TouchID',
+      });
+
+      const { queryByTestId } = renderWithProvider(<Login />);
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Should NOT render biometric button when previously disabled
+      expect(queryByTestId(LoginViewSelectors.BIOMETRY_BUTTON)).toBeNull();
     });
   });
 
@@ -501,13 +923,14 @@ describe('Login', () => {
     });
 
     it('should trigger ErrorBoundary for OAuth rehydration failures when metrics are disabled', async () => {
-      const seedlessError = new Error('SeedlessOnboardingController - Auth server is down');
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - Auth server is down',
+      );
       (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
         seedlessError,
       );
-      const loggerErrorSpy = jest.spyOn(Logger, 'error');
 
-      const { getByTestId } = renderWithProvider(<Login />);
+      const { getByTestId, getByText } = renderWithProvider(<Login />);
 
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
       await act(async () => {
@@ -517,17 +940,18 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      // Verify that the built-in ErrorBoundary caught the error and rendered its fallback UI
-      expect(loggerErrorSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'OAuth rehydration failed: SeedlessOnboardingController - Auth server is down',
-        }),
-        expect.objectContaining({
-          View: 'Login',
-          ErrorBoundary: true,
-        }),
-      );
-      expect(mockTrackEvent).toHaveBeenLastCalledWith(
+      // Verify that the ErrorBoundary caught the error and is displaying its UI
+      await waitFor(() => {
+        expect(getByText('An error occurred')).toBeTruthy();
+        expect(
+          getByText(
+            /OAuth rehydration failed: SeedlessOnboardingController - Auth server is down/,
+          ),
+        ).toBeTruthy();
+      });
+
+      // Verify that the 'Error Screen Viewed' event was tracked
+      expect(mockMetricsTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Error Screen Viewed',
         }),
@@ -535,8 +959,14 @@ describe('Login', () => {
     });
 
     it('should trigger ErrorBoundary for OAuth rehydration failures when metrics are enabled', async () => {
-      mockMetricsIsEnabled.mockReturnValue(true);
-      const seedlessError = new Error('SeedlessOnboardingController - Auth server is down');
+      (useMetrics as jest.Mock).mockReturnValue({
+        isEnabled: () => true,
+        trackEvent: mockTrackEvent,
+      });
+
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - Auth server is down',
+      );
       (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
         seedlessError,
       );
@@ -551,11 +981,11 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(mockTrackEvent).not.toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          name: 'Error Screen Viewed',
-        }),
-      );
+      // When metrics are enabled, should use Sentry instead of ErrorBoundary
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual('Auth server is down');
+      expect(mockMetricsTrackEvent).not.toHaveBeenCalled();
     });
 
     it('should handle seedless onboarding controller error with remaining time of > 0', async () => {
@@ -619,6 +1049,90 @@ describe('Login', () => {
         expect(errorElement).toBeNull();
       });
     });
+
+    it('should handle countdown behavior and disable input during tooManyAttemptsError', async () => {
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        'SeedlessOnboardingController - Too many attempts',
+        { remainingTime: 3, numberOfAttempts: 1 },
+      );
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      let errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:3s',
+      );
+
+      expect(passwordInput.props.editable).toBe(false);
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:2s',
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:1s',
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(() => getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toThrow();
+      expect(passwordInput.props.editable).not.toBe(false);
+    });
+
+    it('should clean up timeout on component unmount during countdown', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        'SeedlessOnboardingController - Too many attempts',
+        { remainingTime: 5, numberOfAttempts: 1 },
+      );
+      (Authentication.rehydrateSeedPhrase as jest.Mock).mockRejectedValue(
+        seedlessError,
+      );
+
+      const { getByTestId, unmount } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+
+      await act(async () => {
+        unmount();
+      });
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
   });
 
   describe('tryBiometric', () => {
@@ -629,6 +1143,7 @@ describe('Login', () => {
           oauthLoginSuccess: false,
         },
       });
+      (StorageWrapper.getItem as jest.Mock).mockReset();
     });
 
     afterEach(() => {
@@ -659,15 +1174,17 @@ describe('Login', () => {
 
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
-        routes: [{
-          name: Routes.ONBOARDING.ROOT_NAV,
-          params: {
-            screen: Routes.ONBOARDING.NAV,
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
             params: {
-              screen: Routes.ONBOARDING.OPTIN_METRICS
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
             },
           },
-        }],
+        ],
       });
     });
 
@@ -696,9 +1213,66 @@ describe('Login', () => {
 
       expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
       expect(mockReplace).not.toHaveBeenCalled();
-      // The component should still show biometric option after failure
       expect(biometryButton).toBeTruthy();
     });
   });
-});
 
+  describe('handleBackPress', () => {
+    it('registers and deregisters back handler on mount and unmount', () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      const { unmount } = renderWithProvider(<Login />);
+      unmount();
+
+      expect(mockBackHandlerAddEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+      expect(mockBackHandlerRemoveEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+    });
+
+    it('handleBackPress locks app when oauthLoginSuccess is false', () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+
+      renderWithProvider(<Login />);
+
+      const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
+      const result = handleBackPress();
+
+      expect(Authentication.lockApp).toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+    });
+
+    it('handleBackPress navigates back when oauthLoginSuccess is true', () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
+
+      renderWithProvider(<Login />);
+
+      const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
+      const result = handleBackPress();
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(Authentication.lockApp).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+    });
+  });
+});

@@ -22,6 +22,7 @@ import {
   passwordSet,
   passwordUnset,
   seedphraseNotBackedUp,
+  setExistingUser,
 } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
@@ -37,7 +38,6 @@ import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
-  EXISTING_USER,
   TRUE,
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
@@ -214,6 +214,10 @@ class ChoosePassword extends PureComponent {
      * Action to reset the flag seedphraseBackedUp in redux
      */
     seedphraseNotBackedUp: PropTypes.func,
+    /**
+     * Action to set existing user flag
+     */
+    setExistingUser: PropTypes.func,
     /**
      * Action to save onboarding event
      */
@@ -483,7 +487,7 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      this.props.setExistingUser(true);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);
@@ -966,6 +970,7 @@ const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
+  setExistingUser: (value) => dispatch(setExistingUser(value)),
 });
 
 const mapStateToProps = (state) => ({});
