@@ -27,7 +27,6 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
-import { selectTokensByAddress } from '../../../selectors/tokensController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
@@ -53,11 +52,7 @@ import PriceChartContext, {
   PriceChartProvider,
 } from '../AssetOverview/PriceChart/PriceChart.context';
 import { providerErrors } from '@metamask/rpc-errors';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import {
@@ -130,10 +125,6 @@ class Transactions extends PureComponent {
      */
     close: PropTypes.func,
     /**
-     * Object containing token exchange rates in the format address => exchangeRate
-     */
-    contractExchangeRates: PropTypes.object,
-    /**
      * Network configurations
      */
     networkConfigurations: PropTypes.object,
@@ -150,10 +141,6 @@ class Transactions extends PureComponent {
      */
     collectibleContracts: PropTypes.array,
     /**
-     * An array that represents the user tokens
-     */
-    tokens: PropTypes.object,
-    /**
      * An array of transactions objects
      */
     transactions: PropTypes.array,
@@ -169,10 +156,6 @@ class Transactions extends PureComponent {
      * A string that represents the selected address
      */
     selectedAddress: PropTypes.string,
-    /**
-     * ETH to current currency conversion rate
-     */
-    conversionRate: PropTypes.number,
     /**
      * Currency code of the currently-active currency
      */
@@ -645,11 +628,8 @@ class Transactions extends PureComponent {
       onCancelAction={this.onCancelAction}
       onPressItem={this.toggleDetailsView}
       selectedAddress={this.props.selectedAddress}
-      tokens={this.props.tokens}
       collectibleContracts={this.props.collectibleContracts}
-      contractExchangeRates={this.props.contractExchangeRates}
       exchangeRate={this.props.exchangeRate}
-      conversionRate={this.props.conversionRate}
       currentCurrency={this.props.currentCurrency}
       navigation={this.props.navigation}
       txChainId={item.chainId}
@@ -910,15 +890,12 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   networkClientId: selectNetworkClientId(state),
   collectibleContracts: collectibleContractsSelector(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
   primaryCurrency: selectPrimaryCurrency(state),
-  tokens: selectTokensByAddress(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
 });
