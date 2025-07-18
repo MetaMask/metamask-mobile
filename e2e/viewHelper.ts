@@ -23,6 +23,13 @@ import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
+import Matchers from './utils/Matchers';
+import {
+  BrowserViewSelectorsIDs
+} from './selectors/Browser/BrowserView.selectors';
+import {
+  TestDappSelectorsWebIDs
+} from './selectors/Browser/TestDapp.selectors';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -402,4 +409,28 @@ export const waitForTestDappToLoad = async () => {
   }
 
   throw new Error('Test dapp failed to become fully interactive');
+};
+
+export const waitForTestSnapsToLoad = async () => {
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await Assertions.webViewElementExists(Matchers.getElementByWebID(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        'root',
+      ));
+    } catch (error) {
+      if (attempt === MAX_RETRIES) {
+        throw new Error(
+          `Test Snaps failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
+        );
+      }
+
+      await TestHelpers.delay(RETRY_DELAY);
+    }
+  }
+
+  throw new Error('Test Snaps failed to become fully interactive.');
 };

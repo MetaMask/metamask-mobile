@@ -32,8 +32,6 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     // Navigate to test snaps URL once for all tests
     await TabBarComponent.tapBrowser();
     await TestSnaps.navigateToTestSnap();
-    await TestHelpers.delay(3500); // Wait for page to load
-    await Assertions.checkIfVisible(BrowserView.browserScreenID);
   });
 
   afterAll(async () => {
