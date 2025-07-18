@@ -30,6 +30,7 @@ import {
   setFiatOrdersRegionDeposit,
 } from '../../../../../reducers/fiatOrders';
 import { DepositRegion, DEPOSIT_REGIONS } from '../constants';
+import Logger from '../../../../../util/Logger';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -59,7 +60,7 @@ if (isDevelopmentOrInternalBuild) {
   environment = TransakEnvironment.Staging;
 }
 
-export const DepositSDKOrders = new NativeRampsSdk({}, environment);
+export const DepositSDKNoAuth = new NativeRampsSdk({}, environment);
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
   undefined,
@@ -110,9 +111,27 @@ export const DepositSDKProvider = ({
   );
 
   useEffect(() => {
-    if (INITIAL_SELECTED_REGION === null && defaultRegion) {
-      dispatch(setFiatOrdersRegionDeposit(defaultRegion));
+    async function setRegionByGeolocation() {
+      if (INITIAL_SELECTED_REGION === null) {
+        try {
+          const geo = await DepositSDKNoAuth.getGeolocation();
+          const region = DEPOSIT_REGIONS.find(
+            (r) => r.isoCode === geo?.ipCountryCode && r.supported,
+          );
+          if (region) {
+            setSelectedRegionCallback(region);
+          } else if (defaultRegion) {
+            setSelectedRegionCallback(defaultRegion);
+          }
+        } catch (error) {
+          Logger.error(error as Error, 'Error setting region by geolocation:');
+          if (defaultRegion) {
+            setSelectedRegionCallback(defaultRegion);
+          }
+        }
+      }
     }
+    setRegionByGeolocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
