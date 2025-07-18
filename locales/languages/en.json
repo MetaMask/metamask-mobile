@@ -447,7 +447,7 @@
     "paste": "Paste",
     "hide_all": "Hide all",
     "srp": "Secret Recovery Phrase",
-    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching.",
     "learn_more_link": "Learn more",
     "create_password_cta": "Create password",
     "pass_flow": "Continue with Flow",
@@ -540,6 +540,7 @@
       "buy_crypto": "Buy Crypto"
     },
     "get_started": {
+      "navbar_title": "Deposit",
       "title": "Starting is easy with USDC",
       "bullet_1_title": "Value-backed by the US dollar",
       "bullet_1_description": "USDC is a digital dollar, backed by U.S. dollars, so you always know what it’s worth.",
@@ -550,9 +551,9 @@
       "button": "Get started"
     },
     "enter_email": {
+      "navbar_title": "Verify your identity",
       "title": "Enter your email",
-      "description": "We'll send a six-digit code to your email to check it's you.",
-      "input_label": "Email",
+      "description": "We'll email you a six-digit verification code to securely log in or create an account with Transak.",
       "input_placeholder": "name@domain.com",
       "submit_button": "Send email",
       "loading": "Sending email...",
@@ -560,8 +561,9 @@
       "error": "An error occurred while sending the email"
     },
     "otp_code": {
+      "navbar_title": "Verify your identity",
       "title": "Enter six-digit code",
-      "description": "Enter the 6-digit code we sent to {{email}}. If you don't see it in your inbox, check your spam folder.",
+      "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
       "submit_button": "Submit",
       "loading": "Verifying code...",
       "invalid_code_error": "Invalid code",
@@ -581,14 +583,14 @@
       "description_2_transak": "Transak",
       "description_2_rest": " will facilitate your deposit, and we work with them to ensure your privacy. We never store your data, and Transak never sells your data.",
       "description_3_part1": "Check out our ",
-      "description_3_privacy_policy": "Privacy Policy",
+      "description_3_privacy_policy": "privacy policy",
       "description_3_part2": " to learn more.",
       "agreement_text_part1": "By clicking the button below, you agree to ",
       "agreement_text_transak_terms": "Transak's Terms of Use",
       "agreement_text_and": " and ",
       "agreement_text_privacy_policy": "Privacy Policy",
       "agreement_text_part2": ".",
-      "button": "Get started"
+      "button": "Agree and continue"
     },
     "additional_verification": {
       "title": "Additional Verification",
@@ -597,13 +599,14 @@
       "button": "Continue"
     },
     "basic_info": {
+      "navbar_title": "Verify your identity",
       "title": "Enter your basic info",
       "continue": "Continue",
-      "subtitle": "To begin verifying your identity, we need some basic information.",
+      "subtitle": "Next, we need some basic information about you.",
       "first_name": "First Name",
       "last_name": "Last Name",
       "phone_number": "Phone Number",
-      "date_of_birth": "Date of Birth",
+      "date_of_birth": "Date of birth",
       "social_security_number": "Social Security Number",
       "enter_phone_number": "Enter phone number",
       "select_region": "Select region",
@@ -618,8 +621,9 @@
       "ssn_required": "Social security number is required"
     },
     "enter_address": {
+      "navbar_title": "Verify your identity",
       "title": "Enter your address",
-      "subtitle": "Please enter your most recent permanent address.",
+      "subtitle": "Use your most recent permanent address.",
       "continue": "Continue",
       "address_line_1": "Address line 1",
       "address_line_2": "Address line 2 (optional)",
@@ -644,14 +648,14 @@
       "metamask": "MetaMask never receives or uses your data."
     },
     "kyc_processing": {
-      "title": "Verifying your identity",
-      "heading": "Hang tight!",
+      "navbar_title": "Verify your identity",
+      "heading": "Hang tight...",
       "description": "This should only take about 2 minutes.",
       "error_heading": "We were unable to verify your identity.",
       "error_description": "Try uploading your documents again and resubmit for verification.",
       "error_button": "Retry verification",
-      "success_heading": "Identity successfully verified!",
-      "success_description": "You can now enter your payment info and complete your deposit.",
+      "success_heading": "You're verified",
+      "success_description": "Now you can complete your deposit.",
       "success_button": "Complete your order"
     },
     "provider_webview": {
@@ -689,8 +693,8 @@
       "error_message": "An unexpected error occurred."
     },
     "bank_details": {
-      "title": "{{paymentMethod}} bank transfer",
-      "button": "Transfer sent",
+      "navbar_title": "{{paymentMethod}} bank transfer",
+      "button": "Bank transfer sent",
       "button_cancel": "Cancel order",
       "main_title": "To complete your order",
       "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
@@ -732,12 +736,33 @@
   },
   "perps": {
     "title": "Perps Trading",
+    "unknown_network": "Unknown Network",
     "deposit": {
       "title": "Amount to deposit",
       "pay_with": "Pay with",
       "available": "Available",
+      "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
+      "insufficient_funds": "Insufficient funds",
+      "enter_amount": "Enter amount",
+      "fetching_quote": "Fetching quote",
+      "submitting": "Submitting transaction",
+      "get_usdc": "Get USDC",
       "network_fee": "Network fee",
+      "network_fee_tooltip": "Fee paid to the network for processing your transaction",
       "estimated_time": "Estimated time",
+      "rate": "Rate",
+      "slippage": "Slippage",
+      "slippage_tooltip": "Maximum price difference allowed for this transaction",
+      "slippage_info": "If the price changes between the time your order is placed and confirmed it's called slippage. Your transaction will automatically cancel if slippage exceeds the tolerance you set here.",
+      "slippage_auto": "Auto",
+      "apply": "Apply",
+      "select_token": "Select token",
+      "fund_hyperliquid": "Fund Hyperliquid Wallet",
+      "networkFee": "Network fee",
+      "estimatedTime": "Estimated time",
+      "metamask_fee": "MetaMask fee",
+      "metamask_fee_tooltip": "MetaMask does not charge any fees for deposits to Hyperliquid",
+      "minimum_deposit_error": "Minimum deposit amount is {{amount}} USDC",
       "continue": "Continue",
       "confirm_deposit": "Confirm deposit",
       "confirming": "Confirming...",
@@ -747,23 +772,37 @@
       "retry_deposit": "Retry Deposit",
       "go_back": "Go Back",
       "view_balance": "View Balance",
-      "select_token": "Select token to pay with",
+      "calculating_fee": "Calculating...",
+      "switch_network": "Switch network required",
+      "quote_expired_modal": {
+        "title": "Quote Expired",
+        "description": "The quote for your deposit has expired after {{refreshRate}} seconds. Get a new quote to continue.",
+        "get_new_quote": "Get New Quote"
+      },
       "steps": {
+        "preparing": "Preparing deposit...",
         "swapping": "Swapping {{token}} to USDC",
         "bridging": "Bridging to Hyperliquid",
         "depositing": "Depositing into perps account",
         "depositing_direct": "Transferring USDC directly to your HyperLiquid account..."
       },
       "step_descriptions": {
+        "preparing": "Preparing your deposit transaction...",
         "swapping": "Converting your tokens to USDC for deposit...",
         "bridging": "Moving USDC to Arbitrum network...",
         "depositing": "Transferring USDC to your HyperLiquid account...",
-        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account"
+        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account",
+        "error": "Something went wrong during the deposit process. Please try again."
       },
+      "quote_fetch_error": "Failed to fetch deposit quote. Please try again.",
+      "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
+      "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
+      "swap_not_supported": "Same-chain token swaps are not supported yet. Please use USDC or a token from a different network.",
       "processing": "Processing...",
       "completed": "Transaction completed",
-      "confirming": "Confirming on blockchain",
+      "transactionHash": "Transaction Hash",
       "transaction_hash": "Transaction Hash",
+      "viewTransaction": "View Transaction",
       "view_transaction": "View Transaction",
       "success": {
         "title": "Deposit Successful!",
@@ -778,7 +817,7 @@
     },
     "order": {
       "title": "New Order",
-      "success": {
+      "orderSuccess": {
         "title": "Order Success"
       },
       "details": {
@@ -822,7 +861,7 @@
         "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
         "liquidation_warning": "Position is close to liquidation price"
       },
-      "success": {
+      "orderPlaced": {
         "title": "Order Placed Successfully",
         "subtitle": "Your {{direction}} position for {{asset}} has been created",
         "order_placed": "Order placed successfully",
@@ -840,11 +879,62 @@
         "dismiss": "Dismiss"
       }
     },
+    "errors": {
+      "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
+      "tokenNotSupported": "Token {{token}} not supported for deposits",
+      "unknownError": "Unknown error occurred",
+      "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
+      "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
+      "infoClientNotAvailable": "InfoClient not available after initialization",
+      "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",
+      "failedToInitialize": "Failed to initialize HyperLiquid SDK clients",
+      "failedToSubscribePosition": "Failed to subscribe to position updates",
+      "failedToUnsubscribePosition": "Failed to unsubscribe from position updates",
+      "failedToSubscribeOrderFill": "Failed to subscribe to order fill updates",
+      "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
+      "failedToEstablishAllMids": "Failed to establish global allMids subscription",
+      "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "noAccountSelected": "No account selected",
+      "unsupportedMethod": "Unsupported method: {{method}}",
+      "invalidAddressFormat": "Invalid address format: {{address}}",
+      "depositValidation": {
+        "assetIdRequired": "AssetId is required for deposit validation",
+        "amountRequired": "Amount is required and must be greater than 0",
+        "amountPositive": "Amount must be a positive number"
+      },
+      "withdrawValidation": {
+        "assetIdRequired": "assetId is required for withdrawals",
+        "amountRequired": "amount is required for withdrawals",
+        "amountPositive": "Amount must be a positive number",
+        "invalidDestination": "Invalid destination address format: {{address}}",
+        "insufficientBalance": "Insufficient balance. Available: {{available}}, Requested: {{requested}}",
+        "assetNotSupported": "Asset {{assetId}} is not supported for withdrawals. Supported assets: {{supportedAssets}}"
+      },
+      "orderValidation": {
+        "coinRequired": "Coin is required for orders",
+        "sizePositive": "Size must be a positive number",
+        "pricePositive": "Price must be a positive number if provided",
+        "unknownCoin": "Unknown coin: {{coin}}"
+      },
+      "networkToggleFailed": "Failed to toggle network: {{error}}",
+      "accountBalanceFailed": "Failed to get account balance: {{error}}",
+      "positionsFailed": "Failed to get positions",
+      "accountStateFailed": "Failed to get account state",
+      "marketsFailed": "Failed to get markets",
+      "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
+      "onlyDirectDepositsSupported": "Only direct deposits are currently supported",
+      "providerNotAvailable": "Provider {{providerId}} not available",
+      "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
+      "gasFeeEstimateFailed": "Failed to estimate gas fee",
+      "exchangeRateFailed": "Failed to get exchange rate",
+      "refreshQuoteFailed": "Failed to refresh quote data",
+      "assetMappingFailed": "Failed to build asset mapping",
+      "invalidOrder": "Invalid order parameters",
+      "invalidWithdrawal": "Invalid withdrawal parameters",
+      "depositFailed": "Deposit failed"
+    },
     "position": {
       "title": "Positions",
-      "details": {
-        "title": "Position Details"
-      },
       "card": {
         "entry_price": "Entry Price",
         "market_price": "Market Price",
@@ -866,6 +956,7 @@
         "position_count_plural": "{{count}} positions"
       },
       "details": {
+        "title": "Position Details",
         "error_message": "Position data not found. Please go back and try again.",
         "section_title": "Position"
       },
@@ -901,18 +992,6 @@
     },
     "chart": {
       "no_data": "No chart data available"
-    },
-    "deposit": {
-      "title": "Deposit",
-      "preview": {
-        "title": "Deposit Preview"
-      },
-      "processing": {
-        "title": "Processing Deposit"
-      },
-      "success": {
-        "title": "Deposit Success"
-      }
     }
   },
   "receive": {
@@ -4672,7 +4751,8 @@
     "fetching_quote": "Fetching quote",
     "fee_disclaimer": "Includes 0.875% MM fee",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
-    "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue."
+    "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
+    "max": "Max"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",

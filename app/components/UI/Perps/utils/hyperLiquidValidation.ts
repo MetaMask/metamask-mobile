@@ -2,9 +2,11 @@ import { isValidHexAddress, type CaipAssetId, type Hex } from '@metamask/utils';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
   getSupportedAssets,
+  TRADING_DEFAULTS,
 } from '../constants/hyperLiquidConfig';
 import type { GetSupportedPathsParams } from '../controllers/types';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { strings } from '../../../../../locales/i18n';
 
 /**
  * Validation utilities for HyperLiquid operations
@@ -19,7 +21,10 @@ export function createErrorResult<
   return {
     ...defaultResponse,
     success: false,
-    error: error instanceof Error ? error.message : 'Unknown error',
+    error:
+      error instanceof Error
+        ? error.message
+        : strings('perps.errors.unknownError'),
   };
 }
 
@@ -33,19 +38,67 @@ export function validateWithdrawalParams(params: {
 }): { isValid: boolean; error?: string } {
   // Validate required parameters
   if (!params.assetId) {
-    return { isValid: false, error: 'assetId is required for withdrawals' };
+    return {
+      isValid: false,
+      error: strings('perps.errors.withdrawValidation.assetIdRequired'),
+    };
   }
 
   // Validate amount
   if (!params.amount || parseFloat(params.amount) <= 0) {
-    return { isValid: false, error: 'Amount must be a positive number' };
+    return {
+      isValid: false,
+      error: strings('perps.errors.withdrawValidation.amountPositive'),
+    };
   }
 
   // Validate destination address if provided
   if (params.destination && !isValidHexAddress(params.destination)) {
     return {
       isValid: false,
-      error: `Invalid destination address format: ${params.destination}`,
+      error: strings('perps.errors.withdrawValidation.invalidDestination', {
+        address: params.destination,
+      }),
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Validate deposit parameters
+ */
+export function validateDepositParams(params: {
+  assetId?: CaipAssetId;
+  amount?: string;
+  isTestnet?: boolean;
+}): { isValid: boolean; error?: string } {
+  // Validate required parameters
+  if (!params.assetId) {
+    return {
+      isValid: false,
+      error: strings('perps.errors.depositValidation.assetIdRequired'),
+    };
+  }
+
+  // Validate amount
+  if (!params.amount || parseFloat(params.amount) <= 0) {
+    return {
+      isValid: false,
+      error: strings('perps.errors.depositValidation.amountPositive'),
+    };
+  }
+
+  // Check minimum deposit amount
+  const amount = parseFloat(params.amount);
+  const minimumAmount = params.isTestnet
+    ? TRADING_DEFAULTS.amount.testnet
+    : TRADING_DEFAULTS.amount.mainnet;
+
+  if (amount < minimumAmount) {
+    return {
+      isValid: false,
+      error: strings('perps.errors.minimumDeposit', { amount: minimumAmount }),
     };
   }
 
@@ -72,7 +125,10 @@ export function validateAssetSupport(
 
     return {
       isValid: false,
-      error: `Asset ${assetId} is not supported for withdrawals. Supported assets: ${supportedAssets}`,
+      error: strings('perps.errors.withdrawValidation.assetNotSupported', {
+        assetId,
+        supportedAssets,
+      }),
     };
   }
 
@@ -89,7 +145,10 @@ export function validateBalance(
   if (withdrawAmount > availableBalance) {
     return {
       isValid: false,
-      error: `Insufficient balance. Available: ${availableBalance}, Requested: ${withdrawAmount}`,
+      error: strings('perps.errors.withdrawValidation.insufficientBalance', {
+        available: availableBalance,
+        requested: withdrawAmount,
+      }),
     };
   }
 
@@ -206,17 +265,23 @@ export function validateOrderParams(params: {
   price?: string;
 }): { isValid: boolean; error?: string } {
   if (!params.coin) {
-    return { isValid: false, error: 'Coin is required for orders' };
+    return {
+      isValid: false,
+      error: strings('perps.errors.orderValidation.coinRequired'),
+    };
   }
 
   if (!params.size || parseFloat(params.size) <= 0) {
-    return { isValid: false, error: 'Size must be a positive number' };
+    return {
+      isValid: false,
+      error: strings('perps.errors.orderValidation.sizePositive'),
+    };
   }
 
   if (params.price && parseFloat(params.price) <= 0) {
     return {
       isValid: false,
-      error: 'Price must be a positive number if provided',
+      error: strings('perps.errors.orderValidation.pricePositive'),
     };
   }
 
@@ -231,7 +296,10 @@ export function validateCoinExists(
   coinToAssetId: Map<string, number>,
 ): { isValid: boolean; error?: string } {
   if (!coinToAssetId.has(coin)) {
-    return { isValid: false, error: `Unknown coin: ${coin}` };
+    return {
+      isValid: false,
+      error: strings('perps.errors.orderValidation.unknownCoin', { coin }),
+    };
   }
 
   return { isValid: true };

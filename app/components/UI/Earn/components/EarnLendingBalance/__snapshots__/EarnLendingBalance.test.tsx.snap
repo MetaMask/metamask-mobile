@@ -264,7 +264,6 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         "flex": 1,
         "flexDirection": "row",
         "height": 64,
-        "paddingHorizontal": 16,
       }
     }
     testID="asset-ADAI"
