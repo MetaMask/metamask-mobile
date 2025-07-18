@@ -42,7 +42,11 @@ import {
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import {
+  convertEnglishWordlistIndicesToCodepoints,
+  convertMnemonicToWordlistIndices,
+  uint8ArrayToMnemonic,
+} from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
@@ -641,6 +645,126 @@ class AuthenticationService {
     }
   };
 
+  syncSeedPhrases = async (): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return;
+    }
+
+    // 1. fetch all seed phrases
+    const [rootSecret, ...otherSecrets] =
+      await SeedlessOnboardingController.fetchAllSecretData();
+    if (!rootSecret) {
+      throw new Error('No root SRP found');
+    }
+
+    for (const secret of otherSecrets) {
+      // import SRP secret
+      // Get the SRP hash, and find the hash in the local state
+      const srpHash = SeedlessOnboardingController.getSecretDataBackupState(
+        secret.data,
+        secret.type,
+      );
+
+      if (!srpHash) {
+        // If SRP is not in the local state, import it to the vault
+
+        // // import private key secret
+        // if (secret.type === SecretType.PrivateKey) {
+        //   await this.importAccountWithStrategy(
+        //     'privateKey',
+        //     [bytesToHex(secret.data)],
+        //     {
+        //       shouldCreateSocialBackup: false,
+        //       shouldSelectAccount: false,
+        //     },
+        //   );
+        //   continue;
+        // }
+
+        // convert the seed phrase to a mnemonic (string)
+        const encodedSrp = convertEnglishWordlistIndicesToCodepoints(
+          secret.data,
+          wordlist,
+        );
+        const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
+
+        // import the new mnemonic to the current vault
+        await this.importMnemonicToVault(mnemonicToRestore, {
+          shouldCreateSocialBackup: false,
+          shouldSelectAccount: false,
+          shouldImportSolanaAccount: true,
+        });
+      }
+    }
+  };
+
+  importMnemonicToVault = async (
+    mnemonic: string,
+    options: {
+      shouldCreateSocialBackup: boolean;
+      shouldSelectAccount: boolean;
+      shouldImportSolanaAccount: boolean;
+    },
+  ): Promise<{
+    newAccountAddress: string;
+    discoveredAccountsCount: number;
+  }> => {
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+
+    const { id } = await KeyringController.addNewKeyring(KeyringTypes.hd, {
+      mnemonic,
+      numberOfAccounts: 1,
+    });
+
+    const isSeedlessOnboardingFlow = selectSeedlessOnboardingLoginFlow(
+      ReduxService.store.getState(),
+    );
+    if (isSeedlessOnboardingFlow) {
+      // if social backup is requested, add the seed phrase backup
+      const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
+      const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
+        seedPhraseAsBuffer,
+        wordlist,
+      );
+
+      await SeedlessOnboardingController.addNewSecretData(
+        seedPhraseAsUint8Array,
+        SecretType.Mnemonic,
+        {
+          keyringId: id,
+        },
+      );
+    }
+
+    const [newAccountAddress] = await KeyringController.withKeyring(
+      { id },
+      async ({ keyring }) => keyring.getAccounts(),
+    );
+
+    if (options.shouldSelectAccount) {
+      Engine.setSelectedAddress(newAccountAddress);
+    }
+
+    let discoveredAccountsCount = 0;
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    if (options.shouldImportSolanaAccount) {
+      const multichainClient = MultichainWalletSnapFactory.createClient(
+        WalletClientType.Solana,
+      );
+
+      discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
+        id,
+      );
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    return {
+      newAccountAddress,
+      discoveredAccountsCount,
+    };
+  };
+
   rehydrateSeedPhrase = async (
     password: string,
     authData: AuthData,
@@ -657,6 +781,7 @@ class AuthenticationService {
       );
 
       const allSRPs = result
+        // TODO: handle rehydrate private key
         .filter((item) => item.type === SecretType.Mnemonic)
         .map((item) => item.data);
 
