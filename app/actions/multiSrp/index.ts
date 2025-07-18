@@ -99,8 +99,11 @@ export async function importNewSecretRecoveryPhrase(
         },
       );
     } catch (error) {
-      // Log the error but don't let it crash the import process
-      console.error('Failed to backup seed phrase:', error);
+      // handle seedless controller import error by reverting keyring controller mnemonic import
+      // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+      await KeyringController.removeAccount(newAccountAddress);
+
+      throw error;
     }
   }
 
