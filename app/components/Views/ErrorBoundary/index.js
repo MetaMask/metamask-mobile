@@ -15,7 +15,10 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
-import { captureSentryFeedback } from '../../../util/sentry/utils';
+import {
+  captureSentryFeedback,
+  captureExceptionForced,
+} from '../../../util/sentry/utils';
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { fontStyles } from '../../../styles/common';
@@ -233,9 +236,12 @@ export const Fallback = (props) => {
   const styles = createStyles(colors);
   const [modalVisible, setModalVisible] = React.useState(false);
   const [feedback, setFeedback] = React.useState('');
-  const dataCollectionForMarketing = useSelector(
+  const isOnboardingError = Boolean(props.onboardingErrorConfig);
+  const isDataCollectionForMarketingEnabled = useSelector(
     (state) => state.security.dataCollectionForMarketing,
   );
+  const dataCollectionForMarketing =
+    isDataCollectionForMarketingEnabled && !isOnboardingError;
 
   const toggleModal = () => {
     setModalVisible((visible) => !visible);
@@ -243,6 +249,7 @@ export const Fallback = (props) => {
   };
   const handleContactSupport = () =>
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
+
   const handleTryAgain = () => DevSettings.reload();
 
   const handleSubmit = () => {
@@ -250,16 +257,57 @@ export const Fallback = (props) => {
     captureSentryFeedback({ sentryId: props.sentryId, comments: feedback });
     Alert.alert(strings('error_screen.bug_report_thanks'));
   };
+
+  const forceSentryReport = async (error) => {
+    try {
+      await captureExceptionForced(error, {
+        view: props.onboardingErrorConfig?.view || 'Unknown',
+        context: 'ErrorBoundary forced report',
+      });
+    } catch (sentryError) {
+      console.error('Failed to force report error to Sentry:', sentryError);
+    }
+  };
+
+  // Use onboarding-specific text if onboardingErrorConfig is provided
+  const title = isOnboardingError
+    ? strings('onboarding_error_fallback.title')
+    : strings('error_screen.title');
+  const description = isOnboardingError
+    ? strings('onboarding_error_fallback.description')
+    : strings('error_screen.subtitle');
+  const primaryButtonText = isOnboardingError
+    ? strings('onboarding_error_fallback.send_report')
+    : strings('error_screen.contact_support');
+  const secondaryButtonText = isOnboardingError
+    ? strings('onboarding_error_fallback.try_again')
+    : strings('error_screen.try_again');
+
+  const navigateToOnboarding = () => {
+    props.onboardingErrorConfig.navigation.reset({
+      routes: [{ name: 'OnboardingRootNav' }],
+    });
+  };
+
+  const onPrimary = isOnboardingError
+    ? async () => {
+        await forceSentryReport(props.onboardingErrorConfig.error);
+        navigateToOnboarding();
+      }
+    : handleContactSupport;
+
+  const onSecondary = isOnboardingError ? navigateToOnboarding : handleTryAgain;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Image source={WarningIcon} style={styles.errorImage} />
-        <Text style={styles.title}>{strings('error_screen.title')}</Text>
+        <Text style={styles.title}>{title}</Text>
       </View>
       <BannerAlert
         severity={BannerAlertSeverity.Info}
         style={styles.infoBanner}
-        description={<CLText>{strings('error_screen.subtitle')}</CLText>}
+        description={<CLText>{description}</CLText>}
       />
       <BannerAlert
         severity={BannerAlertSeverity.Warning}
@@ -312,7 +360,7 @@ export const Fallback = (props) => {
         )}
         <TouchableOpacity
           style={dataCollectionForMarketing ? styles.button : styles.blueButton}
-          onPress={handleContactSupport}
+          onPress={onPrimary}
         >
           <Text
             style={
@@ -321,13 +369,11 @@ export const Fallback = (props) => {
                 : styles.blueButtonText
             }
           >
-            {strings('error_screen.contact_support')}
+            {primaryButtonText}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleTryAgain}>
-          <Text style={styles.buttonText}>
-            {strings('error_screen.try_again')}
-          </Text>
+        <TouchableOpacity style={styles.button} onPress={onSecondary}>
+          <Text style={styles.buttonText}>{secondaryButtonText}</Text>
         </TouchableOpacity>
       </View>
       <Modal
@@ -404,6 +450,11 @@ Fallback.propTypes = {
   showExportSeedphrase: PropTypes.func,
   copyErrorToClipboard: PropTypes.func,
   sentryId: PropTypes.string,
+  onboardingErrorConfig: PropTypes.shape({
+    navigation: PropTypes.object,
+    error: PropTypes.object,
+    view: PropTypes.string,
+  }),
 };
 
 class ErrorBoundary extends Component {
@@ -417,6 +468,7 @@ class ErrorBoundary extends Component {
     view: PropTypes.string.isRequired,
     navigation: PropTypes.object,
     metrics: PropTypes.object,
+    useOnboardingErrorHandling: PropTypes.bool,
   };
 
   static getDerivedStateFromError(error) {
@@ -449,7 +501,11 @@ class ErrorBoundary extends Component {
     const sentryId = getLatestSentryId();
     this.setState({ sentryId });
     this.generateErrorReport(error, errorInfo?.componentStack);
-    Logger.error(error, { View: this.props.view, ...errorInfo });
+    Logger.error(error, {
+      View: this.props.view,
+      ErrorBoundary: true,
+      ...errorInfo,
+    });
   }
 
   resetError = () => {
@@ -492,6 +548,15 @@ class ErrorBoundary extends Component {
   };
 
   render() {
+    const { useOnboardingErrorHandling } = this.props;
+    const onboardingErrorConfig = useOnboardingErrorHandling
+      ? {
+          navigation: this.props.navigation,
+          error: this.state.error,
+          view: this.props.view,
+        }
+      : undefined;
+
     return this.state.backupSeedphrase
       ? this.renderWithSafeArea(
           <RevealPrivateCredential
@@ -509,6 +574,7 @@ class ErrorBoundary extends Component {
             copyErrorToClipboard={this.copyErrorToClipboard}
             openTicket={this.openTicket}
             sentryId={this.state.sentryId}
+            onboardingErrorConfig={onboardingErrorConfig}
           />,
         )
       : this.props.children;

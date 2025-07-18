@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
+import { captureException } from '@sentry/react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -93,7 +94,7 @@ import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
-import LottieView from 'lottie-react-native';
+import LottieView, { AnimationObject } from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
 import {
@@ -129,6 +130,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [biometryChoice, setBiometryChoice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
@@ -352,22 +354,46 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
+  const isSeedlessOnboardingControllerError = (err: Error): boolean =>
+    err.message.includes('SeedlessOnboardingController');
+
   const handleSeedlessOnboardingControllerError = (
-    seedlessError: SeedlessOnboardingControllerRecoveryError,
-  ) => {
-    // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
-    if (seedlessError.data?.numberOfAttempts !== undefined) {
-      setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+    seedlessError: Error,
+  ): void => {
+    if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
+      // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
+      if (seedlessError.data?.numberOfAttempts !== undefined) {
+        setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+      }
+      if (typeof seedlessError.data?.remainingTime === 'number') {
+        tooManyAttemptsError(seedlessError.data.remainingTime).catch(
+          () => null,
+        );
+        return;
+      }
     }
 
-    if (seedlessError.data?.remainingTime) {
-      tooManyAttemptsError(seedlessError.data?.remainingTime).catch(() => null);
+    const errMessage = seedlessError.message.replace(
+      'SeedlessOnboardingController - ',
+      '',
+    );
+    setError(errMessage);
+
+    // If user has already consented to analytics, report error using regular Sentry
+    if (isMetricsEnabled()) {
+      oauthLoginSuccess &&
+        captureException(seedlessError, {
+          tags: {
+            view: 'Login',
+            context: 'OAuth rehydration failed - user consented to analytics',
+          },
+        });
     } else {
-      const errMessage = seedlessError.message.replace(
-        'SeedlessOnboardingController - ',
-        '',
-      );
-      setError(errMessage);
+      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
+      oauthLoginSuccess &&
+        setErrorToThrow(
+          new Error(`OAuth rehydration failed: ${seedlessError.message}`),
+        );
     }
   };
 
@@ -388,11 +414,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const loginError = loginErr as Error;
     const loginErrorMessage = loginError.toString();
 
-    if (loginErr instanceof SeedlessOnboardingControllerRecoveryError) {
+    if (isSeedlessOnboardingControllerError(loginError)) {
       setLoading(false);
-      handleSeedlessOnboardingControllerError(
-        loginError as SeedlessOnboardingControllerRecoveryError,
-      );
+      handleSeedlessOnboardingControllerError(loginError);
       return;
     }
 
@@ -575,12 +599,26 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   );
 
   const lottieSrc = useMemo(
-    () => (password.length > 0 ? ConcealingFox : SearchingFox),
+    () =>
+      (password.length > 0 ? ConcealingFox : SearchingFox) as AnimationObject,
     [password.length],
   );
 
+  // Component that throws error if needed (to be caught by ErrorBoundary)
+  const ThrowErrorIfNeeded = () => {
+    if (errorToThrow) {
+      throw errorToThrow;
+    }
+    return null;
+  };
+
   return (
-    <ErrorBoundary navigation={navigation} view="Login">
+    <ErrorBoundary
+      navigation={navigation}
+      view="Login"
+      useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
+    >
+      <ThrowErrorIfNeeded />
       <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
