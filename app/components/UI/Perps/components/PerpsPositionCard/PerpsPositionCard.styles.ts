@@ -52,6 +52,11 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       alignItems: 'flex-end',
     },
+    rightAccessory: {
+      marginLeft: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     headerRow: {
       flexDirection: 'row',
       alignItems: 'center',

@@ -4,6 +4,13 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconName,
+  IconColor,
+} from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../component-library/hooks';
 import type { Theme } from '../../../../util/theme/models';
 import { PerpsTabControlBar } from '../components/PerpsTabControlBar';
@@ -137,6 +144,13 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
               position={position}
               expanded={false}
               showIcon
+              rightAccessory={
+                <ButtonIcon
+                  iconName={IconName.Close}
+                  iconColor={IconColor.Alternative}
+                  size={ButtonIconSizes.Md}
+                />
+              }
             />
           ))}
         </View>

@@ -39,6 +39,7 @@ interface PerpsPositionCardProps {
   disabled?: boolean;
   expanded?: boolean;
   showIcon?: boolean;
+  rightAccessory?: React.ReactNode;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -48,6 +49,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   disabled,
   expanded = true, // Default to expanded for backward compatibility
   showIcon = false, // Default to not showing icon
+  rightAccessory,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -159,6 +161,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </Text>
           </View>
         </View>
+
+        {/* Right Accessory - Conditionally shown */}
+        {rightAccessory && (
+          <View style={styles.rightAccessory}>{rightAccessory}</View>
+        )}
       </View>
 
       {/* Body - Only shown when expanded */}
