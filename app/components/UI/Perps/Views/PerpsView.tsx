@@ -173,7 +173,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   };
 
   const handleMarketListNavigation = async () => {
-    navigation.navigate('PerpsMarketListView');
+    navigation.navigate(Routes.PERPS.MARKETS);
   };
 
   const handlePositionsNavigation = async () => {
