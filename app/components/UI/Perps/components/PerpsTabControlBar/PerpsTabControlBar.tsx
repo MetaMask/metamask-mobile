@@ -21,7 +21,13 @@ import { AccountState } from '../../controllers';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { formatPerpsFiat } from '../../utils/formatUtils';
 
-export const PerpsTabControlBar: React.FC = () => {
+interface PerpsTabControlBarProps {
+  onManageBalancePress?: () => void;
+}
+
+export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
+  onManageBalancePress,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const [result, setResult] = useState<AccountState>({
     totalBalance: '',
@@ -120,7 +126,7 @@ export const PerpsTabControlBar: React.FC = () => {
   }, [getAccountBalance, subscribeToPositions, stopAnimation]);
 
   const handlePress = () => {
-    getAccountBalance();
+    onManageBalancePress?.();
   };
 
   return (

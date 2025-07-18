@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { View, ScrollView, RefreshControl } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
@@ -11,8 +12,18 @@ import {
   IconName,
   IconColor,
 } from '../../../../component-library/components/Icons/Icon';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../component-library/hooks';
 import type { Theme } from '../../../../util/theme/models';
+import Routes from '../../../../constants/navigation/Routes';
 import { PerpsTabControlBar } from '../components/PerpsTabControlBar';
 import PerpsPositionCard from '../components/PerpsPositionCard';
 import { usePerpsTrading } from '../hooks';
@@ -57,16 +68,26 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 24,
       alignItems: 'center' as const,
     },
+    bottomSheetContent: {
+      padding: 24,
+    },
+    actionButton: {
+      marginBottom: 12,
+    },
   };
 };
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const { getPositions } = usePerpsTrading();
 
   const [positions, setPositions] = useState<Position[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
+
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const loadPositions = useCallback(
     async (isRefresh = false) => {
@@ -97,6 +118,21 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   const handleRefresh = useCallback(() => {
     loadPositions(true);
   }, [loadPositions]);
+
+  const handleManageBalancePress = useCallback(() => {
+    setIsBottomSheetVisible(true);
+  }, []);
+
+  const handleCloseBottomSheet = useCallback(() => {
+    setIsBottomSheetVisible(false);
+  }, []);
+
+  const handleAddFunds = useCallback(() => {
+    setIsBottomSheetVisible(false);
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.DEPOSIT,
+    });
+  }, [navigation]);
 
   const renderPositionsSection = () => {
     if (isLoading) {
@@ -160,7 +196,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
   return (
     <View style={styles.wrapper}>
-      <PerpsTabControlBar />
+      <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
       <ScrollView
         style={styles.content}
         refreshControl={
@@ -169,6 +205,36 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       >
         <View style={styles.section}>{renderPositionsSection()}</View>
       </ScrollView>
+
+      {isBottomSheetVisible && (
+        <BottomSheet ref={bottomSheetRef} onClose={handleCloseBottomSheet}>
+          <BottomSheetHeader onClose={handleCloseBottomSheet}>
+            <Text variant={TextVariant.HeadingMD}>
+              {strings('perps.manage_balance')}
+            </Text>
+          </BottomSheetHeader>
+          <View style={styles.bottomSheetContent}>
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('perps.add_funds')}
+              onPress={handleAddFunds}
+              style={styles.actionButton}
+              startIconName={IconName.Add}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('perps.withdraw')}
+              onPress={handleCloseBottomSheet}
+              style={styles.actionButton}
+              startIconName={IconName.Minus}
+            />
+          </View>
+        </BottomSheet>
+      )}
     </View>
   );
 };

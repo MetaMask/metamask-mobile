@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PriceUpdate } from '../controllers/types';
 import type { CandleData } from '../types';
 import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
@@ -54,23 +55,49 @@ export const usePerpsPositionData = ({
   useEffect(() => {
     // Only fetch data if SDK is initialized and connected
     if (!isInitialized || !isConnected || !coin) {
+      DevLogger.log(
+        'usePerpsPositionData: Skipping fetch - conditions not met',
+        {
+          isInitialized,
+          isConnected,
+          coin,
+        },
+      );
       return;
     }
+
+    DevLogger.log('usePerpsPositionData: Starting historical data fetch', {
+      coin,
+      selectedInterval,
+      isInitialized,
+      isConnected,
+    });
 
     setIsLoadingHistory(true);
     const loadHistoricalData = async () => {
       try {
+        DevLogger.log('usePerpsPositionData: Fetching historical candles...');
         const historicalData = await fetchHistoricalCandles();
+        DevLogger.log('usePerpsPositionData: Historical data received', {
+          hasData: !!historicalData,
+          dataType: typeof historicalData,
+        });
         setCandleData(historicalData);
       } catch (err) {
-        console.error('Error loading historical candles:', err);
+        DevLogger.log('Error loading historical candles:', err);
       } finally {
         setIsLoadingHistory(false);
       }
     };
 
     loadHistoricalData();
-  }, [fetchHistoricalCandles, isInitialized, isConnected, coin]);
+  }, [
+    fetchHistoricalCandles,
+    isInitialized,
+    isConnected,
+    coin,
+    selectedInterval,
+  ]);
 
   // Subscribe to price updates only when SDK is ready
   useEffect(() => {
