@@ -28,7 +28,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     tabContainer: {
       flexDirection: 'row',
-      marginBottom: 16,
       borderWidth: 1,
       marginHorizontal: 16,
       borderRadius: 12,
@@ -144,11 +143,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     searchContainer: {
       marginHorizontal: 16,
-      marginBottom: 16,
       borderWidth: 1,
       borderColor: colors.border.muted,
       borderRadius: 12,
-      padding: 2,
     },
     searchInputContainer: {
       flexDirection: 'row',
@@ -156,7 +153,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.muted,
       borderRadius: 12,
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingVertical: 7,
     },
     searchIcon: {
       marginRight: 10,
