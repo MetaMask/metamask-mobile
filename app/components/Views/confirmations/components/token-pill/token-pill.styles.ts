@@ -13,12 +13,19 @@ const styleSheet = (params: { theme: Theme }) => {
     gap: 5,
   };
 
+  const tokenIconStyle: ViewStyle = {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+  };
+
   const networkIconStyle: ViewStyle = {
     paddingTop: 4,
   };
 
   return StyleSheet.create({
     base: baseStyle,
+    tokenIcon: tokenIconStyle,
     networkIcon: networkIconStyle,
   });
 };
