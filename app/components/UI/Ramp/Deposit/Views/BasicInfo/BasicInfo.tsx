@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -63,7 +65,7 @@ const BasicInfo = (): JSX.Element => {
     firstName: '',
     lastName: '',
     mobileNumber: '',
-    dob: new Date(2000, 0, 1).getTime().toString(),
+    dob: '',
     ssn: '',
   };
 
@@ -92,12 +94,13 @@ const BasicInfo = (): JSX.Element => {
       errors.mobileNumber = strings('deposit.basic_info.mobile_number_invalid');
     }
 
-    const transakFormattedDate = timestampToTransakFormat(formData.dob);
-
-    if (!transakFormattedDate.trim()) {
+    if (!formData.dob.trim()) {
       errors.dob = strings('deposit.basic_info.dob_required');
-    } else if (!VALIDATION_REGEX.dateOfBirth.test(transakFormattedDate)) {
-      errors.dob = strings('deposit.basic_info.dob_invalid');
+    } else {
+      const transakFormattedDate = timestampToTransakFormat(formData.dob);
+      if (!VALIDATION_REGEX.dateOfBirth.test(transakFormattedDate)) {
+        errors.dob = strings('deposit.basic_info.dob_invalid');
+      }
     }
 
     if (selectedRegion?.isoCode === 'US' && !formData.ssn?.trim()) {
@@ -124,7 +127,7 @@ const BasicInfo = (): JSX.Element => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.basic_info.title') },
+        { title: strings('deposit.basic_info.navbar_title') },
         theme,
       ),
     );
@@ -136,7 +139,9 @@ const BasicInfo = (): JSX.Element => {
         ...createEnterAddressNavDetails({
           formData: {
             ...formData,
-            dob: timestampToTransakFormat(formData.dob),
+            dob: formData.dob.trim()
+              ? timestampToTransakFormat(formData.dob)
+              : '',
           },
           quote,
           kycUrl,
@@ -176,6 +181,9 @@ const BasicInfo = (): JSX.Element => {
         >
           <ScreenLayout.Content>
             <DepositProgressBar steps={4} currentStep={2} />
+            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+              {strings('deposit.basic_info.title')}
+            </Text>
             <Text style={styles.subtitle}>
               {strings('deposit.basic_info.subtitle')}
             </Text>
