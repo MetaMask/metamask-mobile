@@ -135,6 +135,12 @@ class AccountListBottomSheet {
     await Gestures.waitAndTap(this.connectAccountsButton);
   }
 
+  async tapAccountByName(accountName) {
+    const name = Matchers.getElementByText(accountName);
+
+    await Gestures.waitAndTap(name);
+  }
+
   async scrollToAccount(index) {
     await Gestures.scrollToElement(
       Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index),
