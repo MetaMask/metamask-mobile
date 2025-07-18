@@ -76,7 +76,7 @@ module.exports = {
       device: {
         avdName: 'emulator',
       },
-      bootArgs: '-skin 1080x2340 -memory 4096 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -density 440 -partition-size 4096',
+      bootArgs: '-skin 1080x2340 -memory 4096 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096',
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
     },
