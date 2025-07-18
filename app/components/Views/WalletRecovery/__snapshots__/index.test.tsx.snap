@@ -105,6 +105,7 @@ exports[`WalletRecovery render matches snapshot 1`] = `
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
+                    "width": "100%",
                   }
                 }
               >

@@ -26,6 +26,7 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
   isIphone5S: jest.fn(),
   isIos: jest.fn(),
+  isMediumDevice: jest.fn(),
 }));
 
 jest.mock('react-native-scrollable-tab-view', () => {
@@ -64,11 +65,13 @@ describe('OnboardingCarousel', () => {
     (Device.isIphoneX as jest.Mock).mockReset();
     (Device.isIphone5S as jest.Mock).mockReset();
     (Device.isIos as jest.Mock).mockReset();
+    (Device.isMediumDevice as jest.Mock).mockReset();
 
     (Device.isAndroid as jest.Mock).mockReturnValue(false);
     (Device.isIphoneX as jest.Mock).mockReturnValue(false);
     (Device.isIphone5S as jest.Mock).mockReturnValue(false);
     (Device.isIos as jest.Mock).mockReturnValue(true);
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
 
     Platform.OS = 'ios';
   });
@@ -124,6 +127,18 @@ describe('OnboardingCarousel', () => {
       (Device.isIphoneX as jest.Mock).mockReturnValue(false);
       (Device.isIphone5S as jest.Mock).mockReturnValue(true);
       (Device.isIos as jest.Mock).mockReturnValue(true);
+
+      const { toJSON } = renderWithProvider(
+        <OnboardingCarousel navigation={mockNavigation} />,
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should use android medium device', () => {
+      (Device.isAndroid as jest.Mock).mockReturnValue(true);
+      (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
 
       const { toJSON } = renderWithProvider(
         <OnboardingCarousel navigation={mockNavigation} />,
