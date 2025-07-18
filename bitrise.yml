@@ -978,7 +978,7 @@ workflows:
     envs:
       - TEST_SUITE_TAG: '.*SmokePerformance.*'
     after_run:
-      - ios_e2e_test_performance
+      - ios_e2e_test
   run_tag_smoke_performance_android:
     meta:
       bitrise.io:
@@ -987,7 +987,7 @@ workflows:
     envs:
       - TEST_SUITE_TAG: '.*SmokePerformance.*'
     after_run:
-      - android_e2e_test_performance
+      - android_e2e_test
   run_tag_multichain_permissions_ios:
     envs:
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
