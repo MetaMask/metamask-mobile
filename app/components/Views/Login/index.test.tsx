@@ -166,7 +166,7 @@ const mockMetricsCreateEventBuilder = jest.fn((eventName) => ({
 
 jest.mock('../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
-  withMetricsAwareness: jest.fn((Component) => (props: any) => (
+  withMetricsAwareness: jest.fn((Component) => (props: Record<string, unknown>) => (
     <Component
       {...props}
       metrics={{
