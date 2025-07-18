@@ -66,7 +66,7 @@ import {
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  DEBIT_CREDIT_PAYMENT_METHOD,
+  APPLE_PAY_PAYMENT_METHOD,
 } from '../../constants';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import Logger from '../../../../../../util/Logger';
@@ -83,7 +83,7 @@ const BuildQuote = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
-    DEBIT_CREDIT_PAYMENT_METHOD,
+    APPLE_PAY_PAYMENT_METHOD,
   );
   const [cryptoCurrency, setCryptoCurrency] =
     useState<DepositCryptoCurrency>(USDC_TOKEN);
