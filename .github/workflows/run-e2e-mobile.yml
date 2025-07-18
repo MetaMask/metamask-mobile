@@ -231,7 +231,7 @@ jobs:
 
           else
             echo "🔧 Preparing Android environment..."
-            # Clean up existing emulators
+            # Clean up existing emulators (Detox will launch with correct configuration)
             adb devices | grep emulator | cut -f1 | while read line; do
               adb -s "$line" emu kill 2>/dev/null || true
             done
@@ -239,6 +239,8 @@ jobs:
             pkill -f "qemu-system" 2>/dev/null || true
             pkill -f "Metro\|node\|npm" 2>/dev/null || true
             sleep 3
+            
+            echo "✅ Android environment ready - Detox will launch emulator with 1080x2340 configuration"
           fi
 
           # Start monitoring just before test execution
@@ -271,12 +273,14 @@ jobs:
                 }
               ')
               echo "$timestamp,macOS,$cpu_usage,$memory_info" >> $MONITOR_LOG
+              echo "📊 [$timestamp] CPU: ${cpu_usage}% | Memory: $(echo $memory_info | cut -d',' -f3)% used"
               
             else
               # Linux resource monitoring
               cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | sed 's/%us,//')
               memory_info=$(free -m | awk 'NR==2{printf "%d,%d,%.1f", $2,$3,($3/$2)*100}')
               echo "$timestamp,Linux,$cpu_usage,$memory_info" >> $MONITOR_LOG
+              echo "📊 [$timestamp] CPU: ${cpu_usage}% | Memory: $(echo $memory_info | cut -d',' -f3)% used"
             fi
           }
           
@@ -309,6 +313,35 @@ jobs:
           
           echo "💾 Starting test execution with monitoring..."
           ./scripts/run-e2e-tags.sh
+          
+          # Verify emulator configuration after Detox launches it (Android only)
+          if [[ "$platform" == "android" ]]; then
+            echo "📱 Verifying emulator display configuration after Detox launch..."
+            
+            # Give emulator a moment to stabilize after Detox startup
+            sleep 5
+            
+            # Check if emulator is running and get display info
+            if adb devices | grep -q emulator; then
+              width=$(adb shell wm size 2>/dev/null | grep -o '[0-9]*x[0-9]*' | cut -d'x' -f1 || echo "unknown")
+              height=$(adb shell wm size 2>/dev/null | grep -o '[0-9]*x[0-9]*' | cut -d'x' -f2 || echo "unknown")
+              density=$(adb shell wm density 2>/dev/null | grep -o '[0-9]*' || echo "unknown")
+              
+              echo "📋 Detox Emulator Display: ${width}x${height}, density: ${density}"
+              
+              if [[ "$width" == "1080" && "$height" == "2340" && "$density" == "440" ]]; then
+                echo "✅ Emulator running with correct display configuration"
+              else
+                echo "⚠️  Display configuration doesn't match expected values"
+                echo "Expected: 1080x2340, density 440"
+                echo "Actual: ${width}x${height}, density ${density}"
+                echo "This may cause test failures due to element visibility issues"
+              fi
+            else
+              echo "⚠️  No emulator detected by ADB after test run"
+            fi
+          fi
+          
           echo "✅ Test execution completed"
           
           # Stop monitoring immediately after tests
