@@ -2,55 +2,57 @@ import {
   NetworkListModalSelectorsIDs,
   NetworkListModalSelectorsText,
 } from '../../selectors/Network/NetworkListModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
-import TestHelpers from '../../helpers';
 import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class NetworkListModal {
-  get networkScroll() {
+  get networkScroll(): DetoxElement {
     return Matchers.getElementByID(NetworkListModalSelectorsIDs.SCROLL);
   }
 
-  get closeIcon() {
+  get closeIcon(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
   }
 
-  get deleteNetworkButton() {
+  get deleteNetworkButton(): DetoxElement {
     return Matchers.getElementByText(
       NetworkListModalSelectorsText.DELETE_NETWORK,
     );
   }
 
-  get addPopularNetworkButton() {
+  get addPopularNetworkButton(): DetoxElement {
     return Matchers.getElementByText(
       NetworkListModalSelectorsText.ADD_POPULAR_NETWORK_BUTTON,
     );
   }
 
-  get networkSearchInput() {
+  get networkSearchInput(): DetoxElement {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
     );
   }
 
-  get selectNetwork() {
+  get selectNetwork(): DetoxElement {
     return Matchers.getElementByText(
       NetworkListModalSelectorsText.SELECT_NETWORK,
     );
   }
 
-  get testNetToggle() {
+  get testNetToggle(): DetoxElement {
     return Matchers.getElementByID(
       NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
     );
   }
 
-  get deleteButton() {
+  get deleteButton(): DetoxElement {
     return Matchers.getElementByID('delete-network-button');
   }
 
-  async getCustomNetwork(network, custom = false) {
+  async getCustomNetwork(
+    network: string,
+    custom = false,
+  ): Promise<DetoxElement> {
     if (device.getPlatform() === 'android' || !custom) {
       return Matchers.getElementByText(network);
     }
@@ -60,53 +62,57 @@ class NetworkListModal {
     );
   }
 
-  async tapDeleteButton() {
+  async tapDeleteButton(): Promise<void> {
     await Gestures.waitAndTap(this.deleteNetworkButton);
   }
 
-  async scrollToTopOfNetworkList() {
-    await Gestures.swipe(this.networkScroll, 'down', 'fast');
+  async scrollToTopOfNetworkList(): Promise<void> {
+    await Gestures.swipe(this.networkScroll, 'down', {
+      speed: 'fast',
+    });
   }
 
-  async changeNetworkTo(networkName, custom) {
+  async changeNetworkTo(networkName: string, custom = false): Promise<void> {
     const elem = this.getCustomNetwork(networkName, custom);
-    await Gestures.waitAndTap(elem, { delayBeforeTap: 2500 });
+    await Gestures.waitAndTap(elem);
   }
 
-  async scrollToBottomOfNetworkList() {
-    await Gestures.swipe(this.networkScroll, 'up', 'fast');
+  async scrollToBottomOfNetworkList(): Promise<void> {
+    await Gestures.swipe(this.networkScroll, 'up', {
+      speed: 'fast',
+    });
   }
 
-  async swipeToDismissModal() {
-    await Gestures.swipe(this.selectNetwork, 'down', 'slow', 0.9);
+  async swipeToDismissModal(): Promise<void> {
+    await Gestures.swipe(this.selectNetwork, 'down', {
+      speed: 'slow',
+      percentage: 0.9,
+    });
   }
 
-  async tapTestNetworkSwitch() {
-    await Gestures.waitAndTap(this.testNetToggle, { delayBeforeTap: 2500 });
+  async tapTestNetworkSwitch(): Promise<void> {
+    await Gestures.waitAndTap(this.testNetToggle);
   }
 
-  async longPressOnNetwork(networkName) {
+  async longPressOnNetwork(networkName: string): Promise<void> {
     const network = Matchers.getElementByText(networkName);
     await Gestures.tapAndLongPress(network);
   }
 
-  async SearchNetworkName(networkName) {
-    await Gestures.typeTextAndHideKeyboard(
-      this.networkSearchInput,
-      networkName,
-    );
+  async SearchNetworkName(networkName: string): Promise<void> {
+    await Gestures.typeText(this.networkSearchInput, networkName, {
+      hideKeyboard: true,
+    });
   }
 
-  async tapClearSearch() {
+  async tapClearSearch(): Promise<void> {
     await Gestures.waitAndTap(this.closeIcon);
   }
 
-  async tapAddNetworkButton() {
-    await Gestures.waitAndTap(this.addPopularNetworkButton, {
-      delayBeforeTap: 2500,
-    });
+  async tapAddNetworkButton(): Promise<void> {
+    await Gestures.waitAndTap(this.addPopularNetworkButton);
   }
-  async deleteNetwork() {
+  async deleteNetwork(): Promise<void> {
     await Gestures.waitAndTap(this.deleteButton);
   }
 }

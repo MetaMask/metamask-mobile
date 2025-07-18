@@ -1,50 +1,52 @@
 import { TermsOfUseModalSelectorsIDs } from '../../selectors/Onboarding/TermsOfUseModal.selectors';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class TermsOfUseModal {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CONTAINER);
   }
 
-  get checkbox() {
+  get checkbox(): DetoxElement {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CHECKBOX);
   }
 
-  get scrollArrowButton() {
+  get scrollArrowButton(): DetoxElement {
     return Matchers.getElementByID(
       TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON,
     );
   }
 
-  get acceptButton() {
+  get acceptButton(): DetoxElement {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
   }
 
-  get closeButton() {
+  get closeButton(): DetoxElement {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CLOSE_BUTTON);
   }
 
-  async tapAgreeCheckBox() {
+  async tapAgreeCheckBox(): Promise<void> {
     await Gestures.waitAndTap(this.checkbox, {
       elemDescription: 'Terms of Use Modal Agree Checkbox',
     });
   }
 
-  async tapScrollEndButton() {
+  async tapScrollEndButton(): Promise<void> {
     await Gestures.waitAndTap(this.scrollArrowButton, {
       elemDescription: 'Terms of Use Modal Scroll Arrow Button',
     });
   }
 
-  async tapAcceptButton() {
+  async tapAcceptButton(): Promise<void> {
     await Gestures.waitAndTap(this.acceptButton, {
       elemDescription: 'Terms of Use Modal Accept Button',
     });
   }
 
-  async tapCloseButton() {
-    await Gestures.waitAndTap(this.closeButton);
+  async tapCloseButton(): Promise<void> {
+    await Gestures.waitAndTap(this.closeButton, {
+      elemDescription: 'Terms of Use Modal Close Button',
+    });
   }
 }
 

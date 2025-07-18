@@ -1,25 +1,25 @@
 import { ProtectWalletModalSelectorsIDs } from '../../selectors/Onboarding/ProtectWalletModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class ProtectYourWalletModal {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ProtectWalletModalSelectorsIDs.CONTAINER);
   }
 
-  get remindMeLaterButton() {
+  get remindMeLaterButton(): DetoxElement {
     return Matchers.getElementByID(
       ProtectWalletModalSelectorsIDs.REMIND_ME_LATER_BUTTON,
     );
   }
 
-  get collapseWalletModal() {
+  get collapseWalletModal(): DetoxElement {
     return Matchers.getElementByID(
       ProtectWalletModalSelectorsIDs.COLLAPSED_WALLET_MODAL,
     );
   }
 
-  async tapRemindMeLaterButton() {
+  async tapRemindMeLaterButton(): Promise<void> {
     await Gestures.waitAndTap(this.remindMeLaterButton);
   }
 }
