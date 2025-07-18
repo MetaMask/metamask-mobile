@@ -134,15 +134,10 @@ class AuthenticationService {
       const nonEvmClientTypes = Object.values(WalletClientType);
 
       const discoveryPromises = nonEvmClientTypes.map(async (clientType) => {
-        try {
-          const client = MultichainWalletSnapFactory.createClient(clientType, {
-            setSelectedAccount: false,
-          });
-          return await client.addDiscoveredAccounts(primaryHdKeyringId);
-        } catch (error) {
-          console.warn(`${clientType} account discovery failed:`, error);
-          return null;
-        }
+        const client = MultichainWalletSnapFactory.createClient(clientType, {
+          setSelectedAccount: false,
+        });
+        return await client.addDiscoveredAccounts(primaryHdKeyringId);
       });
 
       const results = await Promise.allSettled(discoveryPromises);
