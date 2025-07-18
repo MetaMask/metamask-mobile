@@ -164,7 +164,7 @@ const mockBackHandlerAddEventListener = jest.fn();
 const mockBackHandlerRemoveEventListener = jest.fn();
 
 jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(() => ({ 
+  useMetrics: jest.fn(() => ({
     isEnabled: jest.fn(() => true),
   })),
   withMetricsAwareness: jest.fn().mockImplementation((Component) => Component),
@@ -301,7 +301,7 @@ describe('Login', () => {
 
         mockUseMetrics.mockReturnValue({
           isEnabled: jest.fn(() => false),
-          } as unknown as IUseMetricsHook);
+        } as unknown as IUseMetricsHook);
 
         (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
           undefined,
