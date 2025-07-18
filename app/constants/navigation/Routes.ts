@@ -34,6 +34,7 @@ const Routes = {
     ORDER_PROCESSING: 'OrderProcessing',
     ORDER_DETAILS: 'DepositOrderDetails',
     BANK_DETAILS: 'BankDetails',
+    ADDITIONAL_VERIFICATION: 'AdditionalVerification',
     MODALS: {
       ID: 'DepositModals',
       TOKEN_SELECTOR: 'DepositTokenSelectorModal',
@@ -212,6 +213,11 @@ const Routes = {
     POSITIONS: 'PerpsPositions',
     MARKETS: 'PerpsMarketListView',
     POSITION_DETAILS: 'PerpsPositionDetails',
+    MODALS: {
+      ROOT: 'PerpsModals',
+      QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
+      SLIPPAGE_MODAL: 'PerpsSlippageModal',
+    },
     ORDER_HISTORY: 'PerpsOrderHistory',
     ORDER_DETAILS: 'PerpsOrderDetails',
   },

@@ -9,6 +9,7 @@ import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import TestHelpers from '../../helpers';
+import Utilities from '../../utils/Utilities';
 
 describe(SmokeAccounts('Import account via private to wallet'), () => {
   // This key is for testing private key import only
@@ -22,11 +23,9 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase(
-      {
-        seedPhrase: process.env.MM_TEST_WALLET_SRP,
-      },
-    );
+    await importWalletWithRecoveryPhrase({
+      seedPhrase: process.env.MM_TEST_WALLET_SRP,
+    });
   });
 
   it('should be able to import account', async () => {
@@ -36,6 +35,7 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
     await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
     // Tap on import button to make sure alert pops up
+    await Utilities.waitForElementToBeEnabled(ImportAccountView.importButton);
     await ImportAccountView.tapImportButton();
     await CommonView.tapOKAlertButton();
     await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);

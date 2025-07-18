@@ -19,6 +19,7 @@ import {
   validateAssetSupport,
   validateBalance,
   validateCoinExists,
+  validateDepositParams,
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
@@ -34,6 +35,7 @@ import type {
   CancelOrderParams,
   CancelOrderResult,
   ClosePositionParams,
+  DepositParams,
   DisconnectResult,
   EditOrderParams,
   GetAccountStateParams,
@@ -54,6 +56,7 @@ import type {
   WithdrawParams,
   WithdrawResult,
 } from '../types';
+import { strings } from '../../../../../../locales/i18n';
 
 /**
  * HyperLiquid provider implementation
@@ -125,7 +128,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         coins: Array.from(this.coinToAssetId.keys()),
       });
     } catch (error) {
-      DevLogger.log('Failed to build asset mapping:', error);
+      DevLogger.log(strings('perps.errors.assetMappingFailed'), error);
       throw error;
     }
   }
@@ -657,8 +660,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
   }
 
-  // NOTE: deposit() method removed from provider - handled by PerpsController routing
-  // withdraw() method stays here since it's a HyperLiquid API operation
+  /**
+   * Validate deposit parameters according to HyperLiquid-specific rules
+   * This method enforces protocol-specific requirements like minimum amounts
+   */
+  validateDeposit(params: DepositParams): { isValid: boolean; error?: string } {
+    return validateDepositParams({
+      amount: params.amount,
+      assetId: params.assetId,
+      isTestnet: this.clientService.isTestnetMode(),
+    });
+  }
 
   /**
    * Withdraw funds from HyperLiquid trading account
@@ -681,7 +693,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.assetId) {
-        throw new Error('assetId is required for withdrawals');
+        throw new Error(
+          strings('perps.errors.withdrawValidation.assetIdRequired'),
+        );
       }
 
       const assetValidation = validateAssetSupport(
@@ -710,7 +724,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.amount) {
-        throw new Error('amount is required for withdrawals');
+        throw new Error(
+          strings('perps.errors.withdrawValidation.amountRequired'),
+        );
       }
 
       const withdrawAmount = parseFloat(params.amount);
@@ -844,7 +860,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         ready: false,
         walletConnected: false,
         networkSupported: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
       };
     }
   }

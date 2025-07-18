@@ -3,6 +3,8 @@ export { usePerpsTrading } from './usePerpsTrading';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsMarkets } from './usePerpsMarkets';
+export { usePerpsDeposit } from './usePerpsDeposit';
+export { usePerpsDepositQuote } from './usePerpsDepositQuote';
 
 // Connection management hooks
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
