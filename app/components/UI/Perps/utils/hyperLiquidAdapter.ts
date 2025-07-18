@@ -5,6 +5,7 @@ import type {
   AccountState,
 } from '../controllers/types';
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PerpsClearinghouseState,
   AssetPosition,
@@ -105,6 +106,14 @@ export function adaptAccountStateFromSDK(
   perpsState: PerpsClearinghouseState,
   spotState?: SpotClearinghouseState,
 ): AccountState {
+  DevLogger.log('adaptAccountStateFromSDK - Input perpsState:', {
+    crossMarginSummary: perpsState.crossMarginSummary,
+    assetPositions: perpsState.assetPositions?.length || 0,
+  });
+  DevLogger.log('adaptAccountStateFromSDK - Input spotState:', {
+    balances: spotState?.balances,
+  });
+
   // Calculate total unrealized PnL from all positions
   const totalUnrealizedPnl = perpsState.assetPositions
     .reduce(
@@ -159,6 +168,15 @@ export function adaptAccountStateFromSDK(
     marginUsed: perpsState.crossMarginSummary.totalMarginUsed,
     unrealizedPnl: totalUnrealizedPnl,
   };
+
+  DevLogger.log('adaptAccountStateFromSDK - Output:', {
+    availableBalance: accountState.availableBalance,
+    totalBalance: accountState.totalBalance,
+    marginUsed: accountState.marginUsed,
+    unrealizedPnl: accountState.unrealizedPnl,
+    perpsBalance,
+    spotBalance,
+  });
 
   return accountState;
 }

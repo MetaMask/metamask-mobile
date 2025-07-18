@@ -10,6 +10,8 @@ import PerpsDepositSuccessView from '../Views/PerpsDepositSuccessView';
 import PerpsView from '../Views/PerpsView';
 import PerpsPositionDetailsView from '../Views/PerpsPositionDetailsView';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
+import PerpsOrderView from '../Views/PerpsOrderView';
+import PerpsOrderSuccessView from '../Views/PerpsOrderSuccessView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import PerpsSlippageModal from '../components/PerpsSlippageModal';
 
@@ -80,13 +82,27 @@ const PerpsScreenStack = () => (
         }}
       />
 
+      <Stack.Screen
+        name={Routes.PERPS.ORDER}
+        component={PerpsOrderView}
+        options={{
+          title: strings('perps.order.title'),
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name={Routes.PERPS.ORDER_SUCCESS}
+        component={PerpsOrderSuccessView}
+        options={{
+          title: strings('perps.order.success.title'),
+          headerShown: false,
+        }}
+      />
+
       {/*
         Removed for minimal PR (can be added back in future PRs):
         - PerpsMarketListView (Market list)
-        - PerpsPositionsView (Positions list)
-        - PerpsPositionDetailsView (Position details)
-        - PerpsOrderView (Order placement)
-        - PerpsOrderSuccessView (Order success)
         - PerpsOrderHistoryView (Order history)
         - PerpsOrderDetailsView (Order details)
       */}

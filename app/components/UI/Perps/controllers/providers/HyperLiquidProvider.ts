@@ -544,6 +544,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const userAddress = await this.walletService.getUserAddressWithDefault(
         params?.accountId,
       );
+      
+      DevLogger.log('User address for account state:', userAddress);
+      DevLogger.log('Network mode:', this.clientService.isTestnetMode() ? 'TESTNET' : 'MAINNET');
 
       // Get both Perps and Spot balances
       const [perpsState, spotState] = await Promise.all([
@@ -554,15 +557,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Perps state:', perpsState);
       DevLogger.log('Spot state:', spotState);
 
-      return adaptAccountStateFromSDK(perpsState, spotState);
+      const accountState = adaptAccountStateFromSDK(perpsState, spotState);
+      DevLogger.log('Adapted account state:', accountState);
+      
+      return accountState;
     } catch (error) {
       DevLogger.log('Error getting account state:', error);
-      return {
-        availableBalance: '0',
-        totalBalance: '0',
-        marginUsed: '0',
-        unrealizedPnl: '0',
-      };
+      // Re-throw the error so the controller can handle it properly
+      // This allows the UI to show proper error messages instead of zeros
+      throw error;
     }
   }
 

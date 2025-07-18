@@ -55,6 +55,15 @@ const styleSheet = (params: { theme: Theme }) => {
     button: {
       marginBottom: 16,
     },
+    tradingButtonsContainer: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      marginTop: 16,
+    },
+    tradingButton: {
+      flex: 1,
+      marginHorizontal: 8,
+    },
     resultContainer: {
       padding: 16,
       borderRadius: 8,
@@ -222,9 +231,16 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             Network: {currentNetwork.toUpperCase()}
           </Text>
           {cachedAccountState ? (
-            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
-              Cached Balance: ${cachedAccountState.totalBalance}
-            </Text>
+            <>
+              <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+                Balance: ${cachedAccountState.totalBalance}
+              </Text>
+              {parseFloat(cachedAccountState.totalBalance) === 0 && (
+                <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
+                  No funds deposited. Use &apos;Deposit Funds&apos; to get started.
+                </Text>
+              )}
+            </>
           ) : isLoading ? (
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               Loading balance...
@@ -278,6 +294,28 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             loading={isLoading}
             style={styles.button}
           />
+
+          {/* Trading buttons */}
+          <View style={styles.tradingButtonsContainer}>
+            <View style={styles.tradingButton}>
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Auto}
+                label="Long"
+                onPress={() => navigation.navigate(Routes.PERPS.ORDER, { direction: 'long' })}
+              />
+            </View>
+            <View style={styles.tradingButton}>
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Auto}
+                label="Short"
+                onPress={() => navigation.navigate(Routes.PERPS.ORDER, { direction: 'short' })}
+              />
+            </View>
+          </View>
         </View>
 
         {result ? (
