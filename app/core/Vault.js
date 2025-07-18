@@ -34,6 +34,16 @@ export const recreateVaultWithNewPassword = async (
   const { KeyringController, SeedlessOnboardingController } = Engine.context;
   const { setSelectedAddress } = Engine;
 
+  if (!selectedAddress) {
+    throw new Error('No selected address');
+  }
+
+  try {
+    await KeyringController.verifyPassword(password);
+  } catch (error) {
+    throw new Error('Invalid password');
+  }
+
   let seedlessChangePasswordError = null;
   await KeyringController.changePassword(newPassword);
 

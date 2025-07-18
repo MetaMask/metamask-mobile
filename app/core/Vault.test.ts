@@ -184,6 +184,7 @@ describe('Vault', () => {
     mockChangePassword.mockResolvedValue(undefined);
     mockExportSeedPhrase.mockResolvedValue([]);
     mockCreateNewVaultAndRestore.mockResolvedValue(null);
+    mockVerifyPassword.mockResolvedValue(undefined);
 
     // Mock ReduxService store
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -222,6 +223,7 @@ describe('Vault', () => {
       const primarySeedPhrase = 'seed-phrase';
       mockExportSeedPhrase.mockResolvedValue([primarySeedPhrase]);
       mockChangePassword.mockResolvedValue(undefined);
+      mockVerifyPassword.mockResolvedValue(undefined);
 
       // Mock ReduxService to return a vault
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -261,6 +263,7 @@ describe('Vault', () => {
       const expectedError = new Error('test error');
       mockExportSeedPhrase.mockResolvedValue([primarySeedPhrase]);
       mockChangePassword.mockResolvedValue(undefined);
+      mockVerifyPassword.mockResolvedValue(undefined);
 
       // Mock ReduxService to return a vault
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
