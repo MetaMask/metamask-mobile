@@ -55,7 +55,7 @@ export function PrivacyOverlay() {
         androidFocusListener?.remove();
       }
     };
-  }, [showOverlay]);
+  }, []);
 
   if (!showOverlay) return null;
 
