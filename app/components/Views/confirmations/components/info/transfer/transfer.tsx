@@ -52,7 +52,7 @@ const Transfer = () => {
       />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
-      <PayWithRow />
+      {process.env.MM_CONFIRMATION_INTENTS === 'true' && <PayWithRow />}
     </View>
   );
 };

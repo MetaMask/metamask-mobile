@@ -12,12 +12,10 @@ export function PayWithRow() {
   const { payAsset } = usePayAsset();
 
   const handleClick = useCallback(() => {
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
+      minimumFiatBalance: 2,
+    });
   }, [navigation]);
-
-  if (process.env.MM_CONFIRMATION_INTENTS !== 'true') {
-    return null;
-  }
 
   return (
     <>
