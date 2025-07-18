@@ -1159,6 +1159,7 @@
     "turn_on_network_check_cta": "Turn on network details check",
     "display_nft_media_cta_new_1": "To see an NFT, turn on Display NFT media in",
     "display_nft_media_cta_new_2": "Settings > Security and Privacy.",
+    "perps": "Perpetuals",
     "banner": {
       "title": "Basic functionality is off",
       "link": "Turn on basic functionality"

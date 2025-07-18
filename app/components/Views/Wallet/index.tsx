@@ -5,7 +5,13 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { ActivityIndicator, StyleSheet, View, Linking } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  View,
+  Linking,
+  TextStyle,
+} from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
 import ScrollableTabView, {
@@ -116,6 +122,7 @@ import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { PerpsView, selectPerpsEnabledFlag } from '../../UI/Perps';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -144,6 +151,10 @@ const createStyles = ({ colors }: Theme) =>
     carouselContainer: {
       marginTop: 12,
     },
+    tabStyle: {
+      paddingBottom: 8,
+      paddingVertical: 8,
+    },
   });
 
 interface WalletProps {
@@ -163,6 +174,7 @@ const WalletTokensTabView = React.memo(
     defiEnabled: boolean;
     collectiblesEnabled: boolean;
   }) => {
+    const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
 
     const theme = useTheme();
@@ -170,15 +182,31 @@ const WalletTokensTabView = React.memo(
 
     const renderTabBar = useCallback(
       (tabBarProps: Record<string, unknown>) => (
-        <TabBar style={styles.tabBar} {...tabBarProps} />
+        <TabBar
+          style={styles.tabBar}
+          {...tabBarProps}
+          tabStyle={styles.tabStyle}
+          textStyle={{
+            ...(theme.typography.sBodySMBold as TextStyle),
+          }}
+        />
       ),
-      [styles],
+      [styles, theme],
     );
 
     const tokensTabProps = useMemo(
       () => ({
         key: 'tokens-tab',
         tabLabel: strings('wallet.tokens'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    const perpsTabProps = useMemo(
+      () => ({
+        key: 'perps-tab',
+        tabLabel: strings('wallet.perps'),
         navigation,
       }),
       [navigation],
@@ -209,6 +237,7 @@ const WalletTokensTabView = React.memo(
           onChangeTab={onChangeTab}
         >
           <Tokens {...tokensTabProps} />
+          {isPerpsEnabled && <PerpsView {...perpsTabProps} />}
           {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
           {collectiblesEnabled && (
             <CollectibleContracts {...collectibleContractsTabProps} />
