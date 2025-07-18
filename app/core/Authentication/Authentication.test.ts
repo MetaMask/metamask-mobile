@@ -1479,7 +1479,7 @@ describe('Authentication', () => {
     });
 
     it('uses default skipCache value when not provided', async () => {
-      const mockIsOutdated = false;
+      mockIsOutdated = false;
       const mockState: RecursivePartial<RootState> = {
         engine: {
           backgroundState: {
