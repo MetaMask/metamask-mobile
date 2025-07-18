@@ -1,7 +1,9 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -59,7 +61,7 @@ const ResendButton: FC<{
     <>
       <Text style={styles.resendButtonText}>{strings(text)}</Text>
       <TouchableOpacity onPress={onPress}>
-        <Text style={styles.contactSupportButton}>{strings(button)}</Text>
+        <Text style={styles.inlineLink}>{strings(button)}</Text>
       </TouchableOpacity>
     </>
   );
@@ -95,7 +97,7 @@ const OtpCode = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.otp_code.title') },
+        { title: strings('deposit.otp_code.navbar_title') },
         theme,
       ),
     );
@@ -138,6 +140,9 @@ const OtpCode = () => {
   }, [resendButtonState, cooldownSeconds]);
 
   const handleResend = useCallback(async () => {
+    setValue('');
+    setError(null);
+    inputRef.current?.focus();
     try {
       if (resetAttemptCount > MAX_RESET_ATTEMPTS) {
         setResendButtonState('contactSupport');
@@ -154,7 +159,13 @@ const OtpCode = () => {
       setResendButtonState('resendError');
       Logger.error(e as Error, 'Error resending OTP code');
     }
-  }, [resendOtp, resetAttemptCount, selectedRegion?.isoCode, trackEvent]);
+  }, [
+    inputRef,
+    resendOtp,
+    resetAttemptCount,
+    selectedRegion?.isoCode,
+    trackEvent,
+  ]);
 
   const handleContactSupport = useCallback(() => {
     Linking.openURL(TRANSAK_SUPPORT_URL);
@@ -227,7 +238,12 @@ const OtpCode = () => {
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={1} />
-          <Text>{strings('deposit.otp_code.description', { email })}</Text>
+          <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            {strings('deposit.otp_code.title')}
+          </Text>
+          <Text style={styles.description}>
+            {strings('deposit.otp_code.description', { email })}
+          </Text>
           <CodeField
             testID="otp-code-input"
             ref={inputRef as React.RefObject<TextInput>}

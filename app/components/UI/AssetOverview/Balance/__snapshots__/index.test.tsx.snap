@@ -34,7 +34,6 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "height": 64,
-        "paddingHorizontal": 16,
       }
     }
     testID="asset-DAI"
@@ -278,7 +277,6 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "height": 64,
-        "paddingHorizontal": 16,
       }
     }
     testID="asset-DAI"

@@ -96,9 +96,9 @@ describe('VerifyIdentity Component', () => {
     );
   });
 
-  it('calls navigateToEnterEmail when "Get started" button is pressed', async () => {
+  it('calls navigateToEnterEmail when "Agree and continue" button is pressed', async () => {
     render(VerifyIdentity);
-    fireEvent.press(screen.getByRole('button', { name: 'Get started' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Agree and continue' }));
     await waitFor(() => {
       expect(mockNavigateToEnterEmail).toHaveBeenCalledWith({
         quote: mockQuote,
