@@ -12,6 +12,7 @@ import {
   USDT_BASE_TOKEN,
   USDT_BSC_TOKEN,
   USDT_LINEA_TOKEN,
+  USDT_SOLANA_TOKEN,
   USDT_TOKEN,
 } from '../constants';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
@@ -40,6 +41,7 @@ const TRANSAK_CRYPTO_IDS: Record<string, string> = {
   [USDT_LINEA_TOKEN.assetId]: 'USDT',
   [USDT_BASE_TOKEN.assetId]: 'USDT',
   [USDT_BSC_TOKEN.assetId]: 'USDT',
+  [USDT_SOLANA_TOKEN.assetId]: 'USDT',
 };
 
 const TRANSAK_FIAT_IDS: Record<string, string> = {
@@ -232,6 +234,7 @@ const TRANSAK_ID_TO_ASSET_ID: Record<
   'linea/usdt': USDT_LINEA_TOKEN.assetId,
   'base/usdt': USDT_BASE_TOKEN.assetId,
   'bsc/usdt': USDT_BSC_TOKEN.assetId,
+  'solana/usdt': USDT_SOLANA_TOKEN.assetId,
 };
 
 /**

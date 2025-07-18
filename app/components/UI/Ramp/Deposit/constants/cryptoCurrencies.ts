@@ -100,6 +100,17 @@ export const USDT_BSC_TOKEN: DepositCryptoCurrency = {
     'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/56/erc20/0x55d398326f99059ff775485246999027b3197955.png',
 };
 
+export const USDT_SOLANA_TOKEN: DepositCryptoCurrency = {
+  assetId:
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  decimals: 6,
+  name: 'Tether USD',
+  symbol: 'USDT',
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.png',
+};
+
 export const ALL_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
   USDC_TOKEN,
   USDC_LINEA_TOKEN,
@@ -110,6 +121,7 @@ export const ALL_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
   USDT_LINEA_TOKEN,
   USDT_BASE_TOKEN,
   USDT_BSC_TOKEN,
+  USDT_SOLANA_TOKEN,
 ];
 
 export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
@@ -122,4 +134,5 @@ export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
   // USDT_LINEA_TOKEN,
   // USDT_BASE_TOKEN,
   USDT_BSC_TOKEN,
+  // USDT_SOLANA_TOKEN, // currently not supported on Transak
 ];
