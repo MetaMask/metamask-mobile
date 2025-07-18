@@ -1,12 +1,6 @@
-// Import HyperLiquid SDK types
-import type {
-  PerpsUniverse,
-  PerpsAssetCtx,
-  AllMids,
-} from '@deeeed/hyperliquid-node20';
-
 /**
  * Market data for perps trading (UI-friendly format)
+ * Protocol-agnostic interface that works with any perpetual futures provider
  */
 export interface PerpsMarketData {
   /**
@@ -40,12 +34,14 @@ export interface PerpsMarketData {
 }
 
 /**
- * Raw market data from HyperLiquid SDK
+ * Generic market data interface that can be implemented by any protocol
+ * This allows providers to return their raw data in any format,
+ * which then gets transformed to PerpsMarketData for UI consumption
  */
-export interface HyperLiquidMarketData {
-  universe: PerpsUniverse[];
-  assetCtxs: PerpsAssetCtx[];
-  allMids: AllMids;
+export interface ProtocolMarketData {
+  // This is intentionally generic - each provider can extend this
+  // with their own specific data structure
+  [key: string]: unknown;
 }
 
 /**
@@ -56,4 +52,9 @@ export interface PerpsMarketListViewProps {
    * Callback when a market row is selected
    */
   onMarketSelect?: (market: PerpsMarketData) => void;
+  /**
+   * Optional protocol identifier to filter markets
+   * If not provided, uses the active protocol from PerpsController
+   */
+  protocolId?: string;
 }

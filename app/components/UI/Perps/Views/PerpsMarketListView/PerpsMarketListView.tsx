@@ -71,7 +71,10 @@ const PerpsMarketListHeader = () => {
   );
 };
 
-const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
+const PerpsMarketListView = ({
+  onMarketSelect,
+  protocolId: _protocolId,
+}: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [searchQuery, setSearchQuery] = useState('');

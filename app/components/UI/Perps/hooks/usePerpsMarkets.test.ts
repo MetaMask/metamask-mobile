@@ -123,7 +123,7 @@ describe('usePerpsMarkets', () => {
       expect(result.current.error).toBeNull();
       expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'Perps: Fetching market data from HyperLiquid...',
+        'Perps: Fetching market data from active provider...',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'Perps: Successfully fetched and transformed market data',
