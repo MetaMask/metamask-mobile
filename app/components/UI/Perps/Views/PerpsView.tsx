@@ -246,7 +246,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label="Get Account Balance"
+            label={strings('perps.buttons.get_account_balance')}
             onPress={getAccountBalance}
             loading={isLoading}
             style={styles.button}
@@ -256,7 +256,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label="Deposit Funds"
+            label={strings('perps.buttons.deposit_funds')}
             onPress={() => navigation.navigate(Routes.PERPS.DEPOSIT)}
             style={styles.button}
           />
@@ -265,9 +265,11 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={`Switch to ${
-              currentNetwork === 'testnet' ? 'Mainnet' : 'Testnet'
-            }`}
+            label={strings(
+              currentNetwork === 'testnet'
+                ? 'perps.buttons.switch_to_mainnet'
+                : 'perps.buttons.switch_to_testnet',
+            )}
             onPress={handleToggleTestnet}
             loading={isToggling}
             style={styles.button}
@@ -277,7 +279,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label="View Markets"
+            label={strings('perps.buttons.view_markets')}
             onPress={handleMarketListNavigation}
           />
 
@@ -285,7 +287,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label="Positions"
+            label={strings('perps.buttons.positions')}
             onPress={handlePositionsNavigation}
             loading={isLoading}
             style={styles.button}
