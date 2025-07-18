@@ -19,6 +19,7 @@ const mockAppState = AppState as jest.Mocked<typeof AppState>;
 
 // Import the component after mocking
 import { PrivacyOverlay } from '.';
+import Device from '../../../util/device';
 
 describe('PrivacyOverlay', () => {
   let changeHandler:
@@ -35,10 +36,14 @@ describe('PrivacyOverlay', () => {
   let blurHandler: (() => void) | undefined;
   let focusHandler: (() => void) | undefined;
   let removeMock: jest.Mock;
+  let isAndroidSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
     removeMock = jest.fn();
+
+    // Use jest.spyOn to mock the already-imported Device.isAndroid method
+    isAndroidSpy = jest.spyOn(Device, 'isAndroid').mockReturnValue(false);
 
     mockAppState.addEventListener.mockImplementation((event, handler) => {
       if (event === 'change') {
@@ -58,6 +63,10 @@ describe('PrivacyOverlay', () => {
       }
       return { remove: removeMock };
     });
+  });
+
+  afterEach(() => {
+    isAndroidSpy.mockRestore();
   });
 
   describe('Component behavior', () => {
@@ -108,8 +117,7 @@ describe('PrivacyOverlay', () => {
 
     it('keeps overlay visible when app becomes active on Android', async () => {
       // Mock Device.isAndroid to return true for this test
-      const Device = require('../../../util/device');
-      Device.isAndroid = jest.fn(() => true);
+      isAndroidSpy.mockReturnValue(true);
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <PrivacyOverlay />,
@@ -250,8 +258,7 @@ describe('PrivacyOverlay', () => {
   describe('Android-specific behavior', () => {
     beforeEach(() => {
       // Mock Device.isAndroid to return true for Android tests
-      const Device = require('../../../util/device');
-      Device.isAndroid = jest.fn(() => true);
+      isAndroidSpy.mockReturnValue(true);
     });
 
     it('shows overlay when Android app blurs', async () => {
@@ -311,8 +318,7 @@ describe('PrivacyOverlay', () => {
   describe('iOS behavior', () => {
     beforeEach(() => {
       // Mock Device.isAndroid to return false for iOS tests
-      const Device = require('../../../util/device');
-      Device.isAndroid = jest.fn(() => false);
+      isAndroidSpy.mockReturnValue(false);
     });
 
     it('does not register Android-specific event listeners on iOS', () => {
@@ -344,8 +350,7 @@ describe('PrivacyOverlay', () => {
 
     it('removes Android-specific listeners on unmount when on Android', () => {
       // Mock Device.isAndroid to return true for this test
-      const Device = require('../../../util/device');
-      Device.isAndroid = jest.fn(() => true);
+      isAndroidSpy.mockReturnValue(true);
 
       const { unmount } = renderWithProvider(<PrivacyOverlay />);
 
@@ -357,8 +362,7 @@ describe('PrivacyOverlay', () => {
 
     it('removes only change listener on unmount when on iOS', () => {
       // Mock Device.isAndroid to return false for this test
-      const Device = require('../../../util/device');
-      Device.isAndroid = jest.fn(() => false);
+      isAndroidSpy.mockReturnValue(false);
 
       const { unmount } = renderWithProvider(<PrivacyOverlay />);
 
