@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   ios-e2e:
-    runs-on: macos-14
+    runs-on: macos-15
     env:
       GITHUB_CI: "true"  # ✅ This ensures it's available during pod install
     steps:
