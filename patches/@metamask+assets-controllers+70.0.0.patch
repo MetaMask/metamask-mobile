@@ -1,0 +1,105 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
+index 718ba19..804bae3 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
+@@ -488,10 +488,8 @@ async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddre
+                         asset_type: controller_utils_1.ASSET_TYPES.TOKEN,
+                     },
+                 });
+-                await this.messagingSystem.call('TokensController:addDetectedTokens', tokensWithBalance, {
+-                    selectedAddress,
+-                    chainId,
+-                });
++                const networkClientId = this.messagingSystem.call('NetworkController:findNetworkClientIdByChainId', chainId);
++                await this.messagingSystem.call('TokensController:addTokens', tokensWithBalance, networkClientId);
+             }
+         }
+         return { result: 'success' };
+@@ -558,10 +556,7 @@ async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddre
+                     asset_type: controller_utils_1.ASSET_TYPES.TOKEN,
+                 },
+             });
+-            await this.messagingSystem.call('TokensController:addDetectedTokens', tokensWithBalance, {
+-                selectedAddress,
+-                chainId,
+-            });
++            await this.messagingSystem.call('TokensController:addTokens', tokensWithBalance, networkClientId);
+         }
+     });
+ }, _TokenDetectionController_getSelectedAccount = function _TokenDetectionController_getSelectedAccount() {
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.cts b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.cts
+index fb22e3f..3c14e2b 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.cts
+@@ -1,13 +1,13 @@
+ import type { AccountsControllerGetSelectedAccountAction, AccountsControllerGetAccountAction, AccountsControllerSelectedEvmAccountChangeEvent } from "@metamask/accounts-controller";
+ import type { RestrictedMessenger, ControllerGetStateAction, ControllerStateChangeEvent } from "@metamask/base-controller";
+ import type { KeyringControllerGetStateAction, KeyringControllerLockEvent, KeyringControllerUnlockEvent } from "@metamask/keyring-controller";
+-import type { NetworkControllerGetNetworkClientByIdAction, NetworkControllerGetNetworkConfigurationByNetworkClientId, NetworkControllerGetStateAction, NetworkControllerNetworkDidChangeEvent } from "@metamask/network-controller";
++import type { NetworkControllerFindNetworkClientIdByChainIdAction, NetworkControllerGetNetworkClientByIdAction, NetworkControllerGetNetworkConfigurationByNetworkClientId, NetworkControllerGetStateAction, NetworkControllerNetworkDidChangeEvent } from "@metamask/network-controller";
+ import type { PreferencesControllerGetStateAction, PreferencesControllerStateChangeEvent } from "@metamask/preferences-controller";
+ import type { TransactionControllerTransactionConfirmedEvent } from "@metamask/transaction-controller";
+ import type { Hex } from "@metamask/utils";
+ import type { AssetsContractController } from "./AssetsContractController.cjs";
+ import type { GetTokenListState, TokenListMap, TokenListStateChange, TokensChainsCache } from "./TokenListController.cjs";
+-import type { TokensControllerAddDetectedTokensAction, TokensControllerGetStateAction } from "./TokensController.cjs";
++import type { TokensControllerAddDetectedTokensAction, TokensControllerAddTokensAction, TokensControllerGetStateAction } from "./TokensController.cjs";
+ type TokenDetectionMap = {
+     [P in keyof TokenListMap]: Omit<TokenListMap[P], 'occurrences'>;
+ };
+@@ -24,7 +24,7 @@ export declare const controllerName = "TokenDetectionController";
+ export type TokenDetectionState = Record<never, never>;
+ export type TokenDetectionControllerGetStateAction = ControllerGetStateAction<typeof controllerName, TokenDetectionState>;
+ export type TokenDetectionControllerActions = TokenDetectionControllerGetStateAction;
+-export type AllowedActions = AccountsControllerGetSelectedAccountAction | AccountsControllerGetAccountAction | NetworkControllerGetNetworkClientByIdAction | NetworkControllerGetNetworkConfigurationByNetworkClientId | NetworkControllerGetStateAction | GetTokenListState | KeyringControllerGetStateAction | PreferencesControllerGetStateAction | TokensControllerGetStateAction | TokensControllerAddDetectedTokensAction;
++export type AllowedActions = AccountsControllerGetSelectedAccountAction | AccountsControllerGetAccountAction | NetworkControllerGetNetworkClientByIdAction | NetworkControllerGetNetworkConfigurationByNetworkClientId | NetworkControllerGetStateAction | GetTokenListState | KeyringControllerGetStateAction | PreferencesControllerGetStateAction | TokensControllerGetStateAction | TokensControllerAddDetectedTokensAction | TokensControllerAddTokensAction | NetworkControllerFindNetworkClientIdByChainIdAction;
+ export type TokenDetectionControllerStateChangeEvent = ControllerStateChangeEvent<typeof controllerName, TokenDetectionState>;
+ export type TokenDetectionControllerEvents = TokenDetectionControllerStateChangeEvent;
+ export type AllowedEvents = AccountsControllerSelectedEvmAccountChangeEvent | NetworkControllerNetworkDidChangeEvent | TokenListStateChange | KeyringControllerLockEvent | KeyringControllerUnlockEvent | PreferencesControllerStateChangeEvent | TransactionControllerTransactionConfirmedEvent;
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.cjs b/node_modules/@metamask/assets-controllers/dist/TokensController.cjs
+index 39aebe2..c8ea601 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokensController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokensController.cjs
+@@ -85,6 +85,7 @@ class TokensController extends base_controller_1.BaseController {
+         __classPrivateFieldSet(this, _TokensController_selectedAccountId, __classPrivateFieldGet(this, _TokensController_instances, "m", _TokensController_getSelectedAccount).call(this).id, "f");
+         __classPrivateFieldSet(this, _TokensController_abortController, new AbortController(), "f");
+         this.messagingSystem.registerActionHandler(`${controllerName}:addDetectedTokens`, this.addDetectedTokens.bind(this));
++        this.messagingSystem.registerActionHandler(`${controllerName}:addTokens`, this.addTokens.bind(this));
+         this.messagingSystem.subscribe('AccountsController:selectedEvmAccountChange', __classPrivateFieldGet(this, _TokensController_instances, "m", _TokensController_onSelectedAccountChange).bind(this));
+         this.messagingSystem.subscribe('NetworkController:stateChange', __classPrivateFieldGet(this, _TokensController_instances, "m", _TokensController_onNetworkStateChange).bind(this));
+         this.messagingSystem.subscribe('KeyringController:accountRemoved', (accountAddress) => __classPrivateFieldGet(this, _TokensController_instances, "m", _TokensController_handleOnAccountRemoved).call(this, accountAddress));
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
+index 4acb8f6..18d4bad 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
+@@ -33,12 +33,16 @@ export type TokensControllerState = {
+     };
+ };
+ declare const controllerName = "TokensController";
+-export type TokensControllerActions = TokensControllerGetStateAction | TokensControllerAddDetectedTokensAction;
++export type TokensControllerActions = TokensControllerGetStateAction | TokensControllerAddDetectedTokensAction | TokensControllerAddTokensAction;
+ export type TokensControllerGetStateAction = ControllerGetStateAction<typeof controllerName, TokensControllerState>;
+ export type TokensControllerAddDetectedTokensAction = {
+     type: `${typeof controllerName}:addDetectedTokens`;
+     handler: TokensController['addDetectedTokens'];
+ };
++export type TokensControllerAddTokensAction = {
++    type: `${typeof controllerName}:addTokens`;
++    handler: TokensController['addTokens'];
++};
+ /**
+  * The external actions available to the {@link TokensController}.
+  */
+diff --git a/node_modules/@metamask/assets-controllers/dist/index.d.cts b/node_modules/@metamask/assets-controllers/dist/index.d.cts
+index d57a187..f99d1e6 100644
+--- a/node_modules/@metamask/assets-controllers/dist/index.d.cts
++++ b/node_modules/@metamask/assets-controllers/dist/index.d.cts
+@@ -15,7 +15,7 @@ export type { TokenListState, TokenListToken, TokenListMap, TokenListStateChange
+ export { TokenListController } from "./TokenListController.cjs";
+ export type { ContractExchangeRates, ContractMarketData, Token, TokenRatesControllerActions, TokenRatesControllerEvents, TokenRatesControllerGetStateAction, TokenRatesControllerMessenger, TokenRatesControllerState, TokenRatesControllerStateChangeEvent, MarketDataDetails, } from "./TokenRatesController.cjs";
+ export { getDefaultTokenRatesControllerState, TokenRatesController, } from "./TokenRatesController.cjs";
+-export type { TokensControllerState, TokensControllerActions, TokensControllerGetStateAction, TokensControllerAddDetectedTokensAction, TokensControllerEvents, TokensControllerStateChangeEvent, TokensControllerMessenger, } from "./TokensController.cjs";
++export type { TokensControllerState, TokensControllerActions, TokensControllerGetStateAction, TokensControllerAddDetectedTokensAction, TokensControllerAddTokensAction, TokensControllerEvents, TokensControllerStateChangeEvent, TokensControllerMessenger, } from "./TokensController.cjs";
+ export { TokensController } from "./TokensController.cjs";
+ export { isTokenDetectionSupportedForNetwork, formatIconUrlWithProxy, getFormattedIpfsUrl, fetchTokenContractExchangeRates, getKeyByValue, } from "./assetsUtil.cjs";
+ export { CodefiTokenPricesServiceV2, SUPPORTED_CHAIN_IDS, getNativeTokenAddress, } from "./token-prices-service/index.cjs";
