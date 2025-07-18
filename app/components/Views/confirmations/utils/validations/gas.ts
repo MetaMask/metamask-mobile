@@ -1,10 +1,18 @@
 import { strings } from '../../../../../../locales/i18n';
+import { normalizeGasInput } from '../gas';
 
 const validateMaxBaseFeeValueIsGreaterThanMaxPriorityFeePerGas = (
   value: string,
   maxPriorityFeePerGasInDec: string,
 ): string | boolean => {
-  if (parseFloat(value) >= parseFloat(maxPriorityFeePerGasInDec)) {
+  const normalizedValue = normalizeGasInput(value);
+  const normalizedMaxPriorityFeePerGasInDec = normalizeGasInput(
+    maxPriorityFeePerGasInDec,
+  );
+  if (
+    parseFloat(normalizedValue) >=
+    parseFloat(normalizedMaxPriorityFeePerGasInDec)
+  ) {
     return false;
   }
   return strings(
@@ -16,7 +24,9 @@ const validatePriorityFeeValueIsLessThanMaxFeePerGas = (
   value: string,
   maxFeePerGasInDec: string,
 ): string | boolean => {
-  if (parseFloat(value) <= parseFloat(maxFeePerGasInDec)) {
+  const normalizedValue = normalizeGasInput(value);
+  const normalizedMaxFeePerGasInDec = normalizeGasInput(maxFeePerGasInDec);
+  if (parseFloat(normalizedValue) <= parseFloat(normalizedMaxFeePerGasInDec)) {
     return false;
   }
   return strings('transactions.gas_modal.priority_fee_too_high');
@@ -31,7 +41,8 @@ const validateValueExists = (value: string, field: string) => {
 };
 
 const validateValueIsNumber = (value: string) => {
-  if (/^\d*\.?\d*$/.test(value)) {
+  const normalizedValue = normalizeGasInput(value);
+  if (/^\d*\.?\d*$/.test(normalizedValue)) {
     return false;
   }
   return strings('transactions.gas_modal.only_numbers_allowed');
