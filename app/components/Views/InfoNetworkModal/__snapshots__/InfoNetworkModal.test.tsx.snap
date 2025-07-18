@@ -1,7 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`InfoNetworkModal renders correctly 1`] = `
-
 <View>
   <Modal
     animationType="none"
