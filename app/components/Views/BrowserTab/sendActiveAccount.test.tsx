@@ -32,39 +32,39 @@ const mockLoggerLog = Logger.log as jest.MockedFunction<typeof Logger.log>;
 // Extract and test the sendActiveAccount logic
 const createSendActiveAccount =
   (notifyAllConnections: jest.Mock, resolvedUrlRef: { current: string }) =>
-  async (targetUrl?: string) => {
-    // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
-    const urlToCheck =
-      targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
+    async (targetUrl?: string) => {
+      // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
+      const urlToCheck =
+        targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
 
-    if (!urlToCheck) {
-      // If no URL to check, send empty accounts
+      if (!urlToCheck) {
+        // If no URL to check, send empty accounts
+        notifyAllConnections({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: [],
+        });
+        return;
+      }
+
+      // Get permitted accounts for the target URL
+      const permissionsControllerState =
+        Engine.context.PermissionController.state;
+      let hostname = '' // notifyAllConnections will return empty array if ''
+      try {
+        hostname = new URLParse(urlToCheck).hostname;
+      } catch (err) {
+        Logger.log('Error parsing WebView URL', err);
+      }
+      const permittedAcc = getPermittedEvmAddressesByHostname(
+        permissionsControllerState,
+        hostname,
+      );
+
       notifyAllConnections({
         method: NOTIFICATION_NAMES.accountsChanged,
-        params: [],
+        params: permittedAcc,
       });
-      return;
-    }
-
-    // Get permitted accounts for the target URL
-    const permissionsControllerState =
-      Engine.context.PermissionController.state;
-    let hostname = '' // notifyAllConnections will return empty array if ''
-    try {
-      hostname = new URLParse(urlToCheck).hostname;
-    } catch (err) {
-      Logger.log('Error parsing WebView URL', err);
-    }
-    const permittedAcc = getPermittedEvmAddressesByHostname(
-      permissionsControllerState,
-      hostname,
-    );
-
-    notifyAllConnections({
-      method: NOTIFICATION_NAMES.accountsChanged,
-      params: permittedAcc,
-    });
-  };
+    };
 
 describe('sendActiveAccount function', () => {
   let sendActiveAccount: (targetUrl?: string) => Promise<void>;
@@ -81,9 +81,9 @@ describe('sendActiveAccount function', () => {
     // Setup default URL parsing mock
     mockURLParse.mockImplementation(
       (url: string) =>
-        ({
-          hostname: new URL(url).hostname,
-        } as URLParse<Record<string, string>>),
+      ({
+        hostname: new URL(url).hostname,
+      } as URLParse<Record<string, string>>),
     );
   });
 
@@ -160,9 +160,9 @@ describe('sendActiveAccount function', () => {
       for (const { url, expectedHostname } of testCases) {
         mockURLParse.mockImplementation(
           () =>
-            ({
-              hostname: expectedHostname,
-            } as MockURLParse),
+          ({
+            hostname: expectedHostname,
+          } as MockURLParse),
         );
         mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
@@ -185,9 +185,9 @@ describe('sendActiveAccount function', () => {
       const expectedHostname = 'test-dapp.com';
       mockURLParse.mockImplementation(
         () =>
-          ({
-            hostname: expectedHostname,
-          } as MockURLParse),
+        ({
+          hostname: expectedHostname,
+        } as MockURLParse),
       );
       mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
@@ -289,9 +289,9 @@ describe('sendActiveAccount function', () => {
 
       mockURLParse.mockImplementation(
         (url) =>
-          ({
-            hostname: new URL(url).hostname,
-          } as MockURLParse),
+        ({
+          hostname: new URL(url).hostname,
+        } as MockURLParse),
       );
 
       mockGetPermittedEvmAddressesByHostname.mockImplementation(
@@ -405,13 +405,13 @@ describe('sendActiveAccount function', () => {
 
       // Should log error with context
       expect(mockLoggerLog).toHaveBeenCalledWith('Error parsing WebView URL', error);
-      
+
       // Should call getPermittedEvmAddressesByHostname with empty hostname
       expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
         Engine.context.PermissionController.state,
         '', // empty hostname when parsing fails
       );
-      
+
       // Should still notify connections with empty array
       expect(mockNotifyAllConnections).toHaveBeenCalledWith({
         method: NOTIFICATION_NAMES.accountsChanged,

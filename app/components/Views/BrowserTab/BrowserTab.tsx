@@ -408,9 +408,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             chainId: activeChainId,
           });
           if (type === 'ipfs-ns') {
-            gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${
-              query || ''
-            }`;
+            gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''
+              }`;
             const response = await fetch(gatewayUrl, {
               headers: {
                 'User-Agent': 'MetaMask Mobile Browser',
@@ -422,13 +421,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               return null;
             }
           } else if (type === 'swarm-ns') {
-            gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-              pathname || '/'
-            }${query || ''}`;
+            gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
+              }${query || ''}`;
           } else if (type === 'ipns-ns') {
-            gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-              pathname || '/'
-            }${query || ''}`;
+            gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
+              }${query || ''}`;
           }
           return {
             url: gatewayUrl,
@@ -606,8 +603,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         const disctinctId = await getMetaMetricsId();
         const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-                injectedBookmarks || bookmarks,
-              )};
+          injectedBookmarks || bookmarks,
+        )};
               window.__mmSearchEngine = "${searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
@@ -1010,12 +1007,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           permissionsControllerState,
           hostname,
         );
-  
+
         notifyAllConnections({
           method: NOTIFICATION_NAMES.accountsChanged,
           params: permittedAcc,
         });
-        },
+      },
       [notifyAllConnections],
     );
 
