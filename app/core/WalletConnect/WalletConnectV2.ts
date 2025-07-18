@@ -24,7 +24,7 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
-import WalletConnect from './WalletConnect';
+import { strings } from '../../../locales/i18n';
 import {
   getHostname,
   getScopedPermissions,
@@ -39,6 +39,7 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId } from '@metamask/utils';
+import { Alert } from 'react-native';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -664,7 +665,14 @@ export class WC2Manager {
       }
 
       if (params.version === 1) {
-        await WalletConnect.newSession(wcUri, redirectUrl, false, origin);
+        console.warn(
+          `WC2Manager::connect v1 protocol is no longer supported`,
+        );
+        Alert.alert(
+          strings('walletcoonnect_v1_alert.title'),
+          strings('walletcoonnect_v1_alert.message'),
+        );
+        return;
       } else if (params.version === 2) {
         // check if already connected
         const activeSession = this.getSessions().find(

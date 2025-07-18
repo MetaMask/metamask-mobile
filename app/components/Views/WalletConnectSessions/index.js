@@ -159,8 +159,6 @@ export default class WalletConnectSessions extends PureComponent {
         await (
           await WC2Manager.getInstance()
         )?.removeSession(this.sessionToRemove);
-      } else {
-        await WalletConnect.killSession(this.sessionToRemove.peerId);
       }
 
       Alert.alert(

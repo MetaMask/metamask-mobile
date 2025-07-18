@@ -7,11 +7,11 @@ import StorageWrapper from '../../store/storage-wrapper';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
 import { IWalletKit } from '@reown/walletkit';
-import WalletConnect from './WalletConnect';
 import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line import/no-namespace
 import * as wcUtils from './wc-utils';
 import { Core } from '@walletconnect/core';
+import { Alert } from 'react-native';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -168,6 +168,12 @@ jest.mock('@walletconnect/core', () => ({
     projectId: opts?.projectId,
     logger: opts?.logger,
   })),
+}));
+
+jest.mock('react-native', () => ({
+  Alert: {
+    alert: jest.fn(),
+  },
 }));
 
 describe('WC2Manager', () => {
@@ -341,9 +347,10 @@ describe('WC2Manager', () => {
       expect(showLoadingSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('creates new session for WalletConnect v1 URIs', async () => {
+    it('shows alert and logs warning for WalletConnect v1 URIs', async () => {
       const mockWcUri = 'wc:00e46b69-d0cc-4b3e-b6a2-cee442f97188@1';
-      const WalletConnectSpy = jest.spyOn(WalletConnect, 'newSession');
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
 
       await manager.connect({
         wcUri: mockWcUri,
@@ -351,12 +358,16 @@ describe('WC2Manager', () => {
         origin: 'qrcode',
       });
 
-      expect(WalletConnectSpy).toHaveBeenCalledWith(
-        mockWcUri,
-        'https://example.com',
-        false,
-        'qrcode',
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'WC2Manager::connect v1 protocol is no longer supported'
       );
+      expect(alertSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String)
+      );
+
+      consoleSpy.mockRestore();
+      alertSpy.mockRestore();
     });
 
     it('logs a warning to console on invalid URIs', async () => {
