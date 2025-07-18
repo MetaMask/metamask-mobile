@@ -1076,7 +1076,15 @@ export const usePerpsDepositQuote = ({
       const finalAmount = usdValue.minus(totalFeesUSD);
 
       if (finalAmount.gt(0)) {
-        receivingAmount = `${finalAmount.toFixed(2)} USDC`;
+        // Show more precision for very small amounts
+        if (finalAmount.lt(0.01) && finalAmount.gt(0)) {
+          receivingAmount = `${finalAmount.toFixed(6)} USDC`;
+        } else if (finalAmount.gte(1000000)) {
+          // For very large amounts, preserve original precision to avoid rounding
+          receivingAmount = `${finalAmount.toString()} USDC`;
+        } else {
+          receivingAmount = `${finalAmount.toFixed(2)} USDC`;
+        }
       } else {
         receivingAmount = '0.00 USDC';
       }

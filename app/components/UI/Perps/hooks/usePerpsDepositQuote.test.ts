@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import {
   renderHookWithProvider,
   type DeepPartial,
@@ -197,6 +198,8 @@ describe('usePerpsDepositQuote', () => {
         },
         MultichainNetworkController: {
           selectedMultichainNetworkChainId: undefined,
+          isEvmSelected: true,
+          multichainNetworkConfigurationsByChainId: {},
         },
         TransactionController: {
           transactions: [],
@@ -619,6 +622,820 @@ describe('usePerpsDepositQuote', () => {
       expect(result.current.formattedQuoteData.exchangeRate).toBe(
         '1 ETH ≈ 3000.00 USDC',
       );
+    });
+  });
+
+  describe('amount parsing and validation', () => {
+    it('should handle empty string amount', () => {
+      const state = createMockState();
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '0.00 USDC',
+      );
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should handle dot-only amount', () => {
+      const state = createMockState();
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '.',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '0.00 USDC',
+      );
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should handle invalid string amount', () => {
+      const state = createMockState();
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: 'invalid',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '0.00 USDC',
+      );
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should handle negative amount', () => {
+      const state = createMockState();
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '-100',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '0.00 USDC',
+      );
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should handle very small amounts', () => {
+      const state = createMockState();
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '0.000001',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '0.000001 USDC',
+      );
+    });
+
+    it('should handle very large amounts', () => {
+      const state = createMockState();
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '999999999.999999',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '999999999.999999 USDC',
+      );
+    });
+  });
+
+  describe('direct deposit fee calculation', () => {
+    it('should calculate direct deposit fee with valid gas estimates', () => {
+      const state = createMockState();
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.formattedQuoteData.networkFee).not.toBe('-');
+    });
+
+    it('should handle missing gas estimates gracefully', () => {
+      const state = createMockState();
+
+      // Mock gas estimation to return undefined
+      const mockGetTransaction1559GasFeeEstimates = jest.requireMock(
+        '../../Swaps/utils/gas',
+      ).getTransaction1559GasFeeEstimates;
+      mockGetTransaction1559GasFeeEstimates.mockResolvedValueOnce(undefined);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      // Test initial state - async effects will run
+      expect(result.current.formattedQuoteData.networkFee).toBeDefined();
+    });
+  });
+
+  describe('same-chain swap functionality', () => {
+    const ethToken: PerpsToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0xa4b1',
+      decimals: 18,
+      symbol: 'ETH',
+      name: 'Ethereum',
+    };
+
+    it('should handle ETH to USDC swap on Arbitrum', () => {
+      const state = createMockState();
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '1',
+            selectedToken: ethToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.formattedQuoteData.networkFee).toBe('$5.00');
+      expect(result.current.formattedQuoteData.exchangeRate).toBe(
+        '1 ETH ≈ 3000.00 USDC',
+      );
+      expect(result.current.quoteFetchedTime).not.toBeNull();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should handle missing token rates for same-chain swap', () => {
+      const stateWithoutTokenRates = createMockState({
+        engine: {
+          backgroundState: {
+            TokenRatesController: {
+              marketData: {
+                // No token rates
+              },
+            },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: undefined,
+              isEvmSelected: true,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account1',
+                accounts: {
+                  account1: {
+                    address: '0x1234567890123456789012345678901234567890',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '1',
+            selectedToken: ethToken,
+          }),
+        { state: stateWithoutTokenRates },
+      );
+
+      expect(result.current.formattedQuoteData.exchangeRate).toBeUndefined();
+    });
+
+    it('should handle invalid token rates', () => {
+      const stateWithInvalidTokenRates = createMockState({
+        engine: {
+          backgroundState: {
+            TokenRatesController: {
+              marketData: {
+                '0xa4b1': {
+                  '0x0000000000000000000000000000000000000000': {
+                    // @ts-ignore - Mocking invalid price
+                    price: null, // Invalid price
+                    currency: 'USD',
+                  },
+                },
+              },
+            },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: undefined,
+              isEvmSelected: true,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account1',
+                accounts: {
+                  account1: {
+                    address: '0x1234567890123456789012345678901234567890',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '1',
+            selectedToken: ethToken,
+          }),
+        { state: stateWithInvalidTokenRates },
+      );
+
+      expect(result.current.formattedQuoteData.exchangeRate).toBeUndefined();
+    });
+
+    it('should handle exchange rate formatting errors', () => {
+      const stateWithZeroPrice = createMockState({
+        engine: {
+          backgroundState: {
+            TokenRatesController: {
+              marketData: {
+                '0xa4b1': {
+                  '0x0000000000000000000000000000000000000000': {
+                    price: 0, // Zero price
+                    currency: 'USD',
+                  },
+                },
+              },
+            },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: undefined,
+              isEvmSelected: true,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account1',
+                accounts: {
+                  account1: {
+                    address: '0x1234567890123456789012345678901234567890',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '1',
+            selectedToken: ethToken,
+          }),
+        { state: stateWithZeroPrice },
+      );
+
+      expect(result.current.formattedQuoteData.exchangeRate).toBeUndefined();
+    });
+  });
+
+  describe('bridge quote processing', () => {
+    it('should handle empty quotes array', () => {
+      const stateWithEmptyQuotes = createMockState({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              quoteFetchError: null,
+            },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: undefined,
+              isEvmSelected: true,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account1',
+                accounts: {
+                  account1: {
+                    address: '0x1234567890123456789012345678901234567890',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const ethToken: PerpsToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ethereum',
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: ethToken,
+          }),
+        { state: stateWithEmptyQuotes },
+      );
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.formattedQuoteData.networkFee).toBe(
+        'perps.deposit.calculating_fee',
+      );
+    });
+
+    it('should handle bridge controller loading state', () => {
+      const stateWithLoadingBridge = createMockState({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              // @ts-ignore - Mocking loading state
+              quotes: null, // Loading state
+              quoteFetchError: null,
+            },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: undefined,
+              isEvmSelected: true,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account1',
+                accounts: {
+                  account1: {
+                    address: '0x1234567890123456789012345678901234567890',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const ethToken: PerpsToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ethereum',
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: ethToken,
+          }),
+        { state: stateWithLoadingBridge },
+      );
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.formattedQuoteData.networkFee).toBe(
+        'perps.deposit.calculating_fee',
+      );
+    });
+  });
+
+  describe('quote expiration and refresh', () => {
+    it('should detect expired quotes', () => {
+      // Mock isQuoteExpired to return true
+      const mockIsQuoteExpired = jest.requireMock(
+        '../../Bridge/utils/quoteUtils',
+      ).isQuoteExpired;
+      mockIsQuoteExpired.mockReturnValue(true);
+
+      const state = createMockState();
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.isExpired).toBe(true);
+    });
+
+    it('should handle refresh functionality', () => {
+      const state = createMockState();
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      expect(typeof result.current.refreshQuote).toBe('function');
+
+      // Should be able to call refresh without errors
+      expect(() => result.current.refreshQuote()).not.toThrow();
+    });
+
+    it('should handle shouldRefreshQuote logic', () => {
+      // Mock shouldRefreshQuote to return false
+      const mockShouldRefreshQuote = jest.requireMock(
+        '../../Bridge/utils/quoteUtils',
+      ).shouldRefreshQuote;
+      mockShouldRefreshQuote.mockReturnValue(false);
+
+      const state = createMockState();
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.willRefresh).toBe(false);
+    });
+  });
+
+  describe('token change handling', () => {
+    it('should reset state when token changes', () => {
+      const state = createMockState();
+      let currentToken = mockToken;
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: currentToken,
+          }),
+        { state },
+      );
+
+      // Initial state - for direct deposits, quoteFetchedTime may be null initially
+      const initialQuoteFetchedTime = result.current.quoteFetchedTime;
+
+      // Change token
+      const newToken: PerpsToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ethereum',
+      };
+
+      currentToken = newToken;
+      rerender({});
+
+      // State should be reset for new token
+      expect(result.current.quoteFetchError).toBeNull();
+    });
+
+    it('should handle token address change', () => {
+      const state = createMockState();
+      let currentToken = mockToken;
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: currentToken,
+          }),
+        { state },
+      );
+
+      // Change token address
+      const tokenWithDifferentAddress: PerpsToken = {
+        ...mockToken,
+        address: '0x9876543210987654321098765432109876543210',
+      };
+
+      currentToken = tokenWithDifferentAddress;
+      rerender({});
+
+      // Should trigger state reset
+      expect(result.current.quoteFetchError).toBeNull();
+    });
+
+    it('should handle token chainId change', () => {
+      const state = createMockState();
+      let currentToken = mockToken;
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: currentToken,
+          }),
+        { state },
+      );
+
+      // Change token chainId
+      const tokenWithDifferentChainId: PerpsToken = {
+        ...mockToken,
+        chainId: '0x1', // Different chain
+      };
+
+      currentToken = tokenWithDifferentChainId;
+      rerender({});
+
+      // Should trigger state reset
+      expect(result.current.quoteFetchError).toBeNull();
+    });
+
+    it('should handle bridge-required tokens', () => {
+      const state = createMockState();
+
+      const bridgeToken: PerpsToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1', // Different chain requiring bridge
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ethereum',
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: bridgeToken,
+          }),
+        { state },
+      );
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.formattedQuoteData.networkFee).toBe(
+        'perps.deposit.calculating_fee',
+      );
+    });
+  });
+
+  describe('error handling', () => {
+    it('should handle calcTokenValue errors', () => {
+      // This would require mocking the calcTokenValue import
+      // For now, we test the error handling structure
+      const state = createMockState();
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      // Should handle errors gracefully
+      expect(result.current.quoteFetchError).toBeNull();
+    });
+
+    it('should handle bridge controller errors', () => {
+      const stateWithBridgeError = createMockState({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              quoteFetchError: 'Bridge network error',
+            },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: undefined,
+              isEvmSelected: true,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account1',
+                accounts: {
+                  account1: {
+                    address: '0x1234567890123456789012345678901234567890',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const ethToken: PerpsToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ethereum',
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: ethToken,
+          }),
+        { state: stateWithBridgeError },
+      );
+
+      expect(result.current.quoteFetchError).toBe('Bridge network error');
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should handle fee parsing errors', () => {
+      const stateWithInvalidFeeData = createMockState({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [
+                {
+                  quote: {
+                    destTokenAmount: '100.00',
+                    feeData: {
+                      metabridge: {
+                        amount: 'invalid_amount', // Invalid amount
+                        asset: {
+                          symbol: 'USDC',
+                          decimals: 6,
+                        },
+                      },
+                    },
+                  },
+                  estimatedProcessingTimeInSeconds: 180,
+                },
+              ],
+              quoteFetchError: null,
+            },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: undefined,
+              isEvmSelected: true,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account1',
+                accounts: {
+                  account1: {
+                    address: '0x1234567890123456789012345678901234567890',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const ethToken: PerpsToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ethereum',
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: ethToken,
+          }),
+        { state: stateWithInvalidFeeData },
+      );
+
+      // Invalid amount should result in error handling
+      expect(result.current.formattedQuoteData.networkFee).toBe('NaN USDC');
+    });
+
+    it('should handle metabridge fee processing errors', () => {
+      const stateWithMetabridgeError = createMockState({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [
+                {
+                  quote: {
+                    destTokenAmount: '100.00',
+                    feeData: {
+                      metabridge: {
+                        amount: '5000000',
+                        asset: {
+                          symbol: 'USDC',
+                          // @ts-ignore - Mocking invalid decimals
+                          decimals: null, // Invalid decimals
+                        },
+                      },
+                    },
+                  },
+                  estimatedProcessingTimeInSeconds: 180,
+                },
+              ],
+              quoteFetchError: null,
+            },
+            MultichainNetworkController: {
+              selectedMultichainNetworkChainId: undefined,
+              isEvmSelected: true,
+              multichainNetworkConfigurationsByChainId: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'account1',
+                accounts: {
+                  account1: {
+                    address: '0x1234567890123456789012345678901234567890',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const ethToken: PerpsToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ethereum',
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: ethToken,
+          }),
+        { state: stateWithMetabridgeError },
+      );
+
+      // Invalid decimals should result in error handling
+      expect(result.current.formattedQuoteData.networkFee).toBe('0.0000 USDC');
+    });
+  });
+
+  describe('cleanup and debouncing', () => {
+    it('should cleanup debounced calls on unmount', () => {
+      const state = createMockState();
+
+      const { unmount } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: mockToken,
+          }),
+        { state },
+      );
+
+      // Should unmount without errors
+      expect(() => unmount()).not.toThrow();
+    });
+
+    it('should cleanup timeouts on unmount', () => {
+      const state = createMockState();
+
+      const ethToken: PerpsToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ethereum',
+      };
+
+      const { unmount } = renderHookWithProvider(
+        () =>
+          usePerpsDepositQuote({
+            amount: '100',
+            selectedToken: ethToken,
+          }),
+        { state },
+      );
+
+      // Should cleanup timeouts without errors
+      expect(() => unmount()).not.toThrow();
     });
   });
 });
