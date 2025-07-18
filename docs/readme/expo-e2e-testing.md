@@ -155,3 +155,4 @@ This guide will help you set up and run end-to-end (E2E) tests using the Expo bu
 - **Build folder doesn't exist**: Run `mkdir build` in your project root
 - **Simulator/Emulator not found**: Ensure the device names match exactly as specified in prerequisites
 - **Android SDK not found**: Verify `$ANDROID_SDK_ROOT` is set correctly with `echo $ANDROID_SDK_ROOT`
+- **My Expo Application shows an error "Failed to connect to localhost/127.0.0.1:8081"**: The emulator may need to have the expo port forwarded. Try `adb reverse tcp:8081 tcp:8081` and rerun the test command.
