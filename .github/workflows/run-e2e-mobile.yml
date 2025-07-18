@@ -195,7 +195,7 @@ jobs:
 
           echo "✅ iOS environment cleaned"
 
-      - name: Run E2E tests
+      - name: Run E2E tests with monitoring
         run: |
           platform="${{ inputs.platform }}"
           is_api_specs="${{ inputs.is_api_specs }}"
@@ -227,7 +227,8 @@ jobs:
           if [[ "$platform" == "ios" ]]; then
             echo "🔧 Preparing iOS environment..."
             yarn detox build-framework-cache
-            find . -name "*.lock" -type f -delete 2>/dev/null || true
+            yarn detox reset-lock-file
+
           else
             echo "🔧 Preparing Android environment..."
             # Clean up existing emulators
@@ -240,6 +241,64 @@ jobs:
             sleep 3
           fi
 
+          # Start monitoring just before test execution
+          echo "🔍 Starting CPU and Memory monitoring for E2E tests..."
+          mkdir -p monitoring
+          
+          # Create monitoring script
+          cat > monitoring/resource_monitor.sh << 'EOF'
+          #!/bin/bash
+          
+          MONITOR_LOG="monitoring/resources.log"
+          MONITOR_PID_FILE="/tmp/resource_monitor.pid"
+          
+          # Function to get current resource usage
+          log_resources() {
+            timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+            
+            if [[ "$RUNNER_OS" == "macOS" ]]; then
+              # macOS resource monitoring
+              cpu_usage=$(top -l 1 | grep "CPU usage" | awk '{print $3}' | sed 's/%//')
+              memory_info=$(vm_stat | awk '
+                /Pages free/ { free = $3 * 4096 / 1024 / 1024 }
+                /Pages active/ { active = $3 * 4096 / 1024 / 1024 }
+                /Pages inactive/ { inactive = $3 * 4096 / 1024 / 1024 }
+                /Pages wired/ { wired = $3 * 4096 / 1024 / 1024 }
+                END { 
+                  total = free + active + inactive + wired
+                  used = total - free
+                  printf "%.0f,%.0f,%.1f", total, used, (used/total)*100 
+                }
+              ')
+              echo "$timestamp,macOS,$cpu_usage,$memory_info" >> $MONITOR_LOG
+              
+            else
+              # Linux resource monitoring
+              cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | sed 's/%us,//')
+              memory_info=$(free -m | awk 'NR==2{printf "%d,%d,%.1f", $2,$3,($3/$2)*100}')
+              echo "$timestamp,Linux,$cpu_usage,$memory_info" >> $MONITOR_LOG
+            fi
+          }
+          
+          # Initialize log with headers
+          echo "timestamp,os,cpu_percent,memory_total_mb,memory_used_mb,memory_percent" > $MONITOR_LOG
+          
+          # Background monitoring loop
+          while [ -f "/tmp/monitor_active" ]; do
+            log_resources
+            sleep 10  # Monitor every 10 seconds
+          done &
+          
+          # Save monitoring PID
+          echo $! > $MONITOR_PID_FILE
+          touch /tmp/monitor_active
+          
+          echo "✅ Resource monitoring started (PID: $(cat $MONITOR_PID_FILE))"
+          EOF
+          
+          chmod +x monitoring/resource_monitor.sh
+          RUNNER_OS=${{ runner.os }} ./monitoring/resource_monitor.sh
+
           # Run tests (Detox/Jest handle retries internally)
           echo "🚀 Starting E2E tests..."
           if [[ "$platform" == "ios" ]]; then
@@ -248,7 +307,22 @@ jobs:
             export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
           fi
           
+          echo "💾 Starting test execution with monitoring..."
           ./scripts/run-e2e-tags.sh
+          echo "✅ Test execution completed"
+          
+          # Stop monitoring immediately after tests
+          echo "🛑 Stopping resource monitoring..."
+          if [ -f /tmp/monitor_active ]; then
+            rm /tmp/monitor_active
+            echo "Monitor stop signal sent"
+          fi
+          
+          if [ -f /tmp/resource_monitor.pid ]; then
+            monitor_pid=$(cat /tmp/resource_monitor.pid)
+            kill $monitor_pid 2>/dev/null && echo "Monitor process stopped (PID: $monitor_pid)" || echo "Monitor process already stopped"
+            rm /tmp/resource_monitor.pid
+          fi
 
       - name: Upload test results
         if: always()
@@ -256,6 +330,14 @@ jobs:
         with:
           name: ${{ inputs.test-suite-name }}
           path: e2e/reports/
+          retention-days: 7
+      
+      - name: Upload resource monitoring data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.test-suite-name }}-resources
+          path: monitoring/
           retention-days: 7
       
       - name: Upload screenshots
