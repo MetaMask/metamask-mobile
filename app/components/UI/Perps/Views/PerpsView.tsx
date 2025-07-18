@@ -1,5 +1,5 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, ScrollView, RefreshControl } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -7,6 +7,10 @@ import Text, {
 import { useStyles } from '../../../../component-library/hooks';
 import type { Theme } from '../../../../util/theme/models';
 import { PerpsTabControlBar } from '../components/PerpsTabControlBar';
+import { PerpsPositionListItem } from '../components/PerpsPositionListItem';
+import { usePerpsTrading } from '../hooks';
+import type { Position } from '../controllers/types';
+import { strings } from '../../../../../locales/i18n';
 
 interface PerpsViewProps {}
 
@@ -21,46 +25,134 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     content: {
       flex: 1,
-      paddingHorizontal: 24,
-      paddingTop: 24,
-      paddingBottom: 32,
     },
-    headerContainer: {
-      alignItems: 'center' as const,
-      marginBottom: 32,
-    },
-    buttonContainer: {
+    section: {
       marginBottom: 24,
     },
-    button: {
-      marginBottom: 16,
+    sectionHeader: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      alignItems: 'center' as const,
+      marginBottom: 12,
     },
-    resultContainer: {
-      padding: 16,
-      borderRadius: 8,
-      backgroundColor: colors.background.alternative,
-      marginTop: 16,
+    sectionTitle: {
+      paddingTop: 8,
     },
-    resultText: {
+    emptyContainer: {
+      padding: 24,
+      alignItems: 'center' as const,
+    },
+    emptyText: {
+      textAlign: 'center' as const,
       marginTop: 8,
-      lineHeight: 20,
+    },
+    loadingContainer: {
+      padding: 24,
+      alignItems: 'center' as const,
     },
   };
 };
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const { getPositions } = usePerpsTrading();
+
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const loadPositions = useCallback(
+    async (isRefresh = false) => {
+      try {
+        if (isRefresh) {
+          setIsRefreshing(true);
+        } else {
+          setIsLoading(true);
+        }
+
+        const positionsData = await getPositions();
+        setPositions(positionsData || []);
+      } catch (error) {
+        console.error('Failed to load positions:', error);
+        setPositions([]);
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [getPositions],
+  );
+
+  useEffect(() => {
+    loadPositions();
+  }, [loadPositions]);
+
+  const handleRefresh = useCallback(() => {
+    loadPositions(true);
+  }, [loadPositions]);
+
+  const renderPositionsSection = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
+            {strings('perps.position.list.loading')}
+          </Text>
+        </View>
+      );
+    }
+
+    if (positions.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {strings('perps.position.list.empty_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Muted}
+            style={styles.emptyText}
+          >
+            {strings('perps.position.list.empty_description')}
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <>
+        <View style={styles.sectionHeader}>
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Alternative}
+            style={styles.sectionTitle}
+          >
+            {strings('perps.position.title')}
+          </Text>
+        </View>
+        <View>
+          {positions.map((position, index) => (
+            <PerpsPositionListItem
+              key={`${position.coin}-${index}`}
+              position={position}
+            />
+          ))}
+        </View>
+      </>
+    );
+  };
 
   return (
     <View style={styles.wrapper}>
       <PerpsTabControlBar />
-      <View style={styles.content}>
-        <View style={styles.headerContainer}>
-          <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
-            Perpetuals
-          </Text>
-        </View>
-      </View>
+      <ScrollView
+        style={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+      >
+        <View style={styles.section}>{renderPositionsSection()}</View>
+      </ScrollView>
     </View>
   );
 };
