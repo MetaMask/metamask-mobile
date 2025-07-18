@@ -41,7 +41,10 @@ import {
 } from '../../../util/bridge/hooks/useBridgeTxHistoryData';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
-import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
+import {
+  getSwapBridgeTxActivityTitle,
+  handleUnifiedSwapsTxHistoryItemClick,
+} from '../Bridge/utils/transaction-history';
 import { decimalToHex } from '../../../util/conversions';
 import { addHexPrefix } from '../../../util/number';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
@@ -253,9 +256,11 @@ class TransactionElement extends PureComponent {
       tx.type === TransactionType.swap &&
       this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
     if (tx.type === TransactionType.bridge || isUnifiedSwap) {
-      this.props.navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
-        evmTxMeta: tx,
-      });
+      handleUnifiedSwapsTxHistoryItemClick(
+        this.props.navigation,
+        tx,
+        this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
+      );
     } else {
       this.setState({ detailsModalVisible: true });
     }
