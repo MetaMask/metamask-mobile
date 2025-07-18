@@ -21,7 +21,7 @@ exports[`EarningsHistoryChart renders to match snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#1c7e33",
+            "color": "#457a39",
             "fontFamily": "Geist Bold",
             "fontSize": 24,
             "letterSpacing": 0,
@@ -161,9 +161,9 @@ exports[`EarningsHistoryChart renders to match snapshot 1`] = `
                   gradient={
                     [
                       0,
-                      1867315,
+                      4553273,
                       1,
-                      438074931,
+                      440760889,
                     ]
                   }
                   gradientTransform={null}
@@ -190,7 +190,7 @@ exports[`EarningsHistoryChart renders to match snapshot 1`] = `
                 }
                 stroke={
                   {
-                    "payload": 4280057395,
+                    "payload": 4282743353,
                     "type": 0,
                   }
                 }
@@ -216,7 +216,7 @@ exports[`EarningsHistoryChart renders to match snapshot 1`] = `
                 }
                 stroke={
                   {
-                    "payload": 4280057395,
+                    "payload": 4282743353,
                     "type": 0,
                   }
                 }
@@ -242,7 +242,7 @@ exports[`EarningsHistoryChart renders to match snapshot 1`] = `
                 }
                 stroke={
                   {
-                    "payload": 4280057395,
+                    "payload": 4282743353,
                     "type": 0,
                   }
                 }
