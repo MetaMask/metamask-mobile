@@ -29,6 +29,13 @@ This guide will help you set up and run end-to-end (E2E) tests using the Expo bu
    mkdir build
    ```
 
+4. Install dependencies
+
+   ```bash
+   # In root of project
+   yarn setup:expo
+   ```
+
 ### iOS Prerequisites
 
 - **Required Simulator**: iPhone 15 Pro
@@ -90,6 +97,9 @@ This guide will help you set up and run end-to-end (E2E) tests using the Expo bu
 
    # Run specific test file
    source .e2e.env && yarn test:e2e:ios:debug:run e2e/specs/your-test-file.spec.ts
+
+   # Run specific tag
+   source .e2e.env && yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
    ```
 
 ## Android Testing Steps
@@ -132,12 +142,16 @@ This guide will help you set up and run end-to-end (E2E) tests using the Expo bu
 
    # Run specific test file
    source .e2e.env && yarn test:e2e:android:debug:run e2e/specs/your-test-file.spec.ts
+
+   # Run specific tag
+   source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
    ```
 
 ## Troubleshooting
 
 ### Common Issues
 
+- **The application is not opening**: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLOWER COMPUTERS, LOADING FROM THE BUNDLER TAKES TOO LONG WHICH MAKES THE VERY FIRST TEST FAIL. THE FAILED TEST WILL THEN AUTOMATICALLY RESTART AND IT SHOULD WORK FROM THEN ON.
 - **Build folder doesn't exist**: Run `mkdir build` in your project root
 - **Simulator/Emulator not found**: Ensure the device names match exactly as specified in prerequisites
 - **Android SDK not found**: Verify `$ANDROID_SDK_ROOT` is set correctly with `echo $ANDROID_SDK_ROOT`
