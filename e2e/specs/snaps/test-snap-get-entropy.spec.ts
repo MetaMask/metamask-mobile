@@ -57,18 +57,24 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
   });
 
   it.each([
-    ['SRP 1 (primary)', '0xadd276f9d715223dcd20a595acb475f9b7353c451a57af64efb23633280c21aa172bd6689c27a0ac3c003ec4469b093207db956a6bf76689b3cc0b710c4187d5fcdca5f09c9594f146c9a39461e2f6cb03a446f4e62bd341a448ca9a33e96cf2'],
-    ['SRP 2', '0xa1dba3ddefabb56c5d6d37135fd07752662b5d720c005d619c0ff49eede2fe6f92a3e88e70ff4bb706b9ec2a076925ec159e3f6aa7170d51e428ccafe2353dd858da425c075912f0cd78c750942afef230393dff20d9fb58de14c56a5cd213b1'],
-  ])('signs a message with the Snap entropy from %s', async (entropySource, result) => {
-    await TestSnaps.selectInDropdown('getEntropyDropDown', entropySource);
-    await TestSnaps.fillMessage('entropyMessageInput', '5678');
-    await TestSnaps.tapButton('signEntropyMessageButton');
-    await TestSnaps.approveSignRequest();
-    await TestSnaps.checkResultSpan(
-      'entropySignResultSpan',
-      `"${result}"`,
-    );
-  });
+    [
+      'SRP 1 (primary)',
+      '0xadd276f9d715223dcd20a595acb475f9b7353c451a57af64efb23633280c21aa172bd6689c27a0ac3c003ec4469b093207db956a6bf76689b3cc0b710c4187d5fcdca5f09c9594f146c9a39461e2f6cb03a446f4e62bd341a448ca9a33e96cf2',
+    ],
+    [
+      'SRP 2',
+      '0xa1dba3ddefabb56c5d6d37135fd07752662b5d720c005d619c0ff49eede2fe6f92a3e88e70ff4bb706b9ec2a076925ec159e3f6aa7170d51e428ccafe2353dd858da425c075912f0cd78c750942afef230393dff20d9fb58de14c56a5cd213b1',
+    ],
+  ])(
+    'signs a message with the Snap entropy from %s',
+    async (entropySource, result) => {
+      await TestSnaps.selectInDropdown('getEntropyDropDown', entropySource);
+      await TestSnaps.fillMessage('entropyMessageInput', '5678');
+      await TestSnaps.tapButton('signEntropyMessageButton');
+      await TestSnaps.approveSignRequest();
+      await TestSnaps.checkResultSpan('entropySignResultSpan', `"${result}"`);
+    },
+  );
 
   // This test is skipped because of a bug causing the app to crash when the
   // alert is displayed.
