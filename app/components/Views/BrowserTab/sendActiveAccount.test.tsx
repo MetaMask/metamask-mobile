@@ -46,23 +46,24 @@ const createSendActiveAccount =
       return;
     }
 
+    // Get permitted accounts for the target URL
+    const permissionsControllerState =
+      Engine.context.PermissionController.state;
+    let hostname = '' // notifyAllConnections will return empty array if ''
     try {
-      // Get permitted accounts for the target URL
-      const permissionsControllerState =
-        Engine.context.PermissionController.state;
-      const hostname = new URLParse(urlToCheck).hostname;
-      const permittedAcc = getPermittedEvmAddressesByHostname(
-        permissionsControllerState,
-        hostname,
-      );
-
-      notifyAllConnections({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: permittedAcc,
-      });
+      hostname = new URLParse(urlToCheck).hostname;
     } catch (err) {
-      Logger.log(err);
+      Logger.log('Error parsing WebView URL', err);
     }
+    const permittedAcc = getPermittedEvmAddressesByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+
+    notifyAllConnections({
+      method: NOTIFICATION_NAMES.accountsChanged,
+      params: permittedAcc,
+    });
   };
 
 describe('sendActiveAccount function', () => {
@@ -391,30 +392,31 @@ describe('sendActiveAccount function', () => {
       expect(mockGetPermittedEvmAddressesByHostname).not.toHaveBeenCalled();
     });
 
-    it('handles URL parsing errors gracefully', async () => {
+    it('handles URL parsing errors gracefully and still notifies connections', async () => {
       const targetUrl = 'invalid-url';
       const error = new Error('Invalid URL');
       mockURLParse.mockImplementation(() => {
         throw error;
       });
+      // When hostname is empty, getPermittedEvmAddressesByHostname should return empty array
+      mockGetPermittedEvmAddressesByHostname.mockReturnValue([]);
 
       await sendActiveAccount(targetUrl);
 
-      expect(mockLoggerLog).toHaveBeenCalledWith(error);
-      expect(mockNotifyAllConnections).not.toHaveBeenCalled();
-    });
-
-    it('handles permission checking errors gracefully', async () => {
-      const targetUrl = 'https://test-dapp.com';
-      const error = new Error('Permission check failed');
-      mockGetPermittedEvmAddressesByHostname.mockImplementation(() => {
-        throw error;
+      // Should log error with context
+      expect(mockLoggerLog).toHaveBeenCalledWith('Error parsing WebView URL', error);
+      
+      // Should call getPermittedEvmAddressesByHostname with empty hostname
+      expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
+        Engine.context.PermissionController.state,
+        '', // empty hostname when parsing fails
+      );
+      
+      // Should still notify connections with empty array
+      expect(mockNotifyAllConnections).toHaveBeenCalledWith({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: [],
       });
-
-      await sendActiveAccount(targetUrl);
-
-      expect(mockLoggerLog).toHaveBeenCalledWith(error);
-      expect(mockNotifyAllConnections).not.toHaveBeenCalled();
     });
   });
 
