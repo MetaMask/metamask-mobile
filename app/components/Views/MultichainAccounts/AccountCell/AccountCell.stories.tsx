@@ -1,7 +1,7 @@
 import { AccountGroup } from '@metamask/account-tree-controller';
 import React from 'react';
 import { View } from 'react-native';
-import AccountCell from './AccountCell';
+import AccountCell from './';
 import { mockTheme } from '../../../../util/theme';
 
 const SAMPLE_ACCOUNT_GROUP = {
