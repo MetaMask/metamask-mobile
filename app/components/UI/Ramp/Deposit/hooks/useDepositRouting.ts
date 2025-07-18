@@ -222,7 +222,9 @@ export const useDepositRouting = ({
 
               const cryptoCurrency = getCryptoCurrencyFromTransakId(
                 order.cryptoCurrency,
+                order.network,
               );
+
               const processedOrder = {
                 ...depositOrderToFiatOrder(order),
                 account: selectedWalletAddress || order.walletAddress,
