@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState } from 'react-native';
 import { waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
