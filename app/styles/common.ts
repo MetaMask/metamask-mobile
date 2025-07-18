@@ -59,19 +59,19 @@ export const baseStyles: Record<string, ViewStyle> = {
  */
 export const fontStyles: Record<string, TextStyle> = {
   normal: {
-    fontFamily: 'CentraNo1-Book',
+    fontFamily: 'Geist Regular',
     fontWeight: '400',
   },
   light: {
-    fontFamily: 'CentraNo1-Book',
+    fontFamily: 'Geist Regular',
     fontWeight: '300',
   },
   thin: {
-    fontFamily: 'CentraNo1-Book',
+    fontFamily: 'Geist Regular',
     fontWeight: '100',
   },
   bold: {
-    fontFamily: 'CentraNo1-Bold',
+    fontFamily: 'Geist Bold',
     fontWeight: '600',
   },
 };
