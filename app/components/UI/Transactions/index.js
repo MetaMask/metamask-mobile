@@ -32,9 +32,7 @@ import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
-import {
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import {
   selectChainId,
