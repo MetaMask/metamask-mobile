@@ -31,7 +31,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const PERFORMANCE_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 5000, // 17.5 seconds max for Android
+              TOTAL_TIME: 5000, // 5 seconds max for Android
             }
           : {
               TOTAL_TIME: 5000, // 5 seconds max for iOS
@@ -124,7 +124,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const HEAVY_LOAD_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 5000, // 17.5 seconds max for Android
+              TOTAL_TIME: 5000, // 5 seconds max for Android
             }
           : {
               TOTAL_TIME: 5000, // 5 seconds max for iOS
