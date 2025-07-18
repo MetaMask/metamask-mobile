@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Alert,
-  ActivityIndicator,
   Keyboard,
   View,
   SafeAreaView,
@@ -93,7 +92,7 @@ import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
-import LottieView from 'lottie-react-native';
+import LottieView, { AnimationObject } from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
 import {
@@ -575,7 +574,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   );
 
   const lottieSrc = useMemo(
-    () => (password.length > 0 ? ConcealingFox : SearchingFox),
+    () =>
+      (password.length > 0 ? ConcealingFox : SearchingFox) as AnimationObject,
     [password.length],
   );
 

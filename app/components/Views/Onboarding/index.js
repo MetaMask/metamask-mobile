@@ -14,7 +14,6 @@ import {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import StorageWrapper from '../../../store/storage-wrapper';
 import {
   fontStyles,
   baseStyles,
@@ -64,7 +63,7 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 30,
+      paddingVertical: Device.isMediumDevice() ? 16 : 30,
     },
     loaderWrapper: {
       flex: 1,
@@ -75,29 +74,29 @@ const createStyles = (colors) =>
     },
     image: {
       alignSelf: 'center',
-      width: 240,
-      height: 240,
+      width: Device.isMediumDevice() ? 180 : 240,
+      height: Device.isMediumDevice() ? 180 : 240,
     },
     largeFoxWrapper: {
-      width: 240,
-      height: 240,
+      width: Device.isMediumDevice() ? 180 : 240,
+      height: Device.isMediumDevice() ? 180 : 240,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       marginHorizontal: 'auto',
-      padding: 40,
+      padding: Device.isMediumDevice() ? 30 : 40,
       marginTop: 16,
     },
     foxImage: {
-      width: 145,
-      height: 145,
+      width: Device.isMediumDevice() ? 110 : 145,
+      height: Device.isMediumDevice() ? 110 : 145,
       resizeMode: 'contain',
     },
     title: {
-      fontSize: 40,
-      lineHeight: 40,
+      fontSize: Device.isMediumDevice() ? 30 : 40,
+      lineHeight: Device.isMediumDevice() ? 30 : 40,
       textAlign: 'center',
-      paddingHorizontal: 60,
+      paddingHorizontal: Device.isMediumDevice() ? 40 : 60,
       fontFamily:
         Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
       color: importedColors.gettingStartedTextColor,
@@ -111,7 +110,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       width: '100%',
       paddingHorizontal: 20,
-      rowGap: 24,
+      rowGap: Device.isMediumDevice() ? 16 : 24,
     },
     titleWrapper: {
       flexDirection: 'column',
@@ -119,7 +118,7 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       width: '100%',
       flex: 1,
-      rowGap: 32,
+      rowGap: Device.isMediumDevice() ? 24 : 32,
     },
     footer: {
       marginBottom: 40,
@@ -139,14 +138,14 @@ const createStyles = (colors) =>
     },
     createWrapper: {
       flexDirection: 'column',
-      rowGap: 16,
+      rowGap: Device.isMediumDevice() ? 12 : 16,
       marginBottom: 16,
       width: '100%',
     },
     buttonWrapper: {
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      gap: 16,
+      gap: Device.isMediumDevice() ? 12 : 16,
       width: '100%',
     },
     buttonLabel: {
@@ -585,14 +584,14 @@ class Onboarding extends PureComponent {
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             label={strings('onboarding.start_exploring_now')}
             width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
           />
           <Button
             variant={ButtonVariants.Secondary}
             onPress={() => this.handleCtaActions('existing')}
             testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
@@ -664,7 +663,7 @@ class Onboarding extends PureComponent {
                 onPress={this.onLogin}
                 label={strings('onboarding.unlock')}
                 width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
+                size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
               />
             </View>
           )}

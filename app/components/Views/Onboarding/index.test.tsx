@@ -59,6 +59,7 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
   isAndroid: jest.fn(),
   isIos: jest.fn(),
+  isMediumDevice: jest.fn(),
 }));
 
 // expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
@@ -190,6 +191,22 @@ describe('Onboarding', () => {
     (Device.isIphoneX as jest.Mock).mockReturnValue(true);
     (Device.isAndroid as jest.Mock).mockReturnValue(false);
     (Device.isIos as jest.Mock).mockReturnValue(true);
+
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render correctly with medium device and android', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
+    (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (Device.isIos as jest.Mock).mockReturnValue(false);
 
     const { toJSON } = renderScreen(
       Onboarding,

@@ -24,6 +24,7 @@ import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { AppThemeKey } from '../../../util/theme/models';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
 const SocialNotLinked = () => {
   const { colors } = useTheme();
@@ -98,6 +99,9 @@ const SocialLinked = ({
       justifyContent: 'center',
       alignItems: 'flex-start',
     },
+    emailText: {
+      width: '100%',
+    },
   });
 
   const isDark = themeAppearance === AppThemeKey.dark;
@@ -110,40 +114,49 @@ const SocialLinked = ({
     return `${firstPart.slice(0, 1)}********@${secondPart}`;
   }, [email]);
 
+  const getSocialIcon = () => {
+    if (authConnection === AuthConnection.Google) {
+      return (
+        <GoogleIcon
+          name="google"
+          width={24}
+          height={24}
+          fill="currentColor"
+          color={colors.icon.default}
+        />
+      );
+    }
+
+    if (isDark && authConnection === AuthConnection.Apple) {
+      return (
+        <AppleWhiteIcon
+          fill="currentColor"
+          width={24}
+          height={24}
+          name={'apple-white'}
+        />
+      );
+    }
+
+    return (
+      <AppleIcon fill="currentColor" width={24} height={24} name={'apple'} />
+    );
+  };
+
   return (
     <View style={styles.socialDetailsBoxRoot}>
       <View style={styles.socialBoxContainer}>
-        <View style={styles.iconContainer}>
-          {authConnection === 'google' ? (
-            <GoogleIcon
-              name="google"
-              width={24}
-              height={24}
-              fill="currentColor"
-              color={colors.icon.default}
-            />
-          ) : isDark ? (
-            <AppleWhiteIcon
-              fill="currentColor"
-              width={24}
-              height={24}
-              name={'apple-white'}
-            />
-          ) : (
-            <AppleIcon
-              fill="currentColor"
-              width={24}
-              height={24}
-              name={'apple'}
-            />
-          )}
-        </View>
+        <View style={styles.iconContainer}>{getSocialIcon()}</View>
         <View style={styles.socialDetailsBoxContent}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {strings('protect_your_wallet.social_recovery_enable')}
           </Text>
           {!!email && (
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.emailText}
+            >
               {maskedEmail}
             </Text>
           )}
