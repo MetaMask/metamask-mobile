@@ -70,9 +70,19 @@ export enum LocalNodeType {
   bitcoin = 'bitcoin',
 }
 
+export enum GanacheHardfork {
+  london = 'london',
+}
+
 export interface LocalNodeConfig {
   type: LocalNodeType;
   options: AnvilNodeOptions | GanacheNodeOptions;
+}
+
+export interface GanacheNodeOptions {
+  hardfork: GanacheHardfork;
+  mnemonic: string;
+  [key: string]: unknown; // Allow additional properties of any type
 }
 export interface AnvilNodeOptions {
   hardfork?: Hardfork;
@@ -88,10 +98,6 @@ export interface AnvilNodeOptions {
   noMining?: boolean;
 }
 
-export interface GanacheNodeOptions {
-  [key: string]: unknown;
-}
-
 export type LocalNodeOptionsInput = LocalNodeConfig[];
 
 // Fixture Builder types
@@ -101,7 +107,7 @@ export interface BackupAndSyncSettings {
   isContactSyncingEnabled: boolean;
 }
 
-export interface LunchArgs {
+export interface LaunchArgs {
   fixtureServerPort: string;
   detoxURLBlacklistRegex: string;
   mockServerPort: string;
@@ -142,6 +148,7 @@ export interface TestSuiteParams {
 export interface TestSpecificMock {
   GET?: MockApiEndpoint[];
   POST?: MockApiEndpoint[];
+  PUT?: MockApiEndpoint[];
   [key: string]: MockApiEndpoint[] | undefined;
 }
 
@@ -160,7 +167,7 @@ export interface MockApiEndpoint {
  * @param {boolean} [disableLocalNodes=false] - If true, disables the local nodes.
  * @param {DappOptions[]} [dapps] - The dapps to load for test. The base static port is defined and all dapps from dapp[1] will have the port incremented by 1.
  * @param {Record<string, unknown>} [testSpecificMock] - The test specific mock to load for test. This needs to be properly typed once we convert api-mocking.js to ts
- * @param {Partial<LunchArgs>} [launchArgs] - The launch arguments to use for the test.
+ * @param {Partial<LaunchArgs>} [launchArgs] - The launch arguments to use for the test.
  * @param {LanguageAndLocale} [languageAndLocale] - The language and locale to use for the test.
  * @param {Record<string, unknown>} [permissions] - The permissions to set for the device.
  */
@@ -172,7 +179,7 @@ export interface WithFixturesOptions {
   dapps?: DappOptions[];
   localNodeOptions?: LocalNodeOptionsInput;
   testSpecificMock?: TestSpecificMock;
-  launchArgs?: Partial<LunchArgs>;
+  launchArgs?: Partial<LaunchArgs>;
   languageAndLocale?: LanguageAndLocale;
   permissions?: Record<string, unknown>;
 }

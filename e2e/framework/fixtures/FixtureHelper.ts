@@ -25,8 +25,10 @@ import {
   TestSuiteFunction,
   LocalNode,
   DappOptions,
+  AnvilNodeOptions,
+  GanacheNodeOptions,
 } from '../types';
-import { TestDapps, DappVariants } from '../Constants';
+import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { logger } from '../logger';
@@ -159,6 +161,7 @@ async function handleLocalNodes(
   );
   try {
     let localNode;
+    let localNodeSpecificOptions;
     const localNodes = [];
     for (const node of localNodeOptions) {
       const nodeType = node.type;
@@ -167,16 +170,37 @@ async function handleLocalNodes(
       switch (nodeType) {
         case LocalNodeType.anvil:
           localNode = new AnvilManager();
-          await localNode.start(nodeOptions);
+          localNodeSpecificOptions = nodeOptions as AnvilNodeOptions;
+          await localNode.start(localNodeSpecificOptions);
           localNodes.push(localNode);
           break;
 
         case LocalNodeType.ganache:
           localNode = new Ganache();
-          await localNode.start(nodeOptions);
+          localNodeSpecificOptions = nodeOptions as GanacheNodeOptions;
+          // Check if mnemonic and/or hardfork are provided, otherwise use defaultGanacheOptions
+          if (
+            (!localNodeSpecificOptions?.mnemonic &&
+              !localNodeSpecificOptions?.hardfork) ||
+            Object.keys(localNodeSpecificOptions).length === 0
+          ) {
+            Object.assign(localNodeSpecificOptions, {
+              ...defaultGanacheOptions,
+              ...localNodeSpecificOptions,
+            });
+          } else {
+            if (!localNodeSpecificOptions?.mnemonic) {
+              localNodeSpecificOptions.mnemonic =
+                defaultGanacheOptions.mnemonic;
+            }
+            if (!localNodeSpecificOptions?.hardfork) {
+              localNodeSpecificOptions.hardfork =
+                defaultGanacheOptions.hardfork;
+            }
+          }
+          await localNode.start(localNodeSpecificOptions);
           localNodes.push(localNode);
           break;
-
         case LocalNodeType.bitcoin:
           break;
 

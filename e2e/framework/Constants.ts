@@ -1,9 +1,10 @@
 /* eslint-disable import/no-nodejs-modules */
 import path from 'path';
+import { GanacheHardfork } from './types';
 
 // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
 export const defaultGanacheOptions = {
-  hardfork: 'london',
+  hardfork: GanacheHardfork.london,
   mnemonic:
     'drive manage close raven tape average sausage pledge riot furnace august tip',
 };
