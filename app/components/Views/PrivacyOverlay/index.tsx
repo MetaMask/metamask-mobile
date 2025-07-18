@@ -9,22 +9,18 @@ import { useStyles } from '../../../component-library/hooks/useStyles';
 import Device from '../../../util/device';
 import styleSheet from './PrivacyOverlay.styles';
 
-type ExtendedAppStateStatus = AppStateStatus | 'blur' | 'focus';
-
 export function PrivacyOverlay() {
   const [showOverlay, setShowOverlay] = useState(false);
   const { styles } = useStyles(styleSheet, {});
 
   useEffect(() => {
-    const handleAppStateChange = (action: ExtendedAppStateStatus) => {
+    const handleAppStateChange = (action: AppStateStatus) => {
       setShowOverlay(() => {
         switch (action) {
           case 'background':
           case 'inactive':
-          case 'blur':
             return true;
           case 'active':
-          case 'focus':
             return false;
           default:
             return false;
@@ -42,11 +38,11 @@ export function PrivacyOverlay() {
 
     if (Device.isAndroid()) {
       androidBlurListener = AppState.addEventListener('blur', () =>
-        handleAppStateChange('blur'),
+        handleAppStateChange('inactive'),
       );
 
       androidFocusListener = AppState.addEventListener('focus', () =>
-        handleAppStateChange('focus'),
+        handleAppStateChange('active'),
       );
     }
 
