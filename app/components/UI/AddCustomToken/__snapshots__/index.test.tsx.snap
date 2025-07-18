@@ -233,7 +233,7 @@ exports[`AddCustomToken render correctly 1`] = `
           onFocus={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
-          placeholderTextColor="#9ca1af"
+          placeholderTextColor="#b7bbc8"
           returnKeyType="next"
           style={
             {
