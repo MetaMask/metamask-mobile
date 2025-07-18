@@ -312,7 +312,13 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                       }
                     }
                   >
-                    <View>
+                    <View
+                      style={
+                        {
+                          "flex": 1,
+                        }
+                      }
+                    >
                       <RCTScrollView
                         collapsable={false}
                         handlerTag={1}
