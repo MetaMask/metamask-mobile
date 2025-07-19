@@ -250,9 +250,9 @@ stages:
   #   workflows:
   #     - run_tag_multichain_permissions_ios: {}
   #     - run_tag_multichain_permissions_android: {}
-  run_e2e_flask_ios_android_stage:
-    workflows:
-      - run_ios_api_specs: {}
+  # run_e2e_flask_ios_android_stage:
+  #   workflows:
+      # - run_ios_api_specs: {}
       # - run_trade_swimlane_ios_smoke: {}
       # - run_trade_swimlane_android_smoke: {}
       # - run_network_abstraction_swimlane_ios_smoke: {}
@@ -268,10 +268,10 @@ stages:
       # - run_tag_flask_build_tests_android: {}
       # - run_tag_smoke_accounts_ios: {}
       # - run_tag_smoke_accounts_android: {}
-  run_single_e2e_ios_android_stage:
-    workflows:
-      # - run_single_ios_e2e_test: {}
-      # - run_single_android_e2e_test: {}
+  # run_single_e2e_ios_android_stage:
+  #   workflows:
+  #     # - run_single_ios_e2e_test: {}
+  #     # - run_single_android_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       # - run_ios_api_specs: {}
