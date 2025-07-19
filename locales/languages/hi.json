@@ -312,10 +312,10 @@
     "wrong_password_error_android": "त्रुटि: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "त्रुटि: पिछले वॉल्ट के बिना अनलॉक नहीं कर सकते।",
     "clean_vault_error": "एक संग्रहण की सीमा पर पहुंचने की वजह से MetaMask का सामना एक त्रुटि से हुआ। स्थानीय डेटा अनुपयोगी हो गया है। कृपया MetaMask को फिर से स्थापित करें और अपने सीक्रेट रिकवरी फ्रेज के साथ बहाल करें।",
-    "seedless_password_outdated": "Your password was changed recently.",
-    "seedless_password_outdated_modal_title": "Your password was changed",
-    "seedless_password_outdated_modal_content": "Your password was recently changed, so you need to enter your new password to stay logged into MetaMask.",
-    "seedless_password_outdated_modal_confirm": "Continue",
+    "seedless_password_outdated": "आपका पासवर्ड हाल ही में बदला गया।",
+    "seedless_password_outdated_modal_title": "आपका पासवर्ड बदला गया",
+    "seedless_password_outdated_modal_content": "आपका पासवर्ड हाल ही में बदला गया था, इसलिए MetaMask में लॉग इन रहने के लिए आपको अपना नया पासवर्ड दर्ज करना होगा।",
+    "seedless_password_outdated_modal_confirm": "जारी रखें",
     "security_alert_title": "सुरक्षा चेतावनी",
     "security_alert_desc": "आगे बढ़ने के लिए, आपको पासकोड ऑन करना होगा या आपके डिवाइस में सपोर्ट करने वाली किसी भी बायोमेट्रिक्स प्रमाणीकरण विधि (फेसआईडी, टचआईडी या फ़िंगरप्रिंट) को चालू करना होगा।",
     "too_many_attempts": "बहुत ज़्यादा प्रयास हो चुके हैं। कृपया {{remainingTime}} में फिर से प्रयास करें",
@@ -445,7 +445,7 @@
     "paste": "पेस्ट करें",
     "hide_all": "सभी को छिपाएं",
     "srp": "सीक्रेट रिकवरी फ्रेज़",
-    "srp_placeholder": "Add a space between each word and make sure no one is watching.",
+    "srp_placeholder": "प्रत्येक शब्द के बीच एक स्पेस जोड़ें और ध्यान दें कि कोई भी नहीं देख रहा हो।",
     "learn_more_link": "ज़्यादा जानें",
     "create_password_cta": "पासवर्ड बनाएं",
     "pass_flow": "Flow के साथ जारी रखें",
@@ -538,20 +538,20 @@
       "buy_crypto": "क्रिप्टो खरीदें"
     },
     "get_started": {
-      "navbar_title": "Deposit",
-      "title": "Starting is easy with USDC",
+      "navbar_title": "डिपॉज़िट करें",
+      "title": "USDC के साथ शुरुआत करना आसान है",
       "bullet_1_title": "अमेरिकी डॉलर द्वारा समर्थित मूल्य",
-      "bullet_1_description": "USDC is a digital dollar, backed by U.S. dollars, so you always know what it’s worth.",
+      "bullet_1_description": "USDC एक डिजिटल डॉलर है, जो अमेरिकी डॉलर द्वारा समर्थित है, इसलिए आपको हमेशा पता रहता है कि इसका मूल्य क्या है।",
       "bullet_2_title": "कम अस्थिरता",
-      "bullet_2_description": "USDC is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_2_description": "USDC को स्थिर रहने के लिए डिज़ाइन किया गया है, जिससे योजना बनाना, सेव करना और खर्च करना आसान हो जाता है।",
       "bullet_3_title": "बैंकों से भी तेज़",
-      "bullet_3_description": "Send and receive in minutes, no waiting for bank hours or international delays.",
+      "bullet_3_description": "मिनटों में भेजें और प्राप्त करें — न बैंक के समय का, न ही अंतरराष्ट्रीय देरी का इंतज़ार।",
       "button": "शुरू करें"
     },
     "enter_email": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "अपनी पहचान वेरिफ़ाई करें",
       "title": "अपना ईमेल दर्ज करें",
-      "description": "We'll email you a six-digit verification code to securely log in or create an account with Transak.",
+      "description": "हम आपको एक छह-अंकों का वेरिफिकेशन कोड ईमेल करेंगे ताकि आप सुरक्षित रूप से Transak में लॉग इन कर सकें या एक अकाउंट बना सकें।",
       "input_placeholder": "name@domain.com",
       "submit_button": "ईमेल भेजें",
       "loading": "ईमेल भेजा जा रहा है...",
@@ -559,9 +559,9 @@
       "error": "ईमेल भेजते समय एक गड़बड़ी हुई"
     },
     "otp_code": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "अपनी पहचान वेरिफ़ाई करें",
       "title": "छह अंकों का कोड दर्ज करें",
-      "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
+      "description": "हमारे द्वारा {{email}} पर भेजा गया कोड दर्ज करें। यदि आपको यह नहीं दिखता है, तो अपना स्पैम फ़ोल्डर देखें।",
       "submit_button": "सबमिट करें",
       "loading": "कोड वेरिफ़ाई किया जा रहा है...",
       "invalid_code_error": "कोड ग़लत है",
@@ -576,35 +576,35 @@
     },
     "verify_identity": {
       "title": "अपनी पहचान वेरिफ़ाई करें",
-      "navbar_title": "Deposit",
-      "description_1": "To deposit cash for the first time, your identity must be verified.",
+      "navbar_title": "डिपॉज़िट करें",
+      "description_1": "पहली बार कैश डिपॉज़िट करने के लिए आपकी पहचान का सत्यापन अनिवार्य है।",
       "description_2_transak": "Transak",
-      "description_2_rest": " will facilitate your deposit, and we work with them to ensure your privacy. We never store your data, and Transak never sells your data.",
-      "description_3_part1": "Check out our ",
-      "description_3_privacy_policy": "privacy policy",
-      "description_3_part2": " to learn more.",
-      "agreement_text_part1": "By clicking the button below, you agree to ",
-      "agreement_text_transak_terms": "Transak's Terms of Use",
-      "agreement_text_and": " and ",
-      "agreement_text_privacy_policy": "Privacy Policy",
-      "agreement_text_part2": ".",
-      "button": "Agree and continue"
+      "description_2_rest": " आपके डिपॉज़िट को आसान बनाएगा, और हम आपकी गोपनीयता सुनिश्चित करने के लिए उनके साथ मिलकर काम करते हैं। हम कभी भी आपका डेटा स्टोर नहीं करते, और Transak कभी भी आपका डेटा नहीं बेचता।",
+      "description_3_part1": "अधिक जानने के लिए हमारी ",
+      "description_3_privacy_policy": "गोपनीयता नीति",
+      "description_3_part2": " देखें।",
+      "agreement_text_part1": "नीचे दिए गए बटन पर क्लिक करके, ",
+      "agreement_text_transak_terms": "आप Transak की उपयोग की शर्तों",
+      "agreement_text_and": " और ",
+      "agreement_text_privacy_policy": "गोपनीयता नीति से सहमत होते हैं",
+      "agreement_text_part2": "।",
+      "button": "सहमत हों और जारी रखें"
     },
     "additional_verification": {
-      "title": "Additional Verification",
-      "paragraph_1": "For larger deposits, you’ll need a valid ID (like a driver’s license) and a real-time selfie.",
-      "paragraph_2": "In order to complete your verification, you’ll need to enable access to your camera.",
-      "button": "Continue"
+      "title": "अतिरिक्त सत्यापन",
+      "paragraph_1": "बड़े डिपॉज़िट के लिए, आपको एक वैध ID (जैसे ड्राइविंग लाइसेंस) और एक रियल-टाइम सेल्फी की आवश्यकता होगी।",
+      "paragraph_2": "अपना सत्यापन पूरा करने के लिए, आपको अपने कैमरे की ऐक्सेस चालू करनी होगी।",
+      "button": "जारी रखें"
     },
     "basic_info": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "अपनी पहचान वेरिफ़ाई करें",
       "title": "अपनी बुनियादी जानकारी डालें",
       "continue": "जारी रखें",
-      "subtitle": "Next, we need some basic information about you.",
+      "subtitle": "इसके बाद, हमें आपके बारे में कुछ बुनियादी जानकारी चाहिए।",
       "first_name": "पहला नाम",
       "last_name": "उपनाम",
       "phone_number": "फ़ोन नंबर",
-      "date_of_birth": "Date of birth",
+      "date_of_birth": "जन्मतिथि",
       "social_security_number": "सामाजिक सुरक्षा संख्या",
       "enter_phone_number": "फ़ोन नंबर दर्ज करें",
       "select_region": "क्षेत्र चुनें",
@@ -619,9 +619,9 @@
       "ssn_required": "सामाजिक सुरक्षा संख्या आवश्यक है"
     },
     "enter_address": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "अपनी पहचान वेरिफ़ाई करें",
       "title": "अपना एड्रेस डालें",
-      "subtitle": "Use your most recent permanent address.",
+      "subtitle": "अपना नवीनतम स्थायी एड्रेस का उपयोग करें।",
       "continue": "जारी रखें",
       "address_line_1": "एड्रेस लाइन 1",
       "address_line_2": "एड्रेस लाइन 2 (वैकल्पिक)",
@@ -639,21 +639,21 @@
       "state_invalid": "कृपया एक मान्य स्टेट दर्ज करें",
       "postal_code_required": "पोस्टल/ज़िप कोड आवश्यक है",
       "postal_code_invalid": "कृपया एक मान्य पोस्टल कोड दर्ज करें",
-      "unexpected_error": "Unexpected error."
+      "unexpected_error": "अप्रत्याशित गड़बड़ी (एरर)।"
     },
     "privacy_section": {
       "transak": "Transak इस जानकारी को एन्क्रिप्ट और संग्रहीत करता है।",
       "metamask": "MetaMask कभी भी आपका डेटा प्राप्त या उपयोग नहीं करता है।"
     },
     "kyc_processing": {
-      "navbar_title": "Verify your identity",
-      "heading": "Hang tight...",
+      "navbar_title": "अपनी पहचान वेरिफ़ाई करें",
+      "heading": "थोड़ा इंतजार करें...",
       "description": "इसमें केवल 2 मिनट का समय लगना चाहिए।",
       "error_heading": "हम आपकी पहचान सत्यापित नहीं कर पाए।",
       "error_description": "अपने दस्तावेज़ पुनः अपलोड करने का प्रयास करें और सत्यापन के लिए पुनः सबमिट करें।",
       "error_button": "सत्यापन का पुनः प्रयास करें",
-      "success_heading": "You're verified",
-      "success_description": "Now you can complete your deposit.",
+      "success_heading": "आपका सत्यापन हो गया है",
+      "success_description": "अब आप अपना डिपॉज़िट पूरा कर सकते हैं।",
       "success_button": "अपना ऑर्डर पूरा करें"
     },
     "provider_webview": {
@@ -691,8 +691,8 @@
       "error_message": "एक अनपेक्षित गड़बड़ी हुई।"
     },
     "bank_details": {
-      "navbar_title": "{{paymentMethod}} bank transfer",
-      "button": "Bank transfer sent",
+      "navbar_title": "{{paymentMethod}} बैंक ट्रांसफर",
+      "button": "बैंक ट्रांसफर भेजा गया",
       "button_cancel": "ऑर्डर कैंसिल करें",
       "main_title": "अपना ऑर्डर पूरा करने के लिए",
       "main_content_1": "नीचे दी गई जानकारी का उपयोग करके अपने पसंदीदा बैंक से ट्रांसफर आरंभ करें।",
@@ -734,30 +734,89 @@
   },
   "perps": {
     "title": "पर्प्स ट्रेडिंग",
+    "unknown_network": "Unknown Network",
     "deposit": {
-      "title": "डिपॉज़िट करें",
-      "preview": {
-        "title": "डिपॉज़िट प्रीव्यू"
+      "title": "Amount to deposit",
+      "pay_with": "Pay with",
+      "available": "Available",
+      "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
+      "insufficient_funds": "Insufficient funds",
+      "enter_amount": "Enter amount",
+      "fetching_quote": "Fetching quote",
+      "submitting": "Submitting transaction",
+      "get_usdc": "Get USDC",
+      "network_fee": "Network fee",
+      "network_fee_tooltip": "Fee paid to the network for processing your transaction",
+      "estimated_time": "Estimated time",
+      "rate": "Rate",
+      "slippage": "Slippage",
+      "slippage_tooltip": "Maximum price difference allowed for this transaction",
+      "slippage_info": "If the price changes between the time your order is placed and confirmed it's called slippage. Your transaction will automatically cancel if slippage exceeds the tolerance you set here.",
+      "slippage_auto": "Auto",
+      "apply": "Apply",
+      "select_token": "Select token",
+      "fund_hyperliquid": "Fund Hyperliquid Wallet",
+      "networkFee": "Network fee",
+      "estimatedTime": "Estimated time",
+      "metamask_fee": "MetaMask fee",
+      "metamask_fee_tooltip": "MetaMask does not charge any fees for deposits to Hyperliquid",
+      "minimum_deposit_error": "Minimum deposit amount is {{amount}} USDC",
+      "continue": "Continue",
+      "confirm_deposit": "Confirm deposit",
+      "confirming": "Confirming...",
+      "processing_title": "Processing deposit",
+      "deposit_completed": "Deposit completed successfully!",
+      "deposit_failed": "Deposit Failed",
+      "retry_deposit": "Retry Deposit",
+      "go_back": "Go Back",
+      "view_balance": "View Balance",
+      "calculating_fee": "Calculating...",
+      "switch_network": "Switch network required",
+      "quote_expired_modal": {
+        "title": "Quote Expired",
+        "description": "The quote for your deposit has expired after {{refreshRate}} seconds. Get a new quote to continue.",
+        "get_new_quote": "Get New Quote"
       },
-      "processing": {
-        "title": "डिपॉज़िट प्रोसेस किया जा रहा है"
+      "steps": {
+        "preparing": "Preparing deposit...",
+        "swapping": "Swapping {{token}} to USDC",
+        "bridging": "Bridging to Hyperliquid",
+        "depositing": "Depositing into perps account",
+        "depositing_direct": "Transferring USDC directly to your HyperLiquid account..."
       },
+      "step_descriptions": {
+        "preparing": "Preparing your deposit transaction...",
+        "swapping": "Converting your tokens to USDC for deposit...",
+        "bridging": "Moving USDC to Arbitrum network...",
+        "depositing": "Transferring USDC to your HyperLiquid account...",
+        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account",
+        "error": "Something went wrong during the deposit process. Please try again."
+      },
+      "quote_fetch_error": "Failed to fetch deposit quote. Please try again.",
+      "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
+      "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
+      "swap_not_supported": "Same-chain token swaps are not supported yet. Please use USDC or a token from a different network.",
+      "processing": "Processing...",
+      "completed": "Transaction completed",
+      "transactionHash": "Transaction Hash",
+      "transaction_hash": "Transaction Hash",
+      "viewTransaction": "View Transaction",
+      "view_transaction": "View Transaction",
       "success": {
-        "title": "डिपॉज़िट सफल रहा"
+        "title": "Deposit Successful!",
+        "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
+        "amount": "Amount",
+        "processing_time": "Processing Time",
+        "status": "Status",
+        "completed": "Completed",
+        "view_balance": "View Balance",
+        "view_transaction": "View Transaction"
       }
     },
     "order": {
       "title": "नया ऑर्डर",
-      "success": {
-        "title": "ऑर्डर सफलतापूर्वक दिया गया",
-        "subtitle": "{{asset}} के लिए आपकी {{direction}} पोजीशन बना दी गई है",
-        "order_placed": "Order placed successfully",
-        "asset": "एसेट",
-        "direction": "दिशा",
-        "amount": "राशि",
-        "order_id": "Order ID",
-        "view_positions": "View Positions",
-        "place_another": "Place Another Order"
+      "orderSuccess": {
+        "title": "Order Success"
       },
       "details": {
         "title": "ऑर्डर का विवरण"
@@ -765,22 +824,22 @@
       "history": {
         "title": "ऑर्डर हिस्ट्री"
       },
-      "long_title": "Long {{asset}}",
-      "short_title": "Short {{asset}}",
+      "long_title": "लंबी {{asset}}",
+      "short_title": "छोटी {{asset}}",
       "market": "मार्केट",
-      "margin_required": "Margin required",
+      "margin_required": "आवश्यक मार्जिन",
       "leverage": "लेवरेज",
-      "liquidation_price": "Liquidation price",
-      "take_profit_stop_loss": "Take profit/Stop loss",
-      "add_tpsl": "Add",
+      "liquidation_price": "लिक्विडेशन प्राइस",
+      "take_profit_stop_loss": "टेक प्रॉफ़िट/स्टॉप लॉस",
+      "add_tpsl": "जोड़ें",
       "balance": "बैलेंस",
       "fees": "शुल्क",
-      "place_order": "Place order",
-      "cannot_place_order": "Cannot place order ({{count}} errors)",
+      "place_order": "ऑर्डर करें",
+      "cannot_place_order": "ऑर्डर नहीं दिया जा सकता ({{count}} गड़बड़ी)",
       "tpsl_modal": {
-        "title": "Set take profit/stop loss",
-        "mark_price": "Mark price",
-        "set_limit": "Set limit",
+        "title": "टेक प्रॉफ़िट/स्टॉप लॉस निर्धारित करें",
+        "mark_price": "मार्क प्राइस",
+        "set_limit": "सीमा निर्धारित करें",
         "take_profit_short": "TP",
         "stop_loss_short": "SL",
         "add_tp": "+ TP",
@@ -790,81 +849,147 @@
       },
       "validation": {
         "failed": "ऑर्डर सत्यापन नहीं हो पाया",
-        "amount_required": "Order amount must be greater than 0",
-        "minimum_amount": "Minimum order size is ${{amount}}",
-        "maximum_amount": "Maximum order size is ${{amount}}",
-        "insufficient_balance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
-        "invalid_leverage": "Leverage must be between {{min}}x and {{max}}x",
-        "high_leverage_warning": "High leverage increases liquidation risk",
-        "invalid_take_profit": "Take profit must be {{direction}} current price for {{positionType}} positions",
-        "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
-        "liquidation_warning": "Position is close to liquidation price"
+        "amount_required": "ऑर्डर राशि 0 से अधिक होनी चाहिए",
+        "minimum_amount": "न्यूनतम ऑर्डर आकार ${{amount}} है",
+        "maximum_amount": "अधिकतम ऑर्डर आकार ${{amount}} है",
+        "insufficient_balance": "अपर्याप्त बैलेंस। आवश्यक: ${{required}}, उपलब्ध: ${{available}}",
+        "invalid_leverage": "लेवरेज {{min}}x और {{max}}x के बीच होना चाहिए",
+        "high_leverage_warning": "उच्च लेवरेज से लिक्विडेशन जोखिम बढ़ जाता है",
+        "invalid_take_profit": "{{positionType}} पोजीशन के लिए टेक प्रॉफ़िट वर्तमान प्राइस {{direction}} होना चाहिए",
+        "invalid_stop_loss": "{{positionType}} पोजीशन के लिए स्टॉप लॉस वर्तमान प्राइस {{direction}} होना चाहिए",
+        "liquidation_warning": "पोजीशन लिक्विडेशन प्राइस के करीब है"
+      },
+      "orderPlaced": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "order_placed": "Order placed successfully",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "order_id": "Order ID",
+        "view_positions": "View Positions",
+        "place_another": "Place Another Order"
       },
       "error": {
-        "placement_failed": "Order placement failed",
-        "network_error": "Network error",
+        "placement_failed": "ऑर्डर प्लेसमेंट नहीं हो पाया",
+        "network_error": "नेटवर्क गड़बड़ी",
         "unknown": "अज्ञात गड़बड़ी हुई",
         "dismiss": "खारिज करें"
       }
     },
+    "errors": {
+      "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
+      "tokenNotSupported": "Token {{token}} not supported for deposits",
+      "unknownError": "Unknown error occurred",
+      "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
+      "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
+      "infoClientNotAvailable": "InfoClient not available after initialization",
+      "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",
+      "failedToInitialize": "Failed to initialize HyperLiquid SDK clients",
+      "failedToSubscribePosition": "Failed to subscribe to position updates",
+      "failedToUnsubscribePosition": "Failed to unsubscribe from position updates",
+      "failedToSubscribeOrderFill": "Failed to subscribe to order fill updates",
+      "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
+      "failedToEstablishAllMids": "Failed to establish global allMids subscription",
+      "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "noAccountSelected": "No account selected",
+      "unsupportedMethod": "Unsupported method: {{method}}",
+      "invalidAddressFormat": "Invalid address format: {{address}}",
+      "depositValidation": {
+        "assetIdRequired": "AssetId is required for deposit validation",
+        "amountRequired": "Amount is required and must be greater than 0",
+        "amountPositive": "Amount must be a positive number"
+      },
+      "withdrawValidation": {
+        "assetIdRequired": "assetId is required for withdrawals",
+        "amountRequired": "amount is required for withdrawals",
+        "amountPositive": "Amount must be a positive number",
+        "invalidDestination": "Invalid destination address format: {{address}}",
+        "insufficientBalance": "Insufficient balance. Available: {{available}}, Requested: {{requested}}",
+        "assetNotSupported": "Asset {{assetId}} is not supported for withdrawals. Supported assets: {{supportedAssets}}"
+      },
+      "orderValidation": {
+        "coinRequired": "Coin is required for orders",
+        "sizePositive": "Size must be a positive number",
+        "pricePositive": "Price must be a positive number if provided",
+        "unknownCoin": "Unknown coin: {{coin}}"
+      },
+      "networkToggleFailed": "Failed to toggle network: {{error}}",
+      "accountBalanceFailed": "Failed to get account balance: {{error}}",
+      "positionsFailed": "Failed to get positions",
+      "accountStateFailed": "Failed to get account state",
+      "marketsFailed": "Failed to get markets",
+      "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
+      "onlyDirectDepositsSupported": "Only direct deposits are currently supported",
+      "providerNotAvailable": "Provider {{providerId}} not available",
+      "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
+      "gasFeeEstimateFailed": "Failed to estimate gas fee",
+      "exchangeRateFailed": "Failed to get exchange rate",
+      "refreshQuoteFailed": "Failed to refresh quote data",
+      "assetMappingFailed": "Failed to build asset mapping",
+      "invalidOrder": "Invalid order parameters",
+      "invalidWithdrawal": "Invalid withdrawal parameters",
+      "depositFailed": "Deposit failed"
+    },
     "position": {
       "title": "पोजीशन्स",
-      "details": {
-        "error_message": "Position data not found. Please go back and try again.",
-        "section_title": "Position"
-      },
       "card": {
-        "entry_price": "Entry Price",
-        "market_price": "Market Price",
-        "liquidity_price": "Liquidity Price",
-        "take_profit": "Take Profit",
-        "stop_loss": "Stop Loss",
-        "margin": "Margin",
-        "not_set": "Not Set",
-        "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close Position"
+        "entry_price": "एंट्री प्राइस",
+        "market_price": "मार्केट प्राइस",
+        "liquidity_price": "लिक्विडिटी प्राइस",
+        "take_profit": "टेक प्रॉफ़िट",
+        "stop_loss": "स्टॉप लॉस",
+        "margin": "मार्जिन",
+        "not_set": "सेट नहीं किया गया",
+        "edit_tpsl": "TP/SL बदलें",
+        "close_position": "क्लोज़ पोजीशन"
       },
       "list": {
-        "loading": "Loading positions...",
-        "error_title": "Error Loading Positions",
-        "empty_title": "No Open Positions",
-        "empty_description": "You don't have any open positions yet.\nStart trading to see your positions here.",
-        "open_positions": "Open Positions",
-        "position_count": "{{count}} position",
-        "position_count_plural": "{{count}} positions"
+        "loading": "पोजीशन्स लोड हो रही है...",
+        "error_title": "पोजीशन्स को लोड करने में गड़बड़ी",
+        "empty_title": "कोइ खुला पोजीशन नहीं",
+        "empty_description": "आपके पास अभी तक कोई भी खुला पोजीशन नहीं है।\nयहां अपनी पोजीशन्स देखने के लिए ट्रेडिंग शुरू करें।",
+        "open_positions": "खुले पोजीशन्स",
+        "position_count": "{{count}} पोजीशन",
+        "position_count_plural": "{{count}} पोजीशन्स"
+      },
+      "details": {
+        "title": "पोजीशन विवरण",
+        "error_message": "पोजीशन डेटा नहीं मिला। कृपया वापस जाएं और फिर से प्रयास करें।",
+        "section_title": "पोजीशन"
       },
       "account": {
-        "summary_title": "Account Summary",
-        "total_balance": "Total Balance",
-        "available_balance": "Available Balance",
-        "margin_used": "Margin Used",
-        "total_unrealized_pnl": "Total Unrealized P&L"
+        "summary_title": "अकाउंट का सारांश",
+        "total_balance": "कुल बैलेंस",
+        "available_balance": "उपलब्ध बैलेंस",
+        "margin_used": "उपयोग किया गया मार्जिन",
+        "total_unrealized_pnl": "कुल अप्राप्त लाभ और हानि"
       }
     },
     "trading": {
-      "title": "Perps Trading (Minimal)",
-      "subtitle": "Core Controller & Services Testing",
-      "network": "Network:",
-      "cached_balance": "Cached Balance:",
-      "loading_balance": "Loading balance...",
-      "balance_auto_load": "Balance will load automatically",
-      "get_account_balance": "Get Account Balance",
-      "switch_to_mainnet": "Switch to Mainnet",
-      "switch_to_testnet": "Switch to Testnet",
-      "positions": "Positions",
-      "result": "Result:"
+      "title": "पर्प्स ट्रेडिंग (न्यूनतम)",
+      "subtitle": "कोर नियंत्रक और सेवा परीक्षण",
+      "network": "नेटवर्क:",
+      "cached_balance": "कैश्ड बैलेंस:",
+      "loading_balance": "बैलेंस लोड हो रहा है...",
+      "balance_auto_load": "बैलेंस अपने आप लोड हो जाएगा",
+      "get_account_balance": "अकाउंट बैलेंस प्राप्त करें",
+      "switch_to_mainnet": "मेननेट (mainnet) पर स्विच करें",
+      "switch_to_testnet": "टैस्टनेट (testnet) पर स्विच करें",
+      "positions": "पोजीशन्स",
+      "result": "परिणाम:"
     },
     "connection": {
-      "connecting": "Connecting to Perps...",
-      "initializing": "Initializing Perps controller...",
-      "connecting_to_trading": "Connecting to Perps trading...",
-      "failed": "Connection Failed",
-      "error_message": "Unable to connect to Perps trading service.",
-      "retry_connection": "Retry Connection",
-      "retrying_connection": "Connecting..."
+      "connecting": "पर्प्स से कनेक्ट हो रहा है...",
+      "initializing": "पर्प्स नियंत्रक शुरू किया जा रहा है...",
+      "connecting_to_trading": "पर्प्स ट्रेडिंग से कनेक्ट हो रहा है...",
+      "failed": "कनेक्शन विफल रहा",
+      "error_message": "पर्प्स ट्रेडिंग सेवा से कनेक्ट करने में असमर्थ।",
+      "retry_connection": "कनेक्शन फिर से प्रयास करें",
+      "retrying_connection": "कनेक्ट हो रहा है..."
     },
     "chart": {
-      "no_data": "No chart data available"
+      "no_data": "कोई चार्ट डेटा उपलब्ध नहीं है"
     }
   },
   "receive": {
@@ -1998,7 +2123,7 @@
     "url_redirection_alert_desc": "लिंक का उपयोग लोगों को धोखा देने या फिश करने के लिए किया जा सकता है, इसलिए सुनिश्चित करें कि केवल उन्हीं वेबसाइटों पर जाएं जिन पर आप भरोसा करते हैं।",
     "label": "एक QR कोड स्कैन करें",
     "open_settings": "सेटिंग्स",
-    "camera_not_available": "Camera not available"
+    "camera_not_available": "कैमरा उपलब्ध नहीं है"
   },
   "action_view": {
     "cancel": "रद्द करें",
@@ -2616,11 +2741,15 @@
   },
   "import_private_key": {
     "title": "अकाउंट इम्पोर्ट करें",
-    "description_one": "इम्पोर्ट किए गए अकाउंट आपके वॉलेट में देखे जा सकते हैं लेकिन आपके MetaMask सीक्रेट रिकवरी फ्रेज के साथ रिकवर नहीं किए जा सकते।",
-    "learn_more_here": "यहां इम्पोर्ट किए गए अकाउंट के बारे में ज्यादा जानें।",
+    "description_one": "Imported private keys are backed up to your account and sync automatically when you sign in with the same Google or Apple login.",
+    "description_srp": "Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.",
+    "learn_more": "Learn more",
+    "learn_more_here": "about how imported keys work.",
+    "learn_more_srp": "Learn more about imported accounts",
+    "here": "here.",
     "subtitle": "अपनी निजी की स्ट्रिंग को चिपकाएं",
-    "cta_text": "इम्पोर्ट",
-    "example": "उदाहरण के लिए 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
+    "cta_text": "Import",
+    "example": "e.g.\n3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
     "error_title": "ओह! कुछ गलत हो गया...",
     "error_message": "हम उस निजी की को इम्पोर्ट नहीं कर सके। कृपया सुनिश्चित करें कि आपने इसे सही ढ़ंग से दर्ज किया है।",
     "error_empty_message": "आपको अपनी निजी की दर्ज करने की जरुरत है।",
@@ -4625,7 +4754,7 @@
     "fee_disclaimer": "0.875% MM शुल्क शामिल है",
     "hardware_wallet_not_supported": "हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
     "hardware_wallet_not_supported_solana": "Solana के लिए हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
-    "max": "Max"
+    "max": "मैक्स"
   },
   "quote_expired_modal": {
     "title": "नये कोटेशन उपलब्ध हैं",

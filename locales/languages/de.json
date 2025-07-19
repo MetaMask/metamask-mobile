@@ -312,10 +312,10 @@
     "wrong_password_error_android": "Fehler: Fehler 1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "Fehler: Kann ohne vorherigen Vault nicht entsperrt werden.",
     "clean_vault_error": "MetaMask stieß auf einen Fehler aufgrund einer Ausreizung des Speicherlimits. Die lokalen Daten sind beschädigt. Bitte installieren Sie MetaMask erneut und stellen Sie es mit Ihrer geheimen Wiederherstellungsphrase wieder her.",
-    "seedless_password_outdated": "Your password was changed recently.",
-    "seedless_password_outdated_modal_title": "Your password was changed",
-    "seedless_password_outdated_modal_content": "Your password was recently changed, so you need to enter your new password to stay logged into MetaMask.",
-    "seedless_password_outdated_modal_confirm": "Continue",
+    "seedless_password_outdated": "Ihr Passwort wurde vor kurzem geändert.",
+    "seedless_password_outdated_modal_title": "Ihr Passwort wurde geändert",
+    "seedless_password_outdated_modal_content": "Ihr Passwort wurde vor kurzem geändert, weshalb Sie Ihr neues Passwort eingeben müssen, um bei MetaMask angemeldet zu bleiben.",
+    "seedless_password_outdated_modal_confirm": "Fortfahren",
     "security_alert_title": "Sicherheitsbenachrichtigung",
     "security_alert_desc": "Um fortzufahren, müssen Sie den Passcode oder eine andere von Ihrem Gerät unterstützte biometrische Authentifizierungsmethode (FaceID, TouchID oder Fingerabdruck) aktivieren.",
     "too_many_attempts": "Zu viele Versuche. Bitte versuchen Sie es in {{remainingTime}} erneut.",
@@ -445,7 +445,7 @@
     "paste": "Einfügen",
     "hide_all": "Alle verbergen",
     "srp": "Geheime Wiederherstellungsphrase",
-    "srp_placeholder": "Add a space between each word and make sure no one is watching.",
+    "srp_placeholder": "Fügen Sie zwischen jedem Wort ein Leerzeichen ein und stellen Sie sicher, dass niemand zusieht.",
     "learn_more_link": "Mehr erfahren",
     "create_password_cta": "Passwort erstellen",
     "pass_flow": "Mit Flow fortfahren",
@@ -538,20 +538,20 @@
       "buy_crypto": "Krypto kaufen"
     },
     "get_started": {
-      "navbar_title": "Deposit",
-      "title": "Starting is easy with USDC",
+      "navbar_title": "Einzahlung",
+      "title": "Mit USDC ist der Einstieg ganz einfach",
       "bullet_1_title": "Wertgesichert durch den US-Dollar",
-      "bullet_1_description": "USDC is a digital dollar, backed by U.S. dollars, so you always know what it’s worth.",
+      "bullet_1_description": "Beim USDC handelt es sich um einen digitalen Dollar, der durch US-Dollars abgesichert ist, d. h. Sie wissen stets, was er wert ist.",
       "bullet_2_title": "Geringe Volatilität",
-      "bullet_2_description": "USDC is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_2_description": "USDC ist auf Stabilität ausgelegt, damit Sie leichter planen, sparen und ausgeben können.",
       "bullet_3_title": "Schneller als Banken",
-      "bullet_3_description": "Send and receive in minutes, no waiting for bank hours or international delays.",
+      "bullet_3_description": "Senden und empfangen Sie in wenigen Minuten, ohne auf Banköffnungszeiten oder internationale Verzögerungen zu warten.",
       "button": "Erste Schritte"
     },
     "enter_email": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "Verifizieren Sie Ihre Identität",
       "title": "Geben Sie Ihre E-Mail-Adr. ein",
-      "description": "We'll email you a six-digit verification code to securely log in or create an account with Transak.",
+      "description": "Wir senden Ihnen per E-Mail einen sechsstelligen Verifizierungscode, über den Sie sich bei Transak sicher anmelden bzw. ein Konto erstellen können.",
       "input_placeholder": "name@domain.com",
       "submit_button": "E-Mail senden",
       "loading": "E-Mail wird gesendet ...",
@@ -559,9 +559,9 @@
       "error": "Beim Senden der E-Mail ist ein Fehler aufgetreten"
     },
     "otp_code": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "Verifizieren Sie Ihre Identität",
       "title": "Sechsstelligen Code eingeben",
-      "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
+      "description": "Geben Sie den von uns an {{email}} gesandten Code ein. Sollten Sie ihn nicht sehen, prüfen Sie Ihren Spam-Ordner.",
       "submit_button": "Absenden",
       "loading": "Code wird verifiziert ...",
       "invalid_code_error": "Ungültiger Code",
@@ -576,35 +576,35 @@
     },
     "verify_identity": {
       "title": "Verifizieren Sie Ihre Identität",
-      "navbar_title": "Deposit",
-      "description_1": "To deposit cash for the first time, your identity must be verified.",
+      "navbar_title": "Einzahlung",
+      "description_1": "Für die erste Bareinzahlung muss Ihre Identität verifiziert werden.",
       "description_2_transak": "Transak",
-      "description_2_rest": " will facilitate your deposit, and we work with them to ensure your privacy. We never store your data, and Transak never sells your data.",
-      "description_3_part1": "Check out our ",
-      "description_3_privacy_policy": "privacy policy",
-      "description_3_part2": " to learn more.",
-      "agreement_text_part1": "By clicking the button below, you agree to ",
-      "agreement_text_transak_terms": "Transak's Terms of Use",
-      "agreement_text_and": " and ",
-      "agreement_text_privacy_policy": "Privacy Policy",
+      "description_2_rest": " wird Ihre Einzahlung vereinfachen, wobei wir mit ihnen zusammenarbeiten, um Ihre Privatsphäre zu schützen. Wir werden Ihre Daten niemals speichern bzw. Transak wird Ihre Daten auch niemals verkaufen.",
+      "description_3_part1": "Lesen Sie unsere ",
+      "description_3_privacy_policy": "Datenschutzerklärung,",
+      "description_3_part2": " um mehr zu erfahren.",
+      "agreement_text_part1": "Durch Anklicken der nachstehenden Schaltfläche stimmen Sie den ",
+      "agreement_text_transak_terms": "Transaks Nutzungsbedingungen",
+      "agreement_text_and": " und ",
+      "agreement_text_privacy_policy": "Datenschutzerklärung zu",
       "agreement_text_part2": ".",
-      "button": "Agree and continue"
+      "button": "Zustimmen und fortfahren"
     },
     "additional_verification": {
-      "title": "Additional Verification",
-      "paragraph_1": "For larger deposits, you’ll need a valid ID (like a driver’s license) and a real-time selfie.",
-      "paragraph_2": "In order to complete your verification, you’ll need to enable access to your camera.",
-      "button": "Continue"
+      "title": "Zusätzliche Verifizierung",
+      "paragraph_1": "Für größere Einzahlungen benötigen Sie einen gültigen Ausweis (z. B. einen Führerschein) sowie ein Selfie in Echtzeit.",
+      "paragraph_2": "Um die Verifizierung abschließen zu können, müssen Sie den Zugriff auf Ihre Kamera aktivieren.",
+      "button": "Fortfahren"
     },
     "basic_info": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "Verifizieren Sie Ihre Identität",
       "title": "Geben Sie Ihre grundlegenden Informationen ein",
       "continue": "Fortfahren",
-      "subtitle": "Next, we need some basic information about you.",
+      "subtitle": "Als Nächstes benötigen wir einige grundlegende Informationen zu Ihrer Person.",
       "first_name": "Vorname",
       "last_name": "Nachname",
       "phone_number": "Telefonnummer",
-      "date_of_birth": "Date of birth",
+      "date_of_birth": "Geburtsdatum",
       "social_security_number": "Sozialversicherungsnummer",
       "enter_phone_number": "Telefonnummer eingeben",
       "select_region": "Region auswählen",
@@ -619,9 +619,9 @@
       "ssn_required": "Sozialversicherungsnummer ist erforderlich"
     },
     "enter_address": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "Verifizieren Sie Ihre Identität",
       "title": "Geben Sie Ihre Adresse ein",
-      "subtitle": "Use your most recent permanent address.",
+      "subtitle": "Geben Sie bitte Ihre letzte ständige Adresse ein.",
       "continue": "Fortfahren",
       "address_line_1": "Adresszeile 1",
       "address_line_2": "Adresszeile 2 (optional)",
@@ -639,21 +639,21 @@
       "state_invalid": "Geben Sie bitte ein gültiges Bundesland ein",
       "postal_code_required": "Postleitzahl ist erforderlich",
       "postal_code_invalid": "Geben Sie bitte eine gültige Postleitzahl ein",
-      "unexpected_error": "Unexpected error."
+      "unexpected_error": "Ein unerwarteter Fehler."
     },
     "privacy_section": {
       "transak": "Transak verschlüsselt und speichert diese Informationen.",
       "metamask": "MetaMask erhält oder verwendet niemals Ihre Daten."
     },
     "kyc_processing": {
-      "navbar_title": "Verify your identity",
-      "heading": "Hang tight...",
+      "navbar_title": "Verifizieren Sie Ihre Identität",
+      "heading": "Bleiben Sie dran ...",
       "description": "Dies sollte nur etwa 2 Minuten dauern.",
       "error_heading": "Wir konnten Ihre Identität nicht verifizieren.",
       "error_description": "Versuchen Sie, Ihre Dokumente erneut hochzuladen und zur Verifizierung erneut einzureichen.",
       "error_button": "Verifizierung wiederholen",
-      "success_heading": "You're verified",
-      "success_description": "Now you can complete your deposit.",
+      "success_heading": "Sie wurden verifiziert",
+      "success_description": "Nun können Sie Ihre Einzahlung abschließen.",
       "success_button": "Auftrag abschließen"
     },
     "provider_webview": {
@@ -691,8 +691,8 @@
       "error_message": "Ein unerwarteter Fehler ist aufgetreten."
     },
     "bank_details": {
-      "navbar_title": "{{paymentMethod}} bank transfer",
-      "button": "Bank transfer sent",
+      "navbar_title": "{{paymentMethod}} Banküberweisung",
+      "button": "Banküberweisung gesendet",
       "button_cancel": "Order stornieren",
       "main_title": "Zum Abschluss Ihrer Order",
       "main_content_1": "Tätigen Sie eine Überweisung von Ihrer bevorzugten Bank, indem Sie die untenstehenden Informationen verwenden.",
@@ -734,30 +734,89 @@
   },
   "perps": {
     "title": "Perps-Trading",
+    "unknown_network": "Unknown Network",
     "deposit": {
-      "title": "Einzahlung",
-      "preview": {
-        "title": "Vorschau der Einzahlung"
+      "title": "Amount to deposit",
+      "pay_with": "Pay with",
+      "available": "Available",
+      "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
+      "insufficient_funds": "Insufficient funds",
+      "enter_amount": "Enter amount",
+      "fetching_quote": "Fetching quote",
+      "submitting": "Submitting transaction",
+      "get_usdc": "Get USDC",
+      "network_fee": "Network fee",
+      "network_fee_tooltip": "Fee paid to the network for processing your transaction",
+      "estimated_time": "Estimated time",
+      "rate": "Rate",
+      "slippage": "Slippage",
+      "slippage_tooltip": "Maximum price difference allowed for this transaction",
+      "slippage_info": "If the price changes between the time your order is placed and confirmed it's called slippage. Your transaction will automatically cancel if slippage exceeds the tolerance you set here.",
+      "slippage_auto": "Auto",
+      "apply": "Apply",
+      "select_token": "Select token",
+      "fund_hyperliquid": "Fund Hyperliquid Wallet",
+      "networkFee": "Network fee",
+      "estimatedTime": "Estimated time",
+      "metamask_fee": "MetaMask fee",
+      "metamask_fee_tooltip": "MetaMask does not charge any fees for deposits to Hyperliquid",
+      "minimum_deposit_error": "Minimum deposit amount is {{amount}} USDC",
+      "continue": "Continue",
+      "confirm_deposit": "Confirm deposit",
+      "confirming": "Confirming...",
+      "processing_title": "Processing deposit",
+      "deposit_completed": "Deposit completed successfully!",
+      "deposit_failed": "Deposit Failed",
+      "retry_deposit": "Retry Deposit",
+      "go_back": "Go Back",
+      "view_balance": "View Balance",
+      "calculating_fee": "Calculating...",
+      "switch_network": "Switch network required",
+      "quote_expired_modal": {
+        "title": "Quote Expired",
+        "description": "The quote for your deposit has expired after {{refreshRate}} seconds. Get a new quote to continue.",
+        "get_new_quote": "Get New Quote"
       },
-      "processing": {
-        "title": "Einzahlung wird verarbeitet"
+      "steps": {
+        "preparing": "Preparing deposit...",
+        "swapping": "Swapping {{token}} to USDC",
+        "bridging": "Bridging to Hyperliquid",
+        "depositing": "Depositing into perps account",
+        "depositing_direct": "Transferring USDC directly to your HyperLiquid account..."
       },
+      "step_descriptions": {
+        "preparing": "Preparing your deposit transaction...",
+        "swapping": "Converting your tokens to USDC for deposit...",
+        "bridging": "Moving USDC to Arbitrum network...",
+        "depositing": "Transferring USDC to your HyperLiquid account...",
+        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account",
+        "error": "Something went wrong during the deposit process. Please try again."
+      },
+      "quote_fetch_error": "Failed to fetch deposit quote. Please try again.",
+      "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
+      "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
+      "swap_not_supported": "Same-chain token swaps are not supported yet. Please use USDC or a token from a different network.",
+      "processing": "Processing...",
+      "completed": "Transaction completed",
+      "transactionHash": "Transaction Hash",
+      "transaction_hash": "Transaction Hash",
+      "viewTransaction": "View Transaction",
+      "view_transaction": "View Transaction",
       "success": {
-        "title": "Einzahlung erfolgreich"
+        "title": "Deposit Successful!",
+        "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
+        "amount": "Amount",
+        "processing_time": "Processing Time",
+        "status": "Status",
+        "completed": "Completed",
+        "view_balance": "View Balance",
+        "view_transaction": "View Transaction"
       }
     },
     "order": {
       "title": "Neue Order",
-      "success": {
-        "title": "Order erfolgreich erteilt",
-        "subtitle": "Ihre {{direction}} Position für {{asset}} wurde erstellt",
-        "order_placed": "Order placed successfully",
-        "asset": "Asset",
-        "direction": "Richtung",
-        "amount": "Betrag",
-        "order_id": "Order ID",
-        "view_positions": "View Positions",
-        "place_another": "Place Another Order"
+      "orderSuccess": {
+        "title": "Order Success"
       },
       "details": {
         "title": "Order-Details"
@@ -768,19 +827,19 @@
       "long_title": "Long {{asset}}",
       "short_title": "Short {{asset}}",
       "market": "Markt",
-      "margin_required": "Margin required",
+      "margin_required": "Erforderliche Margin",
       "leverage": "Hebel",
-      "liquidation_price": "Liquidation price",
-      "take_profit_stop_loss": "Take profit/Stop loss",
-      "add_tpsl": "Add",
+      "liquidation_price": "Liquidationspreis",
+      "take_profit_stop_loss": "Take-Profit/Stop-Loss",
+      "add_tpsl": "Hinzufügen",
       "balance": "Kontostand",
       "fees": "Gebühren",
-      "place_order": "Place order",
-      "cannot_place_order": "Cannot place order ({{count}} errors)",
+      "place_order": "Order erteilen",
+      "cannot_place_order": "Order kann nicht erteilt werden ({{count}} Fehler)",
       "tpsl_modal": {
-        "title": "Set take profit/stop loss",
-        "mark_price": "Mark price",
-        "set_limit": "Set limit",
+        "title": "Take-Profit/Stop-Loss festlegen",
+        "mark_price": "Preis markieren",
+        "set_limit": "Limit festlegen",
         "take_profit_short": "TP",
         "stop_loss_short": "SL",
         "add_tp": "+ TP",
@@ -790,81 +849,147 @@
       },
       "validation": {
         "failed": "Orderprüfung fehlgeschlagen",
-        "amount_required": "Order amount must be greater than 0",
-        "minimum_amount": "Minimum order size is ${{amount}}",
-        "maximum_amount": "Maximum order size is ${{amount}}",
-        "insufficient_balance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
-        "invalid_leverage": "Leverage must be between {{min}}x and {{max}}x",
-        "high_leverage_warning": "High leverage increases liquidation risk",
-        "invalid_take_profit": "Take profit must be {{direction}} current price for {{positionType}} positions",
-        "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
-        "liquidation_warning": "Position is close to liquidation price"
+        "amount_required": "Orderbetrag muss größer als 0 sein",
+        "minimum_amount": "Mindestordergröße beträgt {{amount}} $",
+        "maximum_amount": "Maximale Ordergröße beträgt {{amount}} $",
+        "insufficient_balance": "Unzureichendes Guthaben. Erforderlich: {{required}} $. Verfügbar: {{available}} $",
+        "invalid_leverage": "Hebel muss zwischen {{min}}x und {{max}}x liegen",
+        "high_leverage_warning": "Eine hoher Hebel erhöht das Liquidationsrisiko",
+        "invalid_take_profit": "Take-Profit muss {{direction}} aktueller Preis für {{positionType}} Positionen sein",
+        "invalid_stop_loss": "Stop-Loss muss {{direction}} aktueller Preis für {{positionType}} Positionen sein",
+        "liquidation_warning": "Position liegt nahe dem Liquidationspreis"
+      },
+      "orderPlaced": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "order_placed": "Order placed successfully",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "order_id": "Order ID",
+        "view_positions": "View Positions",
+        "place_another": "Place Another Order"
       },
       "error": {
-        "placement_failed": "Order placement failed",
-        "network_error": "Network error",
+        "placement_failed": "Ordererteilung fehlgeschlagen",
+        "network_error": "Netzwerkfehler",
         "unknown": "Ein unbekannter Fehler ist aufgetreten",
         "dismiss": "Verwerfen"
       }
     },
+    "errors": {
+      "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
+      "tokenNotSupported": "Token {{token}} not supported for deposits",
+      "unknownError": "Unknown error occurred",
+      "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
+      "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
+      "infoClientNotAvailable": "InfoClient not available after initialization",
+      "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",
+      "failedToInitialize": "Failed to initialize HyperLiquid SDK clients",
+      "failedToSubscribePosition": "Failed to subscribe to position updates",
+      "failedToUnsubscribePosition": "Failed to unsubscribe from position updates",
+      "failedToSubscribeOrderFill": "Failed to subscribe to order fill updates",
+      "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
+      "failedToEstablishAllMids": "Failed to establish global allMids subscription",
+      "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "noAccountSelected": "No account selected",
+      "unsupportedMethod": "Unsupported method: {{method}}",
+      "invalidAddressFormat": "Invalid address format: {{address}}",
+      "depositValidation": {
+        "assetIdRequired": "AssetId is required for deposit validation",
+        "amountRequired": "Amount is required and must be greater than 0",
+        "amountPositive": "Amount must be a positive number"
+      },
+      "withdrawValidation": {
+        "assetIdRequired": "assetId is required for withdrawals",
+        "amountRequired": "amount is required for withdrawals",
+        "amountPositive": "Amount must be a positive number",
+        "invalidDestination": "Invalid destination address format: {{address}}",
+        "insufficientBalance": "Insufficient balance. Available: {{available}}, Requested: {{requested}}",
+        "assetNotSupported": "Asset {{assetId}} is not supported for withdrawals. Supported assets: {{supportedAssets}}"
+      },
+      "orderValidation": {
+        "coinRequired": "Coin is required for orders",
+        "sizePositive": "Size must be a positive number",
+        "pricePositive": "Price must be a positive number if provided",
+        "unknownCoin": "Unknown coin: {{coin}}"
+      },
+      "networkToggleFailed": "Failed to toggle network: {{error}}",
+      "accountBalanceFailed": "Failed to get account balance: {{error}}",
+      "positionsFailed": "Failed to get positions",
+      "accountStateFailed": "Failed to get account state",
+      "marketsFailed": "Failed to get markets",
+      "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
+      "onlyDirectDepositsSupported": "Only direct deposits are currently supported",
+      "providerNotAvailable": "Provider {{providerId}} not available",
+      "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
+      "gasFeeEstimateFailed": "Failed to estimate gas fee",
+      "exchangeRateFailed": "Failed to get exchange rate",
+      "refreshQuoteFailed": "Failed to refresh quote data",
+      "assetMappingFailed": "Failed to build asset mapping",
+      "invalidOrder": "Invalid order parameters",
+      "invalidWithdrawal": "Invalid withdrawal parameters",
+      "depositFailed": "Deposit failed"
+    },
     "position": {
       "title": "Positionen",
-      "details": {
-        "error_message": "Position data not found. Please go back and try again.",
-        "section_title": "Position"
-      },
       "card": {
-        "entry_price": "Entry Price",
-        "market_price": "Market Price",
-        "liquidity_price": "Liquidity Price",
-        "take_profit": "Take Profit",
-        "stop_loss": "Stop Loss",
+        "entry_price": "Einstiegspreis",
+        "market_price": "Marktpreis",
+        "liquidity_price": "Liquiditätspreis",
+        "take_profit": "Take-Profit",
+        "stop_loss": "Stop-Loss",
         "margin": "Margin",
-        "not_set": "Not Set",
-        "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close Position"
+        "not_set": "Nicht festgelegt",
+        "edit_tpsl": "TP/SL bearbeiten",
+        "close_position": "Position schließen"
       },
       "list": {
-        "loading": "Loading positions...",
-        "error_title": "Error Loading Positions",
-        "empty_title": "No Open Positions",
-        "empty_description": "You don't have any open positions yet.\nStart trading to see your positions here.",
-        "open_positions": "Open Positions",
-        "position_count": "{{count}} position",
-        "position_count_plural": "{{count}} positions"
+        "loading": "Positionen werden geladen ...",
+        "error_title": "Fehler beim Laden der Positionen",
+        "empty_title": "Keine offenen Positionen",
+        "empty_description": "Sie haben derzeit noch keine offenen Positionen.\nBeginnen Sie mit dem Trading, um Ihre Positionen hier einzusehen.",
+        "open_positions": "Offene Positionen",
+        "position_count": "{{count}} Position",
+        "position_count_plural": "{{count}} Positionen"
+      },
+      "details": {
+        "title": "Details zur Position",
+        "error_message": "Positionsdaten nicht gefunden. Bitte kehren Sie zurück und versuchen Sie es erneut.",
+        "section_title": "Position"
       },
       "account": {
-        "summary_title": "Account Summary",
-        "total_balance": "Total Balance",
-        "available_balance": "Available Balance",
-        "margin_used": "Margin Used",
-        "total_unrealized_pnl": "Total Unrealized P&L"
+        "summary_title": "Kontoübersicht",
+        "total_balance": "Gesamtguthaben",
+        "available_balance": "Verfügbares Guthaben",
+        "margin_used": "Genutzte Margin",
+        "total_unrealized_pnl": "Nicht realisierte GuV insgesamt"
       }
     },
     "trading": {
-      "title": "Perps Trading (Minimal)",
-      "subtitle": "Core Controller & Services Testing",
-      "network": "Network:",
-      "cached_balance": "Cached Balance:",
-      "loading_balance": "Loading balance...",
-      "balance_auto_load": "Balance will load automatically",
-      "get_account_balance": "Get Account Balance",
-      "switch_to_mainnet": "Switch to Mainnet",
-      "switch_to_testnet": "Switch to Testnet",
-      "positions": "Positions",
-      "result": "Result:"
+      "title": "Perps-Trading (minimal)",
+      "subtitle": "Core-Controller und Prüfdienstleistungen",
+      "network": "Netzwerk:",
+      "cached_balance": "Zwischengespeichertes Guthaben:",
+      "loading_balance": "Guthaben wird geladen ...",
+      "balance_auto_load": "Guthaben wird automatisch geladen",
+      "get_account_balance": "Guthaben abrufen",
+      "switch_to_mainnet": "Zu Mainnet wechseln",
+      "switch_to_testnet": "Zu Testnet wechseln",
+      "positions": "Positionen",
+      "result": "Ergebnisse:"
     },
     "connection": {
-      "connecting": "Connecting to Perps...",
-      "initializing": "Initializing Perps controller...",
-      "connecting_to_trading": "Connecting to Perps trading...",
-      "failed": "Connection Failed",
-      "error_message": "Unable to connect to Perps trading service.",
-      "retry_connection": "Retry Connection",
-      "retrying_connection": "Connecting..."
+      "connecting": "Verbindung zu Perps wird hergestellt ...",
+      "initializing": "Initialisierung des Perps-Controllers ...",
+      "connecting_to_trading": "Verbindung zum Perps-Trading wird hergestellt ...",
+      "failed": "Verbindungsherstellung fehlgeschlagen",
+      "error_message": "Verbindungsherstellung zum Perps-Trading-Service nicht möglich.",
+      "retry_connection": "Verbindung erneut herstellen",
+      "retrying_connection": "Verbindung wird hergestellt ..."
     },
     "chart": {
-      "no_data": "No chart data available"
+      "no_data": "Keine Diagrammdaten verfügbar"
     }
   },
   "receive": {
@@ -1998,7 +2123,7 @@
     "url_redirection_alert_desc": "Links können verwendet werden, um versuchen, Personen zu betrügen oder zu phishen, also besuchen Sie nur Webseiten, denen Sie vertrauen.",
     "label": "Einen QR-Code scannen",
     "open_settings": "Einstellungen",
-    "camera_not_available": "Camera not available"
+    "camera_not_available": "Kamera nicht verfügbar"
   },
   "action_view": {
     "cancel": "Stornieren",
@@ -2616,11 +2741,15 @@
   },
   "import_private_key": {
     "title": "Konto importieren",
-    "description_one": "Importierte Konten sind in Ihrer Wallet sichtbar, können aber nicht über Ihre geheime MetaMask-Wiederherstellungsphrase wiederhergestellt werden.",
-    "learn_more_here": "Hier erfahren Sie mehr über importierte Konten.",
+    "description_one": "Imported private keys are backed up to your account and sync automatically when you sign in with the same Google or Apple login.",
+    "description_srp": "Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.",
+    "learn_more": "Learn more",
+    "learn_more_here": "about how imported keys work.",
+    "learn_more_srp": "Learn more about imported accounts",
+    "here": "here.",
     "subtitle": "Fügen Sie die Zeichenfolge Ihres privaten Schlüssels ein.",
-    "cta_text": "IMPORTIEREN",
-    "example": "z. B.: 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
+    "cta_text": "Import",
+    "example": "e.g.\n3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
     "error_title": "Etwas ist schiefgelaufen",
     "error_message": "Wir konnten den privaten Schlüssel nicht importieren. Bitte überprüfen Sie, ob Sie ihn korrekt eingegeben haben.",
     "error_empty_message": "Sie müssen Ihren privaten Schlüssel eingeben.",
@@ -4625,7 +4754,7 @@
     "fee_disclaimer": "Einschließlich 0,875 % MM-Gebühr",
     "hardware_wallet_not_supported": "Hardware-Wallets werden noch nicht unterstützt. Verwenden Sie eine Hot Wallet, um fortzufahren.",
     "hardware_wallet_not_supported_solana": "Hardware-Wallets werden für Solana noch nicht unterstützt. Verwenden Sie eine Hot Wallet, um fortzufahren.",
-    "max": "Max"
+    "max": "Max."
   },
   "quote_expired_modal": {
     "title": "Neue Angebote sind verfügbar",
