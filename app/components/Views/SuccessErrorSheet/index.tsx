@@ -21,7 +21,6 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
-
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
   onButtonPress?: () => void;

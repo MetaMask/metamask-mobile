@@ -103,6 +103,10 @@ import {
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../hooks/useMetrics';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -150,16 +154,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
-
-  const isSeedlessPasswordOutdated = useSelector(
-    selectIsSeedlessPasswordOutdated,
-  );
-  useEffect(() => {
-    // first error if seedless password is outdated
-    if (isSeedlessPasswordOutdated) {
-      setError(strings('login.seedless_password_outdated'));
-    }
-  }, [isSeedlessPasswordOutdated]);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
@@ -396,6 +390,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       return;
     }
 
+    if (loginErr instanceof SeedlessOnboardingControllerError) {
+      setLoading(false);
+      if (
+        loginErr.code ===
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+      ) {
+        setError(strings('login.seedless_password_outdated'));
+      }
+      setError(loginErr.message);
+      return;
+    }
+
     const isPasswordError =
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR) ||
       toLowerCaseEquals(loginErrorMessage, WRONG_PASSWORD_ERROR_ANDROID) ||
@@ -434,31 +440,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError(loginErrorMessage);
   };
 
-  const performAuthentication = async () => {
-    const authType = await Authentication.componentAuthenticationType(
-      biometryChoice,
-      rememberMe,
-    );
-    if (isSeedlessPasswordOutdated) {
-      await Authentication.submitLatestGlobalSeedlessPassword(
-        password,
-        authType,
-      );
-    } else if (oauthLoginSuccess) {
-      await Authentication.rehydrateSeedPhrase(password, authType);
-    } else {
-      await trace(
-        {
-          name: TraceName.AuthenticateUser,
-          op: TraceOperation.Login,
-        },
-        async () => {
-          await Authentication.userEntryAuth(password, authType);
-        },
-      );
-    }
-  };
-
   const onLogin = async () => {
     if (oauthLoginSuccess) {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
@@ -477,8 +458,23 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setLoading(true);
       setError(null);
 
-      await performAuthentication();
-      Keyboard.dismiss();
+      const authType = await Authentication.componentAuthenticationType(
+        biometryChoice,
+        rememberMe,
+      );
+      if (oauthLoginSuccess) {
+        authType.oauth2Login = true;
+      }
+
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.Login,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
 
       if (oauthLoginSuccess) {
         track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
@@ -488,6 +484,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         });
       }
 
+      Keyboard.dismiss();
       await checkMetricsUISeen();
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)

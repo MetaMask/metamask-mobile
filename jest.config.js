@@ -56,6 +56,9 @@ const config = {
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@deeeed/hyperliquid-node20(/.*)?$':
       '<rootDir>/app/__mocks__/hyperliquidMock.js',
+    '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
+    '^expo-apple-authentication(/.*)?$':
+      '<rootDir>/app/__mocks__/expo-apple-authentication.js',
   },
   // Disable jest cache
   cache: false,

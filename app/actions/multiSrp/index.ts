@@ -21,6 +21,7 @@ import { getTraceTags } from '../../util/sentry/tags';
 
 import ReduxService from '../../core/redux';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { SecretType } from '@metamask/seedless-onboarding-controller';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -78,9 +79,12 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     // user can try manual sync again (phase 2)
     const seed = new Uint8Array(inputCodePoints.buffer);
     try {
-      await SeedlessOnboardingController.addNewSeedPhraseBackup(
+      await SeedlessOnboardingController.addNewSecretData(
         seed,
-        newKeyring.id,
+        SecretType.Mnemonic,
+        {
+          keyringId: newKeyring.id,
+        },
       );
     } catch (error) {
       // Log the error but don't let it crash the import process
