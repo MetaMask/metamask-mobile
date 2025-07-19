@@ -642,11 +642,6 @@ class AuthenticationService {
     password: string,
     authData: AuthData,
   ): Promise<void> => {
-    if (!authData.oauth2Login) {
-      throw new Error(
-        'This method is only available for seedless onboarding flow',
-      );
-    }
     try {
       const { SeedlessOnboardingController } = Engine.context;
       const result = await SeedlessOnboardingController.fetchAllSecretData(

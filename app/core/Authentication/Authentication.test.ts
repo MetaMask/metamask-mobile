@@ -30,6 +30,10 @@ import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import { logOut } from '../../actions/user';
 import { RootState } from '../../reducers';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../Engine/controllers/seedless-onboarding-controller/error';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -1280,10 +1284,8 @@ describe('Authentication', () => {
             },
           },
           SeedlessOnboardingController: {
-            state: {
-              vault: 'existing vault data' as string | undefined,
-              socialBackupsMetadata: [],
-            },
+            vault: 'existing vault data' as string | undefined,
+            socialBackupsMetadata: [],
           },
         },
       },
@@ -1311,8 +1313,7 @@ describe('Authentication', () => {
         state: { vault: {} },
         recoverCurrentDevicePassword: jest.fn(),
         syncLatestGlobalPassword: jest.fn(),
-        checkIsPasswordOutdated: jest.fn(),
-        submitPassword: jest.fn(),
+        checkIsPasswordOutdated: jest.fn().mockResolvedValue(true),
         storeKeyringEncryptionKey: jest.fn(),
         loadKeyringEncryptionKey: jest.fn(),
         submitGlobalPassword: jest.fn(),
@@ -1327,6 +1328,51 @@ describe('Authentication', () => {
       jest.clearAllMocks();
       recreateVaultWithNewPassword.mockReset();
       selectSelectedInternalAccountFormattedAddress.mockReset();
+    });
+
+    it(`throw when old password is provided`, async () => {
+      Engine.context.KeyringController.submitPassword = jest
+        .fn()
+        .mockResolvedValueOnce('');
+      (
+        Engine.context.SeedlessOnboardingController
+          .checkIsPasswordOutdated as jest.Mock
+      ).mockResolvedValueOnce(true);
+
+      const mockStateLocal: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+              socialBackupsMetadata: [],
+              passwordOutdatedCache: {
+                isExpiredPwd: true,
+                timestamp: Date.now(),
+              },
+            },
+          },
+        },
+      };
+      // mock redux
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockStateLocal),
+      } as unknown as ReduxStore);
+
+      const spySyncPasswordAndUnlockWallet = jest.spyOn(
+        Authentication,
+        'syncPasswordAndUnlockWallet',
+      );
+
+      await expect(
+        Authentication.userEntryAuth(mockGlobalPassword, mockAuthType),
+      ).rejects.toThrow(
+        new SeedlessOnboardingControllerError(
+          'Password Recently Updated',
+          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+        ),
+      );
+      expect(spySyncPasswordAndUnlockWallet).toHaveBeenCalled();
     });
 
     it('successfully syncs latest global seedless password', async () => {
