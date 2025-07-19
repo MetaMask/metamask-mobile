@@ -734,30 +734,89 @@
   },
   "perps": {
     "title": "Trading de contrats perpétuels",
+    "unknown_network": "Unknown Network",
     "deposit": {
-      "title": "Dépôt",
-      "preview": {
-        "title": "Aperçu du dépôt"
+      "title": "Amount to deposit",
+      "pay_with": "Pay with",
+      "available": "Available",
+      "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
+      "insufficient_funds": "Insufficient funds",
+      "enter_amount": "Enter amount",
+      "fetching_quote": "Fetching quote",
+      "submitting": "Submitting transaction",
+      "get_usdc": "Get USDC",
+      "network_fee": "Network fee",
+      "network_fee_tooltip": "Fee paid to the network for processing your transaction",
+      "estimated_time": "Estimated time",
+      "rate": "Rate",
+      "slippage": "Slippage",
+      "slippage_tooltip": "Maximum price difference allowed for this transaction",
+      "slippage_info": "If the price changes between the time your order is placed and confirmed it's called slippage. Your transaction will automatically cancel if slippage exceeds the tolerance you set here.",
+      "slippage_auto": "Auto",
+      "apply": "Apply",
+      "select_token": "Select token",
+      "fund_hyperliquid": "Fund Hyperliquid Wallet",
+      "networkFee": "Network fee",
+      "estimatedTime": "Estimated time",
+      "metamask_fee": "MetaMask fee",
+      "metamask_fee_tooltip": "MetaMask does not charge any fees for deposits to Hyperliquid",
+      "minimum_deposit_error": "Minimum deposit amount is {{amount}} USDC",
+      "continue": "Continue",
+      "confirm_deposit": "Confirm deposit",
+      "confirming": "Confirming...",
+      "processing_title": "Processing deposit",
+      "deposit_completed": "Deposit completed successfully!",
+      "deposit_failed": "Deposit Failed",
+      "retry_deposit": "Retry Deposit",
+      "go_back": "Go Back",
+      "view_balance": "View Balance",
+      "calculating_fee": "Calculating...",
+      "switch_network": "Switch network required",
+      "quote_expired_modal": {
+        "title": "Quote Expired",
+        "description": "The quote for your deposit has expired after {{refreshRate}} seconds. Get a new quote to continue.",
+        "get_new_quote": "Get New Quote"
       },
-      "processing": {
-        "title": "Traitement du dépôt"
+      "steps": {
+        "preparing": "Preparing deposit...",
+        "swapping": "Swapping {{token}} to USDC",
+        "bridging": "Bridging to Hyperliquid",
+        "depositing": "Depositing into perps account",
+        "depositing_direct": "Transferring USDC directly to your HyperLiquid account..."
       },
+      "step_descriptions": {
+        "preparing": "Preparing your deposit transaction...",
+        "swapping": "Converting your tokens to USDC for deposit...",
+        "bridging": "Moving USDC to Arbitrum network...",
+        "depositing": "Transferring USDC to your HyperLiquid account...",
+        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account",
+        "error": "Something went wrong during the deposit process. Please try again."
+      },
+      "quote_fetch_error": "Failed to fetch deposit quote. Please try again.",
+      "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
+      "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
+      "swap_not_supported": "Same-chain token swaps are not supported yet. Please use USDC or a token from a different network.",
+      "processing": "Processing...",
+      "completed": "Transaction completed",
+      "transactionHash": "Transaction Hash",
+      "transaction_hash": "Transaction Hash",
+      "viewTransaction": "View Transaction",
+      "view_transaction": "View Transaction",
       "success": {
-        "title": "Dépôt effectué avec succès"
+        "title": "Deposit Successful!",
+        "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
+        "amount": "Amount",
+        "processing_time": "Processing Time",
+        "status": "Status",
+        "completed": "Completed",
+        "view_balance": "View Balance",
+        "view_transaction": "View Transaction"
       }
     },
     "order": {
       "title": "Nouvel ordre de bourse",
-      "success": {
-        "title": "Ordre de bourse passé avec succès",
-        "subtitle": "Votre position {{direction}} de {{asset}} a été créée",
-        "order_placed": "Order placed successfully",
-        "asset": "Actif",
-        "direction": "Direction",
-        "amount": "Montant",
-        "order_id": "Order ID",
-        "view_positions": "View Positions",
-        "place_another": "Place Another Order"
+      "orderSuccess": {
+        "title": "Order Success"
       },
       "details": {
         "title": "Détails de l’ordre de bourse"
@@ -800,6 +859,17 @@
         "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
         "liquidation_warning": "Position is close to liquidation price"
       },
+      "orderPlaced": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "order_placed": "Order placed successfully",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "order_id": "Order ID",
+        "view_positions": "View Positions",
+        "place_another": "Place Another Order"
+      },
       "error": {
         "placement_failed": "Order placement failed",
         "network_error": "Network error",
@@ -807,12 +877,62 @@
         "dismiss": "Ignorer"
       }
     },
+    "errors": {
+      "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
+      "tokenNotSupported": "Token {{token}} not supported for deposits",
+      "unknownError": "Unknown error occurred",
+      "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
+      "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
+      "infoClientNotAvailable": "InfoClient not available after initialization",
+      "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",
+      "failedToInitialize": "Failed to initialize HyperLiquid SDK clients",
+      "failedToSubscribePosition": "Failed to subscribe to position updates",
+      "failedToUnsubscribePosition": "Failed to unsubscribe from position updates",
+      "failedToSubscribeOrderFill": "Failed to subscribe to order fill updates",
+      "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
+      "failedToEstablishAllMids": "Failed to establish global allMids subscription",
+      "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "noAccountSelected": "No account selected",
+      "unsupportedMethod": "Unsupported method: {{method}}",
+      "invalidAddressFormat": "Invalid address format: {{address}}",
+      "depositValidation": {
+        "assetIdRequired": "AssetId is required for deposit validation",
+        "amountRequired": "Amount is required and must be greater than 0",
+        "amountPositive": "Amount must be a positive number"
+      },
+      "withdrawValidation": {
+        "assetIdRequired": "assetId is required for withdrawals",
+        "amountRequired": "amount is required for withdrawals",
+        "amountPositive": "Amount must be a positive number",
+        "invalidDestination": "Invalid destination address format: {{address}}",
+        "insufficientBalance": "Insufficient balance. Available: {{available}}, Requested: {{requested}}",
+        "assetNotSupported": "Asset {{assetId}} is not supported for withdrawals. Supported assets: {{supportedAssets}}"
+      },
+      "orderValidation": {
+        "coinRequired": "Coin is required for orders",
+        "sizePositive": "Size must be a positive number",
+        "pricePositive": "Price must be a positive number if provided",
+        "unknownCoin": "Unknown coin: {{coin}}"
+      },
+      "networkToggleFailed": "Failed to toggle network: {{error}}",
+      "accountBalanceFailed": "Failed to get account balance: {{error}}",
+      "positionsFailed": "Failed to get positions",
+      "accountStateFailed": "Failed to get account state",
+      "marketsFailed": "Failed to get markets",
+      "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
+      "onlyDirectDepositsSupported": "Only direct deposits are currently supported",
+      "providerNotAvailable": "Provider {{providerId}} not available",
+      "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
+      "gasFeeEstimateFailed": "Failed to estimate gas fee",
+      "exchangeRateFailed": "Failed to get exchange rate",
+      "refreshQuoteFailed": "Failed to refresh quote data",
+      "assetMappingFailed": "Failed to build asset mapping",
+      "invalidOrder": "Invalid order parameters",
+      "invalidWithdrawal": "Invalid withdrawal parameters",
+      "depositFailed": "Deposit failed"
+    },
     "position": {
       "title": "Positions",
-      "details": {
-        "error_message": "Position data not found. Please go back and try again.",
-        "section_title": "Position"
-      },
       "card": {
         "entry_price": "Entry Price",
         "market_price": "Market Price",
@@ -832,6 +952,11 @@
         "open_positions": "Open Positions",
         "position_count": "{{count}} position",
         "position_count_plural": "{{count}} positions"
+      },
+      "details": {
+        "title": "Détails de la position",
+        "error_message": "Position data not found. Please go back and try again.",
+        "section_title": "Position"
       },
       "account": {
         "summary_title": "Account Summary",
@@ -2616,11 +2741,15 @@
   },
   "import_private_key": {
     "title": "Importer un compte",
-    "description_one": "Les comptes importés sont visibles dans votre portefeuille, mais ne peuvent pas être récupérés avec votre phrase secrète de récupération MetaMask.",
-    "learn_more_here": "Pour en savoir plus sur les comptes importés, cliquez ici.",
+    "description_one": "Imported private keys are backed up to your account and sync automatically when you sign in with the same Google or Apple login.",
+    "description_srp": "Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.",
+    "learn_more": "Learn more",
+    "learn_more_here": "about how imported keys work.",
+    "learn_more_srp": "Learn more about imported accounts",
+    "here": "here.",
     "subtitle": "Collez la chaîne de caractères de votre clé privée",
-    "cta_text": "IMPORTER",
-    "example": "P. ex., 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
+    "cta_text": "Import",
+    "example": "e.g.\n3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
     "error_title": "Quelque chose a mal tourné",
     "error_message": "Nous n’avons pas pu importer cette clé privée. Veuillez vous assurer de l’avoir saisie correctement.",
     "error_empty_message": "Vous devez saisir votre clé privée",
