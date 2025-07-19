@@ -18,8 +18,11 @@ echo "PLATFORM = $PLATFORM"
 echo "MODE = $MODE"
 echo "ENVIRONMENT = $ENVIRONMENT"
 
+# Enable Sentry to auto upload source maps and debug symbols
+export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
 export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
+export EXPO_NO_TYPESCRIPT_SETUP=1
 
 envFileMissing() {
 	FILE="$1"
@@ -209,9 +212,6 @@ loadJSEnv(){
 			source $JS_ENV_FILE
 		fi
 	fi
-	# Disable auto Sentry file upload by default
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
-	export EXPO_NO_TYPESCRIPT_SETUP=1
 }
 
 
@@ -424,8 +424,6 @@ generateIosBinary() {
 
 # Builds the Main binary for production
 buildIosMainProduction(){
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 
 	prebuild_ios
 
@@ -468,6 +466,15 @@ buildIosFlaskProduction(){
 	# Go to ios directory
 	cd ios
 	generateIosBinary "MetaMask-Flask"
+}
+
+# Builds the QA binary for production
+buildIosQaProduction(){
+	prebuild_ios
+
+	# Go to ios directory
+	cd ios
+	generateIosBinary "MetaMask-QA"
 }
 
 buildIosReleaseE2E(){
@@ -515,44 +522,12 @@ buildIosQA(){
 	fi
 }
 
-
-buildAndroidQA(){
-	echo "Start Android QA build..."
-
-  	remapEnvVariableQA
-
-	# if [ "$PRE_RELEASE" = false ] ; then
-	# 	adb uninstall io.metamask.qa
-	# fi
-
-	prebuild_android
-
-	# Generate APK
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
-
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleQaRelease
-	fi
-
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum:qa
-	fi
-
-	#  if [ "$PRE_RELEASE" = false ] ; then
-	#  	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
-	#  fi
-}
-
 # Builds the Main APK for production
 buildAndroidMainProduction(){
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 	prebuild_android
 
 	# Generate APK for production
-	cd android && ./gradlew assembleProdRelease --build-cache --parallel
+	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest --build-cache --parallel
 
 	# Generate AAB bundle for production
 	./gradlew bundleProdRelease
@@ -569,13 +544,31 @@ buildAndroidFlaskProduction(){
 	prebuild_android
 
 	# Generate APK for production
-	cd android && ./gradlew assembleFlaskRelease --build-cache --parallel
+	cd android && ./gradlew assembleFlaskRelease app:assembleFlaskReleaseAndroidTest --build-cache --parallel
 
 	# Generate AAB bundle for production
 	./gradlew bundleFlaskRelease
 
 	# Generate checksum
 	yarn build:android:checksum:flask
+
+	# Change directory back out
+	cd ..
+}
+
+# Builds the QA APK for production
+buildAndroidQaProduction(){
+	# Builds the QA APK for production
+	prebuild_android
+
+	# Generate APK for production
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest --build-cache --parallel
+
+	# Generate AAB bundle for production
+	./gradlew bundleQaRelease
+
+	# Generate checksum
+	yarn build:android:checksum:qa
 
 	# Change directory back out
 	cd ..
@@ -608,7 +601,7 @@ buildAndroid() {
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildAndroidQaLocal
 		else
-			buildAndroidQA
+			buildAndroidQaProduction
 		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
@@ -663,7 +656,7 @@ buildIos() {
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildIosQaLocal
 		else
-			buildIosQA
+			buildIosQaProduction
 		fi
 	elif [ "$MODE" == "qaDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then

@@ -5,7 +5,7 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import StorageWrapper from '../../store/storage-wrapper';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
-import { isE2E } from '../test/utils';
+import { isE2E, isQa } from '../test/utils';
 import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
@@ -545,7 +545,6 @@ export function setupSentry() {
     return;
   }
 
-  const isQa = METAMASK_ENVIRONMENT === 'qa';
   const isDev = __DEV__;
 
   const init = async () => {
