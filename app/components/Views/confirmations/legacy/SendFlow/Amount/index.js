@@ -19,9 +19,7 @@ import {
   resetTransaction,
   setMaxValueMode,
 } from '../../../../../../actions/transaction';
-import {
-  setTransactionSendFlowContextualChainId,
-} from '../../../../../../actions/sendFlow';
+import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
 import StyledButton from '../../../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -572,20 +570,32 @@ class Amount extends PureComponent {
   };
 
   UNSAFE_componentWillMount = async () => {
-     // TODO: check with Salim if the content of this function is still needed
-     // this was debugging code in attempt to fix https://github.com/MetaMask/MetaMask-planning/issues/5200
-     // since then, Salim confirmed the issue will be fixed in his PR https://github.com/MetaMask/core/pull/6012
-     // Salim also offered to provide a patch (yarn) that could fix this locally until his PR is merged and controller updated
-     await Engine.context.TokenDetectionController.detectTokens({
+    const selectedAddress = this.props.selectedAddress;
+    // TODO: check with Salim if the content of this function is still needed
+    // this was debugging code in attempt to fix https://github.com/MetaMask/MetaMask-planning/issues/5200
+    // since then, Salim confirmed the issue will be fixed in his PR https://github.com/MetaMask/core/pull/6012
+    // Salim also offered to provide a patch (yarn) that could fix this locally until his PR is merged and controller updated
+    await Engine.context.TokenListController.fetchTokenList(
+      this.props.sendFlowContextualChainId,
+    );
+
+    await Engine.context.TokenDetectionController.detectTokens({
       chainIds: [this.props.sendFlowContextualChainId],
+      selectedAddress,
     });
-    await Engine.context.TokenListController.fetchTokenList(this.props.sendFlowContextualChainId);
+
     await Engine.context.TokenBalancesController.updateBalancesByChainId({
       chainId: this.props.sendFlowContextualChainId,
     });
-    // await Engine.context.AccountTrackerController.updateAccountsByChainId({
-    //   chainId: this.props.sendFlowContextualChainId,
-    // });
+
+    const { rpcEndpoints, defaultRpcEndpointIndex } =
+      this.props.sendFlowContextualNetworkConfiguration;
+    const { networkClientId: sendFlowContextualNetworkClientId } =
+      rpcEndpoints[defaultRpcEndpointIndex];
+
+    await Engine.context.AccountTrackerController.refresh([
+      sendFlowContextualNetworkClientId,
+    ]);
   };
 
   componentDidMount = async () => {
@@ -782,45 +792,46 @@ class Amount extends PureComponent {
     );
 
     const shouldUseRedesignedTransferConfirmation =
-      isRedesignedTransferConfirmationEnabledForTransfer && !isHardwareAccount(transaction.from);
+      isRedesignedTransferConfirmationEnabledForTransfer &&
+      !isHardwareAccount(transaction.from);
 
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
       onConfirm();
     } else if (shouldUseRedesignedTransferConfirmation) {
-        this.setState({ isRedesignedTransferTransactionLoading: true });
+      this.setState({ isRedesignedTransferTransactionLoading: true });
 
-        const transactionParams = {
-          data: transaction.data,
-          from: transaction.from,
-          to: transaction.to,
-          value:
-            typeof transaction.value === 'string'
-              ? transaction.value
-              : BNToHex(transaction.value),
-        };
+      const transactionParams = {
+        data: transaction.data,
+        from: transaction.from,
+        to: transaction.to,
+        value:
+          typeof transaction.value === 'string'
+            ? transaction.value
+            : BNToHex(transaction.value),
+      };
 
-        const { globalNetworkClientId } = this.props;
+      const { globalNetworkClientId } = this.props;
 
-        const { rpcEndpoints, defaultRpcEndpointIndex } =
-          this.props.sendFlowContextualNetworkConfiguration;
-        const { networkClientId: sendFlowContextualNetworkClientId } =
-          rpcEndpoints[defaultRpcEndpointIndex];
-        const effectiveNetworkClientId =
-          sendFlowContextualNetworkClientId || globalNetworkClientId;
+      const { rpcEndpoints, defaultRpcEndpointIndex } =
+        this.props.sendFlowContextualNetworkConfiguration;
+      const { networkClientId: sendFlowContextualNetworkClientId } =
+        rpcEndpoints[defaultRpcEndpointIndex];
+      const effectiveNetworkClientId =
+        sendFlowContextualNetworkClientId || globalNetworkClientId;
 
-        // console.log('>>> Amount addTransaction effectiveNetworkClientId', effectiveNetworkClientId);
-        await addTransaction(transactionParams, {
-          origin: MMM_ORIGIN,
-          networkClientId: effectiveNetworkClientId,
-        });
-        this.setState({ isRedesignedTransferTransactionLoading: false });
-        navigation.navigate('SendFlowView', {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        });
-      } else {
-        navigation.navigate(Routes.SEND_FLOW.CONFIRM);
-      }
+      // console.log('>>> Amount addTransaction effectiveNetworkClientId', effectiveNetworkClientId);
+      await addTransaction(transactionParams, {
+        origin: MMM_ORIGIN,
+        networkClientId: effectiveNetworkClientId,
+      });
+      this.setState({ isRedesignedTransferTransactionLoading: false });
+      navigation.navigate('SendFlowView', {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+    } else {
+      navigation.navigate(Routes.SEND_FLOW.CONFIRM);
+    }
   };
 
   getCollectibleTranferTransactionProperties() {
