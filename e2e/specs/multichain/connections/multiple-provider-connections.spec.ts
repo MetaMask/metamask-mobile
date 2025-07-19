@@ -40,6 +40,7 @@ async function requestPermissions({
   const bodyElement = webView.element(by.web.tag('body'));
 
   await TestHelpers.delay(1000);
+  // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
   await (expect(await bodyElement) as any).toExist();
 
   const requestPermissionsRequest = JSON.stringify({
@@ -64,7 +65,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
     jest.setTimeout(150000);
   });
 
-  it.only('should default account selection to already permitted account when `wallet_requestPermissions` is called with no accounts specified', async () => {
+  it('should default account selection to already permitted account when `wallet_requestPermissions` is called with no accounts specified', async () => {
     await withFixtures(
       {
         dapp: true,
