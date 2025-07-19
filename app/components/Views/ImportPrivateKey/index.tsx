@@ -23,6 +23,7 @@ import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/Import
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import { Authentication } from '../../../core';
 
 /**
  * View that's displayed the first time a user receives funds
@@ -84,18 +85,24 @@ const ImportPrivateKey = () => {
     setLoading(true);
     // Import private key
     try {
-      await importAccountFromPrivateKey(privateKeyToProcess);
-      navigation.navigate('ImportPrivateKeyView', {
-        screen: 'ImportPrivateKeySuccess',
-      });
-      setLoading(false);
-      setPrivateKey('');
-      fetchAccountsWithActivity();
+      // check if seedless pwd is outdated skip cache before importing Private Key
+      const isSeedlessPwdOutdated =
+        await Authentication.checkIsSeedlessPasswordOutdated(true);
+      // no need to handle error here, password outdated state will trigger modal that force user to log out
+      if (!isSeedlessPwdOutdated) {
+        await importAccountFromPrivateKey(privateKeyToProcess);
+        navigation.navigate('ImportPrivateKeyView', {
+          screen: 'ImportPrivateKeySuccess',
+        });
+        setPrivateKey('');
+        fetchAccountsWithActivity();
+      }
     } catch (e) {
       Alert.alert(
         strings('import_private_key.error_title'),
         strings('import_private_key.error_message'),
       );
+    } finally {
       setLoading(false);
     }
   };

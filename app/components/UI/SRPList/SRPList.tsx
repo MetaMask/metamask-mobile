@@ -9,12 +9,16 @@ import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 
 const SRPList = ({
   onKeyringSelect,
   containerStyle,
   showArrowName = '',
 }: SRPListProps) => {
+  // trigger sync SRP when SRP list is shown
+  useSyncSRPs();
+
   const { styles } = useStyles(styleSheet, {});
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const { trackEvent, createEventBuilder } = useMetrics();
