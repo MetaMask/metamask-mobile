@@ -7,7 +7,10 @@ import { usePerpsConnection } from './index';
 /**
  * Hook for live price updates (bypasses Redux for performance)
  */
-export function usePerpsPrices(symbols: string[]): Record<string, PriceUpdate> {
+export function usePerpsPrices(
+  symbols: string[],
+  includeOrderBook = false,
+): Record<string, PriceUpdate> {
   const { subscribeToPrices } = usePerpsTrading();
   const { isInitialized } = usePerpsConnection();
   const [prices, setPrices] = useState<Record<string, PriceUpdate>>({});
@@ -30,9 +33,16 @@ export function usePerpsPrices(symbols: string[]): Record<string, PriceUpdate> {
     const unsubscribe = subscribeToPrices({
       symbols: stableSymbols,
       callback: memoizedCallback,
+      includeOrderBook,
     });
     return unsubscribe;
-  }, [stableSymbols, subscribeToPrices, memoizedCallback, isInitialized]);
+  }, [
+    stableSymbols,
+    subscribeToPrices,
+    memoizedCallback,
+    isInitialized,
+    includeOrderBook,
+  ]);
 
   return prices;
 }

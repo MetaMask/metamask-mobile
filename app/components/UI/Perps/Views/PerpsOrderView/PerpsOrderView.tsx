@@ -237,8 +237,8 @@ const PerpsOrderView: React.FC = () => {
   // Memoize the asset array
   const assetSymbols = useMemo(() => [orderForm.asset], [orderForm.asset]);
 
-  // Get real-time price data
-  const priceData = usePerpsPrices(assetSymbols);
+  // Get real-time price data - include order book for limit orders
+  const priceData = usePerpsPrices(assetSymbols, orderType === 'limit');
   const currentPrice = priceData[orderForm.asset];
   const assetData = useMemo(() => {
     if (!currentPrice) {
@@ -643,7 +643,7 @@ const PerpsOrderView: React.FC = () => {
                   navigation.navigate(Routes.PERPS.MODALS.ROOT, {
                     screen: Routes.PERPS.MODALS.LIMIT_PRICE_MODAL,
                     params: {
-                      currentPrice: assetData.price,
+                      asset: orderForm.asset,
                       limitPrice: orderForm.limitPrice,
                     },
                   });

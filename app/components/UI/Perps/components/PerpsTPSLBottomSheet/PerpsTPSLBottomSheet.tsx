@@ -98,6 +98,10 @@ const createStyles = (colors: Theme['colors']) =>
       backgroundColor: colors.primary.muted,
       borderColor: colors.primary.default,
     },
+    percentageButtonDisabled: {
+      opacity: 0.5,
+      backgroundColor: colors.background.disabled || colors.background.alternative,
+    },
     helperText: {
       marginTop: 4,
     },
@@ -211,30 +215,33 @@ const PerpsTPSLBottomSheet: React.FC = () => {
             <Text variant={TextVariant.BodyLGMedium} style={styles.inputPrefix}>
               $
             </Text>
-            <TextInput
-              style={styles.input}
-              value={takeProfitPrice}
-              onChangeText={(text) => {
-                // Allow only numbers and decimal point
-                const sanitized = text.replace(/[^0-9.]/g, '');
-                // Prevent multiple decimal points
-                const parts = sanitized.split('.');
-                if (parts.length > 2) return;
-                setTakeProfitPrice(sanitized);
-              }}
-              placeholder="0.00"
-              placeholderTextColor={colors.text.muted}
-              keyboardType="numeric"
-              editable={takeProfitEnabled}
-              onFocus={() => setTpInputFocused(true)}
-              onBlur={() => {
-                setTpInputFocused(false);
-                // Format on blur if there's a value
-                if (takeProfitPrice && !isNaN(parseFloat(takeProfitPrice))) {
-                  setTakeProfitPrice(formatPrice(takeProfitPrice));
-                }
-              }}
-            />
+            {takeProfitEnabled ? (
+              <TextInput
+                style={styles.input}
+                value={takeProfitPrice}
+                onChangeText={(text) => {
+                  // Allow only numbers and decimal point
+                  const sanitized = text.replace(/[^0-9.]/g, '');
+                  // Prevent multiple decimal points
+                  const parts = sanitized.split('.');
+                  if (parts.length > 2) return;
+                  setTakeProfitPrice(sanitized);
+                }}
+                placeholder="0.00"
+                placeholderTextColor={colors.text.muted}
+                keyboardType="numeric"
+                onFocus={() => setTpInputFocused(true)}
+                onBlur={() => {
+                  setTpInputFocused(false);
+                  // Format on blur if there's a value
+                  if (takeProfitPrice && !isNaN(parseFloat(takeProfitPrice))) {
+                    setTakeProfitPrice(formatPrice(takeProfitPrice));
+                  }
+                }}
+              />
+            ) : (
+              <View style={styles.input} />
+            )}
             <TouchableOpacity
               style={styles.toggle}
               onPress={() => {
@@ -259,38 +266,42 @@ const PerpsTPSLBottomSheet: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {takeProfitEnabled && (
-            <View style={styles.percentageRow}>
-              {takeProfitPercentages.map((percentage) => (
-                <TouchableOpacity
-                  key={percentage}
-                  style={[
-                    styles.percentageButton,
+          <View style={styles.percentageRow}>
+            {takeProfitPercentages.map((percentage) => (
+              <TouchableOpacity
+                key={percentage}
+                style={[
+                  styles.percentageButton,
+                  takeProfitEnabled &&
                     takeProfitPrice ===
                       calculatePriceForPercentage(percentage, true) &&
-                      styles.percentageButtonActive,
-                  ]}
-                  onPress={() =>
-                    setTakeProfitPrice(
-                      calculatePriceForPercentage(percentage, true),
-                    )
+                    styles.percentageButtonActive,
+                  !takeProfitEnabled && styles.percentageButtonDisabled,
+                ]}
+                onPress={() =>
+                  takeProfitEnabled &&
+                  setTakeProfitPrice(
+                    calculatePriceForPercentage(percentage, true),
+                  )
+                }
+                disabled={!takeProfitEnabled}
+              >
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={
+                    !takeProfitEnabled
+                      ? TextColor.Disabled
+                      : takeProfitPrice ===
+                        calculatePriceForPercentage(percentage, true)
+                      ? TextColor.Primary
+                      : TextColor.Default
                   }
                 >
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={
-                      takeProfitPrice ===
-                      calculatePriceForPercentage(percentage, true)
-                        ? TextColor.Primary
-                        : TextColor.Default
-                    }
-                  >
-                    +{percentage}%
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+                  +{percentage}%
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           <Text
             variant={TextVariant.BodySM}
@@ -316,30 +327,33 @@ const PerpsTPSLBottomSheet: React.FC = () => {
             <Text variant={TextVariant.BodyLGMedium} style={styles.inputPrefix}>
               $
             </Text>
-            <TextInput
-              style={styles.input}
-              value={stopLossPrice}
-              onChangeText={(text) => {
-                // Allow only numbers and decimal point
-                const sanitized = text.replace(/[^0-9.]/g, '');
-                // Prevent multiple decimal points
-                const parts = sanitized.split('.');
-                if (parts.length > 2) return;
-                setStopLossPrice(sanitized);
-              }}
-              placeholder="0.00"
-              placeholderTextColor={colors.text.muted}
-              keyboardType="numeric"
-              editable={stopLossEnabled}
-              onFocus={() => setSlInputFocused(true)}
-              onBlur={() => {
-                setSlInputFocused(false);
-                // Format on blur if there's a value
-                if (stopLossPrice && !isNaN(parseFloat(stopLossPrice))) {
-                  setStopLossPrice(formatPrice(stopLossPrice));
-                }
-              }}
-            />
+            {stopLossEnabled ? (
+              <TextInput
+                style={styles.input}
+                value={stopLossPrice}
+                onChangeText={(text) => {
+                  // Allow only numbers and decimal point
+                  const sanitized = text.replace(/[^0-9.]/g, '');
+                  // Prevent multiple decimal points
+                  const parts = sanitized.split('.');
+                  if (parts.length > 2) return;
+                  setStopLossPrice(sanitized);
+                }}
+                placeholder="0.00"
+                placeholderTextColor={colors.text.muted}
+                keyboardType="numeric"
+                onFocus={() => setSlInputFocused(true)}
+                onBlur={() => {
+                  setSlInputFocused(false);
+                  // Format on blur if there's a value
+                  if (stopLossPrice && !isNaN(parseFloat(stopLossPrice))) {
+                    setStopLossPrice(formatPrice(stopLossPrice));
+                  }
+                }}
+              />
+            ) : (
+              <View style={styles.input} />
+            )}
             <TouchableOpacity
               style={styles.toggle}
               onPress={() => {
@@ -364,38 +378,42 @@ const PerpsTPSLBottomSheet: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {stopLossEnabled && (
-            <View style={styles.percentageRow}>
-              {stopLossPercentages.map((percentage) => (
-                <TouchableOpacity
-                  key={percentage}
-                  style={[
-                    styles.percentageButton,
+          <View style={styles.percentageRow}>
+            {stopLossPercentages.map((percentage) => (
+              <TouchableOpacity
+                key={percentage}
+                style={[
+                  styles.percentageButton,
+                  stopLossEnabled &&
                     stopLossPrice ===
                       calculatePriceForPercentage(percentage, false) &&
-                      styles.percentageButtonActive,
-                  ]}
-                  onPress={() =>
-                    setStopLossPrice(
-                      calculatePriceForPercentage(percentage, false),
-                    )
+                    styles.percentageButtonActive,
+                  !stopLossEnabled && styles.percentageButtonDisabled,
+                ]}
+                onPress={() =>
+                  stopLossEnabled &&
+                  setStopLossPrice(
+                    calculatePriceForPercentage(percentage, false),
+                  )
+                }
+                disabled={!stopLossEnabled}
+              >
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={
+                    !stopLossEnabled
+                      ? TextColor.Disabled
+                      : stopLossPrice ===
+                        calculatePriceForPercentage(percentage, false)
+                      ? TextColor.Primary
+                      : TextColor.Default
                   }
                 >
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={
-                      stopLossPrice ===
-                      calculatePriceForPercentage(percentage, false)
-                        ? TextColor.Primary
-                        : TextColor.Default
-                    }
-                  >
-                    -{percentage}%
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+                  -{percentage}%
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           <Text
             variant={TextVariant.BodySM}

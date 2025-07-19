@@ -124,39 +124,41 @@ const clearStackNavigatorOptions = {
 };
 
 export const PerpsModalStack = () => (
-  <ModalStack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
-  >
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
-      component={PerpsQuoteExpiredModal}
-    />
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.SLIPPAGE_MODAL}
-      component={PerpsSlippageModal}
-    />
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.ORDER_TYPE_MODAL}
-      component={PerpsOrderTypeBottomSheet}
-    />
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.LEVERAGE_MODAL}
-      component={PerpsLeverageBottomSheet}
-    />
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.TPSL_MODAL}
-      component={PerpsTPSLBottomSheet}
-    />
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.LIMIT_PRICE_MODAL}
-      component={PerpsLimitPriceBottomSheet}
-    />
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.INFO_MODAL}
-      component={PerpsInfoBottomSheet}
-    />
-  </ModalStack.Navigator>
+  <PerpsConnectionProvider>
+    <ModalStack.Navigator
+      mode={'modal'}
+      screenOptions={clearStackNavigatorOptions}
+    >
+      <ModalStack.Screen
+        name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
+        component={PerpsQuoteExpiredModal}
+      />
+      <ModalStack.Screen
+        name={Routes.PERPS.MODALS.SLIPPAGE_MODAL}
+        component={PerpsSlippageModal}
+      />
+      <ModalStack.Screen
+        name={Routes.PERPS.MODALS.ORDER_TYPE_MODAL}
+        component={PerpsOrderTypeBottomSheet}
+      />
+      <ModalStack.Screen
+        name={Routes.PERPS.MODALS.LEVERAGE_MODAL}
+        component={PerpsLeverageBottomSheet}
+      />
+      <ModalStack.Screen
+        name={Routes.PERPS.MODALS.TPSL_MODAL}
+        component={PerpsTPSLBottomSheet}
+      />
+      <ModalStack.Screen
+        name={Routes.PERPS.MODALS.LIMIT_PRICE_MODAL}
+        component={PerpsLimitPriceBottomSheet}
+      />
+      <ModalStack.Screen
+        name={Routes.PERPS.MODALS.INFO_MODAL}
+        component={PerpsInfoBottomSheet}
+      />
+    </ModalStack.Navigator>
+  </PerpsConnectionProvider>
 );
 
 export default PerpsScreenStack;

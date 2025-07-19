@@ -201,9 +201,14 @@ export interface LiveDataConfig {
 
 export interface PriceUpdate {
   coin: string; // Asset symbol
-  price: string; // Current price
+  price: string; // Current price (mid price)
   timestamp: number; // Update timestamp
   percentChange24h?: string; // 24h price change percentage
+  // Order book data
+  bestBid?: string; // Best bid price
+  bestAsk?: string; // Best ask price
+  spread?: string; // Ask - Bid spread
+  markPrice?: string; // Mark price from oracle
 }
 
 export interface OrderFill {
@@ -238,6 +243,7 @@ export interface SubscribePricesParams {
   symbols: string[];
   callback: (prices: PriceUpdate[]) => void;
   throttleMs?: number; // Future: per-subscription throttling
+  includeOrderBook?: boolean; // Optional: include bid/ask data from L2 book
 }
 
 export interface SubscribePositionsParams {

@@ -4,7 +4,13 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
@@ -17,7 +23,7 @@ import {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import Text, {
-  TextVariant
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
@@ -25,9 +31,10 @@ import { Theme } from '../../../../../util/theme/models';
 import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import { formatPrice } from '../../utils/formatUtils';
+import { usePerpsPrices } from '../../hooks';
 
 interface LimitPriceRouteParams {
-  currentPrice: number;
+  asset: string; // The asset symbol to get prices for
   limitPrice?: string;
 }
 
@@ -107,7 +114,7 @@ const PerpsLimitPriceBottomSheet: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: LimitPriceRouteParams }, 'params'>>();
-  const { currentPrice, limitPrice: initialLimitPrice } = route.params || {};
+  const { asset, limitPrice: initialLimitPrice } = route.params || {};
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -115,6 +122,23 @@ const PerpsLimitPriceBottomSheet: React.FC = () => {
 
   // Initialize with initial limit price or empty to show placeholder
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
+
+  // Get real-time price data with order book for the asset
+  const assetSymbols = useMemo(() => [asset || 'BTC'], [asset]);
+  const priceData = usePerpsPrices(assetSymbols, true); // include order book data
+  const currentPriceData = priceData[asset || 'BTC'];
+
+  // Extract values from real-time data
+  const currentPrice = parseFloat(currentPriceData?.price || '0');
+  const markPrice = currentPriceData?.markPrice
+    ? parseFloat(currentPriceData.markPrice)
+    : currentPrice;
+  const bestBid = currentPriceData?.bestBid
+    ? parseFloat(currentPriceData.bestBid)
+    : undefined;
+  const bestAsk = currentPriceData?.bestAsk
+    ? parseFloat(currentPriceData.bestAsk)
+    : undefined;
 
   useEffect(() => {
     bottomSheetRef.current?.onOpenBottomSheet();
@@ -150,14 +174,23 @@ const PerpsLimitPriceBottomSheet: React.FC = () => {
   );
 
   const handleMidPrice = useCallback(() => {
-    // For now, use current price as mid price
-    // In real implementation, this would be (ask + bid) / 2
-    setLimitPrice(currentPrice.toFixed(2));
-  }, [currentPrice]);
+    // Mid price is the average between ask and bid
+    if (bestAsk && bestBid) {
+      const midPrice = (bestAsk + bestBid) / 2;
+      setLimitPrice(midPrice.toFixed(2));
+    } else if (currentPrice) {
+      // Fallback to current price if we don't have bid/ask
+      setLimitPrice(currentPrice.toFixed(2));
+    }
+  }, [currentPrice, bestAsk, bestBid]);
 
   const handleMarkPrice = useCallback(() => {
-    setLimitPrice(currentPrice.toFixed(2));
-  }, [currentPrice]);
+    // Use mark price if available, otherwise fall back to current price
+    const priceToUse = markPrice || currentPrice;
+    if (priceToUse) {
+      setLimitPrice(priceToUse.toFixed(2));
+    }
+  }, [currentPrice, markPrice]);
 
   const footerButtonProps = [
     {
@@ -165,13 +198,14 @@ const PerpsLimitPriceBottomSheet: React.FC = () => {
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
-      disabled: !limitPrice || limitPrice === '0' || parseFloat(limitPrice) <= 0,
+      disabled:
+        !limitPrice || limitPrice === '0' || parseFloat(limitPrice) <= 0,
     },
   ];
 
-  // Mock ask and bid prices (normally would come from market data)
-  const askPrice = currentPrice * 1.0001;
-  const bidPrice = currentPrice * 0.9999;
+  // Use real bid/ask prices if available, otherwise calculate approximations
+  const displayAskPrice = bestAsk || (currentPrice ? currentPrice * 1.0001 : 0);
+  const displayBidPrice = bestBid || (currentPrice ? currentPrice * 0.9999 : 0);
 
   return (
     <BottomSheet ref={bottomSheetRef}>
@@ -197,7 +231,7 @@ const PerpsLimitPriceBottomSheet: React.FC = () => {
               {strings('perps.order.limit_price_modal.ask_price')}
             </Text>
             <Text style={styles.priceValue}>
-              {askPrice ? formatPrice(askPrice) : '$---'}
+              {displayAskPrice ? formatPrice(displayAskPrice) : '$---'}
             </Text>
           </View>
           <View style={styles.priceRow}>
@@ -205,15 +239,24 @@ const PerpsLimitPriceBottomSheet: React.FC = () => {
               {strings('perps.order.limit_price_modal.bid_price')}
             </Text>
             <Text style={styles.priceValue}>
-              {bidPrice ? formatPrice(bidPrice) : '$---'}
+              {displayBidPrice ? formatPrice(displayBidPrice) : '$---'}
             </Text>
           </View>
         </View>
 
         {/* Limit price display */}
         <View style={styles.limitPriceDisplay}>
-          <Text style={[styles.limitPriceValue, (!limitPrice || limitPrice === '0') && { color: colors.text.muted }]}>
-            {(!limitPrice || limitPrice === '0') ? strings('perps.order.limit_price') : limitPrice}
+          <Text
+            style={[
+              styles.limitPriceValue,
+              (!limitPrice || limitPrice === '0') && {
+                color: colors.text.muted,
+              },
+            ]}
+          >
+            {!limitPrice || limitPrice === '0'
+              ? strings('perps.order.limit_price')
+              : limitPrice}
           </Text>
           <Text style={styles.limitPriceCurrency}>USD</Text>
         </View>
