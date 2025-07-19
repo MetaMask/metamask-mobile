@@ -117,7 +117,7 @@ const TokenListComponent = ({
           onRefresh={onRefresh}
         />
       }
-      extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
+      extraData={{ isTokenNetworkFilterEqualCurrentNetwork, refreshing }}
     />
   ) : (
     <View style={styles.emptyView}>
