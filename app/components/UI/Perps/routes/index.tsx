@@ -17,6 +17,7 @@ import PerpsSlippageModal from '../components/PerpsSlippageModal';
 import PerpsOrderTypeBottomSheet from '../components/PerpsOrderTypeBottomSheet';
 import PerpsLeverageBottomSheet from '../components/PerpsLeverageBottomSheet';
 import PerpsTPSLBottomSheet from '../components/PerpsTPSLBottomSheet';
+import PerpsLimitPriceBottomSheet from '../components/PerpsLimitPriceBottomSheet';
 import PerpsInfoBottomSheet from '../components/PerpsInfoBottomSheet';
 
 const Stack = createStackNavigator();
@@ -146,6 +147,10 @@ export const PerpsModalStack = () => (
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.TPSL_MODAL}
       component={PerpsTPSLBottomSheet}
+    />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.LIMIT_PRICE_MODAL}
+      component={PerpsLimitPriceBottomSheet}
     />
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.INFO_MODAL}

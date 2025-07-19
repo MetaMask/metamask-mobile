@@ -44,7 +44,6 @@ import {
   setBridgeViewMode,
   setSelectedSourceChainIds,
 } from '../../../../../core/redux/slices/bridge';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {

@@ -76,7 +76,7 @@ const createStyles = (colors: Theme['colors']) =>
       marginRight: 8,
     },
     toggle: {
-      marginLeft: 8,
+      marginLeft: 16,
     },
     percentageRow: {
       flexDirection: 'row',

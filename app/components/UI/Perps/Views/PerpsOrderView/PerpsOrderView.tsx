@@ -89,6 +89,7 @@ interface OrderFormState {
   balancePercent: number;
   takeProfitPrice?: string;
   stopLossPrice?: string;
+  limitPrice?: string;
 }
 
 // Navigation params interface
@@ -104,6 +105,7 @@ interface OrderRouteParams {
     takeProfitPrice?: string;
     stopLossPrice?: string;
   };
+  limitPriceUpdate?: string;
 }
 
 const PerpsOrderView: React.FC = () => {
@@ -167,6 +169,7 @@ const PerpsOrderView: React.FC = () => {
     balancePercent: Math.round(initialBalancePercent * 100) / 100,
     takeProfitPrice: undefined,
     stopLossPrice: undefined,
+    limitPrice: undefined,
   });
 
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -209,15 +212,24 @@ const PerpsOrderView: React.FC = () => {
       const { takeProfitPrice, stopLossPrice } = route.params.tpslUpdate;
       setOrderForm((prev) => ({
         ...prev,
-        takeProfitPrice,
-        stopLossPrice,
+        takeProfitPrice: takeProfitPrice || undefined,
+        stopLossPrice: stopLossPrice || undefined,
       }));
       navigation.setParams({ tpslUpdate: undefined });
+    }
+    // Check if returning from limit price modal
+    if (route.params?.limitPriceUpdate !== undefined) {
+      setOrderForm((prev) => ({
+        ...prev,
+        limitPrice: route.params.limitPriceUpdate || undefined,
+      }));
+      navigation.setParams({ limitPriceUpdate: undefined });
     }
   }, [
     route.params?.leverageUpdate,
     route.params?.orderTypeUpdate,
     route.params?.tpslUpdate,
+    route.params?.limitPriceUpdate,
     navigation,
     orderForm.leverage,
   ]);
@@ -433,11 +445,14 @@ const PerpsOrderView: React.FC = () => {
         coin: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize,
-        orderType: 'market' as const,
+        orderType,
         takeProfitPrice: orderForm.takeProfitPrice,
         stopLossPrice: orderForm.stopLossPrice,
         currentPrice: assetData.price,
         leverage: orderForm.leverage,
+        ...(orderType === 'limit' && orderForm.limitPrice
+          ? { price: orderForm.limitPrice }
+          : {}),
       };
 
       const result = await placeOrder(orderParams);
@@ -530,6 +545,7 @@ const PerpsOrderView: React.FC = () => {
     placeOrder,
     navigation,
     currentPrice,
+    orderType,
   ]);
 
   return (
@@ -618,6 +634,38 @@ const PerpsOrderView: React.FC = () => {
               </ListItem>
             </TouchableOpacity>
           </View>
+
+          {/* Limit price - only show for limit orders */}
+          {orderType === 'limit' && (
+            <View style={styles.detailItem}>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+                    screen: Routes.PERPS.MODALS.LIMIT_PRICE_MODAL,
+                    params: {
+                      currentPrice: assetData.price,
+                      limitPrice: orderForm.limitPrice,
+                    },
+                  });
+                }}
+              >
+                <ListItem>
+                  <ListItemColumn widthType={WidthType.Fill}>
+                    <Text variant={TextVariant.BodyLGMedium}>
+                      {strings('perps.order.limit_price')}
+                    </Text>
+                  </ListItemColumn>
+                  <ListItemColumn widthType={WidthType.Auto}>
+                    <Text variant={TextVariant.BodyLGMedium}>
+                      {orderForm.limitPrice
+                        ? formatPrice(orderForm.limitPrice)
+                        : formatPrice(assetData.price)}
+                    </Text>
+                  </ListItemColumn>
+                </ListItem>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Pay with */}
           <View style={styles.detailItem}>

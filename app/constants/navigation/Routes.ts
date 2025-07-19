@@ -219,6 +219,7 @@ const Routes = {
       ORDER_TYPE_MODAL: 'PerpsOrderTypeModal',
       LEVERAGE_MODAL: 'PerpsLeverageModal',
       TPSL_MODAL: 'PerpsTPSLModal',
+      LIMIT_PRICE_MODAL: 'PerpsLimitPriceModal',
       INFO_MODAL: 'PerpsInfoModal',
     },
     ORDER_HISTORY: 'PerpsOrderHistory',

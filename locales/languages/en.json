@@ -805,6 +805,7 @@
     "order": {
       "title": "New Order",
       "leverage": "Leverage",
+      "limit_price": "Limit price",
       "liquidation_price": "Liquidation price",
       "fees": "Fees",
       "validation": {
@@ -848,6 +849,15 @@
         "off": "OFF",
         "take_profit_helper": "Close position when price reaches this level",
         "stop_loss_helper": "Limit losses by closing position at this price"
+      },
+      "limit_price_modal": {
+        "title": "Set limit price",
+        "set": "Set",
+        "market_price": "Market price: {{price}}",
+        "market": "Market",
+        "current_price": "Current price",
+        "ask_price": "Ask price",
+        "bid_price": "Bid price"
       },
       "success": {
         "title": "Order Placed Successfully",

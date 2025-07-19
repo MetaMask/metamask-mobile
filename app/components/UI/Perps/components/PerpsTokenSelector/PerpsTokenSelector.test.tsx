@@ -320,7 +320,7 @@ describe('PerpsTokenSelector', () => {
       expect(usdcFiatValues).toHaveLength(2); // Both USDC tokens
       expect(getByTestId('token-fiat-ETH')).toBeOnTheScreen();
       expect(getByTestId('token-fiat-USDT')).toBeOnTheScreen();
-      
+
       // Balance test IDs don't exist in the component
       expect(queryByTestId('token-balance-USDC')).toBeNull();
     });
@@ -409,7 +409,7 @@ describe('PerpsTokenSelector', () => {
       expect(getAllByTestId('token-USDC')).toHaveLength(2); // Both USDC tokens
       expect(queryByTestId('token-ETH')).toBeOnTheScreen();
       expect(queryByTestId('token-USDT')).toBeOnTheScreen();
-      
+
       // Network filter UI doesn't exist in current implementation
       expect(queryByTestId('network-filter-0xa4b1')).toBeNull();
       expect(queryByTestId('network-filter-0x1')).toBeNull();
