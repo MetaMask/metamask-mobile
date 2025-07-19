@@ -25,6 +25,7 @@ module.exports = {
     },
     jest: {
       setupTimeout: 220000,
+      testTimeout: 300000, // 5 minutes for complex tests
     },
     retries: 1,
   },
@@ -70,13 +71,15 @@ module.exports = {
       device: {
         type: 'iPhone 15 Pro',
       },
+      bootArgs: '--appearance light',
+      forceAdbInstall: false,
     },
     'android.bitrise.emulator': {
       type: 'android.emulator',
       device: {
         avdName: 'emulator',
       },
-      bootArgs: '-skin 1080x2340 -memory 4096 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096',
+      bootArgs: '-skin pixel_5 -memory 4096 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096 -sdcard 8192M',
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
     },

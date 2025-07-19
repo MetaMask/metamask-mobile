@@ -64,6 +64,8 @@ jobs:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
           android-avd-name: emulator
+          android-device: pixel_5
+          android-api-level: 34
           android-abi: x86_64
           configure-keystores: false
 
@@ -191,9 +193,18 @@ jobs:
           # Clean Detox cache
           yarn detox clean-framework-cache 2>/dev/null || true
 
-          # Reset iOS simulator
+          # Reset iOS simulator with specific configuration
           xcrun simctl shutdown all 2>/dev/null || true
           xcrun simctl erase all 2>/dev/null || true
+          
+          # Force create new simulator with specific config
+          device_id=$(xcrun simctl create "iPhone-15-Pro-E2E" "iPhone 15 Pro" "iOS-17-2" 2>/dev/null || echo "")
+          if [ -n "$device_id" ]; then
+            xcrun simctl boot "$device_id"
+            # Set consistent display settings
+            xcrun simctl ui "$device_id" appearance light
+            sleep 2
+          fi
 
           # Clean any hanging processes
           pkill -f "Metro\|node\|npm" 2>/dev/null || true
