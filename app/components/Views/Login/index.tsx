@@ -103,6 +103,10 @@ import {
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../hooks/useMetrics';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -150,16 +154,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
-
-  const isSeedlessPasswordOutdated = useSelector(
-    selectIsSeedlessPasswordOutdated,
-  );
-  useEffect(() => {
-    // first error if seedless password is outdated
-    if (isSeedlessPasswordOutdated) {
-      setError(strings('login.seedless_password_outdated'));
-    }
-  }, [isSeedlessPasswordOutdated]);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
@@ -393,6 +387,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       handleSeedlessOnboardingControllerError(
         loginError as SeedlessOnboardingControllerRecoveryError,
       );
+      return;
+    }
+
+    if (loginErr instanceof SeedlessOnboardingControllerError) {
+      setLoading(false);
+      if (
+        loginErr.code ===
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+      ) {
+        setError(strings('login.seedless_password_outdated'));
+      }
+      setError(loginErr.message);
       return;
     }
 
