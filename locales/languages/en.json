@@ -826,7 +826,8 @@
         "unknown": "Unknown error occurred",
         "dismiss": "Dismiss",
         "invalid_asset": "Invalid asset",
-        "go_back": "Go Back"
+        "go_back": "Go Back",
+        "asset_not_tradable": "{{asset}} is not a tradable asset"
       },
       "off": "Off",
       "estimated_execution_time": "Estimated execution time",
@@ -834,6 +835,11 @@
       "margin": "Margin",
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",
+      "select_payment_asset": "Select asset to pay with",
+      "button": {
+        "long": "Long {{asset}}",
+        "short": "Short {{asset}}"
+      },
       "tpsl_modal": {
         "title": "Take profit & Stop loss",
         "save": "Save",
@@ -939,6 +945,9 @@
         "margin_used": "Margin Used",
         "total_unrealized_pnl": "Total Unrealized P&L"
       }
+    },
+    "network": {
+      "hyperliquid": "Hyperliquid"
     },
     "connection": {
       "failed": "Connection Failed",

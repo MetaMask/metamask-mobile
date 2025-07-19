@@ -268,7 +268,10 @@ const PerpsOrderView: React.FC = () => {
           labelOptions: [
             { label: strings('perps.order.error.invalid_asset'), isBold: true },
             { label: ': ', isBold: false },
-            { label: `${asset} is not a tradable asset`, isBold: false },
+            {
+              label: strings('perps.order.error.asset_not_tradable', { asset }),
+              isBold: false,
+            },
           ],
           iconName: IconName.Error,
           iconColor: IconColor.Error,
@@ -434,6 +437,7 @@ const PerpsOrderView: React.FC = () => {
         takeProfitPrice: orderForm.takeProfitPrice,
         stopLossPrice: orderForm.stopLossPrice,
         currentPrice: assetData.price,
+        leverage: orderForm.leverage,
       };
 
       const result = await placeOrder(orderParams);
@@ -643,12 +647,15 @@ const PerpsOrderView: React.FC = () => {
                               HYPERLIQUID_MAINNET_CHAIN_ID ||
                             selectedPaymentToken?.chainId ===
                               HYPERLIQUID_TESTNET_CHAIN_ID
-                              ? 'Hyperliquid'
+                              ? strings('perps.network.hyperliquid')
                               : (() => {
                                   const network = getDefaultNetworkByChainId(
                                     String(selectedPaymentToken?.chainId),
                                   ) as { name: string } | undefined;
-                                  return network?.name || 'Hyperliquid';
+                                  return (
+                                    network?.name ||
+                                    strings('perps.network.hyperliquid')
+                                  );
                                 })()
                           }
                         />
@@ -859,9 +866,12 @@ const PerpsOrderView: React.FC = () => {
           variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
-          label={`${orderForm.direction === 'long' ? 'Long' : 'Short'} ${
-            orderForm.asset
-          }`}
+          label={strings(
+            orderForm.direction === 'long'
+              ? 'perps.order.button.long'
+              : 'perps.order.button.short',
+            { asset: orderForm.asset },
+          )}
           onPress={handlePlaceOrder}
           disabled={
             !orderValidation.isValid ||
@@ -885,7 +895,7 @@ const PerpsOrderView: React.FC = () => {
         selectedTokenChainId={
           selectedPaymentToken?.chainId || HYPERLIQUID_MAINNET_CHAIN_ID
         }
-        title="Select asset to pay with"
+        title={strings('perps.order.select_payment_asset')}
         minimumBalance={0}
       />
     </SafeAreaView>

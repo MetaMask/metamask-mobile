@@ -72,7 +72,12 @@ export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
     positionValue: pos.positionValue,
     unrealizedPnl: pos.unrealizedPnl,
     marginUsed: pos.marginUsed,
-    leverage: pos.leverage,
+    leverage: {
+      type: pos.leverage.type,
+      value: pos.leverage.value,
+      rawUsd:
+        pos.leverage.type === 'isolated' ? pos.leverage.rawUsd : undefined,
+    },
     liquidationPrice: pos.liquidationPx,
     maxLeverage: pos.maxLeverage,
     returnOnEquity: pos.returnOnEquity,

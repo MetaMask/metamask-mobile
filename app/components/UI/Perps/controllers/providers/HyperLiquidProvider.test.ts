@@ -106,6 +106,9 @@ describe('HyperLiquidProvider', () => {
         withdraw3: jest.fn().mockResolvedValue({
           status: 'ok',
         }),
+        updateLeverage: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
       }),
       getInfoClient: jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
@@ -115,7 +118,21 @@ describe('HyperLiquidProvider', () => {
                 coin: 'BTC',
                 szi: '0.1',
                 entryPx: '50000',
+                positionValue: '5000',
                 unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: {
+                  type: 'cross',
+                  value: 10,
+                },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
               },
               type: 'oneWay',
             },

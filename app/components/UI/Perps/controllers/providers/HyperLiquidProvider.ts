@@ -227,6 +227,34 @@ export class HyperLiquidProvider implements IPerpsProvider {
         throw new Error(`Asset ID not found for ${params.coin}`);
       }
 
+      // Update leverage if specified
+      if (params.leverage) {
+        DevLogger.log('Updating leverage before order:', {
+          coin: params.coin,
+          assetId,
+          requestedLeverage: params.leverage,
+          leverageType: 'cross', // Default to cross leverage
+        });
+
+        const exchangeClient = this.clientService.getExchangeClient();
+        const leverageResult = await exchangeClient.updateLeverage({
+          asset: assetId,
+          isCross: true, // Default to cross leverage for now
+          leverage: params.leverage,
+        });
+
+        if (leverageResult.status !== 'ok') {
+          throw new Error(
+            `Failed to update leverage: ${JSON.stringify(leverageResult)}`,
+          );
+        }
+
+        DevLogger.log('Leverage updated successfully:', {
+          coin: params.coin,
+          leverage: params.leverage,
+        });
+      }
+
       // Build orders array - main order plus optional TP/SL orders
       const orders: SDKOrderParams[] = [];
 

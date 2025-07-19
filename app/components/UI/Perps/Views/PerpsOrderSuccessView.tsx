@@ -128,7 +128,7 @@ const PerpsOrderSuccessView: React.FC = () => {
   }, [navigation]);
 
   const handleBackToPerps = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT);
+    navigation.navigate(Routes.PERPS.TRADING_VIEW);
   }, [navigation]);
 
   return (
