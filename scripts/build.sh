@@ -527,7 +527,7 @@ buildAndroidMainProduction(){
 	prebuild_android
 
 	# Generate APK for production
-	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest --build-cache --parallel
+	cd android && ./gradlew assembleProdRelease --build-cache --parallel
 
 	# Generate AAB bundle for production
 	./gradlew bundleProdRelease
@@ -541,7 +541,7 @@ buildAndroidFlaskProduction(){
 	prebuild_android
 
 	# Generate APK for production
-	cd android && ./gradlew assembleFlaskRelease app:assembleFlaskReleaseAndroidTest --build-cache --parallel
+	cd android && ./gradlew assembleFlaskRelease --build-cache --parallel
 
 	# Generate AAB bundle for production
 	./gradlew bundleFlaskRelease
@@ -556,7 +556,7 @@ buildAndroidQaProduction(){
 	prebuild_android
 
 	# Generate APK for production
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest --build-cache --parallel
+	cd android && ./gradlew assembleQaRelease --build-cache --parallel
 
 	# Generate AAB bundle for production
 	./gradlew bundleQaRelease
