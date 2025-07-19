@@ -320,8 +320,12 @@ export const switchToSepoliaNetwork = async () => {
  */
 export const loginToApp = async (password) => {
   const PASSWORD = password ?? '123123123';
-  await Assertions.checkIfVisible(LoginView.container);
-  await Assertions.checkIfVisible(LoginView.passwordInput);
+  await Assertions.expectElementToBeVisible(LoginView.container, {
+    description: 'Login View container should be visible',
+  });
+  await Assertions.expectElementToBeVisible(LoginView.passwordInput, {
+    description: 'Login View password input should be visible',
+  });
   await LoginView.enterPassword(PASSWORD);
 };
 
@@ -331,10 +335,15 @@ export const waitForTestDappToLoad = async () => {
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
-      await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
-
-      await Assertions.webViewElementExists(TestDApp.DappConnectButton);
+      await Assertions.expectElementToBeVisible(TestDApp.testDappFoxLogo, {
+        description: 'Test Dapp Fox Logo should be visible',
+      });
+      await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
+        description: 'Test Dapp Page Title should be visible',
+      });
+      await Assertions.expectElementToBeVisible(TestDApp.DappConnectButton, {
+        description: 'Test Dapp Connect Button should be visible',
+      });
       return; // Success - page is fully loaded and interactive
     } catch (error) {
       if (attempt === MAX_RETRIES) {
