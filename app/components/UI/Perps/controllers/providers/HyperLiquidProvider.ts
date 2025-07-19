@@ -544,9 +544,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const userAddress = await this.walletService.getUserAddressWithDefault(
         params?.accountId,
       );
-      
+
       DevLogger.log('User address for account state:', userAddress);
-      DevLogger.log('Network mode:', this.clientService.isTestnetMode() ? 'TESTNET' : 'MAINNET');
+      DevLogger.log(
+        'Network mode:',
+        this.clientService.isTestnetMode() ? 'TESTNET' : 'MAINNET',
+      );
 
       // Get both Perps and Spot balances
       const [perpsState, spotState] = await Promise.all([
@@ -559,7 +562,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const accountState = adaptAccountStateFromSDK(perpsState, spotState);
       DevLogger.log('Adapted account state:', accountState);
-      
+
       return accountState;
     } catch (error) {
       DevLogger.log('Error getting account state:', error);

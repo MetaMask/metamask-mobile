@@ -13,9 +13,9 @@ export function usePerpsPrices(symbols: string[]): Record<string, PriceUpdate> {
   const [prices, setPrices] = useState<Record<string, PriceUpdate>>({});
 
   const memoizedCallback = useCallback((newPrices: PriceUpdate[]) => {
-    setPrices(prev => {
+    setPrices((prev) => {
       const updated = { ...prev };
-      newPrices.forEach(price => {
+      newPrices.forEach((price) => {
         updated[price.coin] = price;
       });
       return updated;

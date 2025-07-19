@@ -1,10 +1,15 @@
 import React, { useCallback } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
-import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import type { PerpsNavigationParamList } from '../controllers/types';
 import Text, {
   TextVariant,
-  TextColor
+  TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
@@ -14,15 +19,24 @@ import Button, {
 import { useTheme } from '../../../../util/theme';
 import type { Colors } from '../../../../util/theme/models';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
+import { formatPrice } from '../utils/formatUtils';
 
 interface OrderSuccessParams {
   asset: string;
   direction: 'long' | 'short';
-  amount: string;
+  size: string; // Changed from amount to match what's passed
+  price?: string;
+  leverage?: number;
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
   orderId?: string;
 }
 
-type OrderSuccessRoute = RouteProp<{ OrderSuccess: OrderSuccessParams }, 'OrderSuccess'>;
+type OrderSuccessRoute = RouteProp<
+  { OrderSuccess: OrderSuccessParams },
+  'OrderSuccess'
+>;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -91,19 +105,30 @@ const PerpsOrderSuccessView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<OrderSuccessRoute>();
 
-  const { asset, direction, amount, orderId } = route.params || {
+  const {
+    asset,
+    direction,
+    size,
+    leverage,
+    takeProfitPrice,
+    stopLossPrice,
+    orderId,
+  } = route.params || {
     asset: 'BTC',
     direction: 'long' as const,
-    amount: '400',
+    size: '400',
+    leverage: 10,
+    takeProfitPrice: undefined,
+    stopLossPrice: undefined,
     orderId: undefined,
   };
 
   const handleViewPositions = useCallback(() => {
-    navigation.navigate('Perps');
+    navigation.navigate(Routes.PERPS.POSITIONS);
   }, [navigation]);
 
-  const handlePlaceAnother = useCallback(() => {
-    navigation.navigate('PerpsOrder', { direction: 'long', asset: 'BTC' });
+  const handleBackToPerps = useCallback(() => {
+    navigation.navigate(Routes.PERPS.ROOT);
   }, [navigation]);
 
   return (
@@ -115,10 +140,18 @@ const PerpsOrderSuccessView: React.FC = () => {
         </View>
 
         {/* Title and Subtitle */}
-        <Text variant={TextVariant.HeadingLG} color={TextColor.Default} style={styles.title}>
+        <Text
+          variant={TextVariant.HeadingLG}
+          color={TextColor.Default}
+          style={styles.title}
+        >
           {strings('perps.order.success.title')}
         </Text>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Muted} style={styles.subtitle}>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Muted}
+          style={styles.subtitle}
+        >
           {strings('perps.order.success.subtitle', { direction, asset })}
         </Text>
 
@@ -142,7 +175,12 @@ const PerpsOrderSuccessView: React.FC = () => {
               style={[
                 styles.detailValue,
                 styles.directionText,
-                { color: direction === 'long' ? colors.success.default : colors.error.default }
+                {
+                  color:
+                    direction === 'long'
+                      ? colors.success.default
+                      : colors.error.default,
+                },
               ]}
             >
               {direction}
@@ -154,9 +192,40 @@ const PerpsOrderSuccessView: React.FC = () => {
               {strings('perps.order.success.amount')}
             </Text>
             <Text variant={TextVariant.BodyMD} style={styles.detailValue}>
-              ${amount}
+              ${size}
             </Text>
           </View>
+
+          <View style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMD} style={styles.detailLabel}>
+              {strings('perps.order.leverage')}
+            </Text>
+            <Text variant={TextVariant.BodyMD} style={styles.detailValue}>
+              {leverage}x
+            </Text>
+          </View>
+
+          {takeProfitPrice && (
+            <View style={styles.detailRow}>
+              <Text variant={TextVariant.BodyMD} style={styles.detailLabel}>
+                {strings('perps.order.take_profit')}
+              </Text>
+              <Text variant={TextVariant.BodyMD} style={styles.detailValue}>
+                {formatPrice(takeProfitPrice)}
+              </Text>
+            </View>
+          )}
+
+          {stopLossPrice && (
+            <View style={styles.detailRow}>
+              <Text variant={TextVariant.BodyMD} style={styles.detailLabel}>
+                {strings('perps.order.stop_loss')}
+              </Text>
+              <Text variant={TextVariant.BodyMD} style={styles.detailValue}>
+                {formatPrice(stopLossPrice)}
+              </Text>
+            </View>
+          )}
 
           {orderId && (
             <View style={styles.detailRow}>
@@ -184,8 +253,8 @@ const PerpsOrderSuccessView: React.FC = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={strings('perps.order.success.placeAnother')}
-            onPress={handlePlaceAnother}
+            label={strings('perps.order.success.backToPerps')}
+            onPress={handleBackToPerps}
           />
         </View>
       </View>

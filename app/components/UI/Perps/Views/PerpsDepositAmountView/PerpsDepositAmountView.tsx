@@ -83,6 +83,7 @@ import {
   HYPERLIQUID_ASSET_CONFIGS,
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
+  HYPERLIQUID_NETWORK_NAME,
   METAMASK_DEPOSIT_FEE,
   TRADING_DEFAULTS,
   USDC_DECIMALS,
@@ -201,10 +202,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
         setSourceToken(enhancedToken);
       } catch (err) {
-        DevLogger.log(
-          'PerpsDepositAmountView: Error setting default token',
-          err,
-        );
+        // Silently handle error
       }
     }
   }, [tokenList, isIpfsGatewayEnabled, sourceToken, isTestnet]);
@@ -297,13 +295,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       (prevTokenRef.current.address !== sourceToken.address ||
         prevTokenRef.current.chainId !== sourceToken.chainId)
     ) {
-      DevLogger.log(
-        'PerpsDepositAmountView: Source token changed, resetting amount',
-        {
-          from: `${prevTokenRef.current.symbol} on ${prevTokenRef.current.chainId}`,
-          to: `${sourceToken.symbol} on ${sourceToken.chainId}`,
-        },
-      );
       setSourceAmount('');
     }
 
@@ -316,15 +307,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       sourceAmount && sourceAmount !== '' && parseFloat(sourceAmount) > 0,
     );
 
-    DevLogger.log('PerpsDepositAmountView: Quote expiration check', {
-      isExpired,
-      willRefresh,
-      hasValidQuote,
-      isInputFocused,
-      sourceAmount,
-      hasAmount,
-    });
-
     // Only show expiration modal if we have a valid quote that expired and won't refresh
     // AND we have an amount entered
     if (
@@ -334,7 +316,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       !isInputFocused &&
       hasAmount
     ) {
-      DevLogger.log('PerpsDepositAmountView: Showing quote expired modal');
       setIsInputFocused(false);
       navigation.navigate(Routes.PERPS.MODALS.ROOT, {
         screen: Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL,
@@ -442,7 +423,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       const depositResult = await deposit(depositParams);
 
       if (depositResult.success && depositResult.txHash) {
-        navigation.navigate('PerpsDepositProcessing', {
+        navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
           amount: sourceAmount,
           fromToken: sourceToken.symbol,
           transactionHash: depositResult.txHash,
@@ -504,26 +485,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     }
     return sourceAmount || '0';
   }, [formattedQuoteData.receivingAmount, sourceAmount]);
-
-  // Debug what's being passed to components
-  useEffect(() => {
-    DevLogger.log('[PerpsDepositAmountView] Component values:', {
-      sourceAmount,
-      destAmount,
-      sourceToken: sourceToken
-        ? {
-            symbol: sourceToken.symbol,
-            address: sourceToken.address,
-            decimals: sourceToken.decimals,
-          }
-        : null,
-      destToken: {
-        symbol: destToken.symbol,
-        address: destToken.address,
-        decimals: destToken.decimals,
-      },
-    });
-  }, [sourceAmount, destAmount, sourceToken, destToken]);
 
   return (
     // @ts-expect-error The type is incorrect, this will work
@@ -588,7 +549,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
               networkImageSource={getNetworkImageSource({
                 chainId: destToken.chainId,
               })}
-              networkName="Hyperliquid"
+              networkName={HYPERLIQUID_NETWORK_NAME}
               testID="dest-token-area"
               tokenType={TokenInputAreaType.Destination}
               isLoading={isQuoteLoading}
@@ -640,14 +601,14 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Md}
-                  label="Max"
+                  label={strings('amount_input.max')}
                   onPress={handleMaxPress}
                   style={styles.percentageButton}
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Md}
-                  label="Done"
+                  label={strings('navigation.done')}
                   onPress={handleDonePress}
                   style={styles.percentageButton}
                 />

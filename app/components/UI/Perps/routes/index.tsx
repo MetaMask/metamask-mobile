@@ -14,6 +14,10 @@ import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsOrderSuccessView from '../Views/PerpsOrderSuccessView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import PerpsSlippageModal from '../components/PerpsSlippageModal';
+import PerpsOrderTypeBottomSheet from '../components/PerpsOrderTypeBottomSheet';
+import PerpsLeverageBottomSheet from '../components/PerpsLeverageBottomSheet';
+import PerpsTPSLBottomSheet from '../components/PerpsTPSLBottomSheet';
+import PerpsInfoBottomSheet from '../components/PerpsInfoBottomSheet';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -130,6 +134,22 @@ export const PerpsModalStack = () => (
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.SLIPPAGE_MODAL}
       component={PerpsSlippageModal}
+    />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.ORDER_TYPE_MODAL}
+      component={PerpsOrderTypeBottomSheet}
+    />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.LEVERAGE_MODAL}
+      component={PerpsLeverageBottomSheet}
+    />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.TPSL_MODAL}
+      component={PerpsTPSLBottomSheet}
+    />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.INFO_MODAL}
+      component={PerpsInfoBottomSheet}
     />
   </ModalStack.Navigator>
 );
