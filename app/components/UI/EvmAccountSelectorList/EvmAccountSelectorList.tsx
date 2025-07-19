@@ -413,6 +413,10 @@ const EvmAccountSelectorList = ({
       } = item.data;
 
       const internalAccount = internalAccountsById[id];
+      if (!internalAccount) {
+        return null;
+      }
+
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = accountTreeSections
         ? undefined

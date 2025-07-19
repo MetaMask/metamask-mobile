@@ -212,13 +212,12 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       .filter((keyring) => keyring.type !== ExtendedKeyringTypes.qr)
       .flatMap((keyring) => keyring.accounts);
     Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
-    const removedAccounts = await withQrKeyring(async ({ keyring }) => {
+    await withQrKeyring(async ({ keyring }) => {
       const existingQrAccounts = await keyring.getAccounts();
+      removeAccountsFromPermissions(existingQrAccounts.map(getChecksumAddress));
       await keyring.forgetDevice();
       return existingQrAccounts;
     });
-    const checksummedRemovedAccounts = removedAccounts.map(getChecksumAddress);
-    removeAccountsFromPermissions(checksummedRemovedAccounts);
     navigation.pop(2);
   }, [KeyringController, navigation, resetError]);
 
