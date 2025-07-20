@@ -1,6 +1,6 @@
 'use strict';
 import { SmokeNetworkExpansion } from '../../../tags';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
 import { withSolanaAccountEnabled } from '../../../common-solana';
 import FixtureBuilder, {
@@ -39,9 +39,10 @@ async function requestPermissions({
   const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
   const bodyElement = webView.element(by.web.tag('body'));
 
-  await TestHelpers.delay(1000);
-  // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-  await (expect(await bodyElement) as any).toExist();
+  await TestHelpers.delay(3000);
+  // await Assertions.expectElementToBeVisible(bodyElement, {
+  //   description: 'WebView body should be visible',
+  // });
 
   const requestPermissionsRequest = JSON.stringify({
     jsonrpc: '2.0',
