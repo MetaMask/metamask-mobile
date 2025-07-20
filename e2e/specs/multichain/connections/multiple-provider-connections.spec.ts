@@ -36,13 +36,16 @@ async function requestPermissions({
   accounts?: string[];
   params?: unknown[];
 } = {}) {
+  await TestHelpers.delay(1000);
+
+  const nativeWebView = element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
+  await waitFor(nativeWebView).toBeVisible().withTimeout(10000);
+  await nativeWebView.tap();
+
   const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
   const bodyElement = webView.element(by.web.tag('body'));
+  await waitFor(bodyElement as any).toExist().withTimeout(10000);
 
-  await TestHelpers.delay(3000);
-  // await Assertions.expectElementToBeVisible(bodyElement, {
-  //   description: 'WebView body should be visible',
-  // });
 
   const requestPermissionsRequest = JSON.stringify({
     jsonrpc: '2.0',
