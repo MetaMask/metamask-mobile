@@ -36,7 +36,7 @@ async function requestPermissions({
   accounts?: string[];
   params?: unknown[];
 } = {}) {
-  await TestHelpers.delay(1000);
+  await TestHelpers.delay(5000);
 
   const nativeWebView = element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
   await waitFor(nativeWebView).toBeVisible().withTimeout(10000);
