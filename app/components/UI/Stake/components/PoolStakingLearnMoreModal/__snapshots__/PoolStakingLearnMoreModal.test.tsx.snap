@@ -348,7 +348,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c7e33",
+                    "color": "#457a39",
                     "fontFamily": "Geist Bold",
                     "fontSize": 24,
                     "letterSpacing": 0,
@@ -464,7 +464,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -476,7 +476,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                           gradient={
                             [
                               0,
-                              857505331,
+                              860191289,
                               1,
                               872415231,
                             ]

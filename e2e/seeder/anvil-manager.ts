@@ -1,6 +1,8 @@
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../fixtures/utils';
+import { AnvilNodeOptions } from '../framework/types';
+import { logger } from '../framework/logger';
 
 export const DEFAULT_ANVIL_PORT = 8545;
 
@@ -8,7 +10,7 @@ export const DEFAULT_ANVIL_PORT = 8545;
  * Represents the available Ethereum hardforks for the Anvil server
  * @typedef {('Frontier'|'Homestead'|'Dao'|'Tangerine'|'SpuriousDragon'|'Byzantium'|'Constantinople'|'Petersburg'|'Istanbul'|'Muirglacier'|'Berlin'|'London'|'ArrowGlacier'|'GrayGlacier'|'Paris'|'Shanghai'|'Latest')} Hardfork
  */
-type Hardfork =
+export type Hardfork =
   | 'Frontier'
   | 'Homestead'
   | 'Dao'
@@ -90,26 +92,12 @@ class AnvilManager {
    * @throws {Error} If mnemonic is not provided
    * @throws {Error} If server fails to start
    */
-  async start(
-    opts: {
-      balance?: number;
-      blockTime?: number;
-      chainId?: number;
-      gasLimit?: number;
-      gasPrice?: number;
-      hardfork?: Hardfork;
-      host?: string;
-      mnemonic?: string;
-      port?: number;
-      noMining?: boolean;
-    } = {},
-  ): Promise<void> {
+  async start(opts: AnvilNodeOptions = {}): Promise<void> {
     const options = { ...defaultOptions, ...opts, port: AnvilPort() };
     const { port } = options;
 
     try {
-      // eslint-disable-next-line no-console
-      console.log('Starting Anvil server...');
+      logger.debug('Starting Anvil server...');
 
       // Create and start the server instance
       this.server = createAnvil({
@@ -117,11 +105,9 @@ class AnvilManager {
       });
 
       await this.server.start();
-      // eslint-disable-next-line no-console
-      console.log(`Server started on port ${port}`);
+      logger.debug(`Server started on port ${port}`);
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to start server:', error);
+      logger.error('Failed to start server:', error);
       throw error;
     }
   }
@@ -148,13 +134,11 @@ class AnvilManager {
    * @returns {Promise<string[]>} Array of account addresses
    */
   async getAccounts(): Promise<string[]> {
-    // eslint-disable-next-line no-console
-    console.log('Getting accounts...');
+    logger.debug('Getting accounts...');
     const { walletClient } = this.getProvider();
 
     const accounts = await walletClient.getAddresses();
-    // eslint-disable-next-line no-console
-    console.log(`Found ${accounts.length} accounts`);
+    logger.debug(`Found ${accounts.length} accounts`);
     return accounts;
   }
 
@@ -194,8 +178,7 @@ class AnvilManager {
       address: accountAddress,
       value: balanceInWei,
     });
-    // eslint-disable-next-line no-console
-    console.log(`Balance set for ${accountAddress}`);
+    logger.debug(`Anvil server balance set for ${accountAddress}`);
   }
 
   /**
@@ -205,17 +188,14 @@ class AnvilManager {
    */
   async quit(): Promise<void> {
     if (!this.server) {
-      throw new Error('Server not running yet');
+      throw new Error('Anvil server not running yet');
     }
     try {
-      // eslint-disable-next-line no-console
-      console.log('Stopping server...');
+      logger.debug('Stopping Anvil server...');
       await this.server.stop();
-      // eslint-disable-next-line no-console
-      console.log('Server stopped');
+      logger.debug('Anvil server stopped');
     } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log(`Error stopping server: ${e}`);
+      logger.error(`Error stopping server: ${e}`);
       throw e;
     }
   }

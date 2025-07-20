@@ -2,15 +2,15 @@ import {
   NetworkEducationModalSelectorsIDs,
   NetworkEducationModalSelectorsText,
 } from '../../selectors/Network/NetworkEducationModal.selectors';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class NetworkEducationModal {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CONTAINER);
   }
 
-  get closeButton() {
+  get closeButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CLOSE_BUTTON)
       : Matchers.getElementByLabel(
@@ -18,25 +18,25 @@ class NetworkEducationModal {
         );
   }
 
-  get addToken() {
+  get addToken(): DetoxElement {
     return Matchers.getElementByText(
       NetworkEducationModalSelectorsText.ADD_TOKEN,
     );
   }
 
-  get networkName() {
+  get networkName(): DetoxElement {
     return Matchers.getElementByID(
       NetworkEducationModalSelectorsIDs.NETWORK_NAME,
     );
   }
 
-  async tapGotItButton() {
+  async tapGotItButton(): Promise<void> {
     await Gestures.waitAndTap(this.closeButton, {
       elemDescription: 'Got it button',
     });
   }
 
-  async tapNetworkName() {
+  async tapNetworkName(): Promise<void> {
     await Gestures.waitAndTap(this.networkName);
     await Gestures.waitAndTap(this.networkName);
   }

@@ -1,9 +1,9 @@
 import {
   importWalletWithRecoveryPhrase,
   loginToApp,
-} from '../../../viewHelper.js';
+} from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView.js';
+import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';

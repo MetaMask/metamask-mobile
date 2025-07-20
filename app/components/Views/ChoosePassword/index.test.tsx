@@ -491,7 +491,9 @@ describe('ChoosePassword', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
-    expect(mockNavigation.replace).toHaveBeenCalledWith('AccountBackupStep1');
+    expect(mockNavigation.replace).toHaveBeenCalledWith('AccountBackupStep1', {
+      seedPhrase: expect.any(Array),
+    });
 
     // // Clean up mock
     mockNewWalletAndKeychain.mockRestore();

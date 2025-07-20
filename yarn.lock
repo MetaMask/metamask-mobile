@@ -1444,10 +1444,10 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/native-ramps-sdk@1.0.12":
-  version "1.0.12"
-  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.0.12.tgz#eb2fcb14a049e8582879fc7582456c62a596cbb1"
-  integrity sha512-suUsmWKDqRIRx4GYe83i+ZhN/gQfW5XH2+QVmai9pUdU4dLz8U91JRn4takM1DzjPT0EKpa5qrJaDjHnrUtO3A==
+"@consensys/native-ramps-sdk@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.1.0.tgz#e10ba42766aca2ff6bddd8df02aa806d03d28a77"
+  integrity sha512-9m40XfXm9MtzrT7eR/WtbFdfRrn8Xab1K/gtgU0jSDpl3WjM6/SRngAsl770IAJqMVxFEI7UAH/dAx1f0wl/Vw==
   dependencies:
     async "^3.2.3"
     axios "^1.8.3"
@@ -5023,22 +5023,22 @@
 
 "@metamask/design-system-react-native@^0.1.0":
   version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-system-react-native/-/design-system-react-native-0.1.0.tgz#b563d68aebfdfa524bb15c66b315180bcef494dd"
+  resolved "https://registry.npmjs.org/@metamask/design-system-react-native/-/design-system-react-native-0.1.0.tgz#b563d68aebfdfa524bb15c66b315180bcef494dd"
   integrity sha512-/n2hYXvmZ4yBsi3anMyqGHb67soMaMA53WNKO0yHIIrhPDDMKszxMuWn+naIs5eLyPfcfbmASEU231ONGjE8OA==
   dependencies:
     react-native-jazzicon "^0.1.2"
 
 "@metamask/design-system-twrnc-preset@^0.1.0":
   version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-system-twrnc-preset/-/design-system-twrnc-preset-0.1.0.tgz#acf3c962815a8298b646a4cf9cf55407883b77f5"
+  resolved "https://registry.npmjs.org/@metamask/design-system-twrnc-preset/-/design-system-twrnc-preset-0.1.0.tgz#acf3c962815a8298b646a4cf9cf55407883b77f5"
   integrity sha512-2sTKhyLZoLE0PBurAE75oQb+Hxe8V2qNjLP3SPN01cD5ZDPQzm98BzSGYgY/F7Y6cO9uj8UiIGrFBaFumQlsXw==
   dependencies:
     twrnc "^4.5.1"
 
-"@metamask/design-tokens@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-8.0.0.tgz#eaee5631553a138900c39c842eca8f5e19d59439"
-  integrity sha512-iZPdGG/kzgeUn9SUDI+U86JD6Bu4VxJHoCA3smajzaXzCbFP3dbJPvT36ise+VTP4yGykSIZxZQbnSBIabfcVw==
+"@metamask/design-tokens@^8.1.0":
+  version "8.1.0"
+  resolved "https://registry.npmjs.org/@metamask/design-tokens/-/design-tokens-8.1.0.tgz#898fbbf0ade6c28a0506da59f47f40fd24316b8a"
+  integrity sha512-ZWWVfCs0JRL3syGurqS/vN74IATM5eGElzEMsaVbxtV23MdrKsye5PehfnKZvFg87f8iJP3jLv+HPaKWlaG/rQ==
 
 "@metamask/earn-controller@^3.0.0":
   version "3.0.0"
@@ -11579,6 +11579,13 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.4.tgz#0b92dcc0cc1c81f6f306a381f28e31b1a56536e9"
   integrity sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==
 
+"@types/accepts@*":
+  version "1.3.7"
+  resolved "https://registry.npmjs.org/@types/accepts/-/accepts-1.3.7.tgz#3b98b1889d2b2386604c2bbbe62e4fb51e95b265"
+  integrity sha512-Pay9fq2lM2wXPWbteBsRAGiWH2hig4ZE2asK+mm7kUzlxRTfL961rj89I6zV/E3PcIkDqyuBEcMxFT7rccugeQ==
+  dependencies:
+    "@types/node" "*"
+
 "@types/archiver@5.3.2":
   version "5.3.2"
   resolved "https://registry.yarnpkg.com/@types/archiver/-/archiver-5.3.2.tgz#a9f0bcb0f0b991400e7766d35f6e19d163bdadcc"
@@ -11718,6 +11725,21 @@
   resolved "https://registry.yarnpkg.com/@types/connect/-/connect-3.4.38.tgz#5ba7f3bc4fbbdeaff8dded952e5ff2cc53f8d858"
   integrity sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==
   dependencies:
+    "@types/node" "*"
+
+"@types/content-disposition@*":
+  version "0.5.9"
+  resolved "https://registry.npmjs.org/@types/content-disposition/-/content-disposition-0.5.9.tgz#00ca14939432869de829a4ccf6fd380fa9181750"
+  integrity sha512-8uYXI3Gw35MhiVYhG3s295oihrxRyytcRHjSjqnqZVDDy/xcGBRny7+Xj1Wgfhv5QzRtN2hB2dVRBUX9XW3UcQ==
+
+"@types/cookies@*":
+  version "0.9.1"
+  resolved "https://registry.npmjs.org/@types/cookies/-/cookies-0.9.1.tgz#083924ca1266e34ff240ca4d4fd6732ee5b81886"
+  integrity sha512-E/DPgzifH4sM1UMadJMWd6mO2jOd4g1Ejwzx8/uRCDpJis1IrlyQEcGAYEomtAqRYmD5ORbNXMeI9U0RiVGZbg==
+  dependencies:
+    "@types/connect" "*"
+    "@types/express" "*"
+    "@types/keygrip" "*"
     "@types/node" "*"
 
 "@types/cors@^2.8.6":
@@ -11935,10 +11957,20 @@
   resolved "https://registry.yarnpkg.com/@types/html-minifier-terser/-/html-minifier-terser-6.1.0.tgz#4fc33a00c1d0c16987b1a20cf92d20614c55ac35"
   integrity sha512-oh/6byDPnL1zeNXFrDXFLyZjkr1MsBG667IM792caf1L2UPOOMf65NFzjUH/ltyfwjAGfs1rsX1eftK0jC/KIg==
 
+"@types/http-assert@*":
+  version "1.5.6"
+  resolved "https://registry.npmjs.org/@types/http-assert/-/http-assert-1.5.6.tgz#b6b657c38a2350d21ce213139f33b03b2b5fa431"
+  integrity sha512-TTEwmtjgVbYAzZYWyeHPrrtWnfVkm8tQkP8P21uQifPgMRgjrow3XDEYqucuC8SKZJT7pUnhU/JymvjggxO9vw==
+
 "@types/http-cache-semantics@*":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@types/http-cache-semantics/-/http-cache-semantics-4.0.1.tgz#0ea7b61496902b95890dc4c3a116b60cb8dae812"
   integrity sha512-SZs7ekbP8CN0txVG2xVRH6EgKmEm31BOxA07vkFaETzZz1xh+cbt8BcI0slpymvwhx5dlFnQG2rTlPVQn+iRPQ==
+
+"@types/http-errors@*":
+  version "2.0.5"
+  resolved "https://registry.npmjs.org/@types/http-errors/-/http-errors-2.0.5.tgz#5b749ab2b16ba113423feb1a64a95dcd30398472"
+  integrity sha512-r8Tayk8HJnX0FztbZN7oVqGccWgw98T/0neJphO91KkmOzug1KkofZURD4UaD5uH8AqcFLfdPErnBod0u71/qg==
 
 "@types/i18n-js@^3.8.4":
   version "3.8.4"
@@ -12045,6 +12077,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/keygrip@*":
+  version "1.0.6"
+  resolved "https://registry.npmjs.org/@types/keygrip/-/keygrip-1.0.6.tgz#1749535181a2a9b02ac04a797550a8787345b740"
+  integrity sha512-lZuNAY9xeJt7Bx4t4dx0rYCDqGPW8RXhQZK1td7d4H6E9zYbLoOtjBvfwdTKpsyxQI/2jv+armjX/RW+ZNpXOQ==
+
 "@types/keyv@*":
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/@types/keyv/-/keyv-3.1.4.tgz#3ccdb1c6751b0c7e52300bcdacd5bcbf8faa75b6"
@@ -12064,6 +12101,27 @@
   resolved "https://registry.yarnpkg.com/@types/klaw/-/klaw-3.0.6.tgz#673989032a5e04ec5b3a51661979cda4454f3a8d"
   integrity sha512-BErW5TrTz4nzt/c3VRGf0Bug4JyQJ1o807F4mAfXfvOzFZ8SKgFeHJ0T28Y1KtqlMEB+cUgN7S7CsyQDQ/qxqg==
   dependencies:
+    "@types/node" "*"
+
+"@types/koa-compose@*":
+  version "3.2.8"
+  resolved "https://registry.npmjs.org/@types/koa-compose/-/koa-compose-3.2.8.tgz#dec48de1f6b3d87f87320097686a915f1e954b57"
+  integrity sha512-4Olc63RY+MKvxMwVknCUDhRQX1pFQoBZ/lXcRLP69PQkEpze/0cr8LNqJQe5NFb/b19DWi2a5bTi2VAlQzhJuA==
+  dependencies:
+    "@types/koa" "*"
+
+"@types/koa@*", "@types/koa@^2.15.0":
+  version "2.15.0"
+  resolved "https://registry.npmjs.org/@types/koa/-/koa-2.15.0.tgz#eca43d76f527c803b491731f95df575636e7b6f2"
+  integrity sha512-7QFsywoE5URbuVnG3loe03QXuGajrnotr3gQkXcEBShORai23MePfFYdhz90FEtBBpkyIYQbVD+evKtloCgX3g==
+  dependencies:
+    "@types/accepts" "*"
+    "@types/content-disposition" "*"
+    "@types/cookies" "*"
+    "@types/http-assert" "*"
+    "@types/http-errors" "*"
+    "@types/keygrip" "*"
+    "@types/koa-compose" "*"
     "@types/node" "*"
 
 "@types/lockfile@1.0.2":
