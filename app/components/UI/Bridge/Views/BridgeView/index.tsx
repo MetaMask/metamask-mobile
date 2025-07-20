@@ -75,10 +75,13 @@ import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx.ts';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
-
+import { useDeepLinkHandler } from '../../hooks/useDeepLinkHandler.ts';
 export interface BridgeRouteParams {
   token?: BridgeToken;
   sourcePage: string;
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  sourceAmount?: string;
 }
 
 const BridgeView = () => {
@@ -133,6 +136,7 @@ const BridgeView = () => {
   const inputRef = useRef<{ blur: () => void }>(null);
 
   const updateQuoteParams = useBridgeQuoteRequest();
+  useDeepLinkHandler({ route });
 
   const initialSourceToken = route.params?.token;
   useInitialSourceToken(initialSourceToken);
@@ -153,6 +157,8 @@ const BridgeView = () => {
   const hasDestinationPicker = isEvmSolanaBridge;
 
   const hasQuoteDetails = activeQuote && !isLoading;
+
+  // // Handle deep link functionality (tokens, amounts, balance, view mode)
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,

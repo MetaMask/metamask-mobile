@@ -1,101 +1,212 @@
 import { handleSwapUrl } from './handleSwapUrl';
-import NavigationService from '../../../core/NavigationService';
+import NavigationService from '../../NavigationService';
+import { fetchBridgeTokens } from '@metamask/bridge-controller';
 
-// Mock NavigationService
-jest.mock('../../../core/NavigationService', () => ({
+jest.mock('../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },
 }));
 
+// Mock fetchBridgeTokens to return test data while preserving other exports
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  fetchBridgeTokens: jest.fn(),
+}));
+
+// Mock Engine and related utilities
+jest.mock('../../Engine', () => ({
+  context: {
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {},
+        },
+      },
+    },
+  },
+}));
+
+const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
+const mockFetchBridgeTokens = fetchBridgeTokens as jest.Mock;
+
 describe('handleSwapUrl', () => {
-  const mockNavigate = jest.fn();
+  const expectedSourceToken = {
+    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    chainId: '0x1',
+    decimals: 6,
+    name: 'USD Coin',
+    symbol: 'USDC',
+    image: 'https://example.com/usdc.png',
+  };
+  const expectedDestToken = {
+    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    chainId: '0x1',
+    decimals: 6,
+    name: 'Tether USD',
+    symbol: 'USDT',
+    image: 'https://example.com/usdt.png',
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (NavigationService.navigation.navigate as jest.Mock) = mockNavigate;
-  });
-
-  it('navigates to swaps page with correct pre-filled token information when valid CAIP-19 swap URLs are provided', async () => {
-    const validSwapPath =
-      '?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&value=0x38d7ea4c68000';
-
-    handleSwapUrl({
-      swapPath: validSwapPath,
-    });
-
-    expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        destinationToken: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-        amount: '0x38d7ea4c68000',
+    // Always mock the same token data for all tests unless explicitly overridden
+    mockFetchBridgeTokens.mockResolvedValue({
+      '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        iconUrl: 'https://example.com/usdc.png',
+        icon: 'https://example.com/usdc.png',
+      },
+      '0xdAC17F958D2ee523a2206206994597C13D831ec7': {
+        symbol: 'USDT',
+        name: 'Tether USD',
+        decimals: 6,
+        iconUrl: 'https://example.com/usdt.png',
+        icon: 'https://example.com/usdt.png',
       },
     });
   });
 
-  it('navigates to swaps page with correct pre-filled token information when URLs without leading question mark are provided', async () => {
+  it('navigates to Bridge view with processed tokens from valid CAIP-19 parameters', async () => {
     const swapPath =
-      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7';
+      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000';
 
-    handleSwapUrl({ swapPath });
+    await handleSwapUrl({ swapPath });
 
-    expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-      screen: 'SwapsAmountView',
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
       params: {
-        sourceToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        destinationToken: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-        amount: '0',
+        sourceToken: expectedSourceToken,
+        destToken: expectedDestToken,
+        sourceAmount: '1',
+        sourcePage: 'deeplink',
       },
     });
   });
 
-  it('navigates to swaps page without pre-filled token information when invalid CAIP format is provided', async () => {
-    const invalidSwapPath = '?from=invalid&to=invalid';
+  it('navigates to Bridge view with partial parameters (only source token)', async () => {
+    const swapPath =
+      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
-    handleSwapUrl({ swapPath: invalidSwapPath });
+    await handleSwapUrl({ swapPath });
 
-    expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-      screen: 'SwapsAmountView',
-    });
-  });
-
-  it('navigates to swaps page without pre-filled token information when missing tokens are provided', async () => {
-    const missingTokensPath = '?value=0x38d7ea4c68000';
-
-    handleSwapUrl({ swapPath: missingTokensPath });
-
-    expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-      screen: 'SwapsAmountView',
-    });
-  });
-
-  it('navigates to swaps page with pre-filled amount of 0 when invalid hex value is provided', async () => {
-    const invalidHexPath =
-      '?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&value=invalid';
-
-    handleSwapUrl({ swapPath: invalidHexPath });
-
-    expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-      screen: 'SwapsAmountView',
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
       params: {
-        sourceToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        destinationToken: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-        amount: '0',
+        sourceToken: expectedSourceToken,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
       },
     });
   });
 
-  it('navigates to swaps page without pre-filled token information when malformed path is provided', async () => {
-    const malformedPath = null;
+  it('navigates to Bridge view with partial parameters (only dest token)', async () => {
+    const swapPath =
+      'to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7';
 
-    handleSwapUrl({
-      // @ts-expect-error - this scenario is not expected to happen
-      swapPath: malformedPath,
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: expectedDestToken,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+      },
     });
+  });
 
-    expect(mockNavigate).toHaveBeenCalledWith('Swaps', {
-      screen: 'SwapsAmountView',
+  it('handles invalid CAIP format and navigates with undefined for invalid tokens', async () => {
+    const swapPath =
+      'from=invalid-caip&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: expectedDestToken,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+      },
+    });
+  });
+
+  it('handles unsupported tokens and navigates with undefined', async () => {
+    // Mock empty bridge tokens to simulate unsupported token
+    mockFetchBridgeTokens.mockResolvedValue({});
+
+    const swapPath =
+      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: null,
+        destToken: null,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+      },
+    });
+  });
+
+  it('handles invalid amount format and navigates with undefined amount', async () => {
+    const swapPath =
+      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=invalid';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: expectedSourceToken,
+        destToken: expectedDestToken,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+      },
+    });
+  });
+
+  it('navigates to Bridge view without parameters when no valid parameters are provided', async () => {
+    const swapPath = 'invalid=param';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+      },
+    });
+  });
+
+  it('navigates to Bridge view with fallback when exception occurs', async () => {
+    // Mock fetchBridgeTokens to throw an error
+    mockFetchBridgeTokens.mockRejectedValue(new Error('API Error'));
+
+    const swapPath =
+      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: null,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+      },
     });
   });
 });
