@@ -37,7 +37,9 @@ class ChangePasswordView {
   }
 
   get submitButton() {
-    return Matchers.getElementByText(ChoosePasswordSelectorsIDs.RESET_PASSWORD_BUTTON_TEXT);
+    return Matchers.getElementByText(
+      ChoosePasswordSelectorsIDs.RESET_PASSWORD_BUTTON_TEXT,
+    );
   }
 
   async typeInConfirmPasswordInputBox(PASSWORD) {
@@ -58,7 +60,7 @@ class ChangePasswordView {
   }
 
   async tapSubmitButton() {
-    await Gestures.waitAndTap(this.submitButton, {delayBeforeTap: 1000});
+    await Gestures.waitAndTap(this.submitButton, { delayBeforeTap: 1000 });
   }
 }
 

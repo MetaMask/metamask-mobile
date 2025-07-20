@@ -9,6 +9,7 @@ import {
   InteractionManager,
   Animated,
   Easing,
+  Platform,
 } from 'react-native';
 import Text, {
   TextVariant,
@@ -31,13 +32,13 @@ import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { EXISTING_USER } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -46,9 +47,13 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-
 import fox from '../../../animations/Searching_Fox.json';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -85,7 +90,8 @@ const createStyles = (colors) =>
       lineHeight: 40,
       textAlign: 'center',
       paddingHorizontal: 60,
-      fontFamily: 'MMSans-Regular',
+      fontFamily:
+        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
       color: importedColors.gettingStartedTextColor,
       width: '100%',
       marginVertical: 16,
@@ -177,18 +183,6 @@ const createStyles = (colors) =>
       borderWidth: 1,
       color: colors.text.default,
     },
-    createWalletButton: {
-      borderRadius: 12,
-      color: importedColors.whiteTransparent,
-      backgroundColor: importedColors.btnBlack,
-    },
-    existingWalletButton: {
-      borderRadius: 12,
-      color: importedColors.btnBlack,
-      backgroundColor: colors.transparent,
-      borderWidth: 1,
-      borderColor: importedColors.btnBlack,
-    },
   });
 
 /**
@@ -217,6 +211,10 @@ class Onboarding extends PureComponent {
      * unset loading status
      */
     unsetLoading: PropTypes.func,
+    /**
+     * redux flag that indicates if the user is existing
+     */
+    existingUser: PropTypes.bool,
     /**
      * Action to save onboarding event
      */
@@ -250,7 +248,6 @@ class Onboarding extends PureComponent {
     existingUser: false,
     createWallet: false,
     existingWallet: false,
-    bottomSheetVisible: false,
     errorSheetVisible: false,
   };
 
@@ -322,8 +319,9 @@ class Onboarding extends PureComponent {
   };
 
   async checkIfExistingUser() {
-    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-    if (existingUser !== null) {
+    // Read from Redux state instead of MMKV storage
+    const { existingUser } = this.props;
+    if (existingUser) {
       this.setState({ existingUser: true });
     }
   }
@@ -348,6 +346,9 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
+    if (SEEDLESS_ONBOARDING_ENABLED) {
+      OAuthLoginService.resetOauthState();
+    }
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       this.props.navigation.navigate('ChoosePassword', {
@@ -363,6 +364,9 @@ class Onboarding extends PureComponent {
   };
 
   onPressImport = () => {
+    if (SEEDLESS_ONBOARDING_ENABLED) {
+      OAuthLoginService.resetOauthState();
+    }
     const action = async () => {
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
@@ -377,6 +381,97 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
+  handlePostSocialLogin = (result, createWallet, provider) => {
+    if (result.type === 'success') {
+      // Track social login completed
+      this.track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
+        account_type: provider,
+      });
+      if (createWallet) {
+        if (result.existingUser) {
+          this.props.navigation.navigate('AccountAlreadyExists', {
+            accountName: result.accountName,
+            oauthLoginSuccess: true,
+          });
+        } else {
+          this.props.navigation.navigate('ChoosePassword', {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          });
+        }
+      } else if (!createWallet) {
+        if (result.existingUser) {
+          this.props.navigation.navigate('Rehydrate', {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          });
+        } else {
+          this.props.navigation.navigate('AccountNotFound', {
+            accountName: result.accountName,
+            oauthLoginSuccess: true,
+          });
+        }
+      }
+    } else {
+      // handle error: show error message in the UI
+    }
+  };
+
+  onPressContinueWithSocialLogin = async (createWallet, provider) => {
+    this.props.navigation.navigate('Onboarding');
+
+    if (createWallet) {
+      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
+        account_type: `metamask_${provider}`,
+      });
+    } else {
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
+        account_type: `imported_${provider}`,
+      });
+    }
+
+    const action = async () => {
+      const loginHandler = createLoginHandler(Platform.OS, provider);
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+      ).catch((error) => {
+        this.handleLoginError(error);
+        return { type: 'error', error, existingUser: false };
+      });
+      this.handlePostSocialLogin(result, createWallet, provider);
+    };
+    this.handleExistingUser(action);
+  };
+
+  onPressContinueWithApple = async (createWallet) =>
+    this.onPressContinueWithSocialLogin(createWallet, 'apple');
+
+  onPressContinueWithGoogle = async (createWallet) =>
+    this.onPressContinueWithSocialLogin(createWallet, 'google');
+
+  handleLoginError = (error) => {
+    let errorMessage;
+    if (error instanceof OAuthError) {
+      if (error.code === OAuthErrorType.UserCancelled) {
+        errorMessage = 'user_cancelled';
+      } else {
+        errorMessage = 'oauth_error';
+      }
+    } else {
+      errorMessage = 'oauth_error';
+    }
+
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings(`error_sheet.${errorMessage}_title`),
+        description: strings(`error_sheet.${errorMessage}_description`),
+        descriptionAlign: 'center',
+        buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+        type: 'error',
+      },
+    });
+  };
   track = (event, properties) => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(event)
@@ -397,6 +492,26 @@ class Onboarding extends PureComponent {
   toggleWarningModal = () => {
     const warningModalVisible = this.state.warningModalVisible;
     this.setState({ warningModalVisible: !warningModalVisible });
+  };
+
+  handleCtaActions = (actionType) => {
+    if (SEEDLESS_ONBOARDING_ENABLED) {
+      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ONBOARDING_SHEET,
+        params: {
+          onPressCreate: this.onPressCreate,
+          onPressImport: this.onPressImport,
+          onPressContinueWithGoogle: this.onPressContinueWithGoogle,
+          onPressContinueWithApple: this.onPressContinueWithApple,
+          createWallet: actionType === 'create',
+        },
+      });
+      // else
+    } else if (actionType === 'create') {
+      this.onPressCreate();
+    } else {
+      this.onPressImport();
+    }
   };
 
   renderLoader = () => {
@@ -440,20 +555,18 @@ class Onboarding extends PureComponent {
         <View style={styles.createWrapper}>
           <Button
             variant={ButtonVariants.Primary}
-            onPress={() => this.onPressCreate()}
+            onPress={() => this.handleCtaActions('create')}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             label={strings('onboarding.start_exploring_now')}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
-            style={styles.createWalletButton}
           />
           <Button
             variant={ButtonVariants.Secondary}
-            onPress={this.onPressImport}
+            onPress={() => this.handleCtaActions('existing')}
             testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
-            style={styles.existingWalletButton}
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
@@ -553,6 +666,7 @@ Onboarding.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   passwordSet: state.user.passwordSet,
+  existingUser: selectExistingUser(state),
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,
 });

@@ -22,16 +22,16 @@ export const getEventsPayloads = async (
 
     const checkPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
       const mockedEndpoints = await mockServer.getMockedEndpoints();
-      
+
       // Filter out infrastructure endpoints that are always pending
       // Only include endpoints that have received requests (analytics endpoints)
       const endpointChecks = await Promise.all(
         mockedEndpoints.map(async (endpoint) => {
           const seenRequests = await endpoint.getSeenRequests();
           return { endpoint, hasRequests: seenRequests.length > 0 };
-        })
+        }),
       );
-      
+
       const analyticsEndpoints = endpointChecks
         .filter(({ hasRequests }) => hasRequests)
         .map(({ endpoint }) => endpoint);
@@ -39,7 +39,6 @@ export const getEventsPayloads = async (
       const pendingEndpoints = await Promise.all(
         analyticsEndpoints.map((endpoint) => endpoint.isPending()),
       );
-
 
       if (pendingEndpoints.some((isPending) => isPending)) {
         if (Date.now() - startTime >= timeout) {
@@ -96,7 +95,8 @@ export const getEventsPayloads = async (
 export const findEvent = (
   payloads: EventPayload[],
   eventName: string,
-): EventPayload | undefined => payloads.find((payload) => payload.event === eventName);
+): EventPayload | undefined =>
+  payloads.find((payload) => payload.event === eventName);
 
 /**
  * Filters event objects in the payloads array matching the given event name.
@@ -108,7 +108,6 @@ export const filterEvents = (
   payloads: EventPayload[],
   eventName: string,
 ): EventPayload[] => payloads.filter((payload) => payload.event === eventName);
-
 
 export const onboardingEvents = {
   ANALYTICS_PREFERENCE_SELECTED: 'Analytics Preference Selected',

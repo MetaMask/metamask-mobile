@@ -133,7 +133,7 @@ describe('useAddressBalance', () => {
     };
 
     (mockGetERC20BalanceOf as jest.Mock).mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve(0x0186a0), 50))
+      () => new Promise((resolve) => setTimeout(() => resolve(0x0186a0), 50)),
     );
 
     renderHook(() => useAddressBalance(asset, MOCK_ADDRESS_2), {
@@ -141,7 +141,7 @@ describe('useAddressBalance', () => {
     });
 
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
     expect(mockGetERC20BalanceOf).toBeCalledTimes(1);

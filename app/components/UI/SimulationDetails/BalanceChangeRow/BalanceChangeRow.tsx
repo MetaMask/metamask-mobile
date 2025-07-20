@@ -3,6 +3,7 @@ import React from 'react';
 import { View, ViewProps } from 'react-native';
 
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../hooks/useStyles';
@@ -42,6 +43,7 @@ const BalanceChangeRow: React.FC<BalanceChangeRowProperties> = ({
         <Text
           testID="balance-change-row-label"
           variant={TextVariant.BodyMDMedium}
+          color={TextColor.Alternative}
         >
           {label}
         </Text>
