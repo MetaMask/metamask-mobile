@@ -1,4 +1,4 @@
-import migrate from './089';
+import migrate from './090';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
@@ -9,7 +9,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #89 - Replace BSC Network RPC URL', () => {
+describe('Migration #90 - Replace BSC Network RPC URL', () => {
   const BSC_CHAIN_ID = '0x38';
   const OLD_RPC_URL = 'https://bsc-dataseed1.binance.org';
   const NEW_RPC_URL = `https://bsc-mainnet.infura.io/v3/${
@@ -27,7 +27,7 @@ describe('Migration #89 - Replace BSC Network RPC URL', () => {
   const invalidStates = [
     {
       state: null,
-      errorMessage: "FATAL ERROR: Migration 89: Invalid state error: 'object'",
+      errorMessage: "FATAL ERROR: Migration 90: Invalid state error: 'object'",
       scenario: 'state is invalid',
     },
     {
@@ -35,7 +35,7 @@ describe('Migration #89 - Replace BSC Network RPC URL', () => {
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 89: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 90: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -45,7 +45,7 @@ describe('Migration #89 - Replace BSC Network RPC URL', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 89: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 90: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
   ];

@@ -23,7 +23,7 @@ const infuraProjectId = INFURA_KEY === 'null' ? '' : INFURA_KEY;
  */
 export default function migrate(state: unknown) {
   // Ensure the state is valid for migration
-  if (!ensureValidState(state, 89)) {
+  if (!ensureValidState(state, 90)) {
     return state;
   }
 
@@ -103,7 +103,7 @@ export default function migrate(state: unknown) {
 
         if (endpointIndex !== -1) {
           Logger.log(
-            `Migration 89: Updating 'https://bsc-dataseed1.binance.org' to 'https://bsc-mainnet.infura.io/v3/${infuraProjectId}' in BSC network RPC endpoints.`,
+            `Migration 90: Updating 'https://bsc-dataseed1.binance.org' to 'https://bsc-mainnet.infura.io/v3/${infuraProjectId}' in BSC network RPC endpoints.`,
           );
 
           // Update the first occurrence of the deprecated URL
