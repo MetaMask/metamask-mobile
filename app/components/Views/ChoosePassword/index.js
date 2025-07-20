@@ -77,6 +77,8 @@ import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import ErrorBoundary from '../ErrorBoundary';
+import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -382,6 +384,14 @@ class ChoosePassword extends PureComponent {
     this.setState(() => ({ isSelected: !isSelected }));
   };
 
+  tryExportSeedPhrase = async (password) => {
+    const { KeyringController } = Engine.context;
+    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(
+      password,
+    );
+    return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
+  };
+
   onPressCreate = async () => {
     const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
@@ -474,7 +484,10 @@ class ChoosePassword extends PureComponent {
           });
         }
       } else {
-        this.props.navigation.replace('AccountBackupStep1');
+        const seedPhrase = await this.tryExportSeedPhrase(password);
+        this.props.navigation.replace('AccountBackupStep1', {
+          seedPhrase,
+        });
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
@@ -788,6 +801,7 @@ class ChoosePassword extends PureComponent {
                     placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
+                    submitBehavior="submit"
                     autoComplete="new-password"
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -848,6 +862,7 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.confirm_password')}
                   </Label>
                   <TextField
+                    ref={this.confirmPasswordInput}
                     placeholder={strings('import_from_seed.re_enter_password')}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
