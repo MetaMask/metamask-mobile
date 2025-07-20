@@ -534,6 +534,9 @@ buildAndroidMainProduction(){
 
 	# Generate checksum
 	yarn build:android:checksum
+
+	# Change directory back out
+	cd ..
 }
 
 # Builds the Flask APK for production
@@ -548,6 +551,9 @@ buildAndroidFlaskProduction(){
 
 	# Generate checksum
 	yarn build:android:checksum:flask
+
+	# Change directory back out
+	cd ..
 }
 
 # Builds the QA APK for production
@@ -563,6 +569,9 @@ buildAndroidQaProduction(){
 
 	# Generate checksum
 	yarn build:android:checksum:qa
+
+	# Change directory back out
+	cd ..
 }
 
 buildAndroidReleaseE2E(){
