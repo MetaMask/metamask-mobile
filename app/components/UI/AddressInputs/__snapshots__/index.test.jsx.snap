@@ -607,7 +607,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
                   style={
                     [
                       {
-                        "color": "#1c7e33",
+                        "color": "#457a39",
                         "fontSize": 15,
                       },
                       undefined,
@@ -880,7 +880,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
                   style={
                     [
                       {
-                        "color": "#1c7e33",
+                        "color": "#457a39",
                         "fontSize": 15,
                       },
                       undefined,

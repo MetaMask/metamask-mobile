@@ -666,7 +666,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#1c7e33",
+                                              "color": "#457a39",
                                               "fontSize": 15,
                                             },
                                             undefined,
@@ -868,7 +868,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                           "fontSize": 13,
                                         },
                                         {
-                                          "color": "#9ca1af",
+                                          "color": "#b7bbc8",
                                         },
                                         {
                                           "fontFamily": "Material Design Icons",
