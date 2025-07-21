@@ -76,16 +76,7 @@ jobs:
       - name: Build Android E2E App
         run: |
           echo "Building E2E app for Android..."
-          yarn patch-package --error-on-fail
-          # Do we make an action for yarn ? or would this be apart of the android build steps
-          # PPOM
-          cd ppom
-          yarn clean
-          yarn
-          yarn lint
-          yarn build
-          cd ..
-          yarn jetify
+          yarn setup --no-build-ios --no-install-pods
           yarn test:e2e:android:build:qa-release
 
         
