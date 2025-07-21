@@ -1145,13 +1145,13 @@ describe('Authentication', () => {
       expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
         mockAuthData,
-        'mnemonic-1',
+        uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
       expect(
         Engine.context.KeyringController.addNewKeyring,
       ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic: 'mnemonic-2',
+        mnemonic: uint8ArrayToMnemonic(mockSeedPhrase2, []),
         numberOfAccounts: 1,
       });
       expect(
