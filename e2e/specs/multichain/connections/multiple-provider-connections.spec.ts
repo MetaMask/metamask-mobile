@@ -69,7 +69,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should default account selection to already permitted account when `wallet_requestPermissions` is called with no accounts specified', async () => {
+  it('should default account selection to already permitted account when "wallet_requestPermissions" is called with no accounts specified', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -127,7 +127,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
     );
   });
 
-  it('should default account selection to both accounts when `wallet_requestPermissions` is called with specific account while another is already connected', async () => {
+  it('should default account selection to both accounts when "wallet_requestPermissions" is called with specific account while another is already connected', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -262,7 +262,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
     );
   });
 
-  it('should default account selection to already permitted Solana account and requested Ethereum account when `wallet_requestPermissions` is called with specific Ethereum account', async () => {
+  it('should default account selection to already permitted Solana account and requested Ethereum account when "wallet_requestPermissions" is called with specific Ethereum account', async () => {
     await withSolanaAccountEnabled(
       {
         dappPath: DEFAULT_TEST_DAPP_PATH,
