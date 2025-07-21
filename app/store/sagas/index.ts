@@ -30,6 +30,8 @@ import {
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
+import SDKConnect from '../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -193,6 +195,13 @@ export function* startAppServices() {
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
+
+  yield all([
+    // Initialize WalletConnect v2 Manager
+    call(WC2Manager.init, {}),
+    // Initialize SDKConnect
+    call(SDKConnect.init, { context: 'Nav/App' })
+  ])
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
