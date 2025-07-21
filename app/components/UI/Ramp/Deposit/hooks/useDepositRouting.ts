@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { BuyQuote, OrderIdTransformer } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
@@ -25,7 +25,7 @@ import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { createWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/WebviewModal';
 import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/KycWebviewModal';
 import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
-import { useDepositSDK } from '../sdk';
+import { useDepositSDK, DEPOSIT_ENVIRONMENT } from '../sdk';
 import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
 import useAnalytics from '../../hooks/useAnalytics';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
@@ -214,6 +214,16 @@ export const useDepositRouting = ({
 
           if (orderId) {
             try {
+              const transformedOrderId =
+                OrderIdTransformer.transakOrderIdToDepositOrderId(
+                  orderId,
+                  DEPOSIT_ENVIRONMENT,
+                );
+
+              navigateToOrderProcessingCallback({
+                orderId: transformedOrderId,
+              });
+
               const order = await getOrder(orderId, selectedWalletAddress);
 
               if (!order) {
@@ -222,7 +232,9 @@ export const useDepositRouting = ({
 
               const cryptoCurrency = getCryptoCurrencyFromTransakId(
                 order.cryptoCurrency,
+                order.network,
               );
+
               const processedOrder = {
                 ...depositOrderToFiatOrder(order),
                 account: selectedWalletAddress || order.walletAddress,
@@ -231,8 +243,22 @@ export const useDepositRouting = ({
 
               await handleNewOrder(processedOrder);
 
-              navigateToOrderProcessingCallback({
-                orderId: order.id,
+              trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+                ramp_type: 'DEPOSIT',
+                amount_source: Number(order.fiatAmount),
+                amount_destination: Number(order.cryptoAmount),
+                exchange_rate: Number(order.exchangeRate),
+                gas_fee: order.networkFees ? Number(order.networkFees) : 0,
+                processing_fee: order.partnerFees
+                  ? Number(order.partnerFees)
+                  : 0,
+                total_fee: Number(order.totalFeesFiat),
+                payment_method_id: order.paymentMethod,
+                country: selectedRegion?.isoCode || '',
+                chain_id: cryptoCurrency?.chainId || '',
+                currency_destination:
+                  selectedWalletAddress || order.walletAddress,
+                currency_source: order.fiatCurrency,
               });
             } catch (error) {
               throw new Error(
@@ -252,6 +278,8 @@ export const useDepositRouting = ({
       selectedWalletAddress,
       handleNewOrder,
       navigateToOrderProcessingCallback,
+      selectedRegion?.isoCode,
+      trackEvent,
     ],
   );
 
