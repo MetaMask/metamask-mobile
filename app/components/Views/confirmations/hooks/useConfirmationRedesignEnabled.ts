@@ -10,7 +10,6 @@ import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../selectors/featureFlagController/confirmations';
-import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
 import {
   REDESIGNED_APPROVE_TYPES,
@@ -39,12 +38,10 @@ function isRedesignedSignature({
 function isRedesignedTransaction({
   approvalRequestType,
   confirmationRedesignFlags,
-  fromAddress,
   transactionMetadata,
 }: {
   approvalRequestType: ApprovalType;
   confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
-  fromAddress: string;
   transactionMetadata?: TransactionMeta;
 }) {
   const transactionType = transactionMetadata?.type as TransactionType;
@@ -54,8 +51,7 @@ function isRedesignedTransaction({
   if (
     !isTransactionTypeRedesigned ||
     approvalRequestType !== ApprovalType.Transaction ||
-    !transactionMetadata ||
-    isHardwareAccount(fromAddress)
+    !transactionMetadata
   ) {
     return false;
   }
@@ -114,7 +110,6 @@ export const useConfirmationRedesignEnabled = () => {
       isRedesignedTransaction({
         approvalRequestType,
         confirmationRedesignFlags,
-        fromAddress,
         transactionMetadata,
       }) ||
       isBatchTransaction(approvalRequestType),

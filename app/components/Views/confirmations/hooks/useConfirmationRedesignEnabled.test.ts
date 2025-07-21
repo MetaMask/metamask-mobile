@@ -183,7 +183,7 @@ describe('useConfirmationRedesignEnabled', () => {
           expect(result.current.isRedesignedEnabled).toBe(false);
         });
 
-        it('returns false when from address is external hardware account', async () => {
+        it('returns true when from address is external hardware account', async () => {
           confirmationRedesignFlagsMock.mockReturnValue({
             ...disabledFeatureFlags,
             signatures: true,
@@ -198,7 +198,7 @@ describe('useConfirmationRedesignEnabled', () => {
             },
           );
 
-          expect(result.current.isRedesignedEnabled).toBe(false);
+          expect(result.current.isRedesignedEnabled).toBe(true);
         });
 
         it('only redesign if transactions is staking deposit', async () => {
