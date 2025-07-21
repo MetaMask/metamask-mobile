@@ -1,17 +1,5 @@
-import {
-  useNavigation,
-  useRoute,
-  type NavigationProp,
-  type RouteProp,
-} from '@react-navigation/native';
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-} from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -25,97 +13,29 @@ import {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import { Theme } from '../../../../../util/theme/models';
 import Keypad from '../../../Ramp/Aggregator/components/Keypad';
-import type { PerpsNavigationParamList } from '../../controllers/types';
 import { formatPrice } from '../../utils/formatUtils';
 import { usePerpsPrices } from '../../hooks';
+import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 
-interface LimitPriceRouteParams {
-  asset: string; // The asset symbol to get prices for
+interface PerpsLimitPriceBottomSheetProps {
+  isVisible: boolean;
+  onClose: () => void;
+  onConfirm: (limitPrice: string) => void;
+  asset: string;
   limitPrice?: string;
+  currentPrice?: number;
 }
 
-const createStyles = (colors: Theme['colors']) =>
-  StyleSheet.create({
-    container: {
-      paddingHorizontal: 16,
-    },
-    priceInfo: {
-      marginTop: 8,
-      marginBottom: 16,
-    },
-    priceRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    priceLabel: {
-      fontSize: 14,
-      color: colors.text.alternative,
-    },
-    priceValue: {
-      fontSize: 16,
-      fontWeight: '500',
-      color: colors.text.default,
-    },
-    limitPriceDisplay: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 12,
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      marginBottom: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    limitPriceValue: {
-      fontSize: 32,
-      fontWeight: '600',
-      color: colors.text.default,
-    },
-    limitPriceCurrency: {
-      fontSize: 18,
-      color: colors.text.alternative,
-    },
-    percentageButtonsRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 16,
-      gap: 8,
-    },
-    percentageButton: {
-      flex: 1,
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      paddingVertical: 12,
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-    },
-    percentageButtonActive: {
-      backgroundColor: colors.primary.muted,
-      borderColor: colors.primary.default,
-    },
-    keypadContainer: {
-      marginTop: 16,
-      marginBottom: 16,
-    },
-    footerContainer: {
-      paddingHorizontal: 16,
-      paddingBottom: 24,
-    },
-  });
-
-const PerpsLimitPriceBottomSheet: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const route =
-    useRoute<RouteProp<{ params: LimitPriceRouteParams }, 'params'>>();
-  const { asset, limitPrice: initialLimitPrice } = route.params || {};
-
+const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
+  isVisible,
+  onClose,
+  onConfirm,
+  asset,
+  limitPrice: initialLimitPrice,
+  currentPrice: passedCurrentPrice = 0,
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -123,13 +43,14 @@ const PerpsLimitPriceBottomSheet: React.FC = () => {
   // Initialize with initial limit price or empty to show placeholder
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
 
-  // Get real-time price data with order book for the asset
-  const assetSymbols = useMemo(() => [asset || 'BTC'], [asset]);
-  const priceData = usePerpsPrices(assetSymbols, true); // include order book data
-  const currentPriceData = priceData[asset || 'BTC'];
+  // Get real-time price data
+  const priceData = usePerpsPrices([asset], true); // Include order book for limit orders
+  const currentPriceData = priceData[asset];
 
-  // Extract values from real-time data
-  const currentPrice = parseFloat(currentPriceData?.price || '0');
+  // Use real-time price if available, otherwise use passed price
+  const currentPrice = currentPriceData?.price
+    ? parseFloat(currentPriceData.price)
+    : passedCurrentPrice;
   const markPrice = currentPriceData?.markPrice
     ? parseFloat(currentPriceData.markPrice)
     : currentPrice;
@@ -141,17 +62,14 @@ const PerpsLimitPriceBottomSheet: React.FC = () => {
     : undefined;
 
   useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet();
-  }, []);
+    if (isVisible) {
+      bottomSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
   const handleConfirm = () => {
-    navigation.navigate(Routes.PERPS.ORDER, {
-      limitPriceUpdate: limitPrice,
-    });
-  };
-
-  const handleClose = () => {
-    navigation.goBack();
+    onConfirm(limitPrice);
+    onClose();
   };
 
   const handleKeypadChange = useCallback(
@@ -207,9 +125,15 @@ const PerpsLimitPriceBottomSheet: React.FC = () => {
   const displayAskPrice = bestAsk || (currentPrice ? currentPrice * 1.0001 : 0);
   const displayBidPrice = bestBid || (currentPrice ? currentPrice * 0.9999 : 0);
 
+  if (!isVisible) return null;
+
   return (
-    <BottomSheet ref={bottomSheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
+    <BottomSheet
+      ref={bottomSheetRef}
+      shouldNavigateBack={false}
+      onClose={onClose}
+    >
+      <BottomSheetHeader onClose={onClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.order.limit_price_modal.title')}
         </Text>
@@ -296,6 +220,7 @@ const PerpsLimitPriceBottomSheet: React.FC = () => {
             onChange={handleKeypadChange}
             currency="USD"
             decimals={2}
+            style={styles.keypad}
           />
         </View>
       </View>

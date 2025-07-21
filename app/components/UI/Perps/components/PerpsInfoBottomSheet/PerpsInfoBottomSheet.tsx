@@ -1,10 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-} from '@react-navigation/native';
+import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -14,13 +9,14 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { Theme } from '../../../../../util/theme/models';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { createStyles } from './PerpsInfoBottomSheet.styles';
 
 export type InfoType = 'fees' | 'margin' | 'execution_time' | 'leverage';
 
-interface InfoRouteParams {
+interface PerpsInfoBottomSheetProps {
   type: InfoType;
+  isVisible: boolean;
+  onClose: () => void;
 }
 
 interface InfoContent {
@@ -76,35 +72,11 @@ const INFO_CONTENT: Record<InfoType, InfoContent> = {
   },
 };
 
-const createStyles = (colors: Theme['colors']) =>
-  StyleSheet.create({
-    container: {
-      paddingHorizontal: 16,
-      paddingVertical: 24,
-    },
-    description: {
-      marginBottom: 24,
-      lineHeight: 22,
-    },
-    detailsContainer: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      padding: 16,
-    },
-    detailItem: {
-      marginBottom: 12,
-    },
-    detailBullet: {
-      fontSize: 14,
-      lineHeight: 20,
-    },
-  });
-
-const PerpsInfoBottomSheet: React.FC = () => {
-  const navigation = useNavigation();
-  const route = useRoute<RouteProp<{ params: InfoRouteParams }, 'params'>>();
-  const { type } = route.params || { type: 'fees' };
-
+const PerpsInfoBottomSheet: React.FC<PerpsInfoBottomSheetProps> = ({
+  type,
+  isVisible,
+  onClose,
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -112,17 +84,20 @@ const PerpsInfoBottomSheet: React.FC = () => {
   const content = INFO_CONTENT[type];
 
   useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet();
-  }, []);
+    if (isVisible) {
+      bottomSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
-  const handleClose = () => {
-    DevLogger.log('Closing info bottom sheet');
-    navigation.goBack();
-  };
+  if (!isVisible) return null;
 
   return (
-    <BottomSheet ref={bottomSheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
+    <BottomSheet
+      ref={bottomSheetRef}
+      shouldNavigateBack={false}
+      onClose={onClose}
+    >
+      <BottomSheetHeader onClose={onClose}>
         <Text variant={TextVariant.HeadingMD}>{content.title}</Text>
       </BottomSheetHeader>
 

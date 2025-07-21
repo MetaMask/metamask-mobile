@@ -1,10 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-} from '@react-navigation/native';
+import { View, TouchableOpacity } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -14,124 +9,99 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconSize,
-  IconName,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
-import { Theme } from '../../../../../util/theme/models';
-import Routes from '../../../../../constants/navigation/Routes';
+import { createStyles } from './PerpsOrderTypeBottomSheet.styles';
+import { strings } from '../../../../../../locales/i18n';
 
-interface OrderTypeRouteParams {
-  orderType: 'market' | 'limit';
+interface PerpsOrderTypeBottomSheetProps {
+  isVisible: boolean;
+  onClose: () => void;
+  onSelect: (orderType: 'market' | 'limit') => void;
+  currentOrderType: 'market' | 'limit';
 }
 
-const createStyles = (colors: Theme['colors']) =>
-  StyleSheet.create({
-    contentWrapper: {
-      paddingHorizontal: 16,
-      paddingVertical: 16,
-      paddingBottom: 40,
-    },
-    option: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 20,
-      paddingHorizontal: 16,
-      marginBottom: 16,
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-    },
-    selectedOption: {
-      backgroundColor: colors.primary.muted,
-    },
-    optionContent: {
-      flex: 1,
-      marginRight: 16,
-    },
-    description: {
-      marginTop: 4,
-      lineHeight: 20,
-    },
-  });
-
-const PerpsOrderTypeBottomSheet: React.FC = () => {
-  const navigation = useNavigation();
-  const route =
-    useRoute<RouteProp<{ params: OrderTypeRouteParams }, 'params'>>();
-  const { orderType: selectedType } = route.params || { orderType: 'market' };
+const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
+  isVisible,
+  onClose,
+  onSelect,
+  currentOrderType,
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet();
-  }, []);
+    if (isVisible) {
+      bottomSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
   const orderTypes = [
     {
       type: 'market' as const,
-      title: 'Market order',
-      description: 'Executes immediately at the best available price',
+      title: strings('perps.order.type.market.title'),
+      description: strings('perps.order.type.market.description'),
     },
     {
       type: 'limit' as const,
-      title: 'Limit order',
-      description:
-        'Places an order at your specified price — executes only if matched',
+      title: strings('perps.order.type.limit.title'),
+      description: strings('perps.order.type.limit.description'),
     },
   ];
 
   const handleSelect = (type: 'market' | 'limit') => {
-    // Navigate directly to order screen
-    navigation.navigate(Routes.PERPS.ORDER, {
-      orderTypeUpdate: type,
-    });
+    onSelect(type);
+    onClose();
   };
 
-  const handleClose = () => {
-    navigation.goBack();
-  };
+  if (!isVisible) return null;
 
   return (
-    <BottomSheet ref={bottomSheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>Select order type</Text>
+    <BottomSheet
+      ref={bottomSheetRef}
+      shouldNavigateBack={false}
+      onClose={onClose}
+    >
+      <BottomSheetHeader onClose={onClose}>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('perps.order.type.title')}
+        </Text>
       </BottomSheetHeader>
 
-      <View style={styles.contentWrapper}>
+      <View style={styles.container}>
         {orderTypes.map(({ type, title, description }) => (
           <TouchableOpacity
             key={type}
             style={[
               styles.option,
-              selectedType === type && styles.selectedOption,
+              currentOrderType === type && styles.optionSelected,
             ]}
             onPress={() => handleSelect(type)}
           >
-            <View style={styles.optionContent}>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={TextColor.Default}
+            <View style={styles.optionHeader}>
+              <View style={styles.optionContent}>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={TextColor.Default}
+                  style={styles.optionTitle}
+                >
+                  {title}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {description}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.radioContainer,
+                  currentOrderType === type && styles.radioSelected,
+                ]}
               >
-                {title}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.description}
-              >
-                {description}
-              </Text>
+                {currentOrderType === type && <View style={styles.radioDot} />}
+              </View>
             </View>
-            {selectedType === type && (
-              <Icon
-                name={IconName.Check}
-                size={IconSize.Lg}
-                color={IconColor.Success}
-              />
-            )}
           </TouchableOpacity>
         ))}
       </View>

@@ -1,12 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-  type NavigationProp,
-} from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
+import { View, TouchableOpacity, TextInput } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -21,119 +14,74 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { Theme } from '../../../../../util/theme/models';
 import { formatPrice } from '../../utils/formatUtils';
-import type { PerpsNavigationParamList } from '../../controllers/types';
 import { strings } from '../../../../../../locales/i18n';
+import { usePerpsPrices } from '../../hooks';
+import type { Position } from '../../controllers/types';
+import { createStyles } from './PerpsTPSLBottomSheet.styles';
 
-interface TPSLRouteParams {
-  currentPrice: number;
-  takeProfitPrice?: string;
-  stopLossPrice?: string;
+interface PerpsTPSLBottomSheetProps {
+  isVisible: boolean;
+  onClose: () => void;
+  onConfirm: (takeProfitPrice?: string, stopLossPrice?: string) => void;
+  // Context data
+  asset: string;
+  currentPrice?: number;
+  direction?: 'long' | 'short'; // For new orders
+  position?: Position; // For existing positions
+  initialTakeProfitPrice?: string;
+  initialStopLossPrice?: string;
 }
 
-const createStyles = (colors: Theme['colors']) =>
-  StyleSheet.create({
-    container: {
-      paddingHorizontal: 16,
-      paddingBottom: 24,
-    },
-    priceDisplay: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      marginBottom: 24,
-      alignItems: 'center',
-    },
-    section: {
-      marginBottom: 24,
-    },
-    sectionTitle: {
-      marginBottom: 8,
-    },
-    inputContainer: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    inputContainerActive: {
-      borderColor: colors.primary.default,
-    },
-    input: {
-      flex: 1,
-      fontSize: 16,
-      color: colors.text.default,
-      paddingVertical: 0,
-    },
-    inputPrefix: {
-      marginRight: 8,
-    },
-    toggle: {
-      marginLeft: 16,
-    },
-    percentageRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 8,
-    },
-    percentageButton: {
-      flex: 1,
-      marginHorizontal: 4,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      alignItems: 'center',
-    },
-    percentageButtonActive: {
-      backgroundColor: colors.primary.muted,
-      borderColor: colors.primary.default,
-    },
-    percentageButtonDisabled: {
-      opacity: 0.5,
-      backgroundColor: colors.background.disabled || colors.background.alternative,
-    },
-    helperText: {
-      marginTop: 4,
-    },
-  });
-
-const PerpsTPSLBottomSheet: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const route = useRoute<RouteProp<{ params: TPSLRouteParams }, 'params'>>();
-  const {
-    currentPrice,
-    takeProfitPrice: initialTP,
-    stopLossPrice: initialSL,
-  } = route.params || {};
-
+const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
+  isVisible,
+  onClose,
+  onConfirm,
+  asset,
+  currentPrice: initialCurrentPrice,
+  // direction, // TODO: Use for validation
+  // position, // TODO: Use for existing position TP/SL
+  initialTakeProfitPrice,
+  initialStopLossPrice,
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const [takeProfitEnabled, setTakeProfitEnabled] = useState(!!initialTP);
-  const [stopLossEnabled, setStopLossEnabled] = useState(!!initialSL);
+  const [takeProfitEnabled, setTakeProfitEnabled] = useState(
+    !!initialTakeProfitPrice,
+  );
+  const [stopLossEnabled, setStopLossEnabled] = useState(
+    !!initialStopLossPrice,
+  );
   const [takeProfitPrice, setTakeProfitPrice] = useState(
-    initialTP ? formatPrice(initialTP) : '',
+    initialTakeProfitPrice ? formatPrice(initialTakeProfitPrice) : '',
   );
   const [stopLossPrice, setStopLossPrice] = useState(
-    initialSL ? formatPrice(initialSL) : '',
+    initialStopLossPrice ? formatPrice(initialStopLossPrice) : '',
   );
   const [tpInputFocused, setTpInputFocused] = useState(false);
   const [slInputFocused, setSlInputFocused] = useState(false);
+  // Track selected percentage buttons to maintain visual state
+  const [selectedTpPercentage, setSelectedTpPercentage] = useState<
+    number | null
+  >(null);
+  const [selectedSlPercentage, setSelectedSlPercentage] = useState<
+    number | null
+  >(null);
+
+  // Get real-time price updates
+  const priceData = usePerpsPrices([asset]);
+  const livePrice = priceData[asset];
+  const currentPrice = livePrice?.price
+    ? parseFloat(livePrice.price)
+    : initialCurrentPrice || 0;
 
   useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet();
-  }, []);
+    if (isVisible) {
+      bottomSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
   const handleConfirm = () => {
     // Parse the formatted prices back to plain numbers for storage
@@ -146,17 +94,8 @@ const PerpsTPSLBottomSheet: React.FC = () => {
         ? stopLossPrice.replace(/[$,]/g, '')
         : undefined;
 
-    // Navigate directly to order screen
-    navigation.navigate(Routes.PERPS.ORDER, {
-      tpslUpdate: {
-        takeProfitPrice: parseTakeProfitPrice,
-        stopLossPrice: parseStopLossPrice,
-      },
-    });
-  };
-
-  const handleClose = () => {
-    navigation.goBack();
+    onConfirm(parseTakeProfitPrice, parseStopLossPrice);
+    onClose();
   };
 
   // Quick percentage buttons
@@ -182,9 +121,15 @@ const PerpsTPSLBottomSheet: React.FC = () => {
     },
   ];
 
+  if (!isVisible) return null;
+
   return (
-    <BottomSheet ref={bottomSheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
+    <BottomSheet
+      ref={bottomSheetRef}
+      shouldNavigateBack={false}
+      onClose={onClose}
+    >
+      <BottomSheetHeader onClose={onClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.order.tpsl_modal.title')}
         </Text>
@@ -226,6 +171,8 @@ const PerpsTPSLBottomSheet: React.FC = () => {
                   const parts = sanitized.split('.');
                   if (parts.length > 2) return;
                   setTakeProfitPrice(sanitized);
+                  // Clear selected percentage when user manually types
+                  setSelectedTpPercentage(null);
                 }}
                 placeholder="0.00"
                 placeholderTextColor={colors.text.muted}
@@ -248,8 +195,10 @@ const PerpsTPSLBottomSheet: React.FC = () => {
                 setTakeProfitEnabled(!takeProfitEnabled);
                 if (!takeProfitEnabled) {
                   setTakeProfitPrice(calculatePriceForPercentage(10, true));
+                  setSelectedTpPercentage(10);
                 } else {
                   setTakeProfitPrice('');
+                  setSelectedTpPercentage(null);
                 }
               }}
             >
@@ -273,26 +222,26 @@ const PerpsTPSLBottomSheet: React.FC = () => {
                 style={[
                   styles.percentageButton,
                   takeProfitEnabled &&
-                    takeProfitPrice ===
-                      calculatePriceForPercentage(percentage, true) &&
+                    selectedTpPercentage === percentage &&
                     styles.percentageButtonActive,
                   !takeProfitEnabled && styles.percentageButtonDisabled,
                 ]}
-                onPress={() =>
-                  takeProfitEnabled &&
-                  setTakeProfitPrice(
-                    calculatePriceForPercentage(percentage, true),
-                  )
-                }
+                onPress={() => {
+                  if (takeProfitEnabled) {
+                    setTakeProfitPrice(
+                      calculatePriceForPercentage(percentage, true),
+                    );
+                    setSelectedTpPercentage(percentage);
+                  }
+                }}
                 disabled={!takeProfitEnabled}
               >
                 <Text
                   variant={TextVariant.BodySM}
                   color={
                     !takeProfitEnabled
-                      ? TextColor.Disabled
-                      : takeProfitPrice ===
-                        calculatePriceForPercentage(percentage, true)
+                      ? TextColor.Muted
+                      : selectedTpPercentage === percentage
                       ? TextColor.Primary
                       : TextColor.Default
                   }
@@ -338,6 +287,8 @@ const PerpsTPSLBottomSheet: React.FC = () => {
                   const parts = sanitized.split('.');
                   if (parts.length > 2) return;
                   setStopLossPrice(sanitized);
+                  // Clear selected percentage when user manually types
+                  setSelectedSlPercentage(null);
                 }}
                 placeholder="0.00"
                 placeholderTextColor={colors.text.muted}
@@ -360,8 +311,10 @@ const PerpsTPSLBottomSheet: React.FC = () => {
                 setStopLossEnabled(!stopLossEnabled);
                 if (!stopLossEnabled) {
                   setStopLossPrice(calculatePriceForPercentage(10, false));
+                  setSelectedSlPercentage(10);
                 } else {
                   setStopLossPrice('');
+                  setSelectedSlPercentage(null);
                 }
               }}
             >
@@ -385,26 +338,26 @@ const PerpsTPSLBottomSheet: React.FC = () => {
                 style={[
                   styles.percentageButton,
                   stopLossEnabled &&
-                    stopLossPrice ===
-                      calculatePriceForPercentage(percentage, false) &&
+                    selectedSlPercentage === percentage &&
                     styles.percentageButtonActive,
                   !stopLossEnabled && styles.percentageButtonDisabled,
                 ]}
-                onPress={() =>
-                  stopLossEnabled &&
-                  setStopLossPrice(
-                    calculatePriceForPercentage(percentage, false),
-                  )
-                }
+                onPress={() => {
+                  if (stopLossEnabled) {
+                    setStopLossPrice(
+                      calculatePriceForPercentage(percentage, false),
+                    );
+                    setSelectedSlPercentage(percentage);
+                  }
+                }}
                 disabled={!stopLossEnabled}
               >
                 <Text
                   variant={TextVariant.BodySM}
                   color={
                     !stopLossEnabled
-                      ? TextColor.Disabled
-                      : stopLossPrice ===
-                        calculatePriceForPercentage(percentage, false)
+                      ? TextColor.Muted
+                      : selectedSlPercentage === percentage
                       ? TextColor.Primary
                       : TextColor.Default
                   }

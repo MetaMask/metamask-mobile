@@ -79,6 +79,13 @@ import {
   getNetworkImageSource,
 } from '../../../../../util/networks';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
+import PerpsInfoBottomSheet, {
+  type InfoType,
+} from '../../components/PerpsInfoBottomSheet';
+import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
+import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
+import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
+import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 
 // Order form state interface
 interface OrderFormState {
@@ -181,6 +188,11 @@ const PerpsOrderView: React.FC = () => {
     // Track route param changes
   }, [route.params]);
   const [isTokenSelectorVisible, setIsTokenSelectorVisible] = useState(false);
+  const [visibleInfoType, setVisibleInfoType] = useState<InfoType | null>(null);
+  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
+  const [isLeverageVisible, setIsLeverageVisible] = useState(false);
+  const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
+  const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
 
   const paymentTokens = usePerpsPaymentTokens();
 
@@ -191,48 +203,7 @@ const PerpsOrderView: React.FC = () => {
     }
   }, [paymentTokens, selectedPaymentToken]);
 
-  // Listen for navigation params updates from modals
-  useEffect(() => {
-    // Check if returning from leverage modal
-    if (route.params?.leverageUpdate !== undefined) {
-      setOrderForm((prev) => ({
-        ...prev,
-        leverage: route.params.leverageUpdate || orderForm.leverage,
-      }));
-      // Clear the param to avoid re-applying
-      navigation.setParams({ leverageUpdate: undefined });
-    }
-    // Check if returning from order type modal
-    if (route.params?.orderTypeUpdate !== undefined) {
-      setOrderType(route.params.orderTypeUpdate);
-      navigation.setParams({ orderTypeUpdate: undefined });
-    }
-    // Check if returning from TP/SL modal
-    if (route.params?.tpslUpdate !== undefined) {
-      const { takeProfitPrice, stopLossPrice } = route.params.tpslUpdate;
-      setOrderForm((prev) => ({
-        ...prev,
-        takeProfitPrice: takeProfitPrice || undefined,
-        stopLossPrice: stopLossPrice || undefined,
-      }));
-      navigation.setParams({ tpslUpdate: undefined });
-    }
-    // Check if returning from limit price modal
-    if (route.params?.limitPriceUpdate !== undefined) {
-      setOrderForm((prev) => ({
-        ...prev,
-        limitPrice: route.params.limitPriceUpdate || undefined,
-      }));
-      navigation.setParams({ limitPriceUpdate: undefined });
-    }
-  }, [
-    route.params?.leverageUpdate,
-    route.params?.orderTypeUpdate,
-    route.params?.tpslUpdate,
-    route.params?.limitPriceUpdate,
-    navigation,
-    orderForm.leverage,
-  ]);
+  // Note: Navigation params for order type modal are no longer needed
 
   // Memoize the asset array
   const assetSymbols = useMemo(() => [orderForm.asset], [orderForm.asset]);
@@ -556,6 +527,7 @@ const PerpsOrderView: React.FC = () => {
         price={assetData.price}
         priceChange={assetData.change}
         orderType={orderType}
+        onOrderTypePress={() => setIsOrderTypeVisible(true)}
       />
 
       <ScrollView
@@ -588,21 +560,7 @@ const PerpsOrderView: React.FC = () => {
         <View style={styles.detailsWrapper}>
           {/* Leverage */}
           <View style={[styles.detailItem, styles.detailItemFirst]}>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-                  screen: Routes.PERPS.MODALS.LEVERAGE_MODAL,
-                  params: {
-                    leverage: orderForm.leverage,
-                    minLeverage: 1,
-                    maxLeverage: marketData?.maxLeverage || 50,
-                    currentPrice: assetData.price,
-                    liquidationPrice: parseFloat(liquidationPrice),
-                    direction: orderForm.direction,
-                  },
-                });
-              }}
-            >
+            <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
@@ -610,12 +568,7 @@ const PerpsOrderView: React.FC = () => {
                       {strings('perps.order.leverage')}
                     </Text>
                     <TouchableOpacity
-                      onPress={() => {
-                        navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-                          screen: Routes.PERPS.MODALS.INFO_MODAL,
-                          params: { type: 'leverage' },
-                        });
-                      }}
+                      onPress={() => setVisibleInfoType('leverage')}
                       style={styles.infoIcon}
                     >
                       <Icon
@@ -638,17 +591,7 @@ const PerpsOrderView: React.FC = () => {
           {/* Limit price - only show for limit orders */}
           {orderType === 'limit' && (
             <View style={styles.detailItem}>
-              <TouchableOpacity
-                onPress={() => {
-                  navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-                    screen: Routes.PERPS.MODALS.LIMIT_PRICE_MODAL,
-                    params: {
-                      asset: orderForm.asset,
-                      limitPrice: orderForm.limitPrice,
-                    },
-                  });
-                }}
-              >
+              <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                 <ListItem>
                   <ListItemColumn widthType={WidthType.Fill}>
                     <Text variant={TextVariant.BodyLGMedium}>
@@ -739,18 +682,7 @@ const PerpsOrderView: React.FC = () => {
 
           {/* Take profit */}
           <View style={styles.detailItem}>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-                  screen: Routes.PERPS.MODALS.TPSL_MODAL,
-                  params: {
-                    takeProfitPrice: orderForm.takeProfitPrice,
-                    stopLossPrice: orderForm.stopLossPrice,
-                    currentPrice: assetData.price,
-                  },
-                });
-              }}
-            >
+            <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <Text variant={TextVariant.BodyLGMedium}>
@@ -770,18 +702,7 @@ const PerpsOrderView: React.FC = () => {
 
           {/* Stop loss */}
           <View style={[styles.detailItem, styles.detailItemLast]}>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-                  screen: Routes.PERPS.MODALS.TPSL_MODAL,
-                  params: {
-                    takeProfitPrice: orderForm.takeProfitPrice,
-                    stopLossPrice: orderForm.stopLossPrice,
-                    currentPrice: assetData.price,
-                  },
-                });
-              }}
-            >
+            <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <Text variant={TextVariant.BodyLGMedium}>
@@ -808,12 +729,7 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.estimated_execution_time')}
               </Text>
               <TouchableOpacity
-                onPress={() => {
-                  navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-                    screen: Routes.PERPS.MODALS.INFO_MODAL,
-                    params: { type: 'execution_time' },
-                  });
-                }}
+                onPress={() => setVisibleInfoType('execution_time')}
                 style={styles.infoIcon}
               >
                 <Icon
@@ -834,12 +750,7 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.margin')}
               </Text>
               <TouchableOpacity
-                onPress={() => {
-                  navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-                    screen: Routes.PERPS.MODALS.INFO_MODAL,
-                    params: { type: 'margin' },
-                  });
-                }}
+                onPress={() => setVisibleInfoType('margin')}
                 style={styles.infoIcon}
               >
                 <Icon
@@ -871,12 +782,7 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.fees')}
               </Text>
               <TouchableOpacity
-                onPress={() => {
-                  navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-                    screen: Routes.PERPS.MODALS.INFO_MODAL,
-                    params: { type: 'fees' },
-                  });
-                }}
+                onPress={() => setVisibleInfoType('fees')}
                 style={styles.infoIcon}
               >
                 <Icon
@@ -946,6 +852,86 @@ const PerpsOrderView: React.FC = () => {
         title={strings('perps.order.select_payment_asset')}
         minimumBalance={0}
       />
+
+      {/* Info Bottom Sheet */}
+      {visibleInfoType && (
+        <PerpsInfoBottomSheet
+          type={visibleInfoType}
+          isVisible
+          onClose={() => setVisibleInfoType(null)}
+        />
+      )}
+
+      {/* TP/SL Bottom Sheet */}
+      {isTPSLVisible && (
+        <PerpsTPSLBottomSheet
+          isVisible
+          onClose={() => setIsTPSLVisible(false)}
+          onConfirm={(takeProfitPrice, stopLossPrice) => {
+            setOrderForm((prev) => ({
+              ...prev,
+              takeProfitPrice,
+              stopLossPrice,
+            }));
+            setIsTPSLVisible(false);
+          }}
+          asset={orderForm.asset}
+          currentPrice={assetData.price}
+          direction={orderForm.direction}
+          initialTakeProfitPrice={orderForm.takeProfitPrice}
+          initialStopLossPrice={orderForm.stopLossPrice}
+        />
+      )}
+
+      {/* Leverage Selector */}
+      {isLeverageVisible && (
+        <PerpsLeverageBottomSheet
+          isVisible
+          onClose={() => setIsLeverageVisible(false)}
+          onConfirm={(leverage) => {
+            setOrderForm((prev) => ({ ...prev, leverage }));
+            setIsLeverageVisible(false);
+          }}
+          leverage={orderForm.leverage}
+          minLeverage={1}
+          maxLeverage={marketData?.maxLeverage || 50}
+          currentPrice={assetData.price}
+          liquidationPrice={parseFloat(liquidationPrice)}
+          direction={orderForm.direction}
+        />
+      )}
+
+      {/* Limit Price Bottom Sheet */}
+      {isLimitPriceVisible && (
+        <PerpsLimitPriceBottomSheet
+          isVisible
+          onClose={() => setIsLimitPriceVisible(false)}
+          onConfirm={(limitPrice) => {
+            setOrderForm((prev) => ({ ...prev, limitPrice }));
+            setIsLimitPriceVisible(false);
+          }}
+          asset={orderForm.asset}
+          limitPrice={orderForm.limitPrice}
+          currentPrice={assetData.price}
+        />
+      )}
+
+      {/* Order Type Bottom Sheet */}
+      {isOrderTypeVisible && (
+        <PerpsOrderTypeBottomSheet
+          isVisible
+          onClose={() => setIsOrderTypeVisible(false)}
+          onSelect={(type) => {
+            setOrderType(type);
+            // Clear limit price when switching to market order
+            if (type === 'market') {
+              setOrderForm((prev) => ({ ...prev, limitPrice: undefined }));
+            }
+            setIsOrderTypeVisible(false);
+          }}
+          currentOrderType={orderType}
+        />
+      )}
     </SafeAreaView>
   );
 };

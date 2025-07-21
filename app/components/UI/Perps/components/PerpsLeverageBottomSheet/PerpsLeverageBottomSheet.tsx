@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useEffect,
 } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -19,11 +19,6 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-} from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -43,168 +38,24 @@ import Icon, {
   IconName,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import { Theme } from '../../../../../util/theme/models';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { RISK_MANAGEMENT } from '../../constants/hyperLiquidConfig';
 import { formatPrice } from '../../utils/formatUtils';
-import Routes from '../../../../../constants/navigation/Routes';
+import { createStyles } from './PerpsLeverageBottomSheet.styles';
+import { strings } from '../../../../../../locales/i18n';
+import { Theme } from '../../../../../util/theme/models';
 
-interface LeverageRouteParams {
+interface PerpsLeverageBottomSheetProps {
+  isVisible: boolean;
+  onClose: () => void;
+  onConfirm: (leverage: number) => void;
   leverage: number;
-  minLeverage?: number;
-  maxLeverage?: number;
-  currentPrice?: number;
-  liquidationPrice?: number;
-  direction?: 'long' | 'short';
+  minLeverage: number;
+  maxLeverage: number;
+  currentPrice: number;
+  liquidationPrice: number;
+  direction: 'long' | 'short';
 }
-
-const createStyles = (colors: Theme['colors']) =>
-  StyleSheet.create({
-    container: {
-      paddingHorizontal: 16,
-      paddingBottom: 16,
-    },
-    leverageDisplay: {
-      alignItems: 'center',
-      paddingTop: 16,
-      paddingBottom: 24,
-    },
-    leverageText: {
-      fontSize: 48,
-      fontWeight: '600',
-      lineHeight: 56,
-    },
-    leverageTextLow: {
-      color: colors.text.default,
-    },
-    leverageTextMedium: {
-      color: colors.warning.default,
-    },
-    leverageTextHigh: {
-      color: colors.error.default,
-    },
-    warningContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 12,
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      marginBottom: 24,
-    },
-    warningIcon: {
-      marginRight: 8,
-    },
-    warningTextLow: {
-      color: colors.text.alternative,
-    },
-    warningTextMedium: {
-      color: colors.warning.default,
-    },
-    warningTextHigh: {
-      color: colors.error.default,
-    },
-    priceInfoContainer: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      padding: 16,
-      marginBottom: 32,
-    },
-    priceRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 8,
-    },
-    sliderContainer: {
-      marginBottom: 16,
-    },
-    sliderLabels: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 8,
-    },
-    quickSelectButtons: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 24,
-      marginBottom: 16,
-    },
-    quickSelectButton: {
-      flex: 1,
-      marginHorizontal: 4,
-      paddingVertical: 12,
-      alignItems: 'center',
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-    },
-    quickSelectButtonActive: {
-      backgroundColor: colors.primary.muted,
-      borderColor: colors.primary.default,
-    },
-    quickSelectText: {
-      fontWeight: '500',
-    },
-    leverageSliderContainer: {
-      paddingVertical: 8,
-    },
-    leverageTrack: {
-      height: 6,
-      backgroundColor: colors.border.muted,
-      borderRadius: 3,
-      position: 'relative',
-    },
-    leverageThumb: {
-      width: 24,
-      height: 24,
-      backgroundColor: colors.background.default,
-      borderRadius: 12,
-      position: 'absolute',
-      top: -9,
-      left: -12,
-      shadowColor: colors.shadow.default,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 3,
-      borderWidth: 2,
-      borderColor: colors.border.default,
-    },
-    leverageGradient: {
-      flex: 1,
-      borderRadius: 3,
-    },
-    progressContainer: {
-      height: 6,
-      borderRadius: 3,
-      overflow: 'hidden',
-      position: 'absolute',
-      left: 0,
-      top: 0,
-    },
-    gradientStyle: {
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      height: 6,
-    },
-    emptyPriceInfo: {
-      textAlign: 'center',
-      paddingVertical: 16,
-    },
-    tickMark: {
-      position: 'absolute',
-      width: 4,
-      height: 4,
-      backgroundColor: colors.border.muted,
-      borderRadius: 2,
-      top: 1,
-    },
-  });
 
 // Custom Leverage Slider Component
 const LeverageSlider: React.FC<{
@@ -241,7 +92,8 @@ const LeverageSlider: React.FC<{
       const { width } = event.nativeEvent.layout;
       widthRef.current = width;
       sliderWidth.value = width;
-      setGradientWidth(width);
+      // Make gradient wider than the track to ensure full color coverage
+      setGradientWidth(width * 1.5);
       const percentage = (value - minValue) / (maxValue - minValue);
       translateX.value = percentage * width;
     },
@@ -318,77 +170,67 @@ const LeverageSlider: React.FC<{
 
   return (
     <GestureHandlerRootView style={styles.leverageSliderContainer}>
-      <View style={styles.leverageTrack} onLayout={handleLayout}>
-        <GestureDetector gesture={composed}>
-          <Animated.View style={styles.leverageTrack}>
-            {/* Progress bar with clipped gradient */}
-            <Animated.View style={[styles.progressContainer, progressStyle]}>
-              <LinearGradient
-                colors={[
-                  '#4CAF50',
-                  '#8BC34A',
-                  '#CDDC39',
-                  colors.warning.default,
-                  '#FF6B35',
-                  colors.error.default,
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[
-                  styles.gradientStyle,
-                  { width: Math.max(gradientWidth, 300) },
-                ]}
-              />
-            </Animated.View>
-
-            <Animated.View style={[styles.leverageThumb, thumbStyle]} />
+      <GestureDetector gesture={composed}>
+        <View style={styles.leverageTrack} onLayout={handleLayout}>
+          {/* Progress bar with clipped gradient */}
+          <Animated.View style={[styles.progressContainer, progressStyle]}>
+            <LinearGradient
+              colors={[
+                '#4CAF50',
+                '#8BC34A',
+                '#CDDC39',
+                colors.warning.default,
+                '#FF6B35',
+                colors.error.default,
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.gradientStyle, { width: gradientWidth || 300 }]}
+            />
           </Animated.View>
-        </GestureDetector>
 
-        {/* Tick marks */}
-        {tickMarks.map((mark) => (
-          <View
-            key={mark.value}
-            style={[styles.tickMark, { left: `${mark.percentage * 100}%` }]}
-          />
-        ))}
-      </View>
+          {/* Tick marks */}
+          {tickMarks.map((mark) => (
+            <View
+              key={mark.value}
+              style={[styles.tickMark, { left: `${mark.percentage * 100}%` }]}
+            />
+          ))}
+
+          {/* Thumb */}
+          <Animated.View style={[styles.leverageThumb, thumbStyle]} />
+        </View>
+      </GestureDetector>
     </GestureHandlerRootView>
   );
 };
 
-const PerpsLeverageBottomSheet: React.FC = () => {
-  const navigation = useNavigation();
-  const route =
-    useRoute<RouteProp<{ params: LeverageRouteParams }, 'params'>>();
-  const {
-    leverage,
-    minLeverage = 1,
-    maxLeverage = 50,
-    currentPrice,
-    direction = 'long',
-  } = route.params || {};
-
+const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
+  isVisible,
+  onClose,
+  onConfirm,
+  leverage: initialLeverage,
+  minLeverage,
+  maxLeverage,
+  currentPrice,
+  // liquidationPrice: initialLiquidationPrice, // TODO: Use for display
+  direction,
+}) => {
   const { colors } = useTheme();
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const [tempLeverage, setTempLeverage] = useState(leverage || 10);
   const styles = createStyles(colors);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const [tempLeverage, setTempLeverage] = useState(initialLeverage);
 
   useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet();
-  }, []);
+    if (isVisible) {
+      bottomSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
   const handleConfirm = () => {
     DevLogger.log(`Confirming leverage: ${tempLeverage}`);
-    // Navigate directly to the order screen with the update
-    navigation.navigate(Routes.PERPS.ORDER, {
-      leverageUpdate: tempLeverage,
-    });
-  };
-
-  const handleClose = () => {
-    DevLogger.log('Closing leverage bottom sheet');
-    navigation.goBack();
+    onConfirm(tempLeverage);
+    onClose();
   };
 
   // Calculate liquidation price based on leverage
@@ -409,9 +251,27 @@ const PerpsLeverageBottomSheet: React.FC = () => {
   // Calculate liquidation percentage drop
   const calculateLiquidationDrop = useCallback((lev: number) => {
     if (lev === 0) return 0;
-    const maintenanceMargin = RISK_MANAGEMENT.maintenanceMargin;
-    const leverageRatio = 1 / lev;
-    return Math.round((leverageRatio - maintenanceMargin) * 100);
+
+    // For perpetual futures with isolated margin:
+    // Initial Margin = Position Value / Leverage
+    // The maximum loss before liquidation is approximately the initial margin
+    //
+    // Since position PnL is amplified by leverage, a 1% price move = leverage% PnL
+    // Therefore, liquidation occurs when price moves by approximately: 100% / leverage
+    //
+    // For example:
+    // - 10x leverage: ~10% price move causes 100% loss of margin
+    // - 20x leverage: ~5% price move causes 100% loss of margin
+    // - 50x leverage: ~2% price move causes 100% loss of margin
+    //
+    // The exact formula depends on the exchange's liquidation engine,
+    // but this gives a good approximation
+
+    // Simple formula: liquidation distance ≈ 100 / leverage
+    const liquidationPercentage = 100 / lev;
+
+    // Round to 1 decimal place for display
+    return Math.round(liquidationPercentage * 10) / 10;
   }, []);
 
   // Generate dynamic leverage options based on maxLeverage
@@ -471,10 +331,18 @@ const PerpsLeverageBottomSheet: React.FC = () => {
     },
   ];
 
+  if (!isVisible) return null;
+
   return (
-    <BottomSheet ref={bottomSheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>Leverage</Text>
+    <BottomSheet
+      ref={bottomSheetRef}
+      shouldNavigateBack={false}
+      onClose={onClose}
+    >
+      <BottomSheetHeader onClose={onClose}>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('perps.order.leverage_modal.title')}
+        </Text>
       </BottomSheetHeader>
 
       <View style={styles.container}>
@@ -497,7 +365,8 @@ const PerpsLeverageBottomSheet: React.FC = () => {
             style={styles.warningIcon}
           />
           <Text variant={TextVariant.BodyMD} style={warningStyles.textStyle}>
-            You will be liquidated if price drops by{' '}
+            You will be liquidated if price{' '}
+            {direction === 'long' ? 'drops' : 'rises'} by{' '}
             {calculateLiquidationDrop(tempLeverage)}%
           </Text>
         </View>
@@ -507,7 +376,7 @@ const PerpsLeverageBottomSheet: React.FC = () => {
           <View style={styles.priceInfoContainer}>
             <View style={styles.priceRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                Liquidation price
+                {strings('perps.order.leverage_modal.liquidation_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {formatPrice(calculatedLiquidationPrice)}
@@ -515,10 +384,23 @@ const PerpsLeverageBottomSheet: React.FC = () => {
             </View>
             <View style={styles.priceRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                Current price
+                {strings('perps.order.leverage_modal.entry_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {formatPrice(currentPrice)}
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('perps.order.leverage_modal.liquidation_distance')}
+              </Text>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {(
+                  (Math.abs(currentPrice - calculatedLiquidationPrice) /
+                    currentPrice) *
+                  100
+                ).toFixed(2)}
+                %
               </Text>
             </View>
           </View>

@@ -859,6 +859,24 @@
         "ask_price": "Ask price",
         "bid_price": "Bid price"
       },
+      "leverage_modal": {
+        "title": "Set Leverage",
+        "confirm": "Confirm",
+        "entry_price": "Entry Price",
+        "liquidation_price": "Liquidation Price",
+        "liquidation_distance": "Liquidation Distance"
+      },
+      "type": {
+        "title": "Order Type",
+        "market": {
+          "title": "Market",
+          "description": "Execute immediately at current market price"
+        },
+        "limit": {
+          "title": "Limit",
+          "description": "Execute only at your specified price or better"
+        }
+      },
       "success": {
         "title": "Order Placed Successfully",
         "subtitle": "Your {{direction}} position for {{asset}} has been created",
@@ -920,6 +938,16 @@
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed"
+    },
+    "info": {
+      "leverage": {
+        "title": "What is Leverage?",
+        "description": "Leverage allows you to control a larger position with less capital, amplifying both profits and losses.",
+        "detail1": "Higher leverage = Higher risk & reward",
+        "detail2": "Maximum leverage varies by asset",
+        "detail3": "Liquidation occurs when losses exceed margin",
+        "detail4": "Start with lower leverage if you're new"
+      }
     },
     "position": {
       "title": "Positions",

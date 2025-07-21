@@ -20,6 +20,7 @@ import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPositionHeader from '../../components/PerpsPostitionHeader/PerpsPositionHeader';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { createStyles } from './PerpsPositionDetailsView.styles';
+import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 
 interface PositionDetailsRouteParams {
   position: Position;
@@ -35,6 +36,7 @@ const PerpsPositionDetailsView: React.FC = () => {
   const { position } = route.params || {};
 
   const [selectedInterval, setSelectedInterval] = useState('1h');
+  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
     coin: position?.coin || '',
     selectedInterval,
@@ -61,7 +63,7 @@ const PerpsPositionDetailsView: React.FC = () => {
   }, [position]);
 
   const handleEditTPSL = () => {
-    DevLogger.log('PerpsPositionDetails: handleEditTPSL not implemented');
+    setIsTPSLVisible(true);
   };
 
   if (!position) {
@@ -110,6 +112,27 @@ const PerpsPositionDetailsView: React.FC = () => {
           />
         </View>
       </ScrollView>
+
+      {/* TP/SL Bottom Sheet */}
+      {isTPSLVisible && (
+        <PerpsTPSLBottomSheet
+          isVisible
+          onClose={() => setIsTPSLVisible(false)}
+          onConfirm={(takeProfitPrice, stopLossPrice) => {
+            // TODO: Implement updating position TP/SL
+            DevLogger.log('Update position TP/SL:', {
+              takeProfitPrice,
+              stopLossPrice,
+            });
+            setIsTPSLVisible(false);
+          }}
+          asset={position.coin}
+          position={position}
+          // TODO: Get actual TP/SL from position when available
+          initialTakeProfitPrice={undefined}
+          initialStopLossPrice={undefined}
+        />
+      )}
     </SafeAreaView>
   );
 };

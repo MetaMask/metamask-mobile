@@ -233,13 +233,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
           coin: params.coin,
           assetId,
           requestedLeverage: params.leverage,
-          leverageType: 'cross', // Default to cross leverage
+          leverageType: 'isolated', // Default to isolated leverage
         });
 
         const exchangeClient = this.clientService.getExchangeClient();
         const leverageResult = await exchangeClient.updateLeverage({
           asset: assetId,
-          isCross: true, // Default to cross leverage for now
+          isCross: false, // Default to isolated leverage for now
           leverage: params.leverage,
         });
 

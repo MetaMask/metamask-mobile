@@ -102,6 +102,7 @@ import {
   PerpsModalStack,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
@@ -129,6 +130,13 @@ const clearStackNavigatorOptions = {
   },
   animationEnabled: false,
 };
+
+// Wrapper component with single provider for entire Perps environment
+const PerpsEnvironment = () => (
+  <PerpsConnectionProvider>
+    <PerpsScreenStack />
+  </PerpsConnectionProvider>
+);
 
 const WalletModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
@@ -880,7 +888,7 @@ const MainNavigator = () => {
       />
       {isPerpsEnabled && (
         <>
-          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsEnvironment} />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}

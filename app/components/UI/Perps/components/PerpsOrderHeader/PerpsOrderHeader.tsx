@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { Theme } from '../../../../../util/theme/models';
 import ButtonIcon, {
@@ -15,10 +15,10 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
-import Routes from '../../../../../constants/navigation/Routes';
+// import Routes from '../../../../../constants/navigation/Routes'; // No longer needed
 import { formatPrice, formatPercentage } from '../../utils/formatUtils';
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidConfig';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+// import type { PerpsNavigationParamList } from '../../controllers/types'; // No longer needed
 
 interface PerpsOrderHeaderProps {
   asset: string;
@@ -80,7 +80,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   const handleBack = useCallback(() => {
     if (onBack) {
@@ -93,16 +93,9 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   const handleOrderTypePress = useCallback(() => {
     if (onOrderTypePress) {
       onOrderTypePress();
-    } else {
-      navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-        screen: Routes.PERPS.MODALS.ORDER_TYPE_MODAL,
-        params: {
-          orderType,
-          returnTo: Routes.PERPS.ORDER,
-        },
-      });
     }
-  }, [navigation, orderType, onOrderTypePress]);
+    // Note: onOrderTypePress callback is now required
+  }, [onOrderTypePress]);
 
   // Get asset icon URL from Hyperliquid
   const assetIconUrl = useMemo(
