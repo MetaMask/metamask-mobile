@@ -28,6 +28,10 @@ import {
   OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { EndTraceRequest, TraceName } from '../../../util/trace';
+import ReduxService from '../../../core/redux/ReduxService';
+import { RecursivePartial } from '../../../core/Authentication/Authentication.test';
+import { RootState } from '../../../reducers';
+import { ReduxStore } from '../../../core/redux/types';
 
 const mockEngine = jest.mocked(Engine);
 
@@ -587,7 +591,7 @@ describe('Login test suite 2', () => {
       });
 
       expect(mockGoBack).toHaveBeenCalled();
-      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+      expect(spyResetOauthState).toHaveBeenCalled();
     });
 
     it('should handle OAuth login success when metrics UI is seen', async () => {
@@ -604,6 +608,22 @@ describe('Login test suite 2', () => {
         return null;
       });
 
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'mock-vault',
+            },
+          },
+        },
+      };
+      // mock Redux store
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
       const spyRehydrateSeedPhrase = jest
         .spyOn(Authentication, 'rehydrateSeedPhrase')
         .mockResolvedValue(undefined);
@@ -620,15 +640,15 @@ describe('Login test suite 2', () => {
       });
 
       expect(spyRehydrateSeedPhrase).toHaveBeenCalled();
-      // expect(mockEndTrace).toHaveBeenCalledWith({
-      //   name: TraceName.OnboardingPasswordLoginAttempt,
-      // });
-      // expect(mockEndTrace).toHaveBeenCalledWith({
-      //   name: TraceName.OnboardingExistingSocialLogin,
-      // });
-      // expect(mockEndTrace).toHaveBeenCalledWith({
-      //   name: TraceName.OnboardingJourneyOverall,
-      // });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordLoginAttempt,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingExistingSocialLogin,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingJourneyOverall,
+      });
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
 
@@ -645,7 +665,22 @@ describe('Login test suite 2', () => {
         if (key === OPTIN_META_METRICS_UI_SEEN) return null; // Not seen
         return null;
       });
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'mock-vault',
+            },
+          },
+        },
+      };
+      // mock Redux store
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
 
+      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
       const spyRehydrateSeedPhrase = jest
         .spyOn(Authentication, 'rehydrateSeedPhrase')
         .mockResolvedValue(undefined);
@@ -662,15 +697,15 @@ describe('Login test suite 2', () => {
       });
 
       expect(spyRehydrateSeedPhrase).toHaveBeenCalled();
-      // expect(mockEndTrace).toHaveBeenCalledWith({
-      //   name: TraceName.OnboardingPasswordLoginAttempt,
-      // });
-      // expect(mockEndTrace).toHaveBeenCalledWith({
-      //   name: TraceName.OnboardingExistingSocialLogin,
-      // });
-      // expect(mockEndTrace).toHaveBeenCalledWith({
-      //   name: TraceName.OnboardingJourneyOverall,
-      // });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordLoginAttempt,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingExistingSocialLogin,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingJourneyOverall,
+      });
       expect(mockReset).toHaveBeenCalledWith({
         routes: [
           {
@@ -698,6 +733,21 @@ describe('Login test suite 2', () => {
         if (key === OPTIN_META_METRICS_UI_SEEN) return true;
         return null;
       });
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: undefined,
+            },
+          },
+        },
+      };
+      // mock Redux store
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
 
       mockEngine.context.KeyringController.submitPassword = jest.fn();
       // jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
