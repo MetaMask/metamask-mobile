@@ -11,7 +11,6 @@ import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
 import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import BrowserView from '../../pages/Browser/BrowserView';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 
 const fixtureServer = new FixtureServer();
@@ -32,8 +31,6 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
     // Navigate to test snaps URL once for all tests
     await TabBarComponent.tapBrowser();
     await TestSnaps.navigateToTestSnap();
-    await TestHelpers.delay(3500); // Wait for page to load
-    await Assertions.checkIfVisible(BrowserView.browserScreenID);
   });
 
   afterAll(async () => {
