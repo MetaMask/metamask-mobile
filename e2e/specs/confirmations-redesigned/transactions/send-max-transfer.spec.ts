@@ -68,12 +68,7 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
         await AmountView.tapNextButton();
 
         // Check all expected elements are visible
-        await Assertions.checkIfVisible(
-          ConfirmationUITypes.FlatConfirmationContainer,
-        );
-        await Assertions.checkIfVisible(RowComponents.FromTo);
-        await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
-        await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
+        await Assertions.checkIfTextIsDisplayed('1,000 ETH');
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();

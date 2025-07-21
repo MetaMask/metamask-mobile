@@ -13,15 +13,14 @@ const styles = {
 };
 
 export const HeroRow = ({ amountWei }: { amountWei?: string }) => {
-  const { isNft, isPending } = useIsNft();
+  const { isNft } = useIsNft();
 
   return (
     <View
       style={styles.wrapper}
       testID={ConfirmationRowComponentIDs.TOKEN_HERO}
     >
-      {!isPending && isNft === true && <HeroNft />}
-      {!isPending && isNft === false && <HeroToken amountWei={amountWei} />}
+      {isNft ? <HeroNft /> : <HeroToken amountWei={amountWei} />}
     </View>
   );
 };
