@@ -41,6 +41,7 @@ module.exports = {
     runtimeVersion: '1.0.0',
     updates: {
       url: 'https://u.expo.dev/f6be4653-8750-4688-8a44-c809d13b40ef',
+      channel: 'preview',
       requestHeaders: {
         'expo-channel-name': 'preview',
       },
@@ -49,6 +50,9 @@ module.exports = {
       eas: {
         projectId: 'f6be4653-8750-4688-8a44-c809d13b40ef',
       },
+    },
+    android: {
+      package: 'io.metamask',
     },
   },
 };

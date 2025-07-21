@@ -14,6 +14,7 @@ import {
   Linking,
   StyleSheet as RNStyleSheet,
   View,
+  Text,
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -1354,6 +1355,7 @@ const Wallet = ({
 
           {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
+          {/* <Text>EAS UPDATED TEST 1</Text> */}
           <Text>{runTypeMessage}</Text>
           {error && <Text>{error}</Text>}
           {isUpdateAvailable && <Text>Update available</Text>}
