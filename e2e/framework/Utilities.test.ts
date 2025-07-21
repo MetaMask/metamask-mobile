@@ -1,17 +1,16 @@
 import Utilities from './Utilities';
-import { logger } from './logger';
 import { RetryOptions } from './types';
 
 describe('Utilities.executeWithRetry', () => {
-  let loggerSpy: jest.SpyInstance;
+  let consoleLogSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    loggerSpy = jest.spyOn(logger, 'debug').mockImplementation();
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
     jest.clearAllMocks();
   });
 
   afterEach(() => {
-    loggerSpy.mockRestore();
+    consoleLogSpy.mockRestore();
   });
 
   describe('Successful execution', () => {
@@ -27,7 +26,7 @@ describe('Utilities.executeWithRetry', () => {
 
       expect(result).toBe('success');
       expect(mockOperation).toHaveBeenCalledTimes(1);
-      expect(loggerSpy).not.toHaveBeenCalled();
+      expect(consoleLogSpy).not.toHaveBeenCalled();
     });
 
     it('should succeed after retries and log success message', async () => {
@@ -48,8 +47,10 @@ describe('Utilities.executeWithRetry', () => {
 
       expect(result).toBe('success');
       expect(mockOperation).toHaveBeenCalledTimes(3);
-      expect(loggerSpy).toHaveBeenCalledWith(
-        '✅ test operation succeeded after 2 retries for test element.',
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '✅ test operation succeeded after 2 retries for test element.',
+        ),
       );
     });
 
@@ -70,8 +71,10 @@ describe('Utilities.executeWithRetry', () => {
 
       expect(result).toBe('success');
       expect(mockOperation).toHaveBeenCalledTimes(2);
-      expect(loggerSpy).toHaveBeenCalledWith(
-        '✅ test operation succeeded after 1 retry for test element.',
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '✅ test operation succeeded after 1 retry for test element.',
+        ),
       );
     });
   });
@@ -92,10 +95,14 @@ describe('Utilities.executeWithRetry', () => {
 
       await Utilities.executeWithRetry(mockOperation, options);
 
-      expect(loggerSpy).toHaveBeenCalledWith(
-        '⚠️  test operation failed (attempt 1) on element: test element. Retrying... (timeout: 1000ms)',
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '⚠️  test operation failed (attempt 1) on element: test element. Retrying... (timeout: 1000ms)',
+        ),
       );
-      expect(loggerSpy).toHaveBeenCalledWith('🔍 Error: First failure');
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('🔍 Error: First failure'),
+      );
     });
 
     it('should handle missing elemDescription in retry messages', async () => {
@@ -112,8 +119,10 @@ describe('Utilities.executeWithRetry', () => {
 
       await Utilities.executeWithRetry(mockOperation, options);
 
-      expect(loggerSpy).toHaveBeenCalledWith(
-        '⚠️  test operation failed (attempt 1) on element. Retrying... (timeout: 1000ms)',
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '⚠️  test operation failed (attempt 1) on element. Retrying... (timeout: 1000ms)',
+        ),
       );
     });
   });
