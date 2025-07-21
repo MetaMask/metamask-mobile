@@ -6,6 +6,10 @@ export const stylesheet = (_params: { theme: Theme; vars: unknown }) =>
     base: {
       flex: 1,
     },
+    infos: {
+      flex: 1,
+      overflow: 'hidden',
+    },
     balance: {
       marginLeft: 'auto',
     },

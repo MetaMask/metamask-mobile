@@ -39,6 +39,7 @@ export interface SnapUIAccountSelectorElementProps {
 
 /**
  * The SnapUIAccountSelectorElement component.
+ *
  * @param props - The component props.
  * @param props.account - The account to display.
  * @param props.ensName - The ENS name of the account.
@@ -69,8 +70,12 @@ export const SnapUIAccountSelectorElement: FunctionComponent<
         type={avatarType}
         accountAddress={address}
       />
-      <Box flexDirection={FlexDirection.Column}>
-        <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+      <Box flexDirection={FlexDirection.Column} style={styles.infos}>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {accountName}
         </Text>
         <Text
@@ -135,8 +140,8 @@ export const SnapUIAccountSelector: FunctionComponent<
 }) => {
   const { snapId } = useSnapInterfaceContext();
   const { accounts: internalAccounts, ensByAccountAddress } = useAccounts();
-  const useBlockieIcon = useSelector(selectUseBlockieIcon);
 
+  const useBlockieIcon = useSelector(selectUseBlockieIcon);
   const privacyMode = useSelector(selectPrivacyMode);
 
   const accounts = useMemo(() => {
