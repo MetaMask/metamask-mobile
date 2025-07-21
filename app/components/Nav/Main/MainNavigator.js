@@ -623,10 +623,6 @@ const SendView = () => (
 const SendComponent = () => (
   <Stack.Navigator headerMode="screen">
     <Stack.Screen name={Routes.SEND.ROOT} component={Send} />
-    <Stack.Screen
-      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-      component={RedesignedConfirm}
-    />
   </Stack.Navigator>
 );
 
