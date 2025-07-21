@@ -71,9 +71,9 @@ const MyComponent = () => {
   const tw = useTailwind();
 
   return (
-    <View style={tw`p-4 bg-default`}>
-      <Text style={tw`text-lg font-medium text-default`}>Hello World</Text>
-    </View>
+    <ScrollView style={tw`flex-1 bg-default`}>
+      <Text>Hello World</Text>
+    </ScrollView>
   );
 };
 ```
