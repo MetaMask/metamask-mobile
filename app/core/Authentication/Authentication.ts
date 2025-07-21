@@ -860,7 +860,7 @@ class AuthenticationService {
         const { KeyringController } = Engine.context;
 
         const [firstSeedPhrase, ...restOfSeedPhrases] = allSRPs;
-        if (!firstSeedPhrase) {
+        if (!firstSeedPhrase?.data) {
           throw new Error('No seed phrase found');
         }
 
