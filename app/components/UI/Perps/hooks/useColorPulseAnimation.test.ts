@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-hooks';
 import {
   useColorPulseAnimation,
   type PulseColor,
@@ -16,42 +16,55 @@ jest.mock('../../../../component-library/hooks', () => ({
   })),
 }));
 
-// Simple React Native Animated mock
-jest.mock('react-native', () => ({
-  Animated: {
-    Value: jest.fn(() => ({
-      setValue: jest.fn(),
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-      removeAllListeners: jest.fn(),
-      stopAnimation: jest.fn(),
-      interpolate: jest.fn((config) => ({
-        ...config,
-        __interpolated: true,
-      })),
-      _value: 1,
+// Complete React Native mock to prevent animation system from running
+jest.mock('react-native', () => {
+  const mockAnimatedValue = () => ({
+    setValue: jest.fn(),
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+    stopAnimation: jest.fn(),
+    interpolate: jest.fn((config) => ({
+      ...config,
+      __interpolated: true,
     })),
-    timing: jest.fn(() => ({
-      start: jest.fn(),
-      stop: jest.fn(),
-      reset: jest.fn(),
-    })),
-    parallel: jest.fn(() => ({
-      start: jest.fn(),
-      stop: jest.fn(),
-      reset: jest.fn(),
-    })),
-    sequence: jest.fn(() => ({
-      start: jest.fn(),
-      stop: jest.fn(),
-      reset: jest.fn(),
-    })),
-  },
-}));
+    _value: 1,
+  });
+
+  const mockAnimation = () => ({
+    start: jest.fn(),
+    stop: jest.fn(),
+    reset: jest.fn(),
+  });
+
+  return {
+    Animated: {
+      Value: jest.fn(mockAnimatedValue),
+      timing: jest.fn(mockAnimation),
+      parallel: jest.fn(mockAnimation),
+      sequence: jest.fn(mockAnimation),
+      spring: jest.fn(mockAnimation),
+      decay: jest.fn(mockAnimation),
+      loop: jest.fn(mockAnimation),
+      delay: jest.fn(mockAnimation),
+    },
+    // Mock other RN components that might be used
+    View: 'View',
+    Text: 'Text',
+    TouchableOpacity: 'TouchableOpacity',
+  };
+});
 
 describe('useColorPulseAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+    jest.clearAllTimers();
   });
 
   describe('Hook Interface', () => {
@@ -109,21 +122,15 @@ describe('useColorPulseAnimation', () => {
       const { result } = renderHook(() => useColorPulseAnimation());
 
       expect(() => {
-        act(() => {
-          result.current.startPulseAnimation('increase');
-        });
+        result.current.startPulseAnimation('increase');
       }).not.toThrow();
 
       expect(() => {
-        act(() => {
-          result.current.startPulseAnimation('decrease');
-        });
+        result.current.startPulseAnimation('decrease');
       }).not.toThrow();
 
       expect(() => {
-        act(() => {
-          result.current.startPulseAnimation('same');
-        });
+        result.current.startPulseAnimation('same');
       }).not.toThrow();
     });
 
@@ -133,9 +140,7 @@ describe('useColorPulseAnimation', () => {
 
       validColors.forEach((color) => {
         expect(() => {
-          act(() => {
-            result.current.startPulseAnimation(color);
-          });
+          result.current.startPulseAnimation(color);
         }).not.toThrow();
       });
     });
@@ -144,9 +149,7 @@ describe('useColorPulseAnimation', () => {
       const { result } = renderHook(() => useColorPulseAnimation());
 
       expect(() => {
-        act(() => {
-          result.current.stopAnimation();
-        });
+        result.current.stopAnimation();
       }).not.toThrow();
     });
 
@@ -154,9 +157,7 @@ describe('useColorPulseAnimation', () => {
       const { result } = renderHook(() => useColorPulseAnimation());
 
       expect(() => {
-        act(() => {
-          result.current.stopAnimation();
-        });
+        result.current.stopAnimation();
       }).not.toThrow();
     });
   });
@@ -231,12 +232,10 @@ describe('useColorPulseAnimation', () => {
       const { result } = renderHook(() => useColorPulseAnimation());
 
       expect(() => {
-        act(() => {
-          result.current.startPulseAnimation('increase');
-          result.current.startPulseAnimation('decrease');
-          result.current.startPulseAnimation('same');
-          result.current.startPulseAnimation('increase');
-        });
+        result.current.startPulseAnimation('increase');
+        result.current.startPulseAnimation('decrease');
+        result.current.startPulseAnimation('same');
+        result.current.startPulseAnimation('increase');
       }).not.toThrow();
     });
 
@@ -251,9 +250,7 @@ describe('useColorPulseAnimation', () => {
         const { result } = renderHook(() =>
           useColorPulseAnimation(extremeOptions),
         );
-        act(() => {
-          result.current.startPulseAnimation('increase');
-        });
+        result.current.startPulseAnimation('increase');
       }).not.toThrow();
     });
 
@@ -278,12 +275,10 @@ describe('useColorPulseAnimation', () => {
       const { result } = renderHook(() => useColorPulseAnimation());
 
       expect(() => {
-        act(() => {
-          result.current.startPulseAnimation('increase');
-          result.current.stopAnimation();
-          result.current.startPulseAnimation('decrease');
-          result.current.stopAnimation();
-        });
+        result.current.startPulseAnimation('increase');
+        result.current.stopAnimation();
+        result.current.startPulseAnimation('decrease');
+        result.current.stopAnimation();
       }).not.toThrow();
     });
   });
@@ -354,13 +349,8 @@ describe('useColorPulseAnimation', () => {
         expect(style).toHaveProperty('opacity');
         expect(style).toHaveProperty('backgroundColor');
 
-        act(() => {
-          result.current.startPulseAnimation('increase');
-        });
-
-        act(() => {
-          result.current.stopAnimation();
-        });
+        result.current.startPulseAnimation('increase');
+        result.current.stopAnimation();
       }).not.toThrow();
     });
 
