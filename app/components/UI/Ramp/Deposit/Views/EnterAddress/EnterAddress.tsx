@@ -172,15 +172,6 @@ const EnterAddress = (): JSX.Element => {
     throws: true,
   });
 
-  const [, submitPurpose] = useDepositSdkMethod(
-    {
-      method: 'submitPurposeOfUsageForm',
-      onMount: false,
-      throws: true,
-    },
-    ['Buying/selling crypto for investments'],
-  );
-
   const [, submitSsnDetails] = useDepositSdkMethod({
     method: 'submitSsnDetails',
     onMount: false,
@@ -219,8 +210,6 @@ const EnterAddress = (): JSX.Element => {
         await submitSsnDetails(basicInfoFormData.ssn);
       }
 
-      await submitPurpose();
-
       routeAfterAuthentication(quote);
     } catch (submissionError) {
       setLoading(false);
@@ -241,7 +230,6 @@ const EnterAddress = (): JSX.Element => {
     basicInfoFormData,
     formData,
     postKycForm,
-    submitPurpose,
     quote,
     submitSsnDetails,
     routeAfterAuthentication,

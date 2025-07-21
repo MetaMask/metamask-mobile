@@ -404,18 +404,7 @@ export const useDepositRouting = ({
           }
         }
 
-        // 3. Fetch the Purpose of Usage form only if it's the only remaining form
-        // it is auto-submitted as the last step in the KYC flow, then recursive call to route again
-        const purposeOfUsageKycForm = requiredForms?.find(
-          (form) => form.id === 'purposeOfUsage',
-        );
-        if (purposeOfUsageKycForm && requiredForms?.length === 1) {
-          await submitPurposeOfUsage(['Buying/selling crypto for investments']);
-          await routeAfterAuthentication(quote);
-          return;
-        }
-
-        // 4. Fetch the ID Proof form only if it's the only remaining form
+        // 3. Fetch the ID Proof form only if it's the only remaining form
         // this is the final step in the Standard user KYC flow, so we don't need to fetch the url until they are ready to visit KYC webview
         const idProofKycForm = requiredForms?.find(
           (form) => form.id === 'idProof',
@@ -432,6 +421,17 @@ export const useDepositRouting = ({
           }
 
           throw new Error(strings('deposit.buildQuote.unexpectedError'));
+        }
+
+        // 4. Fetch the Purpose of Usage form only if it's the only remaining form
+        // it is auto-submitted as the last step in the KYC flow, then recursive call to route again
+        const purposeOfUsageKycForm = requiredForms?.find(
+          (form) => form.id === 'purposeOfUsage',
+        );
+        if (purposeOfUsageKycForm && requiredForms?.length === 1) {
+          await submitPurposeOfUsage(['Buying/selling crypto for investments']);
+          await routeAfterAuthentication(quote);
+          return;
         }
 
         // 5. Send user to BasicInfo Form if mis Personal Details, Address, and SSN forms

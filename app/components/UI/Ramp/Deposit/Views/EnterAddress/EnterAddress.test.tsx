@@ -44,13 +44,10 @@ const mockUseDepositSdkMethodInitialState = {
 };
 
 let mockKycFunction = jest.fn().mockResolvedValue(undefined);
-let mockPurposeFunction = jest.fn().mockResolvedValue(undefined);
+
 let mockSsnFunction = jest.fn().mockResolvedValue(undefined);
 let mockKycValues = [mockUseDepositSdkMethodInitialState, mockKycFunction];
-let mockPurposeValues = [
-  mockUseDepositSdkMethodInitialState,
-  mockPurposeFunction,
-];
+
 let mockSsnValues = [
   { ...mockUseDepositSdkMethodInitialState },
   mockSsnFunction,
@@ -68,9 +65,6 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
     if (config?.method === 'patchUser') {
       return mockKycValues;
-    }
-    if (config?.method === 'submitPurposeOfUsageForm') {
-      return mockPurposeValues;
     }
     if (config?.method === 'submitSsnDetails') {
       return mockSsnValues;
@@ -148,15 +142,10 @@ describe('EnterAddress Component', () => {
       selectedRegion: { isoCode: 'US', name: 'United States', flag: '🇺🇸' },
     };
     mockKycFunction = jest.fn().mockResolvedValue(undefined);
-    mockPurposeFunction = jest.fn().mockResolvedValue(undefined);
     mockSsnFunction = jest.fn().mockResolvedValue(undefined);
     mockKycValues = [
       { ...mockUseDepositSdkMethodInitialState },
       mockKycFunction,
-    ];
-    mockPurposeValues = [
-      { ...mockUseDepositSdkMethodInitialState },
-      mockPurposeFunction,
     ];
     mockSsnValues = [
       { ...mockUseDepositSdkMethodInitialState },
@@ -207,10 +196,6 @@ describe('EnterAddress Component', () => {
 
     await waitFor(() => {
       expect(mockSsnFunction).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(mockPurposeFunction).toHaveBeenCalled();
     });
 
     await waitFor(() => {
@@ -373,7 +358,6 @@ describe('EnterAddress Component', () => {
         countryCode: 'US',
       });
       expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      expect(mockPurposeFunction).toHaveBeenCalled();
     });
   });
 
@@ -405,7 +389,6 @@ describe('EnterAddress Component', () => {
         countryCode: 'US',
       });
       expect(mockSsnFunction).not.toHaveBeenCalled();
-      expect(mockPurposeFunction).toHaveBeenCalled();
     });
   });
 
