@@ -985,12 +985,9 @@ const AppFlow = () => {
 
 const App: React.FC = () => {
   const navigation = useNavigation();
-  const userLoggedIn = useSelector(selectUserLoggedIn);
   const routes = useNavigationState((state) => state.routes);
-  const [onboarded, setOnboarded] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
-  const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
 
   const { isEnabled: checkMetricsEnabled } = useMetrics();
@@ -1036,7 +1033,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
-      setOnboarded(!!existingUser);
       try {
         if (existingUser) {
           // Check if we came from Settings screen to skip auto-authentication
@@ -1181,45 +1177,6 @@ const App: React.FC = () => {
     initMetrics().catch((err) => {
       Logger.error(err, 'Error initializing MetaMetrics');
     });
-  }, []);
-
-  useEffect(() => {
-    // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
-    async function initSDKConnect() {
-      if (onboarded && sdkInit.current === undefined && userLoggedIn) {
-        sdkInit.current = false;
-        try {
-          const sdkConnect = SDKConnect.getInstance();
-          await sdkConnect.init({
-            context: 'Nav/App',
-            navigation: NavigationService.navigation,
-          });
-          await SDKConnect.getInstance().postInit();
-          sdkInit.current = true;
-        } catch (err) {
-          sdkInit.current = undefined;
-          Logger.error(err as Error, 'Cannot initialize SDKConnect');
-        }
-      }
-    }
-
-    initSDKConnect().catch((err) => {
-      Logger.error(err, 'Error initializing SDKConnect');
-    });
-  }, [onboarded, userLoggedIn]);
-
-  useEffect(() => {
-    if (isWC2Enabled) {
-      DevLogger.log(`WalletConnect: Initializing WalletConnect Manager`);
-      WC2Manager.init({ navigation: NavigationService.navigation }).catch(
-        (err) => {
-          Logger.error(
-            err as Error,
-            'Cannot initialize WalletConnect Manager.',
-          );
-        },
-      );
-    }
   }, []);
 
   useEffect(() => {
