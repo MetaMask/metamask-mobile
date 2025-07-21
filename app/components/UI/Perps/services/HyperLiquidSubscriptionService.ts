@@ -19,6 +19,7 @@ import type {
 import { adaptPositionFromSDK } from '../utils/hyperLiquidAdapter';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
+import { strings } from '../../../../../locales/i18n';
 
 /**
  * Service for managing HyperLiquid WebSocket subscriptions
@@ -136,7 +137,9 @@ export class HyperLiquidSubscriptionService {
         .getUserAddressWithDefault(accountId)
         .then((userAddress) => {
           if (!subscriptionClient) {
-            throw new Error('SubscriptionClient is not initialized');
+            throw new Error(
+              strings('perps.errors.subscriptionClientNotInitialized'),
+            );
           }
 
           return subscriptionClient.webData2(
@@ -157,7 +160,10 @@ export class HyperLiquidSubscriptionService {
           subscription = sub;
         })
         .catch((error) => {
-          DevLogger.log('Failed to subscribe to position updates:', error);
+          DevLogger.log(
+            strings('perps.errors.failedToSubscribePosition'),
+            error,
+          );
         });
     }
 
@@ -166,7 +172,10 @@ export class HyperLiquidSubscriptionService {
 
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
-          DevLogger.log('Failed to unsubscribe from position updates:', error);
+          DevLogger.log(
+            strings('perps.errors.failedToUnsubscribePosition'),
+            error,
+          );
         });
       }
     };
@@ -194,7 +203,9 @@ export class HyperLiquidSubscriptionService {
         .getUserAddressWithDefault(accountId)
         .then((userAddress) => {
           if (!subscriptionClient) {
-            throw new Error('SubscriptionClient is not initialized');
+            throw new Error(
+              strings('perps.errors.subscriptionClientNotInitialized'),
+            );
           }
 
           return subscriptionClient.userFills(
@@ -218,7 +229,10 @@ export class HyperLiquidSubscriptionService {
           subscription = sub;
         })
         .catch((error) => {
-          DevLogger.log('Failed to subscribe to order fill updates:', error);
+          DevLogger.log(
+            strings('perps.errors.failedToSubscribeOrderFill'),
+            error,
+          );
         });
     }
 
@@ -228,7 +242,7 @@ export class HyperLiquidSubscriptionService {
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
           DevLogger.log(
-            'Failed to unsubscribe from order fill updates:',
+            strings('perps.errors.failedToUnsubscribeOrderFill'),
             error,
           );
         });
@@ -313,10 +327,7 @@ export class HyperLiquidSubscriptionService {
         DevLogger.log('HyperLiquid: Global allMids subscription established');
       })
       .catch((error) => {
-        DevLogger.log(
-          'HyperLiquid: Failed to establish global allMids subscription:',
-          error,
-        );
+        DevLogger.log(strings('perps.errors.failedToEstablishAllMids'), error);
       });
   }
 
@@ -392,7 +403,7 @@ export class HyperLiquidSubscriptionService {
       })
       .catch((error) => {
         DevLogger.log(
-          `HyperLiquid: Failed to establish market data subscription for ${symbol}:`,
+          strings('perps.errors.failedToEstablishMarketData', { symbol }),
           error,
         );
       });
