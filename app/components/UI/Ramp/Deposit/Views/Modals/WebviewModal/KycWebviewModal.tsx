@@ -69,6 +69,7 @@ function KycWebviewModal() {
     stopPolling,
     navigation,
     quote,
+    routeAfterAuthentication,
   ]);
 
   return <WebviewModal />;

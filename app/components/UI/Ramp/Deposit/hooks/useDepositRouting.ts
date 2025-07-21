@@ -292,8 +292,8 @@ export const useDepositRouting = ({
     ({
       quote,
       kycUrl,
-      cryptoCurrencyChainId,
-      paymentMethodId,
+      cryptoCurrencyChainId: chainId,
+      paymentMethodId: methodId,
     }: {
       quote: BuyQuote;
       kycUrl: string;
@@ -305,8 +305,8 @@ export const useDepositRouting = ({
         ...createKycWebviewModalNavigationDetails({
           quote,
           sourceUrl: kycUrl,
-          cryptoCurrencyChainId,
-          paymentMethodId,
+          cryptoCurrencyChainId: chainId,
+          paymentMethodId: methodId,
         }),
       );
     },
@@ -479,14 +479,27 @@ export const useDepositRouting = ({
     [
       fetchKycForms,
       fetchKycFormData,
+      fetchUserDetails,
       selectedRegion?.isoCode,
-      handleApprovedKycFlow,
+      handleNewOrder,
+      navigateToBankDetailsCallback,
+      navigateToWebviewModalCallback,
+      navigateToKycProcessingCallback,
       submitPurposeOfUsage,
       clearAuthToken,
       navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
       trackEvent,
       navigateToAdditionalVerificationCallback,
+      createReservation,
+      createOrder,
+      requestOtt,
+      generatePaymentUrl,
+      selectedWalletAddress,
+      cryptoCurrencyChainId,
+      paymentMethodId,
+      themeAppearance,
+      colors,
     ],
   );
 
