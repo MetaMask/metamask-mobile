@@ -212,7 +212,7 @@ const PerpsOrderView: React.FC = () => {
             • Liquidation occurs when losses exceed margin
           </Text>
           <Text variant={TextVariant.BodyMD}>
-            • Start with lower leverage if you're new
+            • Start with lower leverage if you&apos;re new
           </Text>
         </View>
       </View>
@@ -220,7 +220,7 @@ const PerpsOrderView: React.FC = () => {
     executionTime: (
       <View>
         <Text variant={TextVariant.BodyMD}>
-          Orders are executed nearly instantly on HyperLiquid's high-performance blockchain.
+          Orders are executed nearly instantly on HyperLiquid&apos;s high-performance blockchain.
         </Text>
         <View style={styles.tooltipSection}>
           <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
