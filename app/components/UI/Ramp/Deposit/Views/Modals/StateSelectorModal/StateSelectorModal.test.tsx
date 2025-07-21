@@ -4,6 +4,14 @@ import StateSelectorModal from './StateSelectorModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
     component,
@@ -53,6 +61,10 @@ let mockUseParamsValues = {
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
+}));
+
+jest.mock('../UnsupportedStateModal/UnsupportedStateModal', () => ({
+  createUnsupportedStateModalNavigationDetails: jest.fn(() => ['UnsupportedStateModal']),
 }));
 
 describe('StateSelectorModal Component', () => {
@@ -150,6 +162,13 @@ describe('StateSelectorModal Component', () => {
       fireEvent.changeText(searchInput, 'Nonexistent');
 
       expect(getByText('No states match "Nonexistent"')).toBeOnTheScreen();
+    });
+
+    it('navigates to unsupported state modal when NY is selected', () => {
+      const { getByText } = renderWithProvider(StateSelectorModal);
+      const newYorkState = getByText('New York');
+      fireEvent.press(newYorkState);
+      expect(mockNavigate).toHaveBeenCalledWith('UnsupportedStateModal');
     });
   });
 });
