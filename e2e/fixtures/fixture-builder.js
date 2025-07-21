@@ -1039,8 +1039,6 @@ class FixtureBuilder {
       ...fixtures.NetworkController.networkConfigurationsByChainId,
     }; // Object to store network configurations
 
-    let firstNetworkClientId = null;
-
     // Loop through each network in PopularNetworksList
     for (const key in PopularNetworksList) {
       const network = PopularNetworksList[key];
@@ -1055,10 +1053,6 @@ class FixtureBuilder {
       const newNetworkClientId = `networkClientId${
         Object.keys(networkConfigurationsByChainId).length + 1
       }`;
-
-      if (!firstNetworkClientId) {
-        firstNetworkClientId = newNetworkClientId;
-      }
 
       // Define the network configuration
       const networkConfig = {
@@ -1086,11 +1080,6 @@ class FixtureBuilder {
       ...fixtures.NetworkController,
       networkConfigurationsByChainId,
     };
-
-    // Set the selectedNetworkClientId to the first network added
-    if (firstNetworkClientId) {
-      fixtures.NetworkController.selectedNetworkClientId = firstNetworkClientId;
-    }
 
     // Ensure Solana feature modal is suppressed
     return this.ensureSolanaModalSuppressed();
