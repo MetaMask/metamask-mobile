@@ -370,6 +370,9 @@ stages:
           envs:
             - MM_ANDROID_PACKAGE_NAME: 'io.metamask.flask'
       - deploy_ios_to_store:
+  run_native_tests:
+    workflows:
+      - run_native_android_tests: {}
 
 workflows:
   # Code Setups
@@ -1060,13 +1063,13 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Copying Android build from cache..."
-                
+
                 if [ -d "/tmp/android-cache/build/outputs" ]; then
                     echo "Restoring Android build outputs from cache..."
                     mkdir -p android/app/build/outputs
                     cp -r /tmp/android-cache/build/outputs/* android/app/build/outputs/
                     echo "✅ Android build artifacts restored from cache"
-                    
+
                     echo "Restored files:"
                     find android/app/build/outputs -type f -name "*.apk" -o -name "*.aab" | head -5
                 else
@@ -1178,7 +1181,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Copying iOS build from cache..."
-                
+
                 # Check if cached build products exist
                 if [ -d "ios/build/Build/Products/Release-iphonesimulator" ]; then
                     echo "✅ iOS build artifacts found in cache"
@@ -1188,7 +1191,7 @@ workflows:
                     echo "❌ iOS build products not found in cache"
                     mkdir -p ios/build/Build/Products/Release-iphonesimulator
                 fi
-                
+
                 # Check if cached Detox artifacts exist
                 if [ -d "../Library/Detox/ios" ]; then
                     echo "✅ Detox iOS artifacts found in cache"
@@ -1198,7 +1201,7 @@ workflows:
                     echo "❌ Detox iOS artifacts not found in cache"
                     mkdir -p ../Library/Detox/ios
                 fi
-                
+
                 echo "iOS build artifacts restored from cache"
       - pull-intermediate-files@1:
           inputs:
@@ -1314,18 +1317,18 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                
+
                 # Initialize local variables with current state
                 LOCAL_SKIP_IOS="$SKIP_IOS_BUILD"
                 LOCAL_SKIP_ANDROID="$SKIP_ANDROID_BUILD"
-                
+
                 # Ensure iOS value is set if cache check was skipped
                 if [[ -z "$IOS_PR_BUILD_CACHE_KEY" ]]; then
                     echo "No iOS cache key available - build will proceed"
                     LOCAL_SKIP_IOS="false"
                     envman add --key SKIP_IOS_BUILD --value "false"
                 fi
-                
+
                 # Only process Android cache if we have cache keys
                 if [[ -n "$ANDROID_PR_BUILD_CACHE_KEY" ]]; then
                     if [[ "$BITRISE_CACHE_HIT" == "exact" ]]; then
@@ -1342,7 +1345,7 @@ workflows:
                     LOCAL_SKIP_ANDROID="false"
                     envman add --key SKIP_ANDROID_BUILD --value "false"
                 fi
-                
+
                 echo ""
                 echo "=== Final Build Decisions ==="
                 echo "iOS build:     $([ "$LOCAL_SKIP_IOS" == "true" ] && echo "SKIP" || echo "BUILD")"
@@ -1480,7 +1483,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 echo "Copying iOS build from cache..."
-                
+
                 # Check if cached build products exist
                 if [ -d "ios/build/Build/Products/Release-iphonesimulator" ]; then
                     echo "✅ iOS build artifacts found in cache"
@@ -1490,7 +1493,7 @@ workflows:
                     echo "❌ iOS build products not found in cache"
                     mkdir -p ios/build/Build/Products/Release-iphonesimulator
                 fi
-                
+
                 # Check if cached Detox artifacts exist
                 if [ -d "../Library/Detox/ios" ]; then
                     echo "✅ Detox iOS artifacts found in cache"
@@ -1500,7 +1503,7 @@ workflows:
                     echo "❌ Detox iOS artifacts not found in cache"
                     mkdir -p ../Library/Detox/ios
                 fi
-                
+
                 echo "iOS build artifacts restored from cache"
       - pull-intermediate-files@1:
           inputs:
@@ -1815,7 +1818,7 @@ workflows:
                 #!/usr/bin/env bash
                 echo "=== Android Build Output Debug ==="
                 echo "Checking for Android build outputs to cache..."
-                
+
                 if [ -d "android/app/build/outputs" ]; then
                     echo "✅ android/app/build/outputs directory exists"
                     echo "Directory size: $(du -sh android/app/build/outputs 2>/dev/null || echo 'Could not calculate')"
@@ -1826,7 +1829,7 @@ workflows:
                     echo "❌ android/app/build/outputs directory does not exist!"
                     echo "This means the Android build failed or output path is incorrect"
                 fi
-                
+
                 echo "Current working directory: $(pwd)"
                 echo "Listing android/app/build directory:"
                 ls -la android/app/build/ 2>/dev/null || echo "android/app/build does not exist"
@@ -1837,15 +1840,15 @@ workflows:
                 #!/usr/bin/env bash
                 echo "=== Preparing Android cache with proper paths ==="
                 echo "Current working directory: $(pwd)"
-                
+
                 # Create a clean cache directory structure
                 mkdir -p /tmp/android-cache/build/outputs
-                
+
                 if [ -d "android/app/build/outputs" ]; then
                     echo "Copying Android build outputs to cache staging area..."
                     cp -r android/app/build/outputs/* /tmp/android-cache/build/outputs/
                     echo "Cache staging completed"
-                    
+
                     echo "Cache contents:"
                     find /tmp/android-cache -type f | head -10
                     echo "Total cache size: $(du -sh /tmp/android-cache 2>/dev/null || echo 'Unknown')"
@@ -2804,7 +2807,16 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_flask_apps.json
           title: Bitrise Deploy Browserstack Uploaded Flask Apps
-
+  run_native_android_tests:
+    steps:
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn test:native:android
+          title: Build and run Android native UI tests
+          is_always_run: true
 
 app:
   envs:
