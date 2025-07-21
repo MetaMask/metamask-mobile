@@ -54,4 +54,5 @@ export const VALIDATION_REGEX = {
   postCode: /^(?!\s*$).+/,
 };
 
-export const REDIRECTION_URL = 'https://metamask.io/';
+export const REDIRECTION_URL =
+  'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback';
