@@ -87,7 +87,11 @@ import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesi
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
@@ -97,6 +101,11 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 
 const Stack = createStackNavigator();
 
@@ -269,6 +278,13 @@ const Main = (props) => {
   const previousProviderConfig = useRef(undefined);
   const previousNetworkConfigurations = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
+  const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
   const networkImage = useSelector(selectNetworkImageSource);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
@@ -305,6 +321,12 @@ const Main = (props) => {
           });
         }
       }
+      if (
+        isRemoveGlobalNetworkSelectorEnabled() &&
+        enabledEVMNetworks.length === 0
+      ) {
+        selectNetwork(chainId);
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions: [
@@ -330,6 +352,8 @@ const Main = (props) => {
     hasNetworkChanged,
     isAllNetworks,
     tokenNetworkFilter,
+    selectNetwork,
+    enabledEVMNetworks,
   ]);
 
   // Show add network confirmation.

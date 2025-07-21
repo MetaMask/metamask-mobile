@@ -13,16 +13,21 @@ import {
   selectChainId,
 } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { isTestNet } from '../../../util/networks';
+import {
+  isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import styleSheet from './DeFiPositionsControlBar.styles';
 import { useNavigation } from '@react-navigation/native';
 import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
 } from '../Tokens/TokensBottomSheet';
+import { createNetworkManagerNavDetails } from '../NetworkManager';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -36,8 +41,16 @@ const DeFiPositionsControlBar: React.FC = () => {
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId) as Hex;
 
+  const { enabledNetworks, getNetworkInfo } = useCurrentNetworkInfo();
+
+  const currentNetworkName = getNetworkInfo(0)?.networkName;
+
   const showFilterControls = useCallback(() => {
-    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      navigation.navigate(...createNetworkManagerNavDetails({}));
+    } else {
+      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    }
   }, [navigation]);
 
   const showSortControls = useCallback(() => {
@@ -49,11 +62,29 @@ const DeFiPositionsControlBar: React.FC = () => {
       <ButtonBase
         testID={WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER}
         label={
-          <TextComponent numberOfLines={1} variant={TextVariant.BodyMDMedium}>
-            {isAllNetworks && isPopularNetwork
-              ? strings('wallet.popular_networks')
-              : networkName ?? strings('wallet.current_network')}
-          </TextComponent>
+          <>
+            {isRemoveGlobalNetworkSelectorEnabled() ? (
+              <TextComponent
+                variant={TextVariant.BodyMDMedium}
+                style={styles.controlButtonText}
+                numberOfLines={1}
+              >
+                {enabledNetworks.length > 1
+                  ? strings('networks.enabled_networks')
+                  : currentNetworkName ?? strings('wallet.current_network')}
+              </TextComponent>
+            ) : (
+              <TextComponent
+                variant={TextVariant.BodyMDMedium}
+                style={styles.controlButtonText}
+                numberOfLines={1}
+              >
+                {isAllNetworks && isPopularNetwork
+                  ? strings('wallet.popular_networks')
+                  : networkName ?? strings('wallet.current_network')}
+              </TextComponent>
+            )}
+          </>
         }
         isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
         onPress={showFilterControls}
@@ -67,7 +98,7 @@ const DeFiPositionsControlBar: React.FC = () => {
       />
       <ButtonIcon
         onPress={showSortControls}
-        iconName={IconName.SwapVertical}
+        iconName={IconName.Filter}
         style={styles.controlIconButton}
         size={ButtonIconSizes.Lg}
       />

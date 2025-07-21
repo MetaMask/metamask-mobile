@@ -26,6 +26,8 @@ import {
   isNftFetchingProgressSelector,
   multichainCollectibleContractsSelector,
   multichainCollectiblesSelector,
+  multichainCollectiblesByEnabledNetworksSelector,
+  multichainCollectibleContractsByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import AppConstants from '../../../core/AppConstants';
@@ -51,17 +53,22 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
-import { debounce, cloneDeep, isEqual } from 'lodash';
+import { debounce, cloneDeep } from 'lodash';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { isTestNet, getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
+import { createNetworkManagerNavDetails } from '../NetworkManager';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import TextComponent, {
   TextVariant,
@@ -181,6 +188,18 @@ const CollectibleContracts = ({
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const allNetworks = useSelector(selectNetworkConfigurations);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const collectibleContractsByEnabledNetworks = useSelector(
+    multichainCollectibleContractsByEnabledNetworksSelector,
+  );
+
+  const { enabledNetworks, getNetworkInfo, isDisabled } =
+    useCurrentNetworkInfo();
+
+  const currentNetworkName = getNetworkInfo(0)?.networkName;
+
+  const collectiblesByEnabledNetworks = useSelector(
+    multichainCollectiblesByEnabledNetworksSelector,
+  );
 
   const allNetworkClientIds = useMemo(
     () =>
@@ -198,22 +217,38 @@ const CollectibleContracts = ({
   );
 
   const filteredCollectibleContracts = useMemo(() => {
+    let contracts = {};
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      contracts = Object.values(collectibleContractsByEnabledNetworks).flat();
+    } else {
+      contracts = isAllNetworks
+        ? Object.values(collectibleContracts).flat()
+        : collectibleContracts[chainId] || [];
+    }
     trace({ name: TraceName.LoadCollectibles, id: 'contracts' });
-    const contracts = isAllNetworks
-      ? Object.values(collectibleContracts).flat()
-      : collectibleContracts[chainId] || [];
     endTrace({ name: TraceName.LoadCollectibles, id: 'contracts' });
+
     return contracts;
-  }, [collectibleContracts, chainId, isAllNetworks]);
+  }, [
+    collectibleContracts,
+    chainId,
+    isAllNetworks,
+    collectibleContractsByEnabledNetworks,
+  ]);
 
   const filteredCollectibles = useMemo(() => {
     trace({ name: TraceName.LoadCollectibles });
-    const collectibles = isAllNetworks
-      ? Object.values(allCollectibles).flat()
-      : allCollectibles[chainId] || [];
+    let collectibles = [];
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      collectibles = Object.values(collectiblesByEnabledNetworks).flat();
+    } else {
+      collectibles = isAllNetworks
+        ? Object.values(allCollectibles).flat()
+        : allCollectibles[chainId] || [];
+    }
     endTrace({ name: TraceName.LoadCollectibles });
     return collectibles;
-  }, [allCollectibles, chainId, isAllNetworks]);
+  }, [allCollectibles, chainId, isAllNetworks, collectiblesByEnabledNetworks]);
 
   const collectibles = filteredCollectibles.filter(
     (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
@@ -228,8 +263,13 @@ const CollectibleContracts = ({
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
+
   const showFilterControls = () => {
-    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      navigation.navigate(...createNetworkManagerNavDetails({}));
+    } else {
+      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    }
   };
   const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
@@ -557,24 +597,37 @@ const CollectibleContracts = ({
           <ButtonBase
             testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
             label={
-              <TextComponent
-                variant={TextVariant.BodyMDMedium}
-                numberOfLines={1}
-              >
-                {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? strings('wallet.popular_networks')
-                  : networkName ?? strings('wallet.current_network')}
-              </TextComponent>
+              <>
+                {isRemoveGlobalNetworkSelectorEnabled() ? (
+                  <TextComponent
+                    variant={TextVariant.BodyMDMedium}
+                    numberOfLines={1}
+                    style={styles.controlButtonText}
+                  >
+                    {enabledNetworks.length > 1
+                      ? strings('networks.enabled_networks')
+                      : currentNetworkName ?? strings('wallet.current_network')}
+                  </TextComponent>
+                ) : (
+                  <TextComponent
+                    variant={TextVariant.BodyMDMedium}
+                    style={styles.controlButtonText}
+                    numberOfLines={1}
+                  >
+                    {isAllNetworks && isPopularNetwork && isEvmSelected
+                      ? strings('wallet.popular_networks')
+                      : networkName ?? strings('wallet.current_network')}
+                  </TextComponent>
+                )}
+              </>
             }
-            isDisabled={isTestNet(chainId) || !isPopularNetwork}
+            isDisabled={isDisabled}
             onPress={isEvmSelected ? showFilterControls : () => null}
             endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
             style={
-              isTestNet(chainId) || !isPopularNetwork
-                ? styles.controlButtonDisabled
-                : styles.controlButton
+              isDisabled ? styles.controlButtonDisabled : styles.controlButton
             }
-            disabled={isTestNet(chainId) || !isPopularNetwork}
+            disabled={isDisabled}
           />
         </View>
       </View>

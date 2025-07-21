@@ -2,6 +2,7 @@ import React, { useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
+import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { isNonEvmAddress } from '../../../core/Multichain/utils';
 import { getHasOrders } from '../../../reducers/fiatOrders';
@@ -22,9 +23,8 @@ import { useParams } from '../../../util/navigation/navUtils';
 import { createTokenBottomSheetFilterNavDetails } from '../../UI/Tokens/TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { isTestNet } from '../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import {
-  selectEvmChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
@@ -35,10 +35,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEFAULT_HEADERBASE_TITLE_TEXTVARIANT } from '../../../component-library/components/HeaderBase/HeaderBase.constants';
 import { typography } from '@metamask/design-tokens';
 import { useStyles } from '../../hooks/useStyles';
-import {
+import TextComponent, {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -56,20 +57,24 @@ const createStyles = (params) => {
     },
     controlButton: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.muted,
+      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
+        ? colors.border.default
+        : undefined,
       borderStyle: 'solid',
-      borderWidth: 1,
-      marginLeft: 5,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
+      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
       marginRight: 5,
       maxWidth: '60%',
       borderRadius: 20,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.muted,
+      borderColor: !isRemoveGlobalNetworkSelectorEnabled()
+        ? colors.border.default
+        : undefined,
       borderStyle: 'solid',
-      borderWidth: 1,
-      marginLeft: 5,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
+      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
@@ -106,18 +111,21 @@ const ActivityView = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const currentChainId = useSelector(selectEvmChainId);
+
   const isAllNetworks = useSelector(selectIsAllNetworks);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
   const hasOrders = useSelector((state) => getHasOrders(state) || false);
   const accountsByChainId = useSelector(selectAccountsByChainId);
+
+  const { enabledNetworks, getNetworkInfo, isDisabled } =
+    useCurrentNetworkInfo();
+
+  const currentNetworkName = getNetworkInfo(0)?.networkName;
+
   const tabViewRef = useRef();
   const params = useParams();
-
-  const isTestnetOrNotPopularNetwork =
-    isTestNet(currentChainId) || !isPopularNetwork;
 
   const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -142,7 +150,11 @@ const ActivityView = () => {
   ]);
 
   const showFilterControls = () => {
-    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      navigation.navigate(...createNetworkManagerNavDetails({}));
+    } else {
+      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    }
   };
 
   useEffect(
@@ -189,21 +201,37 @@ const ActivityView = () => {
           <ButtonBase
             testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
             label={
-              <Text numberOfLines={1} style={styles.titleText}>
-                {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? strings('wallet.popular_networks')
-                  : networkName ?? strings('wallet.current_network')}
-              </Text>
+              <>
+                {isRemoveGlobalNetworkSelectorEnabled() ? (
+                  <TextComponent
+                    variant={TextVariant.BodyMDMedium}
+                    style={styles.titleText}
+                    numberOfLines={1}
+                  >
+                    {enabledNetworks.length > 1
+                      ? strings('networks.enabled_networks')
+                      : currentNetworkName ?? strings('wallet.current_network')}
+                  </TextComponent>
+                ) : (
+                  <TextComponent
+                    variant={TextVariant.BodyMDMedium}
+                    style={styles.titleText}
+                    numberOfLines={1}
+                  >
+                    {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
+                      ? strings('wallet.popular_networks')
+                      : networkName ?? strings('wallet.current_network')}
+                  </TextComponent>
+                )}
+              </>
             }
-            isDisabled={isTestnetOrNotPopularNetwork}
+            isDisabled={isDisabled}
             onPress={isEvmSelected ? showFilterControls : () => null}
             endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
             style={
-              isTestNet(currentChainId) || !isPopularNetwork
-                ? styles.controlButtonDisabled
-                : styles.controlButton
+              isDisabled ? styles.controlButtonDisabled : styles.controlButton
             }
-            disabled={isTestNet(currentChainId) || !isPopularNetwork}
+            disabled={isDisabled}
           />
         </View>
         <ScrollableTabView

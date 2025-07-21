@@ -185,7 +185,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 onChangeText={[Function]}
                 onSubmitEditing={[Function]}
                 placeholder="0x..."
-                placeholderTextColor="#b7bbc8"
+                placeholderTextColor="#9ca1af"
                 style={
                   [
                     {
@@ -241,7 +241,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
                 onChangeText={[Function]}
                 onSubmitEditing={[Function]}
                 placeholder="Enter the collectible ID"
-                placeholderTextColor="#b7bbc8"
+                placeholderTextColor="#9ca1af"
                 returnKeyType="done"
                 style={
                   [
@@ -493,7 +493,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                     }
                   }
                 >
-                  Ethereum Main Network
+                  Ethereum Mainnet
                 </Text>
               </TouchableOpacity>
               <View
@@ -522,7 +522,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                   <Image
                     onError={[Function]}
                     resizeMode="contain"
-                    source={1}
+                    source="ethereum"
                     style={
                       {
                         "height": 24,
@@ -632,7 +632,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                     onChangeText={[Function]}
                     onFocus={[Function]}
                     placeholder="Search Tokens"
-                    placeholderTextColor="#b7bbc8"
+                    placeholderTextColor="#9ca1af"
                     style={
                       [
                         {
@@ -944,7 +944,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
               onFocus={[Function]}
               onSubmitEditing={[Function]}
               placeholder="0x..."
-              placeholderTextColor="#b7bbc8"
+              placeholderTextColor="#9ca1af"
               returnKeyType="next"
               style={
                 {
