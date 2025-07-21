@@ -312,7 +312,13 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                       }
                     }
                   >
-                    <View>
+                    <View
+                      style={
+                        {
+                          "flex": 1,
+                        }
+                      }
+                    >
                       <RCTScrollView
                         collapsable={false}
                         handlerTag={1}
@@ -490,7 +496,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
                                     placeholder="Search Tokens"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       [
                                         {
