@@ -140,9 +140,23 @@ const mockUint8ArrayToMnemonic = jest
   .fn()
   .mockImplementation((uint8Array: Uint8Array) => uint8Array.toString());
 
+const mockConvertMnemonicToWordlistIndices = jest
+  .fn()
+  .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+
+const mockConvertEnglishWordlistIndicesToCodepoints = jest
+  .fn()
+  .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+
 jest.mock('../../util/mnemonic', () => ({
   uint8ArrayToMnemonic: (mnemonic: Uint8Array, wordlist: string[]) =>
     mockUint8ArrayToMnemonic(mnemonic, wordlist),
+  convertMnemonicToWordlistIndices: (mnemonic: Buffer, wordlist: string[]) =>
+    mockConvertMnemonicToWordlistIndices(mnemonic, wordlist),
+  convertEnglishWordlistIndicesToCodepoints: (
+    wordlistIndices: Uint8Array,
+    wordlist: string[],
+  ) => mockConvertEnglishWordlistIndicesToCodepoints(wordlistIndices, wordlist),
 }));
 
 jest.mock('../../util/Logger', () => ({
@@ -1598,6 +1612,390 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.submitPassword,
       ).toHaveBeenCalledWith('1234');
+    });
+  });
+
+  describe('importMnemonicToVault', () => {
+    const Engine = jest.requireMock('../Engine');
+    const mockKeyring = {
+      getAccounts: jest.fn().mockResolvedValue(['0x1234567890abcdef']),
+    };
+
+    beforeEach(() => {
+      // Reset mocks
+      jest.clearAllMocks();
+
+      // Setup Engine context mocks
+      Engine.context.KeyringController = {
+        addNewKeyring: jest.fn().mockResolvedValue({ id: 'test-keyring-id' }),
+        withKeyring: jest
+          .fn()
+          .mockImplementation(
+            async ({ id: _id }, callback) =>
+              await callback({ keyring: mockKeyring }),
+          ),
+      } as unknown as KeyringController;
+
+      Engine.context.SeedlessOnboardingController = {
+        addNewSecretData: jest.fn().mockResolvedValue(undefined),
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      // Mock Engine.setSelectedAddress
+      Engine.setSelectedAddress = jest.fn();
+
+      // Mock multichain client
+      mockSnapClient.addDiscoveredAccounts.mockResolvedValue(2);
+
+      // Setup default Redux store mock
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: null,
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+    });
+
+    it('should import mnemonic and return account details without seedless flow', async () => {
+      // Arrange
+      const mnemonic = 'test mnemonic phrase for wallet';
+      const options = {
+        shouldCreateSocialBackup: false,
+        shouldSelectAccount: false,
+        shouldImportSolanaAccount: false,
+      };
+
+      // Override Redux store to return seedless flow as true
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: undefined,
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+
+      // Act
+      const result = await Authentication.importMnemonicToVault(
+        mnemonic,
+        options,
+      );
+
+      // Assert
+      expect(
+        Engine.context.KeyringController.addNewKeyring,
+      ).toHaveBeenCalledWith(KeyringTypes.hd, {
+        mnemonic,
+        numberOfAccounts: 1,
+      });
+      expect(Engine.context.KeyringController.withKeyring).toHaveBeenCalledWith(
+        { id: 'test-keyring-id' },
+        expect.any(Function),
+      );
+      expect(mockKeyring.getAccounts).toHaveBeenCalled();
+      expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
+      expect(
+        Engine.context.SeedlessOnboardingController.addNewSecretData,
+      ).not.toHaveBeenCalled();
+      expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        newAccountAddress: '0x1234567890abcdef',
+        discoveredAccountsCount: 0,
+      });
+    });
+
+    it('should import mnemonic with seedless onboarding flow and social backup', async () => {
+      // Arrange
+      const mnemonic = 'test mnemonic phrase for wallet';
+      const options = {
+        shouldCreateSocialBackup: true,
+        shouldSelectAccount: true,
+        shouldImportSolanaAccount: false,
+      };
+
+      // Override Redux store to return seedless flow as true
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data',
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+
+      // Act
+      const result = await Authentication.importMnemonicToVault(
+        mnemonic,
+        options,
+      );
+
+      // Assert
+      expect(
+        Engine.context.KeyringController.addNewKeyring,
+      ).toHaveBeenCalledWith(KeyringTypes.hd, {
+        mnemonic,
+        numberOfAccounts: 1,
+      });
+      expect(
+        Engine.context.SeedlessOnboardingController.addNewSecretData,
+      ).toHaveBeenCalledWith(
+        new Uint8Array([1, 2, 3, 4]),
+        SecretType.Mnemonic,
+        {
+          keyringId: 'test-keyring-id',
+        },
+      );
+      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
+        '0x1234567890abcdef',
+      );
+      expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        newAccountAddress: '0x1234567890abcdef',
+        discoveredAccountsCount: 0,
+      });
+    });
+
+    it('should import mnemonic with Solana account discovery', async () => {
+      // Arrange
+      const mnemonic = 'test mnemonic phrase for wallet';
+      const options = {
+        shouldCreateSocialBackup: false,
+        shouldSelectAccount: false,
+        shouldImportSolanaAccount: true,
+      };
+
+      // Act
+      const result = await Authentication.importMnemonicToVault(
+        mnemonic,
+        options,
+      );
+
+      // Assert
+      expect(
+        Engine.context.KeyringController.addNewKeyring,
+      ).toHaveBeenCalledWith(KeyringTypes.hd, {
+        mnemonic,
+        numberOfAccounts: 1,
+      });
+      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
+        'test-keyring-id',
+      );
+      expect(result).toEqual({
+        newAccountAddress: '0x1234567890abcdef',
+        discoveredAccountsCount: 2,
+      });
+    });
+
+    it('should import mnemonic with all options enabled', async () => {
+      // Arrange
+      const mnemonic = 'test mnemonic phrase for wallet';
+      const options = {
+        shouldCreateSocialBackup: true,
+        shouldSelectAccount: true,
+        shouldImportSolanaAccount: true,
+      };
+
+      // Override Redux store to return seedless flow as true
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data',
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+
+      // Act
+      const result = await Authentication.importMnemonicToVault(
+        mnemonic,
+        options,
+      );
+
+      // Assert
+      expect(
+        Engine.context.KeyringController.addNewKeyring,
+      ).toHaveBeenCalledWith(KeyringTypes.hd, {
+        mnemonic,
+        numberOfAccounts: 1,
+      });
+      expect(
+        Engine.context.SeedlessOnboardingController.addNewSecretData,
+      ).toHaveBeenCalledWith(
+        new Uint8Array([1, 2, 3, 4]),
+        SecretType.Mnemonic,
+        {
+          keyringId: 'test-keyring-id',
+        },
+      );
+      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
+        '0x1234567890abcdef',
+      );
+      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
+        'test-keyring-id',
+      );
+      expect(result).toEqual({
+        newAccountAddress: '0x1234567890abcdef',
+        discoveredAccountsCount: 2,
+      });
+    });
+
+    it('should handle KeyringController.addNewKeyring failure', async () => {
+      // Arrange
+      const mnemonic = 'test mnemonic phrase for wallet';
+      const options = {
+        shouldCreateSocialBackup: false,
+        shouldSelectAccount: false,
+        shouldImportSolanaAccount: false,
+      };
+
+      const error = new Error('Failed to add new keyring');
+      Engine.context.KeyringController.addNewKeyring.mockRejectedValue(error);
+
+      // Act & Assert
+      await expect(
+        Authentication.importMnemonicToVault(mnemonic, options),
+      ).rejects.toThrow('Failed to add new keyring');
+    });
+
+    it('should handle SeedlessOnboardingController.addNewSecretData failure', async () => {
+      // Arrange
+      const mnemonic = 'test mnemonic phrase for wallet';
+      const options = {
+        shouldCreateSocialBackup: true,
+        shouldSelectAccount: false,
+        shouldImportSolanaAccount: false,
+      };
+
+      // Override Redux store to return seedless flow as true
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data',
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+
+      const error = new Error('Failed to add secret data');
+      Engine.context.SeedlessOnboardingController.addNewSecretData.mockRejectedValue(
+        error,
+      );
+
+      // Act & Assert
+      await expect(
+        Authentication.importMnemonicToVault(mnemonic, options),
+      ).rejects.toThrow('Failed to add secret data');
+    });
+
+    it('should handle Solana account discovery failure', async () => {
+      // Arrange
+      const mnemonic = 'test mnemonic phrase for wallet';
+      const options = {
+        shouldCreateSocialBackup: false,
+        shouldSelectAccount: false,
+        shouldImportSolanaAccount: true,
+      };
+
+      const error = new Error('Solana discovery failed');
+      mockSnapClient.addDiscoveredAccounts.mockRejectedValue(error);
+
+      // Act & Assert
+      await expect(
+        Authentication.importMnemonicToVault(mnemonic, options),
+      ).rejects.toThrow('Solana discovery failed');
+    });
+
+    it('should handle keyring.getAccounts failure', async () => {
+      // Arrange
+      const mnemonic = 'test mnemonic phrase for wallet';
+      const options = {
+        shouldCreateSocialBackup: false,
+        shouldSelectAccount: false,
+        shouldImportSolanaAccount: false,
+      };
+
+      const error = new Error('Failed to get accounts');
+      mockKeyring.getAccounts.mockRejectedValue(error);
+
+      // Act & Assert
+      await expect(
+        Authentication.importMnemonicToVault(mnemonic, options),
+      ).rejects.toThrow('Failed to get accounts');
+    });
+
+    it('should handle empty accounts array from keyring', async () => {
+      // Arrange
+      const mnemonic = 'test mnemonic phrase for wallet';
+      const options = {
+        shouldCreateSocialBackup: false,
+        shouldSelectAccount: false,
+        shouldImportSolanaAccount: false,
+      };
+
+      mockKeyring.getAccounts.mockResolvedValue([]);
+
+      // Act
+      const result = await Authentication.importMnemonicToVault(
+        mnemonic,
+        options,
+      );
+
+      // Assert
+      expect(result).toEqual({
+        newAccountAddress: undefined,
+        discoveredAccountsCount: 0,
+      });
+    });
+
+    it('should handle multiple accounts from keyring', async () => {
+      // Arrange
+      const mnemonic = 'test mnemonic phrase for wallet';
+      const options = {
+        shouldCreateSocialBackup: false,
+        shouldSelectAccount: true,
+        shouldImportSolanaAccount: false,
+      };
+
+      mockKeyring.getAccounts.mockResolvedValue([
+        '0x1234567890abcdef',
+        '0xfedcba0987654321',
+      ]);
+
+      // Act
+      const result = await Authentication.importMnemonicToVault(
+        mnemonic,
+        options,
+      );
+
+      // Assert
+      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
+        '0x1234567890abcdef',
+      );
+      expect(result).toEqual({
+        newAccountAddress: '0x1234567890abcdef',
+        discoveredAccountsCount: 0,
+      });
     });
   });
 });
