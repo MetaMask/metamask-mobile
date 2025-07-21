@@ -189,7 +189,7 @@ const assetFromSearch = {
 const routeParams = {
   screen: 'Send',
   params: {
-    asset: asset,
+    asset,
   },
 };
 
