@@ -630,7 +630,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={strings('login.password_placeholder')}
-                placeholderTextColor={colors.text.muted}
+                placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
                 autoCapitalize="none"
@@ -648,6 +648,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 }
                 keyboardAppearance={themeAppearance}
                 isDisabled={disabledInput}
+                isError={!!error}
               />
             </View>
 
