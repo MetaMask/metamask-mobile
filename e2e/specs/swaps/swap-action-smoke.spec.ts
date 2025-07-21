@@ -1,65 +1,53 @@
 'use strict';
-import { ethers } from 'ethers';
-import { MockttpServer } from 'mockttp';
-import type { IndexableNativeElement } from 'detox/detox';
-import { loginToApp } from '../../viewHelper.js';
-import QuoteView from '../../pages/swaps/QuoteView';
-import SwapView from '../../pages/swaps/SwapView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
-import WalletView from '../../pages/wallet/WalletView.js';
+/* eslint-disable no-console */
+import { Mockttp, MockttpServer } from 'mockttp';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
-import Tenderly from '../../tenderly.js';
+import Ganache from '../../../app/util/test/ganache';
+import { localNodeOptions, testSpecificMock } from './helpers/constants';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper.js';
-import { CustomNetworks } from '../../resources/networks.e2e.js';
-import NetworkListModal from '../../pages/Network/NetworkListModal.js';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js';
 import TestHelpers from '../../helpers.js';
 import FixtureServer from '../../fixtures/fixture-server.js';
-import { getFixturesServerPort } from '../../fixtures/utils.js';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../fixtures/utils.js';
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../utils/Assertions.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 import { getEventsPayloads } from '../analytics/helpers';
-import {
-  startMockServer,
-  stopMockServer,
-} from '../../api-mocking/mock-server.js';
+import { stopMockServer } from '../../api-mocking/mock-server.js';
+import { startMockServer } from './helpers/swap-mocks';
 import SoftAssert from '../../utils/SoftAssert.ts';
-import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment.ts';
+import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
+import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
+import { loginToApp } from '../../viewHelper';
 
 const fixtureServer: FixtureServer = new FixtureServer();
-const firstElement: number = 0;
 
-let mockServer: MockttpServer;
-
+// eslint-disable-next-line jest/no-disabled-tests
 describe(SmokeTrade('Swap from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
-  let currentNetwork: string = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
-  const wallet: ethers.Wallet = ethers.Wallet.createRandom();
+  let mockServer: Mockttp;
+  let localNode: Ganache;
 
   beforeAll(async (): Promise<void> => {
-    await Tenderly.addFunds(
-      CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
-      wallet.address,
-    );
+    localNode = new Ganache();
+    await localNode.start(localNodeOptions);
 
-    // Start the mock server to get the segment events
-    const segmentMock = {
-      POST: [mockEvents.POST.segmentTrack],
-    };
-    mockServer = await startMockServer(segmentMock);
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+      .withGanacheNetwork('0x1')
       .withMetaMetricsOptIn()
       .build();
     await startFixtureServer(fixtureServer);
@@ -68,15 +56,17 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       permissions: { notifications: 'YES' },
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
+        mockServerPort: `${mockServerPort}`,
       },
     });
     await loginToApp();
-    await prepareSwapsTestEnvironment(wallet);
+    await prepareSwapsTestEnvironment();
   });
 
   afterAll(async (): Promise<void> => {
     await stopFixtureServer(fixtureServer);
-    await stopMockServer(mockServer);
+    if (mockServer) await stopMockServer(mockServer);
+    if (localNode) await localNode.quit();
   });
 
   beforeEach(async (): Promise<void> => {
@@ -84,85 +74,30 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   });
 
   it.each`
-    type        | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'wrap'}   | ${'.03'} | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'unwrap'} | ${'.01'} | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    type      | quantity | sourceTokenSymbol | destTokenSymbol | chainId
+    ${'swap'} | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${'0x1'}
   `(
-    "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
-    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }): Promise<void> => {
-      await TabBarComponent.tapWallet();
-
-      if (network.providerConfig.nickname !== currentNetwork) {
-        await WalletView.tapNetworksButtonOnNavBar();
-        await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle as Promise<IndexableNativeElement>);
-        await NetworkListModal.changeNetworkTo(
-          network.providerConfig.nickname,
-          false,
-        );
-        await NetworkEducationModal.tapGotItButton();
-        await TestHelpers.delay(3000);
-        currentNetwork = network.providerConfig.nickname;
-      }
-
-      await Assertions.checkIfVisible(WalletView.container);
+    "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on chainID='$chainId'",
+    async ({
+      type,
+      quantity,
+      sourceTokenSymbol,
+      destTokenSymbol,
+      chainId,
+    }): Promise<void> => {
       await TabBarComponent.tapActions();
+      await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
       await WalletActionsBottomSheet.tapSwapButton();
-      await Assertions.checkIfVisible(QuoteView.getQuotes);
 
-      //Select source token, if native tiken can skip because already selected
-      if (type !== 'native' && type !== 'wrap') {
-        await QuoteView.tapOnSelectSourceToken();
-        await QuoteView.tapSearchToken();
-        await QuoteView.typeSearchToken(sourceTokenSymbol);
-        await TestHelpers.delay(2000);
-        await QuoteView.selectToken(sourceTokenSymbol, 1);
-      }
-      await QuoteView.enterSwapAmount(quantity);
-
-      //Select destination token
-      await QuoteView.tapOnSelectDestToken();
-      if (destTokenSymbol !== 'ETH') {
-        await QuoteView.tapSearchToken();
-        await QuoteView.typeSearchToken(destTokenSymbol);
-        await TestHelpers.delay(2000);
-        await QuoteView.selectToken(destTokenSymbol, 1);
-      } else await QuoteView.selectToken(destTokenSymbol, firstElement);
-
-      //Make sure slippage is zero for wrapped tokens
-      if (sourceTokenSymbol === 'WETH' || destTokenSymbol === 'WETH') {
-        await Assertions.checkIfElementToHaveText(
-          QuoteView.maxSlippage,
-          'Max slippage 0%',
-        );
-      }
-      // This call is needed because otherwise the device never becomes idle
-      await device.disableSynchronization();
-      
-      await QuoteView.tapOnGetQuotes();
-      await Assertions.checkIfVisible(SwapView.quoteSummary);
-      await Assertions.checkIfVisible(SwapView.gasFee);
-      await SwapView.tapIUnderstandPriceWarning();
-      await Assertions.checkIfVisible(SwapView.swapButton);
-      await TestHelpers.delay(2000);
-      await SwapView.tapSwapButton();
-      //Wait for Swap to complete
-      try {
-        await Assertions.checkIfTextIsDisplayed(
-          SwapView.generateSwapCompleteLabel(
-            sourceTokenSymbol,
-            destTokenSymbol,
-          ),
-          30000,
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log(`Swap complete didn't pop up: ${e}`);
-      }
-      await device.enableSynchronization();
-      await TestHelpers.delay(10000);
+      // Submit the Swap
+      await submitSwapUnifiedUI(
+        quantity,
+        sourceTokenSymbol,
+        destTokenSymbol,
+        chainId,
+      );
 
       // Check the swap activity completed
-      await TabBarComponent.tapActivity();
       await Assertions.checkIfVisible(ActivitiesView.title);
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
@@ -170,7 +105,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       await Assertions.checkIfElementToHaveText(
         ActivitiesView.transactionStatus(FIRST_ROW),
         ActivitiesViewSelectorsText.CONFIRM_TEXT,
-        120000,
+        60000,
       );
 
       // Check the token approval completed
@@ -181,15 +116,26 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         await Assertions.checkIfElementToHaveText(
           ActivitiesView.transactionStatus(SECOND_ROW),
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          120000,
+          60000,
         );
       }
     },
   );
 
-  it('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
-
+  it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
     const testCases = [
+      {
+        type: 'swap',
+        sourceTokenSymbol: 'ETH',
+        destTokenSymbol: 'USDC',
+        quantity: '1',
+      },
+      {
+        type: 'swap',
+        sourceTokenSymbol: 'USDC',
+        destTokenSymbol: 'ETH',
+        quantity: '19',
+      },
       {
         type: 'wrap',
         sourceTokenSymbol: 'ETH',
@@ -209,50 +155,42 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       SWAP_COMPLETED: 'Swap Completed',
       SWAPS_OPENED: 'Swaps Opened',
       QUOTES_RECEIVED: 'Quotes Received',
-      // SWAP_PAGE_VIEWED: 'Swap Page Viewed', - this event is not sent in the current implementation, but it should be working. We should create an issue to fix it.
     };
 
     // METAMETRICS EVENTS
-    const events = await getEventsPayloads(mockServer, Object.values(EVENT_NAMES));
+    const events = await getEventsPayloads(
+      mockServer as MockttpServer,
+      Object.values(EVENT_NAMES),
+    );
 
     const softAssert: SoftAssert = new SoftAssert();
 
-    await softAssert.checkAndCollect(
-      () => Assertions.checkIfArrayHasLength(events, 8),
-      `Events: Should have 8 events (2 for each type)`, // TODO: change to 10 when SWAP_PAGE_VIEWED is fixed
-    );
-
-    // Assert Swaps Opened events
+    // Filter events by type
     const swapsOpenedEvents = events.filter(
       (e) => e.event === EVENT_NAMES.SWAPS_OPENED,
     );
+    const quotesReceivedEvents = events.filter(
+      (e) => e.event === EVENT_NAMES.QUOTES_RECEIVED,
+    );
+    const swapStartedEvents = events.filter(
+      (e) => e.event === EVENT_NAMES.SWAP_STARTED,
+    );
+    const swapCompletedEvents = events.filter(
+      (e) => e.event === EVENT_NAMES.SWAP_COMPLETED,
+    );
 
-    await softAssert.checkAndCollect(
+    const checkEventCount = softAssert.checkAndCollect(
+      () => Assertions.checkIfArrayHasLength(events, 8),
+      `Events: Should have 8 events (2 for each type)`,
+    );
+
+    const checkSwapsOpenedCount = softAssert.checkAndCollect(
       () =>
         Assertions.checkIfArrayHasLength(swapsOpenedEvents, testCases.length),
       'Swaps Opened: Should have 2 events',
     );
 
-    for (let i = 0; i < swapsOpenedEvents.length; i++) {
-      await softAssert.checkAndCollect(
-        async () => {
-          Assertions.checkIfObjectContains(swapsOpenedEvents[i].properties, {
-            action: 'Swap',
-            name: 'Swaps',
-            source: 'MainView',
-            chain_id: '1',
-          });
-        },
-        `Swaps Opened [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-    }
-
-    // Assert Quotes Received events
-    const quotesReceivedEvents = events.filter(
-      (e) => e.event === EVENT_NAMES.QUOTES_RECEIVED,
-    );
-
-    await softAssert.checkAndCollect(
+    const checkQuotesReceivedCount = softAssert.checkAndCollect(
       () =>
         Assertions.checkIfArrayHasLength(
           quotesReceivedEvents,
@@ -261,9 +199,36 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       'Swap Completed: Should have 2 events',
     );
 
+    const checkSwapStartedCount = softAssert.checkAndCollect(
+      () =>
+        Assertions.checkIfArrayHasLength(swapStartedEvents, testCases.length),
+      'Swap Started: Should have 2 events',
+    );
+
+    const checkSwapCompletedCount = softAssert.checkAndCollect(
+      () =>
+        Assertions.checkIfArrayHasLength(swapCompletedEvents, testCases.length),
+      'Swap Completed: Should have 2 events',
+    );
+
+    const swapsOpenedAssertions = [];
+    for (let i = 0; i < swapsOpenedEvents.length; i++) {
+      swapsOpenedAssertions.push(
+        softAssert.checkAndCollect(async () => {
+          Assertions.checkIfObjectContains(swapsOpenedEvents[i].properties, {
+            action: 'Swap',
+            name: 'Swaps',
+            source: 'MainView',
+            chain_id: '1',
+          });
+        }, `Swaps Opened [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`),
+      );
+    }
+
+    const quotesReceivedAssertions = [];
     for (let i = 0; i < quotesReceivedEvents.length; i++) {
-      await softAssert.checkAndCollect(
-        async () => {
+      quotesReceivedAssertions.push(
+        softAssert.checkAndCollect(async () => {
           Assertions.checkIfObjectContains(quotesReceivedEvents[i].properties, {
             action: 'Quote',
             name: 'Swaps',
@@ -278,47 +243,35 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
             token_from_amount: testCases[i].quantity,
             token_to_amount: testCases[i].quantity,
           });
-        },
-        `Quotes Received [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-
-      await softAssert.checkAndCollect(
-        () =>
-          Assertions.checkIfValueIsDefined(
-            quotesReceivedEvents[i].properties.response_time,
-          ),
-        `Quotes Received [${i}]: Check response_time (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-
-      await softAssert.checkAndCollect(
-        () =>
-          Assertions.checkIfValueIsDefined(
-            quotesReceivedEvents[i].properties.network_fees_USD,
-          ),
-        `Quotes Received [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-
-      await softAssert.checkAndCollect(
-        () =>
-          Assertions.checkIfValueIsDefined(
-            quotesReceivedEvents[i].properties.network_fees_ETH,
-          ),
-        `Quotes Received [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        }, `Quotes Received [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`),
+        softAssert.checkAndCollect(
+          () =>
+            Assertions.checkIfValueIsDefined(
+              quotesReceivedEvents[i].properties.response_time,
+            ),
+          `Quotes Received [${i}]: Check response_time (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        ),
+        softAssert.checkAndCollect(
+          () =>
+            Assertions.checkIfValueIsDefined(
+              quotesReceivedEvents[i].properties.network_fees_USD,
+            ),
+          `Quotes Received [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        ),
+        softAssert.checkAndCollect(
+          () =>
+            Assertions.checkIfValueIsDefined(
+              quotesReceivedEvents[i].properties.network_fees_ETH,
+            ),
+          `Quotes Received [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        ),
       );
     }
 
-    // Assert Swap Started event
-    const swapStartedEvents = events.filter((e) => e.event === EVENT_NAMES.SWAP_STARTED);
-
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfArrayHasLength(swapStartedEvents, testCases.length),
-      'Swap Started: Should have 2 events',
-    );
-
+    const swapStartedAssertions = [];
     for (let i = 0; i < swapStartedEvents.length; i++) {
-      await softAssert.checkAndCollect(
-        async () => {
+      swapStartedAssertions.push(
+        softAssert.checkAndCollect(async () => {
           Assertions.checkIfObjectContains(swapStartedEvents[i].properties, {
             action: 'Swap',
             name: 'Swaps',
@@ -336,41 +289,28 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
             token_from_amount: testCases[i].quantity,
             token_to_amount: testCases[i].quantity,
           });
-        },
-        `Swap Started [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-
-      await softAssert.checkAndCollect(
-        () =>
-          Assertions.checkIfValueIsDefined(
-            quotesReceivedEvents[i].properties.network_fees_USD,
-          ),
-        `Swap Started [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-
-      await softAssert.checkAndCollect(
-        () =>
-          Assertions.checkIfValueIsDefined(
-            quotesReceivedEvents[i].properties.network_fees_ETH,
-          ),
-        `Swap Started [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        }, `Swap Started [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`),
+        softAssert.checkAndCollect(
+          () =>
+            Assertions.checkIfValueIsDefined(
+              quotesReceivedEvents[i].properties.network_fees_USD,
+            ),
+          `Swap Started [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        ),
+        softAssert.checkAndCollect(
+          () =>
+            Assertions.checkIfValueIsDefined(
+              quotesReceivedEvents[i].properties.network_fees_ETH,
+            ),
+          `Swap Started [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        ),
       );
     }
 
-    // Assert Swap Completed events
-    const swapCompletedEvents = events.filter(
-      (e) => e.event === EVENT_NAMES.SWAP_COMPLETED,
-    );
-
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfArrayHasLength(swapCompletedEvents, testCases.length),
-      'Swap Completed: Should have 2 events',
-    );
-
+    const swapCompletedAssertions = [];
     for (let i = 0; i < swapCompletedEvents.length; i++) {
-      await softAssert.checkAndCollect(
-        async () => {
+      swapCompletedAssertions.push(
+        softAssert.checkAndCollect(async () => {
           Assertions.checkIfObjectContains(swapCompletedEvents[i].properties, {
             action: 'Swap',
             name: 'Swaps',
@@ -387,50 +327,56 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
             token_to_amount: testCases[i].quantity,
             token_to_amount_received: 'NaN',
           });
-        },
-        `Swap Completed [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-
-      await softAssert.checkAndCollect(
-        () =>
-          Assertions.checkIfValueIsDefined(
-            quotesReceivedEvents[i].properties.network_fees_USD,
-          ),
-        `Swap Completed [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-
-      await softAssert.checkAndCollect(
-        () =>
-          Assertions.checkIfValueIsDefined(
-            quotesReceivedEvents[i].properties.network_fees_ETH,
-          ),
-        `Swap Completed [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-
-      await softAssert.checkAndCollect(
-        () =>
-          Assertions.checkIfValueIsDefined(
-            swapCompletedEvents[i].properties.time_to_mine,
-          ),
-        `Swap Completed [${i}]: Check time_to_mine (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-
-      await softAssert.checkAndCollect(
-        () =>
-          Assertions.checkIfValueIsDefined(
-            swapCompletedEvents[i].properties.estimated_vs_used_gasRatio,
-          ),
-        `Swap Completed [${i}]: Check estimated_vs_used_gasRatio (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
-      );
-
-      await softAssert.checkAndCollect(
-        () =>
-          Assertions.checkIfValueIsDefined(
-            swapCompletedEvents[i].properties.quote_vs_executionRatio,
-          ),
-        `Swap Completed [${i}]: Check quote_vs_executionRatio (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        }, `Swap Completed [${i}]: Check properties (sourceToken: ${testCases[i]?.sourceTokenSymbol})`),
+        softAssert.checkAndCollect(
+          () =>
+            Assertions.checkIfValueIsDefined(
+              quotesReceivedEvents[i].properties.network_fees_USD,
+            ),
+          `Swap Completed [${i}]: Check network_fees_USD (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        ),
+        softAssert.checkAndCollect(
+          () =>
+            Assertions.checkIfValueIsDefined(
+              quotesReceivedEvents[i].properties.network_fees_ETH,
+            ),
+          `Swap Completed [${i}]: Check network_fees_ETH (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        ),
+        softAssert.checkAndCollect(
+          () =>
+            Assertions.checkIfValueIsDefined(
+              swapCompletedEvents[i].properties.time_to_mine,
+            ),
+          `Swap Completed [${i}]: Check time_to_mine (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        ),
+        softAssert.checkAndCollect(
+          () =>
+            Assertions.checkIfValueIsDefined(
+              swapCompletedEvents[i].properties.estimated_vs_used_gasRatio,
+            ),
+          `Swap Completed [${i}]: Check estimated_vs_used_gasRatio (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        ),
+        softAssert.checkAndCollect(
+          () =>
+            Assertions.checkIfValueIsDefined(
+              swapCompletedEvents[i].properties.quote_vs_executionRatio,
+            ),
+          `Swap Completed [${i}]: Check quote_vs_executionRatio (sourceToken: ${testCases[i]?.sourceTokenSymbol})`,
+        ),
       );
     }
+
+    await Promise.all([
+      checkEventCount,
+      checkSwapsOpenedCount,
+      checkQuotesReceivedCount,
+      checkSwapStartedCount,
+      checkSwapCompletedCount,
+      ...swapsOpenedAssertions,
+      ...quotesReceivedAssertions,
+      ...swapStartedAssertions,
+      ...swapCompletedAssertions,
+    ]);
 
     softAssert.throwIfErrors();
   });

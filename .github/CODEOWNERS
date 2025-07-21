@@ -48,8 +48,12 @@ metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
 
+# Card Team
+app/components/UI/Card/              @MetaMask/card
+
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations
+app/components/Views/confirmations/external/staking          @MetaMask/confirmations @MetaMask/metamask-earn                
 app/core/Engine/controllers/approval-controller             @MetaMask/confirmations
 app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmations
 app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
@@ -128,6 +132,14 @@ app/selectors/earnController         @MetaMask/metamask-earn
 **/Earn/**                           @MetaMask/metamask-earn
 **/earn/**                           @MetaMask/metamask-earn
 
+# Perps Team
+app/components/UI/Perps/             @MetaMask/perps
+app/components/UI/WalletAction/*perps* @MetaMask/perps
+app/core/Engine/controllers/perps-controller @MetaMask/perps
+app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
+**/Perps/**                          @MetaMask/perps
+**/perps/**                          @MetaMask/perps
+
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
 app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
@@ -187,8 +199,9 @@ app/components/Views/transactions @MetaMask/transactions
 # Web3auth Team
 app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/web3auth
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
-app/components/Views/Onboarding @MetaMask/web3auth
-app/reducers/onboarding @MetaMask/web3auth
+app/core/OAuthService                                       @MetaMask/web3auth
+app/components/Views/Onboarding                             @MetaMask/web3auth
+app/reducers/onboarding                                     @MetaMask/web3auth
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

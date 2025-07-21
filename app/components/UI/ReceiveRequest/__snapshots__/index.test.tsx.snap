@@ -583,7 +583,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9ca1af",
+                                  "color": "#b7bbc8",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -611,6 +611,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -668,7 +669,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "transparent",
                                     "borderColor": "#4459ff",
                                     "borderWidth": 1,
                                   },
@@ -1311,7 +1312,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9ca1af",
+                                  "color": "#b7bbc8",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -1339,6 +1340,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -1396,7 +1398,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "transparent",
                                     "borderColor": "#4459ff",
                                     "borderWidth": 1,
                                   },
@@ -2039,7 +2041,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9ca1af",
+                                  "color": "#b7bbc8",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -2067,6 +2069,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -2124,7 +2127,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                     "padding": 15,
                                   },
                                   {
-                                    "backgroundColor": "#ffffff",
+                                    "backgroundColor": "transparent",
                                     "borderColor": "#4459ff",
                                     "borderWidth": 1,
                                   },

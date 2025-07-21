@@ -72,6 +72,7 @@ const styleSheet = (params: { theme: Theme }) => {
       display: 'flex',
       maxWidth: '100%',
       paddingVertical: 4,
+      rowGap: 16,
     },
   });
 };

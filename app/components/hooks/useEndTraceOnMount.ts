@@ -13,7 +13,7 @@ export const useEndTraceOnMount = (traceName: TraceName) => {
       name: traceName,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []);
 };
 
 export default useEndTraceOnMount;
