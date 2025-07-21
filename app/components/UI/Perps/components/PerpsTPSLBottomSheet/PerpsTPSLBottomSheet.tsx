@@ -96,14 +96,12 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   const handleConfirm = () => {
     // Parse the formatted prices back to plain numbers for storage
-    const parseTakeProfitPrice =
-      takeProfitPrice
-        ? takeProfitPrice.replace(/[$,]/g, '')
-        : undefined;
-    const parseStopLossPrice =
-      stopLossPrice
-        ? stopLossPrice.replace(/[$,]/g, '')
-        : undefined;
+    const parseTakeProfitPrice = takeProfitPrice
+      ? takeProfitPrice.replace(/[$,]/g, '')
+      : undefined;
+    const parseStopLossPrice = stopLossPrice
+      ? stopLossPrice.replace(/[$,]/g, '')
+      : undefined;
 
     onConfirm(parseTakeProfitPrice, parseStopLossPrice);
     onClose();
@@ -198,7 +196,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
                   // Update percentage based on price
                   if (sanitized) {
-                    const percentage = calculatePercentageForPrice(sanitized, true);
+                    const percentage = calculatePercentageForPrice(
+                      sanitized,
+                      true,
+                    );
                     setTakeProfitPercentage(percentage);
                   } else {
                     setTakeProfitPercentage('');
@@ -243,7 +244,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
                   // Update price based on percentage
                   if (sanitized && !isNaN(parseFloat(sanitized))) {
-                    const price = calculatePriceForPercentage(parseFloat(sanitized), true);
+                    const price = calculatePriceForPercentage(
+                      parseFloat(sanitized),
+                      true,
+                    );
                     setTakeProfitPrice(price);
                     setSelectedTpPercentage(parseFloat(sanitized));
                   } else {
@@ -270,7 +274,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 style={[
                   styles.percentageButton,
                   selectedTpPercentage === percentage &&
-                  styles.percentageButtonActive,
+                    styles.percentageButtonActive,
                 ]}
                 onPress={() => {
                   const price = calculatePriceForPercentage(percentage, true);
@@ -322,7 +326,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
                   // Update percentage based on price
                   if (sanitized) {
-                    const percentage = calculatePercentageForPrice(sanitized, false);
+                    const percentage = calculatePercentageForPrice(
+                      sanitized,
+                      false,
+                    );
                     setStopLossPercentage(percentage);
                   } else {
                     setStopLossPercentage('');
@@ -367,7 +374,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
                   // Update price based on percentage
                   if (sanitized && !isNaN(parseFloat(sanitized))) {
-                    const price = calculatePriceForPercentage(parseFloat(sanitized), false);
+                    const price = calculatePriceForPercentage(
+                      parseFloat(sanitized),
+                      false,
+                    );
                     setStopLossPrice(price);
                     setSelectedSlPercentage(parseFloat(sanitized));
                   } else {
@@ -394,7 +404,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 style={[
                   styles.percentageButton,
                   selectedSlPercentage === percentage &&
-                  styles.percentageButtonActive,
+                    styles.percentageButtonActive,
                 ]}
                 onPress={() => {
                   const price = calculatePriceForPercentage(percentage, false);

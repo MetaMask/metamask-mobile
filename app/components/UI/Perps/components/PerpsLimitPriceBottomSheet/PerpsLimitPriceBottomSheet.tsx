@@ -82,14 +82,15 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const calculatePriceForPercentage = useCallback(
     (percentage: number) => {
       // Use the current limit price if set, otherwise use market price
-      const basePrice = limitPrice && parseFloat(limitPrice) > 0 
-        ? parseFloat(limitPrice) 
-        : currentPrice;
-      
+      const basePrice =
+        limitPrice && parseFloat(limitPrice) > 0
+          ? parseFloat(limitPrice)
+          : currentPrice;
+
       if (!basePrice || basePrice === 0) {
         return '';
       }
-      
+
       const multiplier = 1 + percentage / 100;
       const calculatedPrice = basePrice * multiplier;
       return calculatedPrice.toFixed(2);

@@ -45,7 +45,9 @@ class PerpsConnectionManagerClass {
         return Promise.resolve();
       } catch (error) {
         // Connection is stale, reset state and reconnect
-        DevLogger.log('PerpsConnectionManager: Stale connection detected, reconnecting');
+        DevLogger.log(
+          'PerpsConnectionManager: Stale connection detected, reconnecting',
+        );
         this.isConnected = false;
         this.isInitialized = false;
       }

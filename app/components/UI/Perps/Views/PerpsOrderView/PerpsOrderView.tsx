@@ -199,7 +199,8 @@ const PerpsOrderView: React.FC = () => {
     leverage: (
       <View>
         <Text variant={TextVariant.BodyMD}>
-          Leverage allows you to control a larger position with less capital, amplifying both profits and losses.
+          Leverage allows you to control a larger position with less capital,
+          amplifying both profits and losses.
         </Text>
         <View style={styles.tooltipSection}>
           <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
@@ -220,7 +221,8 @@ const PerpsOrderView: React.FC = () => {
     executionTime: (
       <View>
         <Text variant={TextVariant.BodyMD}>
-          Orders are executed nearly instantly on HyperLiquid&apos;s high-performance blockchain.
+          Orders are executed nearly instantly on HyperLiquid&apos;s
+          high-performance blockchain.
         </Text>
         <View style={styles.tooltipSection}>
           <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
@@ -241,7 +243,8 @@ const PerpsOrderView: React.FC = () => {
     margin: (
       <View>
         <Text variant={TextVariant.BodyMD}>
-          Margin is the collateral required to open and maintain a leveraged position.
+          Margin is the collateral required to open and maintain a leveraged
+          position.
         </Text>
         <View style={styles.tooltipSection}>
           <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
@@ -262,7 +265,8 @@ const PerpsOrderView: React.FC = () => {
     fees: (
       <View>
         <Text variant={TextVariant.BodyMD}>
-          Fees are charged on every trade to cover the cost of execution and liquidity provision.
+          Fees are charged on every trade to cover the cost of execution and
+          liquidity provision.
         </Text>
         <View style={styles.tooltipSection}>
           <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
@@ -665,7 +669,12 @@ const PerpsOrderView: React.FC = () => {
                       {strings('perps.order.leverage')}
                     </Text>
                     <TouchableOpacity
-                      onPress={() => openTooltipModal('What is Leverage?', tooltipContent.leverage)}
+                      onPress={() =>
+                        openTooltipModal(
+                          'What is Leverage?',
+                          tooltipContent.leverage,
+                        )
+                      }
                       style={styles.infoIcon}
                     >
                       <Icon
@@ -826,7 +835,12 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.estimated_execution_time')}
               </Text>
               <TouchableOpacity
-                onPress={() => openTooltipModal('Execution Time', tooltipContent.executionTime)}
+                onPress={() =>
+                  openTooltipModal(
+                    'Execution Time',
+                    tooltipContent.executionTime,
+                  )
+                }
                 style={styles.infoIcon}
               >
                 <Icon
@@ -847,7 +861,9 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.margin')}
               </Text>
               <TouchableOpacity
-                onPress={() => openTooltipModal('Margin Requirements', tooltipContent.margin)}
+                onPress={() =>
+                  openTooltipModal('Margin Requirements', tooltipContent.margin)
+                }
                 style={styles.infoIcon}
               >
                 <Icon
@@ -879,7 +895,9 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.fees')}
               </Text>
               <TouchableOpacity
-                onPress={() => openTooltipModal('Trading Fees', tooltipContent.fees)}
+                onPress={() =>
+                  openTooltipModal('Trading Fees', tooltipContent.fees)
+                }
                 style={styles.infoIcon}
               >
                 <Icon

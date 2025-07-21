@@ -87,7 +87,7 @@ import {
   USDC_DECIMALS,
   USDC_NAME,
   USDC_SYMBOL,
-  ZERO_ADDRESS
+  ZERO_ADDRESS,
 } from '../../constants/hyperLiquidConfig';
 import type {
   AssetRoute,
@@ -99,7 +99,7 @@ import { usePerpsDepositQuote } from '../../hooks/usePerpsDepositQuote';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsDepositAmountView.styles';
 
-interface PerpsDepositAmountViewProps { }
+interface PerpsDepositAmountViewProps {}
 
 const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const { styles } = useStyles(createStyles, {});
