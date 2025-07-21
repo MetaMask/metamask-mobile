@@ -1445,6 +1445,7 @@ export class Engine {
       addTransactionFn: transactionController.addTransaction.bind(
         transactionController,
       ),
+      selectedNetworkClientId: networkController.state.selectedNetworkClientId,
     });
 
     this.context = {
