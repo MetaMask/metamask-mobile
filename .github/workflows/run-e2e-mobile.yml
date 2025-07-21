@@ -108,7 +108,7 @@ jobs:
           echo "🚀 Setting up pre-built apps for $platform..."
 
           # Base URL for artifacts
-          base_url="https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/test2"
+          base_url="https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/test3"
 
           # Create required directories
           mkdir -p android/app/build/outputs/apk/qa/release/
