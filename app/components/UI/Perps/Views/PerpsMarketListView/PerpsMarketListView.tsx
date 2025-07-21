@@ -29,7 +29,6 @@ import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsTrading } from '../../hooks';
-import { usePerpsConnection } from '../../providers/PerpsConnectionProvider';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import styleSheet from './PerpsMarketListView.styles';
 import {
@@ -98,31 +97,6 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
   const { getPositions } = usePerpsTrading();
   const [positions, setPositions] = useState<Position[]>([]);
   const [positionsLoading, setPositionsLoading] = useState(false);
-
-  const {
-    isConnected,
-    isInitialized,
-    error: connectionError,
-  } = usePerpsConnection();
-
-  // Debug logging
-  useEffect(() => {
-    DevLogger.log('PerpsMarketListView: Connection state', {
-      isConnected,
-      isInitialized,
-      connectionError,
-      marketsCount: markets.length,
-      isLoading,
-      error,
-    });
-  }, [
-    isConnected,
-    isInitialized,
-    connectionError,
-    markets.length,
-    isLoading,
-    error,
-  ]);
 
   useEffect(() => {
     if (markets.length > 0) {
@@ -253,7 +227,7 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
       return (
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            Loading positions...
+            {strings('perps.loading_positions')}
           </Text>
         </View>
       );
@@ -264,7 +238,7 @@ const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
       return (
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            No positions found
+            {strings('perps.no_positions_found')}
           </Text>
         </View>
       );

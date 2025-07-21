@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { PerpsMarketData } from '../Views/PerpsMarketListView/PerpsMarketListView.types';
 import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 export interface UsePerpsMarketsResult {
   /**
@@ -70,10 +70,6 @@ export const usePerpsMarkets = (
     async (isRefresh = false): Promise<void> => {
       // Only fetch data if SDK is initialized and connected
       if (!isInitialized || !isConnected) {
-        Logger.log('Perps: Skipping market data fetch - SDK not ready', {
-          isInitialized,
-          isConnected,
-        });
         return;
       }
 
@@ -85,7 +81,7 @@ export const usePerpsMarkets = (
       setError(null);
 
       try {
-        Logger.log('Perps: Fetching market data from HyperLiquid...');
+        DevLogger.log('Perps: Fetching market data from HyperLiquid...');
 
         // Get the HyperLiquid provider via PerpsController
         const controller = Engine.context.PerpsController;
@@ -96,14 +92,17 @@ export const usePerpsMarkets = (
 
         setMarkets(marketDataWithPrices);
 
-        Logger.log('Perps: Successfully fetched and transformed market data', {
-          marketCount: marketDataWithPrices.length,
-        });
+        DevLogger.log(
+          'Perps: Successfully fetched and transformed market data',
+          {
+            marketCount: marketDataWithPrices.length,
+          },
+        );
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown error occurred';
         setError(errorMessage);
-        Logger.log('Perps: Failed to fetch market data', err);
+        DevLogger.log('Perps: Failed to fetch market data', err);
 
         // Keep existing data on error to prevent UI flash
         setMarkets((currentMarkets) => {
@@ -141,7 +140,7 @@ export const usePerpsMarkets = (
       !isLoading &&
       !skipInitialFetch
     ) {
-      Logger.log('Perps: SDK became ready, retrying market data fetch');
+      DevLogger.log('Perps: SDK became ready, retrying market data fetch');
       fetchMarketData();
     }
   }, [

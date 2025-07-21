@@ -55,33 +55,13 @@ export const usePerpsPositionData = ({
   useEffect(() => {
     // Only fetch data if SDK is initialized and connected
     if (!isInitialized || !isConnected || !coin) {
-      DevLogger.log(
-        'usePerpsPositionData: Skipping fetch - conditions not met',
-        {
-          isInitialized,
-          isConnected,
-          coin,
-        },
-      );
       return;
     }
-
-    DevLogger.log('usePerpsPositionData: Starting historical data fetch', {
-      coin,
-      selectedInterval,
-      isInitialized,
-      isConnected,
-    });
 
     setIsLoadingHistory(true);
     const loadHistoricalData = async () => {
       try {
-        DevLogger.log('usePerpsPositionData: Fetching historical candles...');
         const historicalData = await fetchHistoricalCandles();
-        DevLogger.log('usePerpsPositionData: Historical data received', {
-          hasData: !!historicalData,
-          dataType: typeof historicalData,
-        });
         setCandleData(historicalData);
       } catch (err) {
         DevLogger.log('Error loading historical candles:', err);

@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { Animated } from 'react-native';
+import { useStyles } from '../../../../component-library/hooks';
 
 export type PulseColor = 'increase' | 'decrease' | 'same';
 
@@ -35,13 +36,15 @@ interface UseColorPulseAnimationReturn {
 export const useColorPulseAnimation = (
   options: UseColorPulseAnimationOptions = {},
 ): UseColorPulseAnimationReturn => {
+  const { theme } = useStyles(() => ({}), {});
+
   const {
     pulseDuration = 300,
     colorDuration = 200,
     minOpacity = 0.6,
     colors = {
-      increase: 'rgba(52, 199, 89, 0.1)', // Green
-      decrease: 'rgba(255, 59, 48, 0.1)', // Red
+      increase: `${theme.colors.success.default}1a`, // Success color with ~0.1 opacity (1a in hex)
+      decrease: `${theme.colors.error.default}1a`, // Error color with ~0.1 opacity (1a in hex)
       same: 'transparent', // Gray/transparent
     },
   } = options;
