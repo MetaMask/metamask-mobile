@@ -54,7 +54,7 @@ describe('AccountCell', () => {
 
   it('renders menu button', () => {
     const { getByText } = renderAccountCell();
-    expect(getByText('Account Name')).toBeTruthy();
+    expect(getByText('Test Account Group')).toBeTruthy();
     expect(getByText('$1234567890.00')).toBeTruthy();
   });
 });
