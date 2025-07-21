@@ -1,6 +1,6 @@
 'use strict';
 import { ethers } from 'ethers';
-import { MockttpServer } from 'mockttp';
+import { Mockttp } from 'mockttp';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
@@ -37,6 +37,7 @@ import axios, { AxiosResponse } from 'axios';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { TestSpecificMock } from '../../framework';
+import { Mock } from 'node:test';
 
 interface ExitRequest {
   positionTicket: string;
@@ -74,7 +75,7 @@ const fixtureServer: FixtureServer = new FixtureServer();
 describe.skip(SmokeTrade('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const AMOUNT_TO_SEND: string = '.005';
-  let mockServer: MockttpServer;
+  let mockServer: Mockttp;
   const wallet: ethers.Wallet = ethers.Wallet.createRandom();
 
   beforeAll(async (): Promise<void> => {
