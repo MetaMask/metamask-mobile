@@ -1,22 +1,16 @@
 import { AccountGroup } from '@metamask/account-tree-controller';
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useStyles } from '../../../../component-library/hooks';
+import { useStyles } from '../../../hooks';
 import styleSheet from './AccountCell.styles';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { Box } from '../../../UI/Box/Box';
+import Text, { TextColor, TextVariant } from '../../Texts/Text';
+import { Box } from '../../../../components/UI/Box/Box';
 import {
   AlignItems,
   FlexDirection,
   JustifyContent,
-} from '../../../UI/Box/box.types';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+} from '../../../../components/UI/Box/box.types';
+import Icon, { IconName, IconSize } from '../../Icons/Icon';
 import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
 interface AccountCellProps {
