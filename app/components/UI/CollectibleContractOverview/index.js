@@ -99,12 +99,15 @@ class CollectibleContractOverview extends PureComponent {
       areAddressesEqual(collectible.address, collectibleContract.address),
     );
     this.props.newAssetTransaction(collectible);
-    this.props.navigation.navigate('SendFlowView', {
-      screen: Routes.SEND.ROOT,
-      params: {
-        asset: collectible,
-      },
-    });
+    if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
+      navigation.navigate(Routes.SEND.ROOT, {
+        params: {
+          asset: collectible,
+        },
+      });
+    } else {
+      this.props.navigation.navigate('SendFlowView', {});
+    }
   };
 
   onInfo = () => this.props.toggleCollectibleContractModal();

@@ -18,7 +18,6 @@ interface Asset {
 const Send = () => {
   const route = useRoute<RouteProp<Record<string, { asset: Asset }>, string>>();
   const { asset } = route?.params ?? {};
-  console.log('========================', asset);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 

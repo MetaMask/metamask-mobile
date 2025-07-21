@@ -185,12 +185,15 @@ const NftDetails = () => {
     dispatch(
       newAssetTransaction({ contractName: collectible.name, ...collectible }),
     );
-    navigation.navigate('SendFlowView', {
-      screen: Routes.SEND.ROOT,
-      params: {
-        asset: { contractName: collectible.name, ...collectible },
-      },
-    });
+    if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
+      navigation.navigate(Routes.SEND.ROOT, {
+        params: {
+          asset: { contractName: collectible.name, ...collectible },
+        },
+      });
+    } else {
+      navigation.navigate('SendFlowView', {});
+    }
   }, [collectible, chainId, dispatch, navigation]);
 
   const isTradable = useCallback(
