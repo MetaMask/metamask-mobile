@@ -23,6 +23,10 @@ export const EUR_CURRENCY: DepositFiatCurrency = {
 
 export const TRANSAK_NETWORKS: Record<string, CaipChainId> = {
   ethereum: 'eip155:1',
+  linea: 'eip155:59144',
+  base: 'eip155:8453',
+  solana: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  bsc: 'eip155:56',
 };
 
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
@@ -54,4 +58,5 @@ export const VALIDATION_REGEX = {
   postCode: /^(?!\s*$).+/,
 };
 
-export const REDIRECTION_URL = 'https://metamask.io/';
+export const REDIRECTION_URL =
+  'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback';
