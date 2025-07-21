@@ -6,7 +6,10 @@ import { VAULT_ERROR } from './constants';
 
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { parseVaultValue } from '../../../util/validators';
-import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import {
+  SeedlessOnboardingControllerErrorMessage,
+  RecoveryError as SeedlessOnboardingControllerRecoveryError,
+} from '@metamask/seedless-onboarding-controller';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
@@ -310,7 +313,7 @@ describe('Login test suite 2', () => {
 
     it('should handle countdown behavior and disable input during tooManyAttemptsError', async () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        'SeedlessOnboardingController - Too many attempts',
+        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
         { remainingTime: 3, numberOfAttempts: 1 },
       );
       jest
@@ -364,7 +367,7 @@ describe('Login test suite 2', () => {
     it('should clean up timeout on component unmount during countdown', async () => {
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        'SeedlessOnboardingController - Too many attempts',
+        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
         { remainingTime: 5, numberOfAttempts: 1 },
       );
       jest

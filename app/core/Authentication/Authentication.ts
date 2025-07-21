@@ -550,7 +550,7 @@ class AuthenticationService {
       });
       // check for seedless password outdated
       const isSeedlessPasswordOutdated =
-        await this.checkIsSeedlessPasswordOutdated();
+        await this.checkIsSeedlessPasswordOutdated(false);
       if (isSeedlessPasswordOutdated) {
         throw new AuthenticationError(
           'Seedless password is outdated',
@@ -710,7 +710,7 @@ class AuthenticationService {
    * Sync latest global seedless password and override the current device password with latest global password.
    * Unlock the vault with the latest global password.
    *
-   * @param {string} password - latest global seedless password
+   * @param {string} globalPassword - latest global seedless password
    */
   syncPasswordAndUnlockWallet = async (
     globalPassword: string,
@@ -765,10 +765,10 @@ class AuthenticationService {
    * Checks if the seedless password is outdated.
    *
    * @param {boolean} skipCache - whether to skip the cache
-   * @returns {Promise<boolean | undefined>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
+   * @returns {Promise<boolean>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
    */
   checkIsSeedlessPasswordOutdated = async (
-    skipCache: boolean = false,
+    skipCache: boolean = true,
   ): Promise<boolean> => {
     const { SeedlessOnboardingController } = Engine.context;
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
@@ -777,8 +777,11 @@ class AuthenticationService {
     const isSeedlessPasswordOutdated =
       await SeedlessOnboardingController.checkIsPasswordOutdated({
         skipCache,
+      }).catch((err) => {
+        Logger.error(err, 'Error in checkIsSeedlessPasswordOutdated');
+        return false;
       });
-    return isSeedlessPasswordOutdated ?? false;
+    return isSeedlessPasswordOutdated;
   };
 
   /**
