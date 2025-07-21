@@ -2,11 +2,7 @@ import { AxiosError } from 'axios';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDepositRouting } from './useDepositRouting';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import {
-  WIRE_TRANSFER_PAYMENT_METHOD,
-  KycStatus,
-  REDIRECTION_URL,
-} from '../constants';
+import { WIRE_TRANSFER_PAYMENT_METHOD, KycStatus } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 
 jest.mock('@react-navigation/compat', () => ({
@@ -645,7 +641,7 @@ describe('useDepositRouting', () => {
   });
 
   describe('401 Unauthorized handling', () => {
-    it('navigates to EnterEmail when user is unauthorized', async () => {
+    it('navigates to Login when user is unauthorized', async () => {
       const mockQuote = {} as BuyQuote;
 
       const mockParams = {
@@ -701,7 +697,7 @@ describe('useDepositRouting', () => {
       expect(handler).toBeDefined();
 
       await handler({
-        url: `${REDIRECTION_URL}?orderId=test-order-id`,
+        url: 'https://metamask.io/success?orderId=test-order-id',
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
@@ -750,7 +746,7 @@ describe('useDepositRouting', () => {
       mockTrackEvent.mockClear();
 
       await handler({
-        url: `${REDIRECTION_URL}?orderId=test-order-id`,
+        url: 'https://metamask.io/success?orderId=test-order-id',
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -797,7 +793,7 @@ describe('useDepositRouting', () => {
       mockTrackEvent.mockClear();
 
       await handler({
-        url: `${REDIRECTION_URL}?orderId=test-order-id`,
+        url: 'https://metamask.io/success?orderId=test-order-id',
       });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
@@ -807,7 +803,7 @@ describe('useDepositRouting', () => {
       );
     });
 
-    it('does nothing when URL does not start with REDIRECTION_URL', async () => {
+    it('does nothing when URL does not start with metamask.io', async () => {
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
@@ -836,7 +832,7 @@ describe('useDepositRouting', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
-    it('does nothing when REDIRECTION_URL has no orderId', async () => {
+    it('does nothing when metamask.io url has no orderId', async () => {
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
@@ -856,7 +852,7 @@ describe('useDepositRouting', () => {
 
       jest.clearAllMocks();
 
-      await handler({ url: REDIRECTION_URL });
+      await handler({ url: 'https://metamask.io/success' });
 
       expect(mockGetOrder).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -886,7 +882,7 @@ describe('useDepositRouting', () => {
       jest.clearAllMocks();
 
       await handler({
-        url: `${REDIRECTION_URL}?orderId=test-order-id`,
+        url: 'https://metamask.io/success?orderId=test-order-id',
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
@@ -917,7 +913,7 @@ describe('useDepositRouting', () => {
       jest.clearAllMocks();
 
       await handler({
-        url: `${REDIRECTION_URL}?orderId=test-order-id`,
+        url: 'https://metamask.io/success?orderId=test-order-id',
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
