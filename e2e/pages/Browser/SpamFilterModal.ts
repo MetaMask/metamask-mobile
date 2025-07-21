@@ -1,18 +1,20 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { SpamFilterModalSelectorText } from '../../selectors/Browser/SpamFilterModal.selectors';
 
 class SpamFilterModal {
-  get title() {
+  get title(): DetoxElement {
     return Matchers.getElementByText(SpamFilterModalSelectorText.TITLE);
   }
 
-  get cancelButtonText() {
+  get cancelButtonText(): DetoxElement {
     return Matchers.getElementByText(SpamFilterModalSelectorText.CANCEL_BUTTON);
   }
 
-  async tapCloseButton() {
-    await Gestures.waitAndTap(this.cancelButtonText);
+  async tapCloseButton(): Promise<void> {
+    await Gestures.waitAndTap(this.cancelButtonText, {
+      elemDescription: 'Tap on the close button',
+    });
   }
 }
 
