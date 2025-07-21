@@ -84,7 +84,7 @@ class CollectibleView extends PureComponent {
     } = this.props;
     this.props.newAssetTransaction(params);
     if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
-      navigation.navigate(Routes.SEND.ROOT, {
+      this.props.navigation.navigate(Routes.SEND.ROOT, {
         params,
       });
     } else {
