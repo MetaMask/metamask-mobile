@@ -18,7 +18,7 @@ const PopularNetworksList = {
     providerConfig: {
       type: 'rpc',
       chainId: toHex('56'),
-      rpcUrl: 'https://bsc-dataseed.binance.org/',
+      rpcUrl: `https://bsc-mainnet.infura.io/v3/${infuraProjectId}`,
       nickname: 'BNB Smart Chain',
       ticker: 'BNB',
     },
