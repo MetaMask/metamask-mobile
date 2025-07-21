@@ -12,6 +12,84 @@ import { useSelector } from 'react-redux';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
+// Mock the feature flag
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
+  isPortfolioViewEnabled: jest.fn(() => false),
+  getDecimalChainId: jest.fn(() => '1'),
+  getIsNetworkOnboarded: jest.fn(() => true),
+  isTestNet: jest.fn(() => false),
+}));
+
+// Mock the hooks used in Wallet component
+jest.mock(
+  '../../../components/hooks/useNetworkSelection/useNetworkSelection',
+  () => ({
+    useNetworkSelection: jest.fn(() => ({
+      selectNetwork: jest.fn(),
+    })),
+  }),
+);
+
+jest.mock(
+  '../../../components/hooks/useNetworksByNamespace/useNetworksByNamespace',
+  () => ({
+    useNetworksByNamespace: jest.fn(() => ({
+      networks: [],
+    })),
+    NetworkType: {
+      Popular: 'popular',
+    },
+  }),
+);
+
+jest.mock('../../../components/hooks/useMetrics', () => {
+  const builder = {
+    addProperties: jest.fn().mockImplementation(() => builder),
+    build: jest.fn(() => ({})),
+  };
+  return {
+    useMetrics: jest.fn(() => ({
+      trackEvent: jest.fn(),
+      createEventBuilder: jest.fn(() => builder),
+      addTraitsToUser: jest.fn(),
+      isEnabled: jest.fn(() => true),
+    })),
+    withMetricsAwareness: jest.fn((Component) => Component),
+  };
+});
+
+jest.mock('../../../components/hooks/useAccountName', () => ({
+  useAccountName: jest.fn(() => 'Account 1'),
+}));
+
+jest.mock(
+  '../../../components/hooks/useAccountsWithNetworkActivitySync',
+  () => ({
+    useAccountsWithNetworkActivitySync: jest.fn(),
+  }),
+);
+
+jest.mock('../../../components/hooks/useCheckNftAutoDetectionModal', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../../components/hooks/useCheckMultiRpcModal', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../../components/hooks/useNftDetectionChainIds', () => ({
+  useNftDetectionChainIds: jest.fn(() => ['0x1']),
+}));
+
+jest.mock('../ErrorBoundary', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 jest.mock('../../../util/address', () => {
   const actual = jest.requireActual('../../../util/address');
   return {
@@ -135,6 +213,11 @@ const mockInitialState = {
   },
   settings: {
     primaryCurrency: 'usd',
+    basicFunctionalityEnabled: true,
+    useBlockieIcon: false,
+  },
+  banners: {
+    dismissedBanners: [],
   },
   engine: {
     backgroundState: {
@@ -152,6 +235,51 @@ const mockInitialState = {
             ],
           },
         },
+      },
+      NetworkController: {
+        ...backgroundState.NetworkController,
+        providerConfig: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3/test',
+        },
+        networkConfigurations: {
+          '0x1': {
+            name: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
+          },
+        },
+        evmNetworkConfigurationsByChainId: {
+          '0x1': {
+            name: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
+            defaultRpcEndpointIndex: 0,
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                rpcUrl: 'https://mainnet.infura.io/v3/test',
+              },
+            ],
+          },
+        },
+      },
+      PreferencesController: {
+        ...backgroundState.PreferencesController,
+        tokenNetworkFilter: {},
+        useTokenDetection: true,
+      },
+      NetworkEnablementController: {
+        ...backgroundState.NetworkEnablementController,
+        enabledNetworks: ['0x1'],
+      },
+      RemoteFeatureFlagController: {
+        ...backgroundState.RemoteFeatureFlagController,
+        assetsDefiPositions: true,
+      },
+      NotificationServicesController: {
+        ...backgroundState.NotificationServicesController,
+        isEnabled: true,
+        unreadCount: 0,
+        readCount: 0,
       },
     },
   },
@@ -290,5 +418,96 @@ describe('Wallet', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose
     const wrapper = render(Wallet);
     expect(wrapper.toJSON()).toMatchSnapshot();
+  });
+
+  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
+    const { isRemoveGlobalNetworkSelectorEnabled } = jest.requireMock(
+      '../../../util/networks',
+    );
+    const { useNetworkSelection } = jest.requireMock(
+      '../../../components/hooks/useNetworkSelection/useNetworkSelection',
+    );
+
+    // Common test configurations
+    const createMockSelectNetwork = () => jest.fn();
+
+    const createStateWithEnabledNetworks = (enabledNetworks: string[]) => ({
+      ...mockInitialState,
+      engine: {
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          NetworkEnablementController: {
+            ...mockInitialState.engine.backgroundState
+              .NetworkEnablementController,
+            enabledNetworkMap: {
+              eip155: enabledNetworks.reduce((acc, network) => {
+                acc[network] = true;
+                return acc;
+              }, {} as Record<string, boolean>),
+            },
+          },
+        },
+      },
+    });
+
+    const setupMocks = (
+      mockSelectNetwork: jest.Mock,
+      featureFlagEnabled: boolean,
+    ) => {
+      jest
+        .mocked(isRemoveGlobalNetworkSelectorEnabled)
+        .mockReturnValue(featureFlagEnabled);
+      jest.mocked(useNetworkSelection).mockReturnValue({
+        selectNetwork: mockSelectNetwork,
+      });
+    };
+
+    const renderWalletWithState = (state: unknown) => {
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback) => callback(state));
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('when feature flag is enabled', () => {
+      it('should call selectNetwork when no enabled EVM networks', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, true);
+
+        const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
+        renderWalletWithState(stateWithNoEnabledNetworks);
+
+        expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+      });
+
+      it('should not call selectNetwork when there are enabled EVM networks', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, true);
+
+        const stateWithEnabledNetworks = createStateWithEnabledNetworks([
+          '0x1',
+          '0x5',
+        ]);
+        renderWalletWithState(stateWithEnabledNetworks);
+
+        expect(mockSelectNetwork).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when feature flag is disabled', () => {
+      it('should not call selectNetwork', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, false);
+
+        renderWalletWithState(mockInitialState);
+
+        expect(mockSelectNetwork).not.toHaveBeenCalled();
+      });
+    });
   });
 });

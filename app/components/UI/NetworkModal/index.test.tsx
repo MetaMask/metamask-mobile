@@ -10,6 +10,12 @@ import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selector
 import { NetworkAddedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkAddedBottomSheet.selectors';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
+  isPrivateConnection: jest.fn().mockReturnValue(false),
+}));
+
 jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   addItemToChainIdList: jest.fn().mockReturnValue({
     chain_id_list: ['eip155:1', 'eip155:137'],
@@ -65,7 +71,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../hooks/useNetworksByNamespace', () => ({
+jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: () => ({
     networks: [],
     selectNetwork: jest.fn(),
@@ -78,10 +84,11 @@ jest.mock('../../hooks/useNetworksByNamespace', () => ({
   },
 }));
 
-jest.mock('../../hooks/useNetworkSelection', () => ({
+jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
   useNetworkSelection: () => ({
     selectCustomNetwork: jest.fn(),
     selectPopularNetwork: jest.fn(),
+    selectNetwork: jest.fn(),
   }),
 }));
 
@@ -165,7 +172,6 @@ describe('NetworkDetails', () => {
       NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
     );
 
-    // Mock the addNetwork response to include networkClientId
     (
       Engine.context.NetworkController.addNetwork as jest.Mock
     ).mockResolvedValue({
@@ -183,7 +189,6 @@ describe('NetworkDetails', () => {
   });
 
   it('should call setActiveNetwork when updating an existing network', async () => {
-    // Mock existing network configuration
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return 'Ethereum Main Network';
       if (selector === selectUseSafeChainsListValidation) return true;
@@ -207,7 +212,6 @@ describe('NetworkDetails', () => {
       NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
     );
 
-    // Mock the updateNetwork response to include networkClientId
     (
       Engine.context.NetworkController.updateNetwork as jest.Mock
     ).mockResolvedValue({
@@ -236,7 +240,6 @@ describe('NetworkDetails', () => {
       NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
     );
 
-    // Mock the addNetwork response to include networkClientId
     (
       Engine.context.NetworkController.addNetwork as jest.Mock
     ).mockResolvedValue({
@@ -248,14 +251,12 @@ describe('NetworkDetails', () => {
       fireEvent.press(switchButton);
     });
 
-    // Verify onUpdateNetworkFilter was called (via setTokenNetworkFilter)
     expect(
       Engine.context.PreferencesController.setTokenNetworkFilter,
     ).toHaveBeenCalledWith({
       [props.networkConfiguration.chainId]: true,
     });
 
-    // Verify setActiveNetwork was called with the networkClientId
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('test-network-id');
@@ -273,7 +274,6 @@ describe('NetworkDetails', () => {
       NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
     );
 
-    // Mock the addNetwork response to include networkClientId
     (
       Engine.context.NetworkController.addNetwork as jest.Mock
     ).mockResolvedValue({
@@ -285,14 +285,12 @@ describe('NetworkDetails', () => {
       fireEvent.press(switchButton);
     });
 
-    // Verify addTraitsToUser was called with the chain ID list
     expect(mockAddTraitsToUser).toHaveBeenCalledWith({
       chain_id_list: ['eip155:1', 'eip155:137'],
     });
   });
 
   it('should call addTraitsToUser with chain ID list when updating an existing network', async () => {
-    // Mock existing network configuration
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return 'Ethereum Main Network';
       if (selector === selectUseSafeChainsListValidation) return true;
@@ -316,7 +314,6 @@ describe('NetworkDetails', () => {
       NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
     );
 
-    // Mock the updateNetwork response to include networkClientId
     (
       Engine.context.NetworkController.updateNetwork as jest.Mock
     ).mockResolvedValue({
@@ -328,7 +325,6 @@ describe('NetworkDetails', () => {
       fireEvent.press(switchButton);
     });
 
-    // Verify addTraitsToUser was called with the chain ID list
     expect(mockAddTraitsToUser).toHaveBeenCalledWith({
       chain_id_list: ['eip155:1', 'eip155:137'],
     });
@@ -340,15 +336,12 @@ describe('NetworkDetails', () => {
     });
 
     it('should handle adding new network correctly', async () => {
-      // Mock empty network configurations
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectNetworkConfigurations) return {};
         return {};
       });
 
       const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
-
-      // Mock the addNetwork response
       (
         Engine.context.NetworkController.addNetwork as jest.Mock
       ).mockResolvedValue({
@@ -357,7 +350,6 @@ describe('NetworkDetails', () => {
       });
 
       await act(async () => {
-        //@ts-expect-error - mockResolvedValueOnce is a jest function in the jest environment
         Engine.context.NetworkController.addNetwork.mockResolvedValueOnce({
           rpcEndpoints: [{ networkClientId: 'new-network-id' }],
           defaultRpcEndpointIndex: 0,
@@ -375,7 +367,6 @@ describe('NetworkDetails', () => {
         fireEvent.press(closeButton);
       });
 
-      // Verify network was added with correct parameters
       expect(Engine.context.NetworkController.addNetwork).toHaveBeenCalledWith({
         chainId: props.networkConfiguration.chainId,
         blockExplorerUrls: [
@@ -393,6 +384,190 @@ describe('NetworkDetails', () => {
           },
         ],
       });
+    });
+  });
+
+  describe('when isRemoveGlobalNetworkSelectorEnabled is true', () => {
+    let mockSelectNetwork: jest.Mock;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+
+      const networksModule = jest.requireMock('../../../util/networks');
+      networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
+      mockSelectNetwork = jest.fn();
+      const useNetworkSelectionModule = jest.requireMock(
+        '../../hooks/useNetworkSelection/useNetworkSelection',
+      );
+      useNetworkSelectionModule.useNetworkSelection = () => ({
+        selectCustomNetwork: jest.fn(),
+        selectPopularNetwork: jest.fn(),
+        selectNetwork: mockSelectNetwork,
+      });
+    });
+
+    it('should call selectNetwork when adding a new network and feature flag is enabled', async () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurations) return {};
+        return {};
+      });
+
+      const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
+      (
+        Engine.context.NetworkController.addNetwork as jest.Mock
+      ).mockResolvedValue({
+        rpcEndpoints: [{ networkClientId: 'new-network-id' }],
+        defaultRpcEndpointIndex: 0,
+      });
+
+      await act(async () => {
+        const approveButton = getByTestId(
+          NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+        );
+        fireEvent.press(approveButton);
+      });
+
+      await act(async () => {
+        const closeButton = getByTestId(
+          NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
+        );
+        fireEvent.press(closeButton);
+      });
+
+      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+    });
+
+    it('should call selectNetwork when switching networks and feature flag is enabled', async () => {
+      const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
+
+      const approveButton = getByTestId(
+        NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+      );
+      fireEvent.press(approveButton);
+
+      const switchButton = getByTestId(
+        NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+      );
+
+      // Mock the addNetwork response to include networkClientId
+      (
+        Engine.context.NetworkController.addNetwork as jest.Mock
+      ).mockResolvedValue({
+        rpcEndpoints: [{ networkClientId: 'test-network-id' }],
+        defaultRpcEndpointIndex: 0,
+      });
+
+      await act(async () => {
+        fireEvent.press(switchButton);
+      });
+
+      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+    });
+
+    it('should call selectNetwork when updating an existing network and feature flag is enabled', async () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectNetworkName) return 'Ethereum Main Network';
+        if (selector === selectUseSafeChainsListValidation) return true;
+        if (selector === selectNetworkConfigurations)
+          return {
+            '0x1': {
+              chainId: '0x1',
+            },
+          };
+        return {};
+      });
+
+      const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
+
+      const approveButton = getByTestId(
+        NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+      );
+      fireEvent.press(approveButton);
+
+      const switchButton = getByTestId(
+        NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+      );
+
+      (
+        Engine.context.NetworkController.updateNetwork as jest.Mock
+      ).mockResolvedValue({
+        rpcEndpoints: [{ networkClientId: 'test-network-id' }],
+        defaultRpcEndpointIndex: 0,
+      });
+
+      await act(async () => {
+        fireEvent.press(switchButton);
+      });
+
+      expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+    });
+
+    it('should not call selectNetwork when feature flag is disabled', async () => {
+      const networksModule = jest.requireMock('../../../util/networks');
+      networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(
+        false,
+      );
+
+      const { getByTestId } = renderWithTheme(<NetworkModal {...props} />);
+
+      const approveButton = getByTestId(
+        NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+      );
+      fireEvent.press(approveButton);
+
+      const switchButton = getByTestId(
+        NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+      );
+
+      (
+        Engine.context.NetworkController.addNetwork as jest.Mock
+      ).mockResolvedValue({
+        rpcEndpoints: [{ networkClientId: 'test-network-id' }],
+        defaultRpcEndpointIndex: 0,
+      });
+
+      await act(async () => {
+        fireEvent.press(switchButton);
+      });
+
+      expect(mockSelectNetwork).not.toHaveBeenCalled();
+    });
+
+    it('should call selectNetwork with correct chainId format when feature flag is enabled', async () => {
+      const propsWithDifferentChainId = {
+        ...props,
+        networkConfiguration: {
+          ...props.networkConfiguration,
+          chainId: '0x89', // Polygon chainId
+        },
+      };
+
+      const { getByTestId } = renderWithTheme(
+        <NetworkModal {...propsWithDifferentChainId} />,
+      );
+
+      const approveButton = getByTestId(
+        NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
+      );
+      fireEvent.press(approveButton);
+
+      const switchButton = getByTestId(
+        NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+      );
+
+      (
+        Engine.context.NetworkController.addNetwork as jest.Mock
+      ).mockResolvedValue({
+        rpcEndpoints: [{ networkClientId: 'test-network-id' }],
+        defaultRpcEndpointIndex: 0,
+      });
+
+      await act(async () => {
+        fireEvent.press(switchButton);
+      });
+
+      expect(mockSelectNetwork).toHaveBeenCalledWith('0x89');
     });
   });
 });

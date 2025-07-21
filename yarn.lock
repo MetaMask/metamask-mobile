@@ -5610,7 +5610,7 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-enablement-controller@file:./temp-network-enablement-controller":
+"@metamask/network-enablement-controller@file:../core/packages/network-enablement-controller/dist":
   version "0.0.0"
 
 "@metamask/nonce-tracker@^6.0.0":

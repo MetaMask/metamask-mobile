@@ -25,11 +25,19 @@ export enum NetworkType {
 }
 
 interface UseNetworksByNamespaceOptions {
+  /** Filter by popular or custom networks */
   networkType: NetworkType;
 }
 
 /**
- * Hook that provides filtered and processed networks for a given namespace
+ * Filters and processes networks based on the current namespace (EVM, Bitcoin, etc).
+ * Enriches network data with selection state and UI-ready properties.
+ * @param options.networkType - Filter by popular or custom networks
+ * @returns Processed networks with selection state and aggregated statistics
+ * @example
+ * const { networks, areAllNetworksSelected } = useNetworksByNamespace({
+ *   networkType: NetworkType.Popular
+ * });
  */
 export const useNetworksByNamespace = ({
   networkType,

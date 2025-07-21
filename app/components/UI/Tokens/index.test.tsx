@@ -235,7 +235,7 @@ jest.mock('../../UI/Stake/hooks/useStakingChain', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useNetworksByNamespace', () => ({
+jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: () => ({
     networks: [],
     selectNetwork: jest.fn(),
@@ -248,14 +248,14 @@ jest.mock('../../hooks/useNetworksByNamespace', () => ({
   },
 }));
 
-jest.mock('../../hooks/useNetworkSelection', () => ({
+jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
   useNetworkSelection: () => ({
     selectCustomNetwork: jest.fn(),
     selectPopularNetwork: jest.fn(),
   }),
 }));
 
-jest.mock('../../hooks/useNetworkEnablement', () => ({
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
     enabledNetworks: { '0x1': true },

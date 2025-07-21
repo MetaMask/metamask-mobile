@@ -9,11 +9,26 @@ import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespa
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/network';
 
 interface UseNetworkSelectionOptions {
+  /**
+   * Array of processed networks that can be selected/deselected
+   */
   networks: ProcessedNetwork[];
 }
 
 /**
- * Hook that provides network selection functionality for both custom and popular networks
+ * Manages network selection state with support for popular and custom networks.
+ * Key behaviors:
+ * - Popular networks can be multi-selected
+ * - Custom networks are exclusive (only one at a time)
+ * - At least one network is always enabled (defaults to Ethereum mainnet)
+ * @param options.networks - Array of networks to manage
+ * @returns Network selection methods and state
+ * @example
+ * ```tsx
+ * const { selectNetwork, toggleAll } = useNetworkSelection({ networks });
+ * selectNetwork('0x1'); // Select by hex or CAIP format
+ * toggleAll(); // Toggle all networks
+ * ```
  */
 export const useNetworkSelection = ({
   networks,
@@ -54,6 +69,7 @@ export const useNetworkSelection = ({
     [currentEnabledNetworks, popularNetworkChainIds],
   );
 
+  /** Disables all custom networks except the optionally specified one */
   const resetCustomNetworks = useCallback(
     (excludeChainId?: CaipChainId) => {
       const networksToDisable = excludeChainId
@@ -71,9 +87,7 @@ export const useNetworkSelection = ({
     [customNetworksToReset, disableNetwork],
   );
 
-  // The network enablement controller will always have one network enabled
-  // so we need to reset the custom networks to ensure that the network enablement controller
-  // has at least one network enabled
+  /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
     (chainId: CaipChainId) => {
       enableNetwork(chainId);
@@ -82,16 +96,16 @@ export const useNetworkSelection = ({
     [enableNetwork, resetCustomNetworks],
   );
 
+  /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
     (chainId: CaipChainId) => {
-      // Toggle the popular network
       toggleNetwork(chainId);
-      // Reset custom networks when selecting popular networks
       resetCustomNetworks();
     },
     [toggleNetwork, resetCustomNetworks],
   );
 
+  /** Selects a network, automatically handling popular vs custom logic */
   const selectNetwork = useCallback(
     (hexOrCaipChainId: CaipChainId | `0x${string}` | Hex) => {
       const chainId = toHex(hexOrCaipChainId);
@@ -108,22 +122,21 @@ export const useNetworkSelection = ({
     [selectPopularNetwork, selectCustomNetwork],
   );
 
+  /** Deselects all networks except Ethereum mainnet */
   const deselectAll = useCallback(() => {
     networks.forEach(({ caipChainId }) => {
-      // disable all networks except Ethereum. That should be the default network enabled
-      // when all networks are deselected. The EnablementController will always have one network enabled
       if (caipChainId !== 'eip155:1') {
         disableNetwork(caipChainId);
       }
     });
   }, [networks, disableNetwork]);
 
+  /** Toggles selection of all networks */
   const toggleAll = useCallback(() => {
     const areAllSelected = networks.every(({ isSelected }) => isSelected);
     if (areAllSelected) {
       deselectAll();
     } else {
-      // Select all popular networks
       networks.forEach(({ caipChainId }) => {
         enableNetwork(caipChainId);
       });

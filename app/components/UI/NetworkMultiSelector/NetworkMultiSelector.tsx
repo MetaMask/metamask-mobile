@@ -25,6 +25,8 @@ import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkS
 // internal dependencies
 import stylesheet from './NetworkMultiSelector.styles';
 import { NetworkMultiSelectorProps } from './NetworkMultiSelector.types';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
+
 interface ModalState {
   showPopularNetworkModal: boolean;
   popularNetwork?: ExtendedNetwork;
@@ -68,7 +70,10 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
   });
 
   const selectedChainIds = useMemo(
-    () => Object.keys(enabledNetworksByNamespace[namespace]) as CaipChainId[],
+    () =>
+      Object.keys(enabledNetworksByNamespace[namespace] || {}).filter(
+        (chainId) => enabledNetworksByNamespace[namespace]?.[chainId],
+      ) as CaipChainId[],
     [enabledNetworksByNamespace, namespace],
   );
 
@@ -139,6 +144,7 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
           style={styles.selectAllText}
           onPress={toggleAll}
           variant={TextVariant.BodyMD}
+          testID={NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_TEXT}
         >
           {selectAllText}
         </Text>
@@ -150,7 +156,10 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
   const additionalNetworksComponent = useMemo(
     () =>
       namespace === KnownCaipNamespace.Eip155 ? (
-        <View style={styles.customNetworkContainer}>
+        <View
+          style={styles.customNetworkContainer}
+          testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORK_CONTAINER}
+        >
           <CustomNetwork {...customNetworkProps} />
         </View>
       ) : null,
@@ -158,7 +167,10 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
   );
 
   return (
-    <View style={styles.bodyContainer}>
+    <View
+      style={styles.bodyContainer}
+      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER}
+    >
       {renderSelectAllCheckbox()}
       <NetworkMultiSelectorList
         openModal={openModal}

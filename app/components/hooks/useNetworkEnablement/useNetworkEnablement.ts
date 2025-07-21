@@ -9,10 +9,15 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { selectChainId } from '../../../selectors/networkController';
 
 /**
- * Hook that provides network enablement functionality including:
- * - Current namespace from selected network
- * - Enabled networks by namespace
- * - Network enablement controller access
+ * Manages network enablement state across namespaces (EVM, Bitcoin, etc).
+ * Provides methods to enable, disable, and toggle networks.
+ * @returns Network enablement methods and state
+ * @example
+ *
+ * const { enableNetwork, toggleNetwork } = useNetworkEnablement();
+ * enableNetwork('eip155:1'); // Enable Ethereum mainnet
+ * toggleNetwork('eip155:137'); // Toggle Polygon
+ *
  */
 export const useNetworkEnablement = () => {
   const enabledNetworksByNamespace = useSelector(
@@ -25,14 +30,13 @@ export const useNetworkEnablement = () => {
     ? (toEvmCaipChainId(currentChainId as Hex) as CaipChainId)
     : (currentChainId as CaipChainId);
   const { namespace } = parseCaipChainId(currentCaipChainId);
-
   const networkEnablementController = useMemo(
     () => Engine.context.NetworkEnablementController,
     [],
   );
 
   const enabledNetworksForCurrentNamespace = useMemo(
-    () => enabledNetworksByNamespace[namespace] || {},
+    () => enabledNetworksByNamespace?.[namespace] || {},
     [enabledNetworksByNamespace, namespace],
   );
 
