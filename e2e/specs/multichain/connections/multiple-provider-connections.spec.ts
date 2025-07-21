@@ -40,7 +40,7 @@ async function requestPermissions({
   await TestHelpers.delay(7000);
 
   const nativeWebView = Matchers.getWebViewByID(
-    BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID
+    BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
   );
   const bodyElement = nativeWebView.element(by.web.tag('body'));
 
