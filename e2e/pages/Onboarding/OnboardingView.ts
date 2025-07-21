@@ -8,7 +8,9 @@ class OnboardingView {
   }
 
   get existingWalletButton() {
-    return Matchers.getElementByID(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
+    return Matchers.getElementByID(
+      OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+    );
   }
 
   get newWalletButton(): DetoxElement {

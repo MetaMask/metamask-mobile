@@ -8,15 +8,21 @@ class OnboardingSheet {
   }
 
   get googleLoginButton() {
-    return Matchers.getElementByID(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON);
+    return Matchers.getElementByID(
+      OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON,
+    );
   }
 
   get appleLoginButton() {
-    return Matchers.getElementByID(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON);
+    return Matchers.getElementByID(
+      OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON,
+    );
   }
 
   get importSeedButton() {
-    return Matchers.getElementByID(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON);
+    return Matchers.getElementByID(
+      OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON,
+    );
   }
 
   async tapGoogleLoginButton() {
