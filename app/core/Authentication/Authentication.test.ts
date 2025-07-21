@@ -12,10 +12,6 @@ import SecureKeychain from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';
 import AuthenticationError from './AuthenticationError';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
-  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-  AUTHENTICATION_FAILED_TO_LOGIN,
-  AUTHENTICATION_FAILED_WALLET_CREATION,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
@@ -24,7 +20,6 @@ import { SeedlessOnboardingController } from '@metamask/seedless-onboarding-cont
 import { KeyringController, KeyringTypes } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
-import { logOut } from '../../actions/user';
 
 // Mock the Vault module
 jest.mock('../Vault', () => ({
