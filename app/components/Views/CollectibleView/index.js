@@ -81,7 +81,10 @@ class CollectibleView extends PureComponent {
       route: { params },
     } = this.props;
     this.props.newAssetTransaction(params);
-    this.props.navigation.navigate('SendFlowView');
+    this.props.navigation.navigate('SendFlowView', {
+      screen: Routes.SEND.ROOT,
+      params,
+    });
   };
 
   render() {

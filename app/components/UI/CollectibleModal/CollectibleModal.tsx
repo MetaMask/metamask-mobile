@@ -81,7 +81,12 @@ const CollectibleModal = () => {
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
     //@ts-expect-error replace do not exist on ParamListBase
-    navigation.replace('SendFlowView');
+    navigation.replace('SendFlowView', {
+      screen: Routes.SEND.ROOT,
+      params: {
+        asset: { contractName, ...collectible },
+      },
+    });
   }, [contractName, collectible, navigation, dispatch]);
 
   const isTradable = useCallback(
