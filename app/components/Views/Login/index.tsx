@@ -95,7 +95,10 @@ import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import {
+  SeedlessOnboardingControllerErrorMessage,
+  RecoveryError as SeedlessOnboardingControllerRecoveryError,
+} from '@metamask/seedless-onboarding-controller';
 import {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -346,15 +349,49 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleSeedlessOnboardingControllerError = (
-    seedlessError: SeedlessOnboardingControllerRecoveryError,
+    seedlessError:
+      | Error
+      | SeedlessOnboardingControllerRecoveryError
+      | SeedlessOnboardingControllerError,
   ) => {
-    // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
-    if (seedlessError.data?.numberOfAttempts !== undefined) {
-      setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
-    }
+    setLoading(false);
 
-    if (seedlessError.data?.remainingTime) {
-      tooManyAttemptsError(seedlessError.data?.remainingTime).catch(() => null);
+    if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
+      // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
+      if (
+        seedlessError.message ===
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword
+      ) {
+        setError(strings('login.invalid_password'));
+        return;
+      } else if (
+        seedlessError.message ===
+        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
+      ) {
+        if (seedlessError.data?.numberOfAttempts !== undefined) {
+          setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+        }
+        if (seedlessError.data?.remainingTime) {
+          tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
+            () => null,
+          );
+        }
+      } else {
+        const errMessage = seedlessError.message.replace(
+          'SeedlessOnboardingController - ',
+          '',
+        );
+        setError(errMessage);
+      }
+    } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
+      if (
+        seedlessError.code ===
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+      ) {
+        setError(strings('login.seedless_password_outdated'));
+        return;
+      }
+      setError(seedlessError.message);
     } else {
       const errMessage = seedlessError.message.replace(
         'SeedlessOnboardingController - ',
@@ -381,23 +418,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const loginError = loginErr as Error;
     const loginErrorMessage = loginError.toString();
 
-    if (loginErr instanceof SeedlessOnboardingControllerRecoveryError) {
-      setLoading(false);
-      handleSeedlessOnboardingControllerError(
-        loginError as SeedlessOnboardingControllerRecoveryError,
-      );
-      return;
-    }
-
-    if (loginErr instanceof SeedlessOnboardingControllerError) {
-      setLoading(false);
-      if (
-        loginErr.code ===
-        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
-      ) {
-        setError(strings('login.seedless_password_outdated'));
-      }
-      setError(loginErr.message);
+    if (loginErrorMessage.includes('SeedlessOnboardingController')) {
+      handleSeedlessOnboardingControllerError(loginError);
       return;
     }
 
