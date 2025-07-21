@@ -2,23 +2,23 @@ import {
   ToastSelectorsIDs,
   ToastSelectorsText,
 } from '../../selectors/wallet/ToastModal.selectors';
-import Gestures from '../../framework/Gestures.ts';
-import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class ToastModal {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ToastSelectorsIDs.CONTAINER);
   }
 
-  get notificationTitle() {
+  get notificationTitle(): DetoxElement {
     return Matchers.getElementByID(ToastSelectorsIDs.NOTIFICATION_TITLE);
   }
 
-  get toastCloseButton() {
+  get toastCloseButton(): DetoxElement {
     return Matchers.getElementByText(ToastSelectorsText.CLOSE_BUTTON);
   }
 
-  async tapToastCloseButton() {
+  async tapToastCloseButton(): Promise<void> {
     await Gestures.waitAndTap(this.toastCloseButton, {
       elemDescription: 'Toast Modal Close Button',
     });
