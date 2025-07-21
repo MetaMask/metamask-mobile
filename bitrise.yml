@@ -2810,6 +2810,7 @@ workflows:
   run_native_android_tests:
     before_run:
       - code_setup
+      - build_android_devbuild
     steps:
       - script@1:
           inputs:
