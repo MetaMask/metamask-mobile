@@ -217,6 +217,7 @@ const BankDetails = () => {
 
       const cryptoCurrency = getCryptoCurrencyFromTransakId(
         order.data.cryptoCurrency,
+        order.data.network,
       );
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
