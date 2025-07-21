@@ -475,6 +475,12 @@ const createStyles = (colors: Colors) =>
     debugButtonRow: {
       flexDirection: 'row',
     },
+    tooltipSection: {
+      marginTop: 16,
+    },
+    tooltipItem: {
+      marginBottom: 8,
+    },
   });
 
 export default createStyles;

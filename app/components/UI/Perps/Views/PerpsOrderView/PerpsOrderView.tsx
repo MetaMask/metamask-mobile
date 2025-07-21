@@ -41,6 +41,7 @@ import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferences
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
+import useTooltipModal from '../../../../hooks/useTooltipModal';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsTokenSelector, {
   type PerpsToken,
@@ -79,9 +80,6 @@ import {
   getNetworkImageSource,
 } from '../../../../../util/networks';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
-import PerpsInfoBottomSheet, {
-  type InfoType,
-} from '../../components/PerpsInfoBottomSheet';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
@@ -123,6 +121,7 @@ const PerpsOrderView: React.FC = () => {
   const toastContext = useContext(ToastContext);
 
   const toastRef = toastContext?.toastRef;
+  const { openTooltipModal } = useTooltipModal();
 
   // Selectors
   const tokenList = useSelector(selectTokenList);
@@ -188,13 +187,100 @@ const PerpsOrderView: React.FC = () => {
     // Track route param changes
   }, [route.params]);
   const [isTokenSelectorVisible, setIsTokenSelectorVisible] = useState(false);
-  const [visibleInfoType, setVisibleInfoType] = useState<InfoType | null>(null);
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
 
   const paymentTokens = usePerpsPaymentTokens();
+
+  // Tooltip content for educational info
+  const tooltipContent = {
+    leverage: (
+      <View>
+        <Text variant={TextVariant.BodyMD}>
+          Leverage allows you to control a larger position with less capital, amplifying both profits and losses.
+        </Text>
+        <View style={styles.tooltipSection}>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Higher leverage = Higher risk & reward
+          </Text>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Maximum leverage varies by asset
+          </Text>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Liquidation occurs when losses exceed margin
+          </Text>
+          <Text variant={TextVariant.BodyMD}>
+            • Start with lower leverage if you're new
+          </Text>
+        </View>
+      </View>
+    ),
+    executionTime: (
+      <View>
+        <Text variant={TextVariant.BodyMD}>
+          Orders are executed nearly instantly on HyperLiquid's high-performance blockchain.
+        </Text>
+        <View style={styles.tooltipSection}>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Market orders: &lt; 1 second
+          </Text>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Limit orders: Execute when price is matched
+          </Text>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Network congestion may cause slight delays
+          </Text>
+          <Text variant={TextVariant.BodyMD}>
+            • Failed orders are automatically retried
+          </Text>
+        </View>
+      </View>
+    ),
+    margin: (
+      <View>
+        <Text variant={TextVariant.BodyMD}>
+          Margin is the collateral required to open and maintain a leveraged position.
+        </Text>
+        <View style={styles.tooltipSection}>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Initial margin = Position size ÷ Leverage
+          </Text>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Maintenance margin = 0.625% of position size
+          </Text>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Available balance must exceed initial margin
+          </Text>
+          <Text variant={TextVariant.BodyMD}>
+            • Margin is locked when position is open
+          </Text>
+        </View>
+      </View>
+    ),
+    fees: (
+      <View>
+        <Text variant={TextVariant.BodyMD}>
+          Fees are charged on every trade to cover the cost of execution and liquidity provision.
+        </Text>
+        <View style={styles.tooltipSection}>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Market orders: 0.075% of position size
+          </Text>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Limit orders: 0.02% of position size
+          </Text>
+          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
+            • Fees are deducted from your margin balance
+          </Text>
+          <Text variant={TextVariant.BodyMD}>
+            • No funding fees for the first 8 hours
+          </Text>
+        </View>
+      </View>
+    ),
+  };
 
   // Set initial selected token to Hyperliquid USDC (always first in array)
   useEffect(() => {
@@ -568,7 +654,7 @@ const PerpsOrderView: React.FC = () => {
                       {strings('perps.order.leverage')}
                     </Text>
                     <TouchableOpacity
-                      onPress={() => setVisibleInfoType('leverage')}
+                      onPress={() => openTooltipModal('What is Leverage?', tooltipContent.leverage)}
                       style={styles.infoIcon}
                     >
                       <Icon
@@ -729,7 +815,7 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.estimated_execution_time')}
               </Text>
               <TouchableOpacity
-                onPress={() => setVisibleInfoType('execution_time')}
+                onPress={() => openTooltipModal('Execution Time', tooltipContent.executionTime)}
                 style={styles.infoIcon}
               >
                 <Icon
@@ -750,7 +836,7 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.margin')}
               </Text>
               <TouchableOpacity
-                onPress={() => setVisibleInfoType('margin')}
+                onPress={() => openTooltipModal('Margin Requirements', tooltipContent.margin)}
                 style={styles.infoIcon}
               >
                 <Icon
@@ -782,7 +868,7 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.fees')}
               </Text>
               <TouchableOpacity
-                onPress={() => setVisibleInfoType('fees')}
+                onPress={() => openTooltipModal('Trading Fees', tooltipContent.fees)}
                 style={styles.infoIcon}
               >
                 <Icon
@@ -852,15 +938,6 @@ const PerpsOrderView: React.FC = () => {
         title={strings('perps.order.select_payment_asset')}
         minimumBalance={0}
       />
-
-      {/* Info Bottom Sheet */}
-      {visibleInfoType && (
-        <PerpsInfoBottomSheet
-          type={visibleInfoType}
-          isVisible
-          onClose={() => setVisibleInfoType(null)}
-        />
-      )}
 
       {/* TP/SL Bottom Sheet */}
       {isTPSLVisible && (

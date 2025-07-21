@@ -941,16 +941,6 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed"
     },
-    "info": {
-      "leverage": {
-        "title": "What is Leverage?",
-        "description": "Leverage allows you to control a larger position with less capital, amplifying both profits and losses.",
-        "detail1": "Higher leverage = Higher risk & reward",
-        "detail2": "Maximum leverage varies by asset",
-        "detail3": "Liquidation occurs when losses exceed margin",
-        "detail4": "Start with lower leverage if you're new"
-      }
-    },
     "position": {
       "title": "Positions",
       "card": {
