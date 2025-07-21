@@ -199,7 +199,8 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
         setSourceToken(enhancedToken);
       } catch (err) {
-        // Silently handle error
+        // Prevent blocking the app, user can still select the token manually
+        console.error('Error setting default token', err);
       }
     }
   }, [tokenList, isIpfsGatewayEnabled, sourceToken, isTestnet]);
