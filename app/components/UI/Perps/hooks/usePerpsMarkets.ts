@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { PerpsMarketData } from '../controllers/types';
 
 export interface UsePerpsMarketsResult {
   /**
