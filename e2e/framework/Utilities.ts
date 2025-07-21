@@ -10,9 +10,7 @@ const TEST_CONFIG_DEFAULTS = {
   stabilityCheckCount: 3,
 };
 
-const logger = createLogger({
-  origin: 'Utilities',
-});
+const logger = createLogger({ name: 'Utilities' });
 
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking

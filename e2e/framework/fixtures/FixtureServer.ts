@@ -5,7 +5,7 @@ import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 
 const logger = createLogger({
-  origin: 'FixtureServer',
+  name: 'FixtureServer',
 });
 
 const CURRENT_STATE_KEY = '__CURRENT__';

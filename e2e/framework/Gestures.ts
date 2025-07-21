@@ -11,9 +11,8 @@ import {
 } from './types';
 import { createLogger } from './logger';
 
-const logger = createLogger({
-  origin: 'Gestures',
-});
+const logger = createLogger({ name: 'Gestures' });
+
 /**
  * Gestures class with element stability and auto-retry
  */

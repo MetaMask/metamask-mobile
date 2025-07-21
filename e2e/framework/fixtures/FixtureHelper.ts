@@ -34,7 +34,7 @@ import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 
 const logger = createLogger({
-  origin: 'FixtureHelper',
+  name: 'FixtureHelper',
 });
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;

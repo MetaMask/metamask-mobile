@@ -5,7 +5,7 @@ import { AnvilNodeOptions } from '../framework/types';
 import { createLogger } from '../framework/logger';
 
 const logger = createLogger({
-  origin: 'AnvilManager',
+  name: 'AnvilManager',
 });
 
 export const DEFAULT_ANVIL_PORT = 8545;

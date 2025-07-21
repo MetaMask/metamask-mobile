@@ -254,10 +254,10 @@ export default new LoginPage();
 ```typescript
 // Creating a logger
 const logger = createLogger({
-  origin: 'MyTestile',
+  name: 'MyTestile',
 });
 
-logger.debug('Testing a specific test step.')
+logger.debug('Testing a specific test step.');
 
 // Per-operation timeout override
 await Assertions.expectElementToBeVisible(element, {
