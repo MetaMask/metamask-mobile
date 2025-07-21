@@ -941,7 +941,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           Array.isArray(dataParsed.iframeUrls) &&
           dataParsed.iframeUrls.length > 0
         ) {
-          checkIFrameUrls(dataParsed.iframeUrls);
+          const validIframeUrls = dataParsed.iframeUrls.filter(
+            (url: unknown): url is string =>
+              typeof url === 'string' && url.trim().length > 0,
+          );
+          if (validIframeUrls.length > 0) {
+            checkIFrameUrls(validIframeUrls);
+          }
           return;
         }
         if (dataParsed.name) {
