@@ -38,13 +38,11 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         await TestSnaps.installSnap('connectEthereumProviderButton');
 
         await TestSnaps.tapButton('getChainIdButton');
-        await TestHelpers.delay(500);
         await TestSnaps.checkResultSpan('ethereumProviderResultSpan', '"0x1"');
 
         await TestSnaps.tapButton('getAccountsButton');
         await Assertions.checkIfVisible(ConnectBottomSheet.connectButton);
         await ConnectBottomSheet.tapConnectButton();
-        await TestHelpers.delay(500);
         await TestSnaps.checkResultSpanIncludes(
           'ethereumProviderResultSpan',
           '"0x5cfe73b6021e818b776b421b1c4db2474086a7e1"',
@@ -73,12 +71,10 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         // Check other networks.
         await TestSnaps.selectInDropdown('networkDropDown', 'Ethereum');
         await TestSnaps.tapButton('getChainIdButton');
-        await TestHelpers.delay(500);
         await TestSnaps.checkResultSpan('ethereumProviderResultSpan', '"0x1"');
 
         await TestSnaps.selectInDropdown('networkDropDown', 'Linea');
         await TestSnaps.tapButton('getChainIdButton');
-        await TestHelpers.delay(500);
         await TestSnaps.checkResultSpan(
           'ethereumProviderResultSpan',
           '"0xe708"',
@@ -86,7 +82,6 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
 
         await TestSnaps.selectInDropdown('networkDropDown', 'Sepolia');
         await TestSnaps.tapButton('getChainIdButton');
-        await TestHelpers.delay(500);
         await TestSnaps.checkResultSpan(
           'ethereumProviderResultSpan',
           '"0xaa36a7"',

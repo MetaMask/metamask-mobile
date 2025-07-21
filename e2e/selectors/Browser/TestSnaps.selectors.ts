@@ -2,6 +2,7 @@
 export const TestSnapViewSelectorWebIDS = {
   connectBip32Button: 'connectbip32',
   connectBip44Button: 'connectbip44',
+  connectClientStatusSnapButton: 'connectclient-status',
   connectGetEntropyButton: 'connectGetEntropySnap',
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
@@ -13,6 +14,7 @@ export const TestSnapViewSelectorWebIDS = {
   signMessageBip32Secp256k1Button: 'sendBip32-secp256k1',
   signMessageBip32ed25519Button: 'sendBip32-ed25519',
   signMessageBip32ed25519Bip32Button: 'sendBip32-ed25519Bip32',
+  sendClientStatusButton: 'sendClientStatusTest',
   sendNetworkAccessTestButton: 'sendNetworkAccessTest',
   startWebSocket: 'startWebSocket',
   stopWebSocket: 'stopWebSocket',
@@ -48,6 +50,7 @@ export const TestSnapResultSelectorWebIDS = {
   bip32MessageResultSecp256k1Span: 'bip32MessageResult-secp256k1',
   bip32MessageResultEd25519Bip32Span: 'bip32MessageResult-ed25519Bip32',
   bip32PublicKeyResultSpan: 'bip32PublicKeyResult',
+  clientStatusResultSpan: 'clientStatusResult',
   entropySignResultSpan: 'entropySignResult',
   networkAccessResultSpan: 'networkAccessResult',
   ethereumProviderResultSpan: 'ethproviderResult',
