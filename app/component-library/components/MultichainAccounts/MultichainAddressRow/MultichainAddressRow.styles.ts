@@ -19,17 +19,15 @@ const styleSheet = (params: {
   const { style } = vars;
 
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        gap: 16,
-        backgroundColor: colors.background.default,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 16,
+      gap: 16,
+      backgroundColor: colors.background.default,
+      ...StyleSheet.flatten(style),
+    } as ViewStyle,
     content: {
       flex: 1,
       flexDirection: 'column',
