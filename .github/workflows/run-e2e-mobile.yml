@@ -36,7 +36,7 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'large-mm-test' }}
     env:
       METAMASK_ENVIRONMENT: 'local'
       METAMASK_BUILD_TYPE: 'main'
@@ -299,7 +299,7 @@ jobs:
 
       
       - name: Upload screenshots
-        if: failure() 
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.test-suite-name }}-screenshots
