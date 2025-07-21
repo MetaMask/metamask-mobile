@@ -95,6 +95,7 @@ const OrderProcessing = () => {
       if (hasDepositOrderField(order.data, 'cryptoCurrency')) {
         const cryptoCurrency = getCryptoCurrencyFromTransakId(
           (order.data as DepositOrder).cryptoCurrency,
+          (order.data as DepositOrder).network,
         );
 
         const baseAnalyticsData = {
