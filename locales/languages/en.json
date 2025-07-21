@@ -993,6 +993,14 @@
       "positions": "Positions",
       "result": "Result:"
     },
+    "buttons": {
+      "get_account_balance": "Get Account Balance",
+      "deposit_funds": "Deposit Funds",
+      "switch_to_mainnet": "Switch to Mainnet",
+      "switch_to_testnet": "Switch to Testnet",
+      "view_markets": "View Markets",
+      "positions": "Positions"
+    },
     "connection": {
       "connecting": "Connecting to Perps...",
       "initializing": "Initializing Perps controller...",

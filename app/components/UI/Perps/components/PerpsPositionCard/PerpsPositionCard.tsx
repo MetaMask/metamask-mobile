@@ -1,6 +1,7 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -16,7 +17,6 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import type {
   PerpsNavigationParamList,
   Position,
@@ -63,23 +63,36 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const handleCardPress = async () => {
     // await triggerSelectionHaptic();
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.POSITION_DETAILS,
-      params: {
-        position,
-        action: 'view',
-      },
+    navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
+      position,
+      action: 'view',
     });
   };
 
   const handleClosePress = () => {
     // await triggerSelectionHaptic();
-    onClose?.(position);
+    if (onClose) {
+      onClose(position);
+    } else {
+      // Navigate to position details with close action
+      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
+        position,
+        action: 'close',
+      });
+    }
   };
 
   const handleEditPress = () => {
     // await triggerSelectionHaptic();
-    onEdit?.(position);
+    if (onEdit) {
+      onEdit(position);
+    } else {
+      // Navigate to position details with edit action
+      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
+        position,
+        action: 'edit',
+      });
+    }
   };
 
   const pnlNum = parseFloat(position.unrealizedPnl);

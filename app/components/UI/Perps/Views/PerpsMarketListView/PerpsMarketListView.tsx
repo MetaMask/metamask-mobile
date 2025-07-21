@@ -24,18 +24,14 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsTrading } from '../../hooks';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import styleSheet from './PerpsMarketListView.styles';
-import {
-  PerpsMarketData,
-  PerpsMarketListViewProps,
-} from './PerpsMarketListView.types';
-import type { Position } from '../../controllers/types';
+import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
+import type { Position, PerpsMarketData } from '../../controllers/types';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -81,7 +77,10 @@ const PerpsMarketListHeader = () => {
   );
 };
 
-const PerpsMarketListView = ({ onMarketSelect }: PerpsMarketListViewProps) => {
+const PerpsMarketListView = ({
+  onMarketSelect,
+  protocolId: _protocolId,
+}: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [searchQuery, setSearchQuery] = useState('');

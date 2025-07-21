@@ -1,12 +1,12 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
-import Logger from '../../../../util/Logger';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import { PerpsMarketData } from '../Views/PerpsMarketListView/PerpsMarketListView.types';
+import type { PerpsMarketData } from '../controllers/types';
 
 // Mock dependencies
-jest.mock('../../../../util/Logger');
+jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -65,7 +65,7 @@ const mockProvider = {
 const mockPerpsController = Engine.context.PerpsController as jest.Mocked<
   typeof Engine.context.PerpsController
 >;
-const mockLogger = Logger as jest.Mocked<typeof Logger>;
+const mockLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 
 describe('usePerpsMarkets', () => {
   beforeEach(() => {
@@ -123,7 +123,7 @@ describe('usePerpsMarkets', () => {
       expect(result.current.error).toBeNull();
       expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'Perps: Fetching market data from HyperLiquid...',
+        'Perps: Fetching market data from active provider...',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'Perps: Successfully fetched and transformed market data',

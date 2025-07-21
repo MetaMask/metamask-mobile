@@ -1,7 +1,18 @@
-import {
-  HyperLiquidMarketData,
-  PerpsMarketData,
-} from '../Views/PerpsMarketListView/PerpsMarketListView.types';
+import type { PerpsMarketData } from '../controllers/types';
+import type {
+  PerpsUniverse,
+  PerpsAssetCtx,
+  AllMids,
+} from '@deeeed/hyperliquid-node20';
+
+/**
+ * HyperLiquid-specific market data structure
+ */
+export interface HyperLiquidMarketData {
+  universe: PerpsUniverse[];
+  assetCtxs: PerpsAssetCtx[];
+  allMids: AllMids;
+}
 
 /**
  * Transform raw HyperLiquid market data to UI-friendly format

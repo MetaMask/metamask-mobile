@@ -8,7 +8,7 @@ import {
 } from '@react-navigation/native';
 import PerpsMarketListView from './PerpsMarketListView';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import { PerpsMarketData } from './PerpsMarketListView.types';
+import type { PerpsMarketData } from '../../controllers/types';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import Engine from '../../../../core/Engine';
-import { PerpsMarketData } from '../Views/PerpsMarketListView/PerpsMarketListView.types';
 import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
@@ -46,8 +45,9 @@ export interface UsePerpsMarketsOptions {
 }
 
 /**
- * Custom hook to fetch and manage Perps market data from HyperLiquid
- * Uses the singleton SDK clients for efficient resource management
+ * Custom hook to fetch and manage Perps market data from the active provider
+ * Uses the PerpsController to get data from the currently active protocol
+ * (HyperLiquid, GMX, dYdX, etc.)
  */
 export const usePerpsMarkets = (
   options: UsePerpsMarketsOptions = {},
@@ -81,9 +81,9 @@ export const usePerpsMarkets = (
       setError(null);
 
       try {
-        DevLogger.log('Perps: Fetching market data from HyperLiquid...');
+        DevLogger.log('Perps: Fetching market data from active provider...');
 
-        // Get the HyperLiquid provider via PerpsController
+        // Get the active provider via PerpsController
         const controller = Engine.context.PerpsController;
         const provider = controller.getActiveProvider();
 

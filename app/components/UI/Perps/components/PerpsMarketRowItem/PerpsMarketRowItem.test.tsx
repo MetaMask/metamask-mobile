@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketRowItem from './PerpsMarketRowItem';
-import { PerpsMarketData } from '../../Views/PerpsMarketListView/PerpsMarketListView.types';
+import type { PerpsMarketData } from '../../controllers/types';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 
 const { TouchableOpacity } = jest.requireActual('react-native');
