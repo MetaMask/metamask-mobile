@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
@@ -23,87 +23,67 @@ const createStyles = (colors: any) =>
     },
     title: {
       fontSize: 32,
-      marginTop: 20,
-      marginBottom: 40,
       color: colors.text.default,
       justifyContent: 'center',
       textAlign: 'left',
       ...fontStyles.normal,
-    },
-    dataRow: {
-      marginBottom: 10,
-    },
-    label: {
-      fontSize: 14,
-      color: colors.text.default,
-      textAlign: 'left',
-      ...fontStyles.normal,
-    },
-    subtitleText: {
-      fontSize: 18,
-      ...fontStyles.bold,
-      color: colors.text.default,
+      lineHeight: 40,
     },
     scanPkeyRow: {
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop: 20,
-    },
-    scanPkeyText: {
-      fontSize: 14,
-      color: colors.primary.default,
-    },
-    icon: {
-      textAlign: 'left',
-      fontSize: 50,
-      marginTop: 0,
-      marginLeft: 0,
-      color: colors.icon.alternative,
     },
     buttonWrapper: {
       flex: 1,
       justifyContent: 'flex-end',
-      padding: 20,
+      paddingHorizontal: 16,
+      paddingBottom: Platform.select({
+        ios: 36,
+        android: 24,
+      }),
       backgroundColor: colors.background.default,
-    },
-    button: {
-      marginBottom: Device.isIphoneX() ? 20 : 0,
     },
     top: {
       paddingTop: 0,
-      padding: 30,
+      padding: 24,
+      width: '100%',
     },
     bottom: {
       width: '100%',
-      padding: 30,
+      paddingHorizontal: 16,
+      paddingVertical: 24,
       backgroundColor: colors.background.default,
     },
     input: {
-      marginTop: 20,
-      marginBottom: 10,
       backgroundColor: colors.background.default,
-      paddingTop: 20,
-      paddingBottom: 20,
-      paddingLeft: 20,
-      paddingRight: 20,
-      fontSize: 15,
-      borderRadius: 4,
+      fontSize: 14,
+      borderRadius: 6,
       height: 120,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.default,
+      borderColor: colors.border.muted,
       ...fontStyles.normal,
-      color: colors.text.default,
+      color: colors.text.muted,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginVertical: 16,
     },
     navbarRightButton: {
       alignSelf: 'flex-end',
-      paddingHorizontal: 22,
-      paddingTop: 20,
-      paddingBottom: 10,
-      marginTop: Device.isIphoneX() ? 40 : 20,
+      marginRight: 16,
+      marginTop: Device.isIphoneX() ? 40 : 24,
     },
-    closeIcon: {
-      fontSize: 28,
-      color: colors.text.default,
+    textContainer: {
+      width: '90%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      rowGap: 24,
+      marginTop: 16,
+      paddingLeft: 12,
     },
   });
 
