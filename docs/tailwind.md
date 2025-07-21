@@ -9,9 +9,8 @@ A comprehensive guide to get up and running with Tailwind CSS and TWRNC (Tailwin
 3. [Understanding the Architecture](#understanding-the-architecture)
 4. [Using Tailwind Classes](#using-tailwind-classes)
 5. [Using the useTailwind Hook](#using-the-usetailwind-hook)
-6. [Design System Integration](#design-system-integration)
-7. [Best Practices](#best-practices)
-8. [Getting Help](#getting-help)
+6. [Best Practices](#best-practices)
+7. [Getting Help](#getting-help)
 
 ## Overview
 
