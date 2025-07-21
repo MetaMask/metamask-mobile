@@ -93,14 +93,6 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
                   {description}
                 </Text>
               </View>
-              <View
-                style={[
-                  styles.radioContainer,
-                  currentOrderType === type && styles.radioSelected,
-                ]}
-              >
-                {currentOrderType === type && <View style={styles.radioDot} />}
-              </View>
             </View>
           </TouchableOpacity>
         ))}

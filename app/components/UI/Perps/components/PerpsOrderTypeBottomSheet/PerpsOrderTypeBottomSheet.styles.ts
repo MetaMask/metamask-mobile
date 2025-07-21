@@ -24,25 +24,6 @@ export const createStyles = (colors: Theme['colors']) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 8,
-    },
-    radioContainer: {
-      width: 20,
-      height: 20,
-      borderRadius: 10,
-      borderWidth: 2,
-      borderColor: colors.border.default,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    radioSelected: {
-      borderColor: colors.primary.default,
-    },
-    radioDot: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-      backgroundColor: colors.primary.default,
     },
     optionTitle: {
       marginBottom: 4,
