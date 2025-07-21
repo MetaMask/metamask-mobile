@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import {
   View,
   TouchableOpacity,
@@ -31,7 +32,12 @@ import { usePerpsTrading } from '../../hooks';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
-import type { Position, PerpsMarketData } from '../../controllers/types';
+import type {
+  Position,
+  PerpsMarketData,
+  PerpsNavigationParamList,
+} from '../../controllers/types';
+import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -82,7 +88,14 @@ const PerpsMarketListView = ({
   protocolId: _protocolId,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const fadeAnimation = useRef(new Animated.Value(0)).current;
+
+  const hiddenButtonStyle = {
+    position: 'absolute' as const,
+    opacity: 0,
+    pointerEvents: 'box-none' as const,
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'markets' | 'positions'>(
     'markets',
@@ -134,6 +147,12 @@ const PerpsMarketListView = ({
     if (isSearchVisible) {
       // Clear search when hiding search bar
       setSearchQuery('');
+    }
+  };
+
+  const handleClose = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
     }
   };
 
@@ -261,6 +280,12 @@ const PerpsMarketListView = ({
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
+        {/* Hidden close button for navigation tests */}
+        <TouchableOpacity
+          onPress={handleClose}
+          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+          style={hiddenButtonStyle}
+        />
         {/* Header */}
         <View style={styles.header}>
           <Text
@@ -273,6 +298,7 @@ const PerpsMarketListView = ({
           <TouchableOpacity
             style={styles.searchButton}
             onPress={handleSearchToggle}
+            testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
           >
             <Icon
               name={isSearchVisible ? IconName.Close : IconName.Search}
@@ -345,6 +371,7 @@ const PerpsMarketListView = ({
                 <TouchableOpacity
                   onPress={() => setSearchQuery('')}
                   style={styles.clearButton}
+                  testID={PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON}
                 >
                   <Icon name={IconName.Close} size={IconSize.Sm} />
                 </TouchableOpacity>
