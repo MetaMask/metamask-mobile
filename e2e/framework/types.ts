@@ -5,7 +5,7 @@ import { DappVariants } from './Constants';
 import { AnvilManager, Hardfork } from '../seeder/anvil-manager';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
 import Ganache from '../../app/util/test/ganache';
-import { Mockttp } from 'mockttp';
+import { Mockttp, MockttpServer } from 'mockttp';
 import FixtureBuilder from './fixtures/FixtureBuilder';
 
 export interface GestureOptions {
@@ -141,7 +141,7 @@ export type LocalNode = AnvilManager | Ganache;
 
 export interface TestSuiteParams {
   contractRegistry?: ContractAddressRegistry;
-  mockServer?: Mockttp;
+  mockServer?: Mockttp | MockttpServer;
   localNodes?: LocalNode[];
 }
 
@@ -156,6 +156,8 @@ export interface MockApiEndpoint {
   urlEndpoint: string;
   response: unknown;
   responseCode: number;
+  requestBody?: unknown; // Optional, only for POST requests
+  ignoreFields?: string[]; // Fields to ignore in the request body comparison
 }
 
 /**
@@ -182,4 +184,10 @@ export interface WithFixturesOptions {
   launchArgs?: Partial<LaunchArgs>;
   languageAndLocale?: LanguageAndLocale;
   permissions?: Record<string, unknown>;
+  enableCatchAllMocks?: boolean;
+}
+
+export interface MockServerOptions {
+  port?: number;
+  enableCatchAll?: boolean; // Whether to enable catch-all mocking
 }

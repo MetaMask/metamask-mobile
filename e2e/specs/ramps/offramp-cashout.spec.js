@@ -30,7 +30,9 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
     };
 
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(segmentMock, mockServerPort);
+    mockServer = await startMockServer(segmentMock, {
+      port: mockServerPort,
+    });
     await TestHelpers.reverseServerPort();
   });
 

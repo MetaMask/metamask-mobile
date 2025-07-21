@@ -1,4 +1,4 @@
-import { MockttpServer, ServerMockedEndpoint } from 'mockttp';
+import { Mockttp, MockttpServer, ServerMockedEndpoint } from 'mockttp';
 import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
 
 export interface EventPayload {
@@ -13,7 +13,7 @@ export interface EventPayload {
  * @returns {Promise<Array<EventPayload>>} Filtered request payloads.
  */
 export const getEventsPayloads = async (
-  mockServer: MockttpServer,
+  mockServer: MockttpServer | Mockttp,
   events: string[] = [],
   timeout = 10000,
 ): Promise<EventPayload[]> => {

@@ -17,7 +17,7 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
 import CommonView from '../../../pages/CommonView';
-import { MockttpServer } from 'mockttp';
+import { Mockttp } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
 import { arrangeTestUtils } from '../utils/helpers';
@@ -26,7 +26,7 @@ import { UserStorageMockttpController } from '../utils/user-storage/userStorageM
 describe(SmokeIdentity('Contact syncing - backup and sync settings'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
   const NEW_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
-  let mockServer: MockttpServer;
+  let mockServer: Mockttp;
   let userStorageMockttpController: UserStorageMockttpController;
 
   beforeAll(async () => {

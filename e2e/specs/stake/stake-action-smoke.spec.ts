@@ -36,6 +36,7 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import axios, { AxiosResponse } from 'axios';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { TestSpecificMock } from '../../framework';
 
 interface ExitRequest {
   positionTicket: string;
@@ -275,7 +276,7 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
       throw new Error(`No claim entries found for account ${wallet.address}`);
     }
 
-    const testSpecificMock: MockConfig = {
+    const testSpecificMock: TestSpecificMock = {
       GET: [
         {
           urlEndpoint: stakeAPIUrl,
@@ -306,7 +307,9 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await device.terminateApp();
 
     const mockServerPort: number = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+    mockServer = await startMockServer(testSpecificMock, {
+      port: mockServerPort,
+    });
 
     await TestHelpers.launchApp({
       launchArgs: {

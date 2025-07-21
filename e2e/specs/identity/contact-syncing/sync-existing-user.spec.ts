@@ -17,7 +17,7 @@ import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import { MockttpServer } from 'mockttp';
+import { Mockttp } from 'mockttp';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import { arrangeTestUtils } from '../utils/helpers';
@@ -26,7 +26,7 @@ import { UserStorageMockttpController } from '../utils/user-storage/userStorageM
 describe(
   SmokeIdentity('Contact syncing - syncs previously synced contacts'),
   () => {
-    let mockServer: MockttpServer;
+    let mockServer: Mockttp;
     let userStorageMockttpController: UserStorageMockttpController;
 
     beforeAll(async () => {

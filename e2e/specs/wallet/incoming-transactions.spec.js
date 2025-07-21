@@ -4,7 +4,6 @@ import { SmokeWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,

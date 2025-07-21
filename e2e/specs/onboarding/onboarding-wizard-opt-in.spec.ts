@@ -17,7 +17,7 @@ import {
   EventPayload,
 } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
-import { MockttpServer } from 'mockttp';
+import { Mockttp } from 'mockttp';
 import { getMockServerPort } from '../../fixtures/utils';
 import { startMockServer } from '../../api-mocking/mock-server';
 import Utilities from '../../utils/Utilities';
@@ -33,7 +33,7 @@ describe(
     'Onboarding wizard opt-in, metametrics opt out from settings WITH ANALYTICS',
   ),
   () => {
-    let mockServer: MockttpServer;
+    let mockServer: Mockttp;
     let eventsBeforeDisablingAnalytics: EventPayload[];
 
     beforeAll(async () => {
@@ -41,7 +41,9 @@ describe(
       await TestHelpers.reverseServerPort();
 
       const mockServerPort = getMockServerPort();
-      mockServer = await startMockServer(testSpecificMock, mockServerPort);
+      mockServer = await startMockServer(testSpecificMock, {
+        port: mockServerPort,
+      });
 
       await TestHelpers.launchApp({
         permissions: { notifications: 'YES' },

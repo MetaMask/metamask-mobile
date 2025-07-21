@@ -1,5 +1,5 @@
-import { withFixtures } from '../../../fixtures/fixture-helper';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import {
   mockAuthServices,
   createUserStorageController,
@@ -12,12 +12,13 @@ import {
   UserStorageMockttpControllerOverrides,
 } from './user-storage/userStorageMockttpController';
 import { MockttpServer } from 'mockttp';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+// import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import { TestSpecificMock } from '../../../framework';
 
 export interface IdentityFixtureOptions {
   fixture?: object;
   restartDevice?: boolean;
-  testSpecificMock?: object;
+  testSpecificMock?: TestSpecificMock;
   userStorageFeatures?: (keyof typeof pathRegexps)[];
   userStorageOverrides?: Partial<
     Record<keyof typeof pathRegexps, UserStorageMockttpControllerOverrides>
@@ -36,10 +37,13 @@ export async function withIdentityFixtures(
   testFn: (context: IdentityTestContext) => Promise<void>,
 ): Promise<void> {
   const {
-    fixture = new FixtureBuilder().withBackupAndSyncSettings().build(),
+    fixture = new FixtureBuilder()
+      .withBackupAndSyncSettings()
+      .withMetaMetricsOptIn()
+      .build(),
     restartDevice = true,
     testSpecificMock = {
-      POST: [mockEvents.POST.segmentTrack],
+      POST: [],
     },
     mockBalancesAccounts = [],
     userStorageFeatures = [
@@ -55,9 +59,15 @@ export async function withIdentityFixtures(
       fixture,
       restartDevice,
       testSpecificMock,
+      enableCatchAllMocks: true,
     },
-    async ({ mockServer }: { mockServer: MockttpServer }) => {
-      // mock auth services
+    async ({ mockServer }) => {
+      if (!mockServer) {
+        throw new Error(
+          'Mock server is required for identity fixtures, ensure `testSpecificMock` is provided.',
+        );
+      }
+
       await mockAuthServices(mockServer);
       if (mockBalancesAccounts.length > 0) {
         await setupAccountMockedBalances(mockServer, mockBalancesAccounts);
@@ -77,7 +87,7 @@ export async function withIdentityFixtures(
       }
 
       await testFn({
-        mockServer,
+        mockServer: mockServer as MockttpServer,
         userStorageMockttpController: userStorageController,
       });
     },

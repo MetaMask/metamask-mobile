@@ -47,7 +47,9 @@ describe(SmokeTrade('Off-Ramp'), () => {
     };
 
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(segmentMock, mockServerPort);
+    mockServer = await startMockServer(segmentMock, {
+      port: mockServerPort,
+    });
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()

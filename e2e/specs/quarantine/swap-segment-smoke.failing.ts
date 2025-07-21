@@ -27,11 +27,11 @@ import SoftAssert from '../../utils/SoftAssert.ts';
 import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment.ts';
 import SwapView from '../../pages/swaps/SwapView.ts';
 import QuotesModal from '../../pages/swaps/QuoteModal.ts';
-import type { MockttpServer } from 'mockttp';
+import type { Mockttp } from 'mockttp';
 
 const fixtureServer = new FixtureServer();
 
-let mockServer: MockttpServer;
+let mockServer: Mockttp;
 
 describe(SmokeTrade('Swaps - Metametrics'), () => {
   const wallet = ethers.Wallet.createRandom();

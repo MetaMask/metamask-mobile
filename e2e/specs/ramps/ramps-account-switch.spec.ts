@@ -13,6 +13,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { getRampsApiMocks } from '../../api-mocking/mock-responses/ramps-mocks';
 import { Mockttp } from 'mockttp';
+import { TestSpecificMock } from '../../framework';
 
 // Define the region interface based on the fixture builder's expected type
 interface RampsRegion {
@@ -66,7 +67,7 @@ const localNodeOptions = {
 };
 
 // Get ramps API mocks from the dedicated mock file
-const rampsApiMocks = getRampsApiMocks();
+const rampsApiMocks = getRampsApiMocks() as unknown as TestSpecificMock;
 
 let mockServer: Mockttp | null = null;
 let mockServerPort: number;
@@ -100,7 +101,9 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
     try {
       // Use a high port number to avoid conflicts
       const testPort = 9000 + Math.floor(Math.random() * 1000);
-      mockServer = await startMockServer(rampsApiMocks, testPort);
+      mockServer = await startMockServer(rampsApiMocks, {
+        port: testPort,
+      });
       if (mockServer !== null) {
         mockServerPort = mockServer.port;
         console.log(`Mock server started on port ${mockServerPort}`);
