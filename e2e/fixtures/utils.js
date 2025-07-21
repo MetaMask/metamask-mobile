@@ -35,6 +35,11 @@ export function getSecondTestDappLocalUrl() {
   return `http://${host}:${getSecondTestDappPort()}`;
 }
 
+export function getTestDappLocalUrl(dappCounter) {
+  const host = device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
+  return `http://${host}:${getLocalTestDappPort() + dappCounter}`;
+}
+
 export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 
 export function getGanachePort() {

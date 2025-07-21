@@ -52,3 +52,14 @@ export interface StabilityOptions {
   interval?: number;
   stableCount?: number;
 }
+
+// Fixture Builder types
+export interface BackupAndSyncSettings {
+  isBackupAndSyncEnabled: boolean;
+  isAccountSyncingEnabled: boolean;
+  isContactSyncingEnabled: boolean;
+}
+
+export enum GanacheHardfork {
+  london = 'london',
+}

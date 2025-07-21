@@ -10,8 +10,12 @@ export default class Assertions {
   /**
    * Assert element is visible with auto-retry
    */
-  static async expectVisible(
-    detoxElement: DetoxElement | WebElement,
+  static async expectElementToBeVisible(
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -42,8 +46,12 @@ export default class Assertions {
   /**
    * Assert element is not visible with auto-retry
    */
-  static async expectNotVisible(
-    detoxElement: DetoxElement | WebElement,
+  static async expectElementToNotBeVisible(
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -86,6 +94,56 @@ export default class Assertions {
       async () => {
         const el = (await detoxElement) as Detox.IndexableNativeElement;
         await waitFor(el).toHaveText(text).withTimeout(100);
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
+      },
+    );
+  }
+
+  /**
+   * Assert element has specific text with auto-retry
+   */
+  static async expectElementToHaveText(
+    detoxElement: DetoxElement,
+    text: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      description = `element has text "${text}"`,
+    } = options;
+
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = (await detoxElement) as Detox.IndexableNativeElement;
+        await waitFor(el).toHaveText(text).withTimeout(100);
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
+      },
+    );
+  }
+
+  /**
+   * Assert element does not have specific text with auto-retry
+   */
+  static async expectElementToNotHaveText(
+    detoxElement: DetoxElement,
+    text: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      description = `element does not have text "${text}"`,
+    } = options;
+
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = (await detoxElement) as Detox.IndexableNativeElement;
+        await waitFor(el).not.toHaveText(text).withTimeout(100);
       },
       {
         timeout,
@@ -241,7 +299,7 @@ export default class Assertions {
     detoxElement: DetoxElement,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectVisible(detoxElement, { timeout });
+    return this.expectElementToBeVisible(detoxElement, { timeout });
   }
 
   /**
@@ -267,7 +325,7 @@ export default class Assertions {
     detoxElement: DetoxElement,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectNotVisible(detoxElement as DetoxElement, { timeout });
+    return this.expectElementToNotBeVisible(detoxElement as DetoxElement, { timeout });
   }
 
   /**
