@@ -550,7 +550,7 @@ class AuthenticationService {
       });
       // check for seedless password outdated
       const isSeedlessPasswordOutdated =
-        await this.checkIsSeedlessPasswordOutdated();
+        await this.checkIsSeedlessPasswordOutdated(false);
       if (isSeedlessPasswordOutdated) {
         throw new AuthenticationError(
           'Seedless password is outdated',
