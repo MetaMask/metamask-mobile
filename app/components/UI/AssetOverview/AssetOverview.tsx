@@ -234,6 +234,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
+    if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
+      navigation.navigate(Routes.SEND.ROOT, {
+        params: {
+          asset,
+        },
+      });
+    } else {
+      navigation.navigate('SendFlowView', {});
+    }
     navigation.navigate('SendFlowView', {
       screen: Routes.SEND.ROOT,
       params: {
