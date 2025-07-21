@@ -33,6 +33,28 @@ jest.mock('../../utils/pnlCalculations', () => ({
   calculatePnLPercentageFromUnrealized: jest.fn().mockReturnValue(5.0),
 }));
 
+// Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
+jest.mock('../PerpsTPSLBottomSheet', () => ({
+  __esModule: true,
+  default: ({
+    isVisible,
+    onClose,
+  }: {
+    isVisible: boolean;
+    onClose: () => void;
+  }) => {
+    if (!isVisible) return null;
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-tpsl-bottomsheet">
+        <TouchableOpacity onPress={onClose}>
+          <Text>Close</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+}));
+
 // Mock styles
 jest.mock('./PerpsPositionCard.styles', () => ({
   createStyles: () => ({
@@ -258,18 +280,23 @@ describe('PerpsPositionCard', () => {
       );
     });
 
-    it('navigates to position details with edit action when no onEdit prop', () => {
+    it('shows TP/SL bottom sheet when edit is pressed without onEdit prop', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
+
+      // Bottom sheet should not be visible initially
+      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+
+      // Press edit button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
       );
 
-      // Assert
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'PerpsPositionDetails',
-        { position: mockPosition, action: 'edit' },
-      );
+      // Assert - Bottom sheet should be visible
+      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeDefined();
+
+      // Navigation should NOT be called
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
   });
 
