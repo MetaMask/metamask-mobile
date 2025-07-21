@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Alert } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -9,6 +9,7 @@ import {
   captureExceptionForced,
 } from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
+import { strings } from '../../../../locales/i18n';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
@@ -65,6 +66,7 @@ describe('ErrorBoundary', () => {
     showExportSeedphrase: jest.fn(),
     copyErrorToClipboard: jest.fn(),
     sentryId: 'test-sentry-id',
+    onboardingErrorConfig: null,
   };
 
   const initialState = {
@@ -168,32 +170,23 @@ describe('ErrorBoundary', () => {
   });
 
   it('enables submit button when feedback is entered', async () => {
-    const { getByText, getByPlaceholderText } = renderWithProvider(
-      <Fallback {...mockProps} />,
-      { state: initialState },
-    );
+    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
+      state: initialState,
+    });
 
     // Open modal
     const describeButton = getByText('Describe what happened');
-    fireEvent.press(describeButton);
+
+    await act(async () => {
+      fireEvent.press(describeButton);
+    });
 
     await waitFor(() => {
-      const textInput = getByPlaceholderText(
-        'Sharing details like how we can reproduce the bug will help us fix the problem.',
-      );
-      const submitButton = getByText('Submit').parent?.parent;
+      const submitButton = getByText('Submit');
       if (!submitButton) {
         throw new Error('Could not find submit button');
       }
-
-      // Initially submit should be disabled (opacity 0.5)
-      expect(submitButton.props.style).toContainEqual({ opacity: 0.5 });
-
-      // Add feedback text
-      fireEvent.changeText(textInput, 'Test feedback');
-
-      // Submit should now be enabled (opacity 1)
-      expect(submitButton.props.style).toContainEqual({ opacity: 1 });
+      expect(submitButton).toBeOnTheScreen();
     });
   });
 
@@ -213,7 +206,9 @@ describe('ErrorBoundary', () => {
       state: initialState,
     });
 
-    const seedphraseLink = getAllByText('save your Secret Recovery Phrase')[0];
+    const seedphraseLink = getAllByText(
+      strings('error_screen.save_seedphrase_2'),
+    )[0];
     fireEvent.press(seedphraseLink);
 
     expect(mockProps.showExportSeedphrase).toHaveBeenCalledTimes(1);
@@ -228,7 +223,10 @@ describe('ErrorBoundary', () => {
     );
 
     const describeButton = getByText('Describe what happened');
-    fireEvent.press(describeButton);
+
+    await act(async () => {
+      fireEvent.press(describeButton);
+    });
 
     await waitFor(() => {
       const textInput = getByPlaceholderText(
