@@ -756,7 +756,7 @@ class AuthenticationService {
       await this.lockApp({ locked: true });
       throw err;
     }
-    this.resetPassword();
+    await this.resetPassword();
   };
 
   /**
