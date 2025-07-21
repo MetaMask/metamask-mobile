@@ -163,7 +163,6 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
-
 const mockMetricsTrackEvent = jest.fn();
 const mockMetricsCreateEventBuilder = jest.fn((eventName) => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -188,7 +187,7 @@ jest.mock('../../hooks/useMetrics', () => ({
   ),
   MetaMetricsEvents: {
     ERROR_SCREEN_VIEWED: 'Error Screen Viewed',
-  }
+  },
 }));
 
 const mockUseMetrics = jest.mocked(useMetrics);
