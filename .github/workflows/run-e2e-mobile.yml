@@ -57,6 +57,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 0
 
       - name: Set up E2E environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions 

@@ -10,29 +10,29 @@ on:
     types: [labeled]
 
 jobs:
-  #smoke-confirmations-ios:
-  #  name: "Confirmations Smoke (iOS)"
-  #  if: github.event.label.name == 'Run E2E Smoke Test'
-  #  uses: ./.github/workflows/run-e2e-mobile.yml
-  #  with:
-  #    test-suite-name: smoke-confirmations-ios
-  #    platform: ios
-  #    test_suite_tag: "SmokeConfirmations "
-  #    smoke-category: confirmations
-  #    use_prebuilt_apps: true
-  #  secrets: inherit
-#
-  #smoke-confirmations-android:
-  #  name: "Confirmations Smoke (Android)"
-  #  if: github.event.label.name == 'Run E2E Smoke Test'
-  #  uses: ./.github/workflows/run-e2e-mobile.yml
-  #  with:
-  #    test-suite-name: smoke-confirmations-android
-  #    platform: android
-  #    test_suite_tag: "SmokeConfirmations "
-  #    smoke-category: confirmations
-  #    use_prebuilt_apps: true
-  #  secrets: inherit
+  smoke-confirmations-ios:
+    name: "Confirmations Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-confirmations-ios
+      platform: ios
+      test_suite_tag: "SmokeConfirmations "
+      smoke-category: confirmations
+      use_prebuilt_apps: true
+    secrets: inherit
+
+  smoke-confirmations-android:
+    name: "Confirmations Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-confirmations-android
+      platform: android
+      test_suite_tag: "SmokeConfirmations "
+      smoke-category: confirmations
+      use_prebuilt_apps: true
+    secrets: inherit
 
   # smoke-confirmations-redesigned-ios:
   #   name: "Confirmations Redesigned Smoke (iOS)"
@@ -89,51 +89,51 @@ jobs:
       smoke-category: wallet-platform
       use_prebuilt_apps: true
 
-  #smoke-identity-ios:
-  #  name: "Identity Smoke (iOS)"
-  #  if: github.event.label.name == 'Run E2E Smoke Test'
-  #  uses: ./.github/workflows/run-e2e-mobile.yml
-  #  with:
-  #    test-suite-name: smoke-identity-ios
-  #    platform: ios
-  #    test_suite_tag: ".*SmokeIdentity.*"
-  #    smoke-category: identity
-  #    use_prebuilt_apps: true
+  smoke-identity-ios:
+    name: "Identity Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-identity-ios
+      platform: ios
+      test_suite_tag: ".*SmokeIdentity.*"
+      smoke-category: identity
+      use_prebuilt_apps: true
 
-  #smoke-identity-android:
-  #  name: "Identity Smoke (Android)"
-  #  if: github.event.label.name == 'Run E2E Smoke Test'
-  #  uses: ./.github/workflows/run-e2e-mobile.yml
-  #  with:
-  #    test-suite-name: smoke-identity-android
-  #    platform: android
-  #    test_suite_tag: ".*SmokeIdentity.*"
-  #    smoke-category: identity
-  #    use_prebuilt_apps: true
+  smoke-identity-android:
+    name: "Identity Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-identity-android
+      platform: android
+      test_suite_tag: ".*SmokeIdentity.*"
+      smoke-category: identity
+      use_prebuilt_apps: true
 
-  #smoke-accounts-ios:
-  #  name: "Accounts Smoke (iOS)"
-  #  if: github.event.label.name == 'Run E2E Smoke Test'
-  #  uses: ./.github/workflows/run-e2e-mobile.yml
-  #  with:
-  #    test-suite-name: smoke-accounts-ios
-  #    platform: ios
-  #    test_suite_tag: ".*SmokeAccounts.*"
-  #    smoke-category: accounts
-  #    use_prebuilt_apps: true
-  #  secrets: inherit
+  smoke-accounts-ios:
+    name: "Accounts Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-accounts-ios
+      platform: ios
+      test_suite_tag: ".*SmokeAccounts.*"
+      smoke-category: accounts
+      use_prebuilt_apps: true
+    secrets: inherit
 
-  #smoke-accounts-android:
-  #  name: "Accounts Smoke (Android)"
-  #  if: github.event.label.name == 'Run E2E Smoke Test'
-  #  uses: ./.github/workflows/run-e2e-mobile.yml
-  #  with:
-  #    test-suite-name: smoke-accounts-android
-  #    platform: android
-  #    test_suite_tag: ".*SmokeAccounts.*"
-  #    smoke-category: accounts
-  #    use_prebuilt_apps: true
-  #  secrets: inherit
+  smoke-accounts-android:
+    name: "Accounts Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-accounts-android
+      platform: android
+      test_suite_tag: ".*SmokeAccounts.*"
+      smoke-category: accounts
+      use_prebuilt_apps: true
+    secrets: inherit
 
   smoke-network-abstraction-ios:
     name: "Network Abstraction Smoke (iOS)"
