@@ -21,6 +21,11 @@ export const createStyles = (colors: Theme['colors']) =>
     sectionTitle: {
       marginBottom: 8,
     },
+    inputRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 8,
+    },
     inputContainer: {
       backgroundColor: colors.background.alternative,
       borderRadius: 8,
@@ -30,7 +35,13 @@ export const createStyles = (colors: Theme['colors']) =>
       paddingVertical: 12,
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 8,
+      flex: 1,
+    },
+    inputContainerLeft: {
+      marginRight: 4,
+    },
+    inputContainerRight: {
+      marginLeft: 4,
     },
     inputContainerActive: {
       borderColor: colors.primary.default,
@@ -40,6 +51,8 @@ export const createStyles = (colors: Theme['colors']) =>
       fontSize: 16,
       color: colors.text.default,
       paddingVertical: 0,
+      textAlign: 'right',
+      marginRight: 8,
     },
     inputPrefix: {
       marginRight: 8,
@@ -55,21 +68,18 @@ export const createStyles = (colors: Theme['colors']) =>
     percentageButton: {
       flex: 1,
       marginHorizontal: 4,
-      paddingVertical: 8,
+      paddingVertical: 10,
       paddingHorizontal: 12,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.pressed,
       borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
       alignItems: 'center',
     },
     percentageButtonActive: {
-      backgroundColor: colors.primary.muted,
-      borderColor: colors.primary.default,
+      backgroundColor: colors.primary.default,
     },
     percentageButtonDisabled: {
       opacity: 0.5,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.pressed,
     },
     helperText: {
       marginTop: 4,
