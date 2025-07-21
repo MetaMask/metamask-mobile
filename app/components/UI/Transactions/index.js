@@ -1,3 +1,4 @@
+import { providerErrors } from '@metamask/rpc-errors';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
@@ -13,12 +14,26 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
+import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
+import { getDeviceId } from '../../../core/Ledger/Ledger';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
+import {
+  CancelTransactionError,
+  SpeedupTransactionError,
+  TransactionError,
+} from '../../../core/Transaction/TransactionError';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import {
   selectChainId,
   selectNetworkClientId,
@@ -27,11 +42,9 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
-import { selectTokensByAddress } from '../../../selectors/tokensController';
-import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { decGWEIToHexWEI } from '../../../util/conversions';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {
@@ -42,39 +55,22 @@ import {
 } from '../../../util/networks';
 import { addHexPrefix, hexToBN, renderFromWei } from '../../../util/number';
 import { mockTheme, ThemeContext } from '../../../util/theme';
-import { validateTransactionActionBalance } from '../../../util/transactions';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import TransactionActionModal from '../TransactionActionModal';
-import TransactionElement from '../TransactionElement';
-import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
-import RetryModal from './RetryModal';
-import TransactionsFooter from './TransactionsFooter';
-import PriceChartContext, {
-  PriceChartProvider,
-} from '../AssetOverview/PriceChart/PriceChart.context';
-import { providerErrors } from '@metamask/rpc-errors';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import {
-  TransactionError,
-  CancelTransactionError,
-  SpeedupTransactionError,
-} from '../../../core/Transaction/TransactionError';
-import { getDeviceId } from '../../../core/Ledger/Ledger';
-import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import {
   speedUpTransaction,
   updateIncomingTransactions,
 } from '../../../util/transaction-controller';
-import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
-import { decGWEIToHexWEI } from '../../../util/conversions';
-import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { validateTransactionActionBalance } from '../../../util/transactions';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
+import PriceChartContext, {
+  PriceChartProvider,
+} from '../AssetOverview/PriceChart/PriceChart.context';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import TransactionActionModal from '../TransactionActionModal';
+import TransactionElement from '../TransactionElement';
+import RetryModal from './RetryModal';
+import TransactionsFooter from './TransactionsFooter';
+import { filterDuplicateOutgoingTransactions } from './utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -130,10 +126,6 @@ class Transactions extends PureComponent {
      */
     close: PropTypes.func,
     /**
-     * Object containing token exchange rates in the format address => exchangeRate
-     */
-    contractExchangeRates: PropTypes.object,
-    /**
      * Network configurations
      */
     networkConfigurations: PropTypes.object,
@@ -150,10 +142,6 @@ class Transactions extends PureComponent {
      */
     collectibleContracts: PropTypes.array,
     /**
-     * An array that represents the user tokens
-     */
-    tokens: PropTypes.object,
-    /**
      * An array of transactions objects
      */
     transactions: PropTypes.array,
@@ -169,10 +157,6 @@ class Transactions extends PureComponent {
      * A string that represents the selected address
      */
     selectedAddress: PropTypes.string,
-    /**
-     * ETH to current currency conversion rate
-     */
-    conversionRate: PropTypes.number,
     /**
      * Currency code of the currently-active currency
      */
@@ -645,11 +629,8 @@ class Transactions extends PureComponent {
       onCancelAction={this.onCancelAction}
       onPressItem={this.toggleDetailsView}
       selectedAddress={this.props.selectedAddress}
-      tokens={this.props.tokens}
       collectibleContracts={this.props.collectibleContracts}
-      contractExchangeRates={this.props.contractExchangeRates}
       exchangeRate={this.props.exchangeRate}
-      conversionRate={this.props.conversionRate}
       currentCurrency={this.props.currentCurrency}
       navigation={this.props.navigation}
       txChainId={item.chainId}
@@ -763,6 +744,9 @@ class Transactions extends PureComponent {
             .concat(confirmedTransactions)
         : this.props.transactions;
 
+    const filteredTransactions =
+      filterDuplicateOutgoingTransactions(transactions);
+
     const renderRetryGas = (rate) => {
       if (!this.existingGas) return null;
 
@@ -789,7 +773,7 @@ class Transactions extends PureComponent {
               testID={ActivitiesViewSelectorsIDs.CONTAINER}
               ref={this.flatList}
               getItemLayout={this.getItemLayout}
-              data={transactions}
+              data={filteredTransactions}
               extraData={this.state}
               keyExtractor={this.keyExtractor}
               refreshControl={
@@ -806,7 +790,9 @@ class Transactions extends PureComponent {
               onEndReachedThreshold={0.5}
               ListHeaderComponent={header}
               ListFooterComponent={
-                transactions.length > 0 ? this.footer : this.renderEmpty()
+                filteredTransactions.length > 0
+                  ? this.footer
+                  : this.renderEmpty()
               }
               style={baseStyles.flexGrow}
               scrollIndicatorInsets={{ right: 1 }}
@@ -910,15 +896,12 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   networkClientId: selectNetworkClientId(state),
   collectibleContracts: collectibleContractsSelector(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
   primaryCurrency: selectPrimaryCurrency(state),
-  tokens: selectTokensByAddress(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
 });
