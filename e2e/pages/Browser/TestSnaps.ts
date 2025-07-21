@@ -19,6 +19,7 @@ import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
 import LegacyGestures from '../../utils/Gestures';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import { waitForTestSnapsToLoad } from '../../viewHelper';
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.25.0/';
@@ -79,6 +80,7 @@ class TestSnaps {
   async navigateToTestSnap(): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
+    await waitForTestSnapsToLoad();
   }
 
   async tapButton(
@@ -179,7 +181,7 @@ class TestSnaps {
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
     )) as IndexableWebElement;
 
-    await Utilities.waitUntil(
+    await Utilities.executeWithRetry(
       async () => {
         try {
           await this.tapButton('getWebSocketState');
