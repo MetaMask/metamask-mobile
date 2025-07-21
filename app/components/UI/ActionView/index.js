@@ -126,7 +126,11 @@ export default function ActionView({
               label={cancelText}
               width={ButtonWidthTypes.Full}
               testID={cancelTestID}
-              style={primaryButtonStyle}
+              style={
+                showConfirmButton && showCancelButton
+                  ? styles.button
+                  : styles.fullWidth
+              }
               isDisabled={confirmed}
             />
           )}
