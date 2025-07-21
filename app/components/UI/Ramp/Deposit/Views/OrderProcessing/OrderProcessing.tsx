@@ -11,9 +11,6 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { getOrderById } from '../../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../../reducers';
 import { strings } from '../../../../../../../locales/i18n';
@@ -24,6 +21,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
+import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { useDepositSDK } from '../../sdk';
 import {
@@ -148,26 +146,7 @@ const OrderProcessing = () => {
   if (!order) {
     return (
       <ScreenLayout>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content grow>
-            <View style={styles.errorContainer}>
-              <Text variant={TextVariant.BodyMD}>
-                {strings('deposit.order_processing.no_order_found')}
-              </Text>
-            </View>
-          </ScreenLayout.Content>
-        </ScreenLayout.Body>
-        <ScreenLayout.Footer>
-          <ScreenLayout.Content>
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              onPress={() => navigation.navigate(Routes.WALLET.HOME)}
-              testID="no-order-back-button"
-              label={strings('deposit.order_processing.back_to_wallet')}
-            />
-          </ScreenLayout.Content>
-        </ScreenLayout.Footer>
+        <Loader size="large" color={theme.colors.primary.default} />
       </ScreenLayout>
     );
   }
