@@ -126,7 +126,10 @@ describe('confirmationMetrics slice', () => {
 
   describe('setTransactionPayToken', () => {
     it('updates transaction pay token for ID', () => {
-      const action = setTransactionPayToken({ transactionId: ID_MOCK, payToken: PAY_TOKEN_MOCK });
+      const action = setTransactionPayToken({
+        transactionId: ID_MOCK,
+        payToken: PAY_TOKEN_MOCK,
+      });
       const state = reducer(initialState, action);
 
       expect(state.transactionPayTokenById[ID_MOCK]).toEqual(PAY_TOKEN_MOCK);
@@ -136,7 +139,9 @@ describe('confirmationMetrics slice', () => {
   describe('selectTransactionPayToken', () => {
     it('returns transaction pay token', () => {
       const state = {
-        confirmationMetrics: { transactionPayTokenById: { [ID_MOCK]: PAY_TOKEN_MOCK } },
+        confirmationMetrics: {
+          transactionPayTokenById: { [ID_MOCK]: PAY_TOKEN_MOCK },
+        },
       } as unknown as RootState;
 
       expect(selectTransactionPayToken(state, ID_MOCK)).toEqual(PAY_TOKEN_MOCK);
