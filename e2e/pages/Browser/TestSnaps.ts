@@ -19,6 +19,7 @@ import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 import { waitForTestSnapsToLoad } from '../../viewHelper';
+import { RetryOptions } from '../../framework';
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.25.0/';
@@ -51,29 +52,41 @@ class TestSnaps {
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
   ) {
-    const webElement = (await Matchers.getElementByWebID(
+    const webElement = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
-    )) as IndexableWebElement;
+    );
 
-    const actualText = await webElement.getText();
-    await Assertions.checkIfTextMatches(actualText, expectedMessage);
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      await Assertions.checkIfTextMatches(actualText, expectedMessage);
+    }, options);
   }
 
   async checkResultSpanIncludes(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
   ) {
-    const webElement = (await Matchers.getElementByWebID(
+    const webElement = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
-    )) as IndexableWebElement;
+    );
 
-    const actualText = await webElement.getText();
-    if (!actualText.includes(expectedMessage)) {
-      throw new Error(`Text did not contain "${expectedMessage}"`);
-    }
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      if (!actualText.includes(expectedMessage)) {
+        throw new Error(`Text did not contain "${expectedMessage}"`);
+      }
+    }, options);
   }
 
   async navigateToTestSnap() {

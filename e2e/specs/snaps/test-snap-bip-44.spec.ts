@@ -47,7 +47,6 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
 
   it('can get BIP-44 public key', async () => {
     await TestSnaps.tapButton('getPublicKeyBip44Button');
-    await TestHelpers.delay(3000);
     await TestSnaps.checkResultSpan(
       'bip44ResultSpan',
       '"0x86debb44fb3a984d93f326131d4c1db0bc39644f1a67b673b3ab45941a1cea6a385981755185ac4594b6521e4d1e08d1"',

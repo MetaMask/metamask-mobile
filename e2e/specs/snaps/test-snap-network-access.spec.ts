@@ -35,7 +35,6 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
 
         // Use fetch
         await TestSnaps.tapButton('sendNetworkAccessTestButton');
-        await TestHelpers.delay(500);
         await TestSnaps.checkResultSpanIncludes(
           'networkAccessResultSpan',
           '"hello": "world"',
