@@ -879,22 +879,24 @@ class AuthenticationService {
                   shouldSelectAccount: false,
                 });
                 continue;
+              } else if (item.type === SecretType.Mnemonic) {
+                // vault add new seedphrase
+                const keyringMetadata = await KeyringController.addNewKeyring(
+                  KeyringTypes.hd,
+                  {
+                    mnemonic: uint8ArrayToMnemonic(item.data, wordlist),
+                    numberOfAccounts: 1,
+                  },
+                );
+
+                SeedlessOnboardingController.updateBackupMetadataState({
+                  keyringId: keyringMetadata.id,
+                  data: item.data,
+                  type: SecretType.Mnemonic,
+                });
+              } else {
+                Logger.error(new Error('Unknown secret type'), item.type);
               }
-
-              // vault add new seedphrase
-              const keyringMetadata = await KeyringController.addNewKeyring(
-                KeyringTypes.hd,
-                {
-                  mnemonic: uint8ArrayToMnemonic(item.data, wordlist),
-                  numberOfAccounts: 1,
-                },
-              );
-
-              SeedlessOnboardingController.updateBackupMetadataState({
-                keyringId: keyringMetadata.id,
-                data: item.data,
-                type: SecretType.Mnemonic,
-              });
             } catch (error) {
               // catch error to prevent unable to login
               Logger.error(error as Error);
