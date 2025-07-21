@@ -24,11 +24,11 @@ const Send = () => {
   const submitSend = useCallback(() => {
     // actual confirmation creation to come here
     navigation.goBack();
-  }, []);
+  }, [navigation]);
 
   const cancelSend = useCallback(() => {
     navigation.goBack();
-  }, []);
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

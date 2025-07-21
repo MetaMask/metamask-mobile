@@ -1,8 +1,8 @@
 import React from 'react';
+import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { fireEvent, render } from '@testing-library/react-native';
 
 import Send from './send';
-import { useRoute } from '@react-navigation/native';
 
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -46,13 +46,13 @@ describe('Send', () => {
   });
 
   it('asset passed in nav params should be used if present', async () => {
-    (useRoute as any).mockReturnValue({
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
         asset: {
           name: 'Ethereum',
         },
       },
-    });
+    } as RouteProp<ParamListBase, string>);
     const { getByText } = render(<Send />);
     expect(getByText('Asset: Ethereum')).toBeTruthy();
   });

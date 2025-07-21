@@ -186,6 +186,13 @@ const assetFromSearch = {
   isFromSearch: true,
 };
 
+const routeParams = {
+  params: {
+    asset: asset,
+    screen: 'Send',
+  },
+};
+
 describe('AssetOverview', () => {
   const mockSendNonEvmAsset = jest.fn();
 
@@ -259,7 +266,7 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+    expect(navigate).toHaveBeenCalledWith('SendFlowView', routeParams);
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
@@ -333,7 +340,7 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+    expect(navigate).toHaveBeenCalledWith('SendFlowView', routeParams);
     expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
   });
 
@@ -883,7 +890,7 @@ describe('AssetOverview', () => {
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
 
       // Should navigate to traditional send flow
-      expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).toHaveBeenCalledWith('SendFlowView', routeParams);
     });
 
     it('should display Solana balance correctly for non-EVM assets', async () => {
