@@ -1,6 +1,10 @@
 /* eslint-disable no-undef */
 import { device } from 'detox';
-import { getGanachePort, getSecondTestDappLocalUrl, TEST_DAPP_LOCAL_URL } from './utils';
+import {
+  getGanachePort,
+  getSecondTestDappLocalUrl,
+  TEST_DAPP_LOCAL_URL,
+} from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -825,7 +829,7 @@ class FixtureBuilder {
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-        getSecondTestDappLocalUrl()
+        getSecondTestDappLocalUrl(),
       );
     }
     this.withPermissionController(
