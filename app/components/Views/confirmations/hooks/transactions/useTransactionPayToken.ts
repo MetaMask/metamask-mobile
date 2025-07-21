@@ -1,8 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  PayAsset,
-  selectPayAsset,
-  setPayAsset as setPayAssetAction,
+  TransactionPayToken,
+  selectTransactionPayToken,
+  setTransactionPayToken,
 } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
@@ -10,34 +10,37 @@ import { useCallback } from 'react';
 import { RootState } from '../../../../../reducers';
 import { Hex } from '@metamask/utils';
 
-export function usePayAsset() {
+export function useTransactionPayToken() {
   const dispatch = useDispatch();
 
   const { chainId: transactionChainId, id: transactionId } =
     useTransactionMetadataRequest() || {};
 
-  const selectedPayAsset = useSelector((state: RootState) =>
-    selectPayAsset(state, transactionId as string),
+  const selectedPayToken = useSelector((state: RootState) =>
+    selectTransactionPayToken(state, transactionId as string),
   );
 
-  const defaultPayAsset: PayAsset = {
+  const defaultPayToken: TransactionPayToken = {
     address: EMPTY_ADDRESS,
     chainId: transactionChainId as Hex,
   };
 
-  const setPayAsset = useCallback(
-    (asset: PayAsset) => {
+  const setPayToken = useCallback(
+    (payToken: TransactionPayToken) => {
       dispatch(
-        setPayAssetAction({ id: transactionId as string, payAsset: asset }),
+        setTransactionPayToken({
+          transactionId: transactionId as string,
+          payToken,
+        }),
       );
     },
     [dispatch, transactionId],
   );
 
-  const payAsset = selectedPayAsset ?? defaultPayAsset;
+  const payToken = selectedPayToken ?? defaultPayToken;
 
   return {
-    payAsset,
-    setPayAsset,
+    payToken,
+    setPayToken,
   };
 }

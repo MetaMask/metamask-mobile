@@ -9,19 +9,19 @@ export interface ConfirmationMetrics {
   sensitiveProperties?: Record<string, unknown>;
 }
 
-export interface PayAsset {
+export interface TransactionPayToken {
   address: Hex;
   chainId: Hex;
 }
 
 export interface ConfirmationMetricsState {
   metricsById: Record<string, ConfirmationMetrics>;
-  payAssetById: Record<string, PayAsset>;
+  transactionPayTokenById: Record<string, TransactionPayToken>;
 }
 
 export const initialState: ConfirmationMetricsState = {
   metricsById: {},
-  payAssetById: {},
+  transactionPayTokenById: {},
 };
 
 const name = 'confirmationMetrics';
@@ -49,12 +49,15 @@ const slice = createSlice({
       state.metricsById[id] = merge(state.metricsById[id], params);
     },
 
-    setPayAsset: (
+    setTransactionPayToken: (
       state,
-      action: PayloadAction<{ id: string; payAsset: PayAsset }>,
+      action: PayloadAction<{
+        transactionId: string;
+        payToken: TransactionPayToken;
+      }>,
     ) => {
-      const { id, payAsset } = action.payload;
-      state.payAssetById[id] = payAsset;
+      const { transactionId, payToken } = action.payload;
+      state.transactionPayTokenById[transactionId] = payToken;
     },
   },
 });
@@ -64,14 +67,14 @@ const { actions, reducer } = slice;
 export default reducer;
 
 // Actions
-export const { updateConfirmationMetric, setPayAsset } = actions;
+export const { updateConfirmationMetric, setTransactionPayToken } = actions;
 
 // Selectors
 export const selectConfirmationMetrics = (state: RootState) =>
   state[name].metricsById;
 
-export const selectPayAsset = (state: RootState, id: string) =>
-  state[name].payAssetById[id];
+export const selectTransactionPayToken = (state: RootState, id: string) =>
+  state[name].transactionPayTokenById[id];
 
 export const selectConfirmationMetricsById = createSelector(
   [selectConfirmationMetrics, (_: RootState, id: string) => id],

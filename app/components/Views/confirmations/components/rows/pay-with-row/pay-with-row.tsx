@@ -4,12 +4,12 @@ import InfoSection from '../../UI/info-row/info-section';
 import { Box } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { usePayAsset } from '../../../hooks/transactions/usePayAsset';
+import { useTransactionPayToken } from '../../../hooks/transactions/useTransactionPayToken';
 import { TokenPill } from '../../token-pill/token-pill';
 
 export function PayWithRow() {
   const navigation = useNavigation();
-  const { payAsset } = usePayAsset();
+  const { payToken } = useTransactionPayToken();
 
   const handleClick = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
@@ -22,7 +22,7 @@ export function PayWithRow() {
       <InfoSection>
         <InfoRow label="Pay with" tooltip="Test 1 2 3">
           <Box onTouchEnd={handleClick}>
-            <TokenPill address={payAsset.address} chainId={payAsset.chainId} />
+            <TokenPill address={payToken.address} chainId={payToken.chainId} />
           </Box>
         </InfoRow>
       </InfoSection>

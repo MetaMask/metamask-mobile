@@ -1,7 +1,7 @@
 import { ChainId } from '@metamask/controller-utils';
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { usePayAsset } from './usePayAsset';
+import { useTransactionPayToken } from './useTransactionPayToken';
 import { cloneDeep, merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
@@ -17,61 +17,61 @@ const STATE_MOCK = merge(
 const TRANSACTION_ID_MOCK =
   STATE_MOCK.engine.backgroundState.TransactionController.transactions[0].id;
 
-const PAY_ASSET_MOCK: ConfirmationMetricsReducer.PayAsset = {
+const PAY_ASSET_MOCK: ConfirmationMetricsReducer.TransactionPayToken = {
   address: '0x1234567890abcdef1234567890abcdef12345678',
   chainId: '0x123',
 };
 
 function runHook({
-  payAsset,
-}: { payAsset?: ConfirmationMetricsReducer.PayAsset } = {}) {
+  payToken,
+}: { payToken?: ConfirmationMetricsReducer.TransactionPayToken } = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
-  if (payAsset) {
+  if (payToken) {
     mockState.confirmationMetrics = {
       metricsById: {},
-      payAssetById: {
-        [TRANSACTION_ID_MOCK]: payAsset,
+      transactionPayTokenById: {
+        [TRANSACTION_ID_MOCK]: payToken,
       },
     };
   }
 
-  return renderHookWithProvider(usePayAsset, {
+  return renderHookWithProvider(useTransactionPayToken, {
     state: mockState,
   });
 }
 
-describe('usePayAsset', () => {
-  it('returns default pay asset if no state', () => {
+describe('useTransactionPayToken', () => {
+  it('returns default token if no state', () => {
     const { result } = runHook();
 
-    expect(result.current.payAsset).toEqual({
+    expect(result.current.payToken).toEqual({
       address: EMPTY_ADDRESS,
       chainId: ChainId.mainnet,
     });
   });
 
-  it('returns pay asset from state', () => {
+  it('returns token from state', () => {
     const { result } = runHook({
-      payAsset: PAY_ASSET_MOCK,
+      payToken: PAY_ASSET_MOCK,
     });
 
-    expect(result.current.payAsset).toEqual(PAY_ASSET_MOCK);
+    expect(result.current.payToken).toEqual(PAY_ASSET_MOCK);
   });
 
-  it('sets pay asset in state', () => {
-    const setPayAssetActionMock = jest.spyOn(
+  it('sets token in state', () => {
+    const setPayTokenActionMock = jest.spyOn(
       ConfirmationMetricsReducer,
-      'setPayAsset',
+      'setTransactionPayToken',
     );
 
     const { result } = runHook();
 
-    result.current.setPayAsset(PAY_ASSET_MOCK);
+    result.current.setPayToken(PAY_ASSET_MOCK);
 
-    expect(setPayAssetActionMock).toHaveBeenCalledWith({
+    expect(setPayTokenActionMock).toHaveBeenCalledWith({
       id: TRANSACTION_ID_MOCK,
-      payAsset: PAY_ASSET_MOCK,
+      payToken: PAY_ASSET_MOCK,
     });
   });
 });

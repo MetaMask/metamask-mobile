@@ -21,7 +21,7 @@ import { TokenSelectorItem } from '../../../../../UI/Bridge/components/TokenSele
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import { usePayAsset } from '../../../hooks/transactions/usePayAsset';
+import { useTransactionPayToken } from '../../../hooks/transactions/useTransactionPayToken';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
 
@@ -31,7 +31,7 @@ export function PayWithModal() {
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const { sortedSourceNetworks } = useSortedSourceNetworks();
   const navigation = useNavigation();
-  const { payAsset, setPayAsset } = usePayAsset();
+  const { payToken, setPayToken } = useTransactionPayToken();
   const { minimumFiatBalance } = useParams<{ minimumFiatBalance?: number }>();
 
   const { tokens: tokensList, pending } = useTokens({
@@ -49,14 +49,14 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: BridgeToken) => {
-      setPayAsset({
+      setPayToken({
         address: token.address as Hex,
         chainId: token.chainId as Hex,
       });
 
       navigation.goBack();
     },
-    [navigation, setPayAsset],
+    [navigation, setPayToken],
   );
 
   const renderItem = useCallback(
@@ -69,8 +69,8 @@ export function PayWithModal() {
       const networkName = allNetworkConfigurations[chainId]?.name;
 
       const isSelected =
-        payAsset.chainId === chainId &&
-        payAsset.address.toLowerCase() === item.address.toLowerCase();
+        payToken.chainId === chainId &&
+        payToken.address.toLowerCase() === item.address.toLowerCase();
 
       const networkImageSource = getNetworkImageSource({
         chainId,
@@ -86,7 +86,7 @@ export function PayWithModal() {
         />
       );
     },
-    [allNetworkConfigurations, handleTokenSelect, payAsset],
+    [allNetworkConfigurations, handleTokenSelect, payToken],
   );
 
   const handleNetworkPress = useCallback(() => {

@@ -4,15 +4,15 @@ import reducer, {
   selectConfirmationMetrics,
   ConfirmationMetrics,
   selectConfirmationMetricsById,
-  setPayAsset,
-  PayAsset,
-  selectPayAsset,
+  setTransactionPayToken,
+  TransactionPayToken,
+  selectTransactionPayToken,
 } from './index';
 import { RootState } from '../../../../reducers';
 
 const ID_MOCK = '123-456';
 
-const PAY_ASSET_MOCK: PayAsset = {
+const PAY_TOKEN_MOCK: TransactionPayToken = {
   address: '0x456',
   chainId: '0x123',
 };
@@ -124,22 +124,22 @@ describe('confirmationMetrics slice', () => {
     });
   });
 
-  describe('setPayAsset', () => {
-    it('updates pay asset for ID', () => {
-      const action = setPayAsset({ id: ID_MOCK, payAsset: PAY_ASSET_MOCK });
+  describe('setTransactionPayToken', () => {
+    it('updates transaction pay token for ID', () => {
+      const action = setTransactionPayToken({ transactionId: ID_MOCK, payToken: PAY_TOKEN_MOCK });
       const state = reducer(initialState, action);
 
-      expect(state.payAssetById[ID_MOCK]).toEqual(PAY_ASSET_MOCK);
+      expect(state.transactionPayTokenById[ID_MOCK]).toEqual(PAY_TOKEN_MOCK);
     });
   });
 
-  describe('selectPayAsset', () => {
-    it('returns pay asset', () => {
+  describe('selectTransactionPayToken', () => {
+    it('returns transaction pay token', () => {
       const state = {
-        confirmationMetrics: { payAssetById: { [ID_MOCK]: PAY_ASSET_MOCK } },
+        confirmationMetrics: { transactionPayTokenById: { [ID_MOCK]: PAY_TOKEN_MOCK } },
       } as unknown as RootState;
 
-      expect(selectPayAsset(state, ID_MOCK)).toEqual(PAY_ASSET_MOCK);
+      expect(selectTransactionPayToken(state, ID_MOCK)).toEqual(PAY_TOKEN_MOCK);
     });
   });
 });

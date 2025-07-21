@@ -11,7 +11,7 @@ jest.useFakeTimers();
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockSetPayAsset = jest.fn();
+const mockSetPayToken = jest.fn();
 
 jest.mock('../../../../../UI/Bridge/hooks/useTokens');
 
@@ -30,10 +30,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/transactions/usePayAsset', () => ({
-  usePayAsset: () => ({
-    payAsset: { address: '0x0', chainId: '0x0' },
-    setPayAsset: mockSetPayAsset,
+jest.mock('../../../hooks/transactions/useTransactionPayToken', () => ({
+  useTransactionPayToken: () => ({
+    payToken: { address: '0x0', chainId: '0x0' },
+    setPayToken: mockSetPayToken,
   }),
 }));
 
@@ -148,7 +148,7 @@ describe('PayWithModal', () => {
         fireEvent.press(getByText('Test Token 2'));
       });
 
-      expect(mockSetPayAsset).toHaveBeenCalledWith({
+      expect(mockSetPayToken).toHaveBeenCalledWith({
         address: TOKENS_MOCK[1].address,
         chainId: TOKENS_MOCK[1].chainId,
       });
