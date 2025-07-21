@@ -1073,6 +1073,7 @@ describe('Authentication', () => {
     };
     const mockSeedPhrase1 = new Uint8Array([1]);
     const mockSeedPhrase2 = new Uint8Array([2]);
+    const mockPrivateKeyData = new Uint8Array([3, 4, 5, 6]);
 
     let Engine: typeof import('../Engine').default;
     let OAuthService: typeof import('../OAuthService/OAuthService').default;
@@ -1200,6 +1201,106 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('should rehydrate with seed phrase and private key', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+        },
+        {
+          data: mockPrivateKeyData,
+          type: SecretType.PrivateKey,
+        },
+      ]);
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce(undefined);
+      const importAccountFromPrivateKeySpy = jest
+        .spyOn(Authentication, 'importAccountFromPrivateKey')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.userEntryAuth(mockPassword, mockAuthData);
+
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).toHaveBeenCalledWith(mockPassword);
+      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+        mockPassword,
+        mockAuthData,
+        uint8ArrayToMnemonic(mockSeedPhrase1, []),
+        false,
+      );
+      expect(importAccountFromPrivateKeySpy).toHaveBeenCalledWith(
+        expect.any(String), // bytesToHex result
+        {
+          shouldCreateSocialBackup: false,
+          shouldSelectAccount: false,
+        },
+      );
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('should handle unknown secret type and log error', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+        },
+        {
+          data: mockPrivateKeyData,
+          type: 'unknown' as SecretType,
+        },
+      ]);
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.userEntryAuth(mockPassword, mockAuthData);
+
+      expect(newWalletAndRestoreSpy).toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('should handle importAccountFromPrivateKey failure and continue', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+        },
+        {
+          data: mockPrivateKeyData,
+          type: SecretType.PrivateKey,
+        },
+      ]);
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce(undefined);
+      const importError = new Error('Import failed');
+      const importAccountFromPrivateKeySpy = jest
+        .spyOn(Authentication, 'importAccountFromPrivateKey')
+        .mockRejectedValueOnce(importError);
+
+      await Authentication.userEntryAuth(mockPassword, mockAuthData);
+
+      expect(newWalletAndRestoreSpy).toHaveBeenCalled();
+      expect(importAccountFromPrivateKeySpy).toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(importError);
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
