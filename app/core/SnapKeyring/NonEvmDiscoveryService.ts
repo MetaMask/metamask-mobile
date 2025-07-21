@@ -1,5 +1,8 @@
 import StorageWrapper from '../../store/storage-wrapper';
-import { NON_EVM_DISCOVERY_PENDING } from '../../constants/storage';
+import {
+  BITCOIN_DISCOVERY_PENDING,
+  SOLANA_DISCOVERY_PENDING,
+} from '../../constants/storage';
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
@@ -15,30 +18,25 @@ export class NonEvmDiscoveryService {
    * @returns Promise<number> - Number of discovered accounts
    */
   static async discoverAccounts(keyringId: string): Promise<number> {
-    const nonEvmClientTypes = Object.values(WalletClientType);
     let discoveredAccountsCount = 0;
-    let hasFailures = false;
 
-    const discoveryPromises = nonEvmClientTypes.map(async (clientType) => {
-      const client = MultichainWalletSnapFactory.createClient(clientType);
-      return await client.addDiscoveredAccounts(keyringId);
-    });
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    try {
+      const bitcoinAccounts = await this.discoverBitcoinAccounts(keyringId);
+      discoveredAccountsCount += bitcoinAccounts;
+    } catch (error) {
+      console.warn('Bitcoin discovery failed:', error);
+    }
+    ///: END:ONLY_INCLUDE_IF
 
-    const results = await Promise.allSettled(discoveryPromises);
-
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        discoveredAccountsCount += result.value;
-      } else {
-        console.warn(
-          `${nonEvmClientTypes[index]} discovery failed:`,
-          result.reason,
-        );
-        hasFailures = true;
-      }
-    });
-
-    await this.handleDiscoveryFailures(hasFailures);
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    try {
+      const solanaAccounts = await this.discoverSolanaAccounts(keyringId);
+      discoveredAccountsCount += solanaAccounts;
+    } catch (error) {
+      console.warn('Solana discovery failed:', error);
+    }
+    ///: END:ONLY_INCLUDE_IF
 
     return discoveredAccountsCount;
   }
@@ -87,20 +85,6 @@ export class NonEvmDiscoveryService {
   }
   ///: END:ONLY_INCLUDE_IF
 
-  /**
-   * Handles discovery failures by setting/clearing the pending flag
-   * @param hasFailures - Whether any discovery attempts failed
-   */
-  private static async handleDiscoveryFailures(
-    hasFailures: boolean,
-  ): Promise<void> {
-    if (hasFailures) {
-      await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
-    } else {
-      await StorageWrapper.removeItem(NON_EVM_DISCOVERY_PENDING);
-    }
-  }
-
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   /**
    * Handles Bitcoin discovery failures by setting/clearing the pending flag
@@ -109,7 +93,6 @@ export class NonEvmDiscoveryService {
   private static async handleBitcoinDiscoveryFailure(
     hasFailure: boolean,
   ): Promise<void> {
-    const BITCOIN_DISCOVERY_PENDING = `${NON_EVM_DISCOVERY_PENDING}_bitcoin`;
     if (hasFailure) {
       await StorageWrapper.setItem(BITCOIN_DISCOVERY_PENDING, 'true');
     } else {
@@ -126,7 +109,6 @@ export class NonEvmDiscoveryService {
   private static async handleSolanaDiscoveryFailure(
     hasFailure: boolean,
   ): Promise<void> {
-    const SOLANA_DISCOVERY_PENDING = `${NON_EVM_DISCOVERY_PENDING}_solana`;
     if (hasFailure) {
       await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
     } else {
@@ -140,14 +122,21 @@ export class NonEvmDiscoveryService {
    * @param keyringId - The keyring ID to retry discovery for
    */
   static async retryIfPending(keyringId: string): Promise<void> {
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     try {
-      const isPending = await StorageWrapper.getItem(NON_EVM_DISCOVERY_PENDING);
-      if (isPending === 'true') {
-        await this.discoverAccounts(keyringId);
-      }
+      await this.retryBitcoinIfPending(keyringId);
     } catch (error) {
-      console.warn('Failed to check/retry non-EVM discovery:', error);
+      console.warn('Failed to retry Bitcoin discovery:', error);
     }
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    try {
+      await this.retrySolanaIfPending(keyringId);
+    } catch (error) {
+      console.warn('Failed to retry Solana discovery:', error);
+    }
+    ///: END:ONLY_INCLUDE_IF
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
@@ -157,7 +146,6 @@ export class NonEvmDiscoveryService {
    */
   static async retryBitcoinIfPending(keyringId: string): Promise<void> {
     try {
-      const BITCOIN_DISCOVERY_PENDING = `${NON_EVM_DISCOVERY_PENDING}_bitcoin`;
       const isPending = await StorageWrapper.getItem(BITCOIN_DISCOVERY_PENDING);
       if (isPending === 'true') {
         await this.discoverBitcoinAccounts(keyringId);
@@ -175,7 +163,6 @@ export class NonEvmDiscoveryService {
    */
   static async retrySolanaIfPending(keyringId: string): Promise<void> {
     try {
-      const SOLANA_DISCOVERY_PENDING = `${NON_EVM_DISCOVERY_PENDING}_solana`;
       const isPending = await StorageWrapper.getItem(SOLANA_DISCOVERY_PENDING);
       if (isPending === 'true') {
         await this.discoverSolanaAccounts(keyringId);

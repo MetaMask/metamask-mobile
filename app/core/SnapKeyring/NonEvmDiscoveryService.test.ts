@@ -1,6 +1,9 @@
 import { NonEvmDiscoveryService } from './NonEvmDiscoveryService';
 import StorageWrapper from '../../store/storage-wrapper';
-import { NON_EVM_DISCOVERY_PENDING } from '../../constants/storage';
+import {
+  BITCOIN_DISCOVERY_PENDING,
+  SOLANA_DISCOVERY_PENDING,
+} from '../../constants/storage';
 
 // Mock the dependencies using the same pattern as Authentication.test.ts
 const storage: Record<string, unknown> = {};
@@ -63,7 +66,10 @@ describe('NonEvmDiscoveryService', () => {
 
       // Should clear the pending flag on success
       expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
-        NON_EVM_DISCOVERY_PENDING,
+        BITCOIN_DISCOVERY_PENDING,
+      );
+      expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
+        SOLANA_DISCOVERY_PENDING,
       );
       expect(StorageWrapper.setItem).not.toHaveBeenCalled();
     });
@@ -80,7 +86,11 @@ describe('NonEvmDiscoveryService', () => {
       expect(result).toBe(0);
       // Should set pending flag on failure
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        NON_EVM_DISCOVERY_PENDING,
+        BITCOIN_DISCOVERY_PENDING,
+        'true',
+      );
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        SOLANA_DISCOVERY_PENDING,
         'true',
       );
       expect(StorageWrapper.removeItem).not.toHaveBeenCalled();
@@ -99,7 +109,11 @@ describe('NonEvmDiscoveryService', () => {
       expect(result).toBe(3); // Only the successful discovery counts
       // Should still set pending flag due to partial failure
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        NON_EVM_DISCOVERY_PENDING,
+        BITCOIN_DISCOVERY_PENDING,
+        'true',
+      );
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        SOLANA_DISCOVERY_PENDING,
         'true',
       );
     });
@@ -116,7 +130,7 @@ describe('NonEvmDiscoveryService', () => {
 
       expect(result).toBe(2);
       expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
-        `${NON_EVM_DISCOVERY_PENDING}_bitcoin`,
+        BITCOIN_DISCOVERY_PENDING,
       );
     });
 
@@ -131,7 +145,7 @@ describe('NonEvmDiscoveryService', () => {
 
       expect(result).toBe(0);
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        `${NON_EVM_DISCOVERY_PENDING}_bitcoin`,
+        BITCOIN_DISCOVERY_PENDING,
         'true',
       );
     });
@@ -139,32 +153,29 @@ describe('NonEvmDiscoveryService', () => {
 
   describe('retryBitcoinIfPending', () => {
     it('should retry Bitcoin discovery when pending flag is set', async () => {
-      await StorageWrapper.setItem(
-        `${NON_EVM_DISCOVERY_PENDING}_bitcoin`,
-        'true',
-      );
+      await StorageWrapper.setItem(BITCOIN_DISCOVERY_PENDING, 'true');
       mockSnapClient.addDiscoveredAccounts.mockResolvedValue(2);
 
       await NonEvmDiscoveryService.retryBitcoinIfPending(mockKeyringId);
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-        `${NON_EVM_DISCOVERY_PENDING}_bitcoin`,
+        BITCOIN_DISCOVERY_PENDING,
       );
       expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
         mockKeyringId,
       );
       expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
-        `${NON_EVM_DISCOVERY_PENDING}_bitcoin`,
+        BITCOIN_DISCOVERY_PENDING,
       );
     });
 
     it('should not retry when Bitcoin pending flag is not set', async () => {
-      await StorageWrapper.removeItem(`${NON_EVM_DISCOVERY_PENDING}_bitcoin`);
+      await StorageWrapper.removeItem(BITCOIN_DISCOVERY_PENDING);
 
       await NonEvmDiscoveryService.retryBitcoinIfPending(mockKeyringId);
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-        `${NON_EVM_DISCOVERY_PENDING}_bitcoin`,
+        BITCOIN_DISCOVERY_PENDING,
       );
       expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
     });
@@ -182,7 +193,7 @@ describe('NonEvmDiscoveryService', () => {
 
       expect(result).toBe(3);
       expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
-        `${NON_EVM_DISCOVERY_PENDING}_solana`,
+        SOLANA_DISCOVERY_PENDING,
       );
     });
 
@@ -197,7 +208,7 @@ describe('NonEvmDiscoveryService', () => {
 
       expect(result).toBe(0);
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        `${NON_EVM_DISCOVERY_PENDING}_solana`,
+        SOLANA_DISCOVERY_PENDING,
         'true',
       );
     });
@@ -205,32 +216,29 @@ describe('NonEvmDiscoveryService', () => {
 
   describe('retrySolanaIfPending', () => {
     it('should retry Solana discovery when pending flag is set', async () => {
-      await StorageWrapper.setItem(
-        `${NON_EVM_DISCOVERY_PENDING}_solana`,
-        'true',
-      );
+      await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
       mockSnapClient.addDiscoveredAccounts.mockResolvedValue(1);
 
       await NonEvmDiscoveryService.retrySolanaIfPending(mockKeyringId);
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-        `${NON_EVM_DISCOVERY_PENDING}_solana`,
+        SOLANA_DISCOVERY_PENDING,
       );
       expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
         mockKeyringId,
       );
       expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
-        `${NON_EVM_DISCOVERY_PENDING}_solana`,
+        SOLANA_DISCOVERY_PENDING,
       );
     });
 
     it('should not retry when Solana pending flag is not set', async () => {
-      await StorageWrapper.removeItem(`${NON_EVM_DISCOVERY_PENDING}_solana`);
+      await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
 
       await NonEvmDiscoveryService.retrySolanaIfPending(mockKeyringId);
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-        `${NON_EVM_DISCOVERY_PENDING}_solana`,
+        SOLANA_DISCOVERY_PENDING,
       );
       expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
     });
@@ -239,29 +247,35 @@ describe('NonEvmDiscoveryService', () => {
 
   describe('retryIfPending', () => {
     it('should retry discovery when pending flag is set', async () => {
-      await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
+      await StorageWrapper.setItem(BITCOIN_DISCOVERY_PENDING, 'true');
+      await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
       mockSnapClient.addDiscoveredAccounts.mockResolvedValue(2);
 
       await NonEvmDiscoveryService.retryIfPending(mockKeyringId);
 
+      // Should call both Bitcoin and Solana retry methods
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-        NON_EVM_DISCOVERY_PENDING,
+        BITCOIN_DISCOVERY_PENDING,
+      );
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        SOLANA_DISCOVERY_PENDING,
       );
       expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
         mockKeyringId,
       );
-      expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
-        NON_EVM_DISCOVERY_PENDING,
-      );
     });
 
     it('should not retry when pending flag is not set', async () => {
-      await StorageWrapper.removeItem(NON_EVM_DISCOVERY_PENDING);
+      await StorageWrapper.removeItem(BITCOIN_DISCOVERY_PENDING);
+      await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
 
       await NonEvmDiscoveryService.retryIfPending(mockKeyringId);
 
       expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-        NON_EVM_DISCOVERY_PENDING,
+        BITCOIN_DISCOVERY_PENDING,
+      );
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        SOLANA_DISCOVERY_PENDING,
       );
       expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
     });
