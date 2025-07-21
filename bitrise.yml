@@ -2026,6 +2026,10 @@ workflows:
   build_android_devbuild:
     after_run:
       - build_android_main_local
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_flask_local:
     envs:
       - IS_DEV_BUILD: 'true'
@@ -2043,6 +2047,10 @@ workflows:
   build_android_flask_devbuild:
     after_run:
       - build_android_flask_local
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_qa_local:
     envs:
       - IS_DEV_BUILD: 'true'
@@ -2060,6 +2068,10 @@ workflows:
   build_android_qa_devbuild:
     after_run:
       - build_android_qa_local
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_qa_prod:
     envs:
       - NAME: $VERSION_NAME
