@@ -289,28 +289,18 @@ export const useDepositRouting = ({
   );
 
   const navigateToKycWebviewCallback = useCallback(
-    ({
-      quote,
-      kycUrl,
-      cryptoCurrencyChainId: chainId,
-      paymentMethodId: methodId,
-    }: {
-      quote: BuyQuote;
-      kycUrl: string;
-      cryptoCurrencyChainId: string;
-      paymentMethodId: string;
-    }) => {
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
       popToBuildQuote();
       navigation.navigate(
         ...createKycWebviewModalNavigationDetails({
           quote,
           sourceUrl: kycUrl,
-          cryptoCurrencyChainId: chainId,
-          paymentMethodId: methodId,
+          cryptoCurrencyChainId,
+          paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote],
+    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
   );
 
   const routeAfterAuthentication = useCallback(
