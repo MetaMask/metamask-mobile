@@ -545,7 +545,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               testID="expand-quote-details"
                             >
                               <SvgMock
-                                color="#9ca1af"
+                                color="#b7bbc8"
                                 fill="currentColor"
                                 height={16}
                                 name="ArrowDown"
@@ -848,7 +848,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     }
                                   >
                                     <SvgMock
-                                      color="#9ca1af"
+                                      color="#b7bbc8"
                                       fill="currentColor"
                                       height={16}
                                       name="Question"
@@ -1104,7 +1104,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                         Slippage
                                       </Text>
                                       <SvgMock
-                                        color="#9ca1af"
+                                        color="#b7bbc8"
                                         fill="currentColor"
                                         height={16}
                                         name="Edit"
@@ -1740,7 +1740,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               testID="expand-quote-details"
                             >
                               <SvgMock
-                                color="#9ca1af"
+                                color="#b7bbc8"
                                 fill="currentColor"
                                 height={16}
                                 name="ArrowDown"
@@ -2043,7 +2043,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     }
                                   >
                                     <SvgMock
-                                      color="#9ca1af"
+                                      color="#b7bbc8"
                                       fill="currentColor"
                                       height={16}
                                       name="Question"
