@@ -88,7 +88,7 @@ class CollectibleView extends PureComponent {
         params,
       });
     } else {
-      this.props.navigation.navigate('SendFlowView', {});
+      this.props.navigation.navigate('SendFlowView');
     }
   };
 
