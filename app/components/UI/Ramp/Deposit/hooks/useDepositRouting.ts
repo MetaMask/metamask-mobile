@@ -258,10 +258,6 @@ export const useDepositRouting = ({
                   selectedWalletAddress || order.walletAddress,
                 currency_source: order.fiatCurrency,
               });
-
-              navigateToOrderProcessingCallback({
-                orderId: order.id,
-              });
             } catch (error) {
               throw new Error(
                 error instanceof Error && error.message

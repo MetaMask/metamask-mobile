@@ -789,16 +789,16 @@ describe('useDepositRouting', () => {
       const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
 
       mockTrackEvent.mockClear();
+      mockNavigate.mockClear();
 
       await handler({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        'OrderProcessing',
-        expect.any(Object),
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
+        orderId: '/providers/transak-native/orders/test-order-id',
+      });
     });
 
     it('does nothing when URL does not start with REDIRECTION_URL', async () => {
@@ -886,7 +886,9 @@ describe('useDepositRouting', () => {
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
+        orderId: '/providers/transak-native/orders/test-order-id',
+      });
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
@@ -919,7 +921,9 @@ describe('useDepositRouting', () => {
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
+        orderId: '/providers/transak-native/orders/test-order-id',
+      });
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });

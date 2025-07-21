@@ -83,6 +83,7 @@ function WebviewModal() {
             <ErrorView description={webviewError} />
           ) : (
             <WebView
+              style={styles.webview}
               source={{ uri: sourceUrl }}
               onNavigationStateChange={handleNavigationStateChangeWithDedup}
               onHttpError={(syntheticEvent) => {
