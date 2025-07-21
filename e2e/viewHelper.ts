@@ -25,7 +25,6 @@ import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import Matchers from './utils/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
-import { TestDappSelectorsWebIDs } from './selectors/Browser/TestDapp.selectors';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -409,11 +408,10 @@ export const waitForTestDappToLoad = async () => {
 
 export const waitForTestSnapsToLoad = async () => {
   const MAX_RETRIES = 3;
-  const RETRY_DELAY = 1000;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      return await Assertions.webViewElementExists(
+      return await Assertions.expectElementToBeVisible(
         Matchers.getElementByWebID(
           BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
           'root',
@@ -422,11 +420,11 @@ export const waitForTestSnapsToLoad = async () => {
     } catch (error) {
       if (attempt === MAX_RETRIES) {
         throw new Error(
-          `Test Snaps failed to load after ${MAX_RETRIES} attempts: ${error.message}`,
+          `Test Snaps failed to load after ${MAX_RETRIES} attempts: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
         );
       }
-
-      await TestHelpers.delay(RETRY_DELAY);
     }
   }
 
