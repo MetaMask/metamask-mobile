@@ -29,6 +29,7 @@ export default MultichainAccountRowMeta;
 export const MultichainAddressSelectedRow = {
   render: (args: { accountGroup: AccountGroup }) => (
     <View
+      // eslint-disable-next-line react-native/no-inline-styles
       style={{
         alignItems: 'center',
         justifyContent: 'center',
@@ -36,7 +37,7 @@ export const MultichainAddressSelectedRow = {
         backgroundColor: mockTheme.colors.background.default,
       }}
     >
-      <AccountCell accountGroup={args.accountGroup} isSelected={true} />
+      <AccountCell accountGroup={args.accountGroup} isSelected />
     </View>
   ),
 };
@@ -44,6 +45,7 @@ export const MultichainAddressSelectedRow = {
 export const MultichainAddressRow = {
   render: (args: { accountGroup: AccountGroup; isSelected: boolean }) => (
     <View
+      // eslint-disable-next-line react-native/no-inline-styles
       style={{
         alignItems: 'center',
         justifyContent: 'center',
