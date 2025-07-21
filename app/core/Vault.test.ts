@@ -7,7 +7,7 @@ import {
   createMockSnapInternalAccount,
 } from '../util/test/accountsControllerTestUtils';
 import { recreateVaultWithNewPassword } from './Vault';
-import ReduxService, { ReduxStore } from './redux';
+import ReduxService from './redux';
 import { captureException } from '@sentry/react-native';
 import {
   SeedlessOnboardingControllerError,
@@ -227,7 +227,6 @@ describe('Vault', () => {
 
     it('should handle seedless onboarding vault password change successfully', async () => {
       const newPassword = 'new-password';
-      const primarySeedPhrase = 'seed-phrase';
 
       mockReduxState.mockReturnValue({
         engine: {
@@ -264,7 +263,6 @@ describe('Vault', () => {
 
     it('should handle seedless onboarding vault password change error', async () => {
       const newPassword = 'new-password';
-      const primarySeedPhrase = 'seed-phrase';
       const error = new Error('Password change failed in controller');
 
       mockReduxState.mockReturnValue({
