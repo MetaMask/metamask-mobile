@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types';
+import { createLogger } from './logger';
 
 const TEST_CONFIG_DEFAULTS = {
   timeout: 15000,
@@ -9,6 +9,8 @@ const TEST_CONFIG_DEFAULTS = {
   stabilityCheckInterval: 200,
   stabilityCheckCount: 3,
 };
+
+const logger = createLogger({ name: 'Utilities' });
 
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking
@@ -109,7 +111,7 @@ export default class Utilities {
         errorMessage.includes('window-focus') ||
         errorMessage.includes('has-window-focus=false')
       ) {
-        console.warn(
+        logger.warn(
           '⚠️ Skipping obscuration check - window has no focus (common in CI environments)',
         );
         return;
@@ -333,7 +335,7 @@ export default class Utilities {
             '.',
           ].join('');
 
-          console.log(successMessage);
+          logger.debug(successMessage);
         }
 
         return result;
@@ -357,8 +359,8 @@ export default class Utilities {
             `. Retrying... (timeout: ${timeout}ms)`,
           ].join('');
 
-          console.log(retryMessage);
-          console.log(`🔍 Error: ${lastError.message}`);
+          logger.debug(retryMessage);
+          logger.debug(`🔍 Error: ${lastError.message}`);
         }
 
         // eslint-disable-next-line no-restricted-syntax
