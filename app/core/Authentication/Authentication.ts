@@ -734,7 +734,6 @@ class AuthenticationService {
       }
     }
 
-    // const releaseLock = await this.syncSeedlessGlobalPasswordMutex.acquire();
     // recover the current keyring encryption key
     await SeedlessOnboardingController.submitGlobalPassword({
       globalPassword,
@@ -758,7 +757,6 @@ class AuthenticationService {
       throw err;
     }
     this.resetPassword();
-    // releaseLock();
   };
 
   /**
@@ -774,14 +772,16 @@ class AuthenticationService {
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       return false;
     }
-    const isSeedlessPasswordOutdated =
-      await SeedlessOnboardingController.checkIsPasswordOutdated({
-        skipCache,
-      }).catch((err) => {
-        Logger.error(err, 'Error in checkIsSeedlessPasswordOutdated');
-        return false;
-      });
-    return isSeedlessPasswordOutdated;
+    try {
+      const isSeedlessPasswordOutdated =
+        await SeedlessOnboardingController.checkIsPasswordOutdated({
+          skipCache,
+        });
+      return isSeedlessPasswordOutdated;
+    } catch (error) {
+      Logger.error(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
+      return false;
+    }
   };
 
   /**
