@@ -81,14 +81,13 @@ import {
   CAIP_ASSET_NAMESPACES,
   HYPERLIQUID_ASSET_CONFIGS,
   HYPERLIQUID_MAINNET_CHAIN_ID,
-  HYPERLIQUID_TESTNET_CHAIN_ID,
   HYPERLIQUID_NETWORK_NAME,
   METAMASK_DEPOSIT_FEE,
   TRADING_DEFAULTS,
   USDC_DECIMALS,
   USDC_NAME,
   USDC_SYMBOL,
-  ZERO_ADDRESS,
+  ZERO_ADDRESS
 } from '../../constants/hyperLiquidConfig';
 import type {
   AssetRoute,
@@ -100,7 +99,7 @@ import { usePerpsDepositQuote } from '../../hooks/usePerpsDepositQuote';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsDepositAmountView.styles';
 
-interface PerpsDepositAmountViewProps {}
+interface PerpsDepositAmountViewProps { }
 
 const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const { styles } = useStyles(createStyles, {});
@@ -139,9 +138,8 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const isTestnet = perpsNetwork === 'testnet';
 
   const destToken = useMemo<PerpsToken>(() => {
-    const hyperliquidChainId = isTestnet
-      ? HYPERLIQUID_TESTNET_CHAIN_ID
-      : HYPERLIQUID_MAINNET_CHAIN_ID;
+    // Always use mainnet to identify network icon and hyperliquid doesn't allow deposit on testnet
+    const hyperliquidChainId = HYPERLIQUID_MAINNET_CHAIN_ID;
     const baseToken: PerpsToken = {
       symbol: USDC_SYMBOL,
       address: ZERO_ADDRESS,
@@ -166,7 +164,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     }
 
     return baseToken;
-  }, [tokenList, sourceToken, isTestnet]);
+  }, [tokenList, sourceToken]);
 
   useEffect(() => {
     if (!sourceToken && tokenList) {
@@ -240,7 +238,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       }
     }
 
-    return '-';
+    return '0x0';
   }, [
     sourceToken,
     selectedAddress,
