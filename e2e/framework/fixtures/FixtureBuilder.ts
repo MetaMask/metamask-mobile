@@ -847,7 +847,8 @@ class FixtureBuilder {
       if (i === 0) {
         additionalPermissions[i].origin = DAPP_URL;
       } else {
-        additionalPermissions[i].origin = device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
+        additionalPermissions[i].origin =
+          device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
       }
       const testDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions[i],

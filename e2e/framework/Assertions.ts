@@ -11,7 +11,11 @@ export default class Assertions {
    * Assert element is visible with auto-retry
    */
   static async expectElementToBeVisible(
-    detoxElement: DetoxElement | WebElement | DetoxMatcher | IndexableNativeElement,
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -43,7 +47,11 @@ export default class Assertions {
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
-    detoxElement: DetoxElement | WebElement | DetoxMatcher | IndexableNativeElement,
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
