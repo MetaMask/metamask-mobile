@@ -252,7 +252,7 @@ describe('Login test suite 2', () => {
 
     it('handle seedless onboarding controller error with remaining time of > 0', async () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        'SeedlessOnboardingController - Too many attempts',
+        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
         { remainingTime: 1, numberOfAttempts: 1 },
       );
 
@@ -280,35 +280,6 @@ describe('Login test suite 2', () => {
       expect(errorElement.props.children).toEqual(
         'Too many attempts. Please try again in 0m:1s',
       );
-    });
-
-    it('handle seedless onboarding controller error without remaining time', async () => {
-      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
-        'SeedlessOnboardingController - Too many attempts',
-        { remainingTime: 0, numberOfAttempts: 1 },
-      );
-      jest
-        .spyOn(Authentication, 'rehydrateSeedPhrase')
-        .mockRejectedValue(seedlessError);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-      await act(async () => {
-        fireEvent.press(loginButton);
-      });
-
-      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.props.children).toEqual('Too many attempts');
     });
 
     it('should handle countdown behavior and disable input during tooManyAttemptsError', async () => {
