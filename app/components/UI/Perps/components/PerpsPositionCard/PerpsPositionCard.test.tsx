@@ -36,7 +36,8 @@ jest.mock('../../utils/pnlCalculations', () => ({
 
 // Mock styles
 jest.mock('./PerpsPositionCard.styles', () => ({
-  createStyles: () => ({
+  __esModule: true,
+  default: () => ({
     container: { padding: 10 },
     header: { flexDirection: 'row' },
     headerLeft: { flex: 1 },
