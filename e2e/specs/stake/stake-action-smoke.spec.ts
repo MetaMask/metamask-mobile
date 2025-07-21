@@ -37,7 +37,6 @@ import axios, { AxiosResponse } from 'axios';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { TestSpecificMock } from '../../framework';
-import { Mock } from 'node:test';
 
 interface ExitRequest {
   positionTicket: string;
@@ -58,16 +57,6 @@ interface StakingAccount {
 
 interface StakingAPIResponse {
   accounts: StakingAccount[];
-}
-
-interface MockEndpoint {
-  urlEndpoint: string;
-  response: StakingAPIResponse;
-  responseCode: number;
-}
-
-interface MockConfig {
-  GET: MockEndpoint[];
 }
 
 const fixtureServer: FixtureServer = new FixtureServer();
