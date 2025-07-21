@@ -982,6 +982,8 @@ export class Engine {
       messenger: userStorageControllerMessenger,
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
+      // @ts-expect-error Controller uses string for names rather than enum
+      trace,
       config: {
         accountSyncing: {
           onAccountAdded: (profileId) => {
@@ -1217,7 +1219,9 @@ export class Engine {
         ...args: Parameters<typeof this.transactionController.estimateGasFee>
       ) => this.transactionController.estimateGasFee(...args),
       addTransactionBatchFn: (
-        ...args: Parameters<typeof this.transactionController.addTransactionBatch>
+        ...args: Parameters<
+          typeof this.transactionController.addTransactionBatch
+        >
       ) => this.transactionController.addTransactionBatch(...args),
       updateTransactionFn: (
         ...args: Parameters<typeof this.transactionController.updateTransaction>

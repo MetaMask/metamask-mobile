@@ -368,7 +368,7 @@ exports[`AssetOverview should render correctly 1`] = `
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-evenly",
-          "padding": 16,
+          "paddingVertical": 16,
         }
       }
     >
@@ -926,7 +926,6 @@ exports[`AssetOverview should render correctly 1`] = `
             "flex": 1,
             "flexDirection": "row",
             "height": 64,
-            "paddingHorizontal": 16,
           }
         }
         testID="asset-ETH"
@@ -1523,7 +1522,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-evenly",
-          "padding": 16,
+          "paddingVertical": 16,
         }
       }
     >
@@ -2081,7 +2080,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
             "flex": 1,
             "flexDirection": "row",
             "height": 64,
-            "paddingHorizontal": 16,
           }
         }
         testID="asset-ETH"
@@ -2411,7 +2409,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           accessibilityRole="text"
           style={
             {
-              "color": "#1c7e33",
+              "color": "#457a39",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2684,7 +2682,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
           "display": "flex",
           "flexDirection": "row",
           "justifyContent": "space-evenly",
-          "padding": 16,
+          "paddingVertical": 16,
         }
       }
     >
@@ -3242,7 +3240,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
             "flex": 1,
             "flexDirection": "row",
             "height": 64,
-            "paddingHorizontal": 16,
           }
         }
         testID="asset-ETH"

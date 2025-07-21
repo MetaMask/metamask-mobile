@@ -47,17 +47,23 @@ else
     if [[ -n "$LAST_SUCCESSFUL_COMMIT" ]]; then
         LAST_COMMIT_SHORT=$(echo "$LAST_SUCCESSFUL_COMMIT" | cut -c1-8)
         
-        # Check if there are any app code changes since the last successful commit
-        # Include all files that affect the built app for E2E testing
-        if git rev-parse --git-dir > /dev/null 2>&1 && \
-           git diff --name-only ${LAST_SUCCESSFUL_COMMIT}..HEAD 2>/dev/null | \
-           grep -E '^(package\.json|yarn\.lock|Podfile\.lock|Gemfile\.lock|metro\.config\.js|babel\.config\.js|app\.config\.js|react-native\.config\.js|tsconfig\.json|index\.js|shim\.js)$|^(ios|android|app|ppom|scripts|patches)/' | \
-           grep -v '^app/e2e/' | grep -v '^e2e/' | grep -v '^wdio/' > /dev/null; then
-            echo "App code changes found since commit ${LAST_COMMIT_SHORT} - need fresh build"
+        # First, verify that the last successful commit exists in the current git history
+        if ! git rev-parse --verify "${LAST_SUCCESSFUL_COMMIT}^{commit}" > /dev/null 2>&1; then
+            echo "Last successful commit ${LAST_COMMIT_SHORT} not found in current git history - need fresh build"
             APP_CODE_HASH="$CURRENT_COMMIT_SHORT"
         else
-            echo "No app code changes since commit ${LAST_COMMIT_SHORT} - reusing cache"
-            APP_CODE_HASH="$LAST_COMMIT_SHORT"
+            # Check if there are any app code changes since the last successful commit
+            # Include all files that affect the built app for E2E testing
+            if git rev-parse --git-dir > /dev/null 2>&1 && \
+               git diff --name-only "${LAST_SUCCESSFUL_COMMIT}..HEAD" 2>/dev/null | \
+               grep -E '^(package\.json|yarn\.lock|Podfile\.lock|Gemfile\.lock|metro\.config\.js|babel\.config\.js|app\.config\.js|react-native\.config\.js|tsconfig\.json|index\.js|shim\.js)$|^(ios|android|app|ppom|scripts|patches)/' | \
+               grep -v '^app/e2e/' | grep -v '^e2e/' | grep -v '^wdio/' > /dev/null; then
+                echo "App code changes found since commit ${LAST_COMMIT_SHORT} - need fresh build"
+                APP_CODE_HASH="$CURRENT_COMMIT_SHORT"
+            else
+                echo "No app code changes since commit ${LAST_COMMIT_SHORT} - reusing cache"
+                APP_CODE_HASH="$LAST_COMMIT_SHORT"
+            fi
         fi
     else
         echo "No previous successful build found - using current commit"

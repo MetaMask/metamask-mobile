@@ -1,7 +1,6 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 import {
-  EXISTING_USER,
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
@@ -14,6 +13,7 @@ import {
   logIn,
   logOut,
   passwordSet,
+  setExistingUser,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -40,6 +40,7 @@ import {
 } from '../SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
 
+import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
@@ -51,7 +52,6 @@ import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
   SeedlessOnboardingControllerError,
-  SeedlessOnboardingControllerErrorType,
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 
@@ -242,7 +242,7 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+    const existingUser = selectExistingUser(ReduxService.store.getState());
     if (existingUser) {
       if (await SecureKeychain.getGenericPassword()) {
         return {
@@ -408,7 +408,7 @@ class AuthenticationService {
       }
 
       await this.storePassword(password, authData?.currentAuthType);
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
       this.dispatchLogin();
@@ -442,7 +442,7 @@ class AuthenticationService {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.currentAuthType);
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
@@ -474,7 +474,18 @@ class AuthenticationService {
         name: TraceName.VaultCreation,
         op: TraceOperation.VaultCreation,
       });
-      await this.loginVaultCreation(password);
+
+      if (authData.oauth2Login) {
+        // if seedless flow - rehydrate
+        await this.rehydrateSeedPhrase(password, authData);
+      } else if (await this.checkIsSeedlessPasswordOutdated()) {
+        // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
+        await this.syncPasswordAndUnlockWallet(password);
+      } else {
+        // else srp flow
+        await this.loginVaultCreation(password);
+      }
+
       endTrace({ name: TraceName.VaultCreation });
 
       await this.storePassword(password, authData.currentAuthType);
@@ -490,6 +501,14 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
+      if (e instanceof SeedlessOnboardingControllerError) {
+        throw e;
+      }
+
+      if ((e as Error).message.includes('SeedlessOnboardingController')) {
+        throw e;
+      }
+
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_TO_LOGIN,
@@ -529,7 +548,18 @@ class AuthenticationService {
         name: TraceName.VaultCreation,
         op: TraceOperation.VaultCreation,
       });
-      await this.loginVaultCreation(password);
+      // check for seedless password outdated
+      const isSeedlessPasswordOutdated =
+        await this.checkIsSeedlessPasswordOutdated();
+      if (isSeedlessPasswordOutdated) {
+        throw new AuthenticationError(
+          'Seedless password is outdated',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
+          this.authData,
+        );
+      } else {
+        await this.loginVaultCreation(password);
+      }
       endTrace({ name: TraceName.VaultCreation });
 
       this.dispatchLogin();
@@ -666,12 +696,7 @@ class AuthenticationService {
 
         await this.syncKeyringEncryptionKey();
 
-        this.dispatchLogin();
-        this.dispatchPasswordSet();
         this.dispatchOauthReset();
-        ///: BEGIN:ONLY_INCLUDE_IF(solana)
-        this.retrySolanaDiscoveryIfPending();
-        ///: END:ONLY_INCLUDE_IF
       } else {
         throw new Error('No account data found');
       }
@@ -691,13 +716,6 @@ class AuthenticationService {
     globalPassword: string,
   ): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
-    // If vault is not created, user is not using social login, return undefined
-    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
-      // this is only available for seedless onboarding flow
-      throw new Error(
-        'This method is only available for seedless onboarding flow',
-      );
-    }
 
     try {
       await KeyringController.submitPassword(globalPassword);
@@ -734,17 +752,12 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      await this.resetPassword();
-
-      // check password outdated again skip cache to reset the cache after successful syncing
-      await SeedlessOnboardingController.checkIsPasswordOutdated({
-        skipCache: true,
-      });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true });
       throw err;
     }
+    this.resetPassword();
     // releaseLock();
   };
 
@@ -756,18 +769,16 @@ class AuthenticationService {
    */
   checkIsSeedlessPasswordOutdated = async (
     skipCache: boolean = false,
-  ): Promise<boolean | undefined> => {
+  ): Promise<boolean> => {
     const { SeedlessOnboardingController } = Engine.context;
-    // If vault is not created, user is not using social login, return undefined
-    if (!SeedlessOnboardingController.state.vault) {
-      return undefined;
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return false;
     }
-
     const isSeedlessPasswordOutdated =
       await SeedlessOnboardingController.checkIsPasswordOutdated({
         skipCache,
       });
-    return isSeedlessPasswordOutdated;
+    return isSeedlessPasswordOutdated ?? false;
   };
 
   /**

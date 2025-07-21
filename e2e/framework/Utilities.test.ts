@@ -1,16 +1,17 @@
 import Utilities from './Utilities';
+import { logger } from './logger';
 import { RetryOptions } from './types';
 
 describe('Utilities.executeWithRetry', () => {
-  let consoleSpy: jest.SpyInstance;
+  let loggerSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    loggerSpy = jest.spyOn(logger, 'debug').mockImplementation();
     jest.clearAllMocks();
   });
 
   afterEach(() => {
-    consoleSpy.mockRestore();
+    loggerSpy.mockRestore();
   });
 
   describe('Successful execution', () => {
@@ -26,7 +27,7 @@ describe('Utilities.executeWithRetry', () => {
 
       expect(result).toBe('success');
       expect(mockOperation).toHaveBeenCalledTimes(1);
-      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(loggerSpy).not.toHaveBeenCalled();
     });
 
     it('should succeed after retries and log success message', async () => {
@@ -47,7 +48,7 @@ describe('Utilities.executeWithRetry', () => {
 
       expect(result).toBe('success');
       expect(mockOperation).toHaveBeenCalledTimes(3);
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         '✅ test operation succeeded after 2 retries for test element.',
       );
     });
@@ -69,7 +70,7 @@ describe('Utilities.executeWithRetry', () => {
 
       expect(result).toBe('success');
       expect(mockOperation).toHaveBeenCalledTimes(2);
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         '✅ test operation succeeded after 1 retry for test element.',
       );
     });
@@ -91,10 +92,10 @@ describe('Utilities.executeWithRetry', () => {
 
       await Utilities.executeWithRetry(mockOperation, options);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         '⚠️  test operation failed (attempt 1) on element: test element. Retrying... (timeout: 1000ms)',
       );
-      expect(consoleSpy).toHaveBeenCalledWith('🔍 Error: First failure');
+      expect(loggerSpy).toHaveBeenCalledWith('🔍 Error: First failure');
     });
 
     it('should handle missing elemDescription in retry messages', async () => {
@@ -111,7 +112,7 @@ describe('Utilities.executeWithRetry', () => {
 
       await Utilities.executeWithRetry(mockOperation, options);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         '⚠️  test operation failed (attempt 1) on element. Retrying... (timeout: 1000ms)',
       );
     });
@@ -119,7 +120,9 @@ describe('Utilities.executeWithRetry', () => {
 
   describe('Timeout and maxRetries scenarios', () => {
     it('should fail after timeout is exceeded', async () => {
-      const mockOperation = jest.fn().mockRejectedValue(new Error('Persistent failure'));
+      const mockOperation = jest
+        .fn()
+        .mockRejectedValue(new Error('Persistent failure'));
 
       const options: RetryOptions = {
         timeout: 200,
@@ -128,7 +131,9 @@ describe('Utilities.executeWithRetry', () => {
         elemDescription: 'test element',
       };
 
-      await expect(Utilities.executeWithRetry(mockOperation, options)).rejects.toThrow(
+      await expect(
+        Utilities.executeWithRetry(mockOperation, options),
+      ).rejects.toThrow(
         /test operation failed after \d+ attempt\(s\) over \d+ms/,
       );
 
@@ -136,7 +141,9 @@ describe('Utilities.executeWithRetry', () => {
     });
 
     it('should fail after maxRetries is exceeded', async () => {
-      const mockOperation = jest.fn().mockRejectedValue(new Error('Persistent failure'));
+      const mockOperation = jest
+        .fn()
+        .mockRejectedValue(new Error('Persistent failure'));
 
       const options: RetryOptions = {
         timeout: 10000,
@@ -146,9 +153,9 @@ describe('Utilities.executeWithRetry', () => {
         elemDescription: 'test element',
       };
 
-      await expect(Utilities.executeWithRetry(mockOperation, options)).rejects.toThrow(
-        /test operation failed after 3 attempt\(s\)/,
-      );
+      await expect(
+        Utilities.executeWithRetry(mockOperation, options),
+      ).rejects.toThrow(/test operation failed after 3 attempt\(s\)/);
 
       expect(mockOperation).toHaveBeenCalledTimes(3);
     });

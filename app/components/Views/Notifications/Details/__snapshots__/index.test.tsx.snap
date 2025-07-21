@@ -539,7 +539,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#1c7e331a",
+              "backgroundColor": "#457a391a",
               "borderRadius": 16,
               "height": 32,
               "justifyContent": "center",
@@ -549,7 +549,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
           }
         >
           <SvgMock
-            color="#1c7e33"
+            color="#457a39"
             fill="currentColor"
             height={20}
             name="Check"

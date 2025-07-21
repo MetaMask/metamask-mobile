@@ -32,10 +32,13 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     await AmountView.tapNextButton();
   };
 
-  const runTest = async (testSpecificMock: {
-    GET?: Record<string, unknown>[];
-    POST?: Record<string, unknown>[];
-  }, alertAssertion: () => Promise<void>) => {
+  const runTest = async (
+    testSpecificMock: {
+      GET?: Record<string, unknown>[];
+      POST?: Record<string, unknown>[];
+    },
+    alertAssertion: () => Promise<void>,
+  ) => {
     await withFixtures(
       {
         fixture: defaultFixture,
@@ -51,13 +54,14 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
   it('should not show security alerts for benign requests', async () => {
     const testSpecificMock = {
-      GET: [
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
+      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+      POST: [
+        {
+          ...mockEvents.POST.securityAlertApiValidate,
+          urlEndpoint:
+            'https://security-alerts.api.cx.metamask.io/validate/0x539',
+        },
       ],
-      POST: [{...mockEvents.POST.securityAlertApiValidate,
-              urlEndpoint:
-        'https://security-alerts.api.cx.metamask.io/validate/0x539',
-      }],
     };
 
     await runTest(testSpecificMock, async () => {
@@ -74,9 +78,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
   it('should show security alerts for malicious request', async () => {
     const testSpecificMock = {
-      GET: [
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
       POST: [
         {
           ...mockEvents.POST.securityAlertApiValidate,

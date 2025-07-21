@@ -10,8 +10,8 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { loginToApp } from '../../viewHelper.js';
-import WalletView from '../../pages/wallet/WalletView.js';
+import { loginToApp } from '../../viewHelper';
+import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
 import Assertions from '../../utils/Assertions.js';
@@ -53,7 +53,9 @@ describe(
       // Remove the imported account
       await AccountListBottomSheet.longPressAccountAtIndex(ACCOUNT_INDEX);
       await AccountListBottomSheet.tapYesToRemoveImportedAccountAlertButton();
-      await Assertions.checkIfNotVisible(AccountListBottomSheet.accountTypeLabel);
+      await Assertions.checkIfNotVisible(
+        AccountListBottomSheet.accountTypeLabel,
+      );
 
       // Import account again
       await AccountListBottomSheet.tapAddAccountButton();

@@ -174,6 +174,7 @@ jest.mock('./Engine', () => ({
         mockExportAccount(password, account),
       importAccountWithStrategy: (strategy: string, accounts: string[]) =>
         mockImportAccountWithStrategy(strategy, accounts),
+      exportEncryptionKey: jest.fn(),
       state: {
         get keyrings() {
           return [
@@ -192,6 +193,10 @@ jest.mock('./Engine', () => ({
     },
     SeedlessOnboardingController: {
       changePassword: jest.fn(),
+      storeKeyringEncryptionKey: jest.fn(),
+      loadKeyringEncryptionKey: jest.fn(),
+      submitGlobalPassword: jest.fn(),
+      checkIsPasswordOutdated: jest.fn(),
     },
   },
   setSelectedAddress: jest.fn(),
@@ -585,7 +590,12 @@ describe('Vault', () => {
       );
 
       // Verify that Logger.error was called with the error
-      expect(Logger.error).toHaveBeenNthCalledWith(1, error);
+      //Array includes error message and error object
+      expect(Logger.error).toHaveBeenNthCalledWith(
+        1,
+        error,
+        expect.any(String),
+      );
 
       // Verify that createNewVaultAndRestore was called again to restore the original state
       expect(mockCreateNewVaultAndRestore).toHaveBeenCalledWith('password', [

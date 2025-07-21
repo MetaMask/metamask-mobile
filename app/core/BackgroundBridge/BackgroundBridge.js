@@ -251,7 +251,9 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   get origin() {
-    return this.isWalletConnect || this.isMMSDK ? this.channelId : this.hostname;
+    return this.isWalletConnect || this.isMMSDK
+      ? this.channelId
+      : this.hostname;
   }
 
   onUnlock() {

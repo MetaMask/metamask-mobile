@@ -83,6 +83,7 @@ jest.mock('../../core/Engine', () => ({
     },
     SeedlessOnboardingController: {
       addNewSeedPhraseBackup: jest.fn().mockResolvedValue(undefined),
+      addNewSecretData: jest.fn().mockResolvedValue(undefined),
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
