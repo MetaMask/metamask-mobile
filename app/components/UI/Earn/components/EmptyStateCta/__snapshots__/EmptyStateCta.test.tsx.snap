@@ -48,7 +48,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#1c7e33",
+          "color": "#457a39",
           "fontFamily": "Geist Bold",
           "fontSize": 16,
           "letterSpacing": 0,

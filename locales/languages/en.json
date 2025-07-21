@@ -643,7 +643,7 @@
       "postal_code_invalid": "Please enter a valid postal code",
       "unexpected_error": "Unexpected error."
     },
-    "privacy_section":{
+    "privacy_section": {
       "transak": "Transak encrypts and stores this information.",
       "metamask": "MetaMask never receives or uses your data."
     },
@@ -1448,6 +1448,8 @@
     "labels": {
       "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
       "bitcoin_account_name": "Bitcoin Account",
+      "bitcoin_signet_account_name": "Bitcoin Signet Account",
+      "bitcoin_regtest_account_name": "Bitcoin Regtest Account",
       "solana_devnet_account_name": "Solana Devnet Account",
       "solana_testnet_account_name": "Solana Testnet Account",
       "solana_account_name": "Solana Account"
@@ -2956,7 +2958,7 @@
     "watching": "Make sure no one is watching your screen.",
     "view": "View",
     "confirm_password": "Confirm your password",
-    "before_continiuing": "Before continuing we need you to confirm your password",
+    "before_continiuing": "Enter password to continue",
     "enter_current_password": "Enter your current password",
     "confirm": "Confirm",
     "got_it": "Got it",
@@ -4241,8 +4243,7 @@
     "import_srp": "Secret Recovery Phrase",
     "add_hardware_wallet": "Hardware wallet",
     "import_account": "Private key",
-    "add_bitcoin_account_testnet": "Bitcoin testnet account",
-    "add_bitcoin_account_mainnet": "Bitcoin account",
+    "add_bitcoin_account": "Bitcoin account",
     "add_solana_account": "Solana account",
     "switch_to_smart_account": "Switch to Smart account",
     "headers": {

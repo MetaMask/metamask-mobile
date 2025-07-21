@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable no-restricted-syntax */
 import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities';
@@ -10,6 +9,9 @@ import {
   GestureOptions,
   TypeTextOptions,
 } from './types';
+import { createLogger } from './logger';
+
+const logger = createLogger({ name: 'Gestures' });
 
 /**
  * Gestures class with element stability and auto-retry
@@ -62,7 +64,7 @@ export default class Gestures {
     const successMessage = elemDescription
       ? `✅ Successfully tapped element: ${elemDescription}`
       : `✅ Successfully tapped element`;
-    console.log(successMessage);
+    logger.debug(successMessage);
   };
 
   /**
@@ -314,7 +316,7 @@ export default class Gestures {
         const textToType = hideKeyboard ? text + '\n' : text;
         await el.typeText(textToType);
 
-        console.log(
+        logger.debug(
           `✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${
             elemDescription || 'unknown'
           }`,
