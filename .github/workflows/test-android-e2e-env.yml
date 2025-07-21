@@ -85,6 +85,7 @@ jobs:
           yarn lint
           yarn build
           cd ..
+          yarn jetify
           yarn test:e2e:android:build:qa-release
 
         
