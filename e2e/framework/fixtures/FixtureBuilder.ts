@@ -853,7 +853,7 @@ class FixtureBuilder {
         additionalPermissions[i],
         additionalPermissions[i].origin as string,
       );
-      allPermissions = merge(testDappPermissions, allPermissions);
+      allPermissions = merge(allPermissions, testDappPermissions);
     }
     this.withPermissionController(allPermissions);
 
