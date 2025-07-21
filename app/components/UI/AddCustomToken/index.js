@@ -92,6 +92,8 @@ const createStyles = (colors) =>
       borderWidth: 2,
       paddingHorizontal: 16,
       paddingVertical: 12,
+      minHeight: 48,
+      textAlignVertical: 'center',
       ...fontStyles.normal,
     },
     textInputDisabled: {
