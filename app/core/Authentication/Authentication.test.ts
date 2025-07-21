@@ -52,6 +52,9 @@ jest.mock('../Vault', () => ({
 // Mock the accountsController selector
 jest.mock('../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
+  selectSelectedInternalAccountAddress: jest.fn(),
+  selectSelectedInternalAccount: jest.fn(),
+  selectSelectedInternalAccountId: jest.fn(),
 }));
 
 jest.useFakeTimers();
