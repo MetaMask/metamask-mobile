@@ -34,6 +34,7 @@ const Routes = {
     ORDER_PROCESSING: 'OrderProcessing',
     ORDER_DETAILS: 'DepositOrderDetails',
     BANK_DETAILS: 'BankDetails',
+    ADDITIONAL_VERIFICATION: 'AdditionalVerification',
     MODALS: {
       ID: 'DepositModals',
       TOKEN_SELECTOR: 'DepositTokenSelectorModal',

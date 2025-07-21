@@ -109,6 +109,10 @@ export const formatNetworkRpcUrl = (rpcUrl) => {
   return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
 };
 
+const formatNetworkRpcUrl = (rpcUrl) => {
+  return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
+};
+
 const createStyles = (colors) =>
   StyleSheet.create({
     base: {
