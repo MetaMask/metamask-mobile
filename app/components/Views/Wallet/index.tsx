@@ -33,6 +33,7 @@ import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
+import * as Updates from 'expo-updates';
 
 import {
   NavigationProp,
@@ -505,6 +506,12 @@ const Wallet = ({
   const { colors } = theme;
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
+  const { currentlyRunning, isUpdateAvailable, isUpdatePending, checkError } =
+    Updates.useUpdates();
+  const runTypeMessage = currentlyRunning.isEmbeddedLaunch
+    ? 'This app is running from built-in code'
+    : 'This app is running an update';
+  const error = checkError?.message;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
@@ -791,6 +798,13 @@ const Wallet = ({
 
   useEffect(() => {
     // do not prompt for social login flow
+    if (isUpdatePending) {
+      // Update has successfully downloaded; apply it now
+      Updates.reloadAsync();
+    }
+  }, [isUpdatePending]);
+
+  useEffect(() => {
     if (
       !isSocialLogin &&
       isDataCollectionForMarketingEnabled === null &&
@@ -1340,6 +1354,14 @@ const Wallet = ({
 
           {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
+          <Text>{runTypeMessage}</Text>
+          {error && <Text>{error}</Text>}
+          {isUpdateAvailable && <Text>Update available</Text>}
+          {isUpdatePending && <Text>Update pending</Text>}
+          <Text>Updates Channel:{Updates.channel}</Text>
+          <Text>Updates Update ID:{Updates.updateId}</Text>
+          <PortfolioBalance />
+          <Carousel style={styles.carouselContainer} />
           <WalletTokensTabView
             navigation={navigation}
             onChangeTab={onChangeTab}

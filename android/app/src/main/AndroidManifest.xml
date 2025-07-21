@@ -173,6 +173,10 @@
 		<meta-data  android:name="com.google.firebase.messaging.default_notification_icon"
 		android:resource="@mipmap/ic_notification_small"/>
 
+		<!-- EAS Update configuration -->
+		<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/f6be4653-8750-4688-8a44-c809d13b40ef" />
+		<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="1.0.0" />
+
 		<provider
 			android:name="androidx.core.content.FileProvider"
 			android:authorities="${applicationId}.provider"

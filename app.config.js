@@ -37,4 +37,18 @@ module.exports = {
     bundleIdentifier: 'io.metamask.MetaMask',
     usesAppleSignIn: true,
   },
+  expo: {
+    runtimeVersion: '1.0.0',
+    updates: {
+      url: 'https://u.expo.dev/f6be4653-8750-4688-8a44-c809d13b40ef',
+      requestHeaders: {
+        'expo-channel-name': 'preview',
+      },
+    },
+    extra: {
+      eas: {
+        projectId: 'f6be4653-8750-4688-8a44-c809d13b40ef',
+      },
+    },
+  },
 };
