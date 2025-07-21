@@ -275,7 +275,7 @@ const WalletActions = () => {
         .build(),
     );
 
-    if (process.env.MM_SEND_REDESIGNS_ENABLED) {
+    if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
       closeBottomSheetAndNavigate(() => {
         navigate(Routes.SEND.ROOT, {});
       });
