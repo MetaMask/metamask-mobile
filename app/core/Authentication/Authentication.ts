@@ -687,21 +687,23 @@ class AuthenticationService {
             shouldSelectAccount: false,
           });
           continue;
+        } else if (secret.type === SecretType.Mnemonic) {
+          // convert the seed phrase to a mnemonic (string)
+          const encodedSrp = convertEnglishWordlistIndicesToCodepoints(
+            secret.data,
+            wordlist,
+          );
+          const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
+
+          // import the new mnemonic to the current vault
+          await this.importMnemonicToVault(mnemonicToRestore, {
+            shouldCreateSocialBackup: false,
+            shouldSelectAccount: false,
+            shouldImportSolanaAccount: true,
+          });
+        } else {
+          Logger.error(new Error('Unknown secret type'), secret.type);
         }
-
-        // convert the seed phrase to a mnemonic (string)
-        const encodedSrp = convertEnglishWordlistIndicesToCodepoints(
-          secret.data,
-          wordlist,
-        );
-        const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
-
-        // import the new mnemonic to the current vault
-        await this.importMnemonicToVault(mnemonicToRestore, {
-          shouldCreateSocialBackup: false,
-          shouldSelectAccount: false,
-          shouldImportSolanaAccount: true,
-        });
       }
     }
   };
