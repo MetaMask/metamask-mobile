@@ -17,7 +17,12 @@
     "typescriptreact": "typescriptreact"
   },
   "tailwindCSS.experimental.configFile": "./tailwind.config.js",
-  "tailwindCSS.classAttributes": ["twClassName", "tw"],
+  "tailwindCSS.classAttributes": ["twClassName", "style"],
+  "tailwindCSS.experimental.classRegex": [
+    ["tw`([^`]*)`", "$1"],
+    ["tw\\('([^']*)'\\)", "$1"],
+    ["tw\\(\"([^\"]*)\"\\)", "$1"]
+  ],
   "tailwindCSS.emmetCompletions": true,
   "tailwindCSS.validate": true,
   "tailwindCSS.showPixelEquivalents": true,
