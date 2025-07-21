@@ -1421,7 +1421,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
       elevation: 0,
     },
     headerIcon: {
-      color: themeColors.default,
+      color: themeColors.icon.default,
     },
   });
 
