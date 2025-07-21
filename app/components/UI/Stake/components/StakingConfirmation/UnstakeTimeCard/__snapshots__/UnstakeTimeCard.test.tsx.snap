@@ -90,7 +90,7 @@ exports[`UnstakingTimeCard render matches snapshot 1`] = `
             }
           >
             <SvgMock
-              color="#9ca1af"
+              color="#b7bbc8"
               fill="currentColor"
               height={16}
               name="Question"

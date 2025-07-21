@@ -1,5 +1,5 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
@@ -7,152 +7,161 @@ import {
 import { CommonSelectorsText } from '../../selectors/Common.selectors';
 
 class SettingsView {
-  get generalSettingsButton() {
+  get generalSettingsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL);
   }
 
-  get advancedButton() {
+  get advancedButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.ADVANCED);
   }
 
-  get contactsSettingsButton() {
+  get contactsSettingsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACTS);
   }
 
-  get securityAndPrivacyButton() {
+  get securityAndPrivacyButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
   }
 
-  get networksButton() {
+  get networksButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NETWORKS);
   }
 
-  get notificationsButton() {
+  get notificationsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
   }
 
-  get aesCryptoTestForm() {
+  get aesCryptoTestForm(): DetoxElement {
     return Matchers.getElementByID(
       SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM,
     );
   }
 
-  get lockSettingsButton() {
+  get lockSettingsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.LOCK);
   }
-  get contactSupportButton() {
+  get contactSupportButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACT);
   }
 
-  get contactSupportSectionTitle() {
+  get contactSupportSectionTitle(): DetoxElement {
     return Matchers.getElementByText(
       SettingsViewSelectorsText.CONTACT_SUPPORT_TITLE,
     );
   }
 
-  get backupAndSyncSectionButton() {
+  get backupAndSyncSectionButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
   }
 
-  get alertButton() {
+  get alertButton(): DetoxElement {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
       : Matchers.getElementByLabel(CommonSelectorsText.YES_ALERT_BUTTON);
   }
 
-  get scrollViewIdentifier() {
+  get scrollViewIdentifier(): Promise<DetoxMatcher> {
     return Matchers.getIdentifier(SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID);
   }
 
-  async scrollToLockButton() {
+  async scrollToLockButton(): Promise<void> {
     await Gestures.scrollToElement(
       this.lockSettingsButton,
       this.scrollViewIdentifier,
+      {
+        elemDescription: 'Scroll to Lock Button',
+      },
     );
   }
 
-  async scrollToContactSupportButton() {
+  async scrollToContactSupportButton(): Promise<void> {
     await Gestures.scrollToElement(
       this.contactSupportButton,
       this.scrollViewIdentifier,
+      {
+        elemDescription: 'Scroll to Contact Support Button',
+      },
     );
   }
 
-  async scrollToAesCryptoButton() {
+  async scrollToAesCryptoButton(): Promise<void> {
     await Gestures.scrollToElement(
       this.aesCryptoTestForm,
       this.scrollViewIdentifier,
+      {
+        elemDescription: 'Scroll to AES Crypto Test Form Button',
+      },
     );
   }
 
-  async tapGeneralSettings() {
+  async tapGeneralSettings(): Promise<void> {
     await Gestures.waitAndTap(this.generalSettingsButton, {
       elemDescription: 'Settings - General Settings Button',
     });
   }
 
-  async tapAdvancedTitle() {
+  async tapAdvancedTitle(): Promise<void> {
     await Gestures.waitAndTap(this.advancedButton, {
       elemDescription: 'Settings - Advanced Settings Button',
     });
   }
 
-  async tapContactsSettings() {
+  async tapContactsSettings(): Promise<void> {
     await Gestures.waitAndTap(this.contactsSettingsButton, {
       elemDescription: 'Settings - Contacts Settings Button',
     });
   }
 
-  async tapSecurityAndPrivacy() {
+  async tapSecurityAndPrivacy(): Promise<void> {
     await Gestures.waitAndTap(this.securityAndPrivacyButton, {
       elemDescription: 'Settings - Security and Privacy Button',
     });
   }
 
-  async tapNetworks() {
+  async tapNetworks(): Promise<void> {
     await Gestures.waitAndTap(this.networksButton, {
       elemDescription: 'Settings - Networks Button',
     });
   }
 
-  async tapNotifications() {
+  async tapNotifications(): Promise<void> {
     await Gestures.waitAndTap(this.notificationsButton, {
       elemDescription: 'Settings - Notifications Button',
     });
   }
 
-  async tapContacts() {
+  async tapContacts(): Promise<void> {
     await Gestures.waitAndTap(this.contactsSettingsButton, {
       elemDescription: 'Settings - Contacts Settings Button',
     });
   }
 
-  async tapAesCryptoTestForm() {
+  async tapAesCryptoTestForm(): Promise<void> {
     await Gestures.waitAndTap(this.aesCryptoTestForm, {
       elemDescription: 'Settings - AES Crypto Test Form Button',
     });
   }
 
-  async tapLock() {
+  async tapLock(): Promise<void> {
     await this.scrollToLockButton();
     await Gestures.waitAndTap(this.lockSettingsButton, {
       elemDescription: 'Settings - Lock Settings Button',
     });
   }
-  async tapContactSupport() {
+  async tapContactSupport(): Promise<void> {
     await this.scrollToLockButton();
     await Gestures.waitAndTap(this.contactSupportButton, {
       elemDescription: 'Settings - Contact Support Button',
     });
   }
 
-  async tapYesAlertButton() {
+  async tapYesAlertButton(): Promise<void> {
     await Gestures.tap(this.alertButton, {
       elemDescription: 'Settings - Alert Yes Button',
     });
   }
 
-  async tapBackupAndSync() {
+  async tapBackupAndSync(): Promise<void> {
     await Gestures.tap(this.backupAndSyncSectionButton, {
       elemDescription: 'Settings - Backup and Sync Section Button',
     });
