@@ -747,7 +747,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.resetAttempts).toHaveBeenCalledWith({
+    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).toHaveBeenCalledWith({
       txMetaId: bridgeTxHistoryItem.txMetaId,
     });
   });
@@ -765,7 +765,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.resetAttempts).toHaveBeenCalledWith({
+    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).toHaveBeenCalledWith({
       txMetaId: bridgeTxHistoryItem.txMetaId,
     });
   });
@@ -783,7 +783,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.resetAttempts).not.toHaveBeenCalled();
+    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).not.toHaveBeenCalled();
   });
 
   it('does not reset attempts when no bridge transaction history item is provided', () => {
@@ -795,7 +795,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.resetAttempts).not.toHaveBeenCalled();
+    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).not.toHaveBeenCalled();
   });
 
   it('does not reset attempts when attempts counter is below max attempts', () => {
@@ -811,7 +811,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.resetAttempts).not.toHaveBeenCalled();
+    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).not.toHaveBeenCalled();
   });
 
   it('does not reset attempts when attempts is undefined', () => {
@@ -827,7 +827,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.resetAttempts).not.toHaveBeenCalled();
+    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).not.toHaveBeenCalled();
   });
 
   it('still navigates even when reset attempts conditions are not met', () => {
@@ -843,6 +843,6 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
       Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       { evmTxMeta: tx }
     );
-    expect(Engine.context.BridgeStatusController.resetAttempts).not.toHaveBeenCalled();
+    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).not.toHaveBeenCalled();
   });
 });
