@@ -5,23 +5,17 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  View,
-  TextStyle,
-  Linking,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, View, Linking } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
 import ScrollableTabView, {
   ChangeTabProperties,
 } from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
+import TabBar from '../../../component-library/components-temp/TabBar';
 import {
   isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
@@ -77,8 +71,6 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
-  getFontFamily,
-  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
@@ -132,29 +124,19 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
-const createStyles = ({ colors, typography }: Theme) =>
+const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
     },
     walletAccount: { marginTop: 28 },
-    tabUnderlineStyle: {
-      height: 2,
-      backgroundColor: colors.icon.default,
-    },
-    tabStyle: {
-      paddingBottom: 8,
-      paddingVertical: 8,
-    },
     tabBar: {
-      borderColor: colors.background.default,
       marginBottom: 8,
     },
-    textStyle: {
-      ...(typography.sBodyMD as TextStyle),
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-      fontWeight: '500',
+    tabContainer: {
+      paddingHorizontal: 16,
+      flex: 1,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -192,23 +174,12 @@ const WalletTokensTabView = React.memo(
 
     const theme = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
-    const { colors } = theme;
 
     const renderTabBar = useCallback(
       (tabBarProps: Record<string, unknown>) => (
-        <DefaultTabBar
-          underlineStyle={styles.tabUnderlineStyle}
-          activeTextColor={colors.text.default}
-          inactiveTextColor={colors.text.alternative}
-          backgroundColor={colors.background.default}
-          tabStyle={styles.tabStyle}
-          textStyle={styles.textStyle}
-          style={styles.tabBar}
-          tabPadding={32}
-          {...tabBarProps}
-        />
+        <TabBar style={styles.tabBar} {...tabBarProps} />
       ),
-      [styles, colors],
+      [styles],
     );
 
     const tokensTabProps = useMemo(
@@ -239,13 +210,18 @@ const WalletTokensTabView = React.memo(
     );
 
     return (
-      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
-        <Tokens {...tokensTabProps} />
-        {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
-        {collectiblesEnabled && (
-          <CollectibleContracts {...collectibleContractsTabProps} />
-        )}
-      </ScrollableTabView>
+      <View style={styles.tabContainer}>
+        <ScrollableTabView
+          renderTabBar={renderTabBar}
+          onChangeTab={onChangeTab}
+        >
+          <Tokens {...tokensTabProps} />
+          {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
+          {collectiblesEnabled && (
+            <CollectibleContracts {...collectibleContractsTabProps} />
+          )}
+        </ScrollableTabView>
+      </View>
     );
   },
 );

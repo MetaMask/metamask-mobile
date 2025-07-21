@@ -75,6 +75,14 @@ import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import {
+  TraceName,
+  endTrace,
+  trace,
+  TraceOperation,
+} from '../../../util/trace';
+import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -246,6 +254,7 @@ class ChoosePassword extends PureComponent {
   };
 
   mounted = true;
+  passwordSetupAttemptTraceCtx = null;
 
   confirmPasswordInput = React.createRef();
   // Flag to know if password in keyring was set or not
@@ -300,6 +309,16 @@ class ChoosePassword extends PureComponent {
   };
 
   async componentDidMount() {
+    const { route } = this.props;
+    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtx) {
+      this.passwordSetupAttemptTraceCtx = trace({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+      });
+    }
+
     const authData = await Authentication.getType();
     const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
@@ -344,11 +363,23 @@ class ChoosePassword extends PureComponent {
 
   componentWillUnmount() {
     this.mounted = false;
+    if (this.passwordSetupAttemptTraceCtx) {
+      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      this.passwordSetupAttemptTraceCtx = null;
+    }
   }
 
   setSelection = () => {
     const { isSelected } = this.state;
     this.setState(() => ({ isSelected: !isSelected }));
+  };
+
+  tryExportSeedPhrase = async (password) => {
+    const { KeyringController } = Engine.context;
+    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(
+      password,
+    );
+    return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
   onPressCreate = async () => {
@@ -413,6 +444,9 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: false });
 
       if (authType.oauth2Login) {
+        endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
+        endTrace({ name: TraceName.OnboardingJourneyOverall });
+
         if (this.props.metrics.isEnabled()) {
           this.props.navigation.reset({
             index: 0,
@@ -439,7 +473,10 @@ class ChoosePassword extends PureComponent {
           });
         }
       } else {
-        this.props.navigation.replace('AccountBackupStep1');
+        const seedPhrase = await this.tryExportSeedPhrase(password);
+        this.props.navigation.replace('AccountBackupStep1', {
+          seedPhrase,
+        });
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
@@ -475,6 +512,17 @@ class ChoosePassword extends PureComponent {
         wallet_setup_type: 'new',
         error_type: error.toString(),
       });
+
+      const onboardingTraceCtx = this.props.route.params?.onboardingTraceCtx;
+      if (onboardingTraceCtx) {
+        trace({
+          name: TraceName.OnboardingPasswordSetupError,
+          op: TraceOperation.OnboardingUserJourney,
+          parentContext: onboardingTraceCtx,
+          tags: { errorMessage: error.toString() },
+        });
+        endTrace({ name: TraceName.OnboardingPasswordSetupError });
+      }
     }
   };
 
@@ -749,6 +797,7 @@ class ChoosePassword extends PureComponent {
                     placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
+                    submitBehavior="submit"
                     autoComplete="new-password"
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -809,6 +858,7 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.confirm_password')}
                   </Label>
                   <TextField
+                    ref={this.confirmPasswordInput}
                     placeholder={strings('import_from_seed.re_enter_password')}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}

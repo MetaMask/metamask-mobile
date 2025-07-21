@@ -27,6 +27,7 @@ import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewM
 import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
 import { useDepositSDK } from '../sdk';
 import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
+import useAnalytics from '../../hooks/useAnalytics';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
 
 export interface UseDepositRoutingParams {
@@ -43,6 +44,7 @@ export const useDepositRouting = ({
   const { selectedRegion, clearAuthToken, selectedWalletAddress } =
     useDepositSDK();
   const { themeAppearance, colors } = useTheme();
+  const trackEvent = useAnalytics();
 
   const [, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
@@ -229,6 +231,24 @@ export const useDepositRouting = ({
 
               await handleNewOrder(processedOrder);
 
+              trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+                ramp_type: 'DEPOSIT',
+                amount_source: Number(order.fiatAmount),
+                amount_destination: Number(order.cryptoAmount),
+                exchange_rate: Number(order.exchangeRate),
+                gas_fee: order.networkFees ? Number(order.networkFees) : 0,
+                processing_fee: order.partnerFees
+                  ? Number(order.partnerFees)
+                  : 0,
+                total_fee: Number(order.totalFeesFiat),
+                payment_method_id: order.paymentMethod,
+                country: selectedRegion?.isoCode || '',
+                chain_id: cryptoCurrency?.chainId || '',
+                currency_destination:
+                  selectedWalletAddress || order.walletAddress,
+                currency_source: order.fiatCurrency,
+              });
+
               navigateToOrderProcessingCallback({
                 orderId: order.id,
               });
@@ -250,6 +270,8 @@ export const useDepositRouting = ({
       selectedWalletAddress,
       handleNewOrder,
       navigateToOrderProcessingCallback,
+      selectedRegion?.isoCode,
+      trackEvent,
     ],
   );
 
@@ -411,6 +433,12 @@ export const useDepositRouting = ({
           ssnKycForm && selectedRegion?.isoCode === 'US';
 
         if (personalDetailsKycForm || addressKycForm || shouldShowSsnForm) {
+          trackEvent('RAMPS_KYC_STARTED', {
+            ramp_type: 'DEPOSIT',
+            kyc_type: forms?.kycType || '',
+            region: selectedRegion?.isoCode || '',
+          });
+
           navigateToBasicInfoCallback({
             quote,
             kycUrl: idProofData?.data?.kycUrl,
@@ -442,6 +470,7 @@ export const useDepositRouting = ({
       clearAuthToken,
       navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
+      trackEvent,
       navigateToAdditionalVerificationCallback,
     ],
   );
@@ -452,6 +481,8 @@ export const useDepositRouting = ({
     navigateToVerifyIdentity: navigateToVerifyIdentityCallback,
     navigateToBasicInfo: navigateToBasicInfoCallback,
     navigateToEnterEmail: navigateToEnterEmailCallback,
+    navigateToAdditionalVerification: navigateToAdditionalVerificationCallback,
+    navigateToKycProcessing: navigateToKycProcessingCallback,
     handleApprovedKycFlow,
   };
 };

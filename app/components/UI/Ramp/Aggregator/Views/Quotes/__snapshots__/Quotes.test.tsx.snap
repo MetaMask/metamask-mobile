@@ -3603,7 +3603,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "alignItems": "center",
                                                           "alignSelf": "flex-start",
-                                                          "backgroundColor": "#1c7e331a",
+                                                          "backgroundColor": "#457a391a",
                                                           "borderRadius": 4,
                                                           "height": 20,
                                                           "justifyContent": "center",
@@ -3616,7 +3616,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#1c7e33",
+                                                            "color": "#457a39",
                                                             "fontFamily": "Geist Bold",
                                                             "fontSize": 12,
                                                             "fontWeight": "bold",
@@ -3951,7 +3951,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "alignItems": "center",
                                                           "alignSelf": "flex-start",
-                                                          "backgroundColor": "#1c7e331a",
+                                                          "backgroundColor": "#457a391a",
                                                           "borderRadius": 4,
                                                           "height": 20,
                                                           "justifyContent": "center",
@@ -3964,7 +3964,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#1c7e33",
+                                                            "color": "#457a39",
                                                             "fontFamily": "Geist Bold",
                                                             "fontSize": 12,
                                                             "fontWeight": "bold",
@@ -5362,7 +5362,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   {
                                                     "alignItems": "center",
                                                     "alignSelf": "flex-start",
-                                                    "backgroundColor": "#1c7e331a",
+                                                    "backgroundColor": "#457a391a",
                                                     "borderRadius": 4,
                                                     "height": 20,
                                                     "justifyContent": "center",
@@ -5375,7 +5375,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#1c7e33",
+                                                      "color": "#457a39",
                                                       "fontFamily": "Geist Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "bold",

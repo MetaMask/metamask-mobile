@@ -979,7 +979,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Transfer sent
+                                    Bank transfer sent
                                   </Text>
                                 </TouchableOpacity>
                               </View>
@@ -2121,7 +2121,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       }
                                     }
                                   >
-                                    Transfer sent
+                                    Bank transfer sent
                                   </Text>
                                 </TouchableOpacity>
                               </View>
