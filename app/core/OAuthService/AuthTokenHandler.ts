@@ -4,11 +4,16 @@ import { createLoginHandler } from './OAuthLoginHandlers';
 
 const AUTH_SERVER_REVOKE_PATH = '/api/v1/oauth/revoke';
 const AUTH_SERVER_TOKEN_PATH = '/api/v1/oauth/token';
+
 class AuthTokenHandler {
   async refreshJWTToken(params: {
     connection: AuthConnection;
     refreshToken: string;
-  }) {
+  }): Promise<{
+    idTokens: string[];
+    accessToken: string;
+    metadataAccessToken: string;
+  }> {
     const { connection, refreshToken } = params;
     const loginHandler = createLoginHandler(Platform.OS, connection);
 
@@ -36,6 +41,8 @@ class AuthTokenHandler {
 
     return {
       idTokens: [idToken],
+      accessToken: refreshTokenData.access_token,
+      metadataAccessToken: refreshTokenData.metadata_access_token,
     };
   }
 

@@ -488,10 +488,7 @@ class AuthenticationService {
       if (authData.oauth2Login) {
         // if seedless flow - rehydrate
         await this.rehydrateSeedPhrase(password, authData);
-      } else if (
-        selectSeedlessOnboardingLoginFlow(ReduxService.store.getState()) &&
-        (await this.checkIsSeedlessPasswordOutdated())
-      ) {
+      } else if (await this.checkIsSeedlessPasswordOutdated()) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
         await this.syncPasswordAndUnlockWallet(password);
       } else {
@@ -514,6 +511,14 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
+      if (e instanceof SeedlessOnboardingControllerError) {
+        throw e;
+      }
+
+      if ((e as Error).message.includes('SeedlessOnboardingController')) {
+        throw e;
+      }
+
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_TO_LOGIN,
@@ -845,11 +850,6 @@ class AuthenticationService {
     password: string,
     authData: AuthData,
   ): Promise<void> => {
-    if (!authData.oauth2Login) {
-      throw new Error(
-        'This method is only available for seedless onboarding flow',
-      );
-    }
     try {
       const { SeedlessOnboardingController } = Engine.context;
       const allSRPs = await SeedlessOnboardingController.fetchAllSecretData(
@@ -963,6 +963,7 @@ class AuthenticationService {
       await this.lockApp({ locked: true });
       throw err;
     }
+    this.resetPassword();
     // releaseLock();
   };
 
