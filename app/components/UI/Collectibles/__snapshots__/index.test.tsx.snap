@@ -274,7 +274,7 @@ exports[`Collectibles should render empty collectibles correctly 1`] = `
         <Text
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 20,
               "fontWeight": "400",

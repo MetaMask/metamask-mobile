@@ -92,6 +92,7 @@ describe('ManualBackupStep1', () => {
       words: mockWords,
       backupFlow: true,
       settingsBackup: true,
+      seedPhrase: mockWords,
     },
   };
 

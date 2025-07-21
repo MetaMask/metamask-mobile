@@ -1,9 +1,9 @@
 import { SkipAccountSecurityModalSelectorsIDs } from '../../selectors/Onboarding/SkipAccountSecurityModal.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class SkipAccountSecurityModal {
-  get iUnderstandCheckbox() {
+  get iUnderstandCheckbox(): DetoxElement {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByID(
           SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID,
@@ -13,27 +13,27 @@ class SkipAccountSecurityModal {
         );
   }
 
-  get skipButton() {
+  get skipButton(): DetoxElement {
     return Matchers.getElementByID(
       SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON,
     );
   }
 
-  get cancelButton() {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByID(
       SkipAccountSecurityModalSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
-  async tapIUnderstandCheckBox() {
+  async tapIUnderstandCheckBox(): Promise<void> {
     await Gestures.waitAndTap(this.iUnderstandCheckbox);
   }
 
-  async tapSkipButton() {
+  async tapSkipButton(): Promise<void> {
     await Gestures.waitAndTap(this.skipButton);
   }
 
-  async tapCancelButton() {
+  async tapCancelButton(): Promise<void> {
     await Gestures.waitAndTap(this.cancelButton);
   }
 }

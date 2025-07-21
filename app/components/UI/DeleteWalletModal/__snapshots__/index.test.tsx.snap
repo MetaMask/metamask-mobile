@@ -500,7 +500,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#9ca1af"
+                                  color="#b7bbc8"
                                   fill="currentColor"
                                   height={20}
                                   name="FaceId"
@@ -557,7 +557,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#9ca1af"
+                                  color="#b7bbc8"
                                   fill="currentColor"
                                   height={20}
                                   name="SecurityKey"
