@@ -1413,7 +1413,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#1c7e331a",
+                      "backgroundColor": "#457a391a",
                       "borderRadius": 20,
                       "height": 40,
                       "justifyContent": "center",
@@ -1423,7 +1423,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                   }
                 >
                   <SvgMock
-                    color="#1c7e33"
+                    color="#457a39"
                     fill="currentColor"
                     height={32}
                     name="CheckBold"
