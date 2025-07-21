@@ -159,10 +159,8 @@ const MultichainTransactionsView = ({
         <MultichainBridgeTransactionListItem
           transaction={item}
           bridgeHistoryItem={bridgeHistoryItem}
-          selectedAddress={address ?? ''}
           navigation={nav}
           index={index}
-          networkConfig={networkConfig as NonEvmNetworkConfiguration}
         />
       );
     }
@@ -170,7 +168,6 @@ const MultichainTransactionsView = ({
     return (
       <MultichainTransactionListItem
         transaction={item}
-        selectedAddress={address ?? ''}
         navigation={nav}
         index={index}
         networkConfig={networkConfig as NonEvmNetworkConfiguration}

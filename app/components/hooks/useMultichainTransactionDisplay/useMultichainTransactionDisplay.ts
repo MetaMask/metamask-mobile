@@ -79,7 +79,7 @@ export function useMultichainTransactionDisplay(
     [TransactionType.Receive]: strings('transactions.received'),
     [TransactionType.Swap]: `${strings('transactions.swap')} ${
       from?.unit
-    } ${strings('to').toLowerCase()} ${to?.unit}`,
+    } ${strings('transactions.to').toLowerCase()} ${to?.unit}`,
     [TransactionType.Unknown]: strings('transactions.interaction'),
   };
 

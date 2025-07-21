@@ -6,7 +6,7 @@ import {
   TextStyle,
   useColorScheme,
 } from 'react-native';
-import { Transaction } from '@metamask/keyring-api';
+import { Transaction, TransactionType } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
@@ -27,7 +27,6 @@ const MultichainTransactionListItem = ({
 }: {
   transaction: Transaction;
   networkConfig: NonEvmNetworkConfiguration;
-  selectedAddress: string;
   navigation: NavigationProp<ParamListBase>;
   index?: number;
 }) => {
@@ -40,7 +39,7 @@ const MultichainTransactionListItem = ({
     transaction,
     networkConfig,
   );
-  const { title, to, priorityFee, isRedeposit } = displayData;
+  const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
 
   const style = styles(colors, typography);
 
@@ -53,6 +52,18 @@ const MultichainTransactionListItem = ({
       osColorScheme,
     );
     return <Image source={icon} style={style.icon} resizeMode="stretch" />;
+  };
+
+  const displayAmount = () => {
+    if (isRedeposit) {
+      return `${priorityFee?.amount} ${priorityFee?.unit}`;
+    }
+
+    if (transaction.type === TransactionType.Unknown) {
+      return `${baseFee?.amount} ${baseFee?.unit}`;
+    }
+
+    return `${to?.amount} ${to?.unit}`;
   };
 
   return (
@@ -93,9 +104,7 @@ const MultichainTransactionListItem = ({
               />
             </ListItem.Body>
             <ListItem.Amount style={style.listItemAmount as TextStyle}>
-              {isRedeposit
-                ? `${priorityFee?.amount} ${priorityFee?.unit}`
-                : `${to?.amount} ${to?.unit}`}
+              {displayAmount()}
             </ListItem.Amount>
           </ListItem.Content>
         </ListItem>
