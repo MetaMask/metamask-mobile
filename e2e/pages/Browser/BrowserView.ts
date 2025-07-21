@@ -236,7 +236,7 @@ class Browser {
   }
 
   async checkCurrentUrlInInputBox(expectedUrl: string): Promise<void> {
-    await Assertions.checkIfElementToHaveText(this.urlInputBoxID, expectedUrl)
+    await Assertions.checkIfElementToHaveText(this.urlInputBoxID, expectedUrl);
   }
 
   async navigateToTestDAppTransaction({

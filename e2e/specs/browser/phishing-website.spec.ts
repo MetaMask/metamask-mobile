@@ -1,10 +1,10 @@
 'use strict';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import {loginToApp} from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import {withFixtures} from '../../fixtures/fixture-helper';
-import {SmokeWalletPlatform} from '../../tags';
+import { withFixtures } from '../../fixtures/fixture-helper';
+import { SmokeWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import PhishingModal from '../../pages/Browser/PhishingModal.ts';
 
