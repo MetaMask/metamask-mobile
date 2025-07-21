@@ -65,6 +65,7 @@ jobs:
       - name: Build iOS E2E App
         run: |
           echo "Building E2E app for iOS..."
+          yarn setup --no-build-android --no-install-pods
           yarn test:e2e:ios:build:qa-release
         shell: bash
         env:
