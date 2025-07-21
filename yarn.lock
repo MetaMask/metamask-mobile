@@ -4944,6 +4944,20 @@
     bignumber.js "^9.1.2"
     uuid "^8.3.2"
 
+"@metamask/bridge-status-controller@npm:@metamask-previews/bridge-status-controller@36.0.0-preview-25dbca82":
+  version "36.0.0-preview-25dbca82"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/bridge-status-controller/-/bridge-status-controller-36.0.0-preview-25dbca82.tgz#f5d96ed47bfea89f332585f1c924ccd1e41ab7b4"
+  integrity sha512-XYdhugCkTP4X89OhPzJneUNpd+DMguyfCAne93gtpVyl+HisbKb0LhxGvMh+X800HxkZOKiH0eoXdzZA/tbKMg==
+  dependencies:
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/controller-utils" "^11.11.0"
+    "@metamask/keyring-api" "^19.0.0"
+    "@metamask/polling-controller" "^14.0.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.4.2"
+    bignumber.js "^9.1.2"
+    uuid "^8.3.2"
+
 "@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.3.0.tgz#62c200750efcea864bd31d685120331859e1ab1e"
@@ -5383,6 +5397,16 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
+"@metamask/keyring-api@^19.0.0":
+  version "19.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-19.0.0.tgz#8d090c601cc76b04e2befd1b14ddaff3d4797d90"
+  integrity sha512-OVhEythwkSyaHsOu5qI77oe5wurBJlZLB9XF5BG9rNJpielkaJ4MdJOOQUkIprKg9B9GtfqvbytY9WxldrGGFA==
+  dependencies:
+    "@metamask/keyring-utils" "^3.1.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+    bitcoin-address-validation "^2.2.3"
+
 "@metamask/keyring-controller@^22.0.1":
   version "22.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-22.0.1.tgz#a672c97a8640bf3dc96ec316fa315cc9a50b2e7b"
@@ -5440,6 +5464,16 @@
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-3.0.0.tgz#37ad4b948e7306ef7d157ed074377073526ea143"
   integrity sha512-bo6Bgmz2uJ+DI5r9qyZjp435VCrc0A4nES/awTPnRWETqpbOBfMDVlLeQxQE88exCrE8efK2hTJ1by5fw8+N2g==
+  dependencies:
+    "@ethereumjs/tx" "^5.4.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+    bitcoin-address-validation "^2.2.3"
+
+"@metamask/keyring-utils@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-3.1.0.tgz#77473fbf4ad4314096a0722161765e90a30bee3d"
+  integrity sha512-ZsmtlCKZQo27xDXbPFM06u0NgTRwIVFJsHju2vPX4XGtEGh1Rd/gNGu8TePJGuTWbgvUVEvnk29c0njudbMprA==
   dependencies:
     "@ethereumjs/tx" "^5.4.0"
     "@metamask/superstruct" "^3.1.0"

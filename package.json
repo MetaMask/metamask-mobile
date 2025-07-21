@@ -166,7 +166,8 @@
     "multihashes/**/base-x": "3.0.11",
     "@keystonehq/ur-decoder/**/base-x": "3.0.11",
     "@ethereumjs/tx": "^5.4.0",
-    "@metamask/controller-utils": "npm:@metamask/controller-utils@^11.11.0"
+    "@metamask/controller-utils": "npm:@metamask/controller-utils@^11.11.0",
+    "@metamask/bridge-status-controller": "npm:@metamask-previews/bridge-status-controller@36.0.0-preview-25dbca82"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
