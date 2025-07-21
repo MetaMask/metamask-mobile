@@ -17,7 +17,7 @@ const STATE_MOCK = merge(
 const TRANSACTION_ID_MOCK =
   STATE_MOCK.engine.backgroundState.TransactionController.transactions[0].id;
 
-const PAY_ASSET_MOCK: ConfirmationMetricsReducer.TransactionPayToken = {
+const PAY_TOKEN_MOCK: ConfirmationMetricsReducer.TransactionPayToken = {
   address: '0x1234567890abcdef1234567890abcdef12345678',
   chainId: '0x123',
 };
@@ -53,10 +53,10 @@ describe('useTransactionPayToken', () => {
 
   it('returns token from state', () => {
     const { result } = runHook({
-      payToken: PAY_ASSET_MOCK,
+      payToken: PAY_TOKEN_MOCK,
     });
 
-    expect(result.current.payToken).toEqual(PAY_ASSET_MOCK);
+    expect(result.current.payToken).toEqual(PAY_TOKEN_MOCK);
   });
 
   it('sets token in state', () => {
@@ -67,11 +67,11 @@ describe('useTransactionPayToken', () => {
 
     const { result } = runHook();
 
-    result.current.setPayToken(PAY_ASSET_MOCK);
+    result.current.setPayToken(PAY_TOKEN_MOCK);
 
     expect(setPayTokenActionMock).toHaveBeenCalledWith({
-      id: TRANSACTION_ID_MOCK,
-      payToken: PAY_ASSET_MOCK,
+      transactionId: TRANSACTION_ID_MOCK,
+      payToken: PAY_TOKEN_MOCK,
     });
   });
 });
