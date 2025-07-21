@@ -15,7 +15,7 @@ class AddFavoritesView {
 
   async tapAddBookmarksButton(): Promise<void> {
     await Gestures.waitAndTap(this.addBookmarkButton, {
-      description: 'Tap on the add bookmark button',
+      elemDescription: 'Tap on the add bookmark button',
     });
   }
 }

@@ -11,7 +11,7 @@ export default class Assertions {
    * Assert element is visible with auto-retry
    */
   static async expectElementToBeVisible(
-    detoxElement: DetoxElement | WebElement | DetoxMatcher,
+    detoxElement: DetoxElement | WebElement | DetoxMatcher | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
