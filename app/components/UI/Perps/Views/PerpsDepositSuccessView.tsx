@@ -169,7 +169,12 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
   }, [selectedToken, tokenList, isIpfsGatewayEnabled]);
 
   const handleViewBalance = useCallback(() => {
-    navigation.navigate(Routes.PERPS.TRADING_VIEW);
+    navigation.navigate(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
   }, [navigation]);
 
   const handleViewTransaction = useCallback(() => {
