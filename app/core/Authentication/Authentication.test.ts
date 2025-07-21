@@ -2448,4 +2448,318 @@ describe('Authentication', () => {
       ).rejects.toThrow('Failed to update backup metadata');
     });
   });
+
+  describe('syncSeedPhrases', () => {
+    const Engine = jest.requireMock('../Engine');
+    const mockRootSecret = {
+      data: new Uint8Array([1, 2, 3, 4]),
+      type: SecretType.Mnemonic,
+    };
+    const mockPrivateKeySecret = {
+      data: new Uint8Array([5, 6, 7, 8]),
+      type: SecretType.PrivateKey,
+    };
+    const mockMnemonicSecret = {
+      data: new Uint8Array([9, 10, 11, 12]),
+      type: SecretType.Mnemonic,
+    };
+
+    beforeEach(() => {
+      // Reset mocks
+      jest.clearAllMocks();
+
+      // Setup Engine context mocks
+      Engine.context.SeedlessOnboardingController = {
+        fetchAllSecretData: jest
+          .fn()
+          .mockResolvedValue([
+            mockRootSecret,
+            mockPrivateKeySecret,
+            mockMnemonicSecret,
+          ]),
+        getSecretDataBackupState: jest.fn().mockReturnValue(null), // Not in local state
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      // Setup default Redux store mock
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data',
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+
+      // Mock Authentication methods
+      jest
+        .spyOn(Authentication, 'importAccountFromPrivateKey')
+        .mockResolvedValue(undefined);
+      jest.spyOn(Authentication, 'importMnemonicToVault').mockResolvedValue({
+        newAccountAddress: '0x1234567890abcdef',
+        discoveredAccountsCount: 0,
+      });
+
+      // Mock convertEnglishWordlistIndicesToCodepoints
+      mockConvertEnglishWordlistIndicesToCodepoints.mockReturnValue(
+        Buffer.from('test mnemonic phrase'),
+      );
+    });
+
+    it('should sync seed phrases with private key and mnemonic secrets', async () => {
+      // Act
+      await Authentication.syncSeedPhrases();
+
+      // Assert
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.SeedlessOnboardingController.getSecretDataBackupState,
+      ).toHaveBeenCalledWith(mockPrivateKeySecret.data, SecretType.PrivateKey);
+      expect(
+        Engine.context.SeedlessOnboardingController.getSecretDataBackupState,
+      ).toHaveBeenCalledWith(mockMnemonicSecret.data, SecretType.Mnemonic);
+      expect(Authentication.importAccountFromPrivateKey).toHaveBeenCalledWith(
+        expect.any(String), // bytesToHex result
+        {
+          shouldCreateSocialBackup: false,
+          shouldSelectAccount: false,
+        },
+      );
+      expect(Authentication.importMnemonicToVault).toHaveBeenCalledWith(
+        'test mnemonic phrase',
+        {
+          shouldCreateSocialBackup: false,
+          shouldSelectAccount: false,
+          shouldImportSolanaAccount: true,
+        },
+      );
+    });
+
+    it('should skip sync when not in seedless onboarding flow', async () => {
+      // Arrange
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: null,
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+
+      // Act
+      await Authentication.syncSeedPhrases();
+
+      // Assert
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).not.toHaveBeenCalled();
+      expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
+      expect(Authentication.importMnemonicToVault).not.toHaveBeenCalled();
+    });
+
+    it('should skip secrets that are already in local state', async () => {
+      // Arrange
+      Engine.context.SeedlessOnboardingController.getSecretDataBackupState
+        .mockReturnValueOnce(null) // Private key not in state
+        .mockReturnValueOnce('existing-hash'); // Mnemonic already in state
+
+      // Act
+      await Authentication.syncSeedPhrases();
+
+      // Assert
+      expect(Authentication.importAccountFromPrivateKey).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(Authentication.importMnemonicToVault).not.toHaveBeenCalled();
+    });
+
+    it('should handle only private key secrets', async () => {
+      // Arrange
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
+        [mockRootSecret, mockPrivateKeySecret],
+      );
+
+      // Act
+      await Authentication.syncSeedPhrases();
+
+      // Assert
+      expect(Authentication.importAccountFromPrivateKey).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(Authentication.importMnemonicToVault).not.toHaveBeenCalled();
+    });
+
+    it('should handle only mnemonic secrets', async () => {
+      // Arrange
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
+        [mockRootSecret, mockMnemonicSecret],
+      );
+
+      // Act
+      await Authentication.syncSeedPhrases();
+
+      // Assert
+      expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
+      expect(Authentication.importMnemonicToVault).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle no additional secrets', async () => {
+      // Arrange
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
+        [mockRootSecret],
+      );
+
+      // Act
+      await Authentication.syncSeedPhrases();
+
+      // Assert
+      expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
+      expect(Authentication.importMnemonicToVault).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when no root secret is found', async () => {
+      // Arrange
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
+        [],
+      );
+
+      // Act & Assert
+      await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
+        'No root SRP found',
+      );
+    });
+
+    it('should throw error when root secret is falsy', async () => {
+      // Arrange
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
+        [null],
+      );
+
+      // Act & Assert
+      await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
+        'No root SRP found',
+      );
+    });
+
+    it('should handle SeedlessOnboardingController.fetchAllSecretData failure', async () => {
+      // Arrange
+      const error = new Error('Failed to fetch secret data');
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockRejectedValue(
+        error,
+      );
+
+      // Act & Assert
+      await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
+        'Failed to fetch secret data',
+      );
+    });
+
+    it('should handle importAccountFromPrivateKey failure', async () => {
+      // Arrange
+      const error = new Error('Failed to import private key');
+      (
+        Authentication.importAccountFromPrivateKey as jest.Mock
+      ).mockRejectedValue(error);
+
+      // Act & Assert
+      await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
+        'Failed to import private key',
+      );
+    });
+
+    it('should handle importMnemonicToVault failure', async () => {
+      // Arrange
+      const error = new Error('Failed to import mnemonic');
+      (Authentication.importMnemonicToVault as jest.Mock).mockRejectedValue(
+        error,
+      );
+
+      // Act & Assert
+      await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
+        'Failed to import mnemonic',
+      );
+    });
+
+    it('should handle mixed secret types with some failures', async () => {
+      // Arrange
+      const mockSecret1 = {
+        data: new Uint8Array([1, 2, 3]),
+        type: SecretType.PrivateKey,
+      };
+      const mockSecret2 = {
+        data: new Uint8Array([4, 5, 6]),
+        type: SecretType.Mnemonic,
+      };
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
+        [mockRootSecret, mockSecret1, mockSecret2],
+      );
+
+      // First import succeeds, second fails
+      (
+        Authentication.importAccountFromPrivateKey as jest.Mock
+      ).mockResolvedValueOnce(undefined);
+      (Authentication.importMnemonicToVault as jest.Mock).mockRejectedValueOnce(
+        new Error('Failed to import mnemonic'),
+      );
+
+      // Act & Assert
+      await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
+        'Failed to import mnemonic',
+      );
+      expect(Authentication.importAccountFromPrivateKey).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(Authentication.importMnemonicToVault).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle unknown secret types gracefully', async () => {
+      // Arrange
+      const mockUnknownSecret = {
+        data: new Uint8Array([1, 2, 3, 4]),
+        type: 'unknown' as SecretType,
+      };
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
+        [mockRootSecret, mockUnknownSecret],
+      );
+
+      // Act
+      await Authentication.syncSeedPhrases();
+
+      // Assert
+      expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
+      expect(Authentication.importMnemonicToVault).not.toHaveBeenCalled();
+    });
+
+    it('should handle empty secret data', async () => {
+      // Arrange
+      const mockEmptySecret = {
+        data: new Uint8Array([]),
+        type: SecretType.PrivateKey,
+      };
+      Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
+        [mockRootSecret, mockEmptySecret],
+      );
+
+      // Act
+      await Authentication.syncSeedPhrases();
+
+      // Assert
+      expect(Authentication.importAccountFromPrivateKey).toHaveBeenCalledWith(
+        '0x',
+        {
+          shouldCreateSocialBackup: false,
+          shouldSelectAccount: false,
+        },
+      );
+    });
+  });
 });
