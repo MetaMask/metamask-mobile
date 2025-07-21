@@ -97,6 +97,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
@@ -292,9 +293,12 @@ stages:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
   build_regression_e2e_ios_android_stage:
+    abort_on_fail: true
     workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+      - ios_build_regression_tests:
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+      - android_build_regression_tests:
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
