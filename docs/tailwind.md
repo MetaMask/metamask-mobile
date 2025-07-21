@@ -91,7 +91,7 @@ const WalletHome: React.FC = () => {
   const tw = useTailwind();
 
   return (
-    <ScrollView style={tw`flex-1 bg-default bg-primary-default`}>
+    <ScrollView style={tw`flex-1 bg-default`}>
       <Pressable
         style={({ pressed }) =>
           tw.style(
