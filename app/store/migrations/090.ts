@@ -1,6 +1,7 @@
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 import Logger from '../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import { RpcEndpointType } from '@metamask/network-controller';
 import {
   allowedInfuraHosts,
@@ -123,6 +124,12 @@ export default function migrate(state: unknown) {
         }
       }
     }
+  } else {
+    captureException(
+      new Error(
+        'Migration 90: NetworkController or networkConfigurationsByChainId not found in expected state structure. Skipping BSC RPC endpoint migration.',
+      ),
+    );
   }
 
   return state;

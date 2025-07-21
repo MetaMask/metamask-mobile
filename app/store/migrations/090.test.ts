@@ -266,4 +266,30 @@ describe('Migration #90 - Replace BSC Network RPC URL', () => {
         .networkConfigurationsByChainId[BSC_CHAIN_ID].rpcEndpoints[0].url,
     ).toBe(NEW_RPC_URL);
   });
+
+  it('should capture exception when NetworkController structure is invalid', async () => {
+    const oldState = merge(
+      {},
+      {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              // Valid object but missing networkConfigurationsByChainId
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              // networkConfigurationsByChainId is intentionally missing
+            },
+          },
+        },
+      },
+    );
+
+    const newState = await migrate(oldState);
+
+    expect(newState).toStrictEqual(oldState);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      'Migration 90: NetworkController or networkConfigurationsByChainId not found in expected state structure. Skipping BSC RPC endpoint migration.',
+    );
+  });
 });
