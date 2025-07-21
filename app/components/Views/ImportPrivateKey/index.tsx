@@ -121,10 +121,10 @@ const ImportPrivateKey = () => {
     }
   };
 
-  const onScanSuccess = (data: { private_key: string; seed: string }) => {
+  const onScanSuccess = async (data: { private_key: string; seed: string }) => {
     if (data.private_key) {
       setPrivateKey(data.private_key);
-      goNext(data.private_key);
+      await goNext(data.private_key);
     } else if (data.seed) {
       Alert.alert(
         strings('wallet.error'),
