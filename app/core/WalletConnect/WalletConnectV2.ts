@@ -665,9 +665,7 @@ export class WC2Manager {
       }
 
       if (params.version === 1) {
-        console.warn(
-          `WC2Manager::connect v1 protocol is no longer supported`,
-        );
+        console.warn(`WC2Manager::connect v1 protocol is no longer supported`);
         Alert.alert(
           strings('walletcoonnect_v1_alert.title'),
           strings('walletcoonnect_v1_alert.message'),

@@ -355,11 +355,11 @@ describe('WC2Manager', () => {
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        'WC2Manager::connect v1 protocol is no longer supported'
+        'WC2Manager::connect v1 protocol is no longer supported',
       );
       expect(alertSpy).toHaveBeenCalledWith(
         expect.any(String),
-        expect.any(String)
+        expect.any(String),
       );
 
       consoleSpy.mockRestore();
