@@ -38,7 +38,6 @@ const styleSheet = (params: {
     balance: {
       verticalAlign: 'middle',
     },
-    accountDetailsMenu: {},
   });
 };
 

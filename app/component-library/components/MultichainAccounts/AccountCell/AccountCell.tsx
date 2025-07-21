@@ -47,10 +47,7 @@ export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
           '$1234567890.00'
         }
       </Text>
-      <TouchableOpacity
-        style={styles.accountDetailsMenu}
-        testID={AccountCellIds.MENU}
-      >
+      <TouchableOpacity testID={AccountCellIds.MENU}>
         <Icon
           name={IconName.MoreVertical}
           size={IconSize.Md}
