@@ -25,7 +25,7 @@ Performance tests automatically generate detailed reports using the `Performance
 | Platform | Total Max Time | Notes |
 |----------|----------------|--------|
 | **Android** | 5000ms | 5 seconds maximum |
-| **iOS** | 7,500ms | 7.5 seconds maximum |
+| **iOS** | 5000ms | 5 seconds maximum |
 
 ---
 
@@ -35,7 +35,7 @@ Performance tests automatically generate detailed reports using the `Performance
 | Platform | Total Max Time | Notes |
 |----------|----------------|--------|
 | **Android** | 5000ms | 5 seconds maximum |
-| **iOS** | 7,500ms | 7.5 seconds maximum |
+| **iOS** | 5000ms | 5 seconds maximum |
 
 ---
 

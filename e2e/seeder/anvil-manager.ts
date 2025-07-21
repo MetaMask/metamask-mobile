@@ -123,7 +123,7 @@ class AnvilManager {
     }
     const { walletClient, publicClient, testClient } = createAnvilClients(
       this.server.options.chainId ?? 1337,
-      this.server.options.port ?? AnvilPort(),
+      this.server.options.port ?? 8545,
     );
 
     return { walletClient, publicClient, testClient };
