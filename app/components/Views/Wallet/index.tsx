@@ -1357,7 +1357,7 @@ const Wallet = ({
 
           {/* <Text>EAS UPDATED TEST 1</Text> */}
           <Text>{runTypeMessage}</Text>
-          {error && <Text>{error}</Text>}
+          {error && <Text>error:{error}</Text>}
           {isUpdateAvailable && <Text>Update available</Text>}
           {isUpdatePending && <Text>Update pending</Text>}
           <Text>Updates Channel:{Updates.channel}</Text>

@@ -176,9 +176,9 @@
 		<!-- EAS Update configuration -->
 		<meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://u.expo.dev/f6be4653-8750-4688-8a44-c809d13b40ef" />
 		<meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="1.0.0" />
-		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="expo-channel-name" />
 		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_REQUEST_HEADERS_VALUE" android:value="preview" />
 		<meta-data android:name="expo.modules.updates.EXPO_UPDATES_CONFIGURATION_ENABLED" android:value="true" />
+		<meta-data android:name="expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="{&quot;expo-channel-name&quot;:&quot;preview&quot;}"/>
 
 		<provider
 			android:name="androidx.core.content.FileProvider"
