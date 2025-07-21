@@ -752,6 +752,8 @@
       "slippage_info": "If the price changes between the time your order is placed and confirmed it's called slippage. Your transaction will automatically cancel if slippage exceeds the tolerance you set here.",
       "slippage_auto": "Auto",
       "apply": "Apply",
+      "max_button": "Max",
+      "done_button": "Done",
       "metamask_fee": "MetaMask fee",
       "metamask_fee_tooltip": "MetaMask does not charge any fees for deposits to Hyperliquid",
       "minimum_deposit_error": "Minimum deposit amount is {{amount}} USDC",

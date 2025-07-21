@@ -536,7 +536,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
             <Box style={styles.arrowContainer}>
               <Box style={styles.arrowCircle}>
-                <Icon name={IconName.Arrow2Down} size={IconSize.Md} />
+                <Icon name={IconName.Arrow2Down} size={IconSize.Xl} />
               </Box>
             </Box>
 
@@ -598,14 +598,14 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Md}
-                  label={strings('amount_input.max')}
+                  label={strings('perps.deposit.max_button')}
                   onPress={handleMaxPress}
                   style={styles.percentageButton}
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Md}
-                  label={strings('navigation.done')}
+                  label={strings('perps.deposit.done_button')}
                   onPress={handleDonePress}
                   style={styles.percentageButton}
                 />
