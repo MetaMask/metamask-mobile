@@ -24,13 +24,30 @@ type AggregatedMovement = {
   amount: number;
 };
 
+export type AggregatedMovementDisplayData = {
+  address?: string;
+  unit: string;
+  amount: string;
+};
+
+export type MultichainTransactionDisplayData = {
+  title?: string;
+  from: AggregatedMovementDisplayData;
+  to: AggregatedMovementDisplayData;
+  baseFee: AggregatedMovementDisplayData;
+  priorityFee: AggregatedMovementDisplayData;
+  isRedeposit: boolean;
+};
+
 export function useMultichainTransactionDisplay(
   transaction: Transaction,
   networkConfig: NonEvmNetworkConfiguration,
-) {
+): MultichainTransactionDisplayData {
   const locale = I18n.locale;
   const { chainId } = networkConfig;
   const decimalPlaces = MULTICHAIN_NETWORK_DECIMAL_PLACES[chainId];
+  const isRedeposit =
+    transaction.to.length === 0 && transaction.type === TransactionType.Send;
 
   const from = aggregateAmount(
     transaction.from as Movement[],
@@ -58,23 +75,23 @@ export function useMultichainTransactionDisplay(
   );
 
   const typeToTitle: Partial<Record<TransactionType, string>> = {
-    [TransactionType.Send]: strings('sent'),
-    [TransactionType.Receive]: strings('received'),
-    [TransactionType.Swap]: `${strings('swap')} ${from?.unit} ${strings(
-      'to',
-    ).toLowerCase()} ${to?.unit}`,
-    [TransactionType.Unknown]: strings('interaction'),
+    [TransactionType.Send]: strings('transactions.sent'),
+    [TransactionType.Receive]: strings('transactions.received'),
+    [TransactionType.Swap]: `${strings('transactions.swap')} ${
+      from?.unit
+    } ${strings('to').toLowerCase()} ${to?.unit}`,
+    [TransactionType.Unknown]: strings('transactions.interaction'),
   };
 
   return {
-    ...transaction,
-    title: typeToTitle[transaction.type],
+    title: isRedeposit
+      ? strings('transactions.redeposit')
+      : typeToTitle[transaction.type],
     from,
     to,
     baseFee,
     priorityFee,
-    isRedeposit:
-      transaction.to.length === 0 && transaction.type === TransactionType.Send,
+    isRedeposit,
   };
 }
 
@@ -114,7 +131,7 @@ function parseAsset(
   locale: string,
   isNegative: boolean,
   decimals?: number,
-) {
+): AggregatedMovementDisplayData {
   // TODO: Fix in https://github.com/MetaMask/metamask-extension/issues/31880
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   const threshold = 1 / 10 ** (decimals || 8); // Smallest unit to display given the decimals.

@@ -42,11 +42,16 @@ const MultichainBridgeTransactionListItem = ({
   const appTheme = useSelector((state: RootState) => state.user.appTheme);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { type, from, to, fees, baseFee, priorityFee, title } =
-    useMultichainTransactionDisplay(transaction, networkConfig);
+  const displayData = useMultichainTransactionDisplay(
+    transaction,
+    networkConfig,
+  );
+  const { title, to } = displayData;
 
-  const isSwapTx = type === TransactionType.Swap && bridgeHistoryItem;
-  const isBridgeTx = type === TransactionType.Send && bridgeHistoryItem;
+  const isSwapTx =
+    transaction.type === TransactionType.Swap && bridgeHistoryItem;
+  const isBridgeTx =
+    transaction.type === TransactionType.Send && bridgeHistoryItem;
   const isBridgeComplete = bridgeHistoryItem
     ? Boolean(
         bridgeHistoryItem?.status.srcChain.txHash &&
@@ -96,7 +101,7 @@ const MultichainBridgeTransactionListItem = ({
           </ListItem.Date>
           <ListItem.Content style={style.listItemContent}>
             <ListItem.Icon>
-              {renderTxElementIcon(isBridgeTx ? 'bridge' : type)}
+              {renderTxElementIcon(isBridgeTx ? 'bridge' : transaction.type)}
             </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title
@@ -130,8 +135,8 @@ const MultichainBridgeTransactionListItem = ({
       <MultichainTransactionDetailsModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
+        displayData={displayData}
         transaction={transaction}
-        userAddress={selectedAddress}
         navigation={navigation}
       />
     </>

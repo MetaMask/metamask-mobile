@@ -22,7 +22,6 @@ import { NonEvmNetworkConfiguration } from '@metamask/multichain-network-control
 const MultichainTransactionListItem = ({
   transaction,
   networkConfig,
-  selectedAddress,
   navigation,
   index,
 }: {
@@ -37,23 +36,16 @@ const MultichainTransactionListItem = ({
   const appTheme = useSelector((state: RootState) => state.user.appTheme);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const {
-    type,
-    from,
-    to,
-    fees,
-    baseFee,
-    priorityFee,
-    title,
-    status,
-    isRedeposit,
-    timestamp,
-  } = useMultichainTransactionDisplay(transaction, networkConfig);
+  const displayData = useMultichainTransactionDisplay(
+    transaction,
+    networkConfig,
+  );
+  const { title, to, priorityFee, isRedeposit } = displayData;
 
   const style = styles(colors, typography);
 
   const renderTxElementIcon = (transactionType: string) => {
-    const isFailedTransaction = status === 'failed';
+    const isFailedTransaction = transaction.status === 'failed';
     const icon = getTransactionIcon(
       transactionType,
       isFailedTransaction,
@@ -81,7 +73,11 @@ const MultichainTransactionListItem = ({
               toDateFormat(new Date(transaction.timestamp * 1000))}
           </ListItem.Date>
           <ListItem.Content style={style.listItemContent}>
-            <ListItem.Icon> {renderTxElementIcon(type)}</ListItem.Icon>
+            <ListItem.Icon>
+              {renderTxElementIcon(
+                isRedeposit ? 'redeposit' : transaction.type,
+              )}
+            </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title
                 numberOfLines={1}
@@ -91,13 +87,15 @@ const MultichainTransactionListItem = ({
               </ListItem.Title>
               <StatusText
                 testID={`transaction-status-${transaction.id}`}
-                status={status}
+                status={transaction.status}
                 style={style.listItemStatus as TextStyle}
                 context="transaction"
               />
             </ListItem.Body>
             <ListItem.Amount style={style.listItemAmount as TextStyle}>
-              {to.amount} {to.unit}
+              {isRedeposit
+                ? `${priorityFee?.amount} ${priorityFee?.unit}`
+                : `${to?.amount} ${to?.unit}`}
             </ListItem.Amount>
           </ListItem.Content>
         </ListItem>
@@ -106,8 +104,8 @@ const MultichainTransactionListItem = ({
       <MultichainTransactionDetailsModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
+        displayData={displayData}
         transaction={transaction}
-        userAddress={selectedAddress}
         navigation={navigation}
       />
     </>

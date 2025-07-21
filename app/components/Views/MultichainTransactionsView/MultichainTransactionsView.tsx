@@ -154,7 +154,6 @@ const MultichainTransactionsView = ({
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
-    console.log(networkConfig, 'networkConfig');
     if (bridgeHistoryItem) {
       return (
         <MultichainBridgeTransactionListItem
@@ -182,34 +181,32 @@ const MultichainTransactionsView = ({
   return (
     <PriceChartProvider>
       <View style={style.wrapper}>
-        {networkConfig && (
-          <PriceChartContext.Consumer>
-            {({ isChartBeingTouched }) => (
-              <FlashList
-                data={txList}
-                renderItem={renderTransactionItem}
-                keyExtractor={(item) => item.id}
-                ListHeaderComponent={header}
-                ListEmptyComponent={renderEmptyList}
-                ListFooterComponent={footer}
-                style={baseStyles.flexGrow}
-                estimatedItemSize={200}
-                refreshControl={
-                  enableRefresh ? (
-                    <RefreshControl
-                      refreshing={refreshing}
-                      onRefresh={onRefresh}
-                      colors={[colors.primary.default]}
-                      tintColor={colors.icon.default}
-                    />
-                  ) : undefined
-                }
-                onScroll={onScroll}
-                scrollEnabled={!isChartBeingTouched}
-              />
-            )}
-          </PriceChartContext.Consumer>
-        )}
+        <PriceChartContext.Consumer>
+          {({ isChartBeingTouched }) => (
+            <FlashList
+              data={txList}
+              renderItem={renderTransactionItem}
+              keyExtractor={(item) => item.id}
+              ListHeaderComponent={header}
+              ListEmptyComponent={renderEmptyList}
+              ListFooterComponent={footer}
+              style={baseStyles.flexGrow}
+              estimatedItemSize={200}
+              refreshControl={
+                enableRefresh ? (
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={[colors.primary.default]}
+                    tintColor={colors.icon.default}
+                  />
+                ) : undefined
+              }
+              onScroll={onScroll}
+              scrollEnabled={!isChartBeingTouched}
+            />
+          )}
+        </PriceChartContext.Consumer>
       </View>
     </PriceChartProvider>
   );
