@@ -240,6 +240,28 @@ export const useDepositRouting = ({
               };
 
               await handleNewOrder(processedOrder);
+
+              trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+                ramp_type: 'DEPOSIT',
+                amount_source: Number(order.fiatAmount),
+                amount_destination: Number(order.cryptoAmount),
+                exchange_rate: Number(order.exchangeRate),
+                gas_fee: order.networkFees ? Number(order.networkFees) : 0,
+                processing_fee: order.partnerFees
+                  ? Number(order.partnerFees)
+                  : 0,
+                total_fee: Number(order.totalFeesFiat),
+                payment_method_id: order.paymentMethod,
+                country: selectedRegion?.isoCode || '',
+                chain_id: cryptoCurrency?.chainId || '',
+                currency_destination:
+                  selectedWalletAddress || order.walletAddress,
+                currency_source: order.fiatCurrency,
+              });
+
+              navigateToOrderProcessingCallback({
+                orderId: order.id,
+              });
             } catch (error) {
               throw new Error(
                 error instanceof Error && error.message
@@ -258,6 +280,8 @@ export const useDepositRouting = ({
       selectedWalletAddress,
       handleNewOrder,
       navigateToOrderProcessingCallback,
+      selectedRegion?.isoCode,
+      trackEvent,
     ],
   );
 

@@ -39,12 +39,19 @@ let mockGetOrder = jest.fn().mockResolvedValue({
   id: 'order-id',
   walletAddress: '0x123',
   cryptoCurrency: 'USDC',
-  network: 'ethereum',
+  network: 'eip155:1',
+  fiatAmount: '100',
+  cryptoAmount: '0.05',
+  exchangeRate: '2000',
+  totalFeesFiat: '2.50',
+  networkFees: '2.50',
+  partnerFees: '2.50',
+  paymentMethod: 'credit_debit_card',
+  fiatCurrency: 'USD',
 });
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
-
 const mockTrackEvent = jest.fn();
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
@@ -109,10 +116,11 @@ jest.mock('./useDepositSdkMethod', () => ({
 }));
 
 const mockClearAuthToken = jest.fn();
+const mockSelectedRegion = { isoCode: 'US' };
 
 jest.mock('../sdk', () => ({
   useDepositSDK: jest.fn(() => ({
-    selectedRegion: { isoCode: 'US' },
+    selectedRegion: mockSelectedRegion,
     clearAuthToken: mockClearAuthToken,
     selectedWalletAddress: '0x123',
   })),
@@ -135,6 +143,8 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../orderProcessor', () => ({
   depositOrderToFiatOrder: jest.fn((order) => order),
 }));
+
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockUseHandleNewOrder = jest.mocked(useHandleNewOrder);
 
@@ -163,6 +173,8 @@ describe('useDepositRouting', () => {
       walletAddress: '0x123',
       cryptoCurrency: 'USDC',
       network: 'ethereum',
+      networkFees: '5.99',
+      partnerFees: '5.99',
     });
 
     mockUseHandleNewOrder.mockReturnValue(
@@ -693,6 +705,102 @@ describe('useDepositRouting', () => {
       });
     });
 
+    it('tracks RAMPS_TRANSACTION_CONFIRMED event when order is processed successfully', async () => {
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+      const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
+      mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
+
+      const testOrder = {
+        id: 'order-id',
+        walletAddress: '0x123',
+        cryptoCurrency: 'USDC',
+        network: 'ethereum',
+        fiatAmount: '100',
+        cryptoAmount: '0.05',
+        exchangeRate: '2000',
+        totalFeesFiat: '2.50',
+        networkFees: '0',
+        partnerFees: '0',
+        paymentMethod: 'credit_debit_card',
+        fiatCurrency: 'USD',
+      };
+      mockGetOrder.mockResolvedValue(testOrder);
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const mockQuote = {} as BuyQuote;
+      await result.current.handleApprovedKycFlow(mockQuote);
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'DepositModals' &&
+          call[1]?.params?.handleNavigationStateChange,
+      );
+      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+
+      mockTrackEvent.mockClear();
+
+      await handler({
+        url: `${REDIRECTION_URL}?orderId=test-order-id`,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
+        {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0,
+          processing_fee: 0,
+          total_fee: 2.5,
+          payment_method_id: 'credit_debit_card',
+          country: 'US',
+          chain_id: 'eip155:1',
+          currency_destination: '0x123',
+          currency_source: 'USD',
+        },
+      );
+    });
+
+    it('does not track analytics when order processing fails', async () => {
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+      const mockHandleNewOrder = jest
+        .fn()
+        .mockRejectedValue(new Error('Processing failed'));
+      mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const mockQuote = {} as BuyQuote;
+      await result.current.handleApprovedKycFlow(mockQuote);
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'DepositModals' &&
+          call[1]?.params?.handleNavigationStateChange,
+      );
+      const handler = navigateCall?.[1]?.params?.handleNavigationStateChange;
+
+      mockTrackEvent.mockClear();
+
+      await handler({
+        url: `${REDIRECTION_URL}?orderId=test-order-id`,
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'OrderProcessing',
+        expect.any(Object),
+      );
+    });
+
     it('does nothing when URL does not start with REDIRECTION_URL', async () => {
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
@@ -719,6 +827,7 @@ describe('useDepositRouting', () => {
 
       expect(mockGetOrder).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
     it('does nothing when REDIRECTION_URL has no orderId', async () => {
@@ -745,6 +854,7 @@ describe('useDepositRouting', () => {
 
       expect(mockGetOrder).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
     it('handles error when getOrder fails', async () => {
@@ -776,10 +886,8 @@ describe('useDepositRouting', () => {
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
-      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
-        orderId: '/providers/transak-native/orders/test-order-id',
-      });
-      expect(mockHandleNewOrder).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
     it('handles error when getOrder returns null', async () => {
@@ -811,10 +919,8 @@ describe('useDepositRouting', () => {
       });
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
-      expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
-        orderId: '/providers/transak-native/orders/test-order-id',
-      });
-      expect(mockHandleNewOrder).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 
