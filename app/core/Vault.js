@@ -7,6 +7,8 @@ import {
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 import { captureException } from '@sentry/react-native';
+import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
+import Logger from '../util/Logger';
 
 /**
  * Returns current vault seed phrase
@@ -47,9 +49,31 @@ export const recreateVaultWithNewPassword = async (
     !skipSeedlessOnboardingPWChange &&
     selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
   ) {
+    let specificTraceSucceeded = false;
     try {
+      trace({
+        name: TraceName.OnboardingResetPassword,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
       await SeedlessOnboardingController.changePassword(newPassword, password);
+      specificTraceSucceeded = true;
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      trace({
+        name: TraceName.OnboardingResetPasswordError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+      });
+      endTrace({
+        name: TraceName.OnboardingResetPasswordError,
+      });
+
+      Logger.error(
+        error,
+        '[recreateVaultWithNewPassword] seedless onboarding pw change error',
+      );
       seedlessChangePasswordError = new SeedlessOnboardingControllerError(
         error || 'Password change failed',
         SeedlessOnboardingControllerErrorType.ChangePasswordError,
@@ -59,6 +83,11 @@ export const recreateVaultWithNewPassword = async (
       // restore the vault with the old password
       await KeyringController.changePassword(password);
       throw seedlessChangePasswordError;
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingResetPassword,
+        data: { success: specificTraceSucceeded },
+      });
     }
   }
 
