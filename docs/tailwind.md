@@ -122,9 +122,7 @@ const complexStyle = tw.style(
 
 ## Best Practices
 
-Read the MetaMask Contributor Docs [Tailwind CSS Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/tailwind-css.md) to ensure you're using Tailwind CSS effectively and consistently across the mobile codebase.
-
-- Look for examples in [design-system.stories.tsx](../app/component-library/components/design-system.stories.tsx)
+Read the MetaMask Contributor Docs [Tailwind CSS Guidelines](https://github.com/MetaMask/contributor-docs/blob/main/docs/tailwind-css.md) to ensure you're using Tailwind CSS effectively and consistently across the mobile codebase. You can also look for examples of design system component and tailwind classname usage in [design-system.stories.tsx](../app/component-library/components/design-system.stories.tsx)
 
 ### Getting Help
 
