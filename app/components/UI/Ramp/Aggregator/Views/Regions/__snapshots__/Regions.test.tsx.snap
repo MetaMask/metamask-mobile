@@ -7417,7 +7417,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                           <TextInput
                                             onChangeText={[Function]}
                                             placeholder="Search by country"
-                                            placeholderTextColor="#9ca1af"
+                                            placeholderTextColor="#b7bbc8"
                                             style={
                                               {
                                                 "color": "#121314",

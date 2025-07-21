@@ -630,7 +630,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
           style={
             [
               {
-                "color": "#1c7e33",
+                "color": "#457a39",
                 "fontSize": 36,
               },
               undefined,
@@ -796,7 +796,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
           style={
             [
               {
-                "color": "#1c7e33",
+                "color": "#457a39",
                 "fontSize": 36,
               },
               undefined,
@@ -962,7 +962,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
           style={
             [
               {
-                "color": "#1c7e33",
+                "color": "#457a39",
                 "fontSize": 36,
               },
               undefined,
@@ -1128,7 +1128,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
           style={
             [
               {
-                "color": "#1c7e33",
+                "color": "#457a39",
                 "fontSize": 36,
               },
               undefined,
