@@ -19,6 +19,7 @@ import {
 } from '../../../core/Multichain/utils';
 import { selectSolanaAccountTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { selectNonEvmNetworkConfigurationsByChainId } from '../../../selectors/multichainNetworkController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import styles from './MultichainTransactionsView.styles';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
@@ -27,6 +28,8 @@ import MultichainTransactionsFooter from './MultichainTransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
+import BridgeHistoryListItem from 'app/components/UI/BridgeHistoryListItem';
+import { NonEvmNetworkConfiguration } from '@metamask/multichain-network-controller';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -87,6 +90,10 @@ const MultichainTransactionsView = ({
     selectSelectedInternalAccountFormattedAddress,
   );
   const address = selectedAddress ?? defaultSelectedAddress;
+  const nonEvmNetworkConfigurations = useSelector(
+    selectNonEvmNetworkConfigurationsByChainId,
+  );
+  const networkConfig = nonEvmNetworkConfigurations[chainId ?? ''];
 
   const solanaAccountTransactions = useSelector(
     selectSolanaAccountTransactions,
@@ -150,13 +157,26 @@ const MultichainTransactionsView = ({
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
+    if (bridgeHistoryItem) {
+      return (
+        <BridgeHistoryListItem
+          transaction={item}
+          bridgeHistoryItem={bridgeHistoryItem}
+          selectedAddress={address ?? ''}
+          navigation={nav}
+          index={index}
+          networkConfig={networkConfig as NonEvmNetworkConfiguration}
+        />
+      );
+    }
+
     return (
       <MultichainTransactionListItem
         transaction={item}
-        bridgeHistoryItem={bridgeHistoryItem}
         selectedAddress={address ?? ''}
         navigation={nav}
         index={index}
+        networkConfig={networkConfig as NonEvmNetworkConfiguration}
       />
     );
   };
