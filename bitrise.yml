@@ -2808,15 +2808,21 @@ workflows:
             - deploy_path: browserstack_uploaded_flask_apps.json
           title: Bitrise Deploy Browserstack Uploaded Flask Apps
   run_native_android_tests:
+    before_run:
+      - code_setup
     steps:
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn test:native:android
+                yarn test:native:android
           title: Build and run Android native UI tests
           is_always_run: true
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
 
 app:
   envs:
