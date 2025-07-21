@@ -4,8 +4,10 @@ on:
   push:
 
 
+permissions:
+  contents: write
+  id-token: write
 
-    
 jobs:
   android-e2e:
     runs-on: ubuntu-latest
