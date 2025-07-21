@@ -90,6 +90,7 @@ pipelines:
 
   flask_smoke_e2e_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android_stage: {}
       - notify: {}
@@ -358,8 +359,10 @@ stages:
       - release_announcing_stores: {}
   build_e2e_flask_ios_android:
     workflows:
-      - build_flask_e2e_android: {}
-      - build_flask_e2e_ios: {}
+      - build_flask_e2e_android: 
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+      - build_flask_e2e_ios: 
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
   run_e2e_flask_ios_android:
     workflows:
       - run_flask_e2e_android: {}
