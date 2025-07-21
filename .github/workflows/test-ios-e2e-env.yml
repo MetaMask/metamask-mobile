@@ -74,7 +74,8 @@ jobs:
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
           IGNORE_BOXLOGS_DEVELOPMENT: true
-          GITHUB_CI: "true"  # ✅ Ensure this is set for pod install
+          GITHUB_CI: "true"
+          CI: "true"
 
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
