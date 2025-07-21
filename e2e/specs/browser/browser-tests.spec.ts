@@ -7,10 +7,10 @@ import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
 
-const getHostFromURL = (url: string): string => {
+const getOriginFromURL = (url: string): string => {
   try {
     const urlObj = new URL(url);
-    return urlObj.host;
+    return urlObj.origin;
   } catch (e) {
     // If URL is invalid, try a simple regex approach as fallback
     const match = url.match(/^(?:https?:\/\/)?([^/]+)/i);
@@ -47,7 +47,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await Browser.navigateToURL(ExternalSites.TEST_DAPP);
       await Assertions.expectElementToHaveText(
         Browser.urlInputBoxID,
-        getHostFromURL(ExternalSites.TEST_DAPP),
+        getOriginFromURL(ExternalSites.TEST_DAPP),
         {
           description: 'URL input box has the correct text',
         },
@@ -63,7 +63,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await Browser.tapReturnHomeButton();
       await Assertions.expectElementToNotHaveText(
         Browser.urlInputBoxID,
-        getHostFromURL(ExternalSites.INVALID_URL),
+        getOriginFromURL(ExternalSites.INVALID_URL),
         {
           description: 'URL input box does not have the invalid URL',
         },
@@ -83,7 +83,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await Browser.tapBackToSafetyButton();
       await Assertions.expectElementToNotHaveText(
         Browser.urlInputBoxID,
-        getHostFromURL(ExternalSites.PHISHING_SITE),
+        getOriginFromURL(ExternalSites.PHISHING_SITE),
         {
           description: 'URL input box does not have the phishing site',
         },
