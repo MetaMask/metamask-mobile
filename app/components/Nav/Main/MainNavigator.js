@@ -849,7 +849,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="SendFlowView"
         component={
-          process.env.MM_SEND_REDESIGNS_ENABLED ? SendFlowView : SendComponent
+          process.env.MM_SEND_REDESIGNS_ENABLED ? SendComponent : SendFlowView
         }
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
