@@ -8,11 +8,9 @@ class ImportAccountView {
   }
 
   get importButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON)
-      : Matchers.getElementByLabel(
-          ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON,
-        );
+    return Matchers.getElementByID(
+      ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON,
+    );
   }
 
   get privateKeyField() {
