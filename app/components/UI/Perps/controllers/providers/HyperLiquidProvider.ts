@@ -109,22 +109,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Build asset ID mapping from market metadata
    */
   private async buildAssetMapping(): Promise<void> {
-    try {
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
-      const { coinToAssetId, assetIdToCoin } = buildAssetMapping(meta.universe);
+    const infoClient = this.clientService.getInfoClient();
+    const meta = await infoClient.meta();
+    const { coinToAssetId, assetIdToCoin } = buildAssetMapping(meta.universe);
 
-      this.coinToAssetId = coinToAssetId;
-      this.assetIdToCoin = assetIdToCoin;
+    this.coinToAssetId = coinToAssetId;
+    this.assetIdToCoin = assetIdToCoin;
 
-      DevLogger.log('Asset mapping built', {
-        assetCount: meta.universe.length,
-        coins: Array.from(this.coinToAssetId.keys()),
-      });
-    } catch (error) {
-      DevLogger.log(strings('perps.errors.assetMappingFailed'), error);
-      throw error;
-    }
+    DevLogger.log('Asset mapping built', {
+      assetCount: meta.universe.length,
+      coins: Array.from(this.coinToAssetId.keys()),
+    });
   }
 
   /**
