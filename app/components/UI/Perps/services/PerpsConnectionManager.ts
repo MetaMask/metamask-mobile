@@ -31,13 +31,24 @@ class PerpsConnectionManagerClass {
       `PerpsConnectionManager: Connection requested (refCount: ${this.connectionRefCount})`,
     );
 
-    // If already connected or connecting, just return the existing promise
-    if (this.isConnected) {
-      return Promise.resolve();
-    }
-
+    // If already connecting, return the existing promise
     if (this.initPromise) {
       return this.initPromise;
+    }
+
+    // Check if we think we're connected but the controller might be disconnected
+    // This handles the case where state gets out of sync
+    if (this.isConnected) {
+      try {
+        // Quick check to see if connection is actually alive
+        await Engine.context.PerpsController.getAccountState();
+        return Promise.resolve();
+      } catch (error) {
+        // Connection is stale, reset state and reconnect
+        DevLogger.log('PerpsConnectionManager: Stale connection detected, reconnecting');
+        this.isConnected = false;
+        this.isInitialized = false;
+      }
     }
 
     this.isConnecting = true;
@@ -58,6 +69,8 @@ class PerpsConnectionManagerClass {
         DevLogger.log('PerpsConnectionManager: Successfully connected');
       } catch (error) {
         this.isConnecting = false;
+        this.isConnected = false;
+        this.isInitialized = false;
         DevLogger.log('PerpsConnectionManager: Connection failed', error);
         throw error;
       } finally {
@@ -78,14 +91,17 @@ class PerpsConnectionManagerClass {
     if (this.connectionRefCount <= 0) {
       this.connectionRefCount = 0; // Ensure it doesn't go negative
 
-      if (this.isConnected) {
+      if (this.isConnected || this.isInitialized) {
         try {
           DevLogger.log(
             'PerpsConnectionManager: Disconnecting (no more references)',
           );
-          await Engine.context.PerpsController.disconnect();
+          // Reset state before disconnecting to prevent race conditions
           this.isConnected = false;
           this.isInitialized = false;
+          this.isConnecting = false;
+
+          await Engine.context.PerpsController.disconnect();
         } catch (error) {
           DevLogger.log('PerpsConnectionManager: Disconnection error', error);
         }

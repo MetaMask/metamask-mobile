@@ -1133,6 +1133,10 @@ export class PerpsController extends BaseController<
 
     const provider = this.getActiveProvider();
     await provider.disconnect();
+    
+    // Reset initialization state to ensure proper reconnection
+    this.isInitialized = false;
+    this.initializationPromise = null;
   }
 
   /**
