@@ -30,8 +30,7 @@ export function useTransactionRequiredTokens() {
   ].filter((t) => t) as TransactionToken[];
 
   return useMemo(
-    () =>
-      getPartialTokens(getUniqueTokens(requiredTokens), balanceTokens, chainId),
+    () => getUniqueTokens(requiredTokens),
     [balanceTokens, chainId, requiredTokens],
   );
 }
