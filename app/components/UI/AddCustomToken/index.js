@@ -78,6 +78,8 @@ const createStyles = (colors) =>
       borderColor: colors.border.default,
       paddingHorizontal: 16,
       paddingVertical: 12,
+      minHeight: 48,
+      textAlignVertical: 'center',
       ...fontStyles.normal,
       color: colors.text.default,
     },
