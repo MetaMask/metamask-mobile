@@ -14,7 +14,10 @@ import {
 } from './FixtureUtils';
 import Utilities from '../../utils/Utilities';
 import TestHelpers from '../../helpers';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import {
+  startMockServer,
+  stopMockServer,
+} from '../../api-mocking/mock-server.ts';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {
@@ -343,6 +346,7 @@ export async function withFixtures(
     launchArgs,
     languageAndLocale,
     permissions = {},
+    enableCatchAllMocks = false,
   } = options;
 
   // Prepare android devices for testing to avoid having this in all tests
@@ -351,9 +355,12 @@ export async function withFixtures(
   // Handle mock server
   let mockServer;
   let mockServerPort = DEFAULT_MOCKSERVER_PORT;
-  if (testSpecificMock) {
+  if (testSpecificMock || enableCatchAllMocks) {
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+    mockServer = await startMockServer(testSpecificMock || {}, {
+      enableCatchAll: enableCatchAllMocks,
+      port: mockServerPort,
+    });
   }
 
   // Handle local nodes
@@ -426,7 +433,7 @@ export async function withFixtures(
       await handleDappCleanup(dapps, dappServer);
     }
 
-    if (testSpecificMock) {
+    if (testSpecificMock && mockServer) {
       await stopMockServer(mockServer);
     }
 

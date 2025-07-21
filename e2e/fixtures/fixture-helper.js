@@ -243,7 +243,9 @@ export async function withFixtures(options, testSuite) {
 
   if (testSpecificMock) {
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+    mockServer = await startMockServer(testSpecificMock, {
+      port: mockServerPort,
+    });
   }
 
   let localNode;
