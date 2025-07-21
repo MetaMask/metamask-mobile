@@ -132,27 +132,6 @@ export const usePerpsMarkets = (
     }
   }, [fetchMarketData, skipInitialFetch]);
 
-  // Retry fetch when SDK becomes ready
-  useEffect(() => {
-    if (
-      isInitialized &&
-      isConnected &&
-      markets.length === 0 &&
-      !isLoading &&
-      !skipInitialFetch
-    ) {
-      DevLogger.log('Perps: SDK became ready, retrying market data fetch');
-      fetchMarketData();
-    }
-  }, [
-    isInitialized,
-    isConnected,
-    markets.length,
-    isLoading,
-    skipInitialFetch,
-    fetchMarketData,
-  ]);
-
   // Polling effect
   useEffect(() => {
     if (!enablePolling) return;

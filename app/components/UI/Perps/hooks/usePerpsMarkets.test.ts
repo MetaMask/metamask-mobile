@@ -194,72 +194,81 @@ describe('usePerpsMarkets', () => {
     });
   });
 
-  // describe('Error handling', () => {
-  //   it.only('handles fetch errors with empty markets', async () => {
-  //     // Arrange
-  //     const errorMessage = 'Network error';
-  //     mockProvider.getMarketDataWithPrices.mockRejectedValue(
-  //       new Error(errorMessage),
-  //     );
+  describe('Error handling', () => {
+    it('handles fetch errors with empty markets', async () => {
+      // Switch to real timers to avoid infinite loops
+      jest.useRealTimers();
 
-  //     // Act
-  //     const { result } = renderHook(() => usePerpsMarkets());
+      try {
+        // Arrange
+        const errorMessage = 'Network error';
+        mockProvider.getMarketDataWithPrices.mockRejectedValue(
+          new Error(errorMessage),
+        );
 
-  //     await waitFor(() => {
-  //       expect(result.current.isLoading).toBe(false);
-  //     });
+        // Act
+        const { result } = renderHook(() => usePerpsMarkets());
 
-  //     // Assert
-  //     expect(result.current.markets).toEqual([]);
-  //     expect(result.current.error).toBe(errorMessage);
-  //     expect(mockLogger.log).toHaveBeenCalledWith(
-  //       'Perps: Failed to fetch market data',
-  //       expect.any(Error),
-  //     );
-  //   });
+        // Wait for the error state with real timers
+        await waitFor(
+          () => {
+            expect(result.current.isLoading).toBe(false);
+            expect(result.current.error).toBe(errorMessage);
+          },
+          { timeout: 3000 },
+        );
 
-  //   it('handles fetch errors with existing markets', async () => {
-  //     // Arrange
-  //     const { result } = renderHook(() => usePerpsMarkets());
+        // Assert final state
+        expect(result.current.markets).toEqual([]);
+        expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalled();
+      } finally {
+        // Always switch back to fake timers for other tests
+        jest.useFakeTimers();
+      }
+    });
 
-  //     // Wait for initial successful fetch
-  //     await waitFor(() => {
-  //       expect(result.current.isLoading).toBe(false);
-  //     });
+    it('handles fetch errors with existing markets', async () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsMarkets());
 
-  //     expect(result.current.markets).toEqual(mockMarketData);
+      // Wait for initial successful fetch
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-  //     // Set up error for next call
-  //     const errorMessage = 'Network error';
-  //     mockProvider.getMarketDataWithPrices.mockRejectedValue(
-  //       new Error(errorMessage),
-  //     );
+      expect(result.current.markets).toEqual(mockMarketData);
 
-  //     // Act
-  //     await act(async () => {
-  //       await result.current.refresh();
-  //     });
+      // Set up error for next call
+      const errorMessage = 'Network error';
+      mockProvider.getMarketDataWithPrices.mockRejectedValue(
+        new Error(errorMessage),
+      );
 
-  //     // Assert - should keep existing data on error
-  //     expect(result.current.markets).toEqual(mockMarketData);
-  //     expect(result.current.error).toBe(errorMessage);
-  //   });
+      // Act
+      await act(async () => {
+        await result.current.refresh();
+      });
 
-  //   it('handles unknown error types', async () => {
-  //     // Arrange
-  //     mockProvider.getMarketDataWithPrices.mockRejectedValue('String error');
+      // Assert - should keep existing data on error
+      expect(result.current.markets).toEqual(mockMarketData);
+      expect(result.current.error).toBe(errorMessage);
+    });
 
-  //     // Act
-  //     const { result } = renderHook(() => usePerpsMarkets());
+    it('handles unknown error types', async () => {
+      // Arrange
+      mockProvider.getMarketDataWithPrices.mockRejectedValue('String error');
 
-  //     await waitFor(() => {
-  //       expect(result.current.isLoading).toBe(false);
-  //     });
+      // Act
+      const { result } = renderHook(() => usePerpsMarkets());
 
-  //     // Assert
-  //     expect(result.current.error).toBe('Unknown error occurred');
-  //   });
-  // });
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Assert
+      expect(result.current.error).toBe('Unknown error occurred');
+    });
+  });
 
   describe('Refresh functionality', () => {
     it('refreshes data when refresh function is called', async () => {
