@@ -1,6 +1,6 @@
-import { loginToApp } from '../../../viewHelper.js';
+import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView.js';
+import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';
@@ -12,8 +12,8 @@ import {
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
-import SettingsView from '../../../pages/Settings/SettingsView.js';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView.js';
 import CommonView from '../../../pages/CommonView.js';
 import { createUserStorageController } from '../utils/mocks.ts';

@@ -10,6 +10,27 @@ import {
   HYPERLIQUID_TRANSPORT_CONFIG,
 } from '../constants/hyperLiquidConfig';
 import type { HyperLiquidNetwork } from '../types/config';
+import { strings } from '../../../../../locales/i18n';
+import type { CandleData } from '../types';
+
+/**
+ * Valid time intervals for historical candle data
+ */
+export type ValidCandleInterval =
+  | '1m'
+  | '3m'
+  | '5m'
+  | '15m'
+  | '30m'
+  | '1h'
+  | '2h'
+  | '4h'
+  | '8h'
+  | '12h'
+  | '1d'
+  | '3d'
+  | '1w'
+  | '1M';
 
 /**
  * Service for managing HyperLiquid SDK clients
@@ -102,7 +123,7 @@ export class HyperLiquidClientService {
    */
   public ensureInitialized(): void {
     if (!this.isInitialized()) {
-      throw new Error('HyperLiquid SDK clients not properly initialized');
+      throw new Error(strings('perps.errors.clientNotInitialized'));
     }
   }
 
@@ -126,7 +147,7 @@ export class HyperLiquidClientService {
   public getExchangeClient(): ExchangeClient {
     this.ensureInitialized();
     if (!this.exchangeClient) {
-      throw new Error('ExchangeClient not available after initialization');
+      throw new Error(strings('perps.errors.exchangeClientNotAvailable'));
     }
     return this.exchangeClient;
   }
@@ -137,7 +158,7 @@ export class HyperLiquidClientService {
   public getInfoClient(): InfoClient {
     this.ensureInitialized();
     if (!this.infoClient) {
-      throw new Error('InfoClient not available after initialization');
+      throw new Error(strings('perps.errors.infoClientNotAvailable'));
     }
     return this.infoClient;
   }
@@ -175,6 +196,88 @@ export class HyperLiquidClientService {
   }
 
   /**
+   * Fetch historical candle data using the HyperLiquid SDK
+   * @param coin - The coin symbol (e.g., "BTC", "ETH")
+   * @param interval - The interval (e.g., "1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M")
+   * @param limit - Number of candles to fetch (default: 100)
+   * @returns Promise<CandleData | null>
+   */
+  public async fetchHistoricalCandles(
+    coin: string,
+    interval: ValidCandleInterval,
+    limit: number = 100,
+  ): Promise<CandleData | null> {
+    this.ensureInitialized();
+
+    try {
+      // Calculate start and end times based on interval and limit
+      const now = Date.now();
+      const intervalMs = this.getIntervalMilliseconds(interval);
+      const startTime = now - limit * intervalMs;
+
+      // Use the SDK's InfoClient to fetch candle data
+      const infoClient = this.getInfoClient();
+      const data = await infoClient.candleSnapshot({
+        coin,
+        interval,
+        startTime,
+        endTime: now,
+      });
+
+      // Transform API response to match expected format
+      if (Array.isArray(data) && data.length > 0) {
+        const candles = data.map((candle) => ({
+          time: candle.t, // open time
+          open: candle.o.toString(),
+          high: candle.h.toString(),
+          low: candle.l.toString(),
+          close: candle.c.toString(),
+          volume: candle.v.toString(),
+        }));
+
+        return {
+          coin,
+          interval,
+          candles,
+        };
+      }
+
+      return {
+        coin,
+        interval,
+        candles: [],
+      };
+    } catch (error) {
+      DevLogger.log('Error fetching historical candles:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Convert interval string to milliseconds
+   */
+  private getIntervalMilliseconds(interval: ValidCandleInterval): number {
+    const intervalMap: Record<ValidCandleInterval, number> = {
+      '1m': 60 * 1000,
+      '3m': 3 * 60 * 1000,
+      '5m': 5 * 60 * 1000,
+      '15m': 15 * 60 * 1000,
+      '30m': 30 * 60 * 1000,
+      '1h': 60 * 60 * 1000,
+      '2h': 2 * 60 * 60 * 1000,
+      '4h': 4 * 60 * 60 * 1000,
+      '8h': 8 * 60 * 60 * 1000,
+      '12h': 12 * 60 * 60 * 1000,
+      '1d': 24 * 60 * 60 * 1000,
+      '3d': 3 * 24 * 60 * 60 * 1000,
+      '1w': 7 * 24 * 60 * 60 * 1000,
+      '1M': 30 * 24 * 60 * 60 * 1000, // Approximate
+    };
+
+    return intervalMap[interval];
+  }
+
+  /**
    * Disconnect and cleanup all clients
    */
   public async disconnect(): Promise<void> {
@@ -197,7 +300,10 @@ export class HyperLiquidClientService {
           );
         } catch (error) {
           DevLogger.log('HyperLiquid: Error closing WebSocket connection', {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error:
+              error instanceof Error
+                ? error.message
+                : strings('perps.errors.unknownError'),
             timestamp: new Date().toISOString(),
           });
         }

@@ -1,4 +1,7 @@
-import { ConfirmationRedesignRemoteFlags, selectConfirmationRedesignFlags } from '.';
+import {
+  ConfirmationRedesignRemoteFlags,
+  selectConfirmationRedesignFlags,
+} from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
 
@@ -22,14 +25,15 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags = {
-  approve: true,
-  signatures: true,
-  staking_confirmations: true,
-  contract_deployment: true,
-  contract_interaction: true,
-  transfer: true,
-};
+const confirmationRedesignFlagsDefaultValues: ConfirmationRedesignRemoteFlags =
+  {
+    approve: true,
+    signatures: true,
+    staking_confirmations: true,
+    contract_deployment: true,
+    contract_interaction: true,
+    transfer: true,
+  };
 
 const mockedConfirmationRedesignFlags: ConfirmationRedesignRemoteFlags = {
   approve: false,
@@ -45,12 +49,12 @@ const mockedStateWithConfirmationFlags = {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          confirmation_redesign: mockedConfirmationRedesignFlags
+          confirmation_redesign: mockedConfirmationRedesignFlags,
         },
         cacheTimestamp: 0,
-      }
-    }
-  }
+      },
+    },
+  },
 };
 
 const mockedStateWithPartialFlags = {
@@ -61,16 +65,19 @@ const mockedStateWithPartialFlags = {
           confirmation_redesign: {
             signatures: false,
             // Other flags are undefined, should default to true
-          }
+          },
         },
         cacheTimestamp: 0,
-      }
-    }
-  }
+      },
+    },
+  },
 };
 
 describe('Confirmation Redesign Feature Flags', () => {
-  const testFlagValues = (result: unknown, expected: ConfirmationRedesignRemoteFlags) => {
+  const testFlagValues = (
+    result: unknown,
+    expected: ConfirmationRedesignRemoteFlags,
+  ) => {
     const {
       signatures,
       staking_confirmations,
@@ -94,21 +101,21 @@ describe('Confirmation Redesign Feature Flags', () => {
   it('returns default values (all true) when empty feature flag state', () => {
     testFlagValues(
       selectConfirmationRedesignFlags(mockedEmptyFlagsState),
-      confirmationRedesignFlagsDefaultValues
+      confirmationRedesignFlagsDefaultValues,
     );
   });
 
   it('returns default values (all true) when undefined RemoteFeatureFlagController state', () => {
     testFlagValues(
       selectConfirmationRedesignFlags(mockedUndefinedFlagsState),
-      confirmationRedesignFlagsDefaultValues
+      confirmationRedesignFlagsDefaultValues,
     );
   });
 
   it('returns remote flag values when confirmation_redesign flags are set', () => {
     testFlagValues(
       selectConfirmationRedesignFlags(mockedStateWithConfirmationFlags),
-      mockedConfirmationRedesignFlags
+      mockedConfirmationRedesignFlags,
     );
   });
 
@@ -124,7 +131,7 @@ describe('Confirmation Redesign Feature Flags', () => {
 
     testFlagValues(
       selectConfirmationRedesignFlags(mockedStateWithPartialFlags),
-      expected
+      expected,
     );
   });
 
@@ -139,12 +146,12 @@ describe('Confirmation Redesign Feature Flags', () => {
                 staking_confirmations: false,
                 contract_interaction: false,
                 transfer: false,
-              }
+              },
             },
             cacheTimestamp: 0,
-          }
-        }
-      }
+          },
+        },
+      },
     };
 
     const expectedKillSwitchValues: ConfirmationRedesignRemoteFlags = {
@@ -158,7 +165,7 @@ describe('Confirmation Redesign Feature Flags', () => {
 
     testFlagValues(
       selectConfirmationRedesignFlags(killSwitchState),
-      expectedKillSwitchValues
+      expectedKillSwitchValues,
     );
   });
 });

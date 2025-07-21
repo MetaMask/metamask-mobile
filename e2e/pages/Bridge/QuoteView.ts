@@ -27,7 +27,9 @@ class QuoteView {
   }
 
   get searchToken(): Promise<Detox.IndexableNativeElement> {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT) as Promise<Detox.IndexableNativeElement>;
+    return Matchers.getElementByID(
+      QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT,
+    ) as Promise<Detox.IndexableNativeElement>;
   }
 
   get cancelButton(): DetoxElement {
@@ -46,7 +48,7 @@ class QuoteView {
   async enterAmount(amount: string): Promise<void> {
     for (const digit of amount) {
       const button = Matchers.getElementByText(digit);
-      await Gestures.waitAndTap(button, { delayBeforeTap: 500});
+      await Gestures.waitAndTap(button, { delayBeforeTap: 500 });
     }
   }
 
@@ -59,7 +61,9 @@ class QuoteView {
   }
 
   async tapToken(chainId: string, symbol: string): Promise<void> {
-    await Gestures.waitAndTap(this.token(chainId, symbol), { delayBeforeTap: 1000 });
+    await Gestures.waitAndTap(this.token(chainId, symbol), {
+      delayBeforeTap: 1000,
+    });
   }
 
   async tapSourceToken(): Promise<void> {

@@ -42,18 +42,28 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         );
 
         // Enable main notification toggle
-        await NotificationSettingsView.tapNotificationToggleAndVerifyState('on');
+        await NotificationSettingsView.tapNotificationToggleAndVerifyState(
+          'on',
+        );
 
         // Test push notifications toggle functionality
-        if (device.getPlatform() === 'android' || !process.env.CI ) {
+        if (device.getPlatform() === 'android' || !process.env.CI) {
           // Failing on iOS on CI
-          await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState('off');
-          await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState('on');
+          await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState(
+            'off',
+          );
+          await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState(
+            'on',
+          );
         }
 
         // Test feature announcements toggle functionality
-        await NotificationSettingsView.tapFeatureAnnouncementsToggleAndVerifyState('off');
-        await NotificationSettingsView.tapFeatureAnnouncementsToggleAndVerifyState('on');
+        await NotificationSettingsView.tapFeatureAnnouncementsToggleAndVerifyState(
+          'off',
+        );
+        await NotificationSettingsView.tapFeatureAnnouncementsToggleAndVerifyState(
+          'on',
+        );
 
         // Test account notifications toggle functionality
         await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
@@ -66,7 +76,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         );
 
         // Disable main toggle and verify all sub-settings are hidden
-        await NotificationSettingsView.tapNotificationToggleAndVerifyState('off');
+        await NotificationSettingsView.tapNotificationToggleAndVerifyState(
+          'off',
+        );
         await Assertions.expectElementToNotBeVisible(
           NotificationSettingsView.pushNotificationsToggle,
         );
