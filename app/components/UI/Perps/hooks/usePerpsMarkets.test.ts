@@ -580,21 +580,21 @@ describe('usePerpsMarkets', () => {
       expect(result.current.markets).toEqual([]);
     });
 
-    // it('handles empty market data response', async () => {
-    //   // Arrange
-    //   mockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+    it('handles empty market data response', async () => {
+      // Arrange
+      mockProvider.getMarketDataWithPrices.mockResolvedValue([]);
 
-    //   // Act
-    //   const { result } = renderHook(() => usePerpsMarkets());
+      // Act
+      const { result } = renderHook(() => usePerpsMarkets());
 
-    //   await waitFor(() => {
-    //     expect(result.current.isLoading).toBe(false);
-    //   });
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-    //   // Assert
-    //   expect(result.current.markets).toEqual([]);
-    //   expect(result.current.error).toBeNull();
-    // });
+      // Assert
+      expect(result.current.markets).toEqual([]);
+      expect(result.current.error).toBeNull();
+    });
 
     it('handles concurrent refresh calls', async () => {
       // Arrange
