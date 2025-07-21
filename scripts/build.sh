@@ -281,7 +281,7 @@ buildAndroidMainLocal(){
 	prebuild_android
 
 	# Generate both APK (for development) and test APK (for E2E testing)
-	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest --build-cache --parallel && cd ..
+	cd android && ./gradlew app:assembleProdDebug app:assembleProdDebugAndroidTest --build-cache --parallel && cd ..
 }
 
 # Builds the Flask APK for local development
@@ -289,7 +289,7 @@ buildAndroidFlaskLocal(){
 	prebuild_android
 
 	# Generate both APK (for development) and test APK (for E2E testing)
-	cd android && ./gradlew assembleFlaskDebug assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
+	cd android && ./gradlew app:assembleFlaskDebug app:assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
 }
 
 # Builds the QA APK for local development
@@ -297,7 +297,7 @@ buildAndroidQaLocal(){
 	prebuild_android
 
 	# Generate both APK (for development) and test APK (for E2E testing)
-	cd android && ./gradlew assembleQaDebug app:assembleQaDebugAndroidTest --build-cache --parallel && cd ..
+	cd android && ./gradlew app:assembleQaDebug app:assembleQaDebugAndroidTest --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
@@ -527,7 +527,7 @@ buildAndroidMainProduction(){
 	prebuild_android
 
 	# Generate APK for production
-	cd android && ./gradlew assembleProdRelease --build-cache --parallel
+	cd android && ./gradlew app:assembleProdRelease app:assembleProdReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
 
 	# Generate AAB bundle for production
 	./gradlew bundleProdRelease
@@ -544,7 +544,7 @@ buildAndroidFlaskProduction(){
 	prebuild_android
 
 	# Generate APK for production
-	cd android && ./gradlew assembleFlaskRelease --build-cache --parallel
+	cd android && ./gradlew app:assembleFlaskRelease app:assembleFlaskReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
 
 	# Generate AAB bundle for production
 	./gradlew bundleFlaskRelease
@@ -562,7 +562,7 @@ buildAndroidQaProduction(){
 	prebuild_android
 
 	# Generate APK for production
-	cd android && ./gradlew assembleQaRelease --build-cache --parallel
+	cd android && ./gradlew app:assembleQaRelease app:assembleQaReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
 
 	# Generate AAB bundle for production
 	./gradlew bundleQaRelease
