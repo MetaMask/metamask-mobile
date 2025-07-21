@@ -28,6 +28,8 @@ const mockSetAccountLabel = jest.fn();
 const mockControllerMessenger = jest.fn();
 const mockAddDiscoveredAccounts = jest.fn();
 const mockGetAccountByAddress = jest.fn().mockReturnValue(mockExpectedAccount);
+const mockRemoveAccount = jest.fn();
+const mockAddNewSecretData = jest.fn();
 
 const hdKeyring = {
   getAccounts: () => {
@@ -76,6 +78,7 @@ jest.mock('../../core/Engine', () => ({
       getKeyringsByType: () => mockGetKeyringsByType(),
       withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
+      removeAccount: (address: string) => mockRemoveAccount(address),
     },
     AccountsController: {
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
@@ -83,7 +86,8 @@ jest.mock('../../core/Engine', () => ({
     },
     SeedlessOnboardingController: {
       addNewSeedPhraseBackup: jest.fn().mockResolvedValue(undefined),
-      addNewSecretData: jest.fn().mockResolvedValue(undefined),
+      addNewSecretData: (data: unknown, type: unknown, options?: unknown) =>
+        mockAddNewSecretData(data, type, options),
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
@@ -103,53 +107,187 @@ describe('MultiSRP Actions', () => {
   });
 
   describe('importNewSecretRecoveryPhrase', () => {
-    it('imports new SRP', async () => {
+    it('successfully imports a new secret recovery phrase and returns account details', async () => {
+      // Arrange
       mockGetKeyringsByType.mockResolvedValue([]);
-      mockAddNewKeyring.mockResolvedValue({ getAccounts: () => [testAddress] });
+      mockAddNewKeyring.mockResolvedValue({
+        id: 'test-keyring-id',
+        getAccounts: () => [testAddress],
+      });
+      mockAddDiscoveredAccounts.mockResolvedValue(5);
 
-      await importNewSecretRecoveryPhrase(testMnemonic);
+      // Act
+      const result = await importNewSecretRecoveryPhrase(testMnemonic);
 
+      // Assert
       expect(mockAddNewKeyring).toHaveBeenCalledWith(ExtendedKeyringTypes.hd, {
         mnemonic: testMnemonic,
         numberOfAccounts: 1,
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
-      expect(mockAddDiscoveredAccounts).toHaveBeenCalled();
+      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith('test-keyring-id');
+      expect(result).toEqual({
+        address: testAddress,
+        discoveredAccountsCount: 5,
+      });
     });
 
-    it('throws error if SRP already imported', async () => {
+    it('throws error when attempting to import an already imported mnemonic', async () => {
+      // Arrange
+      const existingMnemonicCodePoints = new Uint16Array(
+        testMnemonic.split(' ').map((word) => wordlist.indexOf(word)),
+      );
       mockGetKeyringsByType.mockResolvedValue([
         {
-          mnemonic: new Uint16Array(
-            testMnemonic.split(' ').map((word) => wordlist.indexOf(word)),
-          ).buffer,
+          mnemonic: existingMnemonicCodePoints.buffer,
         },
       ]);
 
-      await expect(
-        async () => await importNewSecretRecoveryPhrase(testMnemonic),
-      ).rejects.toThrow('This mnemonic has already been imported.');
-
+      // Act & Assert
+      await expect(importNewSecretRecoveryPhrase(testMnemonic)).rejects.toThrow(
+        'This mnemonic has already been imported.',
+      );
       expect(mockAddNewKeyring).not.toHaveBeenCalled();
     });
 
-    it('calls addNewSeedPhraseBackup when seedless onboarding login flow is active', async () => {
+    it('does not select account when shouldSelectAccount is false', async () => {
+      // Arrange
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        id: 'test-keyring-id',
+        getAccounts: () => [testAddress],
+      });
+      mockAddDiscoveredAccounts.mockResolvedValue(0);
+
+      // Act
+      const result = await importNewSecretRecoveryPhrase(testMnemonic, {
+        shouldSelectAccount: false,
+        waitForDiscoveredAccounts: true,
+      });
+
+      // Assert
+      expect(mockSetSelectedAddress).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        address: testAddress,
+        discoveredAccountsCount: 0,
+      });
+    });
+
+    it('does not wait for discovered accounts when waitForDiscoveredAccounts is false', async () => {
+      // Arrange
       mockGetKeyringsByType.mockResolvedValue([]);
       mockAddNewKeyring.mockResolvedValue({
         id: 'test-keyring-id',
         getAccounts: () => [testAddress],
       });
 
+      // Act
+      const result = await importNewSecretRecoveryPhrase(testMnemonic, {
+        shouldSelectAccount: true,
+        waitForDiscoveredAccounts: false,
+      });
+
+      // Assert
+      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith('test-keyring-id');
+      expect(result).toEqual({
+        address: testAddress,
+        discoveredAccountsCount: 0,
+      });
+    });
+
+    it('syncs with seedless onboarding when login flow is active', async () => {
+      // Arrange
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        id: 'test-keyring-id',
+        getAccounts: () => [testAddress],
+      });
+      mockAddDiscoveredAccounts.mockResolvedValue(3);
       jest
         .spyOn(ReduxService.store, 'getState')
         .mockReturnValue(createMockState(true) as unknown as RootState);
 
-      await importNewSecretRecoveryPhrase(testMnemonic);
+      // Act
+      const result = await importNewSecretRecoveryPhrase(testMnemonic);
 
-      expect(
-        Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.Mnemonic, {
-        keyringId: 'test-keyring-id',
+      // Assert
+      expect(mockAddNewSecretData).toHaveBeenCalledWith(
+        expect.any(Uint8Array),
+        SecretType.Mnemonic,
+        {
+          keyringId: 'test-keyring-id',
+        },
+      );
+      expect(result).toEqual({
+        address: testAddress,
+        discoveredAccountsCount: 3,
+      });
+    });
+
+    it('reverts keyring import when seedless onboarding sync fails', async () => {
+      // Arrange
+      const syncError = new Error('Sync failed');
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        id: 'test-keyring-id',
+        getAccounts: () => [testAddress],
+      });
+      jest
+        .spyOn(ReduxService.store, 'getState')
+        .mockReturnValue(createMockState(true) as unknown as RootState);
+      mockAddNewSecretData.mockRejectedValue(syncError);
+
+      // Act & Assert
+      await expect(importNewSecretRecoveryPhrase(testMnemonic)).rejects.toThrow(
+        'Sync failed',
+      );
+      expect(mockRemoveAccount).toHaveBeenCalledWith(testAddress);
+    });
+
+    it('does not sync with seedless onboarding when login flow is not active', async () => {
+      // Arrange
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        id: 'test-keyring-id',
+        getAccounts: () => [testAddress],
+      });
+      mockAddDiscoveredAccounts.mockResolvedValue(2);
+      jest
+        .spyOn(ReduxService.store, 'getState')
+        .mockReturnValue(createMockState(false) as unknown as RootState);
+
+      // Act
+      const result = await importNewSecretRecoveryPhrase(testMnemonic);
+
+      // Assert
+      expect(mockAddNewSecretData).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        address: testAddress,
+        discoveredAccountsCount: 2,
+      });
+    });
+
+    it('handles case insensitive mnemonic input', async () => {
+      // Arrange
+      const uppercaseMnemonic = testMnemonic.toUpperCase();
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        id: 'test-keyring-id',
+        getAccounts: () => [testAddress],
+      });
+      mockAddDiscoveredAccounts.mockResolvedValue(1);
+
+      // Act
+      const result = await importNewSecretRecoveryPhrase(uppercaseMnemonic);
+
+      // Assert
+      expect(mockAddNewKeyring).toHaveBeenCalledWith(ExtendedKeyringTypes.hd, {
+        mnemonic: uppercaseMnemonic,
+        numberOfAccounts: 1,
+      });
+      expect(result).toEqual({
+        address: testAddress,
+        discoveredAccountsCount: 1,
       });
     });
   });
