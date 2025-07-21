@@ -45,7 +45,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import Device from '../../../util/device';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -190,7 +189,7 @@ export const Fallback = (props) => {
     : strings('error_screen.error_message');
 
   const navigateToOnboarding = () => {
-    props.onboardingErrorConfig.navigation.reset({
+    props.onboardingErrorConfig?.navigation?.reset({
       routes: [{ name: 'OnboardingRootNav' }],
     });
   };
