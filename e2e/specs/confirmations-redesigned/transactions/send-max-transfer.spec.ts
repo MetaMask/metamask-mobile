@@ -11,7 +11,6 @@ import {
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
 import Assertions from '../../../utils/Assertions';
-import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
@@ -19,7 +18,6 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../../pages/Send/SendView';
 import AmountView from '../../../pages/Send/AmountView';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
