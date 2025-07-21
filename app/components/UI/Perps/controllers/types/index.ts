@@ -201,14 +201,14 @@ export interface LiveDataConfig {
 
 export interface PriceUpdate {
   coin: string; // Asset symbol
-  price: string; // Current price (mid price)
+  price: string; // Current mid price (average of best bid and ask)
   timestamp: number; // Update timestamp
   percentChange24h?: string; // 24h price change percentage
-  // Order book data
-  bestBid?: string; // Best bid price
-  bestAsk?: string; // Best ask price
+  // Order book data (only available when includeOrderBook is true)
+  bestBid?: string; // Best bid price (highest price buyers are willing to pay)
+  bestAsk?: string; // Best ask price (lowest price sellers are willing to accept)
   spread?: string; // Ask - Bid spread
-  markPrice?: string; // Mark price from oracle
+  markPrice?: string; // Mark price from oracle (used for liquidations)
 }
 
 export interface OrderFill {

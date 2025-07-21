@@ -81,14 +81,20 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   const calculatePriceForPercentage = useCallback(
     (percentage: number) => {
-      if (!currentPrice || currentPrice === 0) {
+      // Use the current limit price if set, otherwise use market price
+      const basePrice = limitPrice && parseFloat(limitPrice) > 0 
+        ? parseFloat(limitPrice) 
+        : currentPrice;
+      
+      if (!basePrice || basePrice === 0) {
         return '';
       }
+      
       const multiplier = 1 + percentage / 100;
-      const calculatedPrice = currentPrice * multiplier;
+      const calculatedPrice = basePrice * multiplier;
       return calculatedPrice.toFixed(2);
     },
-    [currentPrice],
+    [currentPrice, limitPrice],
   );
 
   const handleMidPrice = useCallback(() => {
@@ -203,13 +209,13 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             style={styles.percentageButton}
             onPress={() => setLimitPrice(calculatePriceForPercentage(-1))}
           >
-            <Text variant={TextVariant.BodyMD}>↓ 1%</Text>
+            <Text variant={TextVariant.BodyMD}>-1%</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.percentageButton}
             onPress={() => setLimitPrice(calculatePriceForPercentage(-2))}
           >
-            <Text variant={TextVariant.BodyMD}>↓ 2%</Text>
+            <Text variant={TextVariant.BodyMD}>-2%</Text>
           </TouchableOpacity>
         </View>
 

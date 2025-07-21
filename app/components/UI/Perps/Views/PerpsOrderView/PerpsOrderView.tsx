@@ -294,7 +294,12 @@ const PerpsOrderView: React.FC = () => {
   // Memoize the asset array
   const assetSymbols = useMemo(() => [orderForm.asset], [orderForm.asset]);
 
-  // Get real-time price data - include order book for limit orders
+  // Get real-time price data from HyperLiquid
+  // - price: Mid price (average of best bid and ask)
+  // - bestBid: Highest price buyers are willing to pay
+  // - bestAsk: Lowest price sellers are willing to accept
+  // - spread: Difference between ask and bid
+  // - includeOrderBook: When true, fetches bid/ask data for limit orders
   const priceData = usePerpsPrices(assetSymbols, orderType === 'limit');
   const currentPrice = priceData[orderForm.asset];
   const assetData = useMemo(() => {
@@ -302,7 +307,7 @@ const PerpsOrderView: React.FC = () => {
       return { price: 0, change: 0 };
     }
     return {
-      price: parseFloat(currentPrice.price || '0'),
+      price: parseFloat(currentPrice.price || '0'), // Mid price used for display
       change: parseFloat(currentPrice.percentChange24h || '0'),
     };
   }, [currentPrice]);
@@ -463,6 +468,11 @@ const PerpsOrderView: React.FC = () => {
       errors.push(strings('perps.order.validation.only_hyperliquid_usdc'));
     }
 
+    // Check if limit order has a limit price set
+    if (orderType === 'limit' && !orderForm.limitPrice) {
+      errors.push(strings('perps.order.validation.limit_price_required'));
+    }
+
     return {
       errors,
       warnings,
@@ -474,6 +484,7 @@ const PerpsOrderView: React.FC = () => {
     availableBalance,
     marketData,
     selectedPaymentToken,
+    orderType,
   ]);
 
   // Handlers
@@ -688,7 +699,7 @@ const PerpsOrderView: React.FC = () => {
                     <Text variant={TextVariant.BodyLGMedium}>
                       {orderForm.limitPrice
                         ? formatPrice(orderForm.limitPrice)
-                        : formatPrice(assetData.price)}
+                        : 'Set price'}
                     </Text>
                   </ListItemColumn>
                 </ListItem>
