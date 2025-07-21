@@ -1,4 +1,4 @@
-import { ACTIONS, PROTOCOLS } from '../../../constants/deeplinks';
+import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
@@ -28,6 +28,7 @@ enum SUPPORTED_ACTIONS {
   SELL_CRYPTO = ACTIONS.SELL_CRYPTO,
   HOME = ACTIONS.HOME,
   SWAP = ACTIONS.SWAP,
+  SEND = ACTIONS.SEND,
 }
 
 async function handleUniversalLink({
@@ -58,6 +59,8 @@ async function handleUniversalLink({
   const action: SUPPORTED_ACTIONS = validatedUrl.pathname.split(
     '/',
   )[1] as SUPPORTED_ACTIONS;
+
+  const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
 
   const isSupportedDomain =
     urlObj.hostname === MM_UNIVERSAL_LINK_HOST ||
@@ -163,6 +166,16 @@ async function handleUniversalLink({
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
     // Normal links (same as dapp)
     instance._handleBrowserUrl(urlObj.href, browserCallBack);
+  } else if (action === SUPPORTED_ACTIONS.SEND) {
+    const deeplinkUrl = urlObj.href.replace(
+      `${DEEP_LINK_BASE}/${action}/`,
+      PREFIXES[action as keyof typeof PREFIXES],
+    );
+    // loops back to open the link with the right protocol
+    instance.parse(deeplinkUrl, {
+      browserCallBack,
+      origin: 'deeplink',
+    });
   }
 }
 
