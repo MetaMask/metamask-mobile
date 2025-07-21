@@ -230,7 +230,7 @@ export const handleUnifiedSwapsTxHistoryItemClick = (
   if (bridgeTxHistoryItem && tx.type === TransactionType.bridge) {
     const { attempts } = bridgeTxHistoryItem;
     if (attempts && attempts.counter >= MAX_ATTEMPTS) {
-      Engine.context.BridgeStatusController.resetAttempts({
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts({
         txMetaId: bridgeTxHistoryItem.txMetaId,
       });
     }
