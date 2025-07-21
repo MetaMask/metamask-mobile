@@ -3,7 +3,10 @@ import {
   formatChainIdToHex,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
-import { BridgeHistoryItem, MAX_ATTEMPTS } from '@metamask/bridge-status-controller';
+import {
+  BridgeHistoryItem,
+  MAX_ATTEMPTS,
+} from '@metamask/bridge-status-controller';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../constants/bridge';
 import { strings } from '../../../../../locales/i18n';
 import {
