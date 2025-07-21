@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable no-restricted-syntax */
 import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities';
@@ -10,7 +9,7 @@ import {
   GestureOptions,
   TypeTextOptions,
 } from './types';
-
+import { logger } from './logger';
 /**
  * Gestures class with element stability and auto-retry
  */
@@ -62,7 +61,7 @@ export default class Gestures {
     const successMessage = elemDescription
       ? `✅ Successfully tapped element: ${elemDescription}`
       : `✅ Successfully tapped element`;
-    console.log(successMessage);
+    logger.debug(successMessage);
   };
 
   /**
@@ -122,7 +121,7 @@ export default class Gestures {
         checkVisibility,
         checkEnabled,
         elemDescription,
-        delay
+        delay,
       });
 
     return Utilities.executeWithRetry(fn, {
@@ -314,7 +313,7 @@ export default class Gestures {
         const textToType = hideKeyboard ? text + '\n' : text;
         await el.typeText(textToType);
 
-        console.log(
+        logger.debug(
           `✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${
             elemDescription || 'unknown'
           }`,
@@ -437,7 +436,7 @@ export default class Gestures {
             await waitFor(target).toBeVisible().withTimeout(100);
             return;
           } catch {
-            await scrollableElement.scroll(scrollAmount / 3, direction); // Scroll a third of the amount to avoid overshooting
+            await scrollableElement.scroll(scrollAmount / 2, direction); // Decrease scroll amount for Android to avoid overshooting
             await waitFor(target).toBeVisible().withTimeout(100);
           }
         } else {

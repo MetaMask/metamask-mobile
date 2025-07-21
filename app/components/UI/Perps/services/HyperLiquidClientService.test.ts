@@ -6,11 +6,17 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { HyperLiquidClientService } from './HyperLiquidClientService';
+import {
+  HyperLiquidClientService,
+  type ValidCandleInterval,
+} from './HyperLiquidClientService';
 
 // Mock HyperLiquid SDK
 const mockExchangeClient = { initialized: true };
-const mockInfoClient = { initialized: true };
+const mockInfoClient = {
+  initialized: true,
+  candleSnapshot: jest.fn(),
+};
 const mockSubscriptionClient = {
   initialized: true,
   [Symbol.asyncDispose]: jest.fn().mockResolvedValue(undefined),
@@ -373,6 +379,189 @@ describe('HyperLiquidClientService', () => {
           timestamp: expect.any(String),
         }),
       );
+    });
+  });
+
+  describe('fetchHistoricalCandles', () => {
+    beforeEach(() => {
+      service.initialize(mockWallet);
+    });
+
+    it('should fetch historical candles successfully', async () => {
+      // Arrange
+      const mockResponse = [
+        { t: 1700000000000, o: 50000, h: 51000, l: 49000, c: 50500, v: 100 },
+        { t: 1700003600000, o: 50500, h: 51500, l: 50000, c: 51000, v: 150 },
+      ];
+
+      mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.fetchHistoricalCandles(
+        'BTC',
+        '1h' as ValidCandleInterval,
+        100,
+      );
+
+      // Assert
+      expect(result).toEqual({
+        coin: 'BTC',
+        interval: '1h',
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+          {
+            time: 1700003600000,
+            open: '50500',
+            high: '51500',
+            low: '50000',
+            close: '51000',
+            volume: '150',
+          },
+        ],
+      });
+      expect(mockInfoClient.candleSnapshot).toHaveBeenCalledWith({
+        coin: 'BTC',
+        interval: '1h',
+        startTime: expect.any(Number),
+        endTime: expect.any(Number),
+      });
+    });
+
+    it('should handle empty candles response', async () => {
+      // Arrange
+      const mockResponse: any[] = [];
+
+      mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.fetchHistoricalCandles(
+        'BTC',
+        '1h' as ValidCandleInterval,
+        100,
+      );
+
+      // Assert
+      expect(result).toEqual({
+        coin: 'BTC',
+        interval: '1h',
+        candles: [],
+      });
+    });
+
+    it('should handle API errors gracefully', async () => {
+      // Arrange
+      const errorMessage = 'API request failed';
+      mockInfoClient.candleSnapshot = jest
+        .fn()
+        .mockRejectedValue(new Error(errorMessage));
+
+      // Act & Assert
+      await expect(
+        service.fetchHistoricalCandles('BTC', '1h' as ValidCandleInterval, 100),
+      ).rejects.toThrow(errorMessage);
+    });
+
+    it('should calculate correct time range for different intervals', async () => {
+      // Arrange
+      const mockResponse = {
+        coin: 'ETH',
+        interval: '5m',
+        candles: [],
+      };
+
+      mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue(mockResponse);
+
+      // Act
+      await service.fetchHistoricalCandles(
+        'ETH',
+        '5m' as ValidCandleInterval,
+        50,
+      );
+
+      // Assert
+      expect(mockInfoClient.candleSnapshot).toHaveBeenCalledWith({
+        coin: 'ETH',
+        interval: '5m',
+        startTime: expect.any(Number),
+        endTime: expect.any(Number),
+      });
+
+      // Verify time range calculation
+      const callArgs = mockInfoClient.candleSnapshot.mock.calls[0][0];
+      const timeDiff = callArgs.endTime - callArgs.startTime;
+      const expectedTimeDiff = 50 * 5 * 60 * 1000; // 50 intervals * 5 minutes * 60 seconds * 1000ms
+      expect(timeDiff).toBe(expectedTimeDiff);
+    });
+
+    it('should handle different interval formats', async () => {
+      // Arrange
+      const testCases = [
+        { interval: '1m', expected: 60000 },
+        { interval: '1h', expected: 3600000 },
+        { interval: '1d', expected: 86400000 },
+      ];
+
+      for (const { interval, expected } of testCases) {
+        const mockResponse: any[] = [];
+
+        mockInfoClient.candleSnapshot = jest
+          .fn()
+          .mockResolvedValue(mockResponse);
+
+        // Act
+        await service.fetchHistoricalCandles(
+          'BTC',
+          interval as ValidCandleInterval,
+          10,
+        );
+
+        // Assert
+        const callArgs = mockInfoClient.candleSnapshot.mock.calls[0][0];
+        const timeDiff = callArgs.endTime - callArgs.startTime;
+        expect(timeDiff).toBe(10 * expected);
+      }
+    });
+
+    it('should use testnet endpoint when in testnet mode', async () => {
+      // Arrange
+      const testnetService = new HyperLiquidClientService({ isTestnet: true });
+      testnetService.initialize(mockWallet);
+
+      const mockResponse: any[] = [];
+
+      mockInfoClient.candleSnapshot = jest.fn().mockResolvedValue(mockResponse);
+
+      // Act
+      await testnetService.fetchHistoricalCandles(
+        'BTC',
+        '1h' as ValidCandleInterval,
+        100,
+      );
+
+      // Assert
+      expect(mockInfoClient.candleSnapshot).toHaveBeenCalled();
+      // The testnet configuration is handled in the service initialization
+    });
+
+    it('should throw error when service not initialized', async () => {
+      // Arrange
+      const uninitializedService = new HyperLiquidClientService();
+
+      // Act & Assert
+      await expect(
+        uninitializedService.fetchHistoricalCandles(
+          'BTC',
+          '1h' as ValidCandleInterval,
+          100,
+        ),
+      ).rejects.toThrow('HyperLiquid SDK clients not properly initialized');
     });
   });
 });

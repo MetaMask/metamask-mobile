@@ -21,6 +21,7 @@ import {
   passwordSet,
   passwordUnset,
   seedphraseNotBackedUp,
+  setExistingUser,
 } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
@@ -36,7 +37,6 @@ import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
-  EXISTING_USER,
   TRUE,
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
@@ -75,6 +75,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -213,6 +215,10 @@ class ChoosePassword extends PureComponent {
      */
     seedphraseNotBackedUp: PropTypes.func,
     /**
+     * Action to set existing user flag
+     */
+    setExistingUser: PropTypes.func,
+    /**
      * Action to save onboarding event
      */
     saveOnboardingEvent: PropTypes.func,
@@ -347,6 +353,14 @@ class ChoosePassword extends PureComponent {
     this.setState(() => ({ isSelected: !isSelected }));
   };
 
+  tryExportSeedPhrase = async (password) => {
+    const { KeyringController } = Engine.context;
+    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(
+      password,
+    );
+    return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
+  };
+
   onPressCreate = async () => {
     const { loading, isSelected, password, confirmPassword } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
@@ -435,7 +449,10 @@ class ChoosePassword extends PureComponent {
           });
         }
       } else {
-        this.props.navigation.replace('AccountBackupStep1');
+        const seedPhrase = await this.tryExportSeedPhrase(password);
+        this.props.navigation.replace('AccountBackupStep1', {
+          seedPhrase,
+        });
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
@@ -453,7 +470,7 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      this.props.setExistingUser(true);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);
@@ -745,6 +762,7 @@ class ChoosePassword extends PureComponent {
                     placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
+                    submitBehavior="submit"
                     autoComplete="new-password"
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -805,6 +823,7 @@ class ChoosePassword extends PureComponent {
                     {strings('choose_password.confirm_password')}
                   </Label>
                   <TextField
+                    ref={this.confirmPasswordInput}
                     placeholder={strings('import_from_seed.re_enter_password')}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
@@ -909,6 +928,7 @@ const mapDispatchToProps = (dispatch) => ({
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
+  setExistingUser: (value) => dispatch(setExistingUser(value)),
 });
 
 const mapStateToProps = (state) => ({});

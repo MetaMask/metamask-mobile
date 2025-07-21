@@ -1,9 +1,9 @@
-import React, {useEffect} from 'react';
-import {View, Alert} from 'react-native';
-import {fireEvent, waitFor} from '@testing-library/react-native';
+import React, { useEffect } from 'react';
+import { View, Alert } from 'react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import ErrorBoundary, {Fallback} from './';
-import {MetricsEventBuilder} from '../../../core/Analytics/MetricsEventBuilder';
+import ErrorBoundary, { Fallback } from './';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { captureSentryFeedback } from '../../../util/sentry/utils';
 
 const mockTrackEvent = jest.fn();
@@ -76,10 +76,9 @@ describe('ErrorBoundary', () => {
   });
 
   it('renders all buttons when dataCollectionForMarketing is true', () => {
-    const {getByText} = renderWithProvider(
-      <Fallback {...mockProps} />,
-      {state: initialState},
-    );
+    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
+      state: initialState,
+    });
 
     expect(getByText('Describe what happened')).toBeTruthy();
     expect(getByText('Contact support')).toBeTruthy();
@@ -93,9 +92,9 @@ describe('ErrorBoundary', () => {
       },
     };
 
-    const {queryByText, getByText} = renderWithProvider(
+    const { queryByText, getByText } = renderWithProvider(
       <Fallback {...mockProps} />,
-      {state: stateWithoutDataCollection},
+      { state: stateWithoutDataCollection },
     );
 
     expect(queryByText('Describe what happened')).toBeNull();
@@ -104,25 +103,29 @@ describe('ErrorBoundary', () => {
   });
 
   it('opens modal when describe button is pressed', async () => {
-    const {getByText, getByPlaceholderText} = renderWithProvider(
+    const { getByText, getByPlaceholderText } = renderWithProvider(
       <Fallback {...mockProps} />,
-      {state: initialState},
+      { state: initialState },
     );
 
     const describeButton = getByText('Describe what happened');
     fireEvent.press(describeButton);
 
     await waitFor(() => {
-      expect(getByPlaceholderText('Sharing details like how we can reproduce the bug will help us fix the problem.')).toBeTruthy();
+      expect(
+        getByPlaceholderText(
+          'Sharing details like how we can reproduce the bug will help us fix the problem.',
+        ),
+      ).toBeTruthy();
       expect(getByText('Cancel')).toBeTruthy();
       expect(getByText('Submit')).toBeTruthy();
     });
   });
 
   it('closes modal when cancel button is pressed', async () => {
-    const {getByText, queryByText} = renderWithProvider(
+    const { getByText, queryByText } = renderWithProvider(
       <Fallback {...mockProps} />,
-      {state: initialState},
+      { state: initialState },
     );
 
     // Open modal
@@ -144,9 +147,9 @@ describe('ErrorBoundary', () => {
   });
 
   it('enables submit button when feedback is entered', async () => {
-    const {getByText, getByPlaceholderText} = renderWithProvider(
+    const { getByText, getByPlaceholderText } = renderWithProvider(
       <Fallback {...mockProps} />,
-      {state: initialState},
+      { state: initialState },
     );
 
     // Open modal
@@ -154,28 +157,29 @@ describe('ErrorBoundary', () => {
     fireEvent.press(describeButton);
 
     await waitFor(() => {
-      const textInput = getByPlaceholderText('Sharing details like how we can reproduce the bug will help us fix the problem.');
+      const textInput = getByPlaceholderText(
+        'Sharing details like how we can reproduce the bug will help us fix the problem.',
+      );
       const submitButton = getByText('Submit').parent?.parent;
       if (!submitButton) {
         throw new Error('Could not find submit button');
       }
 
       // Initially submit should be disabled (opacity 0.5)
-      expect(submitButton.props.style).toContainEqual({opacity: 0.5});
+      expect(submitButton.props.style).toContainEqual({ opacity: 0.5 });
 
       // Add feedback text
       fireEvent.changeText(textInput, 'Test feedback');
 
       // Submit should now be enabled (opacity 1)
-      expect(submitButton.props.style).toContainEqual({opacity: 1});
+      expect(submitButton.props.style).toContainEqual({ opacity: 1 });
     });
   });
 
   it('calls copyErrorToClipboard when copy button is pressed', () => {
-    const {getByText} = renderWithProvider(
-      <Fallback {...mockProps} />,
-      {state: initialState},
-    );
+    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
+      state: initialState,
+    });
 
     const copyButton = getByText('Copy');
     fireEvent.press(copyButton);
@@ -184,10 +188,9 @@ describe('ErrorBoundary', () => {
   });
 
   it('calls showExportSeedphrase when save seedphrase link is pressed', () => {
-    const {getAllByText} = renderWithProvider(
-      <Fallback {...mockProps} />,
-      {state: initialState},
-    );
+    const { getAllByText } = renderWithProvider(<Fallback {...mockProps} />, {
+      state: initialState,
+    });
 
     const seedphraseLink = getAllByText('save your Secret Recovery Phrase')[0];
     fireEvent.press(seedphraseLink);
@@ -198,16 +201,18 @@ describe('ErrorBoundary', () => {
   it('submits feedback and shows success alert when submit is pressed', async () => {
     const spyAlert = jest.spyOn(Alert, 'alert');
 
-    const {getByText, getByPlaceholderText} = renderWithProvider(
+    const { getByText, getByPlaceholderText } = renderWithProvider(
       <Fallback {...mockProps} />,
-      {state: initialState},
+      { state: initialState },
     );
 
     const describeButton = getByText('Describe what happened');
     fireEvent.press(describeButton);
 
     await waitFor(() => {
-      const textInput = getByPlaceholderText('Sharing details like how we can reproduce the bug will help us fix the problem.');
+      const textInput = getByPlaceholderText(
+        'Sharing details like how we can reproduce the bug will help us fix the problem.',
+      );
       const submitButton = getByText('Submit');
       fireEvent.changeText(textInput, 'Test feedback');
 
@@ -223,10 +228,9 @@ describe('ErrorBoundary', () => {
   });
 
   it('renders error message correctly', () => {
-    const {getByText} = renderWithProvider(
-      <Fallback {...mockProps} />,
-      {state: initialState},
-    );
+    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
+      state: initialState,
+    });
 
     expect(getByText('Test error message')).toBeTruthy();
   });
