@@ -5,7 +5,6 @@ import {
   TRUE,
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
-  NON_EVM_DISCOVERY_PENDING,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -34,10 +33,7 @@ import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
-import {
-  MultichainWalletSnapFactory,
-  WalletClientType,
-} from '../SnapKeyring/MultichainWalletSnapClient';
+import { NonEvmDiscoveryService } from '../SnapKeyring/NonEvmDiscoveryService';
 ///: END:ONLY_INCLUDE_IF
 
 import { selectExistingUser } from '../../reducers/user/selectors';
@@ -116,8 +112,6 @@ class AuthenticationService {
         'Non-EVM account discovery failed during wallet creation:',
         error,
       );
-      // Store flag to retry on next unlock
-      StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, TRUE);
     });
     ///: END:ONLY_INCLUDE_IF
 
@@ -125,61 +119,33 @@ class AuthenticationService {
     parsedSeed = this.wipeSensitiveData();
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   private attemptNonEvmAccountDiscovery = async (): Promise<void> => {
-    const performNonEvmAccountDiscovery = async (): Promise<void> => {
-      const primaryHdKeyringId =
-        Engine.context.KeyringController.state.keyrings[0].metadata.id;
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyrings[0].metadata.id;
 
-      const nonEvmClientTypes = Object.values(WalletClientType);
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    await NonEvmDiscoveryService.discoverBitcoinAccounts(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF
 
-      const discoveryPromises = nonEvmClientTypes.map(async (clientType) => {
-        const client = MultichainWalletSnapFactory.createClient(clientType, {
-          setSelectedAccount: false,
-        });
-        return await client.addDiscoveredAccounts(primaryHdKeyringId);
-      });
-
-      const results = await Promise.allSettled(discoveryPromises);
-
-      results.forEach((result, index) => {
-        if (result.status === 'rejected') {
-          console.warn(
-            `${nonEvmClientTypes[index]} discovery failed:`,
-            result.reason,
-          );
-        }
-      });
-
-      await StorageWrapper.removeItem(NON_EVM_DISCOVERY_PENDING);
-    };
-
-    try {
-      await retryWithExponentialDelay(
-        performNonEvmAccountDiscovery,
-        3, // maxRetries
-        1000, // baseDelay
-        10000, // maxDelay
-      );
-    } catch (error) {
-      console.error(
-        'Non-EVM account discovery failed after all retries:',
-        error,
-      );
-    }
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    await NonEvmDiscoveryService.discoverSolanaAccounts(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF
   };
 
   private retryNonEvmDiscoveryIfPending = async (): Promise<void> => {
-    try {
-      const isPending = await StorageWrapper.getItem(NON_EVM_DISCOVERY_PENDING);
-      if (isPending === 'true') {
-        await this.attemptNonEvmAccountDiscovery();
-      }
-    } catch (error) {
-      console.warn('Failed to check/retry non-EVM discovery:', error);
-    }
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyrings[0].metadata.id;
+
+    // Retry Bitcoin discovery if pending
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    await NonEvmDiscoveryService.retryBitcoinIfPending(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF
+
+    // Retry Solana discovery if pending
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    await NonEvmDiscoveryService.retrySolanaIfPending(primaryHdKeyringId);
+    ///: END:ONLY_INCLUDE_IF
   };
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * This method creates a new wallet with all new data
@@ -200,7 +166,6 @@ class AuthenticationService {
         'Non-EVM account discovery failed during wallet creation:',
         error,
       );
-      StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
     });
     ///: END:ONLY_INCLUDE_IF
     password = this.wipeSensitiveData();

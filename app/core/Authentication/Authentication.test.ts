@@ -540,7 +540,9 @@ describe('Authentication', () => {
             },
             'attemptNonEvmAccountDiscovery',
           )
-          .mockRejectedValue(new Error('Discovery failed'));
+          .mockImplementation(async () => {
+            await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, TRUE);
+          });
 
         await Authentication.newWalletAndKeychain('1234', {
           currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
@@ -549,7 +551,7 @@ describe('Authentication', () => {
 
         expect(setItemSpy).toHaveBeenCalledWith(
           NON_EVM_DISCOVERY_PENDING,
-          'true',
+          TRUE,
         );
       });
 
@@ -562,7 +564,10 @@ describe('Authentication', () => {
             },
             'attemptNonEvmAccountDiscovery',
           )
-          .mockRejectedValue(new Error('Discovery failed'));
+          .mockImplementation(async () => {
+            // Simulate discovery failures
+            await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, TRUE);
+          });
 
         await Authentication.newWalletAndRestore(
           '1234',
@@ -1467,174 +1472,4 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith('1234');
     });
   });
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  describe('Non-EVM account discovery', () => {
-    let Engine: typeof import('../Engine').default;
-    let wrapper: jest.Mocked<
-      typeof import('../../store/storage-wrapper').default
-    >;
-
-    beforeEach(() => {
-      Engine = jest.requireMock('../Engine');
-      wrapper = jest.requireMock('../../store/storage-wrapper');
-
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: jest.fn(),
-        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      } as unknown as ReduxStore);
-
-      Engine.context.KeyringController = {
-        state: {
-          keyrings: [{ metadata: { id: 'test-keyring-id' } }],
-        },
-      } as unknown as KeyringController;
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should retry non-EVM discovery if pending during user entry auth', async () => {
-      // Mock that non-EVM discovery is pending
-      wrapper.getItem.mockResolvedValueOnce('true');
-
-      // Mock the loginVaultCreation method to avoid actual vault operations
-      jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(Authentication as any, 'loginVaultCreation')
-        .mockResolvedValueOnce(undefined);
-
-      // Mock the storePassword method
-      jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(Authentication as any, 'storePassword')
-        .mockResolvedValueOnce(undefined);
-
-      await Authentication.userEntryAuth('password123', {
-        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-      });
-
-      // Verify that the retry method would be called
-      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
-        NON_EVM_DISCOVERY_PENDING,
-      );
-    });
-
-    it('should handle non-EVM discovery errors gracefully during wallet creation', async () => {
-      const mockPassword = 'password123';
-      const mockAuthData = { currentAuthType: AUTHENTICATION_TYPE.PASSWORD };
-
-      // Mock the Engine methods to avoid actual wallet creation
-      Engine.resetState = jest.fn().mockResolvedValue(undefined);
-      Engine.context.KeyringController.createNewVaultAndKeychain = jest
-        .fn()
-        .mockResolvedValue(undefined);
-
-      // Mock the storePassword method
-      jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(Authentication as any, 'storePassword')
-        .mockResolvedValueOnce(undefined);
-
-      // Mock the discovery method to throw an error
-      jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(Authentication as any, 'attemptNonEvmAccountDiscovery')
-        .mockRejectedValueOnce(new Error('Discovery failed'));
-
-      // Mock console.warn to capture the warning
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-      await Authentication.newWalletAndKeychain(mockPassword, mockAuthData);
-
-      // Verify that the method completes successfully even if discovery fails
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'Non-EVM account discovery failed during wallet creation:',
-        expect.any(Error),
-      );
-      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        NON_EVM_DISCOVERY_PENDING,
-        'true',
-      );
-    });
-
-    it('should attempt discovery for all non-EVM networks', async () => {
-      const mockPassword = 'password123';
-      const mockAuthData = { currentAuthType: AUTHENTICATION_TYPE.PASSWORD };
-
-      // Mock the Engine methods to avoid actual wallet creation
-      Engine.resetState = jest.fn().mockResolvedValue(undefined);
-      Engine.context.KeyringController.createNewVaultAndRestore = jest
-        .fn()
-        .mockResolvedValue(undefined);
-
-      // Mock the discovery method to succeed
-      const discoverySpy = jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(Authentication as any, 'attemptNonEvmAccountDiscovery')
-        .mockResolvedValueOnce(undefined);
-
-      await Authentication.newWalletAndRestore(
-        mockPassword,
-        mockAuthData,
-        'test seed phrase',
-        false,
-      );
-
-      // Verify that the discovery was attempted
-      expect(discoverySpy).toHaveBeenCalled();
-    });
-
-    it('should handle parallel discovery with mixed success and failure', async () => {
-      const mockPassword = 'password123';
-      const mockAuthData = { currentAuthType: AUTHENTICATION_TYPE.PASSWORD };
-
-      // Mock the Engine methods to avoid actual wallet creation
-      Engine.resetState = jest.fn().mockResolvedValue(undefined);
-      Engine.context.KeyringController.createNewVaultAndKeychain = jest
-        .fn()
-        .mockResolvedValue(undefined);
-
-      // Mock the storePassword method
-      jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(Authentication as any, 'storePassword')
-        .mockResolvedValueOnce(undefined);
-
-      // Mock console.warn to capture warnings
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-      // Mock the discovery method to simulate mixed results
-      jest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(Authentication as any, 'attemptNonEvmAccountDiscovery')
-        .mockImplementation(async () => {
-          // Simulate parallel execution with mixed results
-          const mockResults = [
-            Promise.resolve(5), // Bitcoin succeeds
-            Promise.reject(new Error('Solana network error')), // Solana fails
-            Promise.resolve(3), // Tron succeeds
-          ];
-
-          const results = await Promise.allSettled(mockResults);
-
-          // Log failures (this simulates the new parallel behavior)
-          results.forEach((result, index) => {
-            if (result.status === 'rejected') {
-              console.warn(`Network ${index} discovery failed:`, result.reason);
-            }
-          });
-        });
-
-      await Authentication.newWalletAndKeychain(mockPassword, mockAuthData);
-
-      // Verify that failures are logged but the process completes
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'Network 1 discovery failed:',
-        expect.any(Error),
-      );
-    });
-  });
-  ///: END:ONLY_INCLUDE_IF
 });

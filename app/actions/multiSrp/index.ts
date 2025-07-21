@@ -4,12 +4,8 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { NON_EVM_DISCOVERY_PENDING } from '../../constants/storage';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import {
-  MultichainWalletSnapFactory,
-  WalletClientType,
-} from '../../core/SnapKeyring/MultichainWalletSnapClient';
+import { NonEvmDiscoveryService } from '../../core/SnapKeyring/NonEvmDiscoveryService';
 ///: END:ONLY_INCLUDE_IF
 import StorageWrapper from '../../store/storage-wrapper';
 import {
@@ -92,39 +88,22 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
 
   let discoveredAccountsCount = 0;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   try {
-    const nonEvmClientTypes = Object.values(WalletClientType);
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    const bitcoinAccounts =
+      await NonEvmDiscoveryService.discoverBitcoinAccounts(newKeyring.id);
+    discoveredAccountsCount += bitcoinAccounts;
+    ///: END:ONLY_INCLUDE_IF
 
-    const discoveryPromises = nonEvmClientTypes.map(async (clientType) => {
-      const client = MultichainWalletSnapFactory.createClient(clientType);
-      return await client.addDiscoveredAccounts(newKeyring.id);
-    });
-
-    const results = await Promise.allSettled(discoveryPromises);
-
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        discoveredAccountsCount += result.value;
-      } else {
-        console.warn(
-          `${nonEvmClientTypes[index]} discovery failed during SRP import:`,
-          result.reason,
-        );
-      }
-    });
-
-    const hasFailures = results.some((result) => result.status === 'rejected');
-    if (hasFailures) {
-      await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
-    } else {
-      await StorageWrapper.removeItem(NON_EVM_DISCOVERY_PENDING);
-    }
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    const solanaAccounts = await NonEvmDiscoveryService.discoverSolanaAccounts(
+      newKeyring.id,
+    );
+    discoveredAccountsCount += solanaAccounts;
+    ///: END:ONLY_INCLUDE_IF
   } catch (error) {
-    console.error('Non-EVM account discovery failed after all retries:', error);
-    await StorageWrapper.setItem(NON_EVM_DISCOVERY_PENDING, 'true');
+    console.error('Non-EVM account discovery failed during SRP import:', error);
   }
-  ///: END:ONLY_INCLUDE_IF
 
   Engine.setSelectedAddress(newAccountAddress);
 
