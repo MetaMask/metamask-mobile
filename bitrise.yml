@@ -2009,7 +2009,7 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_devbuild:
+  build_android_main_local:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $VERSION_NAME
@@ -2022,7 +2022,11 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_flask_devbuild:
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_android_devbuild:
+    after_run:
+      - build_android_main_local
+  build_android_flask_local:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $FLASK_VERSION_NAME
@@ -2035,7 +2039,11 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_qa_devbuild:
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_android_flask_devbuild:
+    after_run:
+      - build_android_flask_local
+  build_android_qa_local:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $VERSION_NAME
@@ -2048,6 +2056,10 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_android_qa_devbuild:
+    after_run:
+      - build_android_qa_local
   build_android_qa_prod:
     envs:
       - NAME: $VERSION_NAME
@@ -2499,19 +2511,7 @@ workflows:
       - YARN_COMMAND: 'build:ios:flask:prod'
     after_run:
       - _ios_build_template
-  build_ios_simbuild:
-    envs:
-      - IS_SIM_BUILD: 'true'
-      - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'debug'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - APP_NAME: 'MetaMask'
-      - INFO_PLIST_NAME: 'Info.plist'
-    after_run:
-      - _ios_build_template
-  build_ios_devbuild:
+  build_ios_main_local:
     envs:
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -2520,7 +2520,17 @@ workflows:
       - YARN_COMMAND: 'build:ios:main:local'
     after_run:
       - _ios_build_template
-  build_ios_flask_devbuild:
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_ios_simbuild:
+    envs:
+      - IS_SIM_BUILD: 'true'
+    after_run:
+      - build_ios_main_local
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_ios_devbuild:
+    after_run:
+      - build_ios_main_local
+  build_ios_flask_local:
     envs:
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
@@ -2529,29 +2539,17 @@ workflows:
       - YARN_COMMAND: 'build:ios:flask:local'
     after_run:
       - _ios_build_template
-  build_ios_qa_devbuild:
-    envs:
-      - IS_DEV_BUILD: 'true'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - APP_NAME: "MetaMask-QA"
-      - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
-      - YARN_COMMAND: 'build:ios:qa:local'
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_ios_flask_devbuild:
     after_run:
-      - _ios_build_template
+      - build_ios_flask_local
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
-      - APP_NAME: "MetaMask-Flask"
-      - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - YARN_COMMAND: 'build:ios:flask:local'
     after_run:
-      - _ios_build_template
-  build_ios_qa_simbuild:
+      - build_ios_flask_local
+  build_ios_qa_local:
     envs:
-      - IS_SIM_BUILD: 'true'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
@@ -2559,6 +2557,15 @@ workflows:
       - YARN_COMMAND: 'build:ios:qa:local'
     after_run:
       - _ios_build_template
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_ios_qa_devbuild:
+    after_run:
+      - build_ios_qa_local
+  build_ios_qa_simbuild:
+    envs:
+      - IS_SIM_BUILD: 'true'
+    after_run:
+      - build_ios_qa_local
   build_ios_qa_prod:
     envs:
       - NAME: $VERSION_NAME
