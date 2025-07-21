@@ -28,7 +28,7 @@ import MultichainTransactionsFooter from './MultichainTransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
-import BridgeHistoryListItem from 'app/components/UI/BridgeHistoryListItem';
+import MultichainBridgeTransactionListItem from 'app/components/UI/MultichainBridgeTransactionListItem';
 import { NonEvmNetworkConfiguration } from '@metamask/multichain-network-controller';
 
 interface MultichainTransactionsViewProps {
@@ -157,9 +157,10 @@ const MultichainTransactionsView = ({
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
+    console.log(networkConfig, 'networkConfig');
     if (bridgeHistoryItem) {
       return (
-        <BridgeHistoryListItem
+        <MultichainBridgeTransactionListItem
           transaction={item}
           bridgeHistoryItem={bridgeHistoryItem}
           selectedAddress={address ?? ''}
@@ -184,32 +185,34 @@ const MultichainTransactionsView = ({
   return (
     <PriceChartProvider>
       <View style={style.wrapper}>
-        <PriceChartContext.Consumer>
-          {({ isChartBeingTouched }) => (
-            <FlashList
-              data={txList}
-              renderItem={renderTransactionItem}
-              keyExtractor={(item) => item.id}
-              ListHeaderComponent={header}
-              ListEmptyComponent={renderEmptyList}
-              ListFooterComponent={footer}
-              style={baseStyles.flexGrow}
-              estimatedItemSize={200}
-              refreshControl={
-                enableRefresh ? (
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                    colors={[colors.primary.default]}
-                    tintColor={colors.icon.default}
-                  />
-                ) : undefined
-              }
-              onScroll={onScroll}
-              scrollEnabled={!isChartBeingTouched}
-            />
-          )}
-        </PriceChartContext.Consumer>
+        {networkConfig && (
+          <PriceChartContext.Consumer>
+            {({ isChartBeingTouched }) => (
+              <FlashList
+                data={txList}
+                renderItem={renderTransactionItem}
+                keyExtractor={(item) => item.id}
+                ListHeaderComponent={header}
+                ListEmptyComponent={renderEmptyList}
+                ListFooterComponent={footer}
+                style={baseStyles.flexGrow}
+                estimatedItemSize={200}
+                refreshControl={
+                  enableRefresh ? (
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={onRefresh}
+                      colors={[colors.primary.default]}
+                      tintColor={colors.icon.default}
+                    />
+                  ) : undefined
+                }
+                onScroll={onScroll}
+                scrollEnabled={!isChartBeingTouched}
+              />
+            )}
+          </PriceChartContext.Consumer>
+        )}
       </View>
     </PriceChartProvider>
   );
