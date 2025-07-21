@@ -340,7 +340,7 @@ describe('PerpsDepositSuccessView', () => {
       expect(viewBalanceButton).toBeTruthy();
     });
 
-    it('should navigate to trading view when view balance is pressed', () => {
+    it('should navigate to main wallet view when view balance is pressed', () => {
       const store = mockStore(mockInitialState);
       const { getByTestId } = render(
         <Provider store={store}>
@@ -351,7 +351,12 @@ describe('PerpsDepositSuccessView', () => {
       const viewBalanceButton = getByTestId('view-balance-button');
       viewBalanceButton.props.onPress();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TRADING_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
     });
 
     it('should display view transaction button when txHash is provided', () => {
