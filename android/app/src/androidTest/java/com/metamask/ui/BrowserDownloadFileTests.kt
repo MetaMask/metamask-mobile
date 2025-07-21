@@ -7,9 +7,7 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers
 import androidx.test.espresso.matcher.ViewMatchers.isClickable
 import androidx.test.espresso.matcher.ViewMatchers.isEnabled
-import androidx.test.espresso.matcher.ViewMatchers.isJavascriptEnabled
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import androidx.test.espresso.web.sugar.Web.onWebView
 import androidx.test.espresso.web.webdriver.DriverAtoms.findElement
 import androidx.test.espresso.web.webdriver.DriverAtoms.webClick
 import androidx.test.espresso.web.webdriver.Locator
@@ -18,8 +16,6 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiSelector
 import androidx.test.uiautomator.Until
 import com.metamask.ui.base.BaseBrowserUiTest
-import com.metamask.ui.base.CustomMatchers
-import org.hamcrest.Matchers.allOf
 import org.hamcrest.Matchers.not
 import org.junit.After
 import org.junit.Assert
@@ -47,17 +43,9 @@ class BrowserDownloadFileTests : BaseBrowserUiTest() {
 
   @Test
   fun downloadFile() {
-    device.findObject(UiSelector().resourceId("url-input")).click()
-    device.findObject(UiSelector().resourceId("browser-modal-url-input"))
-      .setText("https://tyschenko.github.io/download_file.html")
-    device.pressEnter()
+    openUrl("https://tyschenko.github.io/download_file.html")
 
-    onWebView(
-      allOf(
-        isJavascriptEnabled(),
-        CustomMatchers.withMinimumWidth(1), // There are multiple webviews in the layout, we choose one that has width and height not equal to 0
-      )
-    )
+    onMetaMaskWebView()
       .withElement(findElement(Locator.ID, "download_button"))
       .perform(webClick())
 
@@ -83,17 +71,9 @@ class BrowserDownloadFileTests : BaseBrowserUiTest() {
 
   @Test
   fun downloadBlobFile() {
-    device.findObject(UiSelector().resourceId("url-input")).click()
-    device.findObject(UiSelector().resourceId("browser-modal-url-input"))
-      .setText("https://tyschenko.github.io/download_blob_file.html")
-    device.pressEnter()
+    openUrl("https://tyschenko.github.io/download_blob_file.html")
 
-    onWebView(
-      allOf(
-        isJavascriptEnabled(),
-        CustomMatchers.withMinimumWidth(1), // There are multiple webviews in the layout, we choose one that has width and height not equal to 0
-      )
-    )
+    onMetaMaskWebView()
       .withElement(findElement(Locator.ID, "download_button"))
       .perform(webClick())
 
@@ -117,17 +97,9 @@ class BrowserDownloadFileTests : BaseBrowserUiTest() {
 
   @Test
   fun downloadBase64File() {
-    device.findObject(UiSelector().resourceId("url-input")).click()
-    device.findObject(UiSelector().resourceId("browser-modal-url-input"))
-      .setText("https://tyschenko.github.io/download_base64_file.html")
-    device.pressEnter()
+    openUrl("https://tyschenko.github.io/download_base64_file.html")
 
-    onWebView(
-      allOf(
-        isJavascriptEnabled(),
-        CustomMatchers.withMinimumWidth(1), // There are multiple webviews in the layout, we choose one that has width and height not equal to 0
-      )
-    )
+    onMetaMaskWebView()
       .withElement(findElement(Locator.ID, "download_button"))
       .perform(webClick())
 

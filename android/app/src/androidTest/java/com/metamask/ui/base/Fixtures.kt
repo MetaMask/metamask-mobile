@@ -409,7 +409,8 @@ object Fixtures {
           "userLoggedIn": true,
           "isAuthChecked": false,
           "initialScreen": "",
-          "appTheme": "os"
+          "appTheme": "os",
+          "existingUser": true
         },
         "wizard": {
           "step": 0
@@ -585,10 +586,11 @@ object Fixtures {
       },
       "asyncState": {
         "@MetaMask:existingUser": "true",
+        "@MetaMask:OptinMetaMetricsUISeen": "true",
         "@MetaMask:onboardingWizard": "explored",
         "@MetaMask:UserTermsAcceptedv1.0": "true",
         "@MetaMask:WhatsNewAppVersionSeen": "7.24.3",
-        "@MetaMask:solanaFeatureModalShown": "true"
+        "@MetaMask:solanaFeatureModalShownV2": "true"
       }
     }
     """.trimIndent()
