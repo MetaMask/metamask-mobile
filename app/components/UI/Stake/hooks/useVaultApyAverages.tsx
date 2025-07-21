@@ -17,7 +17,7 @@ const useVaultApyAverages = (chainId: number) => {
     setError(null);
 
     try {
-      await Engine.context.EarnController.refreshPooledStakingVaultApyAverages();
+      await Engine.context.EarnController.refreshPooledStakingVaultApyAverages(chainId);
     } catch (err) {
       setError('Failed to fetch pooled staking vault APY averages');
     } finally {
