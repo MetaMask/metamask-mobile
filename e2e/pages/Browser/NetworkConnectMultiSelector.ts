@@ -1,6 +1,7 @@
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { Assertions } from '../../framework';
 
 class NetworkConnectMultiSelector {
   private chainPermissionTestId: string = '';
@@ -33,12 +34,22 @@ class NetworkConnectMultiSelector {
     });
   }
 
-  async setNetWorkPermissionTestIdForChain(chainName: string, isSelected: boolean): Promise<void> {
-    if (isSelected) {
-      this.chainPermissionTestId = `${chainName}-selected`;
-    } else {
-      this.chainPermissionTestId = `${chainName}-not-selected`;
-    }
+  async isNetworkChainPermissionSelected(chainName: string): Promise<void> {
+    const chainPermissionTestId = `${chainName}-selected`;
+    const el = await Matchers.getElementByID(chainPermissionTestId);
+    await Assertions.expectElementToBeVisible(el, {
+      timeout: 10000,
+      description: `Network chain permission ${chainName} should be selected`,
+    });
+  }
+
+  async isNetworkChainPermissionNotSelected(chainName: string): Promise<void> {
+    const chainPermissionTestId = `${chainName}-not-selected`;
+    const el = await Matchers.getElementByID(chainPermissionTestId);
+    await Assertions.expectElementToBeVisible(el, {
+      timeout: 10000,
+      description: `Network chain permission ${chainName} should be selected`,
+    });
   }
 }
 

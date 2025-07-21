@@ -22,7 +22,6 @@ const accountOneText = 'Account 1';
 const accountTwoText = 'Account 2';
 const accountThreeText = 'Account 3';
 
-// TODO: check this
 describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -70,17 +69,17 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         // Verify changes were saved by checking chain permissions again
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-        // TODO: fails on android, the app crashes
-        await NetworkConnectMultiSelector.setNetWorkPermissionTestIdForChain(
+
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
           NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
-          true,
         );
-        await Assertions.expectElementToBeVisible(NetworkConnectMultiSelector.individualChainPermission);
-        await NetworkConnectMultiSelector.setNetWorkPermissionTestIdForChain(
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
           NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
-          true,
         );
-        await Assertions.expectElementToBeVisible(NetworkConnectMultiSelector.individualChainPermission);
+
+        await NetworkConnectMultiSelector.isNetworkChainPermissionNotSelected(
+          NetworkNonPemittedBottomSheetSelectorsText.SEPOLIA_NETWORK_NAME,
+        );
       },
     );
   });
@@ -172,20 +171,15 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
-        // validate that 3 networks are connected
-        // TODO: fix this
-        const ethereumMainNetPermission = await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
           NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
         );
-        const lineaSepoliaPermission = await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
           NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
         );
-        const sepoliaPermission = await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
           NetworkNonPemittedBottomSheetSelectorsText.SEPOLIA_NETWORK_NAME,
         );
-        await Assertions.expectElementToBeVisible(ethereumMainNetPermission as IndexableNativeElement);
-        await Assertions.expectElementToBeVisible(lineaSepoliaPermission as IndexableNativeElement);
-        await Assertions.expectElementToBeVisible(sepoliaPermission as IndexableNativeElement);
 
         // Navigate back because no changes were made
         await NetworkConnectMultiSelector.tapBackButton();
