@@ -76,6 +76,7 @@ jobs:
       - name: Build Android E2E App
         run: |
           echo "Building E2E app for Android..."
+          yarn patch-package --error-on-fail
           yarn test:e2e:android:build:qa-release
         shell: bash
         env:
