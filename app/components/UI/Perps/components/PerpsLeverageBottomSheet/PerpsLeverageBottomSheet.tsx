@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useCallback,
   useEffect,
+  memo,
 } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import {
@@ -467,4 +468,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
 PerpsLeverageBottomSheet.displayName = 'PerpsLeverageBottomSheet';
 
-export default PerpsLeverageBottomSheet;
+export default memo(
+  PerpsLeverageBottomSheet,
+  (prevProps, nextProps) =>
+    prevProps.isVisible === nextProps.isVisible &&
+    prevProps.leverage === nextProps.leverage &&
+    prevProps.minLeverage === nextProps.minLeverage &&
+    prevProps.maxLeverage === nextProps.maxLeverage &&
+    prevProps.direction === nextProps.direction,
+);

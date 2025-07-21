@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useCallback, useEffect, memo } from 'react';
 import { View, TouchableOpacity, TextInput } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -16,7 +16,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { formatPrice } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
-import { usePerpsPrices } from '../../hooks';
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
 
@@ -39,8 +38,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   onConfirm,
   asset,
   currentPrice: initialCurrentPrice,
-  // direction, // TODO: Use for validation
-  // position, // TODO: Use for existing position TP/SL
+  direction,
+  position,
   initialTakeProfitPrice,
   initialStopLossPrice,
 }) => {
@@ -68,18 +67,22 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     number | null
   >(null);
 
-  // Get real-time price updates
-  const priceData = usePerpsPrices([asset]);
-  const livePrice = priceData[asset];
-  const currentPrice = livePrice?.price
-    ? parseFloat(livePrice.price)
-    : initialCurrentPrice || 0;
+  // Use the current price passed as prop, don't subscribe to updates
+  // For existing positions, use the position's entry price as reference
+  const currentPrice = position?.entryPrice
+    ? parseFloat(position.entryPrice)
+    : (initialCurrentPrice || 0);
 
   useEffect(() => {
     if (isVisible) {
       bottomSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible]);
 
-      // Calculate initial percentages if prices are provided
+  // Calculate initial percentages when component mounts or props change
+  useEffect(() => {
+    if (isVisible) {
+      // Calculate initial percentages when opening
       if (initialTakeProfitPrice && currentPrice) {
         const tpPrice = parseFloat(initialTakeProfitPrice);
         const percentage = ((tpPrice - currentPrice) / currentPrice) * 100;
@@ -93,6 +96,23 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       }
     }
   }, [isVisible, initialTakeProfitPrice, initialStopLossPrice, currentPrice]);
+
+  // Helper functions to validate individual prices
+  const isValidTakeProfitPrice = useCallback((price: string) => {
+    if (!currentPrice || !direction || !price) return true;
+    const tpPrice = parseFloat(price.replace(/[$,]/g, ''));
+    if (isNaN(tpPrice)) return true;
+    const isLong = direction === 'long';
+    return isLong ? tpPrice > currentPrice : tpPrice < currentPrice;
+  }, [currentPrice, direction]);
+
+  const isValidStopLossPrice = useCallback((price: string) => {
+    if (!currentPrice || !direction || !price) return true;
+    const slPrice = parseFloat(price.replace(/[$,]/g, ''));
+    if (isNaN(slPrice)) return true;
+    const isLong = direction === 'long';
+    return isLong ? slPrice < currentPrice : slPrice > currentPrice;
+  }, [currentPrice, direction]);
 
   const handleConfirm = () => {
     // Parse the formatted prices back to plain numbers for storage
@@ -114,11 +134,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const calculatePriceForPercentage = useCallback(
     (percentage: number, isProfit: boolean) => {
       if (!currentPrice) return '';
-      const multiplier = isProfit ? 1 + percentage / 100 : 1 - percentage / 100;
+
+      // For long positions: profit = price up, loss = price down
+      // For short positions: profit = price down, loss = price up
+      const isLong = direction === 'long';
+      const multiplier = isProfit
+        ? (isLong ? 1 + percentage / 100 : 1 - percentage / 100)
+        : (isLong ? 1 - percentage / 100 : 1 + percentage / 100);
+
       const calculatedPrice = currentPrice * multiplier;
       return formatPrice(calculatedPrice);
     },
-    [currentPrice],
+    [currentPrice, direction],
   );
 
   const calculatePercentageForPrice = useCallback(
@@ -127,15 +154,48 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       const priceNum = parseFloat(price.replace(/[$,]/g, ''));
       if (isNaN(priceNum)) return '';
 
+      const isLong = direction === 'long';
+      const priceDiff = priceNum - currentPrice;
+      const percentage = Math.abs((priceDiff / currentPrice) * 100);
+
+      // Validate direction consistency
       if (isProfit) {
-        const percentage = ((priceNum - currentPrice) / currentPrice) * 100;
-        return percentage.toFixed(2);
+        // For profit: long needs higher price, short needs lower price
+        const isValidDirection = isLong ? priceDiff > 0 : priceDiff < 0;
+        return isValidDirection ? percentage.toFixed(2) : `-${percentage.toFixed(2)}`;
       }
-      const percentage = ((currentPrice - priceNum) / currentPrice) * 100;
-      return percentage.toFixed(2);
+      // For loss: long needs lower price, short needs higher price
+      const isValidDirection = isLong ? priceDiff < 0 : priceDiff > 0;
+      return isValidDirection ? percentage.toFixed(2) : `-${percentage.toFixed(2)}`;
     },
-    [currentPrice],
+    [currentPrice, direction],
   );
+
+  // Validate take profit and stop loss prices based on direction
+  const validatePrices = useCallback(() => {
+    if (!currentPrice || !direction) return true;
+
+    const isLong = direction === 'long';
+    let isValid = true;
+
+    if (takeProfitPrice) {
+      const tpPrice = parseFloat(takeProfitPrice.replace(/[$,]/g, ''));
+      if (!isNaN(tpPrice)) {
+        // Long: TP must be above current price, Short: TP must be below
+        isValid = isValid && (isLong ? tpPrice > currentPrice : tpPrice < currentPrice);
+      }
+    }
+
+    if (stopLossPrice) {
+      const slPrice = parseFloat(stopLossPrice.replace(/[$,]/g, ''));
+      if (!isNaN(slPrice)) {
+        // Long: SL must be below current price, Short: SL must be above
+        isValid = isValid && (isLong ? slPrice < currentPrice : slPrice > currentPrice);
+      }
+    }
+
+    return isValid;
+  }, [currentPrice, direction, takeProfitPrice, stopLossPrice]);
 
   const footerButtonProps = [
     {
@@ -143,6 +203,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
+      disabled: !validatePrices(),
     },
   ];
 
@@ -165,6 +226,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         <View style={styles.priceDisplay}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {`${asset} - ${currentPrice ? formatPrice(currentPrice) : '$---'}`}
+            {position && ` (Entry: ${formatPrice(position.entryPrice)})`}
           </Text>
         </View>
 
@@ -181,6 +243,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 styles.inputContainer,
                 styles.inputContainerLeft,
                 tpPriceInputFocused && styles.inputContainerActive,
+                takeProfitPrice && !isValidTakeProfitPrice(takeProfitPrice) && styles.inputContainerError,
               ]}
             >
               <TextInput
@@ -274,7 +337,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 style={[
                   styles.percentageButton,
                   selectedTpPercentage === percentage &&
-                    styles.percentageButtonActive,
+                  styles.percentageButtonActive,
                 ]}
                 onPress={() => {
                   const price = calculatePriceForPercentage(percentage, true);
@@ -296,6 +359,14 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </TouchableOpacity>
             ))}
           </View>
+          {takeProfitPrice && !isValidTakeProfitPrice(takeProfitPrice) && direction && (
+            <Text variant={TextVariant.BodySM} color={TextColor.Error} style={styles.helperText}>
+              {strings('perps.validation.invalid_take_profit', {
+                direction: direction === 'long' ? 'above' : 'below',
+                positionType: direction
+              })}
+            </Text>
+          )}
         </View>
 
         {/* Stop Loss Section */}
@@ -311,6 +382,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 styles.inputContainer,
                 styles.inputContainerLeft,
                 slPriceInputFocused && styles.inputContainerActive,
+                stopLossPrice && !isValidStopLossPrice(stopLossPrice) && styles.inputContainerError,
               ]}
             >
               <TextInput
@@ -404,7 +476,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 style={[
                   styles.percentageButton,
                   selectedSlPercentage === percentage &&
-                    styles.percentageButtonActive,
+                  styles.percentageButtonActive,
                 ]}
                 onPress={() => {
                   const price = calculatePriceForPercentage(percentage, false);
@@ -426,6 +498,14 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </TouchableOpacity>
             ))}
           </View>
+          {stopLossPrice && !isValidStopLossPrice(stopLossPrice) && direction && (
+            <Text variant={TextVariant.BodySM} color={TextColor.Error} style={styles.helperText}>
+              {strings('perps.validation.invalid_stop_loss', {
+                direction: direction === 'long' ? 'below' : 'above',
+                positionType: direction
+              })}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -436,4 +516,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
 PerpsTPSLBottomSheet.displayName = 'PerpsTPSLBottomSheet';
 
-export default PerpsTPSLBottomSheet;
+export default memo(
+  PerpsTPSLBottomSheet,
+  (prevProps, nextProps) =>
+    // Only re-render if these props change
+    prevProps.isVisible === nextProps.isVisible &&
+    prevProps.asset === nextProps.asset &&
+    prevProps.direction === nextProps.direction &&
+    prevProps.initialTakeProfitPrice === nextProps.initialTakeProfitPrice &&
+    prevProps.initialStopLossPrice === nextProps.initialStopLossPrice,
+);

@@ -969,75 +969,67 @@ const PerpsOrderView: React.FC = () => {
       />
 
       {/* TP/SL Bottom Sheet */}
-      {isTPSLVisible && (
-        <PerpsTPSLBottomSheet
-          isVisible
-          onClose={() => setIsTPSLVisible(false)}
-          onConfirm={(takeProfitPrice, stopLossPrice) => {
-            setOrderForm((prev) => ({
-              ...prev,
-              takeProfitPrice,
-              stopLossPrice,
-            }));
-            setIsTPSLVisible(false);
-          }}
-          asset={orderForm.asset}
-          currentPrice={assetData.price}
-          direction={orderForm.direction}
-          initialTakeProfitPrice={orderForm.takeProfitPrice}
-          initialStopLossPrice={orderForm.stopLossPrice}
-        />
-      )}
+      <PerpsTPSLBottomSheet
+        isVisible={isTPSLVisible}
+        onClose={() => setIsTPSLVisible(false)}
+        onConfirm={(takeProfitPrice, stopLossPrice) => {
+          setOrderForm((prev) => ({
+            ...prev,
+            takeProfitPrice,
+            stopLossPrice,
+          }));
+          setIsTPSLVisible(false);
+        }}
+        asset={orderForm.asset}
+        currentPrice={assetData.price}
+        direction={orderForm.direction}
+        initialTakeProfitPrice={orderForm.takeProfitPrice}
+        initialStopLossPrice={orderForm.stopLossPrice}
+      />
 
       {/* Leverage Selector */}
-      {isLeverageVisible && (
-        <PerpsLeverageBottomSheet
-          isVisible
-          onClose={() => setIsLeverageVisible(false)}
-          onConfirm={(leverage) => {
-            setOrderForm((prev) => ({ ...prev, leverage }));
-            setIsLeverageVisible(false);
-          }}
-          leverage={orderForm.leverage}
-          minLeverage={1}
-          maxLeverage={marketData?.maxLeverage || 50}
-          currentPrice={assetData.price}
-          liquidationPrice={parseFloat(liquidationPrice)}
-          direction={orderForm.direction}
-        />
-      )}
+      <PerpsLeverageBottomSheet
+        isVisible={isLeverageVisible}
+        onClose={() => setIsLeverageVisible(false)}
+        onConfirm={(leverage) => {
+          setOrderForm((prev) => ({ ...prev, leverage }));
+          setIsLeverageVisible(false);
+        }}
+        leverage={orderForm.leverage}
+        minLeverage={1}
+        maxLeverage={marketData?.maxLeverage || 50}
+        currentPrice={assetData.price}
+        liquidationPrice={parseFloat(liquidationPrice)}
+        direction={orderForm.direction}
+      />
 
       {/* Limit Price Bottom Sheet */}
-      {isLimitPriceVisible && (
-        <PerpsLimitPriceBottomSheet
-          isVisible
-          onClose={() => setIsLimitPriceVisible(false)}
-          onConfirm={(limitPrice) => {
-            setOrderForm((prev) => ({ ...prev, limitPrice }));
-            setIsLimitPriceVisible(false);
-          }}
-          asset={orderForm.asset}
-          limitPrice={orderForm.limitPrice}
-          currentPrice={assetData.price}
-        />
-      )}
+      <PerpsLimitPriceBottomSheet
+        isVisible={isLimitPriceVisible}
+        onClose={() => setIsLimitPriceVisible(false)}
+        onConfirm={(limitPrice) => {
+          setOrderForm((prev) => ({ ...prev, limitPrice }));
+          setIsLimitPriceVisible(false);
+        }}
+        asset={orderForm.asset}
+        limitPrice={orderForm.limitPrice}
+        currentPrice={assetData.price}
+      />
 
       {/* Order Type Bottom Sheet */}
-      {isOrderTypeVisible && (
-        <PerpsOrderTypeBottomSheet
-          isVisible
-          onClose={() => setIsOrderTypeVisible(false)}
-          onSelect={(type) => {
-            setOrderType(type);
-            // Clear limit price when switching to market order
-            if (type === 'market') {
-              setOrderForm((prev) => ({ ...prev, limitPrice: undefined }));
-            }
-            setIsOrderTypeVisible(false);
-          }}
-          currentOrderType={orderType}
-        />
-      )}
+      <PerpsOrderTypeBottomSheet
+        isVisible={isOrderTypeVisible}
+        onClose={() => setIsOrderTypeVisible(false)}
+        onSelect={(type) => {
+          setOrderType(type);
+          // Clear limit price when switching to market order
+          if (type === 'market') {
+            setOrderForm((prev) => ({ ...prev, limitPrice: undefined }));
+          }
+          setIsOrderTypeVisible(false);
+        }}
+        currentOrderType={orderType}
+      />
     </SafeAreaView>
   );
 };

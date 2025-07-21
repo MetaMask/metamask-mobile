@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
@@ -16,8 +16,13 @@ import Text, {
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import { formatPrice } from '../../utils/formatUtils';
-import { usePerpsPrices } from '../../hooks';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
+import { usePerpsPrices } from '../../hooks/usePerpsPrices';
+
+// Default bid/ask spread when real order book data is not available
+// This represents a 0.01% spread (1 basis point) which is typical for liquid markets
+const DEFAULT_BID_MULTIPLIER = 0.9999; // Bid price is 0.01% below current price
+const DEFAULT_ASK_MULTIPLIER = 1.0001; // Ask price is 0.01% above current price
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;
@@ -43,23 +48,48 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   // Initialize with initial limit price or empty to show placeholder
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
 
-  // Get real-time price data
+  // Get real-time price data but memoize to prevent re-renders
   const priceData = usePerpsPrices([asset], true); // Include order book for limit orders
   const currentPriceData = priceData[asset];
 
-  // Use real-time price if available, otherwise use passed price
-  const currentPrice = currentPriceData?.price
-    ? parseFloat(currentPriceData.price)
-    : passedCurrentPrice;
-  const markPrice = currentPriceData?.markPrice
-    ? parseFloat(currentPriceData.markPrice)
-    : currentPrice;
-  const bestBid = currentPriceData?.bestBid
-    ? parseFloat(currentPriceData.bestBid)
-    : undefined;
-  const bestAsk = currentPriceData?.bestAsk
-    ? parseFloat(currentPriceData.bestAsk)
-    : undefined;
+  // Store price data in state to control when it updates
+  const [priceSnapshot, setPriceSnapshot] = useState(() => ({
+    currentPrice: passedCurrentPrice,
+    markPrice: passedCurrentPrice,
+    bestBid: passedCurrentPrice ? passedCurrentPrice * DEFAULT_BID_MULTIPLIER : undefined,
+    bestAsk: passedCurrentPrice ? passedCurrentPrice * DEFAULT_ASK_MULTIPLIER : undefined,
+  }));
+
+  // Update price snapshot only when bottom sheet opens
+  useEffect(() => {
+    if (isVisible) {
+      const current = currentPriceData?.price
+        ? parseFloat(currentPriceData.price)
+        : passedCurrentPrice;
+      const mark = currentPriceData?.markPrice
+        ? parseFloat(currentPriceData.markPrice)
+        : current;
+      const bid = currentPriceData?.bestBid
+        ? parseFloat(currentPriceData.bestBid)
+        : current
+        ? current * DEFAULT_BID_MULTIPLIER
+        : undefined;
+      const ask = currentPriceData?.bestAsk
+        ? parseFloat(currentPriceData.bestAsk)
+        : current
+        ? current * DEFAULT_ASK_MULTIPLIER
+        : undefined;
+
+      setPriceSnapshot({
+        currentPrice: current,
+        markPrice: mark,
+        bestBid: bid,
+        bestAsk: ask,
+      });
+    }
+  }, [isVisible]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const { currentPrice, markPrice, bestBid, bestAsk } = priceSnapshot;
 
   useEffect(() => {
     if (isVisible) {
@@ -129,8 +159,8 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   ];
 
   // Use real bid/ask prices if available, otherwise calculate approximations
-  const displayAskPrice = bestAsk || (currentPrice ? currentPrice * 1.0001 : 0);
-  const displayBidPrice = bestBid || (currentPrice ? currentPrice * 0.9999 : 0);
+  const displayAskPrice = bestAsk || (currentPrice ? currentPrice * DEFAULT_ASK_MULTIPLIER : 0);
+  const displayBidPrice = bestBid || (currentPrice ? currentPrice * DEFAULT_BID_MULTIPLIER : 0);
 
   if (!isVisible) return null;
 
@@ -151,7 +181,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         <View style={styles.priceInfo}>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>
-              {strings('perps.order.limit_price_modal.current_price')}
+              {strings('perps.order.limit_price_modal.current_price')} ({asset})
             </Text>
             <Text style={styles.priceValue}>
               {currentPrice ? formatPrice(currentPrice) : '$---'}
@@ -241,4 +271,16 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
 PerpsLimitPriceBottomSheet.displayName = 'PerpsLimitPriceBottomSheet';
 
-export default PerpsLimitPriceBottomSheet;
+export default memo(PerpsLimitPriceBottomSheet, (prevProps, nextProps) => {
+  // If bottom sheet is not visible in both states, skip re-render
+  if (!prevProps.isVisible && !nextProps.isVisible) {
+    return true;
+  }
+
+  // Only re-render if these critical props change
+  return (
+    prevProps.isVisible === nextProps.isVisible &&
+    prevProps.asset === nextProps.asset &&
+    prevProps.limitPrice === nextProps.limitPrice
+  );
+});

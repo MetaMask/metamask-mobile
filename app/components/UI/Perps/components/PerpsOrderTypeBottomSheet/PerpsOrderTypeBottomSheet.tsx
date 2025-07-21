@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, memo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -103,4 +103,9 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
 
 PerpsOrderTypeBottomSheet.displayName = 'PerpsOrderTypeBottomSheet';
 
-export default PerpsOrderTypeBottomSheet;
+export default memo(
+  PerpsOrderTypeBottomSheet,
+  (prevProps, nextProps) =>
+    prevProps.isVisible === nextProps.isVisible &&
+    prevProps.currentOrderType === nextProps.currentOrderType,
+);

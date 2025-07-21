@@ -46,6 +46,9 @@ export const createStyles = (colors: Theme['colors']) =>
     inputContainerActive: {
       borderColor: colors.primary.default,
     },
+    inputContainerError: {
+      borderColor: colors.error.default,
+    },
     input: {
       flex: 1,
       fontSize: 16,
