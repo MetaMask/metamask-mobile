@@ -28,6 +28,7 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
+import Matchers from '../../../utils/Matchers';
 
 async function requestPermissions({
   accounts,
@@ -38,14 +39,10 @@ async function requestPermissions({
 } = {}) {
   await TestHelpers.delay(7000);
 
-  const nativeWebView = element(
-    by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+  const nativeWebView = Matchers.getWebViewByID(
+    BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID
   );
-  await waitFor(nativeWebView).toBeVisible().withTimeout(10000);
-  await nativeWebView.tap();
-
-  const webView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
-  const bodyElement = webView.element(by.web.tag('body'));
+  const bodyElement = nativeWebView.element(by.web.tag('body'));
 
   const requestPermissionsRequest = JSON.stringify({
     jsonrpc: '2.0',
