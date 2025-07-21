@@ -131,13 +131,6 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-// Wrapper component with single provider for entire Perps environment
-const PerpsEnvironment = () => (
-  <PerpsConnectionProvider>
-    <PerpsScreenStack />
-  </PerpsConnectionProvider>
-);
-
 const WalletModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
@@ -888,7 +881,7 @@ const MainNavigator = () => {
       />
       {isPerpsEnabled && (
         <>
-          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsEnvironment} />
+          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
