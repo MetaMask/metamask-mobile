@@ -247,6 +247,120 @@ describe('Login test suite 2', () => {
       mockRoute.mockClear();
     });
 
+    it('handle seedless onboarding controller error with remaining time of > 0', async () => {
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        'SeedlessOnboardingController - Too many attempts',
+        { remainingTime: 1, numberOfAttempts: 1 },
+      );
+
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+      await act(async () => {
+        fireEvent.press(loginButton);
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:1s',
+      );
+    });
+
+    it('handle seedless onboarding controller error without remaining time', async () => {
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        'SeedlessOnboardingController - Too many attempts',
+        { remainingTime: 0, numberOfAttempts: 1 },
+      );
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+      await act(async () => {
+        fireEvent.press(loginButton);
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual('Too many attempts');
+    });
+
+    it('should handle countdown behavior and disable input during tooManyAttemptsError', async () => {
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        'SeedlessOnboardingController - Too many attempts',
+        { remainingTime: 3, numberOfAttempts: 1 },
+      );
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      let errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:3s',
+      );
+
+      expect(passwordInput.props.editable).toBe(false);
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:2s',
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual(
+        'Too many attempts. Please try again in 0m:1s',
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(() => getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toThrow();
+      expect(passwordInput.props.editable).not.toBe(false);
+    });
+
     it('should clean up timeout on component unmount during countdown', async () => {
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
