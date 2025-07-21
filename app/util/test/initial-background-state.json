@@ -365,16 +365,9 @@
     "accountState": null,
     "pendingOrders": [],
     "depositStatus": "idle",
-    "depositFlowType": null,
     "currentDepositTxHash": null,
     "depositError": null,
-    "requiresModalDismissal": false,
-    "depositSteps": {
-      "totalSteps": 0,
-      "currentStep": 0,
-      "stepNames": [],
-      "stepTxHashes": []
-    },
+    "activeDepositTransactions": {},
     "lastError": null,
     "lastUpdateTimestamp": 0
   },

@@ -24,10 +24,10 @@ import {
 } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { store } from '../../store';
-import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
 
 import ReduxService from '../../core/redux';
+import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
@@ -85,14 +85,38 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly
     // user can try manual sync again (phase 2)
     const seed = new Uint8Array(inputCodePoints.buffer);
+    let addSeedPhraseSuccess = false;
     try {
+      trace({
+        name: TraceName.OnboardingAddSrp,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
       await SeedlessOnboardingController.addNewSeedPhraseBackup(
         seed,
         newKeyring.id,
       );
+      addSeedPhraseSuccess = true;
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       // Log the error but don't let it crash the import process
-      console.error('Failed to backup seed phrase:', error);
+      console.error('Failed to backup seed phrase:', errorMessage);
+
+      trace({
+        name: TraceName.OnboardingAddSrpError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+      });
+      endTrace({
+        name: TraceName.OnboardingAddSrpError,
+      });
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingAddSrp,
+        data: { success: addSeedPhraseSuccess },
+      });
     }
   }
 

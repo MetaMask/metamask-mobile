@@ -591,11 +591,39 @@ class AuthenticationService {
         password,
         keyringId,
       );
-      await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
-        password,
-        seedPhrase,
-        keyringId,
-      );
+
+      let createKeyAndBackupSrpSuccess = false;
+      try {
+        trace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
+          password,
+          seedPhrase,
+          keyringId,
+        );
+        createKeyAndBackupSrpSuccess = true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+
+        trace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrpError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrpError,
+        });
+
+        throw error;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          data: { success: createKeyAndBackupSrpSuccess },
+        });
+      }
 
       this.dispatchOauthReset();
     } catch (error) {
@@ -614,10 +642,37 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
-      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(
-        password,
-      );
+      let result: Uint8Array[] | null = null;
+      let fetchSrpsSuccess = false;
+      try {
+        trace({
+          name: TraceName.OnboardingFetchSrps,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        result = await SeedlessOnboardingController.fetchAllSeedPhrases(
+          password,
+        );
+        fetchSrpsSuccess = true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
 
+        trace({
+          name: TraceName.OnboardingFetchSrpsError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({
+          name: TraceName.OnboardingFetchSrpsError,
+        });
+
+        throw error;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingFetchSrps,
+          data: { success: fetchSrpsSuccess },
+        });
+      }
       if (result.length > 0) {
         const { KeyringController } = Engine.context;
 

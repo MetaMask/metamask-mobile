@@ -153,6 +153,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 jest.mock('../../hooks/AssetPolling/useCurrencyRatePolling', () => jest.fn());
+jest.mock('../../hooks/AssetPolling/useTokenRatesPolling', () => jest.fn());
 
 import TransactionsView from './index';
 import initialRootState from '../../../util/test/initial-root-state';

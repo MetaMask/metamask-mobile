@@ -40,6 +40,7 @@ import { selectTokenNetworkFilter } from '../../../selectors/preferencesControll
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
 import useCurrencyRatePolling from '../../hooks/AssetPolling/useCurrencyRatePolling';
+import useTokenRatesPolling from '../../hooks/AssetPolling/useTokenRatesPolling';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -65,6 +66,7 @@ const TransactionsView = ({
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   useCurrencyRatePolling();
+  useTokenRatesPolling();
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
