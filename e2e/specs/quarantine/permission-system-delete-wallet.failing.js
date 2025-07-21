@@ -22,7 +22,8 @@ import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView'
 import Assertions from '../../utils/Assertions';
 import ToastModal from '../../pages/wallet/ToastModal';
 import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
-const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
+const SEEDLESS_ONBOARDING_ENABLED =
+  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 const PASSWORD = '12345678';
 

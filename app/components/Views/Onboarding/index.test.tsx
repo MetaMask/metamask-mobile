@@ -599,7 +599,9 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
@@ -686,7 +688,9 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
@@ -775,7 +779,9 @@ describe('Onboarding', () => {
         },
       );
 
-      const importSeedButton = getByTestId(OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
       await act(async () => {
         fireEvent.press(importSeedButton);
       });
