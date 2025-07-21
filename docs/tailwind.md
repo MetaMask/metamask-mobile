@@ -53,8 +53,8 @@ The `twClassName` prop is available on all design system components:
 import { Box, Text } from '@metamask/design-system-react-native';
 
 const MyComponent = () => (
-  <Box twClassName="p-4 bg-default">
-    <Text twClassName="text-lg font-medium">Hello World</Text>
+  <Box twClassName="relative">
+    <Text twClassName="absolute p-4 top-4">Hello World</Text>
   </Box>
 );
 ```
