@@ -4,8 +4,6 @@ import Gestures from '../../framework/Gestures';
 import { Assertions } from '../../framework';
 
 class NetworkConnectMultiSelector {
-  private chainPermissionTestId: string = '';
-
   get updateButton(): DetoxElement {
     return Matchers.getElementByID(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
@@ -16,10 +14,6 @@ class NetworkConnectMultiSelector {
     return Matchers.getElementByID(
       NetworkConnectMultiSelectorSelectorsIDs.BACK_BUTTON,
     );
-  }
-
-  get individualChainPermission(): DetoxElement {
-    return Matchers.getElementByID(this.chainPermissionTestId);
   }
 
   async tapUpdateButton(): Promise<void> {
