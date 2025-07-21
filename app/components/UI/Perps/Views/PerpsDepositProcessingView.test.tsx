@@ -359,7 +359,12 @@ describe('PerpsDepositProcessingView', () => {
       );
       viewBalanceButton.props.onPress();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TRADING_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
     });
   });
 
