@@ -1556,7 +1556,7 @@ describe('Authentication', () => {
       expect(result).toBe(mockIsOutdated);
       expect(
         Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
-      ).toHaveBeenCalledWith({ skipCache: false });
+      ).toHaveBeenCalledWith({ skipCache: true });
     });
   });
 
