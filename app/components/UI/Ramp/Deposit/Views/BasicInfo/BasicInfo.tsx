@@ -32,6 +32,7 @@ import Button, {
 import PoweredByTransak from '../../components/PoweredByTransak';
 import PrivacySection from '../../components/PrivacySection';
 import { timestampToTransakFormat } from '../../utils';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -52,6 +53,7 @@ export interface BasicInfoFormData {
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const trackEvent = useAnalytics();
   const { quote, kycUrl } = useParams<BasicInfoParams>();
   const { selectedRegion } = useDepositSDK();
 
@@ -135,6 +137,12 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
+      trackEvent('RAMPS_BASIC_INFO_ENTERED', {
+        region: selectedRegion?.isoCode || '',
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'SIMPLE',
+      });
+
       navigation.navigate(
         ...createEnterAddressNavDetails({
           formData: {
@@ -148,7 +156,15 @@ const BasicInfo = (): JSX.Element => {
         }),
       );
     }
-  }, [navigation, validateFormData, formData, quote, kycUrl]);
+  }, [
+    navigation,
+    validateFormData,
+    formData,
+    quote,
+    kycUrl,
+    selectedRegion?.isoCode,
+    trackEvent,
+  ]);
 
   const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
