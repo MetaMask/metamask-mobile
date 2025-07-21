@@ -111,11 +111,7 @@ export const useConfirmationRedesignEnabled = () => {
         transactionMetadata,
       }) ||
       isBatchTransaction(approvalRequestType),
-    [
-      approvalRequestType,
-      confirmationRedesignFlags,
-      transactionMetadata,
-    ],
+    [approvalRequestType, confirmationRedesignFlags, transactionMetadata],
   );
 
   return { isRedesignedEnabled };
