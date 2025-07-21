@@ -4,7 +4,7 @@ import EnableNotificationsModal from '../../pages/Notifications/EnableNotificati
 import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
 import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
 import WalletView from '../../pages/wallet/WalletView';
-import { SmokeNetworkAbstractions } from '../../tags';
+import { GHMigration } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../viewHelper';
 import {
@@ -15,7 +15,7 @@ import {
 import { withFixtures } from '../../fixtures/fixture-helper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
-describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
+describe(GHMigration('Notification Onboarding'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });

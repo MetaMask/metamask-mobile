@@ -7,7 +7,7 @@ import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView.js';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../../framework/Assertions.ts';
-import { SmokeIdentity } from '../../../tags.js';
+import { GHMigration } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController.ts';
@@ -21,7 +21,7 @@ import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalVi
 import { createUserStorageController } from '../utils/mocks.ts';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
 
-describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
+describe(GHMigration('Account syncing - Forgot Password Flow'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {

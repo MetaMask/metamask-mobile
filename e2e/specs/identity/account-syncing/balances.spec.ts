@@ -6,7 +6,7 @@ import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView.js';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../../framework/Assertions.ts';
-import { SmokeIdentity } from '../../../tags.js';
+import { GHMigration } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
 import { arrangeTestUtils } from '../utils/helpers.ts';
@@ -22,7 +22,7 @@ import FixtureBuilder, {
 import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
 import { createUserStorageController } from '../utils/mocks.ts';
 
-describe(SmokeIdentity('Account syncing - Accounts with Balances'), () => {
+describe(GHMigration('Account syncing - Accounts with Balances'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {

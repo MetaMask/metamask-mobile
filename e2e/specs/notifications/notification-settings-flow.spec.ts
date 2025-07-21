@@ -1,6 +1,6 @@
 import type { MockttpServer } from 'mockttp';
 import TestHelpers from '../../helpers';
-import { SmokeNetworkAbstractions } from '../../tags';
+import { GHMigration } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { mockNotificationServices } from './utils/mocks';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -12,7 +12,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
 
-describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
+describe(GHMigration('Notification Onboarding'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });

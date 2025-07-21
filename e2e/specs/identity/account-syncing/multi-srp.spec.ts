@@ -3,7 +3,7 @@ import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView.js';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../../framework/Assertions.ts';
-import { SmokeIdentity } from '../../../tags.js';
+import { GHMigration } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
 import { arrangeTestUtils } from '../utils/helpers.ts';
@@ -19,7 +19,7 @@ import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountT
 import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent.ts';
 import { createUserStorageController } from '../utils/mocks.ts';
 
-describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
+describe(GHMigration('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {

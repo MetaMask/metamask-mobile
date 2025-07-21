@@ -18,8 +18,10 @@ const tags = {
   smokeAnalytics: 'SmokeAnalytics:',
   smokeMultiChainAPI: 'SmokeMultiChainAPI:',
   FlaskBuildTests: 'FlaskBuildTests:',
+  GHMigration: 'GHMigration:',
 };
 
+const GHMigration = (testName) => `${tags.GHMigration} ${testName}`;
 const Regression = (testName) => `${tags.regression} ${testName}`;
 const SmokeAccounts = (testName) => `${tags.smokeAccounts} ${testName}`;
 const SmokeCore = (testName) => `${tags.smokeCore} ${testName}`;
@@ -52,6 +54,7 @@ const FlaskBuildTests = (testName) =>
   `${tags.FlaskBuildTests} ${testName}`;
 
 export {
+  GHMigration,
   FlaskBuildTests,
   Regression,
   SmokeAccounts,
