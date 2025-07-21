@@ -326,146 +326,146 @@ describe('usePerpsMarkets', () => {
       });
     });
 
-    // it('clears error on successful refresh', async () => {
-    //   // Arrange
-    //   mockProvider.getMarketDataWithPrices.mockRejectedValueOnce(
-    //     new Error('Initial error'),
-    //   );
+    it('clears error on successful refresh', async () => {
+      // Arrange
+      mockProvider.getMarketDataWithPrices.mockRejectedValueOnce(
+        new Error('Initial error'),
+      );
 
-    //   const { result } = renderHook(() => usePerpsMarkets());
+      const { result } = renderHook(() => usePerpsMarkets());
 
-    //   await waitFor(() => {
-    //     expect(result.current.error).toBe('Initial error');
-    //   });
+      await waitFor(() => {
+        expect(result.current.error).toBe('Initial error');
+      });
 
-    //   // Set up successful response for refresh
-    //   mockProvider.getMarketDataWithPrices.mockResolvedValue(mockMarketData);
+      // Set up successful response for refresh
+      mockProvider.getMarketDataWithPrices.mockResolvedValue(mockMarketData);
 
-    //   // Act
-    //   await act(async () => {
-    //     await result.current.refresh();
-    //   });
+      // Act
+      await act(async () => {
+        await result.current.refresh();
+      });
 
-    //   // Assert
-    //   expect(result.current.error).toBeNull();
-    //   expect(result.current.markets).toEqual(mockMarketData);
-    // });
+      // Assert
+      expect(result.current.error).toBeNull();
+      expect(result.current.markets).toEqual(mockMarketData);
+    });
   });
 
-  // describe('Polling functionality', () => {
-  //   it('does not poll when enablePolling is false', async () => {
-  //     // Arrange
-  //     const { result } = renderHook(() =>
-  //       usePerpsMarkets({ enablePolling: false }),
-  //     );
+  describe('Polling functionality', () => {
+    it('does not poll when enablePolling is false', async () => {
+      // Arrange
+      const { result } = renderHook(() =>
+        usePerpsMarkets({ enablePolling: false }),
+      );
 
-  //     await waitFor(() => {
-  //       expect(result.current.isLoading).toBe(false);
-  //     });
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-  //     mockProvider.getMarketDataWithPrices.mockClear();
+      mockProvider.getMarketDataWithPrices.mockClear();
 
-  //     // Act - advance time beyond default polling interval
-  //     act(() => {
-  //       jest.advanceTimersByTime(65000);
-  //     });
+      // Act - advance time beyond default polling interval
+      act(() => {
+        jest.advanceTimersByTime(65000);
+      });
 
-  //     // Assert
-  //     expect(mockProvider.getMarketDataWithPrices).not.toHaveBeenCalled();
-  //   });
+      // Assert
+      expect(mockProvider.getMarketDataWithPrices).not.toHaveBeenCalled();
+    });
 
-  //   it('polls at default interval when enablePolling is true', async () => {
-  //     // Arrange
-  //     const { result } = renderHook(() =>
-  //       usePerpsMarkets({ enablePolling: true }),
-  //     );
+    it('polls at default interval when enablePolling is true', async () => {
+      // Arrange
+      const { result } = renderHook(() =>
+        usePerpsMarkets({ enablePolling: true }),
+      );
 
-  //     await waitFor(() => {
-  //       expect(result.current.isLoading).toBe(false);
-  //     });
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-  //     mockProvider.getMarketDataWithPrices.mockClear();
+      mockProvider.getMarketDataWithPrices.mockClear();
 
-  //     // Act - advance time to trigger polling
-  //     act(() => {
-  //       jest.advanceTimersByTime(60000);
-  //     });
+      // Act - advance time to trigger polling
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
 
-  //     // Assert
-  //     expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
-  //   });
+      // Assert
+      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
+    });
 
-  //   it('polls at custom interval when specified', async () => {
-  //     // Arrange
-  //     const customInterval = 30000;
-  //     const { result } = renderHook(() =>
-  //       usePerpsMarkets({
-  //         enablePolling: true,
-  //         pollingInterval: customInterval,
-  //       }),
-  //     );
+    it('polls at custom interval when specified', async () => {
+      // Arrange
+      const customInterval = 30000;
+      const { result } = renderHook(() =>
+        usePerpsMarkets({
+          enablePolling: true,
+          pollingInterval: customInterval,
+        }),
+      );
 
-  //     await waitFor(() => {
-  //       expect(result.current.isLoading).toBe(false);
-  //     });
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-  //     mockProvider.getMarketDataWithPrices.mockClear();
+      mockProvider.getMarketDataWithPrices.mockClear();
 
-  //     // Act - advance time to custom interval
-  //     act(() => {
-  //       jest.advanceTimersByTime(customInterval);
-  //     });
+      // Act - advance time to custom interval
+      act(() => {
+        jest.advanceTimersByTime(customInterval);
+      });
 
-  //     // Assert
-  //     expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
-  //   });
+      // Assert
+      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
+    });
 
-  //   it('continues polling multiple times', async () => {
-  //     // Arrange
-  //     const { result } = renderHook(() =>
-  //       usePerpsMarkets({ enablePolling: true }),
-  //     );
+    it('continues polling multiple times', async () => {
+      // Arrange
+      const { result } = renderHook(() =>
+        usePerpsMarkets({ enablePolling: true }),
+      );
 
-  //     await waitFor(() => {
-  //       expect(result.current.isLoading).toBe(false);
-  //     });
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-  //     mockProvider.getMarketDataWithPrices.mockClear();
+      mockProvider.getMarketDataWithPrices.mockClear();
 
-  //     // Act - advance time for multiple intervals
-  //     act(() => {
-  //       jest.advanceTimersByTime(60000);
-  //     });
-  //     act(() => {
-  //       jest.advanceTimersByTime(60000);
-  //     });
+      // Act - advance time for multiple intervals
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
 
-  //     // Assert
-  //     expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(2);
-  //   });
+      // Assert
+      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(2);
+    });
 
-  //   it('clears polling interval on unmount', async () => {
-  //     // Arrange
-  //     const { result, unmount } = renderHook(() =>
-  //       usePerpsMarkets({ enablePolling: true }),
-  //     );
+    it('clears polling interval on unmount', async () => {
+      // Arrange
+      const { result, unmount } = renderHook(() =>
+        usePerpsMarkets({ enablePolling: true }),
+      );
 
-  //     await waitFor(() => {
-  //       expect(result.current.isLoading).toBe(false);
-  //     });
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-  //     // Act
-  //     unmount();
-  //     mockProvider.getMarketDataWithPrices.mockClear();
+      // Act
+      unmount();
+      mockProvider.getMarketDataWithPrices.mockClear();
 
-  //     act(() => {
-  //       jest.advanceTimersByTime(60000);
-  //     });
+      act(() => {
+        jest.advanceTimersByTime(60000);
+      });
 
-  //     // Assert
-  //     expect(mockProvider.getMarketDataWithPrices).not.toHaveBeenCalled();
-  //   });
-  // });
+      // Assert
+      expect(mockProvider.getMarketDataWithPrices).not.toHaveBeenCalled();
+    });
+  });
 
   describe('Options configuration', () => {
     it('applies default options when none provided', () => {
