@@ -19,6 +19,11 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 
+import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
+
+const mockEngine = jest.mocked(Engine);
+
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockReset = jest.fn();
@@ -365,8 +370,147 @@ describe('Login test suite 2', () => {
 
       clearTimeoutSpy.mockRestore();
     });
+
+    it('handle SeedlessOnboardingControllerRecoveryError Invalid Password', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
+      );
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValue(seedlessError);
+
+      const { getByTestId, unmount } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual(
+        strings('login.invalid_password'),
+      );
+
+      await act(async () => {
+        unmount();
+      });
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it('handle generic SeedlessOnboardingControllerRecoveryError (else case)', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      const seedlessError = new SeedlessOnboardingControllerRecoveryError(
+        'generic error cases',
+      );
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValue(seedlessError);
+
+      const { getByTestId, unmount } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual('Error: generic error cases');
+
+      await act(async () => {
+        unmount();
+      });
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it('handle generic error (else case)', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - generic error cases',
+      );
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValue(seedlessError);
+
+      const { getByTestId, unmount } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual('generic error cases');
+
+      await act(async () => {
+        unmount();
+      });
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
   });
 
+  describe('handleSyncPasswordAndUnlockWallet', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+    });
+
+    it('handle seedless onboarding controller error on syncPasswordAndUnlockWallet', async () => {
+      jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValue(true);
+
+      // mock keyring controller submitPassword
+      mockEngine.context.KeyringController.submitPassword = jest.fn();
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+      await act(async () => {
+        fireEvent.press(loginButton);
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement).toBeTruthy();
+      expect(errorElement.props.children).toEqual(
+        strings('login.seedless_password_outdated'),
+      );
+    });
+  });
   describe('updateBiometryChoice', () => {
     it('update biometry choice to disabled', async () => {
       mockRoute.mockReturnValue({
@@ -375,6 +519,8 @@ describe('Login test suite 2', () => {
           oauthLoginSuccess: true,
         },
       });
+      mockEngine.context.KeyringController.submitPassword = jest.fn();
+
       jest
         .spyOn(Authentication, 'rehydrateSeedPhrase')
         .mockRejectedValue(new Error('Error: Cancel'));
