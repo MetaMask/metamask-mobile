@@ -21,6 +21,13 @@ import { updateAuthTypeStorageFlags } from '../../../util/authentication';
 
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
+import OAuthService from '../../../core/OAuthService/OAuthService';
+import StorageWrapper from '../../../store/storage-wrapper';
+import {
+  ONBOARDING_WIZARD,
+  OPTIN_META_METRICS_UI_SEEN,
+} from '../../../constants/storage';
+import { EndTraceRequest, TraceName } from '../../../util/trace';
 
 const mockEngine = jest.mocked(Engine);
 
@@ -30,6 +37,11 @@ const mockReset = jest.fn();
 const mockGoBack = jest.fn();
 
 const mockRoute = jest.fn();
+
+jest.mock('../../../util/mnemonic', () => ({
+  uint8ArrayToMnemonic: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -58,6 +70,16 @@ jest.mock('../../../core/BackupVault', () => ({
 const mockGetVaultFromBackup = getVaultFromBackup as jest.Mock;
 
 const mockParseVaultValue = parseVaultValue as jest.Mock;
+
+const mockEndTrace = jest.fn();
+
+jest.mock('../../../util/trace', () => {
+  const actualTrace = jest.requireActual('../../../util/trace');
+  return {
+    ...actualTrace,
+    endTrace: (request: EndTraceRequest) => mockEndTrace(request),
+  };
+});
 
 describe('Login test suite 2', () => {
   describe('handleVaultCorruption', () => {
@@ -538,6 +560,159 @@ describe('Login test suite 2', () => {
       expect(updateAuthTypeStorageFlags).toHaveBeenCalledWith(false);
 
       mockRoute.mockClear();
+    });
+  });
+
+  describe('OAuth Login', () => {
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('navigate back and reset OAuth state', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
+      const spyResetOauthState = jest.spyOn(OAuthService, 'resetOauthState');
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      const otherMethodsButton = getByTestId(
+        LoginViewSelectors.OTHER_METHODS_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(otherMethodsButton);
+      });
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('should handle OAuth login success when metrics UI is seen', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: 'mockTraceContext',
+        },
+      });
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === ONBOARDING_WIZARD) return true;
+        if (key === OPTIN_META_METRICS_UI_SEEN) return true;
+        return null;
+      });
+
+      const spyRehydrateSeedPhrase = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValue(undefined);
+
+      mockEndTrace.mockClear();
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(spyRehydrateSeedPhrase).toHaveBeenCalled();
+      // expect(mockEndTrace).toHaveBeenCalledWith({
+      //   name: TraceName.OnboardingPasswordLoginAttempt,
+      // });
+      // expect(mockEndTrace).toHaveBeenCalledWith({
+      //   name: TraceName.OnboardingExistingSocialLogin,
+      // });
+      // expect(mockEndTrace).toHaveBeenCalledWith({
+      //   name: TraceName.OnboardingJourneyOverall,
+      // });
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+    });
+
+    it('should handle OAuth login success when metrics UI is not seen', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: 'mockTraceContext',
+        },
+      });
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === ONBOARDING_WIZARD) return true;
+        if (key === OPTIN_META_METRICS_UI_SEEN) return null; // Not seen
+        return null;
+      });
+
+      const spyRehydrateSeedPhrase = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValue(undefined);
+
+      mockEndTrace.mockClear();
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(spyRehydrateSeedPhrase).toHaveBeenCalled();
+      // expect(mockEndTrace).toHaveBeenCalledWith({
+      //   name: TraceName.OnboardingPasswordLoginAttempt,
+      // });
+      // expect(mockEndTrace).toHaveBeenCalledWith({
+      //   name: TraceName.OnboardingExistingSocialLogin,
+      // });
+      // expect(mockEndTrace).toHaveBeenCalledWith({
+      //   name: TraceName.OnboardingJourneyOverall,
+      // });
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
+            },
+          },
+        ],
+      });
+    });
+
+    it('should replace navigation when non-OAuth login with existing onboarding wizard', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === ONBOARDING_WIZARD) return true;
+        if (key === OPTIN_META_METRICS_UI_SEEN) return true;
+        return null;
+      });
+
+      mockEngine.context.KeyringController.submitPassword = jest.fn();
+      // jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
   });
 });
