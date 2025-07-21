@@ -106,7 +106,7 @@ class CollectibleContractOverview extends PureComponent {
         },
       });
     } else {
-      this.props.navigation.navigate('SendFlowView', {});
+      this.props.navigation.navigate('SendFlowView');
     }
   };
 
