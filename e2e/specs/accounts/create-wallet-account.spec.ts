@@ -3,7 +3,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../framework/Assertions';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';

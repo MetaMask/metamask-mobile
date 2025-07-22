@@ -1,7 +1,7 @@
 import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
@@ -11,7 +11,7 @@ import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView.js';
