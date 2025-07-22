@@ -39,7 +39,7 @@ export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
       </Text>
       <Text
         variant={TextVariant.BodyMDBold}
-        color={TextColor.Muted}
+        color={TextColor.Alternative}
         testID={AccountCellIds.BALANCE}
       >
         {
@@ -51,7 +51,7 @@ export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
         <Icon
           name={IconName.MoreVertical}
           size={IconSize.Md}
-          color={TextColor.Muted}
+          color={TextColor.Alternative}
         />
       </TouchableOpacity>
     </Box>
