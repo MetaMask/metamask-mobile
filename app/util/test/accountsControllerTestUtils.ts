@@ -79,7 +79,10 @@ export function createMockInternalAccount(
   address: string,
   nickname: string,
   keyringType: KeyringTypes = KeyringTypes.hd,
-  accountType: Omit<KeyringAccountType, AnyAccountType.Account> = EthAccountType.Eoa,
+  accountType: Omit<
+    KeyringAccountType,
+    AnyAccountType.Account
+  > = EthAccountType.Eoa,
 ): InternalAccount {
   const genericMetadata = {
     name: nickname,
