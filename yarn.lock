@@ -5896,14 +5896,14 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@2.3.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-2.3.0.tgz#a57de03ce1136ff43f6272c82e8be3d0ef56ccc0"
-  integrity sha512-ax5eoXB5hX7p6LY1pYMFlzY6RIlTzO5l2IXVt7xiWVJS+8db/z6BEhTBXT+g7/HJnY8wYN/cateGtZnC2fGWuQ==
+"@metamask/seedless-onboarding-controller@2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-2.4.0.tgz#d98f86d0090f088b148b4c33ada20438527c7bbf"
+  integrity sha512-k2FeV9LxrT0nzTHWWkz6bsdzlMLS4Tb4Kb4Q7rtOFETS/qldlLIjeqTasxUJT2U3RPsEvtALGS8tMM2ScHmgZA==
   dependencies:
     "@metamask/auth-network-utils" "^0.3.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/toprf-secure-backup" "^0.6.0"
+    "@metamask/toprf-secure-backup" "^0.7.0"
     "@metamask/utils" "^11.4.2"
     async-mutex "^0.5.0"
 
@@ -6193,10 +6193,10 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/toprf-secure-backup@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/toprf-secure-backup/-/toprf-secure-backup-0.6.0.tgz#1a0ad94d6ffd094c8e5a67d65eac8fccac15b416"
-  integrity sha512-d4UA9knkuSyEL2735o6vnLREZjZYCm8X41TnJu5LyjiIyxY1r0/L4Iz2gkr0YyTLJz60ellEjZOsWmWR9t07aA==
+"@metamask/toprf-secure-backup@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/toprf-secure-backup/-/toprf-secure-backup-0.7.0.tgz#a81be8c4e93fdbd5ddb4b486ad5a0393e9d7e9af"
+  integrity sha512-hRYkUw7DbgxZE2GjY4mKCpa8buH3fGyrN9NqXVPrQCZto7VNbLr6qUrsJbOrWsdHQAAS+h9y+VxCLonyw0CPkg==
   dependencies:
     "@metamask/auth-network-utils" "^0.3.1"
     "@noble/ciphers" "^1.2.1"
