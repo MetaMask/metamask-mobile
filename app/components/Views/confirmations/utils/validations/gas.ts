@@ -29,7 +29,6 @@ export const validateMaxBaseFee = (
   value: string,
   maxPriorityFeePerGasInDec: string,
 ): string | boolean => {
-  console.log('OGP - validateMaxBaseFee', value);
   const field = strings('transactions.gas_modal.max_base_fee');
   return (
     validateValueExists(value, field) ||
