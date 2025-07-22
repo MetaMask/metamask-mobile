@@ -32,12 +32,12 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
+import { selectTokensByAddress } from '../../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { isPerDappSelectedNetworkEnabled } from '../../../../util/networks';
-import { selectAllTokens } from '../../../../selectors/tokensController';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -254,7 +254,6 @@ function TransactionNotification(props) {
         primaryCurrency,
         swapsTransactions,
         swapsTokens,
-        txChainId: tx?.chainId,
       });
       const existingGasPrice = new BigNumber(tx?.txParams?.gasPrice || '0x0');
       const gasFeeValue = fastSplit(
@@ -462,9 +461,9 @@ const mapStateToProps = (state, ownProps) => {
     transactions: TransactionController.transactions,
     ticker,
     chainId,
-    tokens: selectAllTokens(state),
+    tokens: selectTokensByAddress(state),
     collectibleContracts: collectibleContractsSelector(state),
-    contractExchangeRates: selectTokenMarketData(state),
+    contractExchangeRates: selectContractExchangeRates(state),
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     primaryCurrency: state.settings.primaryCurrency,

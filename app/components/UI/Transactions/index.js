@@ -57,7 +57,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import {
@@ -75,7 +75,6 @@ import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import { selectAllTokens } from '../../../selectors/tokensController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -911,7 +910,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   networkClientId: selectNetworkClientId(state),
   collectibleContracts: collectibleContractsSelector(state),
-  contractExchangeRates: selectTokenMarketData(state),
+  contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
@@ -919,7 +918,7 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
   primaryCurrency: selectPrimaryCurrency(state),
-  tokens: selectAllTokens(state),
+  tokens: selectTokensByAddress(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
 });
