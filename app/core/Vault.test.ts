@@ -524,6 +524,7 @@ describe('Vault', () => {
       } as unknown as RootState);
       const mockSeedlessOnboardingController = {
         changePassword: jest.fn().mockResolvedValue(null),
+        storeKeyringEncryptionKey: jest.fn(),
       };
       (Engine.context as Record<string, unknown>).SeedlessOnboardingController =
         mockSeedlessOnboardingController;
@@ -569,6 +570,7 @@ describe('Vault', () => {
       } as unknown as RootState);
       const mockSeedlessOnboardingController = {
         changePassword: jest.fn().mockRejectedValueOnce(error),
+        storeKeyringEncryptionKey: jest.fn(),
       };
       (Engine.context as Record<string, unknown>).SeedlessOnboardingController =
         mockSeedlessOnboardingController;
