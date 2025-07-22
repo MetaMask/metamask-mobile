@@ -37,6 +37,7 @@ import type {
   PerpsNavigationParamList,
 } from '../../controllers/types';
 import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
