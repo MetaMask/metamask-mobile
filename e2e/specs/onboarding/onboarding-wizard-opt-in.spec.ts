@@ -8,7 +8,7 @@ import LoginView from '../../pages/wallet/LoginView';
 import { CreateNewWallet } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import CommonView from '../../pages/CommonView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
   getEventsPayloads,
@@ -68,7 +68,7 @@ describe(
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
       await TestHelpers.delay(1500);
-      await Assertions.checkIfToggleIsOn(
+      await Assertions.expectToggleToBeOn(
         SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>,
       );
     });
@@ -77,7 +77,7 @@ describe(
       await SecurityAndPrivacy.tapMetaMetricsToggle();
       await TestHelpers.delay(1000); // Wait for toggle action
       await CommonView.tapOkAlert();
-      await Assertions.checkIfToggleIsOff(
+      await Assertions.expectToggleToBeOff(
         SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>,
       );
 
@@ -120,7 +120,9 @@ describe(
       await TestHelpers.delay(2000); // Wait for app launch
 
       await LoginView.enterPassword(PASSWORD);
-      await Assertions.checkIfVisible(WalletView.container);
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description: 'Wallet View should be visible after relaunch',
+      });
       // Removed delay - we already wait for wallet view to be visible
 
       const eventsAfterRelaunch = await getEventsPayloads(mockServer);
@@ -140,7 +142,7 @@ describe(
       await TestHelpers.delay(500); // Wait for animation
 
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      await Assertions.checkIfToggleIsOff(
+      await Assertions.expectToggleToBeOff(
         SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>,
       );
 

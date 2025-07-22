@@ -620,22 +620,22 @@ export default class Assertions {
    * Legacy method: Check if toggle is in "on" state
    * @deprecated Use expectToggleToBeOn() instead for better error handling and retry mechanisms
    */
-  static async checkIfToggleIsOn(detoxElement: DetoxElement): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
-    // Use Detox's expect syntax for toggle values
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
-    await (expect(el) as any).toHaveToggleValue(true);
+  static async checkIfToggleIsOn(
+    detoxElement: DetoxElement,
+    timeout = 15000,
+  ): Promise<void> {
+    return this.expectToggleToBeOn(detoxElement, { timeout });
   }
 
   /**
    * Legacy method: Check if toggle is in "off" state
    * @deprecated Use expectToggleToBeOff() instead for better error handling and retry mechanisms
    */
-  static async checkIfToggleIsOff(detoxElement: DetoxElement): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
-    // Use Detox's expect syntax for toggle values
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
-    await (expect(el) as any).toHaveToggleValue(false);
+  static async checkIfToggleIsOff(
+    detoxElement: DetoxElement,
+    timeout = 15000,
+  ): Promise<void> {
+    return this.expectToggleToBeOff(detoxElement, { timeout });
   }
 
   /**
