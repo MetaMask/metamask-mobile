@@ -31,10 +31,10 @@ const mockControllerMessenger = jest.fn();
 const mockAddDiscoveredAccounts = jest.fn();
 const mockGetAccountByAddress = jest.fn().mockReturnValue(mockExpectedAccount);
 const mockRemoveAccount = jest.fn();
-const mockAddNewSecretData = jest.fn();
 
 // Mock for seedless onboarding
 const mockSelectSeedlessOnboardingLoginFlow = jest.fn();
+const mockAddNewSecretData = jest.fn();
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
 
@@ -103,8 +103,11 @@ jest.mock('../../core/Engine', () => ({
       getAccountByAddress: () => mockGetAccountByAddress(),
     },
     SeedlessOnboardingController: {
-      addNewSecretData: (data: unknown, type: unknown, options?: unknown) =>
-        mockAddNewSecretData(data, type, options),
+      addNewSecretData: (
+        seed: Uint8Array,
+        type: SecretType,
+        keyringId: string,
+      ) => mockAddNewSecretData(seed, type, keyringId),
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
@@ -268,8 +271,8 @@ describe('MultiSRP Actions', () => {
       });
     });
 
-    it('syncs with seedless onboarding when login flow is active', async () => {
-      // Arrange
+    it('calls addNewSeedPhraseBackup when seedless onboarding login flow is active', async () => {
+      mockAddNewSecretData.mockResolvedValue(undefined);
       mockGetKeyringsByType.mockResolvedValue([]);
       mockAddNewKeyring.mockResolvedValue({
         id: 'test-keyring-id',
@@ -283,7 +286,6 @@ describe('MultiSRP Actions', () => {
       // Act
       const result = await importNewSecretRecoveryPhrase(testMnemonic);
 
-      // Assert
       expect(mockAddNewSecretData).toHaveBeenCalledWith(
         expect.any(Uint8Array),
         SecretType.Mnemonic,
