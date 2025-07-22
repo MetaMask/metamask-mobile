@@ -5,23 +5,26 @@ import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selecto
 import { useIsNft } from '../../../../hooks/nft/useIsNft';
 import { HeroNft } from '../../../hero-nft';
 import { HeroToken } from '../../../hero-token';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import styleSheet from './hero-row.styles';
 
-const styles = {
-  wrapper: {
-    minHeight: 100,
-  },
+const LoadingHeroRow = () => {
+  const { styles } = useStyles(styleSheet, {});
+  return <View style={styles.loadingWrapper} />;
 };
 
 export const HeroRow = ({ amountWei }: { amountWei?: string }) => {
   const { isNft, isPending } = useIsNft();
+  const { styles } = useStyles(styleSheet, {});
 
   return (
     <View
       style={styles.wrapper}
       testID={ConfirmationRowComponentIDs.TOKEN_HERO}
     >
-      {!isPending && isNft === true && <HeroNft />}
-      {!isPending && isNft === false && <HeroToken amountWei={amountWei} />}
+      {isPending && <LoadingHeroRow />}
+      {!isPending &&
+        (isNft ? <HeroNft /> : <HeroToken amountWei={amountWei} />)}
     </View>
   );
 };
