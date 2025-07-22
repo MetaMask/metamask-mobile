@@ -1,17 +1,16 @@
-import TestHelpers from '../../helpers';
-import { TEST_DAPP_LOCAL_URL } from '../../fixtures/utils';
-
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
-
 import enContent from '../../../locales/languages/en.json';
 
-import Browser from '../Browser/BrowserView';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+import TestHelpers from '../../helpers';
+import { TEST_DAPP_LOCAL_URL } from '../../fixtures/utils';
+import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
+import Browser from '../Browser/BrowserView';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
+const CONNECT_BUTTON_TEXT = 'Connect';
 
 interface ContractNavigationParams {
   contractAddress: string;
@@ -203,6 +202,31 @@ class TestDApp {
     );
   }
 
+  get sendCallsButton(): WebElement {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SEND_CALLS_BUTTON,
+    );
+  }
+
+  get revokeAccountPermission(): WebElement {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.REVOKE_ACCOUNTS_PERMISSIONS,
+    );
+  }
+
+  get requestPermissions(): WebElement {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.REQUEST_PERMISSIONS,
+    );
+  }
+
+  get connectButtonText(): WebElement {
+    return Matchers.getElementByText(CONNECT_BUTTON_TEXT);
+  }
+
   get erc721RevokeApprovalButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -293,6 +317,10 @@ class TestDApp {
     await Gestures.waitAndTap(this.confirmButtonText);
   }
 
+  async tapConnectButton(): Promise<void> {
+    await Gestures.waitAndTap(this.connectButtonText);
+  }
+
   async tapApproveButton(): Promise<void> {
     await Gestures.waitAndTap(this.approveButtonText);
   }
@@ -330,6 +358,18 @@ class TestDApp {
 
   async tapDeployContractButton() {
     await this.tapButton(this.deployContractButton);
+  }
+
+  async tapSendCallsButton() {
+    await this.tapButton(this.sendCallsButton);
+  }
+
+  async tapRevokeAccountPermission() {
+    await this.tapButton(this.revokeAccountPermission);
+  }
+
+  async tapRequestPermissions() {
+    await this.tapButton(this.requestPermissions);
   }
 
   async tapERC721RevokeApprovalButton(): Promise<void> {
