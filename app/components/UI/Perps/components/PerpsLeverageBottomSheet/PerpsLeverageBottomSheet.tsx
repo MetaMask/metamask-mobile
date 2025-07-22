@@ -40,7 +40,6 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { RISK_MANAGEMENT } from '../../constants/hyperLiquidConfig';
 import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import { strings } from '../../../../../../locales/i18n';
@@ -215,7 +214,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   minLeverage,
   maxLeverage,
   currentPrice,
-  // liquidationPrice: initialLiquidationPrice, // TODO: Use for display
+  liquidationPrice,
   direction,
 }) => {
   const { colors } = useTheme();
@@ -235,46 +234,17 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     onClose();
   };
 
-  // Calculate liquidation price based on leverage
-  const calculatedLiquidationPrice = useMemo(() => {
-    if (!currentPrice || tempLeverage === 0) return 0;
+  // Calculate liquidation percentage drop from the actual liquidation price
+  // This uses the provider-calculated liquidation price, making it protocol-agnostic
+  const liquidationDropPercentage = useMemo(() => {
+    if (currentPrice === 0 || liquidationPrice === 0) return 0;
 
-    const maintenanceMargin = RISK_MANAGEMENT.maintenanceMargin;
-    const leverageRatio = 1 / tempLeverage;
+    // Calculate the percentage difference between current price and liquidation price
+    const percentageDrop =
+      (Math.abs(currentPrice - liquidationPrice) / currentPrice) * 100;
 
-    if (direction === 'long') {
-      const liquidationRatio = 1 - (leverageRatio - maintenanceMargin);
-      return currentPrice * liquidationRatio;
-    }
-    const liquidationRatio = 1 + (leverageRatio - maintenanceMargin);
-    return currentPrice * liquidationRatio;
-  }, [currentPrice, tempLeverage, direction]);
-
-  // Calculate liquidation percentage drop
-  const calculateLiquidationDrop = useCallback((lev: number) => {
-    if (lev === 0) return 0;
-
-    // For perpetual futures with isolated margin:
-    // Initial Margin = Position Value / Leverage
-    // The maximum loss before liquidation is approximately the initial margin
-    //
-    // Since position PnL is amplified by leverage, a 1% price move = leverage% PnL
-    // Therefore, liquidation occurs when price moves by approximately: 100% / leverage
-    //
-    // For example:
-    // - 10x leverage: ~10% price move causes 100% loss of margin
-    // - 20x leverage: ~5% price move causes 100% loss of margin
-    // - 50x leverage: ~2% price move causes 100% loss of margin
-    //
-    // The exact formula depends on the exchange's liquidation engine,
-    // but this gives a good approximation
-
-    // Simple formula: liquidation distance ≈ 100 / leverage
-    const liquidationPercentage = 100 / lev;
-
-    // Round to 1 decimal place for display
-    return Math.round(liquidationPercentage * 10) / 10;
-  }, []);
+    return percentageDrop;
+  }, [currentPrice, liquidationPrice]);
 
   // Generate dynamic leverage options based on maxLeverage
   const quickSelectValues = useMemo(() => {
@@ -369,7 +339,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           <Text variant={TextVariant.BodyMD} style={warningStyles.textStyle}>
             You will be liquidated if price{' '}
             {direction === 'long' ? 'drops' : 'rises'} by{' '}
-            {calculateLiquidationDrop(tempLeverage)}%
+            {liquidationDropPercentage.toFixed(1)}%
           </Text>
         </View>
 
@@ -381,7 +351,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 {strings('perps.order.leverage_modal.liquidation_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPrice(calculatedLiquidationPrice)}
+                {formatPrice(liquidationPrice)}
               </Text>
             </View>
             <View style={styles.priceRow}>
@@ -397,12 +367,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 {strings('perps.order.leverage_modal.liquidation_distance')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {(
-                  (Math.abs(currentPrice - calculatedLiquidationPrice) /
-                    currentPrice) *
-                  100
-                ).toFixed(2)}
-                %
+                {liquidationDropPercentage.toFixed(2)}%
               </Text>
             </View>
           </View>

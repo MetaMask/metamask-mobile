@@ -2,10 +2,10 @@ import { strings } from '../../../../../locales/i18n';
 import type { MarketInfo, OrderType } from '../controllers/types';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
 import {
-  RISK_MANAGEMENT,
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
 } from '../constants/hyperLiquidConfig';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface OrderFormState {
   asset: string;
@@ -85,7 +85,7 @@ export function validatePerpsOrder(
 
   // Leverage validation
   const maxLeverage =
-    marketData?.maxLeverage || RISK_MANAGEMENT.fallbackMaxLeverage;
+    marketData?.maxLeverage || PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
   if (orderForm.leverage < 1 || orderForm.leverage > maxLeverage) {
     errors.push(
       strings('perps.order.validation.invalid_leverage', {
@@ -95,7 +95,7 @@ export function validatePerpsOrder(
     );
   }
 
-  if (orderForm.leverage > RISK_MANAGEMENT.fallbackMaxLeverage) {
+  if (orderForm.leverage > 20) {
     warnings.push(strings('perps.order.validation.high_leverage_warning'));
   }
 

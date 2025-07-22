@@ -261,6 +261,20 @@ export interface SubscribeOrderFillsParams {
   since?: number; // Future: only fills after timestamp
 }
 
+export interface LiquidationPriceParams {
+  entryPrice: number;
+  leverage: number;
+  direction: 'long' | 'short';
+  positionSize?: number; // Optional: for more accurate calculations
+  marginType?: 'isolated' | 'cross'; // Optional: defaults to isolated
+  asset?: string; // Optional: for asset-specific maintenance margins
+}
+
+export interface MaintenanceMarginParams {
+  asset: string;
+  positionSize?: number; // Optional: for tiered margin systems
+}
+
 export interface IPerpsProvider {
   readonly protocolId: string;
 
@@ -279,6 +293,11 @@ export interface IPerpsProvider {
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
   validateDeposit(params: DepositParams): { isValid: boolean; error?: string }; // Protocol-specific deposit validation
+
+  // Protocol-specific calculations
+  calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
+  calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
+  getMaxLeverage(asset: string): Promise<number>;
 
   // Live data subscriptions → Direct UI (NO Redux, maximum speed)
   subscribeToPrices(params: SubscribePricesParams): () => void;

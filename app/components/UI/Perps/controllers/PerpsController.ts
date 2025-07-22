@@ -789,6 +789,42 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Calculate liquidation price for a position
+   * Uses provider-specific formulas based on protocol rules
+   */
+  async calculateLiquidationPrice(params: {
+    entryPrice: number;
+    leverage: number;
+    direction: 'long' | 'short';
+    positionSize?: number;
+    marginType?: 'isolated' | 'cross';
+    asset?: string;
+  }): Promise<string> {
+    const provider = this.getActiveProvider();
+    return provider.calculateLiquidationPrice(params);
+  }
+
+  /**
+   * Calculate maintenance margin for a specific asset
+   * Returns a percentage (e.g., 0.0125 for 1.25%)
+   */
+  async calculateMaintenanceMargin(params: {
+    asset: string;
+    positionSize?: number;
+  }): Promise<number> {
+    const provider = this.getActiveProvider();
+    return provider.calculateMaintenanceMargin(params);
+  }
+
+  /**
+   * Get maximum leverage allowed for an asset
+   */
+  async getMaxLeverage(asset: string): Promise<number> {
+    const provider = this.getActiveProvider();
+    return provider.getMaxLeverage(asset);
+  }
+
+  /**
    * Get supported deposit routes - returns complete asset and routing information
    */
   getDepositRoutes(): AssetRoute[] {

@@ -8,7 +8,6 @@ import type {
   HyperLiquidTransportConfig,
   TradingDefaultsConfig,
   FeeRatesConfig,
-  RiskManagementConfig,
 } from '../types';
 
 // Network constants
@@ -101,13 +100,6 @@ export const FEE_RATES: FeeRatesConfig = {
 
 // MetaMask fee for deposits (temporary placeholder)
 export const METAMASK_DEPOSIT_FEE = '$0.00';
-
-// Risk management constants
-export const RISK_MANAGEMENT: RiskManagementConfig = {
-  maintenanceMargin: 0.05, // 5% maintenance margin for liquidation
-  fallbackMaxLeverage: 20, // Fallback when market data unavailable
-  fallbackBalancePercent: 0.1, // Default balance percentage if no balance
-};
 
 // Order book spread constants
 export const ORDER_BOOK_SPREAD = {

@@ -38,6 +38,8 @@ import type {
   InitializeResult,
   IPerpsProvider,
   LiveDataConfig,
+  LiquidationPriceParams,
+  MaintenanceMarginParams,
   MarketInfo,
   OrderResult,
   OrderParams as PerpsOrderParams,
@@ -51,6 +53,7 @@ import type {
   WithdrawResult,
 } from '../types';
 import { strings } from '../../../../../../locales/i18n';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 /**
  * HyperLiquid provider implementation
@@ -822,6 +825,106 @@ export class HyperLiquidProvider implements IPerpsProvider {
             : strings('perps.errors.unknownError'),
       };
     }
+  }
+
+  /**
+   * Calculate liquidation price using HyperLiquid's formula
+   * Formula: liq_price = price - side * margin_available / position_size / (1 - l * side)
+   * where l = 1 / MAINTENANCE_LEVERAGE = 1 / (2 * max_leverage)
+   */
+  async calculateLiquidationPrice(
+    params: LiquidationPriceParams,
+  ): Promise<string> {
+    try {
+      const { entryPrice, leverage, direction, asset } = params;
+
+      // Validate inputs
+      if (
+        !isFinite(entryPrice) ||
+        !isFinite(leverage) ||
+        entryPrice <= 0 ||
+        leverage <= 0
+      ) {
+        return '0.00';
+      }
+
+      // Get asset's max leverage to calculate maintenance margin
+      let maxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE; // Default fallback
+      if (asset) {
+        maxLeverage = await this.getMaxLeverage(asset);
+      }
+
+      // Calculate maintenance leverage and margin according to HyperLiquid docs
+      const maintenanceLeverage = 2 * maxLeverage;
+      const l = 1 / maintenanceLeverage;
+      const side = direction === 'long' ? 1 : -1;
+
+      // For isolated margin, we use the standard formula
+      // margin_available = initial_margin - maintenance_margin_required
+      const initialMargin = 1 / leverage;
+      const maintenanceMargin = 1 / maintenanceLeverage;
+
+      // Check if position can be opened
+      if (initialMargin < maintenanceMargin) {
+        // Position cannot be opened - initial margin is less than maintenance
+        return entryPrice.toFixed(2);
+      }
+
+      // HyperLiquid liquidation formula
+      // For isolated margin: margin_available = isolated_margin - maintenance_margin_required
+      const marginAvailable = initialMargin - maintenanceMargin;
+
+      // Simplified calculation when position size is 1 unit
+      // liq_price = price - side * margin_available * price / (1 - l * side)
+      const denominator = 1 - l * side;
+      if (Math.abs(denominator) < 0.0001) {
+        // Avoid division by very small numbers
+        return entryPrice.toFixed(2);
+      }
+
+      const liquidationPrice =
+        entryPrice - (side * marginAvailable * entryPrice) / denominator;
+
+      // Ensure liquidation price is non-negative
+      return Math.max(0, liquidationPrice).toFixed(2);
+    } catch (error) {
+      DevLogger.log('Error calculating liquidation price:', error);
+      return '0.00';
+    }
+  }
+
+  /**
+   * Calculate maintenance margin for a specific asset
+   * According to HyperLiquid docs: maintenance_margin = 1 / (2 * max_leverage)
+   */
+  async calculateMaintenanceMargin(
+    params: MaintenanceMarginParams,
+  ): Promise<number> {
+    const { asset } = params;
+
+    // Get asset's max leverage
+    const maxLeverage = await this.getMaxLeverage(asset);
+
+    // Maintenance margin = 1 / (2 * max_leverage)
+    // This varies from 1.25% (for 40x) to 16.7% (for 3x) depending on the asset
+    return 1 / (2 * maxLeverage);
+  }
+
+  /**
+   * Get maximum leverage allowed for an asset
+   */
+  async getMaxLeverage(asset: string): Promise<number> {
+    await this.ensureReady();
+
+    const infoClient = this.clientService.getInfoClient();
+    const meta = await infoClient.meta();
+
+    const assetInfo = meta.universe.find((a) => a.name === asset);
+    if (!assetInfo) {
+      throw new Error(`Asset ${asset} not found`);
+    }
+
+    return assetInfo.maxLeverage;
   }
 
   /**

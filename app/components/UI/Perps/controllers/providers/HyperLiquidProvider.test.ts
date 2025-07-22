@@ -933,4 +933,185 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBeUndefined();
     });
   });
+
+  describe('calculateLiquidationPrice', () => {
+    beforeEach(() => {
+      // Set up mock for asset info
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', maxLeverage: 20, szDecimals: 5 }],
+        }),
+      });
+    });
+
+    it('should calculate liquidation price for long position correctly', async () => {
+      const params = {
+        entryPrice: 50000,
+        leverage: 10,
+        direction: 'long' as const,
+        asset: 'BTC',
+      };
+
+      const result = await provider.calculateLiquidationPrice(params);
+
+      // With 10x leverage and 20x max leverage:
+      // maintenance margin = 1 / (2 * 20) = 0.025
+      // initial margin = 1 / 10 = 0.1
+      // margin available = 0.1 - 0.025 = 0.075
+      // l = 1 / 40 = 0.025
+      // liquidation = 50000 - (1 * 0.075 * 50000) / (1 - 0.025 * 1)
+      // liquidation = 50000 - 3750 / 0.975 = 50000 - 3846.15 = 46153.85
+      expect(result).toBe('46153.85');
+    });
+
+    it('should calculate liquidation price for short position correctly', async () => {
+      const params = {
+        entryPrice: 50000,
+        leverage: 10,
+        direction: 'short' as const,
+        asset: 'BTC',
+      };
+
+      const result = await provider.calculateLiquidationPrice(params);
+
+      // With 10x leverage and 20x max leverage:
+      // maintenance margin = 1 / (2 * 20) = 0.025
+      // initial margin = 1 / 10 = 0.1
+      // margin available = 0.1 - 0.025 = 0.075
+      // l = 1 / 40 = 0.025
+      // liquidation = 50000 - (-1 * 0.075 * 50000) / (1 - 0.025 * -1)
+      // liquidation = 50000 + 3750 / 1.025 = 50000 + 3658.54 = 53658.54
+      expect(result).toBe('53658.54');
+    });
+
+    it('should handle edge case where leverage equals maintenance leverage', async () => {
+      const params = {
+        entryPrice: 50000,
+        leverage: 40, // At maintenance leverage
+        direction: 'long' as const,
+        asset: 'BTC',
+      };
+
+      const result = await provider.calculateLiquidationPrice(params);
+
+      // Initial margin = 1/40 = 0.025, maintenance = 1/40 = 0.025
+      // Position cannot be opened (initial margin <= maintenance)
+      expect(result).toBe('50000.00');
+    });
+
+    it('should handle invalid inputs', async () => {
+      const invalidCases = [
+        { entryPrice: 0, leverage: 10, direction: 'long' as const },
+        { entryPrice: 50000, leverage: 0, direction: 'long' as const },
+        { entryPrice: NaN, leverage: 10, direction: 'long' as const },
+        { entryPrice: 50000, leverage: Infinity, direction: 'long' as const },
+        { entryPrice: -100, leverage: 10, direction: 'long' as const },
+      ];
+
+      for (const params of invalidCases) {
+        const result = await provider.calculateLiquidationPrice(params);
+        expect(result).toBe('0.00');
+      }
+    });
+
+    it('should use default max leverage when asset is not provided', async () => {
+      const params = {
+        entryPrice: 50000,
+        leverage: 10,
+        direction: 'long' as const,
+        // No asset provided, so default 50x will be used
+      };
+
+      const result = await provider.calculateLiquidationPrice(params);
+
+      // Should use default 50x max leverage (since no asset provided)
+      // maintenance margin = 1 / (2 * 50) = 0.01
+      // initial margin = 1 / 10 = 0.1
+      // margin available = 0.1 - 0.01 = 0.09
+      // l = 1 / 100 = 0.01
+      // liquidation = 50000 - (1 * 0.09 * 50000) / (1 - 0.01 * 1)
+      // liquidation = 50000 - 4500 / 0.99 = 50000 - 4545.45 = 45454.55
+      expect(result).toBe('45454.55');
+    });
+  });
+
+  describe('calculateMaintenanceMargin', () => {
+    it('should calculate maintenance margin correctly for 40x max leverage asset', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', maxLeverage: 40, szDecimals: 5 }],
+        }),
+      });
+
+      const result = await provider.calculateMaintenanceMargin({
+        asset: 'BTC',
+      });
+
+      // Maintenance margin = 1 / (2 * 40) = 0.0125 (1.25%)
+      expect(result).toBe(0.0125);
+    });
+
+    it('should calculate maintenance margin correctly for 3x max leverage asset', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'DOGE', maxLeverage: 3, szDecimals: 0 }],
+        }),
+      });
+
+      const result = await provider.calculateMaintenanceMargin({
+        asset: 'DOGE',
+      });
+
+      // Maintenance margin = 1 / (2 * 3) = 0.1667 (16.67%)
+      expect(result).toBeCloseTo(0.1667, 4);
+    });
+
+    it('should throw error when asset not found', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [],
+        }),
+      });
+
+      await expect(
+        provider.calculateMaintenanceMargin({ asset: 'UNKNOWN' }),
+      ).rejects.toThrow('Asset UNKNOWN not found');
+    });
+  });
+
+  describe('getMaxLeverage', () => {
+    it('should return max leverage for an asset', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'ETH', maxLeverage: 30, szDecimals: 4 }],
+        }),
+      });
+
+      const result = await provider.getMaxLeverage('ETH');
+
+      expect(result).toBe(30);
+    });
+
+    it('should throw error when asset not found', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [],
+        }),
+      });
+
+      await expect(provider.getMaxLeverage('UNKNOWN')).rejects.toThrow(
+        'Asset UNKNOWN not found',
+      );
+    });
+
+    it('should throw error on network failure', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockRejectedValue(new Error('Network error')),
+      });
+
+      await expect(provider.getMaxLeverage('BTC')).rejects.toThrow(
+        'Network error',
+      );
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import { FEE_RATES, RISK_MANAGEMENT } from '../constants/hyperLiquidConfig';
+import { FEE_RATES } from '../constants/hyperLiquidConfig';
 import type { OrderType } from '../controllers/types';
 
 interface PositionSizeParams {
@@ -9,12 +9,6 @@ interface PositionSizeParams {
 interface MarginRequiredParams {
   amount: string;
   leverage: number;
-}
-
-interface LiquidationPriceParams {
-  entryPrice: number;
-  leverage: number;
-  direction: 'long' | 'short';
 }
 
 interface EstimatedFeesParams {
@@ -52,33 +46,6 @@ export function calculateMarginRequired(params: MarginRequiredParams): string {
   }
 
   return (amountNum / leverage).toFixed(2);
-}
-
-/**
- * Calculate liquidation price for a position
- * @param params - Entry price, leverage, and position direction
- * @returns Liquidation price formatted to 2 decimal places
- */
-export function calculateLiquidationPrice(
-  params: LiquidationPriceParams,
-): string {
-  const { entryPrice, leverage, direction } = params;
-
-  if (entryPrice === 0 || leverage === 0) {
-    return '0.00';
-  }
-
-  const maintenanceMargin = RISK_MANAGEMENT.maintenanceMargin;
-  const leverageRatio = 1 / leverage;
-
-  if (direction === 'long') {
-    // For long positions: liquidation occurs when price drops
-    const liquidationRatio = 1 - (leverageRatio - maintenanceMargin);
-    return (entryPrice * liquidationRatio).toFixed(2);
-  }
-  // For short positions: liquidation occurs when price rises
-  const liquidationRatio = 1 + (leverageRatio - maintenanceMargin);
-  return (entryPrice * liquidationRatio).toFixed(2);
 }
 
 /**

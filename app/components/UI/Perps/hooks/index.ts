@@ -21,6 +21,10 @@ export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
 // Payment token hooks
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
+// Market data and calculation hooks
+export { usePerpsMarketData } from './usePerpsMarketData';
+export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
+
 // Removed for minimal PR:
 // - usePerpsPositions (positions management)
 // - usePerpsDeposit (deposit flows)

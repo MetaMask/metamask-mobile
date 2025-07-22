@@ -14,6 +14,7 @@ import React, {
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
@@ -74,7 +75,6 @@ import {
   USDC_SYMBOL,
 } from '../../constants/hyperLiquidConfig';
 import type {
-  MarketInfo,
   PerpsNavigationParamList,
   OrderType,
   OrderParams,
@@ -85,11 +85,12 @@ import {
   usePerpsPaymentTokens,
   usePerpsPrices,
   usePerpsTrading,
+  usePerpsMarketData,
+  usePerpsLiquidationPrice,
 } from '../../hooks';
 import { formatPrice } from '../../utils/formatUtils';
 import {
   calculateEstimatedFees,
-  calculateLiquidationPrice,
   calculateMarginRequired,
   calculatePositionSize,
 } from '../../utils/orderCalculations';
@@ -140,7 +141,7 @@ const PerpsOrderView: React.FC = () => {
   } = route.params || {};
 
   // Get PerpsController methods and state
-  const { placeOrder, getMarkets } = usePerpsTrading();
+  const { placeOrder } = usePerpsTrading();
   const currentNetwork = usePerpsNetwork();
   const cachedAccountState = usePerpsAccount();
 
@@ -149,9 +150,12 @@ const PerpsOrderView: React.FC = () => {
     cachedAccountState?.availableBalance?.toString() || '0',
   );
 
-  // Market data state
-  const [marketData, setMarketData] = useState<MarketInfo | null>(null);
-  const [isLoadingMarketData, setIsLoadingMarketData] = useState(true);
+  // Market data hook
+  const {
+    marketData,
+    isLoading: isLoadingMarketData,
+    error: marketDataError,
+  } = usePerpsMarketData(asset);
 
   // Order form state
   const defaultAmount =
@@ -252,7 +256,7 @@ const PerpsOrderView: React.FC = () => {
             • Initial margin = Position size ÷ Leverage
           </Text>
           <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Maintenance margin = 0.625% of position size
+            • Maintenance margin varies by asset (1.25% to 16.7%)
           </Text>
           <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
             • Available balance must exceed initial margin
@@ -334,50 +338,33 @@ const PerpsOrderView: React.FC = () => {
     });
   }, [tokenList, isIpfsGatewayEnabled]);
 
-  // Fetch market data
-  const fetchMarketData = useCallback(async () => {
-    try {
-      const markets = await getMarkets({ symbols: [asset] });
-      const assetMarket = markets.find((market) => market.name === asset);
-
-      if (!assetMarket) {
-        // Asset not found - show error
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            { label: strings('perps.order.error.invalid_asset'), isBold: true },
-            { label: ': ', isBold: false },
-            {
-              label: strings('perps.order.error.asset_not_tradable', { asset }),
-              isBold: false,
-            },
-          ],
-          iconName: IconName.Error,
-          iconColor: IconColor.Error,
-          hasNoTimeout: true,
-          closeButtonOptions: {
-            label: strings('perps.order.error.go_back'),
-            variant: ButtonVariants.Secondary,
-            onPress: () => {
-              toastRef?.current?.closeToast();
-              navigation.goBack();
-            },
-          },
-        });
-      }
-
-      setMarketData(assetMarket || null);
-    } catch (error) {
-      setMarketData(null);
-    }
-  }, [getMarkets, asset, toastRef, navigation]);
-
+  // Show error toast if market data is not available
   useEffect(() => {
-    setIsLoadingMarketData(true);
-    fetchMarketData().finally(() => {
-      setIsLoadingMarketData(false);
-    });
-  }, [fetchMarketData]);
+    if (marketDataError) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('perps.order.error.invalid_asset'), isBold: true },
+          { label: ': ', isBold: false },
+          {
+            label: strings('perps.order.error.asset_not_tradable', { asset }),
+            isBold: false,
+          },
+        ],
+        iconName: IconName.Error,
+        iconColor: IconColor.Error,
+        hasNoTimeout: true,
+        closeButtonOptions: {
+          label: strings('perps.order.error.go_back'),
+          variant: ButtonVariants.Secondary,
+          onPress: () => {
+            toastRef?.current?.closeToast();
+            navigation.goBack();
+          },
+        },
+      });
+    }
+  }, [marketDataError, asset, toastRef, navigation]);
 
   // Calculate estimated fees
   const estimatedFees = useMemo(
@@ -410,15 +397,12 @@ const PerpsOrderView: React.FC = () => {
   );
 
   // Real-time liquidation price calculation
-  const liquidationPrice = useMemo(
-    () =>
-      calculateLiquidationPrice({
-        entryPrice: assetData.price,
-        leverage: orderForm.leverage,
-        direction: orderForm.direction,
-      }),
-    [assetData.price, orderForm.leverage, orderForm.direction],
-  );
+  const { liquidationPrice } = usePerpsLiquidationPrice({
+    entryPrice: assetData.price,
+    leverage: orderForm.leverage,
+    direction: orderForm.direction,
+    asset: orderForm.asset,
+  });
 
   // Order validation
   const orderValidation = useMemo(
@@ -952,7 +936,9 @@ const PerpsOrderView: React.FC = () => {
         }}
         leverage={orderForm.leverage}
         minLeverage={1}
-        maxLeverage={marketData?.maxLeverage || 50}
+        maxLeverage={
+          marketData?.maxLeverage || PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE
+        }
         currentPrice={assetData.price}
         liquidationPrice={parseFloat(liquidationPrice)}
         direction={orderForm.direction}

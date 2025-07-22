@@ -43,6 +43,8 @@ import {
   usePerpsNetwork,
   usePerpsPrices,
   usePerpsPaymentTokens,
+  usePerpsMarketData,
+  usePerpsLiquidationPrice,
 } from '../../hooks';
 
 // Mock dependencies
@@ -67,6 +69,8 @@ jest.mock('../../hooks', () => ({
     disconnect: jest.fn(),
     resetError: jest.fn(),
   })),
+  usePerpsMarketData: jest.fn(),
+  usePerpsLiquidationPrice: jest.fn(),
 }));
 
 // Mock Redux selectors
@@ -269,6 +273,7 @@ const defaultMockRoute = {
 const defaultMockHooks = {
   usePerpsAccount: {
     balance: '1000',
+    availableBalance: '1000',
     accountInfo: {
       marginSummary: {
         accountValue: 1000,
@@ -295,29 +300,25 @@ const defaultMockHooks = {
       priceDecimals: 2,
       sizeDecimals: 4,
     }),
+    calculateLiquidationPrice: jest.fn().mockResolvedValue('2850.00'),
   },
-  usePerpsNetwork: {
-    isConnected: true,
-    currentChainId: '0xa4b1',
-  },
+  usePerpsNetwork: 'mainnet',
   usePerpsPrices: {
-    prices: {
-      ETH: {
-        price: 3000,
-        change24h: 2.5,
-      },
+    ETH: {
+      price: '3000',
+      percentChange24h: '2.5',
     },
   },
-  usePerpsPaymentTokens: {
-    tokens: [
-      {
-        symbol: 'USDC',
-        address: '0xusdc',
-        decimals: 6,
-        balance: '1000000000',
-      },
-    ],
-  },
+  usePerpsPaymentTokens: [
+    {
+      symbol: 'USDC',
+      address: '0xusdc',
+      decimals: 6,
+      balance: '1000000000',
+      chainId: '0x1',
+      name: 'USD Coin',
+    },
+  ],
 };
 
 describe('PerpsOrderView', () => {
@@ -347,6 +348,25 @@ describe('PerpsOrderView', () => {
     (usePerpsPaymentTokens as jest.Mock).mockReturnValue(
       defaultMockHooks.usePerpsPaymentTokens,
     );
+
+    // Mock the new hooks
+    (usePerpsMarketData as jest.Mock).mockReturnValue({
+      marketData: {
+        name: 'ETH',
+        szDecimals: 6,
+        maxLeverage: 50,
+        marginTableId: 1,
+      },
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    (usePerpsLiquidationPrice as jest.Mock).mockReturnValue({
+      liquidationPrice: '2850.00',
+      isCalculating: false,
+      error: null,
+    });
   });
 
   it('should render the order view', async () => {
@@ -392,10 +412,8 @@ describe('PerpsOrderView', () => {
   });
 
   it('should display components when connected', async () => {
-    (usePerpsNetwork as jest.Mock).mockReturnValue({
-      ...defaultMockHooks.usePerpsNetwork,
-      isConnected: true,
-    });
+    // usePerpsNetwork returns a string ('mainnet' or 'testnet'), not an object
+    (usePerpsNetwork as jest.Mock).mockReturnValue('mainnet');
 
     render(<PerpsOrderView />);
 

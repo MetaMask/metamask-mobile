@@ -9,6 +9,8 @@ import type {
   DepositParams,
   DepositResult,
   GetAccountStateParams,
+  LiquidationPriceParams,
+  MaintenanceMarginParams,
   MarketInfo,
   OrderParams,
   OrderResult,
@@ -110,6 +112,27 @@ export function usePerpsTrading() {
     controller.resetDepositState();
   }, []);
 
+  const calculateLiquidationPrice = useCallback(
+    async (params: LiquidationPriceParams): Promise<string> => {
+      const controller = Engine.context.PerpsController;
+      return controller.calculateLiquidationPrice(params);
+    },
+    [],
+  );
+
+  const calculateMaintenanceMargin = useCallback(
+    async (params: MaintenanceMarginParams): Promise<number> => {
+      const controller = Engine.context.PerpsController;
+      return controller.calculateMaintenanceMargin(params);
+    },
+    [],
+  );
+
+  const getMaxLeverage = useCallback(async (asset: string): Promise<number> => {
+    const controller = Engine.context.PerpsController;
+    return controller.getMaxLeverage(asset);
+  }, []);
+
   return {
     placeOrder,
     cancelOrder,
@@ -123,5 +146,8 @@ export function usePerpsTrading() {
     deposit,
     getDepositRoutes,
     resetDepositState,
+    calculateLiquidationPrice,
+    calculateMaintenanceMargin,
+    getMaxLeverage,
   };
 }

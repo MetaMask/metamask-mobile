@@ -3,7 +3,6 @@ import {
   type OrderValidationParams,
 } from './orderValidation';
 import {
-  RISK_MANAGEMENT,
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
 } from '../constants/hyperLiquidConfig';
@@ -167,13 +166,13 @@ describe('validatePerpsOrder', () => {
       const params = {
         ...baseParams,
         marketData: null,
-        orderForm: { ...baseParams.orderForm, leverage: 35 },
+        orderForm: { ...baseParams.orderForm, leverage: 60 }, // Above fallback max of 3
       };
 
       const result = validatePerpsOrder(params);
 
       expect(result.errors).toContain(
-        `perps.order.validation.invalid_leverage: {"min":"1","max":"${RISK_MANAGEMENT.fallbackMaxLeverage}"}`,
+        `perps.order.validation.invalid_leverage: {"min":"1","max":"3"}`,
       );
     });
   });
