@@ -55,3 +55,11 @@ export const VALIDATION_REGEX = {
 };
 
 export const REDIRECTION_URL = 'https://metamask.io/';
+
+export enum TransakFormId {
+  ID_PROOF = 'idProof',
+  PURPOSE_OF_USAGE = 'purposeOfUsage',
+  PERSONAL_DETAILS = 'personalDetails',
+  ADDRESS = 'address',
+  US_SSN = 'usSSN',
+}

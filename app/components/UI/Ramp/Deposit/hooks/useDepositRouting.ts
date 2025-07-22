@@ -10,6 +10,7 @@ import {
   MANUAL_BANK_TRANSFER_PAYMENT_METHODS,
   KycStatus,
   REDIRECTION_URL,
+  TransakFormId,
 } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
@@ -304,41 +305,29 @@ export const useDepositRouting = ({
   );
 
   const routeAfterAuthentication = useCallback(
-    async (quote: BuyQuote) => {
+    async (quote: BuyQuote, isRecursive = false) => {
       try {
-        // Forms are the source of truth for the KYC flow.
-        // They are requested as a batch of smaller object that represent kyc steps that need to be completed
-        // each form can be fetched individually for more details
-
-        // This function is meant to be called in repitition for each step in the KYC flow
-
-        // Required forms in order are:
-
-        // Basic Info (personalDetails)
-        // Address
-        // SSN (usSSN) - only if the user is in the US
-        // ID Proof (idProof)
-        // Purpose of Usage (purposeOfUsage)
-
-        // 1. Fetch the bactched forms and work backwards
         const forms = await fetchKycForms(quote);
         const { forms: requiredForms } = forms || {};
 
-        // 2. If there are no forms, we can assume that all KYC data has been submitted
+        const getForm = (formId: string) =>
+          requiredForms?.find((form) => form.id === formId);
+
+        // If there are no forms, we can assume that all KYC data has been submitted
+        // check kyc status and route to approved or pending flow
         if (requiredForms?.length === 0) {
           try {
-            // 2.1 Fetch user details to get the exact KYC status
             const userDetails = await fetchUserDetails();
+
             if (!userDetails) {
               throw new Error('Missing user details');
             }
-
-            // 2.2 if it's approved, we can move the user to the next step
             if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
               const isManualBankTransfer =
                 MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
                   (method) => method.id === paymentMethodId,
                 );
+
               if (isManualBankTransfer) {
                 const reservation = await createReservation(
                   quote,
@@ -363,7 +352,6 @@ export const useDepositRouting = ({
 
                 await handleNewOrder(processedOrder);
 
-                // 2.2.1 if it's a manual bank transfer, we need to navigate to the bank details page
                 navigateToBankDetailsCallback({
                   orderId: order.id,
                   shouldUpdate: false,
@@ -386,13 +374,11 @@ export const useDepositRouting = ({
                   throw new Error('Failed to generate payment URL');
                 }
 
-                // 2.2.2 if it's not a manual bank transfer, we need to navigate to the Transak Webview
                 navigateToWebviewModalCallback({ paymentUrl });
               }
               return true;
             }
 
-            // 2.3 if it's not approved it is probably pending, so we need to poll for the KYC status
             navigateToKycProcessingCallback({ quote });
             return false;
           } catch (error) {
@@ -404,48 +390,21 @@ export const useDepositRouting = ({
           }
         }
 
-        // 3. Fetch the ID Proof form only if it's the only remaining form
-        // this is the final step in the Standard user KYC flow, so we don't need to fetch the url until they are ready to visit KYC webview
-        const idProofKycForm = requiredForms?.find(
-          (form) => form.id === 'idProof',
-        );
-        if (idProofKycForm && requiredForms?.length === 1) {
-          const idProofData = await fetchKycFormData(quote, idProofKycForm);
-
-          if (idProofData?.data?.kycUrl) {
-            navigateToAdditionalVerificationCallback({
-              quote,
-              kycUrl: idProofData.data.kycUrl,
-            });
-            return;
-          }
-
-          throw new Error(strings('deposit.buildQuote.unexpectedError'));
-        }
-
-        // 4. Fetch the Purpose of Usage form only if it's the only remaining form
-        // it is auto-submitted as the last step in the KYC flow, then recursive call to route again
-        const purposeOfUsageKycForm = requiredForms?.find(
-          (form) => form.id === 'purposeOfUsage',
-        );
-        if (purposeOfUsageKycForm && requiredForms?.length === 1) {
+        // auto-submit purpose of usage form and then recursive call to route again
+        if (
+          !getForm(TransakFormId.PURPOSE_OF_USAGE)?.isSubmitted &&
+          !isRecursive
+        ) {
           await submitPurposeOfUsage(['Buying/selling crypto for investments']);
-          await routeAfterAuthentication(quote);
+          await routeAfterAuthentication(quote, true);
           return;
         }
 
-        // 5. Send user to BasicInfo Form if mis Personal Details, Address, and SSN forms
-        const personalDetailsKycForm = requiredForms?.find(
-          (form) => form.id === 'personalDetails',
-        );
-        const addressKycForm = requiredForms?.find(
-          (form) => form.id === 'address',
-        );
-        const ssnKycForm = requiredForms?.find((form) => form.id === 'usSSN');
-        const shouldShowSsnForm =
-          ssnKycForm && selectedRegion?.isoCode === 'US';
-
-        if (personalDetailsKycForm || addressKycForm || shouldShowSsnForm) {
+        // if personal details or address form is not submitted, route to basic info
+        // SSN is always submitted with personal details for US users, so we don't need to check for it
+        const personalDetailsForm = getForm(TransakFormId.PERSONAL_DETAILS);
+        const addressForm = getForm(TransakFormId.ADDRESS);
+        if (!personalDetailsForm?.isSubmitted || !addressForm?.isSubmitted) {
           trackEvent('RAMPS_KYC_STARTED', {
             ramp_type: 'DEPOSIT',
             kyc_type: forms?.kycType || '',
@@ -454,6 +413,19 @@ export const useDepositRouting = ({
 
           navigateToBasicInfoCallback({ quote });
           return;
+        }
+
+        // check for id proof form and route to additional verification if needed
+        const idProofForm = getForm(TransakFormId.ID_PROOF);
+        if (!idProofForm?.isSubmitted) {
+          const idProofData = await fetchKycFormData(quote, idProofForm);
+          if (idProofData?.data?.kycUrl) {
+            navigateToAdditionalVerificationCallback({
+              quote,
+              kycUrl: idProofData.data.kycUrl,
+            });
+            return;
+          }
         }
 
         throw new Error(strings('deposit.buildQuote.unexpectedError'));

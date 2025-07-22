@@ -210,7 +210,7 @@ const EnterAddress = (): JSX.Element => {
         await submitSsnDetails(basicInfoFormData.ssn);
       }
 
-      routeAfterAuthentication(quote);
+      await routeAfterAuthentication(quote);
     } catch (submissionError) {
       setLoading(false);
       setError(
