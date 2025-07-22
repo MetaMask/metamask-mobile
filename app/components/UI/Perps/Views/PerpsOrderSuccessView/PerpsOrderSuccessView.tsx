@@ -1,26 +1,26 @@
 import React, { useCallback } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 import {
   useNavigation,
   useRoute,
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import type { PerpsNavigationParamList } from '../controllers/types';
+import type { PerpsNavigationParamList } from '../../controllers/types';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../../util/theme';
-import type { Colors } from '../../../../util/theme/models';
-import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import { formatPrice } from '../utils/formatUtils';
+} from '../../../../../component-library/components/Buttons/Button';
+import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { formatPrice } from '../../utils/formatUtils';
+import { createStyles } from './PerpsOrderSuccessView.styles';
 
 interface OrderSuccessParams {
   asset: string;
@@ -37,67 +37,6 @@ type OrderSuccessRoute = RouteProp<
   { OrderSuccess: OrderSuccessParams },
   'OrderSuccess'
 >;
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background.default,
-    },
-    content: {
-      flex: 1,
-      padding: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    successIcon: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: colors.success.default,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 24,
-    },
-    successIconText: {
-      fontSize: 40,
-      color: colors.background.default,
-    },
-    title: {
-      marginBottom: 12,
-      textAlign: 'center',
-    },
-    subtitle: {
-      textAlign: 'center',
-      marginBottom: 32,
-    },
-    orderDetails: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 12,
-      padding: 20,
-      marginBottom: 32,
-      width: '100%',
-    },
-    detailRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 8,
-    },
-    detailLabel: {
-      color: colors.text.muted,
-    },
-    detailValue: {
-      fontWeight: '600',
-    },
-    directionText: {
-      textTransform: 'capitalize',
-    },
-    buttonContainer: {
-      width: '100%',
-      gap: 16,
-    },
-  });
 
 const PerpsOrderSuccessView: React.FC = () => {
   const { colors } = useTheme();

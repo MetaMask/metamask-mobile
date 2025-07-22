@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, waitFor } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 // Mock react-native-reanimated before importing components
@@ -115,84 +115,144 @@ jest.mock('../../../../hooks/useTooltipModal', () => ({
   })),
 }));
 
-// Mock styles
-jest.mock('./PerpsOrderView.styles', () => ({
-  __esModule: true,
-  default: () => ({
-    container: {},
-    headerContainer: {},
-    contentContainer: {},
-    // Add other style properties as needed
-  }),
-}));
-
-// Mock bottom sheet components
-jest.mock(
-  '../../components/PerpsTPSLBottomSheet',
-  () => 'PerpsTPSLBottomSheet',
-);
-jest.mock(
-  '../../components/PerpsLeverageBottomSheet',
-  () => 'PerpsLeverageBottomSheet',
-);
-jest.mock(
-  '../../components/PerpsLimitPriceBottomSheet',
-  () => 'PerpsLimitPriceBottomSheet',
-);
-jest.mock(
-  '../../components/PerpsOrderTypeBottomSheet',
-  () => 'PerpsOrderTypeBottomSheet',
-);
-jest.mock('../../components/PerpsOrderHeader', () => 'PerpsOrderHeader');
-
-// Mock other components
-jest.mock('../../components/PerpsTokenSelector', () => ({
-  __esModule: true,
-  default: ({
-    onSelectToken,
-  }: {
-    onSelectToken: (token: { symbol: string; address: string }) => void;
-  }) => {
-    const { TouchableOpacity, Text } = jest.requireActual('react-native');
-    return (
-      <TouchableOpacity
-        testID="perps-token-selector"
-        onPress={() => onSelectToken({ symbol: 'ETH', address: '0x123' })}
-      >
-        <Text>ETH</Text>
-      </TouchableOpacity>
-    );
-  },
-}));
-
-jest.mock('../../components/PerpsAmountDisplay', () => 'PerpsAmountDisplay');
+// Mock PerpsSlider since it uses reanimated which needs special handling in tests
 jest.mock('../../components/PerpsSlider', () => ({
   __esModule: true,
   default: ({
     value,
+    onValueChange,
   }: {
     value: number;
     onValueChange: (v: number) => void;
   }) => {
-    const { View } = jest.requireActual('react-native');
-    return <View testID="perps-slider" data-value={value} />;
+    const { View, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-slider">
+        <Text>Slider Value: {value}</Text>
+      </View>
+    );
   },
 }));
 
-// Mock utility functions
-jest.mock('../../utils/tokenIconUtils', () => ({
-  enhanceTokenWithIcon: jest.fn((token) => token),
-}));
-
-jest.mock('../../utils/formatUtils', () => ({
-  formatPrice: jest.fn((price) => `$${price}`),
-}));
-
-// Mock network utils
+// Mock network utils - these are external utilities that should be mocked
 jest.mock('../../../../../util/networks', () => ({
   getDefaultNetworkByChainId: jest.fn(() => ({ name: 'Arbitrum' })),
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-icon' })),
 }));
+
+// Mock component library components - these are imported but not owned by this module
+jest.mock(
+  '../../../../../component-library/components/List/ListItem',
+  () => 'ListItem',
+);
+jest.mock(
+  '../../../../../component-library/components/List/ListItemColumn',
+  () => ({
+    __esModule: true,
+    default: 'ListItemColumn',
+    WidthType: { Fill: 'fill', Auto: 'auto' },
+  }),
+);
+jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
+  __esModule: true,
+  default: 'Badge',
+  BadgeVariant: { Network: 'network' },
+}));
+jest.mock(
+  '../../../../../component-library/components/Badges/BadgeWrapper',
+  () => ({
+    __esModule: true,
+    default: 'BadgeWrapper',
+    BadgePosition: { BottomRight: 'bottom-right' },
+  }),
+);
+jest.mock(
+  '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  () => 'AvatarToken',
+);
+jest.mock('../../../../../component-library/components/Avatars/Avatar', () => ({
+  AvatarSize: { Md: 'md' },
+}));
+jest.mock('../../../Swaps/components/TokenIcon', () => 'TokenIcon');
+
+// Mock bottom sheet components as they are complex and not part of the test focus
+jest.mock('../../components/PerpsTPSLBottomSheet', () => {
+  const React = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({ isVisible }: { isVisible: boolean }) =>
+      isVisible
+        ? React.createElement('View', { testID: 'tpsl-bottom-sheet' })
+        : null,
+  };
+});
+jest.mock('../../components/PerpsLeverageBottomSheet', () => {
+  const React = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({ isVisible }: { isVisible: boolean }) =>
+      isVisible
+        ? React.createElement('View', { testID: 'leverage-bottom-sheet' })
+        : null,
+  };
+});
+jest.mock('../../components/PerpsLimitPriceBottomSheet', () => {
+  const React = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({ isVisible }: { isVisible: boolean }) =>
+      isVisible
+        ? React.createElement('View', { testID: 'limit-price-bottom-sheet' })
+        : null,
+  };
+});
+jest.mock('../../components/PerpsOrderTypeBottomSheet', () => {
+  const React = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({ isVisible }: { isVisible: boolean }) =>
+      isVisible
+        ? React.createElement('View', { testID: 'order-type-bottom-sheet' })
+        : null,
+  };
+});
+jest.mock('../../components/PerpsOrderHeader', () => {
+  const React = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ asset, price }: { asset: string; price: number }) =>
+      React.createElement(
+        View,
+        { testID: 'perps-order-header' },
+        React.createElement(Text, null, asset),
+        React.createElement(Text, null, price),
+      ),
+  };
+});
+jest.mock('../../components/PerpsAmountDisplay', () => {
+  const React = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ amount }: { amount: string }) =>
+      React.createElement(
+        View,
+        { testID: 'perps-amount-display' },
+        React.createElement(Text, null, amount),
+      ),
+  };
+});
+jest.mock('../../components/PerpsTokenSelector', () => {
+  const React = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({ isVisible }: { isVisible: boolean }) =>
+      isVisible
+        ? React.createElement('View', { testID: 'token-selector' })
+        : null,
+  };
+});
 
 // Test setup
 const mockNavigate = jest.fn();
@@ -217,6 +277,17 @@ const defaultMockHooks = {
   },
   usePerpsTrading: {
     placeOrder: jest.fn(),
+    getMarkets: jest.fn().mockResolvedValue([
+      {
+        name: 'ETH',
+        symbol: 'ETH-USD',
+        priceDecimals: 2,
+        sizeDecimals: 4,
+        maxLeverage: 50,
+        minSize: 0.01,
+        sizeIncrement: 0.01,
+      },
+    ]),
     getMarketInfo: jest.fn().mockResolvedValue({
       name: 'ETH',
       symbol: 'ETH-USD',
@@ -281,15 +352,20 @@ describe('PerpsOrderView', () => {
     const { findByText } = render(<PerpsOrderView />);
 
     // Check if key elements are rendered
-    await findByText('Leverage');
-    expect(screen.getByText('Pay with')).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByText('Leverage')).toBeDefined();
+      expect(screen.getByText('Pay with')).toBeDefined();
+    });
   });
 
   it('should display the correct asset from route params', async () => {
-    const { findByText } = render(<PerpsOrderView />);
+    render(<PerpsOrderView />);
 
     // The component should display ETH from the route params
-    await findByText('ETH');
+    await waitFor(() => {
+      expect(screen.getByTestId('perps-order-header')).toBeDefined();
+      expect(screen.getByText('ETH')).toBeDefined();
+    });
   });
 
   it('should navigate back when header is present', () => {
@@ -320,17 +396,22 @@ describe('PerpsOrderView', () => {
       isConnected: true,
     });
 
-    const { findByText } = render(<PerpsOrderView />);
+    render(<PerpsOrderView />);
 
     // Should show trading interface
-    await findByText('Leverage');
+    await waitFor(() => {
+      expect(screen.getByText('Leverage')).toBeDefined();
+    });
   });
 
   it('should handle leverage display', async () => {
-    const { findByText } = render(<PerpsOrderView />);
+    render(<PerpsOrderView />);
 
     // Find leverage text
-    await findByText('Leverage');
+    await waitFor(() => {
+      expect(screen.getByText('Leverage')).toBeDefined();
+      expect(screen.getByText('3x')).toBeDefined(); // Default leverage value from route params
+    });
   });
 
   it('should handle amount display', async () => {
