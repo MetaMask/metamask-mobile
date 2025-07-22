@@ -6,6 +6,9 @@ import ExternalSites from '../../resources/externalsites.json';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
+import TestHelpers from '../../helpers';
+import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors.ts';
+import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet.ts';
 
 const getHostFromURL = (url: string): string => {
   try {
@@ -88,6 +91,144 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
           description: 'URL input box does not have the phishing site',
         },
       );
+    });
+  });
+
+  it('should test phishing sites inside iFrame', async () => {
+    await withBrowser(async () => {
+      await Browser.tapBottomSearchBar();
+      // Clear text & Navigate to URL
+      await Browser.navigateToURL(ExternalSites.PHISHING_SITE_INSIDE_IFRAME);
+      await Assertions.expectElementToBeVisible(Browser.backToSafetyButton, {
+        description: 'Back to safety button is visible',
+      });
+
+      await Browser.tapBackToSafetyButton();
+      await Assertions.expectElementToNotHaveText(
+        Browser.urlInputBoxID,
+        getHostFromURL(ExternalSites.PHISHING_SITE_INSIDE_IFRAME),
+        {
+          description: 'URL input box does not have the phishing site',
+        },
+      );
+    });
+  });
+
+  it('Should download blob file', async () => {
+    await testDownloadFile(
+      'https://tyschenko.github.io/download_blob_file.html',
+    );
+  });
+
+  it('Should download base64 file', async () => {
+    await testDownloadFile(
+      'https://tyschenko.github.io/download_base64_file.html',
+    );
+  });
+
+  async function testDownloadFile(url: string) {
+    await withBrowser(async () => {
+      await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+        description: 'Browser screen is visible',
+      });
+
+      await Browser.tapUrlInputBox();
+      await Browser.navigateToURL(url);
+      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
+        .element(by.web.id('download_button'))
+        .tap();
+      if (device.getPlatform() === 'ios') {
+        // For iOS, we need a small delay before animated dialog is displayed
+        await TestHelpers.delay(300);
+      }
+      const downloadButtonElement =
+        device.getPlatform() === 'android'
+          ? element(by.text('Download'))
+          : element(by.label('Download'));
+      const downloadButtonInDialogAttrsBeforeDelay =
+        await downloadButtonElement.getAttributes();
+      if ((downloadButtonInDialogAttrsBeforeDelay as any).enabled == true) {
+        throw new Error(
+          'Download button is enabled, but should be disabled to prevent Tapjacking',
+        );
+      }
+      await TestHelpers.delay(600);
+      const downloadButtonInDialogAttrsAfterDelay =
+        await downloadButtonElement.getAttributes();
+      if ((downloadButtonInDialogAttrsAfterDelay as any).enabled == false) {
+        throw new Error(
+          'Download button is disabled, but should be enabled after 500ms Tapjacking delay',
+        );
+      }
+      await element(by.text('Download')).tap();
+
+      if (device.getPlatform() === 'ios') {
+        await TestHelpers.delay(500);
+        // Verify for iOS that system file saving dialog is visible
+        waitFor(element(by.label('Save'))).toBeVisible();
+      } else {
+        await TestHelpers.delay(3600);
+        // Verify for Android that toast after successful downloading is visible
+        waitFor(element(by.text('Downloaded successfully'))).toBeVisible();
+      }
+    });
+  }
+
+  it('Should connect to Uniswap', async () => {
+    await withBrowser(async () => {
+      await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+        description: 'Browser screen is visible',
+      });
+
+      await Browser.tapUrlInputBox();
+      await Browser.navigateToURL('https://uniswap.org');
+
+      // Click Connect button
+      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
+        .element(by.web.xpath("//button[.//span[text()='Connect']]"))
+        .tap();
+
+      // Click Other wallets button
+      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
+        .element(
+          by.web.xpath(
+            "//*[.//span[text()='Other wallets']][@class][@style or contains(@class, '_cursor-pointer')]",
+          ),
+        )
+        .tap();
+
+      // Click MetaMask wallet option
+      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
+        .element(
+          by.web.xpath(
+            "//*[.//span[text()='MetaMask'] and contains(@class, '_cursor-pointer')]",
+          ),
+        )
+        .tap();
+
+      await ConnectBottomSheet.tapConnectButton();
+
+      // Click Select a token button which is displayed only if the wallet is connected
+      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
+        .element(
+          by.web.xpath("//button[.//span[contains(text(),'Select a token')]]"),
+        )
+        .tap();
+    });
+  });
+
+  it('Should open ENS website', async () => {
+    await withBrowser(async () => {
+      await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+        description: 'Browser screen is visible',
+      });
+      await Browser.tapUrlInputBox();
+      await Browser.navigateToURL('vitalik.eth');
+      await TestHelpers.delay(1000); // Wait for a website to load
+      // Click General to interact with vitalik website and make sure it's loaded
+      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
+        .element(by.web.xpath("//a[@href='./categories/general.html']"))
+        .tap();
     });
   });
 });

@@ -1,5 +1,6 @@
 {
   "PHISHING_SITE": "https://test.metamask-phishing.io",
+  "PHISHING_SITE_INSIDE_IFRAME": "https://lol-au4.pages.dev/cb",
   "INVALID_URL": "https://quackquakc.easq",
   "TEST_DAPP": "https://metamask.github.io/test-dapp/"
 }
