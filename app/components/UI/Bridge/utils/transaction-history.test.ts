@@ -6,7 +6,10 @@ import {
   getSwapBridgeTxActivityTitle,
   handleUnifiedSwapsTxHistoryItemClick,
 } from './transaction-history';
-import { BridgeHistoryItem, MAX_ATTEMPTS } from '@metamask/bridge-status-controller';
+import {
+  BridgeHistoryItem,
+  MAX_ATTEMPTS,
+} from '@metamask/bridge-status-controller';
 import { ChainId, StatusTypes } from '@metamask/bridge-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import Routes from '../../../../constants/navigation/Routes';
@@ -730,7 +733,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     // Assert
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
-      { evmTxMeta: tx }
+      { evmTxMeta: tx },
     );
   });
 
@@ -747,7 +750,9 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).toHaveBeenCalledWith({
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).toHaveBeenCalledWith({
       txMetaId: bridgeTxHistoryItem.txMetaId,
     });
   });
@@ -765,7 +770,9 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).toHaveBeenCalledWith({
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).toHaveBeenCalledWith({
       txMetaId: bridgeTxHistoryItem.txMetaId,
     });
   });
@@ -783,7 +790,9 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).not.toHaveBeenCalled();
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).not.toHaveBeenCalled();
   });
 
   it('does not reset attempts when no bridge transaction history item is provided', () => {
@@ -795,7 +804,9 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).not.toHaveBeenCalled();
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).not.toHaveBeenCalled();
   });
 
   it('does not reset attempts when attempts counter is below max attempts', () => {
@@ -811,7 +822,9 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).not.toHaveBeenCalled();
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).not.toHaveBeenCalled();
   });
 
   it('does not reset attempts when attempts is undefined', () => {
@@ -827,7 +840,9 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     handleUnifiedSwapsTxHistoryItemClick(navigation, tx, bridgeTxHistoryItem);
 
     // Assert
-    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).not.toHaveBeenCalled();
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).not.toHaveBeenCalled();
   });
 
   it('still navigates even when reset attempts conditions are not met', () => {
@@ -841,8 +856,10 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     // Assert
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
-      { evmTxMeta: tx }
+      { evmTxMeta: tx },
     );
-    expect(Engine.context.BridgeStatusController.restartPollingForFailedAttempts).not.toHaveBeenCalled();
+    expect(
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts,
+    ).not.toHaveBeenCalled();
   });
 });
