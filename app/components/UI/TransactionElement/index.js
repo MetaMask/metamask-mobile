@@ -236,7 +236,6 @@ class TransactionElement extends PureComponent {
       swapsTokens: this.props.swapsTokens,
       assetSymbol: this.props.assetSymbol,
       ticker: this.props.ticker,
-      networkConfigurationsByChainId: this.props.networkConfigurationsByChainId,
     });
     this.mounted = true;
 
@@ -713,7 +712,9 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  networkConfigurationsByChainId: selectEvmNetworkConfigurationsByChainId(state),
+  networkConfigurationsByChainId: isPerDappSelectedNetworkEnabled()
+    ? undefined
+    : selectEvmNetworkConfigurationsByChainId(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
