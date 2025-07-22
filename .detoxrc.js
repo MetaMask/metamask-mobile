@@ -96,7 +96,7 @@ module.exports = {
     },
     'android.release': {
       type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/qa/release/app-release.apk',
+      binaryPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
       build: `yarn build:android:main:e2e`,
     },
   },
