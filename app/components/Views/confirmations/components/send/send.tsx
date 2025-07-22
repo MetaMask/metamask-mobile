@@ -10,19 +10,22 @@ import Input from '../../../../../component-library/components/Form/TextField/fo
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './send.styles';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 
 interface Asset {
   name: string;
 }
 
 const Send = () => {
+  const navigation = useNavigation();
+  const from = useSelector(selectSelectedInternalAccount);
   const route = useRoute<RouteProp<Record<string, { asset: Asset }>, string>>();
   const { asset } = route?.params ?? {};
-  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
   const submitSend = useCallback(() => {
-    // actual confirmation creation to come here
+    // More implementation to come here
     navigation.goBack();
   }, [navigation]);
 
@@ -35,7 +38,7 @@ const Send = () => {
       <Text>Asset: {asset?.name ?? 'NA'}</Text>
       <View>
         <Text>From:</Text>
-        <Input style={styles.input} />
+        <Text>{from?.address}</Text>
       </View>
       <View>
         <Text>To:</Text>
