@@ -187,6 +187,7 @@ const NftDetails = () => {
     );
     if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
       navigation.navigate(Routes.SEND.ROOT, {
+        screen: Routes.SEND.ROOT,
         params: {
           asset: { contractName: collectible.name, ...collectible },
         },

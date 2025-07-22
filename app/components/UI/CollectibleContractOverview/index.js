@@ -101,6 +101,7 @@ class CollectibleContractOverview extends PureComponent {
     this.props.newAssetTransaction(collectible);
     if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
       this.props.navigation.navigate(Routes.SEND.ROOT, {
+        screen: Routes.SEND.ROOT,
         params: {
           asset: collectible,
         },
