@@ -57,7 +57,13 @@ export const usePerpsLiquidationPrice = (params: LiquidationPriceParams) => {
     };
 
     calculatePrice();
-  }, [params.entryPrice, params.leverage, params.direction, params.asset, calculateLiquidationPrice]);
+  }, [
+    params.entryPrice,
+    params.leverage,
+    params.direction,
+    params.asset,
+    calculateLiquidationPrice,
+  ]);
 
   return {
     liquidationPrice,
