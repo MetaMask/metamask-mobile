@@ -39,7 +39,6 @@ import useAnalytics from '../../../hooks/useAnalytics';
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
   quote: BuyQuote;
-  kycUrl?: string;
 }
 
 export const createEnterAddressNavDetails =
@@ -57,11 +56,8 @@ interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const {
-    formData: basicInfoFormData,
-    quote,
-    kycUrl,
-  } = useParams<EnterAddressParams>();
+  const { formData: basicInfoFormData, quote } =
+    useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,13 +69,15 @@ const EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(
+    quote.cryptoCurrency,
+    quote.network,
+  );
 
-  const { navigateToAdditionalVerification, navigateToKycProcessing } =
-    useDepositRouting({
-      cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
-      paymentMethodId: quote.paymentMethod,
-    });
+  const { routeAfterAuthentication } = useDepositRouting({
+    cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
+    paymentMethodId: quote.paymentMethod,
+  });
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
@@ -177,15 +175,6 @@ const EnterAddress = (): JSX.Element => {
     throws: true,
   });
 
-  const [, submitPurpose] = useDepositSdkMethod(
-    {
-      method: 'submitPurposeOfUsageForm',
-      onMount: false,
-      throws: true,
-    },
-    ['Buying/selling crypto for investments'],
-  );
-
   const [, submitSsnDetails] = useDepositSdkMethod({
     method: 'submitSsnDetails',
     onMount: false,
@@ -224,13 +213,7 @@ const EnterAddress = (): JSX.Element => {
         await submitSsnDetails(basicInfoFormData.ssn);
       }
 
-      await submitPurpose();
-
-      if (kycUrl) {
-        navigateToAdditionalVerification({ quote, kycUrl });
-      } else {
-        navigateToKycProcessing({ quote });
-      }
+      await routeAfterAuthentication(quote);
     } catch (submissionError) {
       setLoading(false);
       setError(
@@ -250,12 +233,9 @@ const EnterAddress = (): JSX.Element => {
     basicInfoFormData,
     formData,
     postKycForm,
-    submitPurpose,
     quote,
-    kycUrl,
-    navigateToAdditionalVerification,
     submitSsnDetails,
-    navigateToKycProcessing,
+    routeAfterAuthentication,
     selectedRegion?.isoCode,
     trackEvent,
   ]);
