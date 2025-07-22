@@ -592,7 +592,7 @@ export async function setupSentry(forceEnabled = false) {
 export async function captureExceptionForced(error, extra = {}) {
   try {
     // Initialize Sentry with forced enabled state
-    setupSentry(true);
+    await setupSentry(true);
 
     Sentry.captureException(error, {
       extra,
