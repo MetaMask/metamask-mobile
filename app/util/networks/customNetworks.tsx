@@ -17,6 +17,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'optimism-mainnet': () => process.env.QUICKNODE_OPTIMISM_URL,
   'polygon-mainnet': () => process.env.QUICKNODE_POLYGON_URL,
   'base-mainnet': () => process.env.QUICKNODE_BASE_URL,
+  'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -57,7 +58,8 @@ export const PopularList = [
   {
     chainId: toHex('56'),
     nickname: 'BNB Smart Chain Mainnet',
-    rpcUrl: 'https://bsc-dataseed1.binance.org',
+    rpcUrl: `https://bsc-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
     ticker: 'BNB',
     warning: true,
     rpcPrefs: {
@@ -153,13 +155,20 @@ export const PopularList = [
 ];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
-  if (chainId === SolScope.Mainnet) {
-    return require('../../images/solana-logo.png');
+  switch (chainId) {
+    case SolScope.Mainnet:
+      return require('../../images/solana-logo.png');
+    case BtcScope.Mainnet:
+      return require('../../images/bitcoin-logo.png');
+    case BtcScope.Testnet:
+    case BtcScope.Testnet4:
+    case BtcScope.Regtest:
+      return require('../../images/bitcoin-testnet-logo.png');
+    case BtcScope.Signet:
+      return require('../../images/bitcoin-signet-logo.svg');
+    default:
+      return undefined;
   }
-  if (chainId === BtcScope.Mainnet) {
-    return require('../../images/bitcoin-logo.png');
-  }
-  return undefined;
 };
 
 export const INFURA_TESTNET_CHAIN_IDS = {
