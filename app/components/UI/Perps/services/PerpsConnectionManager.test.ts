@@ -34,7 +34,9 @@ describe('PerpsConnectionManager', () => {
   let mockDevLogger: jest.Mocked<typeof DevLogger>;
   let mockPerpsController: {
     initializeProviders: jest.MockedFunction<() => Promise<void>>;
-    getAccountState: jest.MockedFunction<() => Promise<Record<string, unknown>>>;
+    getAccountState: jest.MockedFunction<
+      () => Promise<Record<string, unknown>>
+    >;
     disconnect: jest.MockedFunction<() => Promise<void>>;
   };
 
@@ -45,7 +47,8 @@ describe('PerpsConnectionManager', () => {
     resetManager(PerpsConnectionManager);
 
     mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
-    mockPerpsController = Engine.context.PerpsController as unknown as typeof mockPerpsController;
+    mockPerpsController = Engine.context
+      .PerpsController as unknown as typeof mockPerpsController;
   });
 
   describe('getInstance', () => {
@@ -67,7 +70,7 @@ describe('PerpsConnectionManager', () => {
       expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(1);
       expect(mockPerpsController.getAccountState).toHaveBeenCalledTimes(1);
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Successfully connected')
+        expect.stringContaining('Successfully connected'),
       );
     });
 
@@ -79,10 +82,10 @@ describe('PerpsConnectionManager', () => {
       await PerpsConnectionManager.connect();
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('refCount: 1')
+        expect.stringContaining('refCount: 1'),
       );
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('refCount: 2')
+        expect.stringContaining('refCount: 2'),
       );
     });
 
@@ -94,7 +97,7 @@ describe('PerpsConnectionManager', () => {
 
       // Mock a slow initialization
       mockPerpsController.initializeProviders.mockImplementation(
-        () => new Promise(resolve => setTimeout(resolve, 50))
+        () => new Promise((resolve) => setTimeout(resolve, 50)),
       );
       mockPerpsController.getAccountState.mockResolvedValue({});
 
@@ -110,10 +113,10 @@ describe('PerpsConnectionManager', () => {
 
       // Both connects should have incremented ref count
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('refCount: 1')
+        expect.stringContaining('refCount: 1'),
       );
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('refCount: 2')
+        expect.stringContaining('refCount: 2'),
       );
     });
 
@@ -121,11 +124,13 @@ describe('PerpsConnectionManager', () => {
       const error = new Error('Connection failed');
       mockPerpsController.initializeProviders.mockRejectedValueOnce(error);
 
-      await expect(PerpsConnectionManager.connect()).rejects.toThrow('Connection failed');
+      await expect(PerpsConnectionManager.connect()).rejects.toThrow(
+        'Connection failed',
+      );
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('Connection failed'),
-        error
+        error,
       );
 
       const state = PerpsConnectionManager.getConnectionState();
@@ -141,7 +146,9 @@ describe('PerpsConnectionManager', () => {
       await PerpsConnectionManager.connect();
 
       // Simulate stale connection
-      mockPerpsController.getAccountState.mockRejectedValueOnce(new Error('Stale'));
+      mockPerpsController.getAccountState.mockRejectedValueOnce(
+        new Error('Stale'),
+      );
 
       // Should reconnect
       mockPerpsController.initializeProviders.mockResolvedValueOnce();
@@ -150,7 +157,7 @@ describe('PerpsConnectionManager', () => {
       await PerpsConnectionManager.connect();
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Stale connection detected')
+        expect.stringContaining('Stale connection detected'),
       );
       expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(2);
     });
@@ -186,7 +193,7 @@ describe('PerpsConnectionManager', () => {
       await PerpsConnectionManager.disconnect();
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('refCount: 1')
+        expect.stringContaining('refCount: 1'),
       );
 
       // Should not actually disconnect yet
@@ -213,7 +220,7 @@ describe('PerpsConnectionManager', () => {
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('Disconnection error'),
-        error
+        error,
       );
     });
 
@@ -224,7 +231,7 @@ describe('PerpsConnectionManager', () => {
       // The log will show -1 first, but the actual refCount is clamped to 0
       // Check that disconnect was called with refCount: -1 (before clamping)
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('refCount: -1')
+        expect.stringContaining('refCount: -1'),
       );
 
       // Verify the state is properly reset
@@ -261,7 +268,7 @@ describe('PerpsConnectionManager', () => {
 
     it('should return connecting state during connection', async () => {
       mockPerpsController.initializeProviders.mockImplementation(
-        () => new Promise(resolve => setTimeout(resolve, 100))
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
       );
       mockPerpsController.getAccountState.mockResolvedValue({});
 
@@ -306,4 +313,3 @@ describe('PerpsConnectionManager', () => {
     });
   });
 });
-

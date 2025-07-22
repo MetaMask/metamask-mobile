@@ -15,10 +15,8 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
-// import Routes from '../../../../../constants/navigation/Routes'; // No longer needed
 import { formatPrice, formatPercentage } from '../../utils/formatUtils';
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidConfig';
-// import type { PerpsNavigationParamList } from '../../controllers/types'; // No longer needed
 
 interface PerpsOrderHeaderProps {
   asset: string;

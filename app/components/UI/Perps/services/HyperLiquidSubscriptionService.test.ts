@@ -714,7 +714,8 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Verify callback received bid/ask data
       expect(mockCallback).toHaveBeenCalled();
-      const lastCall = mockCallback.mock.calls[mockCallback.mock.calls.length - 1][0];
+      const lastCall =
+        mockCallback.mock.calls[mockCallback.mock.calls.length - 1][0];
       expect(lastCall).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
@@ -816,8 +817,12 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Check that bestBid and bestAsk are either undefined or '0'
       if (lastCall?.[0]) {
-        expect(lastCall[0].bestBid === undefined || lastCall[0].bestBid === '0').toBeTruthy();
-        expect(lastCall[0].bestAsk === undefined || lastCall[0].bestAsk === '0').toBeTruthy();
+        expect(
+          lastCall[0].bestBid === undefined || lastCall[0].bestBid === '0',
+        ).toBeTruthy();
+        expect(
+          lastCall[0].bestAsk === undefined || lastCall[0].bestAsk === '0',
+        ).toBeTruthy();
       }
 
       unsubscribe();

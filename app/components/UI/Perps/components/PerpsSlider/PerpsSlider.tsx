@@ -34,6 +34,10 @@ interface PerpsSliderProps {
   disabled?: boolean;
   progressColor?: 'default' | 'gradient';
   quickValues?: number[];
+  springConfig?: {
+    damping?: number;
+    stiffness?: number;
+  };
 }
 
 const PerpsSlider: React.FC<PerpsSliderProps> = ({
@@ -46,6 +50,10 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   disabled = false,
   progressColor = 'default',
   quickValues,
+  springConfig = {
+    damping: 15,
+    stiffness: 400,
+  },
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -89,11 +97,11 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       const percentage = (value - minimumValue) / (maximumValue - minimumValue);
       const newPosition = percentage * widthRef.current;
       translateX.value = withSpring(newPosition, {
-        damping: 15,
-        stiffness: 400,
+        damping: springConfig.damping,
+        stiffness: springConfig.stiffness,
       });
     }
-  }, [value, minimumValue, maximumValue, translateX, widthRef]);
+  }, [value, minimumValue, maximumValue, translateX, widthRef, springConfig]);
 
   // Animated styles
   const progressStyle = useAnimatedStyle(() => ({
@@ -130,8 +138,8 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     .onEnd((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
       translateX.value = withSpring(newPosition, {
-        damping: 15,
-        stiffness: 400,
+        damping: springConfig.damping,
+        stiffness: springConfig.stiffness,
       });
       const newValue = positionToValue(newPosition, sliderWidth.value);
       runOnJS(updateValue)(newValue);
