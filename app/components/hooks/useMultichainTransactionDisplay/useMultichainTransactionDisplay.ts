@@ -1,50 +1,50 @@
-import { Transaction, TransactionType } from '@metamask/keyring-api';
+import {
+  CaipChainId,
+  Transaction,
+  TransactionType,
+} from '@metamask/keyring-api';
 import I18n, { strings } from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
-import {
-  MULTICHAIN_NETWORK_DECIMAL_PLACES,
-  NonEvmNetworkConfiguration,
-} from '@metamask/multichain-network-controller';
+import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 
-type Asset = {
+interface Asset {
   unit: string;
   type: `${string}:${string}/${string}:${string}`;
   amount: string;
   fungible: true;
-};
+}
 
-type Movement = {
+interface Movement {
   asset: Asset;
   address?: string;
-};
+}
 
-type AggregatedMovement = {
+interface AggregatedMovement {
   address?: string;
   unit: string;
   amount: number;
-};
+}
 
-export type AggregatedMovementDisplayData = {
+export interface AggregatedMovementDisplayData {
   address?: string;
   unit: string;
   amount: string;
-};
+}
 
-export type MultichainTransactionDisplayData = {
+export interface MultichainTransactionDisplayData {
   title?: string;
   from: AggregatedMovementDisplayData;
   to: AggregatedMovementDisplayData;
   baseFee: AggregatedMovementDisplayData;
   priorityFee: AggregatedMovementDisplayData;
   isRedeposit: boolean;
-};
+}
 
 export function useMultichainTransactionDisplay(
   transaction: Transaction,
-  networkConfig: NonEvmNetworkConfiguration,
+  chainId: CaipChainId,
 ): MultichainTransactionDisplayData {
   const locale = I18n.locale;
-  const { chainId } = networkConfig;
   const decimalPlaces = MULTICHAIN_NETWORK_DECIMAL_PLACES[chainId];
   const isRedeposit =
     transaction.to.length === 0 && transaction.type === TransactionType.Send;
@@ -125,6 +125,14 @@ function aggregateAmount(
     parseAsset(mv, locale, isNegative, decimals),
   )[0];
 }
+
+export const getMultichainTxFees = (transaction: Transaction) => {
+  const baseFee = transaction?.fees?.find((fee) => fee.type === 'base') ?? null;
+  const priorityFee =
+    transaction?.fees?.find((fee) => fee.type === 'priority') ?? null;
+
+  return { baseFee, priorityFee };
+};
 
 function parseAsset(
   movement: AggregatedMovement,

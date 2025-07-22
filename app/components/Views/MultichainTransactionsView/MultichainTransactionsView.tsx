@@ -16,7 +16,6 @@ import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { selectNonEvmNetworkConfigurationsByChainId } from '../../../selectors/multichainNetworkController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import styles from './MultichainTransactionsView.styles';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
@@ -26,8 +25,8 @@ import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
 import MultichainBridgeTransactionListItem from 'app/components/UI/MultichainBridgeTransactionListItem';
-import { NonEvmNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -49,7 +48,7 @@ interface MultichainTransactionsViewProps {
   /**
    * Chain ID for block explorer links
    */
-  chainId: string;
+  chainId: SupportedCaipChainId;
   /**
    * Enable refresh functionality
    */
@@ -90,10 +89,6 @@ const MultichainTransactionsView = ({
     selectSelectedInternalAccountFormattedAddress,
   );
   const address = selectedAddress ?? defaultSelectedAddress;
-  const nonEvmNetworkConfigurations = useSelector(
-    selectNonEvmNetworkConfigurationsByChainId,
-  );
-  const networkConfig = nonEvmNetworkConfigurations[chainId ?? ''];
 
   const nonEvmTransactions = useSelector(selectNonEvmTransactions);
 
@@ -170,7 +165,7 @@ const MultichainTransactionsView = ({
         transaction={item}
         navigation={nav}
         index={index}
-        networkConfig={networkConfig as NonEvmNetworkConfiguration}
+        chainId={chainId}
       />
     );
   };

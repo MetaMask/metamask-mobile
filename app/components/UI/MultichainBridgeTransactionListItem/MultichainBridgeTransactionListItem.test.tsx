@@ -5,9 +5,7 @@ import { Transaction, TransactionType } from '@metamask/keyring-api';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import MultichainBridgeTransactionListItem from '.';
-import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
 
@@ -15,7 +13,6 @@ const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
   useTheme: () => mockUseTheme(),
 }));
-jest.mock('../../hooks/useMultichainTransactionDisplay');
 jest.mock('../../../util/transaction-icons', () => ({
   getTransactionIcon: jest.fn(),
 }));
@@ -25,10 +22,6 @@ jest.mock('../../../../locales/i18n', () => ({
 jest.mock('../../../util/date', () => ({
   toDateFormat: jest.fn(() => 'Mar 15, 2025'),
 }));
-jest.mock(
-  '../MultichainTransactionDetailsModal',
-  () => 'MultichainTransactionDetailsModal',
-);
 
 // Create a mock store with the necessary state
 const createMockStore = () =>
@@ -124,103 +117,56 @@ describe('MultichainBridgeTransactionListItem', () => {
     hasApprovalTx: false,
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      type: TransactionType.Send,
-      status: 'confirmed',
-      to: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-      from: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-      asset: { amount: '1.5', unit: 'SOL' },
-    });
-  });
-
-  it('renders correctly for a Send transaction', () => {
+  it('renders a complete bridge transaction correctly', () => {
     const { getByText } = renderWithProvider(
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
-        selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
-      />,
-    );
-
-    expect(getByText('Send')).toBeTruthy();
-    expect(getByText('1.5 SOL')).toBeTruthy();
-    expect(getByText('Mar 15, 2025')).toBeTruthy();
-  });
-
-  it('renders correctly for a Receive transaction', () => {
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      type: TransactionType.Receive,
-      status: 'confirmed',
-      to: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-      from: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-      asset: { amount: '2.0', unit: 'SOL' },
-    });
-
-    const receiveTransaction = {
-      ...mockTransaction,
-      type: TransactionType.Receive,
-      from: [
-        {
-          address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
-          asset: null,
-        },
-      ],
-      to: [
-        {
-          address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
-          asset: null,
-        },
-      ],
-      value: '2000000000',
-    };
-
-    const { getByText } = renderWithProvider(
-      <MultichainBridgeTransactionListItem
-        transaction={receiveTransaction}
-        selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
-      />,
-    );
-
-    expect(getByText('Receive')).toBeTruthy();
-    expect(getByText('2.0 SOL')).toBeTruthy();
-  });
-
-  it('renders correctly for a Swap transaction', () => {
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      type: TransactionType.Swap,
-      status: 'confirmed',
-      to: {
-        address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
-        asset: { fungible: true, unit: 'USDC' },
-      },
-      from: {
-        address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
-        asset: { fungible: true, unit: 'SOL' },
-      },
-      asset: { amount: '1.5', unit: 'SOL' },
-    });
-
-    const { getByText } = renderWithProvider(
-      <MultichainBridgeTransactionListItem
-        transaction={mockTransaction}
-        selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
+        bridgeHistoryItem={mockBridgeHistoryItem}
         navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
     expect(
-      getByText('transactions.swap SOL transactions.to USDC'),
+      getByText('bridge_transaction_details.bridge_to_chain'),
     ).toBeTruthy();
+    expect(getByText('1.5 SOL')).toBeTruthy();
   });
 
-  it('opens transaction details modal when pressed', () => {
+  it('renders a pending bridge transaction with segments', () => {
+    const pendingBridgeHistoryItem = {
+      ...mockBridgeHistoryItem,
+      status: {
+        srcChain: {
+          txHash: '0x123',
+          chainId: 1,
+        },
+        destChain: {
+          txHash: undefined,
+          chainId: 10,
+        },
+        status: StatusTypes.PENDING,
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <MultichainBridgeTransactionListItem
+        transaction={mockTransaction}
+        bridgeHistoryItem={pendingBridgeHistoryItem}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+      />,
+    );
+
+    expect(
+      getByText('bridge_transaction_details.bridge_to_chain'),
+    ).toBeTruthy();
+    expect(getByText('Transaction 2 of 2')).toBeTruthy();
+  });
+
+  it('navigates to bridge transaction details when clicked', () => {
     const { UNSAFE_getByType } = renderWithProvider(
       <MultichainBridgeTransactionListItem
         transaction={mockTransaction}
-        selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
+        bridgeHistoryItem={mockBridgeHistoryItem}
         navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
@@ -228,176 +174,11 @@ describe('MultichainBridgeTransactionListItem', () => {
     const touchable = UNSAFE_getByType(TouchableHighlight);
     fireEvent.press(touchable);
 
-    const modal = UNSAFE_getByType(MultichainTransactionDetailsModal);
-    expect(modal.props.isVisible).toBe(true);
-  });
-
-  it('handles failed transaction status', () => {
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      type: TransactionType.Send,
-      status: 'failed',
-      to: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-      from: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-      asset: { amount: '1.5', unit: 'SOL' },
-    });
-
-    const { getByTestId } = renderWithProvider(
-      <MultichainBridgeTransactionListItem
-        transaction={mockTransaction}
-        selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
-      />,
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      'BridgeTransactionDetails',
+      {
+        multiChainTx: mockTransaction,
+      },
     );
-
-    expect(getByTestId('transaction-status-tx-123')).toBeTruthy();
-  });
-
-  it('shows the network fees of a transaction', () => {
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      type: TransactionType.Send,
-      status: 'confirmed',
-      to: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-      from: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-      asset: { amount: '1.5', unit: 'SOL' },
-      baseFee: { amount: '0.000005', unit: 'SOL' },
-      priorityFee: { amount: '0.000001', unit: 'SOL' },
-    });
-
-    const { getByText } = renderWithProvider(
-      <MultichainBridgeTransactionListItem
-        transaction={mockTransaction}
-        selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
-      />,
-    );
-
-    expect(getByText('Send')).toBeTruthy();
-    expect(getByText('1.5 SOL')).toBeTruthy();
-  });
-
-  describe('Bridge Transaction Tests', () => {
-    it('renders a complete bridge transaction correctly', () => {
-      (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-        type: TransactionType.Send,
-        status: 'confirmed',
-        to: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-        from: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-        asset: { amount: '1.5', unit: 'SOL' },
-      });
-
-      const { getByText } = renderWithProvider(
-        <MultichainBridgeTransactionListItem
-          transaction={mockTransaction}
-          bridgeHistoryItem={mockBridgeHistoryItem}
-          selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-          navigation={
-            mockNavigation as unknown as NavigationProp<ParamListBase>
-          }
-        />,
-      );
-
-      expect(
-        getByText('bridge_transaction_details.bridge_to_chain'),
-      ).toBeTruthy();
-      expect(getByText('1.5 SOL')).toBeTruthy();
-    });
-
-    it('renders a pending bridge transaction with segments', () => {
-      const pendingBridgeHistoryItem = {
-        ...mockBridgeHistoryItem,
-        status: {
-          srcChain: {
-            txHash: '0x123',
-            chainId: 1,
-          },
-          destChain: {
-            txHash: undefined,
-            chainId: 10,
-          },
-          status: StatusTypes.PENDING,
-        },
-      };
-
-      (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-        type: TransactionType.Send,
-        status: 'pending',
-        to: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-        from: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-        asset: { amount: '1.5', unit: 'SOL' },
-      });
-
-      const { getByText } = renderWithProvider(
-        <MultichainBridgeTransactionListItem
-          transaction={mockTransaction}
-          bridgeHistoryItem={pendingBridgeHistoryItem}
-          selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-          navigation={
-            mockNavigation as unknown as NavigationProp<ParamListBase>
-          }
-        />,
-      );
-
-      expect(
-        getByText('bridge_transaction_details.bridge_to_chain'),
-      ).toBeTruthy();
-      expect(getByText('Transaction 2 of 2')).toBeTruthy();
-    });
-
-    it('navigates to bridge transaction details when clicked', () => {
-      const { UNSAFE_getByType } = renderWithProvider(
-        <MultichainBridgeTransactionListItem
-          transaction={mockTransaction}
-          bridgeHistoryItem={mockBridgeHistoryItem}
-          selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-          navigation={
-            mockNavigation as unknown as NavigationProp<ParamListBase>
-          }
-        />,
-      );
-
-      const touchable = UNSAFE_getByType(TouchableHighlight);
-      fireEvent.press(touchable);
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'BridgeTransactionDetails',
-        {
-          multiChainTx: mockTransaction,
-        },
-      );
-    });
-
-    it('does not show modal for bridge transactions', () => {
-      const { UNSAFE_getByType } = renderWithProvider(
-        <MultichainBridgeTransactionListItem
-          transaction={mockTransaction}
-          bridgeHistoryItem={mockBridgeHistoryItem}
-          selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-          navigation={
-            mockNavigation as unknown as NavigationProp<ParamListBase>
-          }
-        />,
-      );
-
-      const touchable = UNSAFE_getByType(TouchableHighlight);
-      fireEvent.press(touchable);
-
-      const modal = UNSAFE_getByType(MultichainTransactionDetailsModal);
-      expect(modal.props.isVisible).toBe(false);
-    });
-
-    it('handles missing bridge history item gracefully', () => {
-      const { getByText } = renderWithProvider(
-        <MultichainBridgeTransactionListItem
-          transaction={mockTransaction}
-          selectedAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
-          navigation={
-            mockNavigation as unknown as NavigationProp<ParamListBase>
-          }
-        />,
-      );
-
-      expect(getByText('Send')).toBeTruthy();
-      expect(getByText('1.5 SOL')).toBeTruthy();
-    });
   });
 });

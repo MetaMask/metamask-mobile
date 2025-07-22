@@ -17,16 +17,16 @@ import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsMo
 import styles from './MultichainTransactionListItem.styles';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
-import { NonEvmNetworkConfiguration } from '@metamask/multichain-network-controller';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
 const MultichainTransactionListItem = ({
   transaction,
-  networkConfig,
+  chainId,
   navigation,
   index,
 }: {
   transaction: Transaction;
-  networkConfig: NonEvmNetworkConfiguration;
+  chainId: SupportedCaipChainId;
   navigation: NavigationProp<ParamListBase>;
   index?: number;
 }) => {
@@ -35,10 +35,7 @@ const MultichainTransactionListItem = ({
   const appTheme = useSelector((state: RootState) => state.user.appTheme);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const displayData = useMultichainTransactionDisplay(
-    transaction,
-    networkConfig,
-  );
+  const displayData = useMultichainTransactionDisplay(transaction, chainId);
   const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
 
   const style = styles(colors, typography);

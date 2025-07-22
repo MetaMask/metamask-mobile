@@ -685,7 +685,7 @@ const mapStateToProps = (state, { route }) => {
     const assetAddress = route.params?.address?.toLowerCase();
     const assetSymbol = route.params?.symbol?.toLowerCase();
     const isNativeAsset = route.params?.isNative || route.params?.isETH;
-    const {namespace} = parseCaipChainId(route.params.chainId)
+    const {namespace} = parseCaipChainId(route.params.chainId);
 
     const newCacheKey = JSON.stringify({
       txCount: txs.length,
