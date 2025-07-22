@@ -30,7 +30,8 @@ export const earnControllerInit: ControllerInitFunction<
     addTransactionFn: TransactionController.prototype.addTransaction,
     // TODO: same as above, when this is used, we need to pass in the selectedNetworkClientId
     // from an intiialized NetworkController
-    selectedNetworkClientId: NetworkController.prototype.state.selectedNetworkClientId,
+    selectedNetworkClientId:
+      NetworkController.prototype.state.selectedNetworkClientId,
   });
 
   return { controller };
