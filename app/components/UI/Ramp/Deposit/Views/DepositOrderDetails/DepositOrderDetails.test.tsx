@@ -76,6 +76,7 @@ describe('DepositOrderDetails Component', () => {
     orderType: DepositOrderType.Deposit,
     data: {
       cryptoCurrency: 'USDC',
+      network: 'ethereum',
       providerOrderLink: 'https://transak.com/order/123',
     } as DepositOrder,
   };
