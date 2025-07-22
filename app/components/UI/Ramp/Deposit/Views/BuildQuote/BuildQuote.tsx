@@ -389,7 +389,7 @@ const BuildQuote = () => {
       <ScreenLayout.Body>
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.selectionRow}>
-            <AccountSelector />
+            <AccountSelector isEvmOnly={false} />
             <TouchableOpacity
               style={styles.fiatSelector}
               onPress={handleRegionPress}

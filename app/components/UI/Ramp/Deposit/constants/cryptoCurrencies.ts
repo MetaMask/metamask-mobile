@@ -124,6 +124,15 @@ export const ALL_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
   USDT_SOLANA_TOKEN,
 ];
 
+export const CONDITIONALLY_SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
+  USDC_LINEA_TOKEN,
+  USDC_BASE_TOKEN,
+  USDC_SOLANA_TOKEN,
+  USDT_LINEA_TOKEN,
+  USDT_BASE_TOKEN,
+  USDT_SOLANA_TOKEN,
+];
+
 export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
   USDC_TOKEN,
   // USDC_LINEA_TOKEN,
