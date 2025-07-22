@@ -1,8 +1,4 @@
-import React, {
-  useContext,
-  useEffect,
-  useRef,
-} from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';

@@ -36,9 +36,6 @@ enum SUPPORTED_ACTIONS {
   SEND = ACTIONS.SEND,
 }
 
-
-
-
 async function handleUniversalLink({
   handled,
   urlObj,
@@ -173,7 +170,7 @@ async function handleUniversalLink({
     // Normal links (same as dapp)
     handleBrowserUrl({
       url: urlObj.href,
-      callback: browserCallBack
+      callback: browserCallBack,
     });
   } else if (action === SUPPORTED_ACTIONS.SEND) {
     const deeplinkUrl = urlObj.href

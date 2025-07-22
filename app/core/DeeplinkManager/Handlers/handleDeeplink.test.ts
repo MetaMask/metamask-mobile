@@ -28,7 +28,8 @@ describe('handleDeeplink', () => {
   const mockDispatch = store.dispatch as jest.Mock;
   const mockCheckForDeeplink = checkForDeeplink as jest.Mock;
   const mockLoggerError = Logger.error as jest.Mock;
-  const mockSetCurrentDeeplink = AppStateEventProcessor.setCurrentDeeplink as jest.Mock;
+  const mockSetCurrentDeeplink =
+    AppStateEventProcessor.setCurrentDeeplink as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -71,7 +72,8 @@ describe('handleDeeplink', () => {
   });
 
   it('should handle complex URI schemes', () => {
-    const complexUri = 'metamask://dapp/connect?url=https://example.com&chainId=1';
+    const complexUri =
+      'metamask://dapp/connect?url=https://example.com&chainId=1';
 
     handleDeeplink({ uri: complexUri });
 
@@ -91,7 +93,7 @@ describe('handleDeeplink', () => {
 
     expect(mockLoggerError).toHaveBeenCalledWith(
       mockError,
-      'Deeplink: Error parsing deeplink'
+      'Deeplink: Error parsing deeplink',
     );
   });
 
@@ -108,7 +110,7 @@ describe('handleDeeplink', () => {
     expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(testUri);
     expect(mockLoggerError).toHaveBeenCalledWith(
       mockError,
-      'Deeplink: Error parsing deeplink'
+      'Deeplink: Error parsing deeplink',
     );
   });
 

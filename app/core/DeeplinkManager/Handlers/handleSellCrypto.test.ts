@@ -35,7 +35,8 @@ describe('handleSellCrypto', () => {
   });
 
   it('should handle complex ramp path with parameters', () => {
-    const complexRampPath = '/sell/crypto?token=ETH&amount=1.5&fiatCurrency=USD';
+    const complexRampPath =
+      '/sell/crypto?token=ETH&amount=1.5&fiatCurrency=USD';
 
     handleSellCrypto(complexRampPath);
 
