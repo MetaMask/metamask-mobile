@@ -64,7 +64,7 @@ export function renderInterface(
         SnapController: {
           snaps: {
             [snapId]: {
-              id: 'npm:@metamask/test-snap-bip44',
+              id: snapId,
               origin: 'npm:@metamask/test-snap-bip44',
               version: '5.1.2',
               iconUrl: null,
