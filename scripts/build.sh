@@ -150,6 +150,23 @@ remapEnvVariableQA() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
+# Mapping for environmental values in the e2e environment. 
+# This is the same as the QA mapping since e2e used QA values before. Subject to change as build configs are updated.
+remapEnvVariableE2E() {
+  	echo "Remapping E2E env variable names to match E2E values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+}
+
 remapEnvVariableProduction() {
   	echo "Remapping release env variable names to match production values"
   	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
@@ -477,6 +494,15 @@ buildIosQaProduction(){
 	generateIosBinary "MetaMask-QA"
 }
 
+# Builds the QA binary for E2E testing
+buildIosQaE2E(){
+	# Build for simulator
+	export IS_SIM_BUILD="true"
+
+	# Generate QA release binary
+	buildIosQaProduction()
+}
+
 buildIosReleaseE2E(){
 	prebuild_ios
 
@@ -579,11 +605,6 @@ buildAndroidReleaseE2E(){
 	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
-buildAndroidQAE2E(){
-	prebuild_android
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
-}
-
 buildAndroid() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
@@ -605,8 +626,6 @@ buildAndroid() {
 		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
-	elif [ "$MODE" == "QAE2E" ] ; then
-		buildAndroidQAE2E
   	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
@@ -655,6 +674,8 @@ buildIos() {
 	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildIosQaLocal
+		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ] ; then
+			buildIosQaE2E
 		else
 			buildIosQaProduction
 		fi
@@ -742,10 +763,14 @@ elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
 	remapFlaskEnvVariables
 elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" ] || [ "$MODE" == "QA" ]; then
 	# TODO: Map environment variables based on environment
-	remapEnvVariableQA
+	if [ "$ENVIRONMENT" == "e2e" ]; then
+		remapEnvVariableE2E
+	else
+		remapEnvVariableQA
+	fi
 fi
 
-if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
+if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"

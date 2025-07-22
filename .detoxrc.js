@@ -95,7 +95,7 @@ module.exports = {
       type: 'ios.app',
       binaryPath:
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
-      build: `METAMASK_BUILD_TYPE='${process.env.METAMASK_BUILD_TYPE || 'main'}' METAMASK_ENVIRONMENT='qa' yarn build:ios:qa`,
+      build: `yarn build:ios:qa:e2e`,
     },
     'android.debug': {
       type: 'android.apk',
@@ -106,7 +106,7 @@ module.exports = {
     'android.qa': {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/qa/release/app-qa-release.apk',
-      build: `METAMASK_BUILD_TYPE='${process.env.METAMASK_BUILD_TYPE || 'main'}' METAMASK_ENVIRONMENT='qa' yarn build:android:qa`,
+      build: `yarn build:android:qa:e2e`,
     },
   },
 };
