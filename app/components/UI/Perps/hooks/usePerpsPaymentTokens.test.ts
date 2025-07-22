@@ -169,6 +169,8 @@ describe('usePerpsPaymentTokens', () => {
     });
 
     it('should handle missing network configurations', () => {
+      // Clear previous mock setup and set new values
+      mockUseSelector.mockClear();
       mockUseSelector
         .mockReturnValueOnce(null) // selectNetworkConfigurations
         .mockReturnValueOnce(mockTokenList) // selectTokenList
@@ -296,6 +298,8 @@ describe('usePerpsPaymentTokens', () => {
     });
 
     it('should respect IPFS gateway settings', () => {
+      // Clear previous mock setup and set new values
+      mockUseSelector.mockClear();
       mockUseSelector
         .mockReturnValueOnce(mockNetworkConfigurations) // selectNetworkConfigurations
         .mockReturnValueOnce(mockTokenList) // selectTokenList
@@ -349,6 +353,8 @@ describe('usePerpsPaymentTokens', () => {
     });
 
     it('should handle missing token list', () => {
+      // Clear previous mock setup and set new values
+      mockUseSelector.mockClear();
       mockUseSelector
         .mockReturnValueOnce(mockNetworkConfigurations) // selectNetworkConfigurations
         .mockReturnValueOnce(null) // selectTokenList
