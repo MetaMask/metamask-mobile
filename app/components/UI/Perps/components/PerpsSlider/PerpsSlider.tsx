@@ -19,10 +19,13 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsSlider.styles';
 import LinearGradient from 'react-native-linear-gradient';
 
-configureReanimatedLogger({
-  level: ReanimatedLogLevel.warn,
-  strict: false, // Disable strict mode to suppress warnings about shared value modifications
-});
+// Only configure reanimated logger in non-test environments
+if (typeof configureReanimatedLogger === 'function' && typeof ReanimatedLogLevel !== 'undefined') {
+  configureReanimatedLogger({
+    level: ReanimatedLogLevel.warn,
+    strict: false, // Disable strict mode to suppress warnings about shared value modifications
+  });
+}
 
 interface PerpsSliderProps {
   value: number;
