@@ -14,7 +14,6 @@ import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
 
 const PASSWORD = '123123123';
 
-// TODO
 describe(SmokeAccounts('Error Boundary Screen'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
@@ -30,8 +29,9 @@ describe(SmokeAccounts('Error Boundary Screen'), () => {
           },
         ],
         fixture: new FixtureBuilder()
+          .withGanacheNetwork()
           .withPermissionControllerConnectedToMultipleTestDapps()
-          .withChainPermission(['0x1'])
+          .withChainPermission(['0x539'])
           .build(),
         restartDevice: true,
       },
@@ -54,9 +54,7 @@ describe(SmokeAccounts('Error Boundary Screen'), () => {
           RevealSecretRecoveryPhrase.container,
         );
 
-        await Assertions.expectElementToBeVisible(
-          defaultGanacheOptions.mnemonic,
-        );
+        await Assertions.expectTextDisplayed(defaultGanacheOptions.mnemonic);
       },
     );
   });
