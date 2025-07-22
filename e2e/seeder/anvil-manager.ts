@@ -101,7 +101,9 @@ class AnvilManager {
     const { port } = options;
 
     try {
-      logger.debug('Starting Anvil server...');
+      logger.debug(
+        `Starting Anvil server... with options: ${JSON.stringify(options)}`,
+      );
 
       // Create and start the server instance
       this.server = createAnvil({
@@ -125,6 +127,9 @@ class AnvilManager {
     if (!this.server) {
       throw new Error('Server not running yet');
     }
+    logger.debug(
+      `Creating AnvileClients with Anvil server port: ${this.server.port}`,
+    );
     const { walletClient, publicClient, testClient } = createAnvilClients(
       this.server.options.chainId ?? 1337,
       this.server.options.port ?? AnvilPort(),
