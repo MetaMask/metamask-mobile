@@ -535,16 +535,16 @@
     "unsupported_region_modal": {
       "title": "Region not supported",
       "location_prefix": "It looks like you're in:",
-      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to get crypto.",
       "change_region": "Change region",
       "buy_crypto": "Buy Crypto"
     },
     "unsupported_state_modal": {
-      "title": "State not supported",
-      "location_prefix": "It looks like you're in:",
-      "description": "We're working hard to expand coverage to your state. In the meantime, there may be other ways for you to buy crypto.",
-      "change_state": "Change state",
-      "go_home": "Go Home"
+      "title": "Region not supported",
+      "location_prefix": "You've selected:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there are other ways for you to get crypto.",
+      "change_state": "Change region",
+      "try_another_option": "Try another option"
     },
     "get_started": {
       "navbar_title": "Deposit",

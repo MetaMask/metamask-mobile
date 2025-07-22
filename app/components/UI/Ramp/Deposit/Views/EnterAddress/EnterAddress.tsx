@@ -36,7 +36,6 @@ import { getCryptoCurrencyFromTransakId } from '../../utils';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 
-
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
   quote: BuyQuote;
@@ -62,17 +61,7 @@ const EnterAddress = (): JSX.Element => {
     formData: basicInfoFormData,
     quote,
     kycUrl,
-  } = {
-    //mock these
-    formData: {
-      ssn: '1234567890',
-    },
-    quote: {
-      cryptoCurrency: 'USDC',
-      paymentMethod: 'USDC',
-    },
-    kycUrl: 'https://www.google.com',
-  }; //useParams<EnterAddressParams>();
+  } = useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -215,8 +204,6 @@ const EnterAddress = (): JSX.Element => {
       ),
     );
   }, [navigation, theme]);
-
-
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;

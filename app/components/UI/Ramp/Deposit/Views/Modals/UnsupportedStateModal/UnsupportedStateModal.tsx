@@ -27,6 +27,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 
 import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal';
 import { useDepositSDK } from '../../../sdk';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
 export interface UnsupportedStateModalParams {
   stateCode?: string;
@@ -52,20 +53,19 @@ function UnsupportedStateModal() {
       navigation.navigate(
         ...createStateSelectorModalNavigationDetails({
           selectedState: stateCode,
-          onStateSelect: () => {},
+          onStateSelect: () => {
+            // This callback is handled by the StateSelectorModal
+          },
         }),
       );
     });
   }, [navigation, stateCode]);
 
-  const handleGoHome = useCallback(() => {
+  const handleTryAnotherOption = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      // @ts-expect-error navigation prop mismatch
+      navigation.dangerouslyGetParent()?.pop();
+      navigation.navigate(...createBuyNavigationDetails());
     });
   }, [navigation]);
 
@@ -119,8 +119,8 @@ function UnsupportedStateModal() {
         />
         <Button
           size={ButtonSize.Lg}
-          onPress={handleGoHome}
-          label={strings('deposit.unsupported_state_modal.go_home')}
+          onPress={handleTryAnotherOption}
+          label={strings('deposit.unsupported_state_modal.try_another_option')}
           variant={ButtonVariants.Primary}
           width={ButtonWidthTypes.Full}
         />

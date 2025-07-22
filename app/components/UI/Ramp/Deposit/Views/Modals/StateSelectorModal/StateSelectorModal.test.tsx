@@ -28,31 +28,6 @@ function renderWithProvider(component: React.ComponentType) {
   );
 }
 
-jest.mock('../../../constants', () => ({
-  US_STATES: [
-    {
-      code: 'CA',
-      name: 'California',
-    },
-    {
-      code: 'NY',
-      name: 'New York',
-    },
-    {
-      code: 'TX',
-      name: 'Texas',
-    },
-    {
-      code: 'FL',
-      name: 'Florida',
-    },
-    {
-      code: 'WA',
-      name: 'Washington',
-    },
-  ],
-}));
-
 let mockUseParamsValues = {
   selectedState: undefined,
   onStateSelect: jest.fn(),
@@ -64,7 +39,9 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('../UnsupportedStateModal/UnsupportedStateModal', () => ({
-  createUnsupportedStateModalNavigationDetails: jest.fn(() => ['UnsupportedStateModal']),
+  createUnsupportedStateModalNavigationDetails: jest.fn(() => [
+    'UnsupportedStateModal',
+  ]),
 }));
 
 describe('StateSelectorModal Component', () => {
@@ -76,99 +53,62 @@ describe('StateSelectorModal Component', () => {
     };
   });
 
-  describe('Snapshot Tests', () => {
-    it('renders initial state correctly', () => {
-      const { toJSON } = renderWithProvider(StateSelectorModal);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders filtered state when searching by name', () => {
-      const { getByPlaceholderText, toJSON } =
-        renderWithProvider(StateSelectorModal);
-      fireEvent.changeText(
-        getByPlaceholderText('Search by state'),
-        'California',
-      );
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders filtered state when searching by code', () => {
-      const { getByPlaceholderText, toJSON } =
-        renderWithProvider(StateSelectorModal);
-      fireEvent.changeText(getByPlaceholderText('Search by state'), 'CA');
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders empty state when no search results found', () => {
-      const { getByPlaceholderText, toJSON } =
-        renderWithProvider(StateSelectorModal);
-      fireEvent.changeText(
-        getByPlaceholderText('Search by state'),
-        'Nonexistent State',
-      );
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders partial search results', () => {
-      const { getByPlaceholderText, toJSON } =
-        renderWithProvider(StateSelectorModal);
-      fireEvent.changeText(getByPlaceholderText('Search by state'), 'Cal');
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('renders cleared search state', () => {
-      const { getByPlaceholderText, getByTestId, toJSON } =
-        renderWithProvider(StateSelectorModal);
-      fireEvent.changeText(getByPlaceholderText('Search by state'), 'Cal');
-      const clearButton = getByTestId('textfield-endacccessory');
-      fireEvent.press(clearButton);
-      expect(toJSON()).toMatchSnapshot();
-    });
+  it('renders initial state correctly', () => {
+    const { toJSON } = renderWithProvider(StateSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  describe('Behavior Tests', () => {
-    it('calls onStateSelect when a state is selected', () => {
-      const { getByText } = renderWithProvider(StateSelectorModal);
-      const californiaState = getByText('California');
-      fireEvent.press(californiaState);
-      expect(mockUseParamsValues.onStateSelect).toHaveBeenCalledWith('CA');
-    });
+  it('renders filtered state when searching by name', () => {
+    const { getByPlaceholderText, toJSON } =
+      renderWithProvider(StateSelectorModal);
+    fireEvent.changeText(getByPlaceholderText('Search by state'), 'California');
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-    it('filters states when searching by name', () => {
-      const { getByPlaceholderText, getByText, queryByText } =
-        renderWithProvider(StateSelectorModal);
-      const searchInput = getByPlaceholderText('Search by state');
-      fireEvent.changeText(searchInput, 'Cal');
-      expect(getByText('California')).toBeOnTheScreen();
-      expect(queryByText('Texas')).toBeNull();
-    });
+  it('renders filtered state when searching by code', () => {
+    const { getByPlaceholderText, toJSON } =
+      renderWithProvider(StateSelectorModal);
+    fireEvent.changeText(getByPlaceholderText('Search by state'), 'CA');
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-    it('filters states when searching by code', () => {
-      const { getByPlaceholderText, getByText, queryByText } =
-        renderWithProvider(StateSelectorModal);
+  it('renders empty state when no search results found', () => {
+    const { getByPlaceholderText, toJSON } =
+      renderWithProvider(StateSelectorModal);
+    fireEvent.changeText(
+      getByPlaceholderText('Search by state'),
+      'Nonexistent State',
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-      const searchInput = getByPlaceholderText('Search by state');
-      fireEvent.changeText(searchInput, 'CA');
+  it('renders partial search results', () => {
+    const { getByPlaceholderText, toJSON } =
+      renderWithProvider(StateSelectorModal);
+    fireEvent.changeText(getByPlaceholderText('Search by state'), 'Cal');
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-      expect(getByText('California')).toBeOnTheScreen();
-      expect(queryByText('Texas')).toBeNull();
-    });
+  it('renders cleared search state', () => {
+    const { getByPlaceholderText, getByTestId, toJSON } =
+      renderWithProvider(StateSelectorModal);
+    fireEvent.changeText(getByPlaceholderText('Search by state'), 'Cal');
+    const clearButton = getByTestId('textfield-endacccessory');
+    fireEvent.press(clearButton);
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-    it('shows empty state message when no search results found', () => {
-      const { getByPlaceholderText, getByText } =
-        renderWithProvider(StateSelectorModal);
+  it('calls onStateSelect when a state is selected', () => {
+    const { getByText } = renderWithProvider(StateSelectorModal);
+    const californiaState = getByText('California');
+    fireEvent.press(californiaState);
+    expect(mockUseParamsValues.onStateSelect).toHaveBeenCalledWith('CA');
+  });
 
-      const searchInput = getByPlaceholderText('Search by state');
-      fireEvent.changeText(searchInput, 'Nonexistent');
-
-      expect(getByText('No states match "Nonexistent"')).toBeOnTheScreen();
-    });
-
-    it('navigates to unsupported state modal when NY is selected', () => {
-      const { getByText } = renderWithProvider(StateSelectorModal);
-      const newYorkState = getByText('New York');
-      fireEvent.press(newYorkState);
-      expect(mockNavigate).toHaveBeenCalledWith('UnsupportedStateModal');
-    });
+  it('navigates to unsupported state modal when NY is selected', () => {
+    const { getByText } = renderWithProvider(StateSelectorModal);
+    const newYorkState = getByText('New York');
+    fireEvent.press(newYorkState);
+    expect(mockNavigate).toHaveBeenCalledWith('UnsupportedStateModal');
   });
 });

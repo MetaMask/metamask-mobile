@@ -13,7 +13,7 @@ import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 
 const Root = () => {
   const navigation = useNavigation();
-  const [initialRoute] = useState<string>(Routes.DEPOSIT.ENTER_ADDRESS);
+  const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
   const { checkExistingToken, getStarted } = useDepositSDK();
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getOrders);

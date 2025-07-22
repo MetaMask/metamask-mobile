@@ -14,6 +14,7 @@ const styleSheet = () =>
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 16,
+      gap: 8,
     },
     stateName: {
       marginLeft: 8,
@@ -27,4 +28,4 @@ const styleSheet = () =>
     },
   });
 
-export default styleSheet; 
+export default styleSheet;
