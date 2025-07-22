@@ -234,7 +234,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    navigation.navigate('SendFlowView', {});
+    navigation.navigate(Routes.SEND_FLOW_VIEW, {});
   };
 
   const onBuy = () => {

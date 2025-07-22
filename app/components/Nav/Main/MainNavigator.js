@@ -830,7 +830,7 @@ const MainNavigator = () => {
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
-        name="SendFlowView"
+        name={Routes.SEND_FLOW_VIEW}
         component={SendFlowView}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}

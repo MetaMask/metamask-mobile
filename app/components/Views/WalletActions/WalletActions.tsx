@@ -307,7 +307,7 @@ const WalletActions = () => {
       } else {
         dispatch(newAssetTransaction(assetToSend));
       }
-      navigate('SendFlowView', {});
+      navigate(Routes.SEND_FLOW_VIEW, {});
     });
   }, [
     closeBottomSheetAndNavigate,

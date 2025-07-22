@@ -144,6 +144,9 @@ const mockInitialState = {
   settings: {
     primaryCurrency: 'usd',
   },
+  fiatOrders: {
+    networks: [],
+  },
   engine: {
     backgroundState: {
       ...backgroundState,
