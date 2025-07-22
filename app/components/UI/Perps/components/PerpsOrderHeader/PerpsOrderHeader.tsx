@@ -102,6 +102,21 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     [asset],
   );
 
+  // Format price display with edge case handling
+  const formattedPrice = useMemo(() => {
+    // Handle invalid or edge case values
+    if (!price || price <= 0 || !Number.isFinite(price)) {
+      return '$---';
+    }
+
+    try {
+      return formatPrice(price);
+    } catch {
+      // Fallback if formatPrice throws
+      return '$---';
+    }
+  }, [price]);
+
   return (
     <View style={styles.header}>
       <ButtonIcon
@@ -118,7 +133,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
             style={styles.tokenIcon}
           />
           <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
-            {asset} {price > 0 ? formatPrice(price) : '$---'}
+            {asset} {formattedPrice}
           </Text>
           {price > 0 && (
             <Text
