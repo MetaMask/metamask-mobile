@@ -120,7 +120,6 @@ jest.mock('../../components/PerpsSlider', () => ({
   __esModule: true,
   default: ({
     value,
-    onValueChange,
   }: {
     value: number;
     onValueChange: (v: number) => void;
@@ -177,79 +176,79 @@ jest.mock('../../../Swaps/components/TokenIcon', () => 'TokenIcon');
 
 // Mock bottom sheet components as they are complex and not part of the test focus
 jest.mock('../../components/PerpsTPSLBottomSheet', () => {
-  const React = jest.requireActual('react');
+  const MockReact = jest.requireActual('react');
   return {
     __esModule: true,
     default: ({ isVisible }: { isVisible: boolean }) =>
       isVisible
-        ? React.createElement('View', { testID: 'tpsl-bottom-sheet' })
+        ? MockReact.createElement('View', { testID: 'tpsl-bottom-sheet' })
         : null,
   };
 });
 jest.mock('../../components/PerpsLeverageBottomSheet', () => {
-  const React = jest.requireActual('react');
+  const MockReact = jest.requireActual('react');
   return {
     __esModule: true,
     default: ({ isVisible }: { isVisible: boolean }) =>
       isVisible
-        ? React.createElement('View', { testID: 'leverage-bottom-sheet' })
+        ? MockReact.createElement('View', { testID: 'leverage-bottom-sheet' })
         : null,
   };
 });
 jest.mock('../../components/PerpsLimitPriceBottomSheet', () => {
-  const React = jest.requireActual('react');
+  const MockReact = jest.requireActual('react');
   return {
     __esModule: true,
     default: ({ isVisible }: { isVisible: boolean }) =>
       isVisible
-        ? React.createElement('View', { testID: 'limit-price-bottom-sheet' })
+        ? MockReact.createElement('View', { testID: 'limit-price-bottom-sheet' })
         : null,
   };
 });
 jest.mock('../../components/PerpsOrderTypeBottomSheet', () => {
-  const React = jest.requireActual('react');
+  const MockReact = jest.requireActual('react');
   return {
     __esModule: true,
     default: ({ isVisible }: { isVisible: boolean }) =>
       isVisible
-        ? React.createElement('View', { testID: 'order-type-bottom-sheet' })
+        ? MockReact.createElement('View', { testID: 'order-type-bottom-sheet' })
         : null,
   };
 });
 jest.mock('../../components/PerpsOrderHeader', () => {
-  const React = jest.requireActual('react');
+  const MockReact = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({ asset, price }: { asset: string; price: number }) =>
-      React.createElement(
+      MockReact.createElement(
         View,
         { testID: 'perps-order-header' },
-        React.createElement(Text, null, asset),
-        React.createElement(Text, null, price),
+        MockReact.createElement(Text, null, asset),
+        MockReact.createElement(Text, null, price),
       ),
   };
 });
 jest.mock('../../components/PerpsAmountDisplay', () => {
-  const React = jest.requireActual('react');
+  const MockReact = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({ amount }: { amount: string }) =>
-      React.createElement(
+      MockReact.createElement(
         View,
         { testID: 'perps-amount-display' },
-        React.createElement(Text, null, amount),
+        MockReact.createElement(Text, null, amount),
       ),
   };
 });
 jest.mock('../../components/PerpsTokenSelector', () => {
-  const React = jest.requireActual('react');
+  const MockReact = jest.requireActual('react');
   return {
     __esModule: true,
     default: ({ isVisible }: { isVisible: boolean }) =>
       isVisible
-        ? React.createElement('View', { testID: 'token-selector' })
+        ? MockReact.createElement('View', { testID: 'token-selector' })
         : null,
   };
 });
@@ -349,7 +348,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('should render the order view', async () => {
-    const { findByText } = render(<PerpsOrderView />);
+    render(<PerpsOrderView />);
 
     // Check if key elements are rendered
     await waitFor(() => {
