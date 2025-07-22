@@ -4,12 +4,20 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../core/SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  SolScope,
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BtcScope,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
 import {
   endPerformanceTrace,
   startPerformanceTrace,
@@ -26,18 +34,16 @@ import Logger from '../../util/Logger';
 
 interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
-  waitForDiscoveredAccounts: boolean;
 }
 
 export async function importNewSecretRecoveryPhrase(
   mnemonic: string,
   options: ImportNewSecretRecoveryPhraseOptions = {
     shouldSelectAccount: true,
-    waitForDiscoveredAccounts: true,
   },
 ) {
   const { KeyringController } = Engine.context;
-  const { shouldSelectAccount, waitForDiscoveredAccounts } = options;
+  const { shouldSelectAccount } = options;
 
   // Convert input mnemonic to codepoints
   const mnemonicWords = mnemonic.toLowerCase().split(' ');
@@ -86,8 +92,6 @@ export async function importNewSecretRecoveryPhrase(
 
   const { SeedlessOnboardingController } = Engine.context;
 
-  let discoveredAccountsCount = 0;
-
   // TODO: to use loginCompleted
   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly
@@ -135,19 +139,27 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
+  let discoveredAccountsCount = 0;
+
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const bitcoinMultichainClient = MultichainWalletSnapFactory.createClient(
+    WalletClientType.Bitcoin,
+  );
+  discoveredAccountsCount +=
+    await bitcoinMultichainClient.addDiscoveredAccounts(
+      newKeyring.id,
+      BtcScope.Mainnet,
+    );
+  ///: END:ONLY_INCLUDE_IF
+
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  const multichainClient = MultichainWalletSnapFactory.createClient(
+  const solanaMultichainClient = MultichainWalletSnapFactory.createClient(
     WalletClientType.Solana,
   );
-
-  if (waitForDiscoveredAccounts) {
-    discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
-      newKeyring.id,
-    );
-  } else {
-    multichainClient.addDiscoveredAccounts(newKeyring.id);
-  }
-
+  discoveredAccountsCount += await solanaMultichainClient.addDiscoveredAccounts(
+    newKeyring.id,
+    SolScope.Mainnet,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   if (shouldSelectAccount) {

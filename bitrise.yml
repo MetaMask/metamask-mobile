@@ -58,6 +58,7 @@ pipelines:
   #Run E2E test suite for  Flask builds
   run_e2e_flask_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android: {}
       - notify: {}
@@ -90,6 +91,7 @@ pipelines:
 
   flask_smoke_e2e_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android_stage: {}
       - notify: {}
@@ -97,6 +99,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
@@ -292,9 +295,12 @@ stages:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
   build_regression_e2e_ios_android_stage:
+    abort_on_fail: true
     workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+      - ios_build_regression_tests:
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+      - android_build_regression_tests:
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -354,8 +360,10 @@ stages:
       - release_announcing_stores: {}
   build_e2e_flask_ios_android:
     workflows:
-      - build_flask_e2e_android: {}
-      - build_flask_e2e_ios: {}
+      - build_flask_e2e_android: 
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+      - build_flask_e2e_ios: 
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
   run_e2e_flask_ios_android:
     workflows:
       - run_flask_e2e_android: {}
@@ -2874,13 +2882,13 @@ app:
       VERSION_NAME: 7.50.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2141
+      VERSION_NUMBER: 2103
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.50.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2141
+      FLASK_VERSION_NUMBER: 2103
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

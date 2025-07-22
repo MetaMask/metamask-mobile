@@ -56,6 +56,7 @@ import {
 } from '@metamask/keyring-controller';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
+import { SolScope } from '@metamask/keyring-api';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
   SeedlessOnboardingControllerError,
@@ -152,7 +153,7 @@ class AuthenticationService {
           setSelectedAccount: false,
         },
       );
-      await client.addDiscoveredAccounts(primaryHdKeyringId);
+      await client.addDiscoveredAccounts(primaryHdKeyringId, SolScope.Mainnet);
 
       await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
     };

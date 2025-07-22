@@ -129,6 +129,8 @@ const Main = (props) => {
   useEffect(() => {
     const checkIsSeedlessPasswordOutdated = async () => {
       if (isSeedlessPasswordOutdated) {
+        // Check for latest seedless password outdated state
+        // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
         const isOutdated =
           await Authentication.checkIsSeedlessPasswordOutdated();
         if (!isOutdated) {

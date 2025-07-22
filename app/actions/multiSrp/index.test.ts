@@ -12,6 +12,7 @@ import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 const testAddress = '0x123';
 const mockExpectedAccount = createMockInternalAccount(
@@ -143,10 +144,17 @@ describe('MultiSRP Actions', () => {
         numberOfAccounts: 1,
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
-      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith('keyring-id-123');
+      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith(
+        'keyring-id-123',
+        BtcScope.Mainnet,
+      );
+      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith(
+        'keyring-id-123',
+        SolScope.Mainnet,
+      );
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 5,
+        discoveredAccountsCount: 10,
       });
     });
 
@@ -180,7 +188,6 @@ describe('MultiSRP Actions', () => {
       // Act
       const result = await importNewSecretRecoveryPhrase(testMnemonic, {
         shouldSelectAccount: false,
-        waitForDiscoveredAccounts: true,
       });
 
       // Assert
@@ -261,27 +268,6 @@ describe('MultiSRP Actions', () => {
       });
     });
 
-    it('imports SRP with waitForDiscoveredAccounts set to false', async () => {
-      mockGetKeyringsByType.mockResolvedValue([]);
-      mockAddNewKeyring.mockResolvedValue({
-        id: 'test-keyring-id',
-        getAccounts: () => [testAddress],
-      });
-
-      // Act
-      const result = await importNewSecretRecoveryPhrase(testMnemonic, {
-        shouldSelectAccount: true,
-        waitForDiscoveredAccounts: false,
-      });
-
-      // Assert
-      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith('test-keyring-id');
-      expect(result).toEqual({
-        address: testAddress,
-        discoveredAccountsCount: 0,
-      });
-    });
-
     it('syncs with seedless onboarding when login flow is active', async () => {
       // Arrange
       mockGetKeyringsByType.mockResolvedValue([]);
@@ -307,7 +293,7 @@ describe('MultiSRP Actions', () => {
       );
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 3,
+        discoveredAccountsCount: 6,
       });
     });
 
@@ -351,7 +337,7 @@ describe('MultiSRP Actions', () => {
       expect(mockAddNewSecretData).not.toHaveBeenCalled();
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 2,
+        discoveredAccountsCount: 4, // bitcoin + solana
       });
     });
 
@@ -375,7 +361,7 @@ describe('MultiSRP Actions', () => {
       });
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 1,
+        discoveredAccountsCount: 2, // bitcoin + solana
       });
     });
   });
