@@ -457,6 +457,7 @@ class ApproveTransactionReview extends PureComponent {
     );
 
     const { name: method } = await getMethodData(data);
+    console.log('[ApproveTransactionReview] >>>>> Method detected:', method);
     const minTokenAllowance = minimumTokenAllowance(tokenDecimals);
 
     const approvalData = generateApprovalData({
