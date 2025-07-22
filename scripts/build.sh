@@ -500,7 +500,7 @@ buildIosQaE2E(){
 	export IS_SIM_BUILD="true"
 
 	# Generate QA release binary
-	buildIosQaProduction()
+	buildIosQaProduction
 }
 
 buildIosReleaseE2E(){
