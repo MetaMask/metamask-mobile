@@ -19,7 +19,7 @@ import Engine from '../../../../core/Engine';
 jest.mock('../../../../core/Engine', () => ({
   context: {
     BridgeStatusController: {
-      resetAttempts: jest.fn(),
+      restartPollingForFailedAttempts: jest.fn(),
     },
   },
 }));
