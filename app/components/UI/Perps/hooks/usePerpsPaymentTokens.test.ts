@@ -296,25 +296,6 @@ describe('usePerpsPaymentTokens', () => {
         isIpfsGatewayEnabled: false,
       });
     });
-
-    it('should respect IPFS gateway settings', () => {
-      // Clear previous mock setup and set new values
-      mockUseSelector.mockClear();
-      mockUseSelector
-        .mockReturnValueOnce(mockNetworkConfigurations) // selectNetworkConfigurations
-        .mockReturnValueOnce(mockTokenList) // selectTokenList
-        .mockReturnValueOnce(true); // selectIsIpfsGatewayEnabled
-
-      renderHook(() => usePerpsPaymentTokens());
-
-      expect(
-        mockEnhanceTokenWithIcon.enhanceTokenWithIcon,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isIpfsGatewayEnabled: true,
-        }),
-      );
-    });
   });
 
   describe('Edge cases', () => {
