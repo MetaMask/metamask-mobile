@@ -56,8 +56,12 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const [priceSnapshot, setPriceSnapshot] = useState(() => ({
     currentPrice: passedCurrentPrice,
     markPrice: passedCurrentPrice,
-    bestBid: passedCurrentPrice ? passedCurrentPrice * DEFAULT_BID_MULTIPLIER : undefined,
-    bestAsk: passedCurrentPrice ? passedCurrentPrice * DEFAULT_ASK_MULTIPLIER : undefined,
+    bestBid: passedCurrentPrice
+      ? passedCurrentPrice * DEFAULT_BID_MULTIPLIER
+      : undefined,
+    bestAsk: passedCurrentPrice
+      ? passedCurrentPrice * DEFAULT_ASK_MULTIPLIER
+      : undefined,
   }));
 
   // Update price snapshot only when bottom sheet opens
@@ -159,8 +163,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   ];
 
   // Use real bid/ask prices if available, otherwise calculate approximations
-  const displayAskPrice = bestAsk || (currentPrice ? currentPrice * DEFAULT_ASK_MULTIPLIER : 0);
-  const displayBidPrice = bestBid || (currentPrice ? currentPrice * DEFAULT_BID_MULTIPLIER : 0);
+  const displayAskPrice =
+    bestAsk || (currentPrice ? currentPrice * DEFAULT_ASK_MULTIPLIER : 0);
+  const displayBidPrice =
+    bestBid || (currentPrice ? currentPrice * DEFAULT_BID_MULTIPLIER : 0);
 
   if (!isVisible) return null;
 

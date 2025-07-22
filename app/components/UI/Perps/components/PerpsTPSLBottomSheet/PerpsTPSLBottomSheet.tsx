@@ -18,6 +18,19 @@ import { formatPrice } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
+import {
+  isValidTakeProfitPrice,
+  isValidStopLossPrice,
+  validateTPSLPrices,
+  getTakeProfitErrorDirection,
+  getStopLossErrorDirection,
+  calculatePriceForPercentage,
+  calculatePercentageForPrice,
+} from '../../utils/tpslValidation';
+
+// Quick percentage buttons constants
+const TAKE_PROFIT_PERCENTAGES = [5, 10, 15, 20];
+const STOP_LOSS_PERCENTAGES = [5, 10, 15, 20];
 
 interface PerpsTPSLBottomSheetProps {
   isVisible: boolean;
@@ -71,7 +84,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   // For existing positions, use the position's entry price as reference
   const currentPrice = position?.entryPrice
     ? parseFloat(position.entryPrice)
-    : (initialCurrentPrice || 0);
+    : initialCurrentPrice || 0;
 
   useEffect(() => {
     if (isVisible) {
@@ -97,23 +110,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     }
   }, [isVisible, initialTakeProfitPrice, initialStopLossPrice, currentPrice]);
 
-  // Helper functions to validate individual prices
-  const isValidTakeProfitPrice = useCallback((price: string) => {
-    if (!currentPrice || !direction || !price) return true;
-    const tpPrice = parseFloat(price.replace(/[$,]/g, ''));
-    if (isNaN(tpPrice)) return true;
-    const isLong = direction === 'long';
-    return isLong ? tpPrice > currentPrice : tpPrice < currentPrice;
-  }, [currentPrice, direction]);
-
-  const isValidStopLossPrice = useCallback((price: string) => {
-    if (!currentPrice || !direction || !price) return true;
-    const slPrice = parseFloat(price.replace(/[$,]/g, ''));
-    if (isNaN(slPrice)) return true;
-    const isLong = direction === 'long';
-    return isLong ? slPrice < currentPrice : slPrice > currentPrice;
-  }, [currentPrice, direction]);
-
   const handleConfirm = () => {
     // Parse the formatted prices back to plain numbers for storage
     const parseTakeProfitPrice = takeProfitPrice
@@ -127,83 +123,146 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     onClose();
   };
 
-  // Quick percentage buttons
-  const takeProfitPercentages = [5, 10, 15, 20];
-  const stopLossPercentages = [5, 10, 15, 20];
+  // Memoized callbacks for take profit price input
+  const handleTakeProfitPriceChange = useCallback(
+    (text: string) => {
+      // Allow only numbers and decimal point
+      const sanitized = text.replace(/[^0-9.]/g, '');
+      // Prevent multiple decimal points
+      const parts = sanitized.split('.');
+      if (parts.length > 2) return;
+      setTakeProfitPrice(sanitized);
 
-  const calculatePriceForPercentage = useCallback(
-    (percentage: number, isProfit: boolean) => {
-      if (!currentPrice) return '';
-
-      // For long positions: profit = price up, loss = price down
-      // For short positions: profit = price down, loss = price up
-      const isLong = direction === 'long';
-      const multiplier = isProfit
-        ? (isLong ? 1 + percentage / 100 : 1 - percentage / 100)
-        : (isLong ? 1 - percentage / 100 : 1 + percentage / 100);
-
-      const calculatedPrice = currentPrice * multiplier;
-      return formatPrice(calculatedPrice);
+      // Update percentage based on price
+      if (sanitized) {
+        const percentage = calculatePercentageForPrice(sanitized, true, {
+          currentPrice,
+          direction,
+        });
+        setTakeProfitPercentage(percentage);
+      } else {
+        setTakeProfitPercentage('');
+      }
+      setSelectedTpPercentage(null);
     },
     [currentPrice, direction],
   );
 
-  const calculatePercentageForPrice = useCallback(
-    (price: string, isProfit: boolean) => {
-      if (!currentPrice || !price) return '';
-      const priceNum = parseFloat(price.replace(/[$,]/g, ''));
-      if (isNaN(priceNum)) return '';
+  // Memoized callbacks for take profit percentage input
+  const handleTakeProfitPercentageChange = useCallback(
+    (text: string) => {
+      // Allow only numbers and decimal point
+      const sanitized = text.replace(/[^0-9.]/g, '');
+      // Prevent multiple decimal points
+      const parts = sanitized.split('.');
+      if (parts.length > 2) return;
+      setTakeProfitPercentage(sanitized);
 
-      const isLong = direction === 'long';
-      const priceDiff = priceNum - currentPrice;
-      const percentage = Math.abs((priceDiff / currentPrice) * 100);
-
-      // Validate direction consistency
-      if (isProfit) {
-        // For profit: long needs higher price, short needs lower price
-        const isValidDirection = isLong ? priceDiff > 0 : priceDiff < 0;
-        return isValidDirection ? percentage.toFixed(2) : `-${percentage.toFixed(2)}`;
+      // Update price based on percentage
+      if (sanitized && !isNaN(parseFloat(sanitized))) {
+        const price = calculatePriceForPercentage(parseFloat(sanitized), true, {
+          currentPrice,
+          direction,
+        });
+        setTakeProfitPrice(formatPrice(price));
+        setSelectedTpPercentage(parseFloat(sanitized));
+      } else {
+        setTakeProfitPrice('');
+        setSelectedTpPercentage(null);
       }
-      // For loss: long needs lower price, short needs higher price
-      const isValidDirection = isLong ? priceDiff < 0 : priceDiff > 0;
-      return isValidDirection ? percentage.toFixed(2) : `-${percentage.toFixed(2)}`;
     },
     [currentPrice, direction],
   );
 
-  // Validate take profit and stop loss prices based on direction
-  const validatePrices = useCallback(() => {
-    if (!currentPrice || !direction) return true;
+  // Memoized callbacks for stop loss price input
+  const handleStopLossPriceChange = useCallback(
+    (text: string) => {
+      // Allow only numbers and decimal point
+      const sanitized = text.replace(/[^0-9.]/g, '');
+      // Prevent multiple decimal points
+      const parts = sanitized.split('.');
+      if (parts.length > 2) return;
+      setStopLossPrice(sanitized);
 
-    const isLong = direction === 'long';
-    let isValid = true;
-
-    if (takeProfitPrice) {
-      const tpPrice = parseFloat(takeProfitPrice.replace(/[$,]/g, ''));
-      if (!isNaN(tpPrice)) {
-        // Long: TP must be above current price, Short: TP must be below
-        isValid = isValid && (isLong ? tpPrice > currentPrice : tpPrice < currentPrice);
+      // Update percentage based on price
+      if (sanitized) {
+        const percentage = calculatePercentageForPrice(sanitized, false, {
+          currentPrice,
+          direction,
+        });
+        setStopLossPercentage(percentage);
+      } else {
+        setStopLossPercentage('');
       }
-    }
+      setSelectedSlPercentage(null);
+    },
+    [currentPrice, direction],
+  );
 
-    if (stopLossPrice) {
-      const slPrice = parseFloat(stopLossPrice.replace(/[$,]/g, ''));
-      if (!isNaN(slPrice)) {
-        // Long: SL must be below current price, Short: SL must be above
-        isValid = isValid && (isLong ? slPrice < currentPrice : slPrice > currentPrice);
+  // Memoized callbacks for stop loss percentage input
+  const handleStopLossPercentageChange = useCallback(
+    (text: string) => {
+      // Allow only numbers and decimal point
+      const sanitized = text.replace(/[^0-9.]/g, '');
+      // Prevent multiple decimal points
+      const parts = sanitized.split('.');
+      if (parts.length > 2) return;
+      setStopLossPercentage(sanitized);
+
+      // Update price based on percentage
+      if (sanitized && !isNaN(parseFloat(sanitized))) {
+        const price = calculatePriceForPercentage(
+          parseFloat(sanitized),
+          false,
+          { currentPrice, direction },
+        );
+        setStopLossPrice(formatPrice(price));
+        setSelectedSlPercentage(parseFloat(sanitized));
+      } else {
+        setStopLossPrice('');
+        setSelectedSlPercentage(null);
       }
-    }
+    },
+    [currentPrice, direction],
+  );
 
-    return isValid;
-  }, [currentPrice, direction, takeProfitPrice, stopLossPrice]);
+  // Memoized callbacks for percentage buttons
+  const handleTakeProfitPercentageButton = useCallback(
+    (percentage: number) => {
+      const price = calculatePriceForPercentage(percentage, true, {
+        currentPrice,
+        direction,
+      });
+      setTakeProfitPrice(formatPrice(price));
+      setTakeProfitPercentage(percentage.toString());
+      setSelectedTpPercentage(percentage);
+    },
+    [currentPrice, direction],
+  );
+
+  const handleStopLossPercentageButton = useCallback(
+    (percentage: number) => {
+      const price = calculatePriceForPercentage(percentage, false, {
+        currentPrice,
+        direction,
+      });
+      setStopLossPrice(formatPrice(price));
+      setStopLossPercentage(percentage.toString());
+      setSelectedSlPercentage(percentage);
+    },
+    [currentPrice, direction],
+  );
 
   const footerButtonProps = [
     {
-      label: 'Set',
+      label: strings('perps.tpsl.set_button'),
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
-      disabled: !validatePrices(),
+      disabled: !validateTPSLPrices(takeProfitPrice, stopLossPrice, {
+        currentPrice,
+        direction,
+      }),
     },
   ];
 
@@ -217,7 +276,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     >
       <BottomSheetHeader onClose={onClose}>
         <Text variant={TextVariant.HeadingMD}>
-          Set take profit and stop loss
+          {strings('perps.tpsl.title')}
         </Text>
       </BottomSheetHeader>
 
@@ -243,32 +302,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 styles.inputContainer,
                 styles.inputContainerLeft,
                 tpPriceInputFocused && styles.inputContainerActive,
-                takeProfitPrice && !isValidTakeProfitPrice(takeProfitPrice) && styles.inputContainerError,
+                takeProfitPrice &&
+                  !isValidTakeProfitPrice(takeProfitPrice, {
+                    currentPrice,
+                    direction,
+                  }) &&
+                  styles.inputContainerError,
               ]}
             >
               <TextInput
                 style={styles.input}
                 value={takeProfitPrice}
-                onChangeText={(text) => {
-                  // Allow only numbers and decimal point
-                  const sanitized = text.replace(/[^0-9.]/g, '');
-                  // Prevent multiple decimal points
-                  const parts = sanitized.split('.');
-                  if (parts.length > 2) return;
-                  setTakeProfitPrice(sanitized);
-
-                  // Update percentage based on price
-                  if (sanitized) {
-                    const percentage = calculatePercentageForPrice(
-                      sanitized,
-                      true,
-                    );
-                    setTakeProfitPercentage(percentage);
-                  } else {
-                    setTakeProfitPercentage('');
-                  }
-                  setSelectedTpPercentage(null);
-                }}
+                onChangeText={handleTakeProfitPriceChange}
                 placeholder="0"
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
@@ -282,7 +327,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 }}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                USD
+                {strings('perps.tpsl.usd_label')}
               </Text>
             </View>
 
@@ -297,27 +342,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <TextInput
                 style={styles.input}
                 value={takeProfitPercentage}
-                onChangeText={(text) => {
-                  // Allow only numbers and decimal point
-                  const sanitized = text.replace(/[^0-9.]/g, '');
-                  // Prevent multiple decimal points
-                  const parts = sanitized.split('.');
-                  if (parts.length > 2) return;
-                  setTakeProfitPercentage(sanitized);
-
-                  // Update price based on percentage
-                  if (sanitized && !isNaN(parseFloat(sanitized))) {
-                    const price = calculatePriceForPercentage(
-                      parseFloat(sanitized),
-                      true,
-                    );
-                    setTakeProfitPrice(price);
-                    setSelectedTpPercentage(parseFloat(sanitized));
-                  } else {
-                    setTakeProfitPrice('');
-                    setSelectedTpPercentage(null);
-                  }
-                }}
+                onChangeText={handleTakeProfitPercentageChange}
                 placeholder="0"
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
@@ -331,20 +356,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           </View>
 
           <View style={styles.percentageRow}>
-            {takeProfitPercentages.map((percentage) => (
+            {TAKE_PROFIT_PERCENTAGES.map((percentage) => (
               <TouchableOpacity
                 key={percentage}
                 style={[
                   styles.percentageButton,
                   selectedTpPercentage === percentage &&
-                  styles.percentageButtonActive,
+                    styles.percentageButtonActive,
                 ]}
-                onPress={() => {
-                  const price = calculatePriceForPercentage(percentage, true);
-                  setTakeProfitPrice(price);
-                  setTakeProfitPercentage(percentage.toString());
-                  setSelectedTpPercentage(percentage);
-                }}
+                onPress={() => handleTakeProfitPercentageButton(percentage)}
               >
                 <Text
                   variant={TextVariant.BodySM}
@@ -359,14 +379,23 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </TouchableOpacity>
             ))}
           </View>
-          {takeProfitPrice && !isValidTakeProfitPrice(takeProfitPrice) && direction && (
-            <Text variant={TextVariant.BodySM} color={TextColor.Error} style={styles.helperText}>
-              {strings('perps.validation.invalid_take_profit', {
-                direction: direction === 'long' ? 'above' : 'below',
-                positionType: direction
-              })}
-            </Text>
-          )}
+          {takeProfitPrice &&
+            !isValidTakeProfitPrice(takeProfitPrice, {
+              currentPrice,
+              direction,
+            }) &&
+            direction && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Error}
+                style={styles.helperText}
+              >
+                {strings('perps.validation.invalid_take_profit', {
+                  direction: getTakeProfitErrorDirection(direction),
+                  positionType: direction,
+                })}
+              </Text>
+            )}
         </View>
 
         {/* Stop Loss Section */}
@@ -382,32 +411,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 styles.inputContainer,
                 styles.inputContainerLeft,
                 slPriceInputFocused && styles.inputContainerActive,
-                stopLossPrice && !isValidStopLossPrice(stopLossPrice) && styles.inputContainerError,
+                stopLossPrice &&
+                  !isValidStopLossPrice(stopLossPrice, {
+                    currentPrice,
+                    direction,
+                  }) &&
+                  styles.inputContainerError,
               ]}
             >
               <TextInput
                 style={styles.input}
                 value={stopLossPrice}
-                onChangeText={(text) => {
-                  // Allow only numbers and decimal point
-                  const sanitized = text.replace(/[^0-9.]/g, '');
-                  // Prevent multiple decimal points
-                  const parts = sanitized.split('.');
-                  if (parts.length > 2) return;
-                  setStopLossPrice(sanitized);
-
-                  // Update percentage based on price
-                  if (sanitized) {
-                    const percentage = calculatePercentageForPrice(
-                      sanitized,
-                      false,
-                    );
-                    setStopLossPercentage(percentage);
-                  } else {
-                    setStopLossPercentage('');
-                  }
-                  setSelectedSlPercentage(null);
-                }}
+                onChangeText={handleStopLossPriceChange}
                 placeholder="0"
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
@@ -421,7 +436,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 }}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                USD
+                {strings('perps.tpsl.usd_label')}
               </Text>
             </View>
 
@@ -436,27 +451,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <TextInput
                 style={styles.input}
                 value={stopLossPercentage}
-                onChangeText={(text) => {
-                  // Allow only numbers and decimal point
-                  const sanitized = text.replace(/[^0-9.]/g, '');
-                  // Prevent multiple decimal points
-                  const parts = sanitized.split('.');
-                  if (parts.length > 2) return;
-                  setStopLossPercentage(sanitized);
-
-                  // Update price based on percentage
-                  if (sanitized && !isNaN(parseFloat(sanitized))) {
-                    const price = calculatePriceForPercentage(
-                      parseFloat(sanitized),
-                      false,
-                    );
-                    setStopLossPrice(price);
-                    setSelectedSlPercentage(parseFloat(sanitized));
-                  } else {
-                    setStopLossPrice('');
-                    setSelectedSlPercentage(null);
-                  }
-                }}
+                onChangeText={handleStopLossPercentageChange}
                 placeholder="0"
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
@@ -470,20 +465,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           </View>
 
           <View style={styles.percentageRow}>
-            {stopLossPercentages.map((percentage) => (
+            {STOP_LOSS_PERCENTAGES.map((percentage) => (
               <TouchableOpacity
                 key={percentage}
                 style={[
                   styles.percentageButton,
                   selectedSlPercentage === percentage &&
-                  styles.percentageButtonActive,
+                    styles.percentageButtonActive,
                 ]}
-                onPress={() => {
-                  const price = calculatePriceForPercentage(percentage, false);
-                  setStopLossPrice(price);
-                  setStopLossPercentage(percentage.toString());
-                  setSelectedSlPercentage(percentage);
-                }}
+                onPress={() => handleStopLossPercentageButton(percentage)}
               >
                 <Text
                   variant={TextVariant.BodySM}
@@ -498,14 +488,20 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </TouchableOpacity>
             ))}
           </View>
-          {stopLossPrice && !isValidStopLossPrice(stopLossPrice) && direction && (
-            <Text variant={TextVariant.BodySM} color={TextColor.Error} style={styles.helperText}>
-              {strings('perps.validation.invalid_stop_loss', {
-                direction: direction === 'long' ? 'below' : 'above',
-                positionType: direction
-              })}
-            </Text>
-          )}
+          {stopLossPrice &&
+            !isValidStopLossPrice(stopLossPrice, { currentPrice, direction }) &&
+            direction && (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Error}
+                style={styles.helperText}
+              >
+                {strings('perps.validation.invalid_stop_loss', {
+                  direction: getStopLossErrorDirection(direction),
+                  positionType: direction,
+                })}
+              </Text>
+            )}
         </View>
       </View>
 

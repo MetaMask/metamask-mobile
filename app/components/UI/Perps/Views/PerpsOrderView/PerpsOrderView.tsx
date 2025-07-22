@@ -12,10 +12,19 @@ import React, {
   useState,
 } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Button, {
-  ButtonVariants,
   ButtonSize,
+  ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
@@ -23,79 +32,71 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
-import ListItem from '../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
-import { useSelector } from 'react-redux';
-import { selectTokenList } from '../../../../../selectors/tokenListController';
-import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
-import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
+import { selectTokenList } from '../../../../../selectors/tokenListController';
+import {
+  getDefaultNetworkByChainId,
+  getNetworkImageSource,
+} from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import useTooltipModal from '../../../../hooks/useTooltipModal';
+import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
+import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
+import PerpsOrderHeader from '../../components/PerpsOrderHeader';
+import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsTokenSelector, {
   type PerpsToken,
 } from '../../components/PerpsTokenSelector';
-import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import {
-  usePerpsAccount,
-  usePerpsTrading,
-  usePerpsNetwork,
-  usePerpsPrices,
-  usePerpsPaymentTokens,
-} from '../../hooks';
+  ARBITRUM_MAINNET_CHAIN_ID,
+  HYPERLIQUID_MAINNET_CHAIN_ID,
+  HYPERLIQUID_TESTNET_CHAIN_ID,
+  TRADING_DEFAULTS,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_DECIMALS,
+  USDC_NAME,
+  USDC_SYMBOL,
+} from '../../constants/hyperLiquidConfig';
 import type {
   MarketInfo,
   PerpsNavigationParamList,
 } from '../../controllers/types';
 import {
-  TRADING_DEFAULTS,
-  FEE_RATES,
-  RISK_MANAGEMENT,
-  HYPERLIQUID_MAINNET_CHAIN_ID,
-  HYPERLIQUID_TESTNET_CHAIN_ID,
-} from '../../constants/hyperLiquidConfig';
-import createStyles from './PerpsOrderView.styles';
+  usePerpsAccount,
+  usePerpsNetwork,
+  usePerpsPaymentTokens,
+  usePerpsPrices,
+  usePerpsTrading,
+} from '../../hooks';
 import { formatPrice } from '../../utils/formatUtils';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
 import {
-  getDefaultNetworkByChainId,
-  getNetworkImageSource,
-} from '../../../../../util/networks';
-import PerpsOrderHeader from '../../components/PerpsOrderHeader';
-import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
-import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
-import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
-
-// Order form state interface
-interface OrderFormState {
-  asset: string;
-  direction: 'long' | 'short';
-  amount: string;
-  leverage: number;
-  balancePercent: number;
-  takeProfitPrice?: string;
-  stopLossPrice?: string;
-  limitPrice?: string;
-}
+  calculateEstimatedFees,
+  calculateLiquidationPrice,
+  calculateMarginRequired,
+  calculatePositionSize,
+} from '../../utils/orderCalculations';
+import {
+  validatePerpsOrder,
+  type OrderFormState,
+} from '../../utils/orderValidation';
+import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
+import createStyles from './PerpsOrderView.styles';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -183,9 +184,6 @@ const PerpsOrderView: React.FC = () => {
   const [selectedPaymentToken, setSelectedPaymentToken] =
     useState<PerpsToken | null>(null);
 
-  useEffect(() => {
-    // Track route param changes
-  }, [route.params]);
   const [isTokenSelectorVisible, setIsTokenSelectorVisible] = useState(false);
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
@@ -322,11 +320,11 @@ const PerpsOrderView: React.FC = () => {
 
     return enhanceTokenWithIcon({
       token: {
-        symbol: 'USDC',
-        address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC on Arbitrum
-        decimals: 6,
-        chainId: '0xa4b1',
-        name: 'USD Coin',
+        symbol: USDC_SYMBOL,
+        address: USDC_ARBITRUM_MAINNET_ADDRESS,
+        decimals: USDC_DECIMALS,
+        chainId: `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}`,
+        name: USDC_NAME,
       },
       tokenList,
       isIpfsGatewayEnabled,
@@ -379,117 +377,66 @@ const PerpsOrderView: React.FC = () => {
   }, [fetchMarketData]);
 
   // Calculate estimated fees
-  const estimatedFees = useMemo(() => {
-    const amount = parseFloat(orderForm.amount || '0');
-    const feeRate = orderType === 'market' ? FEE_RATES.market : FEE_RATES.limit;
-    const fee = amount * feeRate;
-    return fee;
-  }, [orderForm.amount, orderType]);
+  const estimatedFees = useMemo(
+    () =>
+      calculateEstimatedFees({
+        amount: orderForm.amount,
+        orderType,
+      }),
+    [orderForm.amount, orderType],
+  );
 
   // Real-time position size calculation
-  const positionSize = useMemo(() => {
-    const amount = parseFloat(orderForm.amount || '0');
-    if (amount === 0 || assetData.price === 0) return '0.000000';
-    return (amount / assetData.price).toFixed(6);
-  }, [orderForm.amount, assetData.price]);
+  const positionSize = useMemo(
+    () =>
+      calculatePositionSize({
+        amount: orderForm.amount,
+        price: assetData.price,
+      }),
+    [orderForm.amount, assetData.price],
+  );
 
   // Real-time margin required calculation
-  const marginRequired = useMemo(() => {
-    const amount = parseFloat(orderForm.amount || '0');
-    if (amount === 0 || orderForm.leverage === 0) return '0.00';
-    return (amount / orderForm.leverage).toFixed(2);
-  }, [orderForm.amount, orderForm.leverage]);
+  const marginRequired = useMemo(
+    () =>
+      calculateMarginRequired({
+        amount: orderForm.amount,
+        leverage: orderForm.leverage,
+      }),
+    [orderForm.amount, orderForm.leverage],
+  );
 
   // Real-time liquidation price calculation
-  const liquidationPrice = useMemo(() => {
-    const entryPrice = assetData.price;
-    if (entryPrice === 0 || orderForm.leverage === 0) return '0.00';
-
-    const maintenanceMargin = RISK_MANAGEMENT.maintenanceMargin;
-    const leverageRatio = 1 / orderForm.leverage;
-
-    if (orderForm.direction === 'long') {
-      const liquidationRatio = 1 - (leverageRatio - maintenanceMargin);
-      return (entryPrice * liquidationRatio).toFixed(2);
-    }
-    const liquidationRatio = 1 + (leverageRatio - maintenanceMargin);
-    return (entryPrice * liquidationRatio).toFixed(2);
-  }, [assetData.price, orderForm.leverage, orderForm.direction]);
+  const liquidationPrice = useMemo(
+    () =>
+      calculateLiquidationPrice({
+        entryPrice: assetData.price,
+        leverage: orderForm.leverage,
+        direction: orderForm.direction,
+      }),
+    [assetData.price, orderForm.leverage, orderForm.direction],
+  );
 
   // Order validation
-  const orderValidation = useMemo(() => {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    const amount = parseFloat(orderForm.amount || '0');
-    if (amount <= 0) {
-      errors.push(strings('perps.order.validation.amount_required'));
-    }
-
-    if (amount > 0 && amount < 10) {
-      errors.push(
-        strings('perps.order.validation.minimum_amount', { amount: '10' }),
-      );
-    }
-
-    if (amount > 100000) {
-      errors.push(
-        strings('perps.order.validation.maximum_amount', { amount: '100,000' }),
-      );
-    }
-
-    const requiredMargin = parseFloat(marginRequired);
-    if (requiredMargin > availableBalance) {
-      errors.push(
-        strings('perps.order.validation.insufficient_balance', {
-          required: marginRequired,
-          available: availableBalance.toString(),
-        }),
-      );
-    }
-
-    const maxLeverage =
-      marketData?.maxLeverage || RISK_MANAGEMENT.fallbackMaxLeverage;
-    if (orderForm.leverage < 1 || orderForm.leverage > maxLeverage) {
-      errors.push(
-        strings('perps.order.validation.invalid_leverage', {
-          min: '1',
-          max: maxLeverage.toString(),
-        }),
-      );
-    }
-
-    if (orderForm.leverage > RISK_MANAGEMENT.fallbackMaxLeverage) {
-      warnings.push(strings('perps.order.validation.high_leverage_warning'));
-    }
-
-    // Check if selected payment token is not Hyperliquid USDC (mainnet or testnet)
-    if (
-      selectedPaymentToken &&
-      selectedPaymentToken.chainId !== HYPERLIQUID_MAINNET_CHAIN_ID &&
-      selectedPaymentToken.chainId !== HYPERLIQUID_TESTNET_CHAIN_ID
-    ) {
-      errors.push(strings('perps.order.validation.only_hyperliquid_usdc'));
-    }
-
-    // Check if limit order has a limit price set
-    if (orderType === 'limit' && !orderForm.limitPrice) {
-      errors.push(strings('perps.order.validation.limit_price_required'));
-    }
-
-    return {
-      errors,
-      warnings,
-      isValid: errors.length === 0,
-    };
-  }, [
-    orderForm,
-    marginRequired,
-    availableBalance,
-    marketData,
-    selectedPaymentToken,
-    orderType,
-  ]);
+  const orderValidation = useMemo(
+    () =>
+      validatePerpsOrder({
+        orderForm,
+        marginRequired,
+        availableBalance,
+        marketData,
+        selectedPaymentToken,
+        orderType,
+      }),
+    [
+      orderForm,
+      marginRequired,
+      availableBalance,
+      marketData,
+      selectedPaymentToken,
+      orderType,
+    ],
+  );
 
   // Handlers
 

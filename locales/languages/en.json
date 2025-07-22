@@ -892,6 +892,11 @@
         "backToPerps": "Back to Perps"
       }
     },
+    "tpsl": {
+      "title": "Set take profit and stop loss",
+      "set_button": "Set",
+      "usd_label": "USD"
+    },
     "token_selector": {
       "no_tokens": "No tokens available"
     },
