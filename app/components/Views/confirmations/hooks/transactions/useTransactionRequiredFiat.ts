@@ -7,8 +7,8 @@ import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithB
 import { useTokenFiatRates } from '../useTokenFiatRates';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 
-const SLIPPAGE = 0.02;
-const BRIDGE_FEE = 0.005;
+export const PAY_BRIDGE_SLIPPAGE = 0.02;
+export const PAY_BRIDGE_FEE = 0.005;
 
 export function useTransactionRequiredFiat() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -74,14 +74,12 @@ export function useTransactionRequiredFiat() {
 }
 
 function calculateFiat(amountRaw: Hex, decimals: number, fiatRate: number) {
-  const amountDecimals = new BigNumber(amountRaw, 16).shiftedBy(
-    -decimals,
-  );
+  const amountDecimals = new BigNumber(amountRaw, 16).shiftedBy(-decimals);
 
   const amountFiat = amountDecimals.multipliedBy(fiatRate);
 
   const amountFiatWithFees = amountFiat
-    .multipliedBy(1 + SLIPPAGE + BRIDGE_FEE)
+    .multipliedBy(1 + PAY_BRIDGE_SLIPPAGE + PAY_BRIDGE_FEE)
     .toNumber();
 
   return amountFiatWithFees;
