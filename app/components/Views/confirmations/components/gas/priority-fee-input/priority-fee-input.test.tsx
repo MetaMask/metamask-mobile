@@ -16,8 +16,8 @@ jest.mock('../../../utils/validations/gas', () => ({
   validatePriorityFee: jest.fn(),
 }));
 
-jest.mock('../../../utils/validations/gas', () => ({	
-  validatePriorityFee: jest.fn(),	
+jest.mock('../../../utils/validations/gas', () => ({
+  validatePriorityFee: jest.fn(),
 }));
 
 describe('PriorityFeeInput', () => {
