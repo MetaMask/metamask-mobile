@@ -48,7 +48,6 @@ ignores:
   - 'improved-yarn-audit'
   - 'jetifier'
   - 'metro-react-native-babel-preset'
-  - 'octonode'
   - 'prettier-plugin-gherkin'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
