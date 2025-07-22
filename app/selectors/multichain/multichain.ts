@@ -338,7 +338,6 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
     selectMultichainBalances,
     selectMultichainAssets,
     selectMultichainAssetsRates,
-    selectSelectedNonEvmNetworkChainId,
     (
       selectedAccount,
       multichainBalances,
@@ -372,7 +371,6 @@ export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
     selectMultichainBalances,
     selectMultichainAssets,
     selectMultichainAssetsRates,
-    selectSelectedNonEvmNetworkChainId,
     (
       internalAccounts,
       multichainBalances,
