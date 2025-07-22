@@ -255,7 +255,7 @@ export function generateTransferData(type = undefined, opts = {}) {
  * @returns {string | undefined} The four-byte signature if data is provided, otherwise undefined.
  */
 export function getFourByteSignature(data) {
-  return data?.substring(0, 10);
+  return data?.substring(0, 10)?.toLowerCase();
 }
 
 /**
@@ -293,6 +293,7 @@ export function generateApprovalData(opts) {
   const functionSignature =
     getFourByteSignature(data) ?? APPROVE_FUNCTION_SIGNATURE;
 
+    console.log('>>>> generateApprovalData functionSignature', functionSignature, APPROVE_FUNCTION_SIGNATURE);
   return (
     functionSignature +
     Array.prototype.map
@@ -357,6 +358,15 @@ export function decodeTransferData(type, data) {
 }
 
 /**
+ * Normalizes a hexadecimal string to lowercase.
+ * @param {string} hexString - The hexadecimal string to normalize.
+ * @returns {string} - The normalized lowercase hexadecimal string.
+ */
+function normalizeHex(hexString) {
+  return hexString?.toLowerCase() || '';
+}
+
+/**
  * @typedef {Object} MethodData
  * @property {string} name - The method name
  */
@@ -368,21 +378,31 @@ export function decodeTransferData(type, data) {
  * @returns {MethodData} - Method data object containing the name if is valid
  */
 export async function getMethodData(data, networkClientId) {
+  console.log('[transactions] getMethodData', data);
   if (data.length < 10) return {};
-  const fourByteSignature = getFourByteSignature(data);
-  if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
+
+  // Normalize the four-byte signature
+  const fourByteSignature = normalizeHex(getFourByteSignature(data));
+
+  console.log('[transactions] APPROVE_FUNCTION_SIGNATURE', APPROVE_FUNCTION_SIGNATURE);
+  console.log('[transactions] fourByteSignature', fourByteSignature, fourByteSignature === normalizeHex(APPROVE_FUNCTION_SIGNATURE));
+
+  // Use normalized function signatures for comparison
+  if (fourByteSignature === normalizeHex(TRANSFER_FUNCTION_SIGNATURE)) {
     return { name: TOKEN_METHOD_TRANSFER };
-  } else if (fourByteSignature === TRANSFER_FROM_FUNCTION_SIGNATURE) {
+  } else if (fourByteSignature === normalizeHex(TRANSFER_FROM_FUNCTION_SIGNATURE)) {
     return { name: TOKEN_METHOD_TRANSFER_FROM };
-  } else if (fourByteSignature === APPROVE_FUNCTION_SIGNATURE) {
+  } else if (fourByteSignature === normalizeHex(APPROVE_FUNCTION_SIGNATURE)) {
+    console.log('[transactions] APPROVE_FUNCTION_SIGNATURE match');
     return { name: TOKEN_METHOD_APPROVE };
-  } else if (fourByteSignature === INCREASE_ALLOWANCE_SIGNATURE) {
+  } else if (fourByteSignature === normalizeHex(INCREASE_ALLOWANCE_SIGNATURE)) {
     return { name: TOKEN_METHOD_INCREASE_ALLOWANCE };
-  } else if (fourByteSignature === SET_APPROVAL_FOR_ALL_SIGNATURE) {
+  } else if (fourByteSignature === normalizeHex(SET_APPROVAL_FOR_ALL_SIGNATURE)) {
     return { name: TOKEN_METHOD_SET_APPROVAL_FOR_ALL };
-  } else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
+  } else if (normalizeHex(data.substr(0, 32)) === normalizeHex(CONTRACT_CREATION_SIGNATURE)) {
     return { name: CONTRACT_METHOD_DEPLOY };
   }
+
   // If it's a new method, use on-chain method registry
   try {
     const registryObject = await handleMethodData(
@@ -393,6 +413,7 @@ export async function getMethodData(data, networkClientId) {
       return registryObject.parsedRegistryMethod;
     }
   } catch (e) {
+    console.log('[transactions] getMethodData error', e);
     // Ignore and return empty object
   }
   return {};
@@ -501,6 +522,7 @@ export async function getTransactionActionKey(transaction, chainId) {
   // if data in transaction try to get method data
   if (data && data !== '0x') {
     const { name } = await getMethodData(data, networkClientId);
+    console.log('[transactions] getTransactionActionKey - method name:', name);
     if (name) return name;
   }
 
@@ -542,6 +564,7 @@ export async function getTransactionActionKey(transaction, chainId) {
  */
 export async function getActionKey(tx, selectedAddress, ticker, chainId) {
   const actionKey = await getTransactionActionKey(tx, chainId);
+  console.log('[transactions] getActionKey', actionKey);
   if (actionKey === SEND_ETHER_ACTION_KEY) {
     let currencySymbol = ticker;
 

@@ -101,6 +101,8 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
     return { fourByteCode: code, parsedData: parsed };
   }, [data]);
 
+  console.log('[useApproveTransactionData] fourByteCode:', fourByteCode, parsedData);
+
   // Memoize the entire parsed approval data
   const parsedApproveData = useMemo((): ApproveTransactionData => {
     if (!transactionMetadata || isTokenStandardPending || !parsedData) {
@@ -120,6 +122,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
 
     switch (fourByteCode) {
       case APPROVAL_4BYTE_SELECTORS.APPROVE: {
+        console.log('[useApproveTransactionData] Approve method detected');
         const [spender, amount] = parsedData?.args ?? [];
 
         result.spender = spender;
@@ -147,6 +150,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
       }
       case APPROVAL_4BYTE_SELECTORS.ERC20_DECREASE_ALLOWANCE:
       case APPROVAL_4BYTE_SELECTORS.ERC20_INCREASE_ALLOWANCE: {
+        console.log('[useApproveTransactionData] ERC20 increase/decrease allowance method detected');
         const [spender, amount] = parsedData?.args ?? [];
         const { amount: amountInDecimals, rawAmount } = calculateApprovalTokenAmount(
           amount?.toString() as string,
@@ -167,6 +171,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         break;
       }
       case APPROVAL_4BYTE_SELECTORS.SET_APPROVAL_FOR_ALL: {
+        console.log('[useApproveTransactionData] Set approval for all method detected');
         const [spender, approved] = parsedData?.args ?? [];
         result.spender = spender;
         result.isRevoke = !approved;
@@ -174,6 +179,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         break;
       }
       case APPROVAL_4BYTE_SELECTORS.PERMIT2_APPROVE: {
+        console.log('[useApproveTransactionData] Permit2 approve method detected');
         const [token, spender, amount, expiration] = parsedData?.args ?? [];
         result.token = token;
         result.spender = spender;
@@ -193,6 +199,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         break;
       }
       default: {
+        console.log('[useApproveTransactionData] Unknown approval method detected');
         result.approveMethod = undefined;
         break;
       }

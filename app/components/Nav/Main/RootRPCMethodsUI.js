@@ -410,6 +410,7 @@ const RootRPCMethodsUI = (props) => {
           (await getMethodData(data, networkClientId)).name ===
             TOKEN_METHOD_TRANSFER
         ) {
+          console.log('>>>>>>>>> Transfer detected');
           let asset = props.tokens.find(({ address }) =>
             areAddressesEqual(address, to),
           );

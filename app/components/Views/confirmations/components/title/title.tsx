@@ -88,6 +88,8 @@ const getTitleAndSubTitle = (
 ) => {
   const type = approvalRequest?.type;
   const transactionType = transactionMetadata?.type as TransactionType;
+  console.log('[Title] >>>>>>>> type:', type);
+  console.log('[Title] >>>>>>>> transactionType:', transactionType);
 
   switch (type) {
     case ApprovalType.PersonalSign: {
@@ -152,6 +154,7 @@ const getTitleAndSubTitle = (
             : strings('confirm.sub_title.switch_to_smart_account'),
         };
       }
+      console.log('>>>>> getTitleAndSubTitle transactionType:', transactionType);
       if (REDESIGNED_TRANSFER_TYPES.includes(transactionType)) {
         return {
           title: strings('confirm.title.transfer'),
