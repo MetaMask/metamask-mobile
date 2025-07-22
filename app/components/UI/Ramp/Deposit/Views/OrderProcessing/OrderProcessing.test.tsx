@@ -73,6 +73,7 @@ describe('OrderProcessing Component', () => {
     network: 'eip155:1',
     data: {
       cryptoCurrency: 'USDC',
+      network: 'ethereum',
       providerOrderLink: 'https://transak.com/order/123',
       fiatAmount: '100',
       exchangeRate: '2000',
