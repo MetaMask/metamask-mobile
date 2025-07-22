@@ -235,7 +235,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       dispatch(newAssetTransaction(asset));
     }
     if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
-      navigation.navigate(Routes.SEND.ROOT, {
+      navigation.navigate(Routes.SEND.DEFAULT, {
         screen: Routes.SEND.ROOT,
         params: {
           asset,
