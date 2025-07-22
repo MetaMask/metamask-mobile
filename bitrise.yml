@@ -1194,6 +1194,7 @@ workflows:
       - script@1:
           title: Copy performance results
           is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | contains "SmokePerformance"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1219,6 +1220,7 @@ workflows:
       - deploy-to-bitrise-io@2.3:
           title: Deploy performance results
           is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | contains "SmokePerformance"}}'
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
             - is_compress: true
@@ -1804,6 +1806,7 @@ workflows:
       - script@1:
           title: Copy performance results
           is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | contains "SmokePerformance"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1829,6 +1832,7 @@ workflows:
       - deploy-to-bitrise-io@2.3:
           title: Deploy performance results
           is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | contains "SmokePerformance"}}'
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
             - is_compress: true
