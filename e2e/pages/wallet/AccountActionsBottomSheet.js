@@ -16,6 +16,12 @@ class AccountActionsBottomSheet {
     );
   }
 
+  get switchToSmartAccount() {
+    return Matchers.getElementByID(
+      AccountActionsBottomSheetSelectorsIDs.SWITCH_TO_SMART_ACCOUNT,
+    );
+  }
+
   get showSrp() {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
@@ -28,6 +34,10 @@ class AccountActionsBottomSheet {
 
   async tapShowPrivateKey() {
     await Gestures.waitAndTap(this.showPrivateKey);
+  }
+
+  async tapSwitchToSmartAccount() {
+    await Gestures.waitAndTap(this.switchToSmartAccount);
   }
 
   async tapShowSRP() {

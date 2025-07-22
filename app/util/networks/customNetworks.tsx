@@ -155,13 +155,20 @@ export const PopularList = [
 ];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
-  if (chainId === SolScope.Mainnet) {
-    return require('../../images/solana-logo.png');
+  switch (chainId) {
+    case SolScope.Mainnet:
+      return require('../../images/solana-logo.png');
+    case BtcScope.Mainnet:
+      return require('../../images/bitcoin-logo.png');
+    case BtcScope.Testnet:
+    case BtcScope.Testnet4:
+    case BtcScope.Regtest:
+      return require('../../images/bitcoin-testnet-logo.png');
+    case BtcScope.Signet:
+      return require('../../images/bitcoin-signet-logo.svg');
+    default:
+      return undefined;
   }
-  if (chainId === BtcScope.Mainnet) {
-    return require('../../images/bitcoin-logo.png');
-  }
-  return undefined;
 };
 
 export const INFURA_TESTNET_CHAIN_IDS = {
