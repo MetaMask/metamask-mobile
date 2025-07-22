@@ -22,7 +22,7 @@ import Assertions from '../../utils/Assertions.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { getEventsPayloads } from '../analytics/helpers';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
+import { stopMockServer } from '../../api-mocking/mock-server';
 import { startMockServer } from './helpers/swap-mocks';
 import SoftAssert from '../../utils/SoftAssert.ts';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';

@@ -29,7 +29,7 @@ import {
   getMockServerPort,
 } from '../../fixtures/utils.js';
 import { startMockServer } from '../bridge/bridge-mocks.js';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
+import { stopMockServer } from '../../api-mocking/mock-server';
 import { localNodeOptions, testSpecificMock } from '../bridge/constants.js';
 import { Mockttp, MockttpServer } from 'mockttp';
 import { getEventsPayloads } from '../analytics/helpers.js';

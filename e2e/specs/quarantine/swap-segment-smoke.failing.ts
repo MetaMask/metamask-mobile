@@ -22,7 +22,7 @@ import { getEventsPayloads } from '../analytics/helpers.ts';
 import {
   startMockServer,
   stopMockServer,
-} from '../../api-mocking/mock-server.js';
+} from '../../api-mocking/mock-server';
 import SoftAssert from '../../utils/SoftAssert.ts';
 import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment.ts';
 import SwapView from '../../pages/swaps/SwapView.ts';

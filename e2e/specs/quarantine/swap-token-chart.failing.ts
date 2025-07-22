@@ -25,7 +25,7 @@ import Ganache from '../../../app/util/test/ganache';
 import { localNodeOptions, testSpecificMock } from '../swaps/helpers/constants';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from '../swaps/helpers/swapUnifiedUI';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
+import { stopMockServer } from '../../api-mocking/mock-server';
 import { startMockServer } from '../swaps/helpers/swap-mocks';
 
 const fixtureServer: FixtureServer = new FixtureServer();
