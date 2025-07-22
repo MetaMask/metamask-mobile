@@ -1,5 +1,21 @@
 import React from 'react';
 
+// Local mocks specific to this test file to avoid affecting other tests
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.50.1'),
+  getApplicationName: jest.fn(() => 'MetaMask'),
+  getBuildNumber: jest.fn(() => '1234'),
+  getSystemVersion: jest.fn(() => '17.0'),
+  getTotalMemorySync: jest.fn(() => 4000000000),
+}));
+
+jest.mock(
+  '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
+  () => ({
+    isUnifiedSwapsEnvVarEnabled: jest.fn(() => false),
+  }),
+);
+
 // Mock components BEFORE importing the main component
 jest.mock('../AssetDetails/AssetDetailsActions', () =>
   jest.fn((_props) => null),
