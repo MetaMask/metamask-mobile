@@ -349,7 +349,7 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
+                  "alignSelf": "flex-start",
                   "backgroundColor": "#121314",
                   "borderRadius": 12,
                   "flex": 1,

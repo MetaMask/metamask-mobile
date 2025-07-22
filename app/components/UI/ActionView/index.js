@@ -99,7 +99,6 @@ export default function ActionView({
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Lg}
               label={cancelText}
-              width={ButtonWidthTypes.Full}
               testID={cancelTestID}
               style={styles.button}
               isDisabled={confirmed}
@@ -111,7 +110,6 @@ export default function ActionView({
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
               label={confirmText}
-              width={ButtonWidthTypes.Full}
               testID={confirmTestID}
               style={[
                 styles.button,
