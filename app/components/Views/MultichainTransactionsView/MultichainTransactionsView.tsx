@@ -24,7 +24,7 @@ import MultichainTransactionsFooter from './MultichainTransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
-import MultichainBridgeTransactionListItem from 'app/components/UI/MultichainBridgeTransactionListItem';
+import MultichainBridgeTransactionListItem from '../../../components/UI/MultichainBridgeTransactionListItem';
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 

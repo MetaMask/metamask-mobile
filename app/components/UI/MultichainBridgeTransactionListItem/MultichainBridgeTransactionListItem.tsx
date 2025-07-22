@@ -13,7 +13,7 @@ import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import { getTransactionIcon } from '../../../util/transaction-icons';
 import { toDateFormat } from '../../../util/date';
-import styles from './MultichainBridgeTransactionListItem.styles';
+import styles from '../MultichainTransactionListItem/MultichainTransactionListItem.styles';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
 import Routes from '../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';

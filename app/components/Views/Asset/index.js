@@ -685,7 +685,7 @@ const mapStateToProps = (state, { route }) => {
     const assetAddress = route.params?.address?.toLowerCase();
     const assetSymbol = route.params?.symbol?.toLowerCase();
     const isNativeAsset = route.params?.isNative || route.params?.isETH;
-    const {namespace} = parseCaipChainId(route.params.chainId);
+    const { namespace } = parseCaipChainId(route.params.chainId);
 
     const newCacheKey = JSON.stringify({
       txCount: txs.length,
@@ -702,7 +702,7 @@ const mapStateToProps = (state, { route }) => {
       filteredTransactions = txs;
 
       // Only filter Solana or EVM transactions
-      if (namespace === KnownCaipNamespace.Solana ) {
+      if (namespace === KnownCaipNamespace.Solana) {
         filteredTransactions = txs.filter((tx) => {
           const txData = tx.from || tx.to || [];
 
@@ -728,7 +728,10 @@ const mapStateToProps = (state, { route }) => {
 
           return allParticipantsAreNativeSol;
         });
-      } else if (namespace === KnownCaipNamespace.Eip155 && (assetAddress || assetSymbol)) {
+      } else if (
+        namespace === KnownCaipNamespace.Eip155 &&
+        (assetAddress || assetSymbol)
+      ) {
         filteredTransactions = txs.filter((tx) => {
           const txData = tx.from || tx.to || [];
 
