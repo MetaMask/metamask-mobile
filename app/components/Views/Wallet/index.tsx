@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { ActivityIndicator, StyleSheet, View, Linking } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import { connect, useSelector } from 'react-redux';
+import { connect, useSelector, useDispatch } from 'react-redux';
 import ScrollableTabView, {
   ChangeTabProperties,
 } from 'react-native-scrollable-tab-view';
@@ -52,6 +52,7 @@ import {
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
+  selectNativeCurrencyByChainId,
 } from '../../../selectors/networkController';
 import {
   selectNetworkName,
@@ -116,6 +117,24 @@ import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { QRTabSwitcherScreens } from '../QRTabSwitcher';
+import { createBuyNavigationDetails } from '../../UI/Ramp/Aggregator/routes/utils';
+import { newAssetTransaction } from '../../../actions/transaction';
+import { getEther } from '../../../util/transactions';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { isSwapsAllowed } from '../../UI/Swaps/utils';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import AppConstants from '../../../core/AppConstants';
+import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+///: END:ONLY_INCLUDE_IF
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -237,6 +256,7 @@ const Wallet = ({
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
+  const dispatch = useDispatch();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
@@ -260,6 +280,89 @@ const Wallet = ({
   const chainId = useSelector(selectChainId);
 
   const prevChainId = usePrevious(chainId);
+
+  const nativeCurrency = useSelector((state: RootState) =>
+    selectNativeCurrencyByChainId(state, chainId),
+  );
+
+  const [isNetworkRampSupported] = useRampNetwork();
+  const swapsIsLive = useSelector(swapsLivenessSelector);
+
+  // Setup for AssetDetailsActions
+  const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TabBar,
+    sourcePage: 'MainView',
+    token: {
+      address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      chainId: chainId as Hex,
+      decimals: 18,
+      symbol: nativeCurrency || 'ETH',
+      name: nativeCurrency || 'Ethereum',
+      image: '',
+    },
+  });
+
+  // Hook for handling non-EVM asset sending
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const { sendNonEvmAsset } = useSendNonEvmAsset({
+    asset: {
+      chainId: chainId as string,
+      address: undefined,
+    },
+  });
+  ///: END:ONLY_INCLUDE_IF
+
+  const displayBuyButton = isNetworkRampSupported;
+  const displaySwapsButton =
+    AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
+  const displayBridgeButton =
+    AppConstants.BRIDGE.ACTIVE && isBridgeAllowed(chainId);
+
+  const onReceive = useCallback(() => {
+    navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Receive,
+    });
+  }, [navigate]);
+
+  const onSend = useCallback(async () => {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // Try non-EVM first, if handled, return early
+    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    if (wasHandledAsNonEvm) {
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    if (nativeCurrency) {
+      dispatch(newAssetTransaction(getEther(nativeCurrency)));
+    }
+    navigate('SendFlowView', {});
+  }, [
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    sendNonEvmAsset,
+    ///: END:ONLY_INCLUDE_IF
+    nativeCurrency,
+    navigate,
+    dispatch,
+  ]);
+
+  const onBuy = useCallback(() => {
+    navigate(
+      ...createBuyNavigationDetails({
+        chainId: getDecimalChainId(chainId),
+      }),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'WalletOverview',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [navigate, chainId, trackEvent, createEventBuilder]);
+
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -756,6 +859,17 @@ const Wallet = ({
         ) : null}
         <>
           <PortfolioBalance />
+          <AssetDetailsActions
+            displayBuyButton={displayBuyButton}
+            displaySwapsButton={displaySwapsButton}
+            displayBridgeButton={displayBridgeButton}
+            swapsIsLive={swapsIsLive}
+            goToBridge={goToBridge}
+            goToSwaps={goToSwaps}
+            onReceive={onReceive}
+            onSend={onSend}
+            onBuy={onBuy}
+          />
           <Carousel style={styles.carouselContainer} />
           <WalletTokensTabView
             navigation={navigation}
@@ -776,6 +890,15 @@ const Wallet = ({
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
+      goToBridge,
+      goToSwaps,
+      networkModal,
+      displayBuyButton,
+      displaySwapsButton,
+      displayBridgeButton,
+      onReceive,
+      onSend,
+      onBuy,
     ],
   );
   const renderLoader = useCallback(
