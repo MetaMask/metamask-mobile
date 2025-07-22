@@ -2,7 +2,10 @@ import { createSelector } from 'reselect';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress, areAddressesEqual } from '../../util/address';
 import { lte } from '../../util/lodash';
-import { selectChainId, selectEvmChainId } from '../../selectors/networkController';
+import {
+  selectChainId,
+  selectEvmChainId,
+} from '../../selectors/networkController';
 import {
   selectAllTokens,
   selectTokens,
@@ -111,7 +114,6 @@ export const swapsLivenessSelector = createSelector(
 export const swapsLivenessMultichainSelector = createSelector(
   [swapsStateSelector, selectChainId],
   (swapsState, chainId) => {
-
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (chainId === SolScope.Mainnet) {
       return true;
