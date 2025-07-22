@@ -984,19 +984,23 @@ describe('HyperLiquidProvider', () => {
       expect(result).toBe('53658.54');
     });
 
-    it('should handle edge case where leverage equals maintenance leverage', async () => {
+    it('should throw error for leverage exceeding maintenance leverage', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', maxLeverage: 20, szDecimals: 2 }],
+        }),
+      });
+
       const params = {
         entryPrice: 50000,
-        leverage: 40, // At maintenance leverage
+        leverage: 41, // Exceeds maintenance leverage (2 * 20 = 40)
         direction: 'long' as const,
         asset: 'BTC',
       };
 
-      const result = await provider.calculateLiquidationPrice(params);
-
-      // Initial margin = 1/40 = 0.025, maintenance = 1/40 = 0.025
-      // Position cannot be opened (initial margin <= maintenance)
-      expect(result).toBe('50000.00');
+      await expect(provider.calculateLiquidationPrice(params)).rejects.toThrow(
+        'Invalid leverage: 41x exceeds maximum allowed leverage of 40x',
+      );
     });
 
     it('should handle invalid inputs', async () => {
@@ -1017,7 +1021,7 @@ describe('HyperLiquidProvider', () => {
     it('should use default max leverage when asset is not provided', async () => {
       const params = {
         entryPrice: 50000,
-        leverage: 10,
+        leverage: 4,
         direction: 'long' as const,
         // No asset provided, so default 3x will be used
       };
@@ -1025,11 +1029,27 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.calculateLiquidationPrice(params);
 
       // Should use default 3x max leverage (since no asset provided)
-      // maintenance margin = 1 / (2 * 3) = 0.1667
-      // initial margin = 1 / 10 = 0.1
-      // Since initial margin (0.1) < maintenance margin (0.1667), position cannot be opened
-      // Should return entry price
-      expect(result).toBe('50000.00');
+      // maintenance leverage = 2 * 3 = 6x
+      // l = 1 / 6 = 0.1667
+      // initial margin = 1 / 4 = 0.25
+      // maintenance margin = 1 / 6 = 0.1667
+      // margin available = 0.25 - 0.1667 = 0.0833
+      // liq price = 50000 - 1 * 0.0833 * 50000 / (1 - 0.1667 * 1)
+      // liq price = 50000 - 4165 / 0.8333 = 50000 - 4998 = 45002
+      expect(parseFloat(result)).toBeCloseTo(45002, -1);
+    });
+
+    it('should throw error when leverage exceeds default max leverage', async () => {
+      const params = {
+        entryPrice: 50000,
+        leverage: 10,
+        direction: 'long' as const,
+        // No asset provided, so default 3x will be used
+      };
+
+      await expect(provider.calculateLiquidationPrice(params)).rejects.toThrow(
+        'Invalid leverage: 10x exceeds maximum allowed leverage of 6x',
+      );
     });
   });
 

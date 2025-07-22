@@ -79,6 +79,32 @@ describe('usePerpsLiquidationPrice', () => {
     expect(result.current.error).toBe('Calculation failed');
   });
 
+  it('should handle invalid leverage errors', async () => {
+    const error = new Error(
+      'Invalid leverage: 100x exceeds maximum allowed leverage of 40x',
+    );
+    mockCalculateLiquidationPrice.mockRejectedValue(error);
+
+    const params = {
+      entryPrice: 50000,
+      leverage: 100,
+      direction: 'long' as const,
+      asset: 'BTC',
+    };
+
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePerpsLiquidationPrice(params),
+    );
+
+    await waitForNextUpdate();
+
+    expect(result.current.isCalculating).toBe(false);
+    expect(result.current.liquidationPrice).toBe('N/A');
+    expect(result.current.error).toBe(
+      'Invalid leverage: 100x exceeds maximum allowed leverage of 40x',
+    );
+  });
+
   it('should skip calculation for invalid entry price', () => {
     const params = {
       entryPrice: 0,

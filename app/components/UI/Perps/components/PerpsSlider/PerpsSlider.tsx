@@ -72,9 +72,13 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     (position: number, width: number) => {
       'worklet';
       if (width === 0) return minimumValue;
+
+      // Handle case where min and max are equal (e.g., zero balance)
+      const range = maximumValue - minimumValue;
+      if (range === 0) return minimumValue;
+
       const percentage = position / width;
-      const rawValue =
-        percentage * (maximumValue - minimumValue) + minimumValue;
+      const rawValue = percentage * range + minimumValue;
       // Apply step
       return Math.round(rawValue / step) * step;
     },
@@ -91,7 +95,10 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       widthRef.current = width;
       // Directly mutate shared values (not tracked by React)
       sliderWidth.value = width;
-      const percentage = (value - minimumValue) / (maximumValue - minimumValue);
+
+      // Handle case where min and max are equal (e.g., zero balance)
+      const range = maximumValue - minimumValue;
+      const percentage = range === 0 ? 0 : (value - minimumValue) / range;
       translateX.value = percentage * width;
     },
     [value, minimumValue, maximumValue, sliderWidth, translateX],
@@ -100,7 +107,9 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   // Update position when value changes
   useEffect(() => {
     if (widthRef.current > 0) {
-      const percentage = (value - minimumValue) / (maximumValue - minimumValue);
+      // Handle case where min and max are equal (e.g., zero balance)
+      const range = maximumValue - minimumValue;
+      const percentage = range === 0 ? 0 : (value - minimumValue) / range;
       const newPosition = percentage * widthRef.current;
       translateX.value = withSpring(newPosition, {
         damping: springConfig.damping,

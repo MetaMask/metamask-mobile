@@ -45,19 +45,28 @@ export const usePerpsLiquidationPrice = (params: LiquidationPriceParams) => {
         setLiquidationPrice(price);
       } catch (err) {
         DevLogger.log('Error calculating liquidation price:', err);
-        setError(
+        const errorMessage =
           err instanceof Error
             ? err.message
-            : 'Failed to calculate liquidation price',
-        );
-        setLiquidationPrice('0.00');
+            : 'Failed to calculate liquidation price';
+
+        setError(errorMessage);
+
+        // For invalid leverage errors, show a clear message instead of 0.00
+        if (errorMessage.includes('Invalid leverage')) {
+          setLiquidationPrice('N/A');
+        } else {
+          setLiquidationPrice('0.00');
+        }
       } finally {
         setIsCalculating(false);
       }
     };
 
     calculatePrice();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    // Destructure params to avoid re-renders when object reference changes
     params.entryPrice,
     params.leverage,
     params.direction,

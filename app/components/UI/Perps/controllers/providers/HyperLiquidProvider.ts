@@ -871,23 +871,31 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async calculateLiquidationPrice(
     params: LiquidationPriceParams,
   ): Promise<string> {
+    const { entryPrice, leverage, direction, asset } = params;
+
+    // Validate inputs
+    if (
+      !isFinite(entryPrice) ||
+      !isFinite(leverage) ||
+      entryPrice <= 0 ||
+      leverage <= 0
+    ) {
+      return '0.00';
+    }
+
     try {
-      const { entryPrice, leverage, direction, asset } = params;
-
-      // Validate inputs
-      if (
-        !isFinite(entryPrice) ||
-        !isFinite(leverage) ||
-        entryPrice <= 0 ||
-        leverage <= 0
-      ) {
-        return '0.00';
-      }
-
       // Get asset's max leverage to calculate maintenance margin
       let maxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE; // Default fallback
       if (asset) {
-        maxLeverage = await this.getMaxLeverage(asset);
+        try {
+          maxLeverage = await this.getMaxLeverage(asset);
+        } catch (error) {
+          DevLogger.log('Failed to get max leverage for asset, using default', {
+            asset,
+            error,
+          });
+          // Use default if we can't fetch the asset's max leverage
+        }
       }
 
       // Calculate maintenance leverage and margin according to HyperLiquid docs
@@ -902,8 +910,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Check if position can be opened
       if (initialMargin < maintenanceMargin) {
-        // Position cannot be opened - initial margin is less than maintenance
-        return entryPrice.toFixed(2);
+        // Position cannot be opened - leverage exceeds maximum allowed (2 * maxLeverage)
+        throw new Error(
+          `Invalid leverage: ${leverage}x exceeds maximum allowed leverage of ${maintenanceLeverage}x`,
+        );
       }
 
       // HyperLiquid liquidation formula
