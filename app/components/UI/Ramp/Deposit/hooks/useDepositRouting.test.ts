@@ -532,6 +532,44 @@ describe('useDepositRouting', () => {
       });
     });
 
+    it('should use provided OTT token instead of requesting new one', async () => {
+      const mockQuote = {} as BuyQuote;
+      const providedOtt = 'provided-ott-token';
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+        ott: providedOtt,
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const success = await result.current.handleApprovedKycFlow(mockQuote);
+
+      expect(success).toBe(true);
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+      expect(mockGeneratePaymentUrl).toHaveBeenCalledWith(
+        providedOtt,
+        mockQuote,
+        '0x123',
+        expect.objectContaining({
+          themeColor: expect.any(String),
+          colorMode: expect.any(String),
+          backgroundColors: expect.any(String),
+          textColors: expect.any(String),
+          borderColors: expect.any(String),
+        }),
+      );
+
+      verifyPopToBuildQuoteCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositWebviewModal',
+        params: expect.objectContaining({
+          sourceUrl: 'https://payment.url',
+          handleNavigationStateChange: expect.any(Function),
+        }),
+      });
+    });
+
     it('should navigate to KycProcessing when KYC is not approved', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
