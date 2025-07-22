@@ -35,7 +35,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import CardImage from '../../assets/card.svg';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { strings } from '../../../../../../locales/i18n';
@@ -50,6 +49,7 @@ import {
 } from '../../../Bridge/hooks/useSwapBridgeNavigation';
 import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import CardImage from '../../components/CardImage';
 
 /**
  * CardHome Component
@@ -186,7 +186,11 @@ const CardHome = () => {
               />
             </TouchableOpacity>
           </View>
-          <CardImage name="CardImage" width={410} height={210} />
+          <View
+            style={[styles.cardImageContainer, styles.defaultHorizontalPadding]}
+          >
+            <CardImage />
+          </View>
           <View
             style={[
               styles.cardAssetItemContainer,

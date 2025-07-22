@@ -47,6 +47,9 @@ const createStyles = (theme: Theme) =>
       width: '100%',
       marginBottom: 16,
     },
+    cardImageContainer: {
+      width: '100%',
+    },
     cardAssetItemContainer: {
       height: 80,
       width: '100%',
