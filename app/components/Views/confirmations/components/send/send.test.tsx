@@ -27,7 +27,7 @@ describe('Send', () => {
 
     expect(getByText('From:')).toBeTruthy();
     expect(getByText('To:')).toBeTruthy();
-    expect(getByText('Amount:')).toBeTruthy();
+    expect(getByText('Value:')).toBeTruthy();
   });
 
   it('navigate back when cancel is clicked', async () => {

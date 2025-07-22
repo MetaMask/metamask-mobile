@@ -7,6 +7,6 @@ describe('Amount', () => {
   it('renders correctly', async () => {
     const { getByText } = render(<Amount />);
 
-    expect(getByText('Amount:')).toBeTruthy();
+    expect(getByText('Value:')).toBeTruthy();
   });
 });
