@@ -1560,6 +1560,41 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
       ).toHaveBeenCalledWith({ skipCache: true });
     });
+
+    it('return false when seedless controller checkAuthenticationMethod throw error', async () => {
+      mockIsOutdated = true;
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+              socialBackupsMetadata: [],
+              passwordOutdatedCache: {
+                isExpiredPwd: mockIsOutdated,
+                timestamp: Date.now(),
+              },
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      Engine.context.SeedlessOnboardingController = {
+        state: { vault: {} },
+        checkIsPasswordOutdated: jest.fn().mockRejectedValue(mockIsOutdated),
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      const result = await Authentication.checkIsSeedlessPasswordOutdated();
+
+      expect(result).toBe(false);
+      expect(
+        Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
+      ).toHaveBeenCalledWith({ skipCache: true });
+    });
   });
 
   describe('unlock App with seedless onboarding flow', () => {
