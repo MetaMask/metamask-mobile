@@ -4083,8 +4083,7 @@
     "import_srp": "Lihim na Parirala sa Pagbawi",
     "add_hardware_wallet": "Hardware wallet",
     "import_account": "Pribadong key",
-    "add_bitcoin_account_testnet": "Bitcoin testnet account",
-    "add_bitcoin_account_mainnet": "Bitcoin account",
+    "add_bitcoin_account": "Bitcoin account",
     "add_solana_account": "Solana account",
     "switch_to_smart_account": "Lumipat sa Smart account",
     "headers": {

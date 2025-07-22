@@ -31,7 +31,11 @@ import {
 import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
-import { logger } from '../logger';
+import { createLogger } from '../logger';
+
+const logger = createLogger({
+  name: 'FixtureHelper',
+});
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
