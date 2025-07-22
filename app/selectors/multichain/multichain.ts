@@ -292,7 +292,7 @@ export const getMultichainNetworkAggregatedBalance = (
 
   for (const assetId of assetIds) {
     const { chainId } = parseCaipAssetType(assetId);
-    const nativeAsset =
+    const nativeAssetId =
       AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
         chainId as SupportedCaipChainId
       ]?.nativeCurrency;
@@ -307,7 +307,9 @@ export const getMultichainNetworkAggregatedBalance = (
         : new BigNumber(0);
     fiatBalances[assetId] = balanceInFiat.toString();
 
-    if (assetId === nativeAsset) {
+    // If the asset is the native asset of the chain, set it as total native token balance
+    // This assumes the account is always on the same chain (excludes testnets)
+    if (assetId === nativeAssetId) {
       totalNativeTokenBalance = balance;
     }
 
