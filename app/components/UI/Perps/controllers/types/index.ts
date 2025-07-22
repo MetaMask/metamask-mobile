@@ -268,6 +268,7 @@ export interface IPerpsProvider {
   getMarkets(): Promise<MarketInfo[]>;
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
+  validateDeposit(params: DepositParams): { isValid: boolean; error?: string }; // Protocol-specific deposit validation
 
   // Live data subscriptions → Direct UI (NO Redux, maximum speed)
   subscribeToPrices(params: SubscribePricesParams): () => void;

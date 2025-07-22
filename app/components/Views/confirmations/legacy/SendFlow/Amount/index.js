@@ -782,23 +782,24 @@ class Amount extends PureComponent {
     );
 
     const shouldUseRedesignedTransferConfirmation =
-      isRedesignedTransferConfirmationEnabledForTransfer && !isHardwareAccount(transaction.from);
+      isRedesignedTransferConfirmationEnabledForTransfer &&
+      !isHardwareAccount(transaction.from);
 
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
       onConfirm();
     } else if (shouldUseRedesignedTransferConfirmation) {
-        this.setState({ isRedesignedTransferTransactionLoading: true });
+      this.setState({ isRedesignedTransferTransactionLoading: true });
 
-        const transactionParams = {
-          data: transaction.data,
-          from: transaction.from,
-          to: transaction.to,
-          value:
-            typeof transaction.value === 'string'
-              ? transaction.value
-              : BNToHex(transaction.value),
-        };
+      const transactionParams = {
+        data: transaction.data,
+        from: transaction.from,
+        to: transaction.to,
+        value:
+          typeof transaction.value === 'string'
+            ? transaction.value
+            : BNToHex(transaction.value),
+      };
 
         const { globalNetworkClientId } = this.props;
 

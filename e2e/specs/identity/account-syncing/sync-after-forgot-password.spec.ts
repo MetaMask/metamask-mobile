@@ -2,9 +2,9 @@ import {
   CreateNewWallet,
   importWalletWithRecoveryPhrase,
   loginToApp,
-} from '../../../viewHelper.js';
+} from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView.js';
+import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';
@@ -14,9 +14,9 @@ import { UserStorageMockttpController } from '../utils/user-storage/userStorageM
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet.js';
 import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
-import SettingsView from '../../../pages/Settings/SettingsView.js';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
-import LoginView from '../../../pages/wallet/LoginView.js';
+import SettingsView from '../../../pages/Settings/SettingsView';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import LoginView from '../../../pages/wallet/LoginView';
 import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView.ts';
 import { createUserStorageController } from '../utils/mocks.ts';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
@@ -49,7 +49,7 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
           },
         );
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
         await AccountListBottomSheet.tapEditAccountActionsAtIndex(0);
         await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
         await WalletView.tapIdenticon();

@@ -1,8 +1,7 @@
 'use strict';
 /* eslint-disable no-console */
 import { Mockttp, MockttpServer } from 'mockttp';
-import { loginToApp } from '../../viewHelper.js';
-import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import Ganache from '../../../app/util/test/ganache';
@@ -14,7 +13,10 @@ import {
 } from '../../fixtures/fixture-helper.js';
 import TestHelpers from '../../helpers.js';
 import FixtureServer from '../../fixtures/fixture-server.js';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../fixtures/utils.js';
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../utils/Assertions.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
@@ -23,11 +25,11 @@ import { getEventsPayloads } from '../analytics/helpers';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { startMockServer } from './helpers/swap-mocks';
 import SoftAssert from '../../utils/SoftAssert.ts';
-import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment.ts';
+import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
+import { loginToApp } from '../../viewHelper';
 
 const fixtureServer: FixtureServer = new FixtureServer();
-
 
 // eslint-disable-next-line jest/no-disabled-tests
 describe(SmokeTrade('Swap from Actions'), (): void => {
@@ -72,11 +74,17 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   });
 
   it.each`
-    type        | quantity | sourceTokenSymbol | destTokenSymbol | chainId
-    ${'swap'}   | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${'0x1'}
+    type      | quantity | sourceTokenSymbol | destTokenSymbol | chainId
+    ${'swap'} | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${'0x1'}
   `(
     "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on chainID='$chainId'",
-    async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, chainId }): Promise<void> => {
+    async ({
+      type,
+      quantity,
+      sourceTokenSymbol,
+      destTokenSymbol,
+      chainId,
+    }): Promise<void> => {
       await TabBarComponent.tapActions();
       await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
       await WalletActionsBottomSheet.tapSwapButton();
@@ -115,7 +123,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   );
 
   it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
-
     const testCases = [
       {
         type: 'swap',
@@ -151,7 +158,10 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     };
 
     // METAMETRICS EVENTS
-    const events = await getEventsPayloads(mockServer as MockttpServer, Object.values(EVENT_NAMES));
+    const events = await getEventsPayloads(
+      mockServer as MockttpServer,
+      Object.values(EVENT_NAMES),
+    );
 
     const softAssert: SoftAssert = new SoftAssert();
 
@@ -355,7 +365,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         ),
       );
     }
-
 
     await Promise.all([
       checkEventCount,

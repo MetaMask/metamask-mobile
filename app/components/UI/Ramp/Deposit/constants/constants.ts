@@ -26,6 +26,13 @@ export const TRANSAK_NETWORKS: Record<string, CaipChainId> = {
 };
 
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
+export const TRANSAK_URL = 'https://www.transak.com';
+export const CONSENSYS_PRIVACY_POLICY_URL =
+  'https://consensys.net/privacy-policy';
+export const TRANSAK_TERMS_URL_US =
+  'https://www.transak.com/terms-of-service-us';
+export const TRANSAK_TERMS_URL_WORLD =
+  'https://www.transak.com/terms-of-service';
 
 export enum KycStatus {
   NOT_SUBMITTED = 'NOT_SUBMITTED',
@@ -46,3 +53,5 @@ export const VALIDATION_REGEX = {
   state: /^(?!\s+$)(?=.*[a-zA-Z]).{2,100}$/,
   postCode: /^(?!\s*$).+/,
 };
+
+export const REDIRECTION_URL = 'https://metamask.io/';

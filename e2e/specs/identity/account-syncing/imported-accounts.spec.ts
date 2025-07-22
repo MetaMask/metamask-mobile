@@ -1,6 +1,6 @@
-import { loginToApp } from '../../../viewHelper.js';
+import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView.js';
+import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';
@@ -17,28 +17,26 @@ import SuccessImportAccountView from '../../../pages/importAccount/SuccessImport
 import { IDENTITY_TEAM_IMPORTED_PRIVATE_KEY } from '../utils/constants.ts';
 import { createUserStorageController } from '../utils/mocks.ts';
 
-describe(
-  SmokeIdentity('Account syncing - Unsupported Account types'),
-  () => {
-    let sharedUserStorageController: UserStorageMockttpController;
+describe(SmokeIdentity('Account syncing - Unsupported Account types'), () => {
+  let sharedUserStorageController: UserStorageMockttpController;
 
-    beforeAll(async () => {
-      await TestHelpers.reverseServerPort();
-      sharedUserStorageController = createUserStorageController();
-    });
+  beforeAll(async () => {
+    await TestHelpers.reverseServerPort();
+    sharedUserStorageController = createUserStorageController();
+  });
 
-    const DEFAULT_ACCOUNT_NAME = 'Account 1';
-    const SECOND_ACCOUNT_NAME = 'Account 2';
-    const IMPORTED_ACCOUNT_NAME = 'Account 3';
-    /**
-     * This test verifies that imported accounts are not synced to user storage:
-     * Phase 1: Create regular accounts and import a private key account
-     * Phase 2: Verify the imported account is visible in the current session
-     * Phase 3: Login to a fresh app instance and verify only regular accounts persist (imported accounts are excluded)
-     */
+  const DEFAULT_ACCOUNT_NAME = 'Account 1';
+  const SECOND_ACCOUNT_NAME = 'Account 2';
+  const IMPORTED_ACCOUNT_NAME = 'Account 3';
+  /**
+   * This test verifies that imported accounts are not synced to user storage:
+   * Phase 1: Create regular accounts and import a private key account
+   * Phase 2: Verify the imported account is visible in the current session
+   * Phase 3: Login to a fresh app instance and verify only regular accounts persist (imported accounts are excluded)
+   */
 
-    it('should not sync imported accounts and exclude them when logging into a fresh app instance', async () => {
-      await withIdentityFixtures(
+  it('should not sync imported accounts and exclude them when logging into a fresh app instance', async () => {
+    await withIdentityFixtures(
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
@@ -49,55 +47,53 @@ describe(
         await WalletView.tapIdenticon();
 
         await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
-        {
-          description: 'Account List Bottom Sheet should be visible',
-        },
+          AccountListBottomSheet.accountList,
+          {
+            description: 'Account List Bottom Sheet should be visible',
+          },
         );
 
         await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(
-          DEFAULT_ACCOUNT_NAME,
-        ),
-        {
-          description: `Account with name "${DEFAULT_ACCOUNT_NAME}" should be visible`,
-        },
+          AccountListBottomSheet.getAccountElementByAccountName(
+            DEFAULT_ACCOUNT_NAME,
+          ),
+          {
+            description: `Account with name "${DEFAULT_ACCOUNT_NAME}" should be visible`,
+          },
         );
 
         const { prepareEventsEmittedCounter } = arrangeTestUtils(
-        userStorageMockttpController,
+          userStorageMockttpController,
         );
         const { waitUntilEventsEmittedNumberEquals } =
-        prepareEventsEmittedCounter(
-          UserStorageMockttpControllerEvents.PUT_SINGLE,
-        );
+          prepareEventsEmittedCounter(
+            UserStorageMockttpControllerEvents.PUT_SINGLE,
+          );
 
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
         await waitUntilEventsEmittedNumberEquals(1);
 
         await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(
-          SECOND_ACCOUNT_NAME,
-        ),
-        {
-          description: `Account with name "${SECOND_ACCOUNT_NAME}" should be visible`,
-        },
+          AccountListBottomSheet.getAccountElementByAccountName(
+            SECOND_ACCOUNT_NAME,
+          ),
+          {
+            description: `Account with name "${SECOND_ACCOUNT_NAME}" should be visible`,
+          },
         );
 
         await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
+          AccountListBottomSheet.accountList,
         );
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapImportAccount();
-        await Assertions.expectElementToBeVisible(
-        ImportAccountView.container,
-        );
+        await Assertions.expectElementToBeVisible(ImportAccountView.container);
         await ImportAccountView.enterPrivateKey(
-        IDENTITY_TEAM_IMPORTED_PRIVATE_KEY,
+          IDENTITY_TEAM_IMPORTED_PRIVATE_KEY,
         );
         await Assertions.expectElementToBeVisible(
-        SuccessImportAccountView.container,
+          SuccessImportAccountView.container,
         );
         await SuccessImportAccountView.tapCloseButton();
         await AccountListBottomSheet.swipeToDismissAccountsModal();
@@ -105,17 +101,17 @@ describe(
         await WalletView.tapIdenticon();
 
         await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(
-          IMPORTED_ACCOUNT_NAME,
-        ),
-        {
-          description: `Account with name "${IMPORTED_ACCOUNT_NAME}" should be visible`,
-        },
+          AccountListBottomSheet.getAccountElementByAccountName(
+            IMPORTED_ACCOUNT_NAME,
+          ),
+          {
+            description: `Account with name "${IMPORTED_ACCOUNT_NAME}" should be visible`,
+          },
         );
       },
-      );
+    );
 
-      await withIdentityFixtures(
+    await withIdentityFixtures(
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
@@ -125,32 +121,29 @@ describe(
         await WalletView.tapIdenticon();
 
         await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
-        {
-          description: 'Account List Bottom Sheet should be visible',
-        },
+          AccountListBottomSheet.accountList,
+          {
+            description: 'Account List Bottom Sheet should be visible',
+          },
         );
 
         const visibleAccounts = [DEFAULT_ACCOUNT_NAME, SECOND_ACCOUNT_NAME];
 
         for (const accountName of visibleAccounts) {
-        await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountName(
-          accountName,
-          ),
-          {
-          description: `Account with name "${accountName}" should be visible`,
-          },
-        );
+          await Assertions.expectElementToBeVisible(
+            AccountListBottomSheet.getAccountElementByAccountName(accountName),
+            {
+              description: `Account with name "${accountName}" should be visible`,
+            },
+          );
         }
 
         await Assertions.expectElementToNotBeVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(
-          IMPORTED_ACCOUNT_NAME,
-        ),
+          AccountListBottomSheet.getAccountElementByAccountName(
+            IMPORTED_ACCOUNT_NAME,
+          ),
         );
       },
-      );
-    });
-  },
-);
+    );
+  });
+});

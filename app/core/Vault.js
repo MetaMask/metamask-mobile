@@ -20,6 +20,7 @@ import {
 } from './Engine/controllers/seedless-onboarding-controller/error';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
+import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
  * Restore the given serialized QR keyring.
@@ -133,6 +134,7 @@ export const recreateVaultWithNewPassword = async (
   password,
   newPassword,
   selectedAddress,
+  skipSeedlessOnboardingPWChange = false,
 ) => {
   const { KeyringController, AccountsController } = Engine.context;
   const hdKeyringsWithMetadata = KeyringController.state.keyrings.filter(
@@ -220,11 +222,36 @@ export const recreateVaultWithNewPassword = async (
 
   const { SeedlessOnboardingController } = Engine.context;
   let seedlessChangePasswordError = null;
-  if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+  if (
+    !skipSeedlessOnboardingPWChange &&
+    selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
+  ) {
+    let specificTraceSucceeded = false;
     try {
+      trace({
+        name: TraceName.OnboardingResetPassword,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
       await SeedlessOnboardingController.changePassword(newPassword, password);
+      specificTraceSucceeded = true;
     } catch (error) {
-      Logger.error(error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      trace({
+        name: TraceName.OnboardingResetPasswordError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+      });
+      endTrace({
+        name: TraceName.OnboardingResetPasswordError,
+      });
+
+      Logger.error(
+        error,
+        '[recreateVaultWithNewPassword] seedless onboarding pw change error',
+      );
+      // restore keyring with old password if seedless onboarding pw change fails
       await KeyringController.createNewVaultAndRestore(
         password,
         primaryKeyringSeedPhrase,
@@ -233,6 +260,11 @@ export const recreateVaultWithNewPassword = async (
         error || 'Password change failed',
         SeedlessOnboardingControllerErrorType.ChangePasswordError,
       );
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingResetPassword,
+        data: { success: specificTraceSucceeded },
+      });
     }
   }
 
