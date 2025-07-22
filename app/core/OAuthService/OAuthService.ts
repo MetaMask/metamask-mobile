@@ -299,10 +299,14 @@ export class OAuthService {
   };
 
   resetOauthState = () => {
+    const { SeedlessOnboardingController } = Engine.context;
+    SeedlessOnboardingController.clearState();
     this.updateLocalState({
       loginInProgress: false,
       oauthLoginSuccess: false,
       oauthLoginError: null,
+      userId: undefined,
+      accountName: undefined,
     });
   };
 }

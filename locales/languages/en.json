@@ -271,6 +271,11 @@
       "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
     }
   },
+  "seedless_onboarding": {
+    "seedless_onboarding_create_error_title": "Something went wrong",
+    "seedless_onboarding_create_error_description": "We couldn’t create your wallet. Please reset the wallet and try again.",
+    "seedless_onboarding_create_error_button": "Try again"
+  },
   "create_wallet": {
     "title": "Creating your wallet...",
     "subtitle": "This shouldn’t take long"
