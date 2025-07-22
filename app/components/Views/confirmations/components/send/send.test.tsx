@@ -2,6 +2,8 @@ import React from 'react';
 import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { fireEvent, render } from '@testing-library/react-native';
 
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Send from './send';
 
 const mockGoBack = jest.fn();
@@ -17,13 +19,23 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const renderComponent = () => {
+  return renderWithProvider(<Send />, {
+    state: {
+      engine: {
+        backgroundState,
+      },
+    },
+  });
+};
+
 describe('Send', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders correctly', async () => {
-    const { getByText } = render(<Send />);
+    const { getByText } = renderComponent();
 
     expect(getByText('From:')).toBeTruthy();
     expect(getByText('To:')).toBeTruthy();
@@ -31,14 +43,14 @@ describe('Send', () => {
   });
 
   it('navigate back when cancel is clicked', async () => {
-    const { getByText } = render(<Send />);
+    const { getByText } = renderComponent();
 
     fireEvent.press(getByText('Cancel'));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('when confirm is clicked create transaction', async () => {
-    const { getByText } = render(<Send />);
+    const { getByText } = renderComponent();
 
     // actual implementation to come here when confirm is implemented
     fireEvent.press(getByText('Confirm'));
@@ -53,7 +65,7 @@ describe('Send', () => {
         },
       },
     } as RouteProp<ParamListBase, string>);
-    const { getByText } = render(<Send />);
+    const { getByText } = renderComponent();
     expect(getByText('Asset: Ethereum')).toBeTruthy();
   });
 });
