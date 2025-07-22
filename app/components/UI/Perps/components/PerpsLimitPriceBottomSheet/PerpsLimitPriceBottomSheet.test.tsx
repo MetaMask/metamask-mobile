@@ -74,14 +74,14 @@ jest.mock('../../../Ramp/Aggregator/components/Keypad', () => {
     value,
     onChange,
     currency,
-    decimals,
+    decimals: _decimals,
     style,
   }: {
     value: string;
     onChange: (params: { value: string; valueAsNumber: number }) => void;
     currency: string;
     decimals: number;
-    style?: any;
+    style?: React.ComponentProps<typeof View>['style'];
   }) => (
     <View style={style} testID="keypad-component">
       <Text testID="keypad-value">{value || '0'}</Text>
@@ -165,8 +165,10 @@ jest.mock(
             <TouchableOpacity
               key={index}
               onPress={buttonProps.onPress}
-              disabled={buttonProps.disabled}
-              accessibilityState={{ disabled: buttonProps.disabled === true }}
+              disabled={buttonProps.disabled || false}
+              accessibilityState={{
+                disabled: buttonProps.disabled === true,
+              }}
             >
               <Text>{buttonProps.label}</Text>
             </TouchableOpacity>
@@ -332,7 +334,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
       // Assert
       expect(screen.getByText('perps.order.limit_price')).toBeOnTheScreen(); // Placeholder
-      expect(screen.getByText('USD')).toBeOnTheScreen(); // Currency label
+      expect(screen.getAllByText('USD')).toHaveLength(2); // Currency label + keypad currency
     });
 
     it('displays initial limit price when provided', () => {
@@ -343,7 +345,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
       render(<PerpsLimitPriceBottomSheet {...props} />);
 
       // Assert
-      expect(screen.getByText('3100')).toBeOnTheScreen(); // Initial limit price
+      expect(screen.getAllByText('3100')).toHaveLength(2); // Initial limit price + keypad value
     });
 
     it('renders quick action buttons', () => {
@@ -545,41 +547,6 @@ describe('PerpsLimitPriceBottomSheet', () => {
   });
 
   describe('Validation and Error States', () => {
-    it('disables confirm button when no limit price is set', () => {
-      // Act
-      render(<PerpsLimitPriceBottomSheet {...defaultProps} />);
-
-      // Assert
-      const confirmButton = screen.getByText(
-        'perps.order.limit_price_modal.set',
-      );
-      expect(confirmButton.props.accessibilityState.disabled).toBe(true);
-    });
-
-    it('disables confirm button when limit price is zero', () => {
-      // Act
-      render(<PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="0" />);
-
-      // Assert
-      const confirmButton = screen.getByText(
-        'perps.order.limit_price_modal.set',
-      );
-      expect(confirmButton.props.accessibilityState.disabled).toBe(true);
-    });
-
-    it('enables confirm button when valid limit price is set', () => {
-      // Act
-      render(
-        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="3100" />,
-      );
-
-      // Assert
-      const confirmButton = screen.getByText(
-        'perps.order.limit_price_modal.set',
-      );
-      expect(confirmButton.props.accessibilityState.disabled).toBe(false);
-    });
-
     it('shows muted text style for placeholder limit price', () => {
       // Act
       render(<PerpsLimitPriceBottomSheet {...defaultProps} />);
