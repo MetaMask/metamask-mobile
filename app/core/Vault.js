@@ -21,6 +21,7 @@ import {
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 import { Authentication } from './Authentication/Authentication';
+import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
  * Restore the given serialized QR keyring.
@@ -90,7 +91,10 @@ export const restoreSnapAccounts = async (accountType, entropySource) => {
       scope = SolScope.Mainnet;
       break;
     }
-    case BtcAccountType.P2wpkh: {
+    case BtcAccountType.P2pkh:
+    case BtcAccountType.P2sh:
+    case BtcAccountType.P2wpkh:
+    case BtcAccountType.P2tr: {
       walletClientType = WalletClientType.Bitcoin;
       scope = BtcScope.Mainnet;
       break;
@@ -226,10 +230,28 @@ export const recreateVaultWithNewPassword = async (
     !skipSeedlessOnboardingPWChange &&
     selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
   ) {
+    let specificTraceSucceeded = false;
     try {
+      trace({
+        name: TraceName.OnboardingResetPassword,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
       await SeedlessOnboardingController.changePassword(newPassword, password);
       await Authentication.syncKeyringEncryptionKey();
+      specificTraceSucceeded = true;
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      trace({
+        name: TraceName.OnboardingResetPasswordError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+      });
+      endTrace({
+        name: TraceName.OnboardingResetPasswordError,
+      });
+
       Logger.error(
         error,
         '[recreateVaultWithNewPassword] seedless onboarding pw change error',
@@ -244,6 +266,11 @@ export const recreateVaultWithNewPassword = async (
         SeedlessOnboardingControllerErrorType.ChangePasswordError,
       );
       await Authentication.syncKeyringEncryptionKey();
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingResetPassword,
+        data: { success: specificTraceSucceeded },
+      });
     }
   }
 

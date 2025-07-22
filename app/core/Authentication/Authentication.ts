@@ -49,11 +49,18 @@ import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
+import { SolScope } from '@metamask/keyring-api';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
+
+// to replace with SecretMetadata type from seedless-onboarding-controller when it is exported
+interface SecretMetadata {
+  data: Uint8Array;
+  type: SecretType;
+}
 
 /**
  * Holds auth data used to determine auth configuration
@@ -142,7 +149,7 @@ class AuthenticationService {
           setSelectedAccount: false,
         },
       );
-      await client.addDiscoveredAccounts(primaryHdKeyringId);
+      await client.addDiscoveredAccounts(primaryHdKeyringId, SolScope.Mainnet);
 
       await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
     };
@@ -627,11 +634,38 @@ class AuthenticationService {
         keyringId,
       );
 
-      await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
-        password,
-        seedPhrase,
-        keyringId,
-      );
+      let createKeyAndBackupSrpSuccess = false;
+      try {
+        trace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
+          password,
+          seedPhrase,
+          keyringId,
+        );
+        createKeyAndBackupSrpSuccess = true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+
+        trace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrpError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrpError,
+        });
+
+        throw error;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          data: { success: createKeyAndBackupSrpSuccess },
+        });
+      }
 
       await this.syncKeyringEncryptionKey();
 
@@ -652,10 +686,37 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
-      const result = await SeedlessOnboardingController.fetchAllSecretData(
-        password,
-      );
+      let result: SecretMetadata[] | null = null;
+      let fetchSrpsSuccess = false;
+      try {
+        trace({
+          name: TraceName.OnboardingFetchSrps,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        result = await SeedlessOnboardingController.fetchAllSecretData(
+          password,
+        );
+        fetchSrpsSuccess = true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
 
+        trace({
+          name: TraceName.OnboardingFetchSrpsError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({
+          name: TraceName.OnboardingFetchSrpsError,
+        });
+
+        throw error;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingFetchSrps,
+          data: { success: fetchSrpsSuccess },
+        });
+      }
       const allSRPs = result
         .filter((item) => item.type === SecretType.Mnemonic)
         .map((item) => item.data);
@@ -756,7 +817,7 @@ class AuthenticationService {
       await this.lockApp({ locked: true });
       throw err;
     }
-    this.resetPassword();
+    await this.resetPassword();
   };
 
   /**
