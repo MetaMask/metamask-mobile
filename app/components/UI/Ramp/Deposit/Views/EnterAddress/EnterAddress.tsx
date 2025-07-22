@@ -34,6 +34,7 @@ import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { VALIDATION_REGEX } from '../../constants/constants';
 import { getCryptoCurrencyFromTransakId } from '../../utils';
 import Logger from '../../../../../../util/Logger';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
@@ -64,6 +65,7 @@ const EnterAddress = (): JSX.Element => {
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const trackEvent = useAnalytics();
 
   const addressLine1InputRef = useRef<TextInput>(null);
   const addressLine2InputRef = useRef<TextInput>(null);
@@ -71,7 +73,10 @@ const EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(
+    quote.cryptoCurrency,
+    quote.network,
+  );
 
   const { navigateToAdditionalVerification, navigateToKycProcessing } =
     useDepositRouting({
@@ -203,6 +208,12 @@ const EnterAddress = (): JSX.Element => {
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
 
+    trackEvent('RAMPS_ADDRESS_ENTERED', {
+      region: selectedRegion?.isoCode || '',
+      ramp_type: 'DEPOSIT',
+      kyc_type: 'SIMPLE',
+    });
+
     try {
       setLoading(true);
       const combinedFormData = {
@@ -248,6 +259,8 @@ const EnterAddress = (): JSX.Element => {
     navigateToAdditionalVerification,
     submitSsnDetails,
     navigateToKycProcessing,
+    selectedRegion?.isoCode,
+    trackEvent,
   ]);
 
   return (

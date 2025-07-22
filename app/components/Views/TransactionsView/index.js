@@ -32,7 +32,7 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -40,6 +40,7 @@ import { selectTokenNetworkFilter } from '../../../selectors/preferencesControll
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
 import useCurrencyRatePolling from '../../hooks/AssetPolling/useCurrencyRatePolling';
+import useTokenRatesPolling from '../../hooks/AssetPolling/useTokenRatesPolling';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -65,6 +66,7 @@ const TransactionsView = ({
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   useCurrencyRatePolling();
+  useTokenRatesPolling();
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
@@ -249,10 +251,10 @@ const mapStateToProps = (state) => {
     selectedInternalAccount &&
     !isEvmAccountType(selectedInternalAccount.type)
   ) {
-    const solanaTransactionData = selectSolanaAccountTransactions(state);
-    const solanaTransactions = solanaTransactionData?.transactions || [];
+    const nonEVMTransactions = selectNonEvmTransactions(state);
+    const txs = nonEVMTransactions?.transactions || [];
 
-    allTransactions = [...evmTransactions, ...solanaTransactions].sort(
+    allTransactions = [...evmTransactions, ...txs].sort(
       (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
     );
   }
