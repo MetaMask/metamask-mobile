@@ -252,8 +252,8 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
   );
 
   const removeElements = (html: string) => {
-    html = html.replace(/<[^>]*class=["']title["'][^>]*>.*?<\/[^>]*>/g, '');
-    html = html.replace(/<[^>]*class=["']sub-title["'][^>]*>.*?<\/[^>]*>/g, '');
+    html = html.replace(/<h1 class="title">.*?<\/h1>/gs, '');
+    html = html.replace(/<p class="sub-title">.*?<\/p>/gs, '');
     return html;
   };
 
