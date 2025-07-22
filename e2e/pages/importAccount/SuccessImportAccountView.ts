@@ -1,18 +1,20 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { SuccessImportAccountIDs } from '../../selectors/ImportAccount/SuccessImportAccount.selectors';
 
 class SuccessImportAccountView {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(SuccessImportAccountIDs.CONTAINER);
   }
 
-  get closeButton() {
+  get closeButton(): DetoxElement {
     return Matchers.getElementByID(SuccessImportAccountIDs.CLOSE_BUTTON);
   }
 
-  async tapCloseButton() {
-    await Gestures.waitAndTap(this.closeButton);
+  async tapCloseButton(): Promise<void> {
+    await Gestures.waitAndTap(this.closeButton, {
+      elemDescription: 'Close button',
+    });
   }
 }
 

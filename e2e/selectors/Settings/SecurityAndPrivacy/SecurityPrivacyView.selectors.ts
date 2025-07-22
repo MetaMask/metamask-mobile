@@ -17,6 +17,7 @@ export const SecurityPrivacyViewSelectorsIDs = {
 };
 
 export const SecurityPrivacyViewSelectorsText = {
+  SHOW_PRIVATE_KEY: enContent.reveal_credential.show_private_key,
   SECURITY_AND_PRIVACY_HEADING: enContent.app_settings.security_title,
   BACK_UP_NOW: enContent.app_settings.back_up_now,
   PRIVACY_HEADING: enContent.app_settings.privacy_heading,
