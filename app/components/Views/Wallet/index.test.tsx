@@ -1,7 +1,7 @@
 import React from 'react';
 import Wallet from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { screen } from '@testing-library/react-native';
+import { screen as RNScreen } from '@testing-library/react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -11,6 +11,10 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+
+// Mock AssetDetailsActions to capture props
+const mockAssetDetailsActions = jest.fn(() => null);
+jest.mock('../AssetDetails/AssetDetailsActions', () => mockAssetDetailsActions);
 
 jest.mock('../../../util/address', () => {
   const actual = jest.requireActual('../../../util/address');
@@ -240,7 +244,7 @@ describe('Wallet', () => {
   it('should render scan qr icon', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
-    const scanButton = screen.getByTestId(
+    const scanButton = RNScreen.getByTestId(
       WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
     );
     expect(scanButton).toBeDefined();
@@ -253,7 +257,7 @@ describe('Wallet', () => {
   it('should render the address copy button', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
-    const addressCopyButton = screen.getByTestId(
+    const addressCopyButton = RNScreen.getByTestId(
       WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
     );
     expect(addressCopyButton).toBeDefined();
@@ -261,7 +265,7 @@ describe('Wallet', () => {
   it('should render the account picker', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
-    const accountPicker = screen.getByTestId(
+    const accountPicker = RNScreen.getByTestId(
       WalletViewSelectorsIDs.ACCOUNT_ICON,
     );
     expect(accountPicker).toBeDefined();
@@ -285,5 +289,136 @@ describe('Wallet', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose
     const wrapper = render(Wallet);
     expect(wrapper.toJSON()).toMatchSnapshot();
+  });
+
+  // Unified UI Feature Flag Tests
+  describe('Unified UI Feature Flag', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockAssetDetailsActions.mockClear();
+    });
+
+    it('should pass displayBridgeButton as true when isUnifiedSwapsEnabled is false', () => {
+      const stateWithUnifiedSwapsDisabled = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: {
+                  chains: {
+                    'eip155:1': {
+                      isUnifiedUIEnabled: false,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      // Mock the unified swaps env var as false
+      jest.doMock(
+        '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
+        () => ({
+          isUnifiedSwapsEnvVarEnabled: jest.fn(() => false),
+        }),
+      );
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(stateWithUnifiedSwapsDisabled),
+        );
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      // Check that AssetDetailsActions was called with displayBridgeButton: true
+      expect(mockAssetDetailsActions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          displayBridgeButton: true,
+        }),
+        {},
+      );
+    });
+
+    it('should pass displayBridgeButton as false when isUnifiedSwapsEnabled is true', () => {
+      const stateWithUnifiedSwapsEnabled = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: {
+                  chains: {
+                    'eip155:1': {
+                      isUnifiedUIEnabled: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      // Mock the unified swaps env var as true
+      jest.doMock(
+        '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
+        () => ({
+          isUnifiedSwapsEnvVarEnabled: jest.fn(() => true),
+        }),
+      );
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(stateWithUnifiedSwapsEnabled),
+        );
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      // Check that AssetDetailsActions was called with displayBridgeButton: false
+      expect(mockAssetDetailsActions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          displayBridgeButton: false,
+        }),
+        {},
+      );
+    });
+
+    it('should pass all required props to AssetDetailsActions', () => {
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(mockInitialState),
+        );
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      // Check that AssetDetailsActions was called with all required props
+      expect(mockAssetDetailsActions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          displayBuyButton: expect.any(Boolean),
+          displaySwapsButton: expect.any(Boolean),
+          displayBridgeButton: expect.any(Boolean),
+          swapsIsLive: expect.any(Boolean),
+          goToBridge: expect.any(Function),
+          goToSwaps: expect.any(Function),
+          onReceive: expect.any(Function),
+          onSend: expect.any(Function),
+          onBuy: expect.any(Function),
+        }),
+        {},
+      );
+    });
   });
 });
