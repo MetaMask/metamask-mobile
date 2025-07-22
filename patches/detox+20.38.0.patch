@@ -1,0 +1,61 @@
+diff --git a/node_modules/detox/android/detox/src/full/java/com/wix/detox/Detox.java b/node_modules/detox/android/detox/src/full/java/com/wix/detox/Detox.java
+index 0e81f21..b89e260 100644
+--- a/node_modules/detox/android/detox/src/full/java/com/wix/detox/Detox.java
++++ b/node_modules/detox/android/detox/src/full/java/com/wix/detox/Detox.java
+@@ -44,7 +44,7 @@ import com.wix.detox.espresso.hierarchy.ViewHierarchyGenerator;
+  * <pre>{@code
+  * android {
+  *   defaultConfig {
+- *     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
++ *     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+  *     testInstrumentationRunnerArguments = [
+  *       'detoxServer': 'ws://10.0.2.2:8001',
+  *       'detoxSessionId': '1'
+@@ -55,7 +55,7 @@ import com.wix.detox.espresso.hierarchy.ViewHierarchyGenerator;
+  *
+  * Or through command line, e.g <br>
+  * <blockquote>{@code adb shell am instrument -w -e detoxServer ws://localhost:8001 -e detoxSessionId
+- * 1 com.example/android.support.test.runner.AndroidJUnitRunner}</blockquote></p>
++ * 1 com.example/androidx.test.runner.AndroidJUnitRunner}</blockquote></p>
+  *
+  * <p>These are automatically set using,
+  * <blockquote>{@code detox test}</blockquote></p>
+diff --git a/node_modules/detox/android/detox/src/testFull/java/com/wix/invoke/JsonParserTest.java b/node_modules/detox/android/detox/src/testFull/java/com/wix/invoke/JsonParserTest.java
+index 59cc697..f6348f0 100644
+--- a/node_modules/detox/android/detox/src/testFull/java/com/wix/invoke/JsonParserTest.java
++++ b/node_modules/detox/android/detox/src/testFull/java/com/wix/invoke/JsonParserTest.java
+@@ -42,8 +42,8 @@ public class JsonParserTest {
+     public void fromJsonTargetInvocationEspresso() {
+ //        Espresso.onView(DetoxMatcher.matcherForContentDescription("Sanity")).perform(ViewActions.click());
+         Invocation matcher = new Invocation(new ClassTarget("com.wix.detox.espresso.DetoxMatcher"), "matcherForContentDescription", "Sanity");
+-        Invocation onView = new Invocation(new ClassTarget("android.support.test.espresso.Espresso"), "onView", matcher);
+-        Invocation click = new Invocation(new ClassTarget("android.support.test.espresso.action.ViewActions"), "click");
++        Invocation onView = new Invocation(new ClassTarget("androidx.test.espresso.Espresso"), "onView", matcher);
++        Invocation click = new Invocation(new ClassTarget("androidx.test.espresso.action.ViewActions"), "click");
+         Invocation perform = new Invocation(new InvocationTarget(onView), "perform", click);
+ 
+ 
+@@ -56,8 +56,8 @@ public class JsonParserTest {
+ //        EspressoDetox.perform(Espresso.onView(DetoxMatcher.matcherForContentDescription("Sanity")), ViewActions.click());
+ 
+         Invocation matcher = new Invocation(new ClassTarget("com.wix.detox.espresso.DetoxMatcher"), "matcherForContentDescription", "Sanity");
+-        Invocation onView = new Invocation(new ClassTarget("android.support.test.espresso.Espresso"), "onView", matcher);
+-        Invocation click = new Invocation(new ClassTarget("android.support.test.espresso.action.ViewActions"), "click");
++        Invocation onView = new Invocation(new ClassTarget("androidx.test.espresso.Espresso"), "onView", matcher);
++        Invocation click = new Invocation(new ClassTarget("androidx.test.espresso.action.ViewActions"), "click");
+         Invocation perform = new Invocation(new ClassTarget("com.wix.detox.espresso.EspressoDetox"), "perform", onView, click);
+ 
+         assertThat(parse("targetInvocationEspressoDetox.json")).usingRecursiveComparison().isEqualTo(perform);
+diff --git a/node_modules/detox/src/utils/ExclusiveLockfile.js b/node_modules/detox/src/utils/ExclusiveLockfile.js
+index da29ae9..45ad4a3 100644
+--- a/node_modules/detox/src/utils/ExclusiveLockfile.js
++++ b/node_modules/detox/src/utils/ExclusiveLockfile.js
+@@ -107,7 +107,7 @@ class ExclusiveLockfile {
+     this._ensureFileExists();
+ 
+     await retry(this._options.retry, () => {
+-      const operationResult = plockfile.lockSync(this._lockFilePath);
++      const operationResult = plockfile.lockSync(this._lockFilePath, { stale: 20000 });
+ 
+       this._isLocked = true;
+       this._invalidate();
