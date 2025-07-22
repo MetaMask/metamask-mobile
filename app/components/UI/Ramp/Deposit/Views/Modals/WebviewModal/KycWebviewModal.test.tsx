@@ -3,7 +3,8 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import KycWebviewModal from './KycWebviewModal';
 import { KycStatus } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import renderDepositTestComponent from '../../../utils/renderDepositTestComponent';
+import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockStartPolling = jest.fn();
@@ -41,9 +42,18 @@ jest.mock('./WebviewModal', () => () => 'WebviewModal');
 
 describe('KycWebviewModal', () => {
   function render(Component: React.ComponentType) {
-    return renderDepositTestComponent(
+    return renderScreen(
       Component,
-      Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
+      {
+        name: Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
+      },
+      {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      },
     );
   }
 

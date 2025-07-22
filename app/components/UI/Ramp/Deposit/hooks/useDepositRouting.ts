@@ -30,6 +30,7 @@ import { useDepositSDK, DEPOSIT_ENVIRONMENT } from '../sdk';
 import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
 import useAnalytics from '../../hooks/useAnalytics';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
+import Logger from '../../../../../../app/util/Logger';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
@@ -313,7 +314,7 @@ export const useDepositRouting = ({
   );
 
   const routeAfterAuthentication = useCallback(
-    async (quote: BuyQuote, isRecursive = false) => {
+    async (quote: BuyQuote, depth = 0) => {
       try {
         const forms = await fetchKycForms(quote);
         const { forms: requiredForms } = forms || {};
@@ -375,7 +376,7 @@ export const useDepositRouting = ({
                   ottResponse.token,
                   quote,
                   selectedWalletAddress,
-                  { ...generateThemeParameters(themeAppearance, colors) },
+                  generateThemeParameters(themeAppearance, colors),
                 );
 
                 if (!paymentUrl) {
@@ -399,12 +400,17 @@ export const useDepositRouting = ({
         }
 
         // auto-submit purpose of usage form and then recursive call to route again
-        if (
-          !getForm(TransakFormId.PURPOSE_OF_USAGE)?.isSubmitted &&
-          !isRecursive
-        ) {
-          await submitPurposeOfUsage(['Buying/selling crypto for investments']);
-          await routeAfterAuthentication(quote, true);
+        if (!getForm(TransakFormId.PURPOSE_OF_USAGE)?.isSubmitted) {
+          if (depth < 5) {
+            await submitPurposeOfUsage([
+              'Buying/selling crypto for investments',
+            ]);
+            await routeAfterAuthentication(quote, depth + 1);
+          } else {
+            Logger.error(
+              new Error(`Submit of purpose depth exceeded: ${depth}`),
+            );
+          }
           return;
         }
 
@@ -412,7 +418,10 @@ export const useDepositRouting = ({
         // SSN is always submitted with personal details for US users, so we don't need to check for it
         const personalDetailsForm = getForm(TransakFormId.PERSONAL_DETAILS);
         const addressForm = getForm(TransakFormId.ADDRESS);
-        if (!personalDetailsForm?.isSubmitted || !addressForm?.isSubmitted) {
+        if (
+          personalDetailsForm?.isSubmitted === false ||
+          addressForm?.isSubmitted === false
+        ) {
           trackEvent('RAMPS_KYC_STARTED', {
             ramp_type: 'DEPOSIT',
             kyc_type: forms?.kycType || '',
@@ -425,7 +434,7 @@ export const useDepositRouting = ({
 
         // check for id proof form and route to additional verification if needed
         const idProofForm = getForm(TransakFormId.ID_PROOF);
-        if (!idProofForm?.isSubmitted) {
+        if (idProofForm?.isSubmitted === false) {
           const idProofData = await fetchKycFormData(quote, idProofForm);
           if (idProofData?.data?.kycUrl) {
             navigateToAdditionalVerificationCallback({

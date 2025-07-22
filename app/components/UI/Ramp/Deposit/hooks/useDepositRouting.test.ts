@@ -311,9 +311,12 @@ describe('useDepositRouting', () => {
 
       mockFetchKycForms = jest.fn().mockResolvedValue({
         forms: [
+          { id: 'purposeOfUsage', isSubmitted: true },
           { id: 'personalDetails', isSubmitted: false },
+          { id: 'address', isSubmitted: true },
           { id: 'idProof', isSubmitted: true },
         ],
+        kycType: 'SIMPLE',
       });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -338,7 +341,13 @@ describe('useDepositRouting', () => {
       };
 
       mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [{ id: 'address', isSubmitted: false }],
+        forms: [
+          { id: 'purposeOfUsage', isSubmitted: true },
+          { id: 'personalDetails', isSubmitted: true },
+          { id: 'address', isSubmitted: false },
+          { id: 'idProof', isSubmitted: true },
+        ],
+        kycType: 'SIMPLE',
       });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -363,7 +372,13 @@ describe('useDepositRouting', () => {
       };
 
       mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [{ id: 'usSSN', isSubmitted: false }],
+        forms: [
+          { id: 'purposeOfUsage', isSubmitted: true },
+          { id: 'personalDetails', isSubmitted: false },
+          { id: 'address', isSubmitted: true },
+          { id: 'usSSN', isSubmitted: false },
+        ],
+        kycType: 'SIMPLE',
       });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -387,19 +402,18 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      let callCount = 0;
-      mockFetchKycForms = jest.fn().mockImplementation(() => {
-        callCount++;
-        if (callCount === 1) {
-          return Promise.resolve({
+      mockFetchKycForms = jest
+        .fn()
+        .mockImplementationOnce(() =>
+          Promise.resolve({
             forms: [{ id: 'purposeOfUsage', isSubmitted: false }],
-          });
-        }
-
-        return Promise.resolve({
-          forms: [],
-        });
-      });
+          }),
+        )
+        .mockImplementationOnce(() =>
+          Promise.resolve({
+            forms: [],
+          }),
+        );
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
@@ -432,11 +446,15 @@ describe('useDepositRouting', () => {
 
       mockFetchKycForms = jest.fn().mockResolvedValue({
         forms: [
+          { id: 'purposeOfUsage', isSubmitted: true },
           { id: 'personalDetails', isSubmitted: true },
           { id: 'address', isSubmitted: true },
           { id: 'idProof', isSubmitted: false },
         ],
       });
+      mockFetchKycFormData = jest
+        .fn()
+        .mockResolvedValue({ data: { kycUrl: 'test-kyc-url' } });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
@@ -468,6 +486,7 @@ describe('useDepositRouting', () => {
 
       mockFetchKycForms = jest.fn().mockResolvedValue({
         forms: [
+          { id: 'purposeOfUsage', isSubmitted: true },
           { id: 'personalDetails', isSubmitted: true },
           { id: 'address', isSubmitted: true },
           { id: 'idProof', isSubmitted: false },
@@ -537,25 +556,20 @@ describe('useDepositRouting', () => {
       });
     });
 
-    it('should not auto-submit purpose of usage form when isRecursive is true', async () => {
+    it('should not auto-submit purpose of usage form when depth limit is exceeded', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
 
-      let callCount = 0;
-      mockFetchKycForms = jest.fn().mockImplementation(() => {
-        callCount++;
-        if (callCount === 1) {
-          return Promise.resolve({
-            forms: [{ id: 'purposeOfUsage', isSubmitted: false }],
-          });
-        }
-
-        return Promise.resolve({
-          forms: [],
-        });
+      // Always return the unsubmitted form, so recursion hits the depth limit
+      mockFetchKycForms = jest.fn().mockResolvedValue({
+        forms: [
+          { id: 'purposeOfUsage', isSubmitted: false },
+          { id: 'personalDetails', isSubmitted: true },
+          { id: 'address', isSubmitted: true },
+        ],
       });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -564,11 +578,8 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockFetchKycForms).toHaveBeenCalledTimes(2);
-      expect(mockSubmitPurposeOfUsage).toHaveBeenCalledTimes(1);
-      expect(mockSubmitPurposeOfUsage).toHaveBeenCalledWith([
-        'Buying/selling crypto for investments',
-      ]);
+      // The function should log an error but not throw
+      expect(mockSubmitPurposeOfUsage).toHaveBeenCalledTimes(5);
     });
   });
 
@@ -1115,7 +1126,11 @@ describe('useDepositRouting', () => {
       };
 
       mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [{ id: 'personalDetails' }],
+        forms: [
+          { id: 'purposeOfUsage', isSubmitted: true },
+          { id: 'personalDetails', isSubmitted: false },
+          { id: 'address', isSubmitted: true },
+        ],
         kycType: 'SIMPLE',
       });
 
