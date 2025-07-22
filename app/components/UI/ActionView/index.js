@@ -34,22 +34,9 @@ const getStyles = (colors) =>
     button: {
       flex: 1,
     },
-    cancel: {
-      marginRight: 8,
-    },
-    confirm: {
-      marginLeft: 8,
-    },
-    confirmButtonError: {
-      backgroundColor: colors.error.default,
-      borderColor: colors.error.default,
-    },
     confirmButtonWarning: {
       backgroundColor: colors.warning.default,
       borderColor: colors.warning.default,
-    },
-    fullWidth: {
-      width: '100%',
     },
   });
 
@@ -83,18 +70,6 @@ export default function ActionView({
   cancelText = cancelText || strings('action_view.cancel');
   const styles = getStyles(colors);
 
-  const primaryButtonWidthStyle =
-    showConfirmButton && showCancelButton ? styles.button : styles.fullWidth;
-  const primaryWarningButtonStyle =
-    confirmButtonState === ConfirmButtonState.Warning
-      ? styles.confirmButtonWarning
-      : {};
-
-  const primaryButtonStyle = {
-    ...primaryButtonWidthStyle,
-    ...primaryWarningButtonStyle,
-  };
-
   return (
     <View style={baseStyles.flexGrow}>
       <KeyboardAwareScrollView
@@ -126,11 +101,7 @@ export default function ActionView({
               label={cancelText}
               width={ButtonWidthTypes.Full}
               testID={cancelTestID}
-              style={
-                showConfirmButton && showCancelButton
-                  ? styles.button
-                  : styles.fullWidth
-              }
+              style={styles.button}
               isDisabled={confirmed}
             />
           )}
@@ -142,7 +113,11 @@ export default function ActionView({
               label={confirmText}
               width={ButtonWidthTypes.Full}
               testID={confirmTestID}
-              style={primaryButtonStyle}
+              style={[
+                styles.button,
+                confirmButtonState === ConfirmButtonState.Warning &&
+                  styles.confirmButtonWarning,
+              ]}
               isDisabled={confirmed || confirmDisabled || loading}
               loading={confirmed || loading}
               isDanger={confirmButtonState === ConfirmButtonState.Error}
