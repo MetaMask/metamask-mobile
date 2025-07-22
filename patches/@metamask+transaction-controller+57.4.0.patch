@@ -1,11 +1,23 @@
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.cjs b/node_modules/@metamask/transaction-controller/dist/TransactionController.cjs
-index fef52f6..579c155 100644
+index b198aab..6719112 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.cjs
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.cjs
-@@ -82,6 +82,10 @@ const metadata = {
+@@ -87,6 +87,22 @@ const metadata = {
          persist: true,
          anonymous: false,
      },
++    swapsTransactions: {
++        persist: true,
++        anonymous: false,
++    },
++    swapsTransactions: {
++        persist: true,
++        anonymous: false,
++    },
++    swapsTransactions: {
++        persist: true,
++        anonymous: false,
++    },
 +    swapsTransactions: {
 +        persist: true,
 +        anonymous: false,
