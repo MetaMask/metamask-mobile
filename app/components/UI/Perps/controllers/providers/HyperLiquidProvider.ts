@@ -883,39 +883,39 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return '0.00';
     }
 
+    // Get asset's max leverage to calculate maintenance margin
+    let maxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE; // Default fallback
+    if (asset) {
+      try {
+        maxLeverage = await this.getMaxLeverage(asset);
+      } catch (error) {
+        DevLogger.log('Failed to get max leverage for asset, using default', {
+          asset,
+          error,
+        });
+        // Use default if we can't fetch the asset's max leverage
+      }
+    }
+
+    // Calculate maintenance leverage and margin according to HyperLiquid docs
+    const maintenanceLeverage = 2 * maxLeverage;
+    const l = 1 / maintenanceLeverage;
+    const side = direction === 'long' ? 1 : -1;
+
+    // For isolated margin, we use the standard formula
+    // margin_available = initial_margin - maintenance_margin_required
+    const initialMargin = 1 / leverage;
+    const maintenanceMargin = 1 / maintenanceLeverage;
+
+    // Check if position can be opened
+    if (initialMargin < maintenanceMargin) {
+      // Position cannot be opened - leverage exceeds maximum allowed (2 * maxLeverage)
+      throw new Error(
+        `Invalid leverage: ${leverage}x exceeds maximum allowed leverage of ${maintenanceLeverage}x`,
+      );
+    }
+
     try {
-      // Get asset's max leverage to calculate maintenance margin
-      let maxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE; // Default fallback
-      if (asset) {
-        try {
-          maxLeverage = await this.getMaxLeverage(asset);
-        } catch (error) {
-          DevLogger.log('Failed to get max leverage for asset, using default', {
-            asset,
-            error,
-          });
-          // Use default if we can't fetch the asset's max leverage
-        }
-      }
-
-      // Calculate maintenance leverage and margin according to HyperLiquid docs
-      const maintenanceLeverage = 2 * maxLeverage;
-      const l = 1 / maintenanceLeverage;
-      const side = direction === 'long' ? 1 : -1;
-
-      // For isolated margin, we use the standard formula
-      // margin_available = initial_margin - maintenance_margin_required
-      const initialMargin = 1 / leverage;
-      const maintenanceMargin = 1 / maintenanceLeverage;
-
-      // Check if position can be opened
-      if (initialMargin < maintenanceMargin) {
-        // Position cannot be opened - leverage exceeds maximum allowed (2 * maxLeverage)
-        throw new Error(
-          `Invalid leverage: ${leverage}x exceeds maximum allowed leverage of ${maintenanceLeverage}x`,
-        );
-      }
-
       // HyperLiquid liquidation formula
       // For isolated margin: margin_available = isolated_margin - maintenance_margin_required
       const marginAvailable = initialMargin - maintenanceMargin;
