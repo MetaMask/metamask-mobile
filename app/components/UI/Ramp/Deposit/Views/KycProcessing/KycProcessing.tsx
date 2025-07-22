@@ -49,7 +49,10 @@ const KycProcessing = () => {
   const { quote } = useParams<KycProcessingParams>();
   const trackEvent = useAnalytics();
 
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(
+    quote.cryptoCurrency,
+    quote.network,
+  );
 
   const { routeAfterAuthentication } = useDepositRouting({
     cryptoCurrencyChainId: cryptoCurrency?.chainId || '',

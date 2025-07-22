@@ -12,7 +12,7 @@ import {
   selectSelectedInternalAccount,
 } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
-import { Balance, BtcScope, SolScope } from '@metamask/keyring-api';
+import { Balance } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -34,37 +34,12 @@ import {
   MultichainAssetsRatesControllerState,
   MultichainBalancesControllerState,
 } from '@metamask/assets-controllers';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import {
+  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
+  SupportedCaipChainId,
+} from '@metamask/multichain-network-controller';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
-
-/**
- * @deprecated TEMPORARY SOURCE OF TRUTH TBD
- * Native asset of each non evm network.
- */
-export enum MultichainNativeAssets {
-  Bitcoin = `${BtcScope.Mainnet}/slip44:0`,
-  BitcoinTestnet = `${BtcScope.Testnet}/slip44:0`,
-  Solana = `${SolScope.Mainnet}/slip44:501`,
-  SolanaDevnet = `${SolScope.Devnet}/slip44:501`,
-  SolanaTestnet = `${SolScope.Testnet}/slip44:501`,
-}
-
-/**
- * @deprecated TEMPORARY SOURCE OF TRUTH TBD
- * Maps network identifiers to their corresponding native asset types.
- * Each network is mapped to an array containing its native asset for consistency.
- */
-export const MULTICHAIN_NETWORK_TO_ASSET_TYPES: Record<
-  string,
-  MultichainNativeAssets[]
-> = {
-  [SolScope.Mainnet]: [MultichainNativeAssets.Solana],
-  [SolScope.Testnet]: [MultichainNativeAssets.SolanaTestnet],
-  [SolScope.Devnet]: [MultichainNativeAssets.SolanaDevnet],
-  [BtcScope.Mainnet]: [MultichainNativeAssets.Bitcoin],
-  [BtcScope.Testnet]: [MultichainNativeAssets.BitcoinTestnet],
-};
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -131,9 +106,8 @@ const getNonEvmCachedBalance = (
   multichainBalances: MultichainBalancesControllerState['balances'],
   nonEvmChainId: SupportedCaipChainId,
 ) => {
-  // We assume that there's at least one asset type in and that is the native
-  // token for that network.
-  const asset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
+  const asset =
+    AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[nonEvmChainId].nativeCurrency;
   const balancesForAccount = multichainBalances?.[internalAccount.id];
   const balanceOfAsset = balancesForAccount?.[asset];
   return balanceOfAsset?.amount ?? undefined;
@@ -313,7 +287,8 @@ export const getMultichainNetworkAggregatedBalance = (
   const balances = multichainBalances?.[account.id] || {};
 
   // Find the native asset for this chain
-  const nativeAsset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
+  const nativeAsset =
+    AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[nonEvmChainId].nativeCurrency;
 
   // Default values for native token
   let totalNativeTokenBalance: Balance | undefined;
@@ -433,7 +408,7 @@ const DEFAULT_TRANSACTION_STATE_ENTRY = {
   lastUpdated: 0,
 };
 
-export const selectSolanaAccountTransactions = createDeepEqualSelector(
+export const selectNonEvmTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
   selectSelectedInternalAccount,
   selectSelectedNonEvmNetworkChainId,

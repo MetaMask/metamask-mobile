@@ -69,7 +69,10 @@ const EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(
+    quote.cryptoCurrency,
+    quote.network,
+  );
 
   const { routeAfterAuthentication } = useDepositRouting({
     cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
