@@ -25,6 +25,7 @@ import { SeedlessOnboardingController } from '@metamask/seedless-onboarding-cont
 import { KeyringController, KeyringTypes } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import { SolScope } from '@metamask/keyring-api';
 import { logOut } from '../../actions/user';
 
 // Mock the Vault module
@@ -444,6 +445,7 @@ describe('Authentication', () => {
       });
       expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
         expect.any(String), // mock entropySource
+        SolScope.Mainnet,
       );
     });
 
@@ -462,6 +464,7 @@ describe('Authentication', () => {
       );
       expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
         expect.any(String), // mock entropySource
+        SolScope.Mainnet,
       );
     });
 

@@ -7,7 +7,6 @@ import AutoDetectTokensSettings from '../../Settings/AutoDetectTokensSettings';
 import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
 import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
-import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import styleSheet from './index.styles';
 
@@ -24,7 +23,6 @@ const AssetSettings = () => {
       <DisplayNFTMediaSettings />
       <AutoDetectNFTSettings />
       <IPFSGatewaySettings />
-      <IncomingTransactionsSettings />
       <BatchAccountBalanceSettings />
     </ScrollView>
   );
