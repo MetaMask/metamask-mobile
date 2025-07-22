@@ -21,6 +21,7 @@ import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../utils/Assertions.js';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { startMockServer } from './helpers/swap-mocks';
+import WalletView from '../../pages/wallet/WalletView';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
@@ -63,6 +64,13 @@ describe(SmokeTrade('Unified UI Wallet Actions'), (): void => {
   });
 
   it('should display wallet actions bottom sheet when tapping actions button', async (): Promise<void> => {
+    // Wait for the wallet view to be fully loaded and stable
+    await Assertions.checkIfVisible(WalletView.container);
+    await TestHelpers.delay(3000); // Allow UI to fully stabilize after login
+
+    // Ensure the tab bar actions button is visible before tapping
+    await Assertions.checkIfVisible(TabBarComponent.tabBarActionButton);
+
     // Tap actions button to open wallet actions bottom sheet
     await TabBarComponent.tapActions();
 
@@ -76,8 +84,18 @@ describe(SmokeTrade('Unified UI Wallet Actions'), (): void => {
   });
 
   it('should navigate when tapping swap button from wallet actions', async (): Promise<void> => {
+    // Wait for the wallet view to be fully loaded and stable
+    await Assertions.checkIfVisible(WalletView.container);
+    await TestHelpers.delay(3000); // Allow UI to fully stabilize
+
+    // Ensure the tab bar actions button is visible before tapping
+    await Assertions.checkIfVisible(TabBarComponent.tabBarActionButton);
+
     // Tap actions button to open wallet actions bottom sheet
     await TabBarComponent.tapActions();
+
+    // Wait for the wallet actions bottom sheet to appear
+    await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
 
     // Tap swap button
     await WalletActionsBottomSheet.tapSwapButton();

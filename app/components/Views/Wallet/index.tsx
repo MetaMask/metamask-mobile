@@ -5,7 +5,12 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { ActivityIndicator, StyleSheet, View, Linking } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet as RNStyleSheet,
+  View,
+  Linking,
+} from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector, useDispatch } from 'react-redux';
 import ScrollableTabView, {
@@ -50,7 +55,6 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkClientId,
-  selectNetworkConfigurations,
   selectProviderConfig,
   selectNativeCurrencyByChainId,
 } from '../../../selectors/networkController';
@@ -69,7 +73,7 @@ import {
 } from '@react-navigation/native';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
-import Text, {
+import CustomText, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -138,7 +142,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 
 const createStyles = ({ colors }: Theme) =>
-  StyleSheet.create({
+  RNStyleSheet.create({
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -259,7 +263,6 @@ const Wallet = ({
   const { colors } = theme;
   const dispatch = useDispatch();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -329,26 +332,38 @@ const Wallet = ({
   }, [navigate]);
 
   const onSend = useCallback(async () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    // Try non-EVM first, if handled, return early
-    const wasHandledAsNonEvm = await sendNonEvmAsset();
-    if (wasHandledAsNonEvm) {
-      return;
-    }
-    ///: END:ONLY_INCLUDE_IF
+    try {
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      // Try non-EVM first, if handled, return early
+      const wasHandledAsNonEvm = await sendNonEvmAsset();
+      if (wasHandledAsNonEvm) {
+        return;
+      }
+      ///: END:ONLY_INCLUDE_IF
 
-    // Always initialize transaction for native currency before navigation
-    if (nativeCurrency) {
-      dispatch(newAssetTransaction(getEther(nativeCurrency)));
-    } else {
-      // Handle case where native currency is not available
-      console.warn(
-        'Native currency not available for transaction initialization',
-      );
-    }
+      // Ensure consistent transaction initialization before navigation
+      if (nativeCurrency) {
+        // Initialize transaction with native currency
+        dispatch(newAssetTransaction(getEther(nativeCurrency)));
+      } else {
+        // Initialize with a default ETH transaction as fallback
+        // This ensures consistent state even when nativeCurrency is not available
+        console.warn(
+          'Native currency not available, using ETH as fallback for transaction initialization',
+        );
+        dispatch(newAssetTransaction(getEther('ETH')));
+      }
 
-    // Navigate to send flow regardless of transaction initialization
-    navigate(Routes.SEND_FLOW_VIEW, {});
+      // Navigate to send flow after successful transaction initialization
+      navigate(Routes.SEND_FLOW_VIEW, {});
+    } catch (error) {
+      // Handle any errors that occur during the send flow initiation
+      console.error('Error initiating send flow:', error);
+
+      // Still attempt to navigate to maintain user flow, but without transaction initialization
+      // The SendFlow view should handle the lack of initialized transaction gracefully
+      navigate(Routes.SEND_FLOW_VIEW, {});
+    }
   }, [
     nativeCurrency,
     navigate,
@@ -505,9 +520,7 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const name = useSelector(selectNetworkName);
-
-  const networkName = networkConfigurations?.[chainId]?.name ?? name;
+  const networkName = useSelector(selectNetworkName);
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
@@ -862,9 +875,12 @@ const Wallet = ({
               severity={BannerAlertSeverity.Error}
               title={strings('wallet.banner.title')}
               description={
-                <Text color={TextColor.Info} onPress={turnOnBasicFunctionality}>
+                <CustomText
+                  color={TextColor.Info}
+                  onPress={turnOnBasicFunctionality}
+                >
                   {strings('wallet.banner.link')}
-                </Text>
+                </CustomText>
               }
             />
           </View>
