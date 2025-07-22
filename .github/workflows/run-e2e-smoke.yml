@@ -160,27 +160,29 @@ jobs:
   #     use_prebuilt_apps: true
   #   secrets: inherit
 
-  # smoke-network-expansion-ios:
-  #   name: "Network Expansion Smoke (iOS)"
-  #   if: github.event.label.name == 'Run E2E Smoke Test'
-  #   uses: ./.github/workflows/run-e2e-mobile.yml
-  #   with:
-  #     test-suite-name: smoke-network-expansion-ios
-  #     platform: ios
-  #     test_suite_tag: ".*NetworkExpansion.*"
-  #     smoke-category: network-expansion
-  #     use_prebuilt_apps: true
+  smoke-network-expansion-ios:
+    name: "Network Expansion Smoke (iOS)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-network-expansion-ios
+      platform: ios
+      test_suite_tag: ".*NetworkExpansion.*"
+      smoke-category: network-expansion
+      use_prebuilt_apps: true
+    secrets: inherit
 
-  # smoke-network-expansion-android:
-  #   name: "Network Expansion Smoke (Android)"
-  #   if: github.event.label.name == 'Run E2E Smoke Test'
-  #   uses: ./.github/workflows/run-e2e-mobile.yml
-  #   with:
-  #     test-suite-name: smoke-network-expansion-android
-  #     platform: android
-  #     test_suite_tag: ".*NetworkExpansion.*"
-  #     smoke-category: network-expansion
-  #     use_prebuilt_apps: true
+  smoke-network-expansion-android:
+    name: "Network Expansion Smoke (Android)"
+    if: github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-network-expansion-android
+      platform: android
+      test_suite_tag: ".*NetworkExpansion.*"
+      smoke-category: network-expansion
+      use_prebuilt_apps: true
+    secrets: inherit
 
   #smoke-api-specs-ios:
   #  name: "API Specs Smoke (iOS only)"
