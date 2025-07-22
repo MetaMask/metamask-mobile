@@ -16,12 +16,13 @@ import {
 } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { store } from '../../store';
-import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
 
 import ReduxService from '../../core/redux';
+import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
+import Logger from '../../util/Logger';
 
 interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
@@ -85,12 +86,19 @@ export async function importNewSecretRecoveryPhrase(
 
   const { SeedlessOnboardingController } = Engine.context;
 
+  let discoveredAccountsCount = 0;
+
   // TODO: to use loginCompleted
   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly
     // user can try manual sync again (phase 2)
     const seed = new Uint8Array(inputCodePoints.buffer);
+    let addSeedPhraseSuccess = false;
     try {
+      trace({
+        name: TraceName.OnboardingAddSrp,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
       await SeedlessOnboardingController.addNewSecretData(
         seed,
         SecretType.Mnemonic,
@@ -98,16 +106,34 @@ export async function importNewSecretRecoveryPhrase(
           keyringId: newKeyring.id,
         },
       );
+      addSeedPhraseSuccess = true;
     } catch (error) {
       // handle seedless controller import error by reverting keyring controller mnemonic import
       // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
       await KeyringController.removeAccount(newAccountAddress);
 
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      // Log the error but don't let it crash the import process
+      Logger.error(new Error(`Failed to backup seed phrase: ${errorMessage}`));
+
+      trace({
+        name: TraceName.OnboardingAddSrpError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+      });
+      endTrace({
+        name: TraceName.OnboardingAddSrpError,
+      });
+
       throw error;
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingAddSrp,
+        data: { success: addSeedPhraseSuccess },
+      });
     }
   }
-
-  let discoveredAccountsCount = 0;
 
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const multichainClient = MultichainWalletSnapFactory.createClient(

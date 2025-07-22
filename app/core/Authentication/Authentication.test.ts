@@ -1143,11 +1143,13 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
     it('should rehydrate with multiple seed phrases', async () => {
+      const mockMnemonic1 = 'mnemonic-1';
+      const mockMnemonic2 = 'mnemonic-2';
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
@@ -1172,9 +1174,6 @@ describe('Authentication', () => {
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
-      const mockMnemonic1 = uint8ArrayToMnemonic(mockSeedPhrase1, []);
-      const mockMnemonic2 = uint8ArrayToMnemonic(mockSeedPhrase2, []);
-
       expect(
         Engine.context.SeedlessOnboardingController.fetchAllSecretData,
       ).toHaveBeenCalledWith(mockPassword);
@@ -1185,13 +1184,13 @@ describe('Authentication', () => {
       expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
         mockAuthData,
-        mockMnemonic1,
+        uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
       expect(
         Engine.context.KeyringController.addNewKeyring,
       ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic: mockMnemonic2,
+        mnemonic: uint8ArrayToMnemonic(mockSeedPhrase2, []),
         numberOfAccounts: 1,
       });
       expect(
@@ -1201,7 +1200,7 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1358,7 +1357,7 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(error);
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1695,7 +1694,7 @@ describe('Authentication', () => {
       expect(result).toBe(mockIsOutdated);
       expect(
         Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
-      ).toHaveBeenCalledWith({ skipCache: false });
+      ).toHaveBeenCalledWith({ skipCache: true });
     });
   });
 

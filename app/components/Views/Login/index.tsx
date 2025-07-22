@@ -60,7 +60,13 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  trace,
+  TraceName,
+  TraceOperation,
+  TraceContext,
+  endTrace,
+} from '../../../util/trace';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
@@ -95,7 +101,10 @@ import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import {
+  SeedlessOnboardingControllerErrorMessage,
+  RecoveryError as SeedlessOnboardingControllerRecoveryError,
+} from '@metamask/seedless-onboarding-controller';
 import {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -110,6 +119,12 @@ import {
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
 const EmptyRecordConstant = {};
+
+interface LoginRouteParams {
+  locked: boolean;
+  oauthLoginSuccess?: boolean;
+  onboardingTraceCtx?: unknown;
+}
 
 interface LoginProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
@@ -137,13 +152,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
-  const route =
-    useRoute<
-      RouteProp<
-        { params: { locked: boolean; oauthLoginSuccess?: boolean } },
-        'params'
-      >
-    >();
+  const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -153,6 +162,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
+  const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
@@ -178,6 +188,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   useEffect(() => {
+    trace({
+      name: TraceName.LoginUserInteraction,
+      op: TraceOperation.Login,
+    });
+
+    const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtxFromRoute) {
+      passwordLoginAttemptTraceCtxRef.current = trace({
+        name: TraceName.OnboardingPasswordLoginAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtxFromRoute,
+      });
+    }
+
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
 
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
@@ -226,10 +250,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
-    if (!passwordRequirementsMet(password)) {
-      setError(strings('login.invalid_password'));
-      return;
-    }
+    // No need to check password requirements here, it will be checked in onLogin
     try {
       setLoading(true);
       const backupResult = await getVaultFromBackup();
@@ -346,15 +367,49 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleSeedlessOnboardingControllerError = (
-    seedlessError: SeedlessOnboardingControllerRecoveryError,
+    seedlessError:
+      | Error
+      | SeedlessOnboardingControllerRecoveryError
+      | SeedlessOnboardingControllerError,
   ) => {
-    // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
-    if (seedlessError.data?.numberOfAttempts !== undefined) {
-      setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
-    }
+    setLoading(false);
 
-    if (seedlessError.data?.remainingTime) {
-      tooManyAttemptsError(seedlessError.data?.remainingTime).catch(() => null);
+    if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
+      // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
+      if (
+        seedlessError.message ===
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword
+      ) {
+        setError(strings('login.invalid_password'));
+        return;
+      } else if (
+        seedlessError.message ===
+        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
+      ) {
+        if (seedlessError.data?.numberOfAttempts !== undefined) {
+          setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+        }
+        if (seedlessError.data?.remainingTime) {
+          tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
+            () => null,
+          );
+        }
+      } else {
+        const errMessage = seedlessError.message.replace(
+          'SeedlessOnboardingController - ',
+          '',
+        );
+        setError(errMessage);
+      }
+    } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
+      if (
+        seedlessError.code ===
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+      ) {
+        setError(strings('login.seedless_password_outdated'));
+        return;
+      }
+      setError(seedlessError.message);
     } else {
       const errMessage = seedlessError.message.replace(
         'SeedlessOnboardingController - ',
@@ -381,23 +436,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const loginError = loginErr as Error;
     const loginErrorMessage = loginError.toString();
 
-    if (loginErr instanceof SeedlessOnboardingControllerRecoveryError) {
-      setLoading(false);
-      handleSeedlessOnboardingControllerError(
-        loginError as SeedlessOnboardingControllerRecoveryError,
-      );
-      return;
+    // Check if we are in the onboarding flow
+    const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtxFromRoute) {
+      trace({
+        name: TraceName.OnboardingPasswordLoginError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage: loginErrorMessage },
+        parentContext: onboardingTraceCtxFromRoute,
+      });
+      endTrace({ name: TraceName.OnboardingPasswordLoginError });
     }
 
-    if (loginErr instanceof SeedlessOnboardingControllerError) {
-      setLoading(false);
-      if (
-        loginErr.code ===
-        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
-      ) {
-        setError(strings('login.seedless_password_outdated'));
-      }
-      setError(loginErr.message);
+    if (loginErrorMessage.includes('SeedlessOnboardingController')) {
+      handleSeedlessOnboardingControllerError(loginError);
       return;
     }
 
@@ -440,6 +492,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const onLogin = async () => {
+    endTrace({ name: TraceName.LoginUserInteraction });
     if (oauthLoginSuccess) {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
         account_type: 'social',
@@ -484,6 +537,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       }
 
       Keyboard.dismiss();
+
+      if (passwordLoginAttemptTraceCtxRef.current) {
+        endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+        passwordLoginAttemptTraceCtxRef.current = null;
+      }
+      endTrace({ name: TraceName.OnboardingExistingSocialLogin });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
       await checkMetricsUISeen();
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)

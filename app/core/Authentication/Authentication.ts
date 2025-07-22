@@ -560,7 +560,7 @@ class AuthenticationService {
       });
       // check for seedless password outdated
       const isSeedlessPasswordOutdated =
-        await this.checkIsSeedlessPasswordOutdated();
+        await this.checkIsSeedlessPasswordOutdated(false);
       if (isSeedlessPasswordOutdated) {
         throw new AuthenticationError(
           'Seedless password is outdated',
@@ -637,11 +637,38 @@ class AuthenticationService {
         keyringId,
       );
 
-      await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
-        password,
-        seedPhrase,
-        keyringId,
-      );
+      let createKeyAndBackupSrpSuccess = false;
+      try {
+        trace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
+          password,
+          seedPhrase,
+          keyringId,
+        );
+        createKeyAndBackupSrpSuccess = true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+
+        trace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrpError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrpError,
+        });
+
+        throw error;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          data: { success: createKeyAndBackupSrpSuccess },
+        });
+      }
 
       await this.syncKeyringEncryptionKey();
 
@@ -854,9 +881,39 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
-      const allSRPs = await SeedlessOnboardingController.fetchAllSecretData(
-        password,
-      );
+      let allSRPs: Awaited<
+        ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+      > | null = null;
+      let fetchSrpsSuccess = false;
+      try {
+        trace({
+          name: TraceName.OnboardingFetchSrps,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        allSRPs = await SeedlessOnboardingController.fetchAllSecretData(
+          password,
+        );
+        fetchSrpsSuccess = true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+
+        trace({
+          name: TraceName.OnboardingFetchSrpsError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({
+          name: TraceName.OnboardingFetchSrpsError,
+        });
+
+        throw error;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingFetchSrps,
+          data: { success: fetchSrpsSuccess },
+        });
+      }
 
       if (allSRPs.length > 0) {
         const { KeyringController } = Engine.context;
@@ -920,7 +977,7 @@ class AuthenticationService {
    * Sync latest global seedless password and override the current device password with latest global password.
    * Unlock the vault with the latest global password.
    *
-   * @param {string} password - latest global seedless password
+   * @param {string} globalPassword - latest global seedless password
    */
   syncPasswordAndUnlockWallet = async (
     globalPassword: string,
@@ -944,7 +1001,6 @@ class AuthenticationService {
       }
     }
 
-    // const releaseLock = await this.syncSeedlessGlobalPasswordMutex.acquire();
     // recover the current keyring encryption key
     await SeedlessOnboardingController.submitGlobalPassword({
       globalPassword,
@@ -967,28 +1023,32 @@ class AuthenticationService {
       await this.lockApp({ locked: true });
       throw err;
     }
-    this.resetPassword();
-    // releaseLock();
+    await this.resetPassword();
   };
 
   /**
    * Checks if the seedless password is outdated.
    *
    * @param {boolean} skipCache - whether to skip the cache
-   * @returns {Promise<boolean | undefined>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
+   * @returns {Promise<boolean>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
    */
   checkIsSeedlessPasswordOutdated = async (
-    skipCache: boolean = false,
+    skipCache: boolean = true,
   ): Promise<boolean> => {
     const { SeedlessOnboardingController } = Engine.context;
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       return false;
     }
-    const isSeedlessPasswordOutdated =
-      await SeedlessOnboardingController.checkIsPasswordOutdated({
-        skipCache,
-      });
-    return isSeedlessPasswordOutdated ?? false;
+    try {
+      const isSeedlessPasswordOutdated =
+        await SeedlessOnboardingController.checkIsPasswordOutdated({
+          skipCache,
+        });
+      return isSeedlessPasswordOutdated;
+    } catch (error) {
+      Logger.error(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
+      return false;
+    }
   };
 
   /**

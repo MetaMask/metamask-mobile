@@ -30,9 +30,11 @@ export class SeedlessOnboardingControllerError extends Error {
       this.stack = errMessage.stack;
       this.name = errMessage.name;
     } else {
-      super(errMessage);
+      super(errMessage || SeedlessOnboardingControllerErrorMessages[code]);
     }
-    this.message = `${SeedlessOnboardingControllerErrorMessages[code]} - ${errMessage}`;
+    this.message = `SeedlessOnboardingController- ${
+      errMessage || SeedlessOnboardingControllerErrorMessages[code]
+    }`;
     this.code = code;
   }
 }
