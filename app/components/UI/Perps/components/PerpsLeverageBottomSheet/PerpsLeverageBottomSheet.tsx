@@ -175,6 +175,7 @@ const LeverageSlider: React.FC<{
         <View style={styles.leverageTrack} onLayout={handleLayout}>
           {/* Progress bar with clipped gradient */}
           <Animated.View style={[styles.progressContainer, progressStyle]}>
+            {/* TODO: update to design tokens to avoid hardcoding colors */}
             <LinearGradient
               colors={[
                 '#4CAF50',

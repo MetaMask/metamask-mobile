@@ -477,7 +477,10 @@ const PerpsOrderView: React.FC = () => {
           : {}),
       };
 
-      DevLogger.log('PerpsOrderView: Placing order', JSON.stringify(orderParams, null, 2));
+      DevLogger.log(
+        'PerpsOrderView: Placing order',
+        JSON.stringify(orderParams, null, 2),
+      );
 
       const result = await placeOrder(orderParams);
 
