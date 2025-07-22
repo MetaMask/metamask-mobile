@@ -124,7 +124,7 @@ export const swapsLivenessMultichainSelector = createSelector(
     }
     ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
-    return swapsState[chainId]?.isLive || false;
+    return swapsState?.[chainId]?.isLive || false;
   },
 );
 
