@@ -14,9 +14,15 @@ export const useIsNft = (): { isNft?: boolean; isPending: boolean } => {
     networkClientId,
   );
 
+  // Native token / loading state
+  if (isPending || details?.standard === undefined) {
+    return { isNft: undefined, isPending };
+  }
+
+  // NFT check
   const isNft =
-    !isPending && details.standard !== undefined
-      ? details.standard !== TokenStandard.ERC20
-      : undefined;
+    details.standard === TokenStandard.ERC1155 ||
+    details.standard === TokenStandard.ERC721;
+
   return { isNft, isPending };
 };
