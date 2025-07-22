@@ -364,7 +364,7 @@ export class SDKConnect {
   }) {
     const navigation = NavigationService.navigation;
     const instance = SDKConnect.getInstance();
-    
+
     analytics.setGlobalProperty('platform', 'mobile');
     analytics.enable();
     await init({ navigation, context, instance });
