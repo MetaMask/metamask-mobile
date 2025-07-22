@@ -136,13 +136,16 @@ describe('Card Feature Flag Selector', () => {
     const result = selectCardFeatureFlag(mockedStateWithPartialCardFeatureFlag);
 
     expect(result).toEqual({
-      '1': {
-        enabled: true,
-        tokens: undefined,
-      },
-      '137': {
-        enabled: undefined,
-        tokens: [],
+      constants: {},
+      chains: {
+        '1': {
+          enabled: true,
+          tokens: undefined,
+        },
+        '137': {
+          enabled: undefined,
+          tokens: [],
+        },
       },
     });
   });
