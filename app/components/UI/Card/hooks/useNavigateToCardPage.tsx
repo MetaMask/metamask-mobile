@@ -42,11 +42,7 @@ export const useNavigateToCardPage = (
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
-      )
-        .addProperties({
-          portfolioUrl: AppConstants.CARD.URL,
-        })
-        .build(),
+      ).build(),
     );
   };
 

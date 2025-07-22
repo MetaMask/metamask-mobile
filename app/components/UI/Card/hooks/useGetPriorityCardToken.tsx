@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { AllowanceState, CardTokenAllowance } from '../types';
 import Engine from '../../../../core/Engine';
@@ -6,7 +6,6 @@ import { Hex } from '@metamask/utils';
 import { renderFromTokenMinimalUnit } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import { useGetAllowances } from './useGetAllowances';
-import { strings } from '../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
 import BigNumber from 'bignumber.js';
@@ -38,9 +37,12 @@ import {
 export const useGetPriorityCardToken = (selectedAddress?: string) => {
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<boolean>(false);
   const { fetchAllowances } = useGetAllowances(selectedAddress);
   const chainId = useSelector(selectChainId);
+  const [priorityToken, setPriorityToken] = useState<CardTokenAllowance | null>(
+    null,
+  );
 
   // Extract controller state
   const {
@@ -76,7 +78,7 @@ export const useGetPriorityCardToken = (selectedAddress?: string) => {
   const fetchPriorityToken: () => Promise<CardTokenAllowance | null> =
     useCallback(async () => {
       setIsLoading(true);
-      setError(null);
+      setError(false);
 
       if (!sdk || !selectedAddress) {
         setIsLoading(false);
@@ -168,12 +170,20 @@ export const useGetPriorityCardToken = (selectedAddress?: string) => {
           normalizedError,
           'useGetPriorityCardToken::error fetching priority token',
         );
-        setError(strings('card.card_home.error_message'));
+        setError(true);
         return null;
       } finally {
         setIsLoading(false);
       }
     }, [sdk, selectedAddress, fetchAllowances, getBalancesForChain, chainId]);
 
-  return { fetchPriorityToken, isLoading, error };
+  useEffect(() => {
+    if (selectedAddress) {
+      fetchPriorityToken().then((token) => {
+        setPriorityToken(token);
+      });
+    }
+  }, [selectedAddress, fetchPriorityToken]);
+
+  return { fetchPriorityToken, isLoading, error, priorityToken };
 };

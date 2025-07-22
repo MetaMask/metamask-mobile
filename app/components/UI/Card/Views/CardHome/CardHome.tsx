@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -35,14 +35,13 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { ScreenshotDeterrent } from '../../../../UI/ScreenshotDeterrent';
 import CardImage from '../../assets/card.svg';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { strings } from '../../../../../../locales/i18n';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
-import { AllowanceState, CardTokenAllowance } from '../../types';
+import { AllowanceState } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import {
@@ -64,13 +63,11 @@ import Routes from '../../../../../constants/navigation/Routes';
  * @returns JSX element representing the card home screen
  */
 const CardHome = () => {
+  const [retries, setRetries] = React.useState(0);
+
   const navigation = useNavigation();
-  const [priorityToken, setPriorityToken] = useState<CardTokenAllowance | null>(
-    null,
-  );
   const theme = useTheme();
 
-  const hasNavigation = Boolean(navigation);
   const styles = createStyles(theme);
 
   const currentAddress = useSelector(
@@ -80,22 +77,18 @@ const CardHome = () => {
   const { PreferencesController } = Engine.context;
 
   const {
+    priorityToken,
     fetchPriorityToken,
     isLoading: isLoadingPriorityToken,
     error: errorPriorityToken,
   } = useGetPriorityCardToken(currentAddress);
-  const { mainBalance, secondaryBalance, asset } =
-    useAssetBalance(priorityToken);
+  const { balanceFiat, asset } = useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { goToBridge } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: Routes.CARD.HOME,
     token: {
-      address: priorityToken?.address,
-      chainId: priorityToken?.chainId,
-      decimals: priorityToken?.decimals,
-      symbol: priorityToken?.symbol,
-      name: priorityToken?.name,
+      ...priorityToken,
       image: asset?.image,
     } as BridgeToken,
   });
@@ -107,36 +100,49 @@ const CardHome = () => {
     [PreferencesController],
   );
 
-  useEffect(() => {
-    const getPriorityToken = async () => {
-      if (currentAddress) {
-        const token = await fetchPriorityToken();
-
-        if (token) {
-          setPriorityToken(token);
-        }
-      }
-    };
-
-    if (!priorityToken) {
-      getPriorityToken();
-    }
-  }, [currentAddress, fetchPriorityToken, priorityToken]);
+  const isAllowanceLimited =
+    priorityToken?.allowanceState === AllowanceState.Limited;
 
   if (errorPriorityToken) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.errorContainer}>
+        <Icon
+          name={IconName.Forest}
+          size={IconSize.Xl}
+          color={theme.colors.icon.default}
+        />
         <Text
-          variant={TextVariant.BodyLGMedium}
-          color={theme.colors.error.default}
+          variant={TextVariant.HeadingSM}
+          color={theme.colors.text.alternative}
         >
-          {errorPriorityToken}
+          {strings('card.card_home.error_title')}
         </Text>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={theme.colors.text.alternative}
+          style={styles.errorDescription}
+        >
+          {strings('card.card_home.error_description')}
+        </Text>
+        {retries < 3 && (
+          <View style={styles.tryAgainButtonContainer}>
+            <Button
+              variant={ButtonVariants.Primary}
+              label={strings('card.card_home.try_again')}
+              size={ButtonSize.Md}
+              onPress={() => {
+                setRetries((prevState) => prevState + 1);
+                fetchPriorityToken();
+              }}
+              testID="try-again-button"
+            />
+          </View>
+        )}
       </View>
     );
   }
 
-  if (isLoadingPriorityToken || !priorityToken) {
+  if (isLoadingPriorityToken) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator
@@ -154,92 +160,95 @@ const CardHome = () => {
       showsVerticalScrollIndicator={false}
       alwaysBounceVertical={false}
     >
-      <View style={styles.defaultPadding}>
-        <View style={styles.balanceContainer}>
-          <View style={styles.balanceTextContainer}>
-            <View style={styles.mainBalanceContainer}>
-              <SensitiveText
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Long}
-                variant={TextVariant.HeadingLG}
-              >
-                {mainBalance ?? 0}
-              </SensitiveText>
-              <TouchableOpacity
-                onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-                testID="balance-container"
-              >
-                <Icon
-                  style={styles.privacyIcon}
-                  name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-                  size={IconSize.Md}
-                  color={theme.colors.text.muted}
-                />
-              </TouchableOpacity>
-            </View>
+      {priorityToken && (
+        <View style={styles.cardBalanceContainer}>
+          <View
+            style={[
+              styles.balanceTextContainer,
+              styles.defaultHorizontalPadding,
+            ]}
+          >
             <SensitiveText
               isHidden={privacyMode}
               length={SensitiveTextLength.Long}
-              variant={TextVariant.BodyMD}
-              color={theme.colors.text.muted}
+              variant={TextVariant.HeadingLG}
             >
-              {secondaryBalance ?? 0}
+              {balanceFiat ?? 0}
             </SensitiveText>
-          </View>
-          <CardImage name="CardImage" />
-        </View>
-
-        <View style={styles.spendingWithContainer}>
-          <Text
-            variant={TextVariant.HeadingSM}
-            style={styles.spendingWithTitle}
-          >
-            {strings('card.card_home.spending_with')}
-          </Text>
-          {priorityToken && (
-            <View style={styles.spendingWith}>
-              <CardAssetItem
-                assetKey={priorityToken}
-                privacyMode={privacyMode}
-                shouldShowAllowance={false}
-                disabled
+            <TouchableOpacity
+              onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+              testID="privacy-toggle-button"
+            >
+              <Icon
+                name={privacyMode ? IconName.EyeSlash : IconName.Eye}
+                size={IconSize.Md}
+                color={theme.colors.icon.alternative}
               />
-              {priorityToken.allowanceState === AllowanceState.Limited && (
-                <View style={styles.limitedAllowanceWarningContainer}>
+            </TouchableOpacity>
+          </View>
+          <CardImage name="CardImage" width={410} height={210} />
+          <View
+            style={[
+              styles.cardAssetItemContainer,
+              styles.defaultHorizontalPadding,
+            ]}
+          >
+            <CardAssetItem
+              assetKey={priorityToken}
+              privacyMode={privacyMode}
+              shouldShowAllowance={false}
+              disabled
+            />
+          </View>
+          {isAllowanceLimited && (
+            <>
+              <View style={styles.divider} />
+              <View
+                style={[
+                  styles.limitedAllowanceWarningContainer,
+                  styles.defaultHorizontalPadding,
+                ]}
+              >
+                <Text>
                   <Text
                     variant={TextVariant.BodySM}
                     color={theme.colors.text.alternative}
                   >
                     {strings('card.card_home.limited_spending_warning')}
+                  </Text>{' '}
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={theme.colors.text.alternative}
+                    style={styles.limitedAllowanceManageCardText}
+                  >
+                    {strings('card.card_home.manage_card_options.manage_card')}
+                    {'.'}
                   </Text>
-                </View>
-              )}
-              <View style={styles.addFundsButtonContainer}>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('card.card_home.add_funds')}
-                  size={ButtonSize.Sm}
-                  onPress={goToBridge}
-                  width={ButtonWidthTypes.Full}
-                  testID="add-funds-button"
-                />
+                </Text>
               </View>
-            </View>
+            </>
           )}
+          <View
+            style={[
+              styles.addFundsButtonContainer,
+              styles.defaultHorizontalPadding,
+              isAllowanceLimited && styles.defaultMarginTop,
+            ]}
+          >
+            <Button
+              variant={ButtonVariants.Primary}
+              label={strings('card.card_home.add_funds')}
+              size={ButtonSize.Sm}
+              onPress={goToBridge}
+              width={ButtonWidthTypes.Full}
+              testID="add-funds-button"
+            />
+          </View>
         </View>
-
-        <Text
-          variant={TextVariant.HeadingSM}
-          testID={'card-view-balance-title'}
-        >
-          {strings('card.card_home.manage_card_options.manage_card')}
-        </Text>
-      </View>
+      )}
 
       <ManageCardListItem
-        title={strings(
-          'card.card_home.manage_card_options.advanced_card_management',
-        )}
+        title={strings('card.card_home.manage_card_options.manage_card')}
         description={strings(
           'card.card_home.manage_card_options.advanced_card_management_description',
         )}
@@ -247,17 +256,9 @@ const CardHome = () => {
         onPress={navigateToCardPage}
         testID="advanced-card-management-item"
       />
-
-      <ScreenshotDeterrent
-        hasNavigation={hasNavigation}
-        enabled
-        isSRP={false}
-      />
     </ScrollView>
   );
 };
-
-export default CardHome;
 
 CardHome.navigationOptions = ({
   navigation,
@@ -289,3 +290,5 @@ CardHome.navigationOptions = ({
     />
   ),
 });
+
+export default CardHome;

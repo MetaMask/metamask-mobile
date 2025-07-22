@@ -326,94 +326,31 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "gap": 16,
-                              "paddingHorizontal": 16,
+                              "alignItems": "center",
+                              "backgroundColor": "#3c4d9d1a",
+                              "borderRadius": 8,
+                              "justifyContent": "center",
+                              "marginHorizontal": 16,
+                              "marginTop": 16,
+                              "paddingVertical": 16,
+                              "position": "relative",
                             }
                           }
                         >
                           <View
                             style={
-                              {
-                                "alignItems": "center",
-                                "gap": 16,
-                                "justifyContent": "space-between",
-                              }
-                            }
-                          >
-                            <View
-                              style={
+                              [
                                 {
                                   "alignItems": "center",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Bold",
-                                      "fontSize": 24,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 32,
-                                    }
-                                  }
-                                >
-                                  $1,000.00
-                                </Text>
-                                <TouchableOpacity
-                                  onPress={[Function]}
-                                  testID="balance-container"
-                                >
-                                  <SvgMock
-                                    color="#9ca1af"
-                                    fill="currentColor"
-                                    height={20}
-                                    name="Eye"
-                                    style={
-                                      {
-                                        "height": 20,
-                                        "marginLeft": 8,
-                                        "width": 20,
-                                      }
-                                    }
-                                    width={20}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#9ca1af",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                1000 USDC
-                              </Text>
-                            </View>
-                            <SvgMock
-                              name="CardImage"
-                            />
-                          </View>
-                          <View
-                            style={
-                              {
-                                "gap": 8,
-                                "marginTop": 16,
-                              }
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginBottom": 16,
+                                  "width": "100%",
+                                },
+                                {
+                                  "paddingHorizontal": 16,
+                                },
+                              ]
                             }
                           >
                             <Text
@@ -422,90 +359,284 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 {
                                   "color": "#121314",
                                   "fontFamily": "Geist Bold",
-                                  "fontSize": 16,
+                                  "fontSize": 24,
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "marginBottom": 8,
+                                  "lineHeight": 32,
                                 }
                               }
                             >
-                              Spending with
+                              $1,000.00
                             </Text>
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#3c4d9d1a",
-                                  "borderRadius": 8,
-                                  "justifyContent": "center",
-                                  "paddingBottom": 16,
-                                  "paddingHorizontal": 16,
-                                  "paddingTop": 8,
-                                }
-                              }
+                            <TouchableOpacity
+                              onPress={[Function]}
+                              testID="privacy-toggle-button"
                             >
-                              <View
+                              <SvgMock
+                                color="#686e7d"
+                                fill="currentColor"
+                                height={20}
+                                name="Eye"
                                 style={
                                   {
-                                    "paddingTop": 18,
-                                    "width": "100%",
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
+                                width={20}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          <SvgMock
+                            height={210}
+                            name="CardImage"
+                            width={410}
+                          />
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "height": 80,
+                                  "justifyContent": "center",
+                                  "width": "100%",
+                                },
+                                {
+                                  "paddingHorizontal": 16,
+                                },
+                              ]
+                            }
+                          >
+                            <TouchableOpacity
+                              disabled={true}
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "height": 64,
+                                }
+                              }
+                              testID="asset-USDC"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  {
+                                    "alignSelf": "flex-start",
+                                    "marginTop": 12,
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[MockFunction]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 24,
+                                        "height": 48,
+                                        "overflow": "hidden",
+                                        "width": 48,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        {
+                                          "uri": "usdc-image-url",
+                                        }
+                                      }
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#121314",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 32,
+                                      "aspectRatio": 1,
+                                      "bottom": 0,
+                                      "height": 0,
                                       "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "transform": [
+                                        {
+                                          "translateX": 0,
+                                        },
+                                        {
+                                          "translateY": 0,
+                                        },
+                                      ],
                                     }
                                   }
-                                  testID="add-funds-button"
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badgenetwork"
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#f3f5f9",
+                                          "borderColor": "#ffffff",
+                                          "borderRadius": 16,
+                                          "borderWidth": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "shadowColor": "#0000001a",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        ?
+                                      </Text>
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flexDirection": "row",
+                                    }
+                                  }
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    numberOfLines={1}
                                     style={
                                       {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist Medium",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
                                     }
                                   >
-                                    Add funds
+                                    USDC
                                   </Text>
-                                </TouchableOpacity>
+                                </View>
                               </View>
-                            </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "flexShrink": 0,
+                                  }
+                                }
+                              />
+                            </TouchableOpacity>
                           </View>
-                          <Text
-                            accessibilityRole="text"
+                          <View
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist Bold",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "width": "100%",
+                                },
+                                {
+                                  "paddingHorizontal": 16,
+                                },
+                                false,
+                              ]
                             }
-                            testID="card-view-balance-title"
                           >
-                            Manage card
-                          </Text>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[MockFunction]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 32,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                              testID="add-funds-button"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Add funds
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
                         </View>
                         <TouchableOpacity
                           onPress={[MockFunction]}
@@ -552,7 +683,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     }
                                   }
                                 >
-                                  Advanced card management
+                                  Manage card
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -604,7 +735,6 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                             </View>
                           </View>
                         </TouchableOpacity>
-                        <View />
                       </View>
                     </RCTScrollView>
                   </View>
@@ -945,94 +1075,31 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                         <View
                           style={
                             {
-                              "gap": 16,
-                              "paddingHorizontal": 16,
+                              "alignItems": "center",
+                              "backgroundColor": "#3c4d9d1a",
+                              "borderRadius": 8,
+                              "justifyContent": "center",
+                              "marginHorizontal": 16,
+                              "marginTop": 16,
+                              "paddingVertical": 16,
+                              "position": "relative",
                             }
                           }
                         >
                           <View
                             style={
-                              {
-                                "alignItems": "center",
-                                "gap": 16,
-                                "justifyContent": "space-between",
-                              }
-                            }
-                          >
-                            <View
-                              style={
+                              [
                                 {
                                   "alignItems": "center",
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Bold",
-                                      "fontSize": 24,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 32,
-                                    }
-                                  }
-                                >
-                                  $1,000.00
-                                </Text>
-                                <TouchableOpacity
-                                  onPress={[Function]}
-                                  testID="balance-container"
-                                >
-                                  <SvgMock
-                                    color="#9ca1af"
-                                    fill="currentColor"
-                                    height={20}
-                                    name="Eye"
-                                    style={
-                                      {
-                                        "height": 20,
-                                        "marginLeft": 8,
-                                        "width": 20,
-                                      }
-                                    }
-                                    width={20}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#9ca1af",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                1000 USDC
-                              </Text>
-                            </View>
-                            <SvgMock
-                              name="CardImage"
-                            />
-                          </View>
-                          <View
-                            style={
-                              {
-                                "gap": 8,
-                                "marginTop": 16,
-                              }
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                  "marginBottom": 16,
+                                  "width": "100%",
+                                },
+                                {
+                                  "paddingHorizontal": 16,
+                                },
+                              ]
                             }
                           >
                             <Text
@@ -1041,90 +1108,284 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 {
                                   "color": "#121314",
                                   "fontFamily": "Geist Bold",
-                                  "fontSize": 16,
+                                  "fontSize": 24,
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                  "marginBottom": 8,
+                                  "lineHeight": 32,
                                 }
                               }
                             >
-                              Spending with
+                              $1,000.00
                             </Text>
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#3c4d9d1a",
-                                  "borderRadius": 8,
-                                  "justifyContent": "center",
-                                  "paddingBottom": 16,
-                                  "paddingHorizontal": 16,
-                                  "paddingTop": 8,
-                                }
-                              }
+                            <TouchableOpacity
+                              onPress={[Function]}
+                              testID="privacy-toggle-button"
                             >
-                              <View
+                              <SvgMock
+                                color="#686e7d"
+                                fill="currentColor"
+                                height={20}
+                                name="Eye"
                                 style={
                                   {
-                                    "paddingTop": 18,
-                                    "width": "100%",
+                                    "height": 20,
+                                    "width": 20,
                                   }
                                 }
+                                width={20}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                          <SvgMock
+                            height={210}
+                            name="CardImage"
+                            width={410}
+                          />
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "height": 80,
+                                  "justifyContent": "center",
+                                  "width": "100%",
+                                },
+                                {
+                                  "paddingHorizontal": 16,
+                                },
+                              ]
+                            }
+                          >
+                            <TouchableOpacity
+                              disabled={true}
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "height": 64,
+                                }
+                              }
+                              testID="asset-USDC"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  {
+                                    "alignSelf": "flex-start",
+                                    "marginTop": 12,
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[MockFunction]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 24,
+                                        "height": 48,
+                                        "overflow": "hidden",
+                                        "width": 48,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        {
+                                          "uri": "usdc-image-url",
+                                        }
+                                      }
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#121314",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 32,
+                                      "aspectRatio": 1,
+                                      "bottom": 0,
+                                      "height": 0,
                                       "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "transform": [
+                                        {
+                                          "translateX": 0,
+                                        },
+                                        {
+                                          "translateY": 0,
+                                        },
+                                      ],
                                     }
                                   }
-                                  testID="add-funds-button"
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badgenetwork"
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#f3f5f9",
+                                          "borderColor": "#ffffff",
+                                          "borderRadius": 16,
+                                          "borderWidth": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "shadowColor": "#0000001a",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        ?
+                                      </Text>
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flexDirection": "row",
+                                    }
+                                  }
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    numberOfLines={1}
                                     style={
                                       {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist Medium",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
                                     }
                                   >
-                                    Add funds
+                                    USDC
                                   </Text>
-                                </TouchableOpacity>
+                                </View>
                               </View>
-                            </View>
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "flexShrink": 0,
+                                  }
+                                }
+                              />
+                            </TouchableOpacity>
                           </View>
-                          <Text
-                            accessibilityRole="text"
+                          <View
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist Bold",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "width": "100%",
+                                },
+                                {
+                                  "paddingHorizontal": 16,
+                                },
+                                false,
+                              ]
                             }
-                            testID="card-view-balance-title"
                           >
-                            Manage card
-                          </Text>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[MockFunction]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "#121314",
+                                  "borderRadius": 12,
+                                  "flexDirection": "row",
+                                  "height": 32,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                              testID="add-funds-button"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Add funds
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
                         </View>
                         <TouchableOpacity
                           onPress={[MockFunction]}
@@ -1171,7 +1432,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     }
                                   }
                                 >
-                                  Advanced card management
+                                  Manage card
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -1223,7 +1484,6 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                             </View>
                           </View>
                         </TouchableOpacity>
-                        <View />
                       </View>
                     </RCTScrollView>
                   </View>

@@ -4977,16 +4977,18 @@
     },
     "card_home": {
       "spending_with": "Spending with",
-      "limited_spending_warning": "Your token balance might not be your actual balance because of a limit set on your spending asset.",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to",
       "add_funds": "Add funds",
-      "error_message": "There was an error loading your card.",
+      "error_title": "Can’t fetch data",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "try_again": "Try again",
       "manage_card_options": {
         "manage_card": "Manage card",
         "change_asset": "Change asset",
         "manage_spending_limit": "Manage spending limit",
         "manage_spending_limit_description": "Currently on Approve card spending",
         "advanced_card_management": "Advanced card management",
-        "advanced_card_management_description": "See detailed transactions, freeze your card, etc."
+        "advanced_card_management_description": "See transactions, freeze card, and more"
       }
     },
     "spending_limit": {

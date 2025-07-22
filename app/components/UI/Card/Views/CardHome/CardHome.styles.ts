@@ -3,6 +3,20 @@ import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
+    errorContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.colors.background.default,
+      gap: 8,
+    },
+    errorDescription: {
+      textAlign: 'center',
+      paddingHorizontal: 46,
+    },
+    tryAgainButtonContainer: {
+      paddingTop: 8,
+    },
     loadingContainer: {
       flex: 1,
       alignItems: 'center',
@@ -13,49 +27,49 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.colors.background.default,
     },
-    defaultPadding: {
+    defaultHorizontalPadding: {
       paddingHorizontal: 16,
-      gap: 16,
     },
-    spendingWithTitle: {
-      marginBottom: 8,
-    },
-    balanceContainer: {
+    cardBalanceContainer: {
+      marginTop: 16,
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 8,
+      justifyContent: 'center',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 16,
+      marginHorizontal: 16,
+      paddingVertical: 16,
+      position: 'relative',
     },
     balanceTextContainer: {
       alignItems: 'center',
-    },
-    mainBalanceContainer: {
+      justifyContent: 'space-between',
       flexDirection: 'row',
+      width: '100%',
+      marginBottom: 16,
+    },
+    cardAssetItemContainer: {
+      height: 80,
+      width: '100%',
+      justifyContent: 'center',
       alignItems: 'center',
     },
-    privacyIcon: {
-      marginLeft: 8,
-    },
-    spendingWith: {
-      backgroundColor: theme.colors.background.muted,
-      borderRadius: 8,
-      paddingBottom: 16,
-      justifyContent: 'center',
-      paddingTop: 8,
-      paddingHorizontal: 16,
-    },
     limitedAllowanceWarningContainer: {
-      paddingTop: 8,
-      borderTopWidth: 1,
-      borderColor: theme.colors.border.muted,
+      width: '100%',
       marginTop: 12,
     },
-    addFundsButtonContainer: {
-      paddingTop: 18,
+    limitedAllowanceManageCardText: {
+      fontWeight: 'bold',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.colors.background.default,
       width: '100%',
     },
-    spendingWithContainer: {
+    defaultMarginTop: {
       marginTop: 16,
-      gap: 8,
+    },
+    addFundsButtonContainer: {
+      width: '100%',
     },
   });
 

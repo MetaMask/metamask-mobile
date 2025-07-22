@@ -8,7 +8,6 @@ const createStyles = (
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
-      padding: 16,
     },
     action: {
       paddingLeft: 16,

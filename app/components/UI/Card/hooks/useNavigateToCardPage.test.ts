@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useNavigateToCardPage } from './useNavigateToCardPage';
 import { isCardUrl } from '../../../../util/url';
-import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { BrowserTab } from '../../Tokens/types';
@@ -88,9 +87,6 @@ describe('useNavigateToCardPage', () => {
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
     mockEventBuilder.build.mockReturnValue({
       event: MetaMetricsEvents.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
-      properties: {
-        portfolioUrl: AppConstants.CARD.URL,
-      },
     });
   });
 
@@ -149,15 +145,9 @@ describe('useNavigateToCardPage', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
     );
-    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
-      portfolioUrl: AppConstants.CARD.URL,
-    });
     expect(mockEventBuilder.build).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith({
       event: MetaMetricsEvents.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
-      properties: {
-        portfolioUrl: AppConstants.CARD.URL,
-      },
     });
   });
 
@@ -288,10 +278,6 @@ describe('useNavigateToCardPage', () => {
       params: expect.objectContaining({
         newTabUrl: 'https://card.metamask.io/',
       }),
-    });
-
-    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
-      portfolioUrl: AppConstants.CARD.URL,
     });
   });
 

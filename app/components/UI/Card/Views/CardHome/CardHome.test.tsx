@@ -5,6 +5,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
+import { AllowanceState } from '../../types';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -18,7 +19,7 @@ const mockPriorityToken = {
   allowance: '500000000',
   name: 'USD Coin',
   chainId: 1,
-  allowanceState: 'Unlimited',
+  allowanceState: AllowanceState.Enabled,
 };
 
 const mockCurrentAddress = '0x789';
@@ -42,15 +43,14 @@ const mockFetchPriorityToken = jest.fn().mockResolvedValue(mockPriorityToken);
 const mockNavigateToCardPage = jest.fn();
 const mockGoToBridge = jest.fn();
 
-const mockUseGetPriorityCardToken = jest.fn(() => ({
-  fetchPriorityToken: mockFetchPriorityToken,
-  isLoading: false,
-  error: null as string | null,
-}));
+const mockUseGetPriorityCardToken = jest.fn();
 
 const mockUseAssetBalance = jest.fn(() => ({
-  mainBalance: '$1,000.00',
-  secondaryBalance: '1000 USDC',
+  balanceFiat: '$1,000.00',
+  asset: {
+    symbol: 'USDC',
+    image: 'usdc-image-url',
+  },
 }));
 
 const mockUseNavigateToCardPage = jest.fn(() => ({
@@ -104,6 +104,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.manage_card_options.advanced_card_management_description':
         'See detailed transactions, freeze your card, etc.',
       'card.card': 'Card',
+      'card.card_home.error_title': 'Unable to load card',
+      'card.card_home.error_description': 'Please try again later',
+      'card.card_home.try_again': 'Try again',
     };
     return strings[key] || key;
   },
@@ -121,9 +124,9 @@ jest.mock('react', () => {
   return {
     ...actualReact,
     useState: (initial: unknown) => {
-      if (initial === null) {
-        // This is the priorityToken useState call
-        return [mockPriorityToken, jest.fn()];
+      if (initial === 0) {
+        // This is the retries useState call
+        return [0, jest.fn()];
       }
       return actualReact.useState(initial);
     },
@@ -153,14 +156,18 @@ describe('CardHome Component', () => {
     mockFetchPriorityToken.mockImplementation(async () => mockPriorityToken);
 
     mockUseGetPriorityCardToken.mockReturnValue({
+      priorityToken: mockPriorityToken,
       fetchPriorityToken: mockFetchPriorityToken,
       isLoading: false,
       error: null,
     });
 
     mockUseAssetBalance.mockReturnValue({
-      mainBalance: '$1,000.00',
-      secondaryBalance: '1000 USDC',
+      balanceFiat: '$1,000.00',
+      asset: {
+        symbol: 'USDC',
+        image: 'usdc-image-url',
+      },
     });
 
     mockUseNavigateToCardPage.mockReturnValue({
@@ -212,6 +219,7 @@ describe('CardHome Component', () => {
 
   it('displays loading state when priority token is loading', () => {
     mockUseGetPriorityCardToken.mockReturnValueOnce({
+      priorityToken: mockPriorityToken,
       fetchPriorityToken: mockFetchPriorityToken,
       isLoading: true,
       error: null,
@@ -248,9 +256,8 @@ describe('CardHome Component', () => {
   it('displays correct priority token information', async () => {
     render();
 
-    // The symbol might be inside a component that's not directly rendered as text
+    // The balance should be displayed
     expect(screen.getByText('$1,000.00')).toBeTruthy();
-    expect(screen.getByText('1000 USDC')).toBeTruthy();
   });
 
   it('displays manage card section', () => {
@@ -265,16 +272,13 @@ describe('CardHome Component', () => {
     await waitFor(() => {
       expect(screen.getByText('$1,000.00')).toBeTruthy();
     });
-
-    // The component should display the mocked balance information
-    expect(screen.getByText('1000 USDC')).toBeTruthy();
   });
 
-  it('toggles privacy mode when eye icon is pressed', async () => {
+  it('toggles privacy mode when privacy toggle button is pressed', async () => {
     render();
 
-    const balanceContainer = screen.getByTestId('balance-container');
-    fireEvent.press(balanceContainer);
+    const privacyToggleButton = screen.getByTestId('privacy-toggle-button');
+    fireEvent.press(privacyToggleButton);
 
     await waitFor(() => {
       // Get the mocked function from the Engine
@@ -287,6 +291,7 @@ describe('CardHome Component', () => {
 
   it('displays error state when there is an error fetching priority token', () => {
     mockUseGetPriorityCardToken.mockReturnValueOnce({
+      priorityToken: null,
       fetchPriorityToken: mockFetchPriorityToken,
       isLoading: false,
       error: 'Failed to fetch token',
@@ -294,7 +299,45 @@ describe('CardHome Component', () => {
 
     render();
 
-    expect(screen.getByText('Failed to fetch token')).toBeTruthy();
+    expect(screen.getByText('Unable to load card')).toBeTruthy();
+    expect(screen.getByText('Please try again later')).toBeTruthy();
+    expect(screen.getByTestId('try-again-button')).toBeTruthy();
+  });
+
+  it('calls fetchPriorityToken when try again button is pressed', async () => {
+    mockUseGetPriorityCardToken.mockReturnValueOnce({
+      priorityToken: null,
+      fetchPriorityToken: mockFetchPriorityToken,
+      isLoading: false,
+      error: 'Failed to fetch token',
+    });
+
+    render();
+
+    const tryAgainButton = screen.getByTestId('try-again-button');
+    fireEvent.press(tryAgainButton);
+
+    await waitFor(() => {
+      expect(mockFetchPriorityToken).toHaveBeenCalled();
+    });
+  });
+
+  it('displays limited allowance warning when allowance state is limited', () => {
+    const limitedAllowanceToken = {
+      ...mockPriorityToken,
+      allowanceState: AllowanceState.Limited,
+    };
+
+    mockUseGetPriorityCardToken.mockReturnValueOnce({
+      priorityToken: limitedAllowanceToken,
+      fetchPriorityToken: mockFetchPriorityToken,
+      isLoading: false,
+      error: null,
+    });
+
+    render();
+
+    expect(screen.getByText('Limited spending allowance')).toBeTruthy();
   });
 
   it('sets navigation options correctly', () => {

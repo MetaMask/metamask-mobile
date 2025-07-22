@@ -38,7 +38,7 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
 
   return (
     <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
-      <ListItem style={styles.root} gap={16}>
+      <ListItem style={styles.root}>
         <ListItemColumn widthType={WidthType.Fill} style={styles.description}>
           <Text variant={TextVariant.BodyMDMedium}>{title}</Text>
           {typeof description === 'string' ? (
