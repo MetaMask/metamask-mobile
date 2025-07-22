@@ -33,11 +33,13 @@ import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerif
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
   paymentMethodId: string;
+  ott?: string | null;
 }
 
 export const useDepositRouting = ({
   cryptoCurrencyChainId,
   paymentMethodId,
+  ott,
 }: UseDepositRoutingParams) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
@@ -338,14 +340,18 @@ export const useDepositRouting = ({
               shouldUpdate: false,
             });
           } else {
-            const ottResponse = await requestOtt();
+            let ottToken = ott;
 
-            if (!ottResponse) {
-              throw new Error('Failed to get OTT token');
+            if (!ottToken) {
+              const ottResponse = await requestOtt();
+              if (!ottResponse) {
+                throw new Error('Failed to get OTT token');
+              }
+              ottToken = ottResponse.token;
             }
 
             const paymentUrl = await generatePaymentUrl(
-              ottResponse.token,
+              ottToken,
               quote,
               selectedWalletAddress,
               { ...generateThemeParameters(themeAppearance, colors) },
@@ -378,6 +384,7 @@ export const useDepositRouting = ({
       selectedWalletAddress,
       handleNewOrder,
       cryptoCurrencyChainId,
+      ott,
       requestOtt,
       generatePaymentUrl,
       navigateToKycProcessingCallback,

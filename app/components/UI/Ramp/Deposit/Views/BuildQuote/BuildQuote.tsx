@@ -93,14 +93,22 @@ const BuildQuote = () => {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
+  const [ott, setOtt] = useState<string | null>(null);
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting({
       cryptoCurrencyChainId: cryptoCurrency.chainId,
       paymentMethodId: paymentMethod.id,
+      ott,
     });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const [, requestOtt] = useDepositSdkMethod({
+    method: 'requestOtt',
+    onMount: false,
+    throws: true,
+  });
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
@@ -153,6 +161,23 @@ const BuildQuote = () => {
       }
     }
   }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
+
+  useEffect(() => {
+    const fetchOtt = async () => {
+      if (isAuthenticated) {
+        try {
+          const ottResult = await requestOtt();
+          if (ottResult) {
+            setOtt(ottResult.token);
+          }
+        } catch (error) {
+          Logger.error(error as Error, 'BuildQuote - Error requesting OTT');
+        }
+      }
+    };
+
+    fetchOtt();
+  }, [isAuthenticated, requestOtt]);
 
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());
