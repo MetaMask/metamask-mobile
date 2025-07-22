@@ -344,10 +344,16 @@ export async function withFixtures(
       },
     ],
     testSpecificMock,
+    mockServerInstance,
     launchArgs,
     languageAndLocale,
     permissions = {},
+    endTestfn,
   } = options;
+
+  if (mockServerInstance && testSpecificMock) {
+    throw new Error('Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.');
+  }
 
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
@@ -355,7 +361,12 @@ export async function withFixtures(
   // Handle mock server
   let mockServer;
   let mockServerPort = DEFAULT_MOCKSERVER_PORT;
-  if (testSpecificMock) {
+
+  if (mockServerInstance && !testSpecificMock) {
+    mockServer = mockServerInstance;
+  } 
+
+  if (testSpecificMock && !mockServerInstance) {
     mockServerPort = getMockServerPort();
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
   }
@@ -421,6 +432,12 @@ export async function withFixtures(
     logger.error('Error in withFixtures:', error);
     throw error;
   } finally {
+    if (endTestfn) {
+      // Pass the mockServer to the endTestfn if it exists as we may want 
+      // to capture events before cleanup
+      await endTestfn({ mockServer });
+    }
+
     // Clean up all local nodes
     if (localNodes && localNodes.length > 0) {
       await handleLocalNodeCleanup(localNodes);
@@ -430,7 +447,7 @@ export async function withFixtures(
       await handleDappCleanup(dapps, dappServer);
     }
 
-    if (testSpecificMock) {
+    if (mockServer) {
       await stopMockServer(mockServer);
     }
 

@@ -98,7 +98,7 @@ class QuoteView {
 
   async tapConfirmSwap(): Promise<void> {
     await Gestures.waitAndTap(this.confirmSwap, {
-      delay: 1000,
+      delay: 1300,
     });
   }
 
