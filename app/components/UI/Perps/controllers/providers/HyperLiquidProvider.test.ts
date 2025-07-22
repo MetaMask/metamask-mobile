@@ -1019,19 +1019,17 @@ describe('HyperLiquidProvider', () => {
         entryPrice: 50000,
         leverage: 10,
         direction: 'long' as const,
-        // No asset provided, so default 50x will be used
+        // No asset provided, so default 3x will be used
       };
 
       const result = await provider.calculateLiquidationPrice(params);
 
-      // Should use default 50x max leverage (since no asset provided)
-      // maintenance margin = 1 / (2 * 50) = 0.01
+      // Should use default 3x max leverage (since no asset provided)
+      // maintenance margin = 1 / (2 * 3) = 0.1667
       // initial margin = 1 / 10 = 0.1
-      // margin available = 0.1 - 0.01 = 0.09
-      // l = 1 / 100 = 0.01
-      // liquidation = 50000 - (1 * 0.09 * 50000) / (1 - 0.01 * 1)
-      // liquidation = 50000 - 4500 / 0.99 = 50000 - 4545.45 = 45454.55
-      expect(result).toBe('45454.55');
+      // Since initial margin (0.1) < maintenance margin (0.1667), position cannot be opened
+      // Should return entry price
+      expect(result).toBe('50000.00');
     });
   });
 
