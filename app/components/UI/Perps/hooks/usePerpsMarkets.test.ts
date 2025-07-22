@@ -196,35 +196,26 @@ describe('usePerpsMarkets', () => {
 
   describe('Error handling', () => {
     it('handles fetch errors with empty markets', async () => {
-      // Switch to real timers to avoid infinite loops
-      jest.useRealTimers();
+      // Arrange
+      const errorMessage = 'Network error';
+      mockProvider.getMarketDataWithPrices.mockRejectedValue(
+        new Error(errorMessage),
+      );
 
-      try {
-        // Arrange
-        const errorMessage = 'Network error';
-        mockProvider.getMarketDataWithPrices.mockRejectedValue(
-          new Error(errorMessage),
-        );
+      // Act
+      const { result } = renderHook(() => usePerpsMarkets());
 
-        // Act
-        const { result } = renderHook(() => usePerpsMarkets());
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
-        // Wait for the error state with real timers
-        await waitFor(
-          () => {
-            expect(result.current.isLoading).toBe(false);
-            expect(result.current.error).toBe(errorMessage);
-          },
-          { timeout: 3000 },
-        );
-
-        // Assert final state
-        expect(result.current.markets).toEqual([]);
-        expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalled();
-      } finally {
-        // Always switch back to fake timers for other tests
-        jest.useFakeTimers();
-      }
+      // Assert
+      expect(result.current.markets).toEqual([]);
+      expect(result.current.error).toBe(errorMessage);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'Perps: Failed to fetch market data',
+        expect.any(Error),
+      );
     });
 
     it('handles fetch errors with existing markets', async () => {

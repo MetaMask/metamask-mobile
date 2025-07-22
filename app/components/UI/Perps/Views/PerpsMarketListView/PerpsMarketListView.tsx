@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import {
   View,
   TouchableOpacity,

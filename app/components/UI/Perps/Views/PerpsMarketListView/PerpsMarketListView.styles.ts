@@ -48,6 +48,12 @@ const styleSheet = (params: { theme: Theme }) => {
     tabButtonInactive: {
       backgroundColor: colors.background.default,
     },
+    headerSpacer: {
+      width: 24,
+    },
+    closeButton: {
+      padding: 4,
+    },
     listContainer: {
       flex: 1,
     },
@@ -146,6 +152,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderWidth: 1,
       borderColor: colors.border.muted,
       borderRadius: 12,
+      paddingHorizontal: 16,
     },
     searchInputContainer: {
       flexDirection: 'row',
