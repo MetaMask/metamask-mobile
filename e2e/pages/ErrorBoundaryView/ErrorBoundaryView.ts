@@ -1,20 +1,22 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { ErrorBoundarySelectorsText } from '../../selectors/ErrorBoundary/ErrorBoundaryView.selectors';
 
 class ErrorBoundaryView {
-  get title() {
+  get title(): DetoxElement {
     return Matchers.getElementByText(ErrorBoundarySelectorsText.TITLE);
   }
 
-  get srpLinkText() {
+  get srpLinkText(): DetoxElement {
     return Matchers.getElementByText(
       ErrorBoundarySelectorsText.SAVE_YOUR_SRP_TEXT,
     );
   }
 
-  async tapSRPLinkText() {
-    await Gestures.waitAndTap(this.srpLinkText);
+  async tapSRPLinkText(): Promise<void> {
+    await Gestures.waitAndTap(this.srpLinkText, {
+      elemDescription: 'SRP link text',
+    });
   }
 }
 
