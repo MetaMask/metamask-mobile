@@ -8,6 +8,7 @@ export const ChoosePasswordSelectorsIDs = {
   I_UNDERSTAND_CHECKBOX_ID: 'password-understand-box',
   SUBMIT_BUTTON_ID: 'submit-button',
   RESET_PASSWORD_BUTTON_TEXT: 'Reset password',
+  SAVE_PASSWORD_BUTTON_TEXT: 'Save',
   CHECKBOX_TEXT_ID: 'checkbox-text',
   LEARN_MORE_LINK_ID: 'learn-more-link',
   PASSWORD_STRENGTH_ID: 'password-strength',
