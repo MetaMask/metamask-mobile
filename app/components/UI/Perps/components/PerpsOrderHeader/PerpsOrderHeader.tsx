@@ -17,12 +17,13 @@ import Text, {
 import TokenIcon from '../../../Swaps/components/TokenIcon';
 import { formatPrice, formatPercentage } from '../../utils/formatUtils';
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidConfig';
+import type { OrderType } from '../../controllers/types';
 
 interface PerpsOrderHeaderProps {
   asset: string;
   price: number;
   priceChange: number;
-  orderType: 'market' | 'limit';
+  orderType: OrderType;
   onBack?: () => void;
   onOrderTypePress?: () => void;
 }

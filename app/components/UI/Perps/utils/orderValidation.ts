@@ -1,5 +1,5 @@
 import { strings } from '../../../../../locales/i18n';
-import type { MarketInfo } from '../controllers/types';
+import type { MarketInfo, OrderType } from '../controllers/types';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
 import {
   RISK_MANAGEMENT,
@@ -24,7 +24,7 @@ export interface OrderValidationParams {
   availableBalance: number;
   marketData: MarketInfo | null;
   selectedPaymentToken: PerpsToken | null;
-  orderType: 'market' | 'limit';
+  orderType: OrderType;
 }
 
 export interface OrderValidationResult {

@@ -11,12 +11,13 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { createStyles } from './PerpsOrderTypeBottomSheet.styles';
 import { strings } from '../../../../../../locales/i18n';
+import type { OrderType } from '../../controllers/types';
 
 interface PerpsOrderTypeBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
-  onSelect: (orderType: 'market' | 'limit') => void;
-  currentOrderType: 'market' | 'limit';
+  onSelect: (orderType: OrderType) => void;
+  currentOrderType: OrderType;
 }
 
 const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
@@ -37,18 +38,18 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
 
   const orderTypes = [
     {
-      type: 'market' as const,
+      type: 'market' as OrderType,
       title: strings('perps.order.type.market.title'),
       description: strings('perps.order.type.market.description'),
     },
     {
-      type: 'limit' as const,
+      type: 'limit' as OrderType,
       title: strings('perps.order.type.limit.title'),
       description: strings('perps.order.type.limit.description'),
     },
   ];
 
-  const handleSelect = (type: 'market' | 'limit') => {
+  const handleSelect = (type: OrderType) => {
     onSelect(type);
     onClose();
   };

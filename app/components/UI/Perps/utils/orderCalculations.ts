@@ -1,4 +1,5 @@
 import { FEE_RATES, RISK_MANAGEMENT } from '../constants/hyperLiquidConfig';
+import type { OrderType } from '../controllers/types';
 
 interface PositionSizeParams {
   amount: string;
@@ -18,7 +19,7 @@ interface LiquidationPriceParams {
 
 interface EstimatedFeesParams {
   amount: string;
-  orderType: 'market' | 'limit';
+  orderType: OrderType;
 }
 
 /**

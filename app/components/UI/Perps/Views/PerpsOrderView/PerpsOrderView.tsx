@@ -76,6 +76,7 @@ import {
 import type {
   MarketInfo,
   PerpsNavigationParamList,
+  OrderType,
 } from '../../controllers/types';
 import {
   usePerpsAccount,
@@ -106,7 +107,7 @@ interface OrderRouteParams {
   leverage?: number;
   // Modal return values
   leverageUpdate?: number;
-  orderTypeUpdate?: 'market' | 'limit';
+  orderTypeUpdate?: OrderType;
   tpslUpdate?: {
     takeProfitPrice?: string;
     stopLossPrice?: string;
@@ -180,7 +181,7 @@ const PerpsOrderView: React.FC = () => {
   });
 
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
+  const [orderType, setOrderType] = useState<OrderType>('market');
   const [selectedPaymentToken, setSelectedPaymentToken] =
     useState<PerpsToken | null>(null);
 

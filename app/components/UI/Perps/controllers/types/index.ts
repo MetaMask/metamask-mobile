@@ -11,12 +11,15 @@ import type {
 // Export navigation types
 export * from '../../types/navigation';
 
+// Order type enumeration
+export type OrderType = 'market' | 'limit';
+
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
   isBuy: boolean; // true = BUY order, false = SELL order
   size: string; // Order size as string
-  orderType: 'market' | 'limit'; // Order type
+  orderType: OrderType; // Order type
   price?: string; // Limit price (required for limit orders)
   reduceOnly?: boolean; // Reduce-only flag
   timeInForce?: 'GTC' | 'IOC' | 'ALO'; // Time in force
@@ -72,7 +75,7 @@ export type AccountState = {
 export type ClosePositionParams = {
   coin: string; // Asset symbol to close
   size?: string; // Size to close (omit for full close)
-  orderType?: 'market' | 'limit'; // Close order type (default: market)
+  orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
 };
 
