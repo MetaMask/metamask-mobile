@@ -15,7 +15,7 @@ export const useIsNft = (): { isNft?: boolean; isPending: boolean } => {
   );
 
   // Native token / loading state
-  if (isPending || details.standard === undefined) {
+  if (isPending || details?.standard === undefined) {
     return { isNft: undefined, isPending };
   }
 
