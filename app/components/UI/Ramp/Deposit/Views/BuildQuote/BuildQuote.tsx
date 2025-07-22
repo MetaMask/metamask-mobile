@@ -170,8 +170,8 @@ const BuildQuote = () => {
           if (ottResult) {
             setOtt(ottResult.token);
           }
-        } catch (error) {
-          Logger.error(error as Error, 'BuildQuote - Error requesting OTT');
+        } catch (ottError) {
+          Logger.error(ottError as Error, 'BuildQuote - Error requesting OTT');
         }
       }
     };
