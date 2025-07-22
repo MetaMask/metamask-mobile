@@ -1,5 +1,5 @@
-import { RampType } from "../../../reducers/fiatOrders/types";
-import handleRampUrl from "./handleRampUrl";
+import { RampType } from '../../../reducers/fiatOrders/types';
+import handleRampUrl from './handleRampUrl';
 
 export function handleSellCrypto(rampPath: string) {
   handleRampUrl({

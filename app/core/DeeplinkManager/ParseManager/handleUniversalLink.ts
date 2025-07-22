@@ -34,9 +34,6 @@ enum SUPPORTED_ACTIONS {
   SWAP = ACTIONS.SWAP,
 }
 
-
-
-
 async function handleUniversalLink({
   handled,
   urlObj,
@@ -163,13 +160,13 @@ async function handleUniversalLink({
       `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${SUPPORTED_ACTIONS.SWAP}`,
       '',
     );
-    handleSwapUrl({swapPath});
+    handleSwapUrl({ swapPath });
     return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
     // Normal links (same as dapp)
     handleBrowserUrl({
       url: urlObj.href,
-      callback: browserCallBack
+      callback: browserCallBack,
     });
   }
 }

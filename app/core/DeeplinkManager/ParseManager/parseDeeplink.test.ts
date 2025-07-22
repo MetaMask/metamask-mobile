@@ -132,7 +132,10 @@ describe('parseDeeplink', () => {
       onHandled: mockOnHandled,
     });
 
-    expect(mockHandleEthereumUrl).toHaveBeenCalledWith({url, origin: 'testOrigin'});
+    expect(mockHandleEthereumUrl).toHaveBeenCalledWith({
+      url,
+      origin: 'testOrigin',
+    });
   });
 
   it('should call handleDappProtocol for DAPP protocol', async () => {

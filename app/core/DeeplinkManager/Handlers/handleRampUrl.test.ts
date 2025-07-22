@@ -2,7 +2,9 @@ import handleRampUrl from './handleRampUrl';
 import actualHandleRampUrl from '../../../components/UI/Ramp/Aggregator/deeplink/handleRampUrl';
 import { RampType } from '../../../reducers/fiatOrders/types';
 
-jest.mock('../../../components/UI/Ramp/Aggregator/deeplink/handleRampUrl', () => jest.fn());
+jest.mock('../../../components/UI/Ramp/Aggregator/deeplink/handleRampUrl', () =>
+  jest.fn(),
+);
 
 describe('handleRampUrl re-export', () => {
   const mockActualHandleRampUrl = actualHandleRampUrl as jest.Mock;

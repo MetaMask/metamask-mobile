@@ -69,7 +69,6 @@ class DeeplinkManager {
       onHandled,
     });
   }
-
 }
 
 export default DeeplinkManager;

@@ -70,7 +70,7 @@ async function handleEthereumUrl({
         break;
       }
       case ETH_ACTIONS.APPROVE: {
-        await approveTransaction({ethUrl, origin});
+        await approveTransaction({ ethUrl, origin });
         break;
       }
       default: {

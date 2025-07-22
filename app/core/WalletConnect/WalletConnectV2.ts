@@ -52,10 +52,9 @@ export const ERROR_MESSAGES = {
   INVALID_ID: 'Invalid Id',
 };
 
-
 type InitParams = {
   sessions?: { [topic: string]: WalletConnect2Session };
-}
+};
 
 export class WC2Manager {
   private static instance: WC2Manager;

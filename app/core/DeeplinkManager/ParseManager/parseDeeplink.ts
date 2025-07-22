@@ -58,7 +58,7 @@ async function parseDeeplink({
 
       case PROTOCOLS.ETHEREUM:
         handled();
-        handleEthereumUrl({url, origin}).catch((err) => {
+        handleEthereumUrl({ url, origin }).catch((err) => {
           Logger.error(err, 'Error handling ethereum url');
         });
         break;
@@ -66,7 +66,7 @@ async function parseDeeplink({
       // Specific to the browser screen
       // For ex. navigate to a specific dapp
       case PROTOCOLS.DAPP:
-        handleDappUrl({  handled, urlObj, browserCallBack });
+        handleDappUrl({ handled, urlObj, browserCallBack });
         break;
 
       // Specific to the MetaMask app

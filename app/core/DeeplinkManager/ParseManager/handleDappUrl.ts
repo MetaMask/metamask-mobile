@@ -15,7 +15,7 @@ export function handleDappUrl({
   urlObj.set('protocol', 'https:');
   handleBrowserUrl({
     url: urlObj.href,
-    callback: browserCallBack
+    callback: browserCallBack,
   });
 }
 

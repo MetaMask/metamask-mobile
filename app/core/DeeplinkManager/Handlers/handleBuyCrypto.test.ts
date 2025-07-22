@@ -35,7 +35,8 @@ describe('handleBuyCrypto', () => {
   });
 
   it('should handle complex ramp path with parameters', () => {
-    const complexRampPath = '/buy/crypto?token=ETH&amount=1.0&fiatCurrency=USD&provider=moonpay';
+    const complexRampPath =
+      '/buy/crypto?token=ETH&amount=1.0&fiatCurrency=USD&provider=moonpay';
 
     handleBuyCrypto(complexRampPath);
 

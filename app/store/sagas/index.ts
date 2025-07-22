@@ -191,16 +191,15 @@ export function* startAppServices() {
   // Start Engine service
   yield call(EngineService.start);
 
-
   yield all([
     // Initialize WalletConnect v2 Manager
     call(WC2Manager.init),
     // Initialize SDKConnect
-    call(SDKConnect.init, { context: 'Nav/App' })
-  ])
+    call(SDKConnect.init, { context: 'Nav/App' }),
+  ]);
 
   // Start DeeplinkManager and process branch deeplinks
-  DeeplinkManager.start()
+  DeeplinkManager.start();
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
@@ -209,8 +208,8 @@ export function* startAppServices() {
     // Initialize WalletConnect v2 Manager
     call(WC2Manager.init, {}),
     // Initialize SDKConnect
-    call(SDKConnect.init, { context: 'Nav/App' })
-  ])
+    call(SDKConnect.init, { context: 'Nav/App' }),
+  ]);
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());

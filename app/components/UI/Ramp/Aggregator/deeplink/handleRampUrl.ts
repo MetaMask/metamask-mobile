@@ -14,10 +14,7 @@ interface RampUrlOptions {
   rampType: RampType;
 }
 
-export default function handleRampUrl({
-  rampPath,
-  rampType,
-}: RampUrlOptions) {
+export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
   try {
     const navigation = NavigationService.navigation;
     const [redirectPaths, pathParams] = getRedirectPathsAndParams(rampPath);
