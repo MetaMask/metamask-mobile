@@ -25,7 +25,7 @@ import { formatPrice } from '../utils/formatUtils';
 interface OrderSuccessParams {
   asset: string;
   direction: 'long' | 'short';
-  size: string; // Changed from amount to match what's passed
+  size: string;
   price?: string;
   leverage?: number;
   takeProfitPrice?: string;

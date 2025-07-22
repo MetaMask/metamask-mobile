@@ -28,6 +28,7 @@ export const USDC_NAME = 'USD Coin';
 export const USDC_DECIMALS = 6;
 export const TOKEN_DECIMALS = 18;
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const ZERO_BALANCE = '0x0';
 
 // Network constants
 export const ARBITRUM_SEPOLIA_CHAIN_ID = '0x66eee'; // 421614 in decimal

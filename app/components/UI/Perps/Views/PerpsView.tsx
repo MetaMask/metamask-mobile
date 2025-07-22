@@ -140,6 +140,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   const [result, setResult] = useState<string>('');
 
   // Popular trading pairs
+  // TODO: remove once we integrate real design (was meant for quick access to order page)
   const POPULAR_ASSETS = ['BTC', 'ETH', 'SOL', 'ARB'];
 
   // Use state hooks

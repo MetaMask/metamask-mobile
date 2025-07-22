@@ -88,6 +88,7 @@ import {
   USDC_NAME,
   USDC_SYMBOL,
   ZERO_ADDRESS,
+  ZERO_BALANCE,
 } from '../../constants/hyperLiquidConfig';
 import type {
   AssetRoute,
@@ -225,7 +226,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     if (isSwapsNativeAsset(sourceToken)) {
       const balance =
         accountsByChainId[tokenChainId]?.[selectedAddress]?.balance;
-      return renderFromWei(balance || '0x0');
+      return renderFromWei(balance || ZERO_BALANCE);
     }
 
     const tokenAddress = safeToChecksumAddress(sourceToken.address);
@@ -239,7 +240,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       }
     }
 
-    return '0x0';
+    return ZERO_BALANCE;
   }, [
     sourceToken,
     selectedAddress,
