@@ -247,10 +247,18 @@ export default new LoginPage();
 - Use descriptive method names that reflect user intent
 - Include workflow methods for common multi-step actions
 - Add verification methods for page state validation
+- Use the logger included in the framework
 
 ## 🔧 Configuration
 
 ```typescript
+// Creating a logger
+const logger = createLogger({
+  name: 'MyTestile',
+});
+
+logger.debug('Testing a specific test step.');
+
 // Per-operation timeout override
 await Assertions.expectElementToBeVisible(element, {
   timeout: 30000,
