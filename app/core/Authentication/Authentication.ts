@@ -56,6 +56,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 
+// to replace with SecretMetadata type from seedless-onboarding-controller when it is exported
 interface SecretMetadata {
   data: Uint8Array;
   type: SecretType;
