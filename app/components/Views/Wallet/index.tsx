@@ -132,6 +132,7 @@ import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import AppConstants from '../../../core/AppConstants';
 import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -287,6 +288,7 @@ const Wallet = ({
 
   const [isNetworkRampSupported] = useRampNetwork();
   const swapsIsLive = useSelector(swapsLivenessSelector);
+  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Setup for AssetDetailsActions
   const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
@@ -316,7 +318,9 @@ const Wallet = ({
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
-    AppConstants.BRIDGE.ACTIVE && isBridgeAllowed(chainId);
+    !isUnifiedSwapsEnabled &&
+    AppConstants.BRIDGE.ACTIVE &&
+    isBridgeAllowed(chainId);
 
   const onReceive = useCallback(() => {
     navigate(Routes.QR_TAB_SWITCHER, {
@@ -892,10 +896,10 @@ const Wallet = ({
       navigation,
       goToBridge,
       goToSwaps,
-      networkModal,
       displayBuyButton,
       displaySwapsButton,
       displayBridgeButton,
+      swapsIsLive,
       onReceive,
       onSend,
       onBuy,
