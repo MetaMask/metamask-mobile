@@ -16,6 +16,12 @@ class AccountActionsBottomSheet {
     );
   }
 
+  get switchToSmartAccount(): DetoxElement {
+    return Matchers.getElementByID(
+      AccountActionsBottomSheetSelectorsIDs.SWITCH_TO_SMART_ACCOUNT,
+    );
+  }
+
   get showSrp(): DetoxElement {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
@@ -31,6 +37,12 @@ class AccountActionsBottomSheet {
   async tapShowPrivateKey(): Promise<void> {
     await Gestures.waitAndTap(this.showPrivateKey, {
       elemDescription: 'Show private key button',
+    });
+  }
+
+  async tapSwitchToSmartAccount(): Promise<void> {
+    await Gestures.waitAndTap(this.switchToSmartAccount, {
+      elemDescription: 'Switch to smart account button',
     });
   }
 

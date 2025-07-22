@@ -9,7 +9,10 @@ import {
   GestureOptions,
   TypeTextOptions,
 } from './types';
-import { logger } from './logger';
+import { createLogger } from './logger';
+
+const logger = createLogger({ name: 'Gestures' });
+
 /**
  * Gestures class with element stability and auto-retry
  */
