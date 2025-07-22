@@ -114,7 +114,8 @@ export const swapsLivenessSelector = createSelector(
 export const swapsLivenessMultichainSelector = createSelector(
   [
     swapsStateSelector,
-    (state, chainId) => chainId !== undefined ? chainId : selectChainId(state)
+    (state, chainId) =>
+      chainId !== undefined ? chainId : selectChainId(state),
   ],
   (swapsState, chainId) => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
