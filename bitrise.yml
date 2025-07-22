@@ -1372,10 +1372,6 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/set-cache-envs.sh ios
       - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
       - script:
           inputs:
             - content: |-
@@ -1416,9 +1412,12 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
                 node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:main-release
+                if [ -n "$YARN_COMMAND" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                else
+                    echo "No YARN_COMMAND provided. Running yarn build:ios:main:e2e..."
+                    yarn build:ios:main:e2e
+                fi
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
