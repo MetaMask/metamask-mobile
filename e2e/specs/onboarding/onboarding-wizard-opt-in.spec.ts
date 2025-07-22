@@ -68,14 +68,18 @@ describe(
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
       await TestHelpers.delay(1500);
-      await Assertions.expectToggleToBeOn(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
+      await Assertions.expectToggleToBeOn(
+        SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>,
+      );
     });
 
     it('should disable metametrics and track preference change', async () => {
       await SecurityAndPrivacy.tapMetaMetricsToggle();
       await TestHelpers.delay(1000); // Wait for toggle action
       await CommonView.tapOkAlert();
-      await Assertions.expectToggleToBeOff(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
+      await Assertions.expectToggleToBeOff(
+        SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>,
+      );
 
       const events = await getEventsPayloads(mockServer);
 
@@ -138,7 +142,9 @@ describe(
       await TestHelpers.delay(500); // Wait for animation
 
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      await Assertions.expectToggleToBeOff(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
+      await Assertions.expectToggleToBeOff(
+        SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>,
+      );
 
       await device.enableSynchronization();
     });
