@@ -1446,7 +1446,7 @@
 
 "@consensys/native-ramps-sdk@^1.1.2":
   version "1.1.2"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.1.2.tgz#fd03246308ee27b74d45a78bfb798f4519ab7823"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.1.2.tgz#fd03246308ee27b74d45a78bfb798f4519ab7823"
   integrity sha512-6kH3QkWcuV5LZjKIHWngttgK5wXARyi5EHsyeRkGBqLxZQuHNt8grorHR5OrOSEEzdFyO+iv1z2YF6VYnVkSyQ==
   dependencies:
     async "^3.2.3"
