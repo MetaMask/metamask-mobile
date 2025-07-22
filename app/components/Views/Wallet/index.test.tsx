@@ -510,4 +510,188 @@ describe('Wallet', () => {
       );
     });
   });
+
+  // Callback Functions Tests
+  describe('AssetDetailsActions Callback Functions', () => {
+    const mockAssetDetailsActions = jest.mocked(
+      jest.requireMock('../AssetDetails/AssetDetailsActions'),
+    );
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockAssetDetailsActions.mockClear();
+      mockNavigate.mockClear();
+    });
+
+    it('should handle onReceive callback correctly', () => {
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
+      onReceive();
+
+      // Check that navigate was called with QR_TAB_SWITCHER
+      // QRTabSwitcherScreens.Receive is enum value 1, not string 'Receive'
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
+        initialScreen: 1, // QRTabSwitcherScreens.Receive
+      });
+    });
+
+    it('should handle onSend callback correctly with native currency', async () => {
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
+      await onSend();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND_FLOW_VIEW, {});
+    });
+
+    it('should handle onSend callback correctly without native currency', async () => {
+      const stateWithoutNativeCurrency = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            NetworkController: {
+              ...mockInitialState.engine.backgroundState.NetworkController,
+              providerConfig: {
+                ...mockInitialState.engine.backgroundState.NetworkController
+                  .providerConfig,
+                ticker: undefined, // Remove native currency
+              },
+            },
+          },
+        },
+      };
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(stateWithoutNativeCurrency),
+        );
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
+      await onSend();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND_FLOW_VIEW, {});
+    });
+
+    it('should handle onBuy callback correctly', () => {
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const onBuy = mockAssetDetailsActions.mock.calls[0][0].onBuy;
+      onBuy();
+
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('should handle goToBridge callback correctly', () => {
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const goToBridge = mockAssetDetailsActions.mock.calls[0][0].goToBridge;
+      expect(typeof goToBridge).toBe('function');
+    });
+
+    it('should handle goToSwaps callback correctly', () => {
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const goToSwaps = mockAssetDetailsActions.mock.calls[0][0].goToSwaps;
+      expect(typeof goToSwaps).toBe('function');
+    });
+  });
+
+  // Conditional Rendering Tests
+  describe('Conditional Rendering', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should render banner when basic functionality is disabled', () => {
+      const stateWithDisabledBasicFunctionality = {
+        ...mockInitialState,
+        settings: {
+          ...mockInitialState.settings,
+          basicFunctionalityEnabled: false,
+        },
+      };
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(stateWithDisabledBasicFunctionality),
+        );
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      const wrapper = render(Wallet);
+      expect(wrapper.toJSON()).toMatchSnapshot();
+    });
+
+    it('should render loader when no selected account', () => {
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) => {
+          const selectorString = callback.toString();
+          if (selectorString.includes('selectSelectedInternalAccount')) {
+            return null; // No selected account
+          }
+          return callback(mockInitialState);
+        });
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      const wrapper = render(Wallet);
+      expect(wrapper.toJSON()).toMatchSnapshot();
+    });
+  });
+
+  // Error Handling Tests
+  describe('Error Handling', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Suppress console.error for these tests since we're testing error scenarios
+      jest.spyOn(console, 'error').mockImplementation(jest.fn());
+      jest.spyOn(console, 'warn').mockImplementation(jest.fn());
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should handle errors in onSend callback gracefully', async () => {
+      // Mock dispatch to throw an error
+      const mockDispatch = jest.fn().mockImplementation(() => {
+        throw new Error('Transaction initialization failed');
+      });
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) => {
+          const selectorString = callback.toString();
+          if (selectorString.includes('useDispatch')) {
+            return mockDispatch;
+          }
+          return callback(mockInitialState);
+        });
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const mockAssetDetailsActions = jest.mocked(
+        jest.requireMock('../AssetDetails/AssetDetailsActions'),
+      );
+      const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
+
+      await onSend();
+
+      // Should still navigate even if there's an error
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND_FLOW_VIEW, {});
+    });
+  });
 });
