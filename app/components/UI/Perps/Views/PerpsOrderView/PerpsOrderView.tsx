@@ -77,6 +77,7 @@ import type {
   MarketInfo,
   PerpsNavigationParamList,
   OrderType,
+  OrderParams,
 } from '../../controllers/types';
 import {
   usePerpsAccount,
@@ -98,6 +99,7 @@ import {
 } from '../../utils/orderValidation';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsOrderView.styles';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -461,7 +463,7 @@ const PerpsOrderView: React.FC = () => {
     try {
       setIsPlacingOrder(true);
 
-      const orderParams = {
+      const orderParams: OrderParams = {
         coin: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize,
@@ -474,6 +476,8 @@ const PerpsOrderView: React.FC = () => {
           ? { price: orderForm.limitPrice }
           : {}),
       };
+
+      DevLogger.log('PerpsOrderView: Placing order', JSON.stringify(orderParams, null, 2));
 
       const result = await placeOrder(orderParams);
 
@@ -497,7 +501,7 @@ const PerpsOrderView: React.FC = () => {
         });
 
         navigation.navigate(Routes.PERPS.ORDER_SUCCESS, {
-          orderId: result.orderId || 'unknown',
+          orderId: result.orderId,
           direction: orderForm.direction,
           asset: orderForm.asset,
           size: orderForm.amount,
