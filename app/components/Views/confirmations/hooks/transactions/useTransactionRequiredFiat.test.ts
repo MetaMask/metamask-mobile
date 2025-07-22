@@ -94,4 +94,10 @@ describe('useTransactionRequiredFiat', () => {
 
     expect(fiatValues).toEqual([8.2, undefined]);
   });
+
+  it('returns total fiat value', () => {
+    const { fiatTotal } = runHook();
+
+    expect(fiatTotal).toBe(23.575);
+  });
 });
