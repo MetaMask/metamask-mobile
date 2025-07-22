@@ -161,7 +161,7 @@ exports[`Wallet should render correctly 1`] = `
                     }
                   >
                     <View
-                      accessibilityLabel="Ethereum Mainnet"
+                      accessibilityLabel="Ethereum Main Network"
                       style={
                         {
                           "alignItems": "center",
@@ -1377,7 +1377,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                     }
                   >
                     <View
-                      accessibilityLabel="Ethereum Mainnet"
+                      accessibilityLabel="Ethereum Main Network"
                       style={
                         {
                           "alignItems": "center",
@@ -2593,7 +2593,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     }
                   >
                     <View
-                      accessibilityLabel="Ethereum Mainnet"
+                      accessibilityLabel="Ethereum Main Network"
                       style={
                         {
                           "alignItems": "center",

@@ -63,6 +63,23 @@ jest.mock('react-native-quick-crypto', () => ({
 
 jest.mock('react-native-blob-jsi-helper', () => ({}));
 
+// Global mock for react-native-device-info used by many components
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.50.1'),
+  getApplicationName: jest.fn(() => 'MetaMask'),
+  getBuildNumber: jest.fn(() => '1234'),
+  getSystemVersion: jest.fn(() => '17.0'),
+  getTotalMemorySync: jest.fn(() => 4000000000),
+}));
+
+// Global mock for unified swaps environment variable function
+jest.mock(
+  '../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
+  () => ({
+    isUnifiedSwapsEnvVarEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
 
