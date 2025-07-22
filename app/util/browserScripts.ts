@@ -82,8 +82,8 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (
 ) => `(function () {
   try {
     // Only send message if origins match
-    if (window.location.origin === "${origin}") {
-      window.postMessage(${JSON.stringify(message)}, "${origin}");
+    if (window.location.origin === ${JSON.stringify(origin)}) {
+      window.postMessage(${JSON.stringify(message)}, ${JSON.stringify(origin)});
     } else {
       console.warn('MetaMask: Origin mismatch, blocking message');
     }
