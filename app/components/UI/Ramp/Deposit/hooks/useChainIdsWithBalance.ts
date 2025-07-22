@@ -1,15 +1,16 @@
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { hexToBN } from '@metamask/controller-utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { CaipChainId, Hex } from '@metamask/utils';
+import { SolScope } from '@metamask/keyring-api';
 import {
   selectMultichainBalances,
   selectedAccountNativeTokenCachedBalanceByChainId,
 } from '../../../../../selectors/multichain';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
-import { hexToBN } from '@metamask/controller-utils';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { CaipChainId, Hex } from '@metamask/utils';
-import { SolScope } from '@metamask/keyring-api';
-import { useMemo } from 'react';
+import { SOLANA_MAINNET } from '../constants/networks';
 
 function useChainIdsWithBalance() {
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
@@ -23,7 +24,6 @@ function useChainIdsWithBalance() {
 
   const chainIds = useMemo(() => {
     const chainIdsWithBalance: CaipChainId[] = [];
-    console.log(selectedSelectedInternalAccount);
 
     if (isEvmNetworkSelected) {
       // grab the chain id from the selected evm chain id balance is not 0
@@ -44,17 +44,12 @@ function useChainIdsWithBalance() {
     } else if (
       selectedSelectedInternalAccount?.scopes.includes(SolScope.Mainnet)
     ) {
-      const selectedInternalAccountId = selectedSelectedInternalAccount.id;
       const amount =
-        selectedMultichainBalances[selectedInternalAccountId][
+        selectedMultichainBalances[selectedSelectedInternalAccount.id][
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501'
         ].amount;
-      if (
-        parseFloat(amount) > 0 // check if the balance is greater than 0
-      ) {
-        chainIdsWithBalance.push(
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId,
-        );
+      if (parseFloat(amount) > 0) {
+        chainIdsWithBalance.push(SOLANA_MAINNET.chainId);
       }
     }
 

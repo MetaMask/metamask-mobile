@@ -3,6 +3,9 @@ import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { Hex, isHexString } from '@metamask/utils';
+
 import styleSheet from './BuildQuote.styles';
 
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -58,7 +61,10 @@ import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../../../selectors/networkController';
 import {
   USDC_TOKEN,
   DepositCryptoCurrency,
@@ -77,6 +83,7 @@ const BuildQuote = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
 
+  const chainId = useSelector(selectChainId);
   const supportedTokens = useSupportedTokens();
   const paymentMethods = usePaymentMethods();
 
@@ -153,6 +160,33 @@ const BuildQuote = () => {
       }
     }
   }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
+
+  useEffect(() => {
+    if (supportedTokens.length > 0) {
+      let caipChainId;
+      if (isHexString(chainId)) {
+        caipChainId = toEvmCaipChainId(chainId as Hex);
+      } else {
+        caipChainId = chainId;
+      }
+
+      if (cryptoCurrency.chainId !== caipChainId) {
+        const token = supportedTokens.find(
+          (supportedToken) => supportedToken.chainId === caipChainId,
+        );
+        if (token) {
+          setCryptoCurrency(token);
+        }
+      } else if (
+        !supportedTokens.some(
+          (token) => token.assetId === cryptoCurrency.assetId,
+        )
+      ) {
+        setCryptoCurrency(supportedTokens[0]);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chainId, supportedTokens]);
 
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());
