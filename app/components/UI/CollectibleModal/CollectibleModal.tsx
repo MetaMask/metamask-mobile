@@ -82,7 +82,8 @@ const CollectibleModal = () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
     if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
       //@ts-expect-error replace do not exist on ParamListBase
-      navigation.replace(Routes.SEND.ROOT, {
+      navigation.replace(Routes.SEND.DEFAULT, {
+        screen: Routes.SEND.ROOT,
         params: {
           asset: collectible,
         },
