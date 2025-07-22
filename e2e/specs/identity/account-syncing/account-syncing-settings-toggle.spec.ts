@@ -15,7 +15,7 @@ import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView.js';
-import CommonView from '../../../pages/CommonView.js';
+import CommonView from '../../../pages/CommonView';
 import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(SmokeIdentity('Account syncing - Setting'), () => {
