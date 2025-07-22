@@ -16,6 +16,10 @@ jest.mock('../../../utils/validations/gas', () => ({
   validatePriorityFee: jest.fn(),
 }));
 
+jest.mock('../../../utils/validations/gas', () => ({	
+  validatePriorityFee: jest.fn(),	
+}));
+
 describe('PriorityFeeInput', () => {
   const mockUseGasFeeEstimates = jest.mocked(useGasFeeEstimates);
   const MAX_PRIO_FEE_PER_GAS_MOCK = '0x1c9c380';
