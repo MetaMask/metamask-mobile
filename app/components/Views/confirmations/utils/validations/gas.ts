@@ -126,7 +126,6 @@ function validateGasLimitValueIsGreaterThanMinimum(
 
 function validateValueIsInteger(value: string): string | boolean {
   const normalizedValue = normalizeGasInput(value);
-  // Check if the value is a valid integer (no decimal part)
   if (/^\d+$/.test(normalizedValue)) {
     return false;
   }
