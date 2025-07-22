@@ -396,13 +396,19 @@ const PerpsOrderView: React.FC = () => {
     [orderForm.amount, orderForm.leverage],
   );
 
+  // Memoize liquidation price params to prevent infinite recalculation
+  const liquidationPriceParams = useMemo(
+    () => ({
+      entryPrice: assetData.price,
+      leverage: orderForm.leverage,
+      direction: orderForm.direction,
+      asset: orderForm.asset,
+    }),
+    [assetData.price, orderForm.leverage, orderForm.direction, orderForm.asset],
+  );
+
   // Real-time liquidation price calculation
-  const { liquidationPrice } = usePerpsLiquidationPrice({
-    entryPrice: assetData.price,
-    leverage: orderForm.leverage,
-    direction: orderForm.direction,
-    asset: orderForm.asset,
-  });
+  const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
   // Order validation
   const orderValidation = useMemo(
