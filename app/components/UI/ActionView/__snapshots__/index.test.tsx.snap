@@ -101,7 +101,7 @@ exports[`ActionView should render correctly 1`] = `
           style={
             {
               "alignItems": "center",
-              "alignSelf": "stretch",
+              "alignSelf": "flex-start",
               "backgroundColor": "#3c4d9d1a",
               "borderColor": "transparent",
               "borderRadius": 12,
@@ -142,7 +142,7 @@ exports[`ActionView should render correctly 1`] = `
           style={
             {
               "alignItems": "center",
-              "alignSelf": "stretch",
+              "alignSelf": "flex-start",
               "backgroundColor": "#121314",
               "borderRadius": 12,
               "flex": 1,
