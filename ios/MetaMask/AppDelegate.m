@@ -2,6 +2,7 @@
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
+#import <EXUpdates/EXUpdatesAppController.h>
 
 #import <RNBranch/RNBranch.h>
 #import <Firebase.h>
@@ -13,6 +14,10 @@
 {
   self.moduleName = @"MetaMask";
   [FIRApp configure];
+  
+  // Initialize EXUpdates
+  [EXUpdatesAppController.sharedInstance startAndShowLaunchScreen:self.window];
+  
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
 
   NSString *foxCode;
@@ -43,7 +48,7 @@
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@".expo/.virtual-metro-entry"];
 #else
-  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+  return [[EXUpdatesAppController sharedInstance] launchAssetUrl];
 #endif
 }
 
