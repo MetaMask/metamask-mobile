@@ -16,6 +16,9 @@ import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
+import BTC_TESTNET from './bitcoin-testnet-logo.png';
+import BTC_MUTINYNET from './bitcoin-mutinynet-logo.png';
+import BTC_SIGNET from './bitcoin-signet-logo.svg';
 import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
 import HL from './HL_symbol_mint_green.png';
@@ -57,6 +60,9 @@ export default {
   SOLANA,
   FOX_LOGO,
   BTC,
+  'BTC-TESTNET': BTC_TESTNET,
+  'BTC-MUTINYNET': BTC_MUTINYNET,
+  'BTC-SIGNET': BTC_SIGNET,
   BASE,
   'MEGAETH-TESTNET': MEGAETH_TESTNET,
   XRP: XRPLEVM_TOKEN,
