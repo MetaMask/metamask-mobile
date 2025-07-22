@@ -81,9 +81,6 @@ tests
 /sentry.debug.properties
 /sentry.release.properties
 
-# editor
-.vscode
-
 # CocoaPods
 /ios/Pods/
 

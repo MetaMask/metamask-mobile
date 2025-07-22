@@ -339,21 +339,12 @@ describe('Transaction Controller Init', () => {
     );
   });
 
-  it('determines incoming transactions based on preferences', () => {
-    const MOCK_CHAIN_ID = '0x1';
-    const option = testConstructorOption(
-      'incomingTransactions',
-      {
-        state: {
-          showIncomingTransactions: {
-            [MOCK_CHAIN_ID]: true,
-          },
-        },
+  it('determines incoming transactions based on preference privacyMode', () => {
+    const option = testConstructorOption('incomingTransactions', {
+      state: {
+        privacyMode: false,
       },
-      {
-        getGlobalChainId: () => MOCK_CHAIN_ID,
-      },
-    );
+    });
 
     const isEnabledFn = option?.isEnabled;
     const updateTransactionsProp = option?.updateTransactions;
