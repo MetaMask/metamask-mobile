@@ -46,11 +46,6 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.release',
     },
-    'ios.sim.qa': {
-      device: 'ios.simulator',
-      app: 'ios.qa',
-    },
-
     'android.emu.debug': {
       device: 'android.emulator',
       app: 'android.debug',
@@ -58,10 +53,6 @@ module.exports = {
     'android.emu.release': {
       device: 'android.bitrise.emulator',
       app: 'android.release',
-    },
-    'android.emu.release.qa': {
-      device: 'android.bitrise.emulator',
-      app: 'android.qa',
     },
   },
   devices: {
@@ -91,11 +82,11 @@ module.exports = {
         process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app',
       build: 'yarn start:ios:e2e',
     },
-    'ios.qa': {
+    'ios.release': {
       type: 'ios.app',
       binaryPath:
-        'ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
-      build: `yarn build:ios:qa:e2e`,
+        'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
+      build: `yarn build:ios:main:e2e`,
     },
     'android.debug': {
       type: 'android.apk',
@@ -103,10 +94,10 @@ module.exports = {
       testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH,
       build: 'yarn start:android:e2e',
     },
-    'android.qa': {
+    'android.release': {
       type: 'android.apk',
-      binaryPath: 'android/app/build/outputs/apk/qa/release/app-qa-release.apk',
-      build: `yarn build:android:qa:e2e`,
+      binaryPath: 'android/app/build/outputs/apk/qa/release/app-release.apk',
+      build: `yarn build:android:main:e2e`,
     },
   },
 };

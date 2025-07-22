@@ -1017,8 +1017,9 @@ workflows:
       - android_e2e_test
   android_e2e_build:
     envs:
-      - KEYSTORE_URL: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-      - BUILD_COMMAND: 'yarn test:e2e:android:build:qa-release'
+      - KEYSTORE_URL: $BITRISEIO_ANDROID_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - BUILD_COMMAND: 'yarn test:e2e:android:build:main-release'
     after_run:
       - _android_e2e_build_template
     meta:
@@ -1417,7 +1418,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:main-release
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -1537,7 +1538,7 @@ workflows:
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
       - script:
           inputs:
             - content: |-
@@ -1565,13 +1566,13 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 # if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
+                # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:main-release e2e/specs/flask/
                 # else
                 # ./scripts/run-e2e-tags.sh
                 # fi
                 if [ -n "${E2E_TEST_FILE:-}" ]; then
                   echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
-                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release $E2E_TEST_FILE
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:main-release $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
                   ./scripts/run-e2e-tags.sh
@@ -1768,7 +1769,7 @@ workflows:
       - file-downloader@1:
           inputs:
             - source: $KEYSTORE_URL
-            - destination: android/keystores/internalRelease.keystore
+            - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       # Note - This step will fail if stack is not Linux
       - script@1:

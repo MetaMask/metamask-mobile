@@ -458,6 +458,15 @@ buildIosMainLocal() {
 	generateIosBinary "MetaMask" "Debug"
 }
 
+# Builds the Main binary for E2E testing
+buildIosMainE2E(){
+	# Build for simulator
+	export IS_SIM_BUILD="true"
+
+	# Generate Main release binary
+	buildIosMainProduction
+}
+
 # Builds the Flask binary for local development
 buildIosFlaskLocal() {
 	prebuild_ios
@@ -492,15 +501,6 @@ buildIosQaProduction(){
 	# Go to ios directory
 	cd ios
 	generateIosBinary "MetaMask-QA"
-}
-
-# Builds the QA binary for E2E testing
-buildIosQaE2E(){
-	# Build for simulator
-	export IS_SIM_BUILD="true"
-
-	# Generate QA release binary
-	buildIosQaProduction
 }
 
 buildIosReleaseE2E(){
@@ -654,6 +654,8 @@ buildIos() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildIosMainLocal
+		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ] ; then
+			buildIosMainE2E
 		else
 			buildIosMainProduction
 		fi
@@ -674,8 +676,6 @@ buildIos() {
 	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildIosQaLocal
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ] ; then
-			buildIosQaE2E
 		else
 			buildIosQaProduction
 		fi
@@ -757,17 +757,15 @@ if [ "$MODE" == "main" ]; then
 		remapEnvVariableReleaseCandidate
 	elif [ "$ENVIRONMENT" == "exp" ]; then
 		remapEnvVariableExperimental
+	elif [ "$ENVIRONMENT" == "e2e" ]; then
+		remapEnvVariableE2E
 	fi
 elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
 	# TODO: Map environment variables based on environment
 	remapFlaskEnvVariables
 elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" ] || [ "$MODE" == "QA" ]; then
 	# TODO: Map environment variables based on environment
-	if [ "$ENVIRONMENT" == "e2e" ]; then
-		remapEnvVariableE2E
-	else
-		remapEnvVariableQA
-	fi
+	remapEnvVariableQA
 fi
 
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
