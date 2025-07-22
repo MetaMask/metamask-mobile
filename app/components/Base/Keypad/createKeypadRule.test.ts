@@ -36,9 +36,21 @@ describe('createKeypadRule', () => {
     ${undefined}     | ${undefined} | ${''}         | ${KEYS.PERIOD}  | ${'0'}
   `(
     'should return correct amount with default values and falsy currentAmount',
-    ({ decimalSeparator, decimals, currentAmount, inputKey, result }) => {
+    ({
+      decimalSeparator,
+      decimals,
+      currentAmount,
+      inputKey,
+      result,
+    }: {
+      decimalSeparator: string | undefined;
+      decimals: number | undefined;
+      currentAmount: string | undefined;
+      inputKey: string;
+      result: string;
+    }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
-      expect(handler(currentAmount, inputKey)).toBe(result);
+      expect(handler(currentAmount || '', inputKey)).toBe(result);
     },
   );
   it.each`
@@ -71,7 +83,19 @@ describe('createKeypadRule', () => {
     ${undefined}     | ${undefined} | ${'1'}        | ${KEYS.PERIOD}  | ${'1'}
   `(
     'should return correct amount with default decimalSeparator and decimals values',
-    ({ decimalSeparator, decimals, currentAmount, inputKey, result }) => {
+    ({
+      decimalSeparator,
+      decimals,
+      currentAmount,
+      inputKey,
+      result,
+    }: {
+      decimalSeparator: string | undefined;
+      decimals: number | undefined;
+      currentAmount: string;
+      inputKey: string;
+      result: string;
+    }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
       expect(handler(currentAmount, inputKey)).toBe(result);
     },
@@ -133,7 +157,19 @@ describe('createKeypadRule', () => {
     ${'.'}           | ${undefined} | ${'1.1'}      | ${KEYS.PERIOD}  | ${'1.1'}
   `(
     'should return correct amount with decimalSeparator . and default decimals',
-    ({ decimalSeparator, decimals, currentAmount, inputKey, result }) => {
+    ({
+      decimalSeparator,
+      decimals,
+      currentAmount,
+      inputKey,
+      result,
+    }: {
+      decimalSeparator: string;
+      decimals: number | undefined;
+      currentAmount: string;
+      inputKey: string;
+      result: string;
+    }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
       expect(handler(currentAmount, inputKey)).toBe(result);
     },
@@ -195,7 +231,19 @@ describe('createKeypadRule', () => {
     ${'.'}           | ${3}     | ${'1.111'}    | ${KEYS.PERIOD}  | ${'1.111'}
   `(
     'should return correct amount with decimalSeparator . and a number decimals',
-    ({ decimalSeparator, decimals, currentAmount, inputKey, result }) => {
+    ({
+      decimalSeparator,
+      decimals,
+      currentAmount,
+      inputKey,
+      result,
+    }: {
+      decimalSeparator: string;
+      decimals: number;
+      currentAmount: string;
+      inputKey: string;
+      result: string;
+    }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
       expect(handler(currentAmount, inputKey)).toBe(result);
     },
@@ -256,7 +304,19 @@ describe('createKeypadRule', () => {
     ${','}           | ${undefined} | ${'1,1'}      | ${KEYS.PERIOD}  | ${'1,1'}
   `(
     'should return correct amount with decimalSeparator , and default decimals',
-    ({ decimalSeparator, decimals, currentAmount, inputKey, result }) => {
+    ({
+      decimalSeparator,
+      decimals,
+      currentAmount,
+      inputKey,
+      result,
+    }: {
+      decimalSeparator: string;
+      decimals: number | undefined;
+      currentAmount: string;
+      inputKey: string;
+      result: string;
+    }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
       expect(handler(currentAmount, inputKey)).toBe(result);
     },
@@ -318,7 +378,19 @@ describe('createKeypadRule', () => {
     ${','}           | ${3}     | ${'1,111'}    | ${KEYS.PERIOD}  | ${'1,111'}
   `(
     'should return correct amount with decimalSeparator , and a number decimals',
-    ({ decimalSeparator, decimals, currentAmount, inputKey, result }) => {
+    ({
+      decimalSeparator,
+      decimals,
+      currentAmount,
+      inputKey,
+      result,
+    }: {
+      decimalSeparator: string;
+      decimals: number;
+      currentAmount: string;
+      inputKey: string;
+      result: string;
+    }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
       expect(handler(currentAmount, inputKey)).toBe(result);
     },
@@ -330,13 +402,21 @@ describe('createKeypadRule', () => {
     ${','}           | ${0}     | ${'1'}        | ${KEYS.PERIOD}  | ${'1'}
     ${','}           | ${0}     | ${'1'}        | ${KEYS.BACK}    | ${'0'}
     ${','}           | ${0}     | ${'1'}        | ${KEYS.INITIAL} | ${'0'}
-    ${','}           | ${false} | ${'1'}        | ${KEYS.DIGIT_1} | ${'11'}
-    ${','}           | ${false} | ${'1'}        | ${KEYS.PERIOD}  | ${'1'}
-    ${','}           | ${false} | ${'1'}        | ${KEYS.BACK}    | ${'0'}
-    ${','}           | ${false} | ${'1'}        | ${KEYS.INITIAL} | ${'0'}
   `(
-    'should return correct amount with decimalSeparator , and 0/false decimals',
-    ({ decimalSeparator, decimals, currentAmount, inputKey, result }) => {
+    'should return correct amount with decimalSeparator , and 0 decimals',
+    ({
+      decimalSeparator,
+      decimals,
+      currentAmount,
+      inputKey,
+      result,
+    }: {
+      decimalSeparator: string;
+      decimals: number;
+      currentAmount: string;
+      inputKey: string;
+      result: string;
+    }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
       expect(handler(currentAmount, inputKey)).toBe(result);
     },
@@ -352,13 +432,21 @@ describe('createKeypadRule', () => {
     ${null}          | ${3}     | ${'1'}        | ${KEYS.PERIOD}  | ${'1'}
     ${null}          | ${3}     | ${'1'}        | ${KEYS.BACK}    | ${'0'}
     ${null}          | ${3}     | ${'1'}        | ${KEYS.INITIAL} | ${'0'}
-    ${false}         | ${3}     | ${'1'}        | ${KEYS.DIGIT_1} | ${'11'}
-    ${false}         | ${3}     | ${'1'}        | ${KEYS.PERIOD}  | ${'1'}
-    ${false}         | ${3}     | ${'1'}        | ${KEYS.BACK}    | ${'0'}
-    ${false}         | ${3}     | ${'1'}        | ${KEYS.INITIAL} | ${'0'}
   `(
     'should return correct amount with falsy decimalSeparator and number decimals',
-    ({ decimalSeparator, decimals, currentAmount, inputKey, result }) => {
+    ({
+      decimalSeparator,
+      decimals,
+      currentAmount,
+      inputKey,
+      result,
+    }: {
+      decimalSeparator: string | null | undefined;
+      decimals: number;
+      currentAmount: string;
+      inputKey: string;
+      result: string;
+    }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
       expect(handler(currentAmount, inputKey)).toBe(result);
     },

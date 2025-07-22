@@ -1,19 +1,18 @@
-/* eslint-disable react/display-name */
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
 import Keypad from './index';
 
-// Basic story component
+export default {
+  title: 'Base Components / Keypad',
+  component: Keypad,
+};
+
 const DefaultKeypadStory = () => {
   const [value, setValue] = useState('0');
 
-  const handleChange = (changeData: any) => {
+  const handleChange = (changeData: { value: string }) => {
     setValue(changeData.value);
-    console.log('Keypad value changed:', changeData.value);
   };
 
   return (
@@ -26,11 +25,6 @@ const DefaultKeypadStory = () => {
   );
 };
 
-// Storybook metadata
-export default {
-  title: 'Base Components / Keypad',
-  component: Keypad,
+export const Default = {
+  render: DefaultKeypadStory,
 };
-
-// Export the story
-export const Default = DefaultKeypadStory;
