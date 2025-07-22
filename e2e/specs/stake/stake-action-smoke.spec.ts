@@ -109,7 +109,7 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
     await ImportAccountView.enterPrivateKey(
-      process.env.MM_STAKE_TEST_ACCOUNT_PRIVATE_KEY,
+      process.env.MM_STAKE_TEST_ACCOUNT_PRIVATE_KEY || '',
     );
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
