@@ -1,8 +1,7 @@
-import { toChecksumAddress } from 'ethereumjs-util';
 import { useSelector } from 'react-redux';
 
 import { selectInternalAccounts } from '../../selectors/accountsController';
-import { areAddressesEqual } from '../../util/address';
+import { areAddressesEqual, toChecksumAddress } from '../../util/address';
 import { AddressBookEntry } from '@metamask/address-book-controller';
 import { selectAddressBook } from '../../selectors/addressBookController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
