@@ -12,6 +12,7 @@ import PerpsTabControlBar from './PerpsTabControlBar';
 import * as PerpsHooks from '../../hooks';
 import * as ComponentLibraryHooks from '../../../../../component-library/hooks';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { Position } from '../../controllers';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -259,10 +260,12 @@ describe('PerpsTabControlBar', () => {
     });
 
     it('refreshes balance when position updates are received', async () => {
-      let positionCallback: ((positions: any) => void) | null = null;
+      let positionCallback: ((positions: Position[]) => void) | null = null;
       mockSubscribeToPositions.mockImplementation(({ callback }) => {
         positionCallback = callback;
-        return () => {}; // unsubscribe function
+        return () => {
+          /* empty unsubscribe function */
+        };
       });
 
       render(<PerpsTabControlBar />);
@@ -273,7 +276,9 @@ describe('PerpsTabControlBar', () => {
 
       // Simulate position update
       act(() => {
-        positionCallback?.([{ id: 1, symbol: 'BTC' }]);
+        positionCallback?.([
+          { id: '1', symbol: 'BTC' },
+        ] as unknown as Position[]);
       });
 
       await waitFor(() => {
@@ -427,7 +432,7 @@ describe('PerpsTabControlBar', () => {
     it('handles null balance gracefully', async () => {
       mockGetAccountState.mockResolvedValue({
         ...defaultAccountState,
-        totalBalance: null as any,
+        totalBalance: null as unknown as string,
       });
 
       render(<PerpsTabControlBar />);
