@@ -109,6 +109,14 @@ export const RISK_MANAGEMENT: RiskManagementConfig = {
   fallbackBalancePercent: 0.1, // Default balance percentage if no balance
 };
 
+// Order book spread constants
+export const ORDER_BOOK_SPREAD = {
+  // Default bid/ask spread when real order book data is not available
+  // This represents a 0.02% spread (2 basis points) which is typical for liquid markets
+  DEFAULT_BID_MULTIPLIER: 0.9999, // Bid price is 0.01% below current price
+  DEFAULT_ASK_MULTIPLIER: 1.0001, // Ask price is 0.01% above current price
+};
+
 // Deposit constants
 export const DEPOSIT_CONFIG = {
   estimatedGasLimit: 150000, // Estimated gas limit for bridge deposit

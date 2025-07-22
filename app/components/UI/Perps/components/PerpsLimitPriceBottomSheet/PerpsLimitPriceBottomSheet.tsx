@@ -18,11 +18,7 @@ import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsPrices } from '../../hooks/usePerpsPrices';
-
-// Default bid/ask spread when real order book data is not available
-// This represents a 0.01% spread (1 basis point) which is typical for liquid markets
-const DEFAULT_BID_MULTIPLIER = 0.9999; // Bid price is 0.01% below current price
-const DEFAULT_ASK_MULTIPLIER = 1.0001; // Ask price is 0.01% above current price
+import { ORDER_BOOK_SPREAD } from '../../constants/hyperLiquidConfig';
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;
@@ -57,10 +53,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     currentPrice: passedCurrentPrice,
     markPrice: passedCurrentPrice,
     bestBid: passedCurrentPrice
-      ? passedCurrentPrice * DEFAULT_BID_MULTIPLIER
+      ? passedCurrentPrice * ORDER_BOOK_SPREAD.DEFAULT_BID_MULTIPLIER
       : undefined,
     bestAsk: passedCurrentPrice
-      ? passedCurrentPrice * DEFAULT_ASK_MULTIPLIER
+      ? passedCurrentPrice * ORDER_BOOK_SPREAD.DEFAULT_ASK_MULTIPLIER
       : undefined,
   }));
 
@@ -76,12 +72,12 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
       const bid = currentPriceData?.bestBid
         ? parseFloat(currentPriceData.bestBid)
         : current
-        ? current * DEFAULT_BID_MULTIPLIER
+        ? current * ORDER_BOOK_SPREAD.DEFAULT_BID_MULTIPLIER
         : undefined;
       const ask = currentPriceData?.bestAsk
         ? parseFloat(currentPriceData.bestAsk)
         : current
-        ? current * DEFAULT_ASK_MULTIPLIER
+        ? current * ORDER_BOOK_SPREAD.DEFAULT_ASK_MULTIPLIER
         : undefined;
 
       setPriceSnapshot({
@@ -164,9 +160,15 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   // Use real bid/ask prices if available, otherwise calculate approximations
   const displayAskPrice =
-    bestAsk || (currentPrice ? currentPrice * DEFAULT_ASK_MULTIPLIER : 0);
+    bestAsk ||
+    (currentPrice
+      ? currentPrice * ORDER_BOOK_SPREAD.DEFAULT_ASK_MULTIPLIER
+      : 0);
   const displayBidPrice =
-    bestBid || (currentPrice ? currentPrice * DEFAULT_BID_MULTIPLIER : 0);
+    bestBid ||
+    (currentPrice
+      ? currentPrice * ORDER_BOOK_SPREAD.DEFAULT_BID_MULTIPLIER
+      : 0);
 
   if (!isVisible) return null;
 

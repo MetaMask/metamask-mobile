@@ -201,7 +201,9 @@ jest.mock('../../components/PerpsLimitPriceBottomSheet', () => {
     __esModule: true,
     default: ({ isVisible }: { isVisible: boolean }) =>
       isVisible
-        ? MockReact.createElement('View', { testID: 'limit-price-bottom-sheet' })
+        ? MockReact.createElement('View', {
+            testID: 'limit-price-bottom-sheet',
+          })
         : null,
   };
 });
