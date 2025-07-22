@@ -291,7 +291,7 @@ const Wallet = ({
   const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Setup for AssetDetailsActions
-  const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
+  const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
     token: {
@@ -337,17 +337,25 @@ const Wallet = ({
     }
     ///: END:ONLY_INCLUDE_IF
 
+    // Always initialize transaction for native currency before navigation
     if (nativeCurrency) {
       dispatch(newAssetTransaction(getEther(nativeCurrency)));
+    } else {
+      // Handle case where native currency is not available
+      console.warn(
+        'Native currency not available for transaction initialization',
+      );
     }
-    navigate('SendFlowView', {});
+
+    // Navigate to send flow regardless of transaction initialization
+    navigate(Routes.SEND_FLOW_VIEW, {});
   }, [
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    sendNonEvmAsset,
-    ///: END:ONLY_INCLUDE_IF
     nativeCurrency,
     navigate,
     dispatch,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    sendNonEvmAsset,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   const onBuy = useCallback(() => {

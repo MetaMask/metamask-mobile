@@ -16,6 +16,15 @@ const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 const mockAssetDetailsActions = jest.fn(() => null);
 jest.mock('../AssetDetails/AssetDetailsActions', () => mockAssetDetailsActions);
 
+// Mock the unified swaps env var function
+const mockIsUnifiedSwapsEnvVarEnabled = jest.fn();
+jest.mock(
+  '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
+  () => ({
+    isUnifiedSwapsEnvVarEnabled: mockIsUnifiedSwapsEnvVarEnabled,
+  }),
+);
+
 jest.mock('../../../util/address', () => {
   const actual = jest.requireActual('../../../util/address');
   return {
@@ -296,6 +305,7 @@ describe('Wallet', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       mockAssetDetailsActions.mockClear();
+      mockIsUnifiedSwapsEnvVarEnabled.mockClear();
     });
 
     it('should pass displayBridgeButton as true when isUnifiedSwapsEnabled is false', () => {
@@ -321,12 +331,7 @@ describe('Wallet', () => {
       };
 
       // Mock the unified swaps env var as false
-      jest.doMock(
-        '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
-        () => ({
-          isUnifiedSwapsEnvVarEnabled: jest.fn(() => false),
-        }),
-      );
+      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(false);
 
       jest
         .mocked(useSelector)
@@ -369,12 +374,7 @@ describe('Wallet', () => {
       };
 
       // Mock the unified swaps env var as true
-      jest.doMock(
-        '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
-        () => ({
-          isUnifiedSwapsEnvVarEnabled: jest.fn(() => true),
-        }),
-      );
+      mockIsUnifiedSwapsEnvVarEnabled.mockReturnValue(true);
 
       jest
         .mocked(useSelector)
