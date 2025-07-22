@@ -56,6 +56,11 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 
+interface SecretMetadata {
+  data: Uint8Array;
+  type: SecretType;
+}
+
 /**
  * Holds auth data used to determine auth configuration
  */
