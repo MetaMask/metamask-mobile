@@ -1,100 +1,77 @@
 'use strict';
 import { Mockttp } from 'mockttp';
-import { loginToApp } from '../../viewHelper.js';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
-import Ganache from '../../../app/util/test/ganache';
-import { localNodeOptions, testSpecificMock } from './helpers/constants';
-import {
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
-} from '../../fixtures/fixture-helper.js';
+import { withFixtures } from '../../fixtures/fixture-helper.js';
+import { SmokeSwaps } from '../../tags.js';
+import WalletView from '../../pages/wallet/WalletView';
+import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers.js';
-import FixtureServer from '../../fixtures/fixture-server.js';
-import {
-  getFixturesServerPort,
-  getMockServerPort,
-} from '../../fixtures/utils.js';
-import { SmokeTrade } from '../../tags.js';
-import Assertions from '../../utils/Assertions.js';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
-import { startMockServer } from './helpers/swap-mocks';
 
-const fixtureServer: FixtureServer = new FixtureServer();
+describe(SmokeSwaps('Trade: Unified UI Wallet Actions'), () => {
+  let mockServer: Mockttp | undefined;
 
-describe(SmokeTrade('Unified UI Wallet Actions'), (): void => {
-  let mockServer: Mockttp;
-  let localNode: Ganache;
+  beforeAll(async () => {
+    // No server port setup needed for simplified tests
+  });
 
-  beforeAll(async (): Promise<void> => {
-    localNode = new Ganache();
-    await localNode.start(localNodeOptions);
+  afterAll(async () => {
+    if (mockServer) {
+      await mockServer.stop();
+    }
+  });
 
-    const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
-
-    await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withGanacheNetwork('0x1')
-      .withMetaMetricsOptIn()
-      .build();
-    await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
-      permissions: { notifications: 'YES' },
-      launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
-        mockServerPort: `${mockServerPort}`,
+  it('should display wallet actions bottom sheet when tapping actions button', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
       },
-    });
-    await loginToApp();
+      async () => {
+        await loginToApp();
+
+        // Wait for wallet to load
+        await TestHelpers.delay(3000);
+        await Assertions.checkIfVisible(WalletView.container);
+
+        // Tap the actions button
+        await TabBarComponent.tapActions();
+
+        // Verify that wallet actions bottom sheet is visible with key buttons
+        await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
+        await Assertions.checkIfVisible(WalletActionsBottomSheet.sendButton);
+        await Assertions.checkIfVisible(WalletActionsBottomSheet.receiveButton);
+      },
+    );
   });
 
-  afterAll(async (): Promise<void> => {
-    await stopFixtureServer(fixtureServer);
-    if (mockServer) await stopMockServer(mockServer);
-    if (localNode) await localNode.quit();
-  });
+  it('should navigate when tapping swap button from wallet actions', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
 
-  beforeEach(async (): Promise<void> => {
-    jest.setTimeout(120000);
-  });
+        // Wait for wallet to load
+        await TestHelpers.delay(3000);
+        await Assertions.checkIfVisible(WalletView.container);
 
-  it('should display wallet actions bottom sheet when tapping actions button', async (): Promise<void> => {
-    // Simple delay after login like other successful tests
-    await TestHelpers.delay(3000);
+        // Tap the actions button
+        await TabBarComponent.tapActions();
 
-    // Tap actions button to open wallet actions bottom sheet
-    await TabBarComponent.tapActions();
+        // Tap swap button
+        await WalletActionsBottomSheet.tapSwapButton();
 
-    // Verify essential action buttons are visible
-    await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
-    await Assertions.checkIfVisible(WalletActionsBottomSheet.sendButton);
-    await Assertions.checkIfVisible(WalletActionsBottomSheet.receiveButton);
+        // Add small delay for navigation
+        await TestHelpers.delay(1000);
 
-    // Note: Bridge button visibility depends on unified UI configuration
-    // We test for its presence/absence based on current configuration
-  });
-
-  it('should navigate when tapping swap button from wallet actions', async (): Promise<void> => {
-    // Simple delay after login like other successful tests
-    await TestHelpers.delay(3000);
-
-    // Tap actions button to open wallet actions bottom sheet
-    await TabBarComponent.tapActions();
-
-    // Wait for the wallet actions bottom sheet to appear
-    await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
-
-    // Tap swap button
-    await WalletActionsBottomSheet.tapSwapButton();
-
-    // Wait for navigation to complete
-    await TestHelpers.delay(3000);
-
-    // Verify we navigated away from the main wallet view
-    // (The exact destination depends on unified UI configuration)
+        // Verify navigation occurred (swap bottom sheet should be dismissed)
+        await Assertions.checkIfNotVisible(WalletActionsBottomSheet.sendButton);
+      },
+    );
   });
 });

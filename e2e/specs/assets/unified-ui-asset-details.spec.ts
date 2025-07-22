@@ -8,13 +8,13 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import { Regression } from '../../tags';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
 
 describe(Regression('Unified UI Asset Details Actions'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    // No server port setup needed for simplified tests
   });
 
   it('should display asset details actions when viewing a token', async () => {
