@@ -20,7 +20,6 @@ import {
 import { Regression } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import Ganache from '../../../app/util/test/ganache';
 import { localNodeOptions, testSpecificMock } from './helpers/constants';
@@ -46,7 +45,10 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
 
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder().withGanacheNetwork('0x1').build();
+    const fixture = new FixtureBuilder()
+      .withGanacheNetwork('0x1')
+      .withDisabledSmartTransactions()
+      .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
@@ -63,13 +65,6 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     await stopFixtureServer(fixtureServer);
     if (mockServer) await stopMockServer(mockServer);
     if (localNode) await localNode.quit();
-  });
-
-  it('should turn off stx', async () => {
-    await TabBarComponent.tapSettings();
-    await SettingsView.tapAdvancedTitle();
-    await AdvancedSettingsView.tapSmartTransactionSwitch();
-    await TabBarComponent.tapWallet();
   });
 
   it.each`
