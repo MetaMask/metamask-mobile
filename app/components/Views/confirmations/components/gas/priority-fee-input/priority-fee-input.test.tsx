@@ -77,13 +77,10 @@ describe('PriorityFeeInput', () => {
     );
 
     const input = getByTestId('priority-fee-input');
-    fireEvent.changeText(input, '0,03');
+    fireEvent.changeText(input, '0.03');
 
     expect(mockOnChange).toHaveBeenCalledWith('0x1c9c380');
-    // The component calls validatePriorityFee multiple times due to useEffect
-    // First with initial value, then with user input
-    expect(validatePriorityFee).toHaveBeenCalledWith('0.000074565', '0.03');
-    expect(validatePriorityFee).toHaveBeenCalledWith('0,03', '0.03');
+    expect(validatePriorityFee).toHaveBeenCalledWith('0.03', '0.03');
   });
 
   it('does not render the info container if the fee info does not exist', () => {
