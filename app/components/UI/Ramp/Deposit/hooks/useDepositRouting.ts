@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { BuyQuote, OrderIdTransformer } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
@@ -25,8 +25,10 @@ import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { createWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/WebviewModal';
 import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/KycWebviewModal';
 import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
-import { useDepositSDK } from '../sdk';
+import { useDepositSDK, DEPOSIT_ENVIRONMENT } from '../sdk';
 import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
+import useAnalytics from '../../hooks/useAnalytics';
+import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
@@ -42,6 +44,7 @@ export const useDepositRouting = ({
   const { selectedRegion, clearAuthToken, selectedWalletAddress } =
     useDepositSDK();
   const { themeAppearance, colors } = useTheme();
+  const trackEvent = useAnalytics();
 
   const [, fetchKycForms] = useDepositSdkMethod({
     method: 'getKYCForms',
@@ -187,6 +190,21 @@ export const useDepositRouting = ({
     [navigation, popToBuildQuote],
   );
 
+  const navigateToAdditionalVerificationCallback = useCallback(
+    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
+      popToBuildQuote();
+      navigation.navigate(
+        ...createAdditionalVerificationNavDetails({
+          quote,
+          kycUrl,
+          cryptoCurrencyChainId,
+          paymentMethodId,
+        }),
+      );
+    },
+    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+  );
+
   const handleNavigationStateChange = useCallback(
     async ({ url }: { url: string }) => {
       if (url.startsWith(REDIRECTION_URL)) {
@@ -196,6 +214,16 @@ export const useDepositRouting = ({
 
           if (orderId) {
             try {
+              const transformedOrderId =
+                OrderIdTransformer.transakOrderIdToDepositOrderId(
+                  orderId,
+                  DEPOSIT_ENVIRONMENT,
+                );
+
+              navigateToOrderProcessingCallback({
+                orderId: transformedOrderId,
+              });
+
               const order = await getOrder(orderId, selectedWalletAddress);
 
               if (!order) {
@@ -204,7 +232,9 @@ export const useDepositRouting = ({
 
               const cryptoCurrency = getCryptoCurrencyFromTransakId(
                 order.cryptoCurrency,
+                order.network,
               );
+
               const processedOrder = {
                 ...depositOrderToFiatOrder(order),
                 account: selectedWalletAddress || order.walletAddress,
@@ -213,8 +243,22 @@ export const useDepositRouting = ({
 
               await handleNewOrder(processedOrder);
 
-              navigateToOrderProcessingCallback({
-                orderId: order.id,
+              trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+                ramp_type: 'DEPOSIT',
+                amount_source: Number(order.fiatAmount),
+                amount_destination: Number(order.cryptoAmount),
+                exchange_rate: Number(order.exchangeRate),
+                gas_fee: order.networkFees ? Number(order.networkFees) : 0,
+                processing_fee: order.partnerFees
+                  ? Number(order.partnerFees)
+                  : 0,
+                total_fee: Number(order.totalFeesFiat),
+                payment_method_id: order.paymentMethod,
+                country: selectedRegion?.isoCode || '',
+                chain_id: cryptoCurrency?.chainId || '',
+                currency_destination:
+                  selectedWalletAddress || order.walletAddress,
+                currency_source: order.fiatCurrency,
               });
             } catch (error) {
               throw new Error(
@@ -234,6 +278,8 @@ export const useDepositRouting = ({
       selectedWalletAddress,
       handleNewOrder,
       navigateToOrderProcessingCallback,
+      selectedRegion?.isoCode,
+      trackEvent,
     ],
   );
 
@@ -395,16 +441,19 @@ export const useDepositRouting = ({
           ssnKycForm && selectedRegion?.isoCode === 'US';
 
         if (personalDetailsKycForm || addressKycForm || shouldShowSsnForm) {
+          trackEvent('RAMPS_KYC_STARTED', {
+            ramp_type: 'DEPOSIT',
+            kyc_type: forms?.kycType || '',
+            region: selectedRegion?.isoCode || '',
+          });
+
           navigateToBasicInfoCallback({
             quote,
             kycUrl: idProofData?.data?.kycUrl,
           });
           return;
         } else if (idProofData?.data?.kycUrl) {
-          // should we show a welcome screen here?
-          // right now it is possible to go straight from build quote to verify identity
-          // jarring UX - camera access poppup right after build quote
-          navigateToKycWebviewCallback({
+          navigateToAdditionalVerificationCallback({
             quote,
             kycUrl: idProofData.data.kycUrl,
           });
@@ -427,9 +476,10 @@ export const useDepositRouting = ({
       handleApprovedKycFlow,
       submitPurposeOfUsage,
       clearAuthToken,
-      navigateToKycWebviewCallback,
       navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
+      trackEvent,
+      navigateToAdditionalVerificationCallback,
     ],
   );
 
@@ -439,6 +489,8 @@ export const useDepositRouting = ({
     navigateToVerifyIdentity: navigateToVerifyIdentityCallback,
     navigateToBasicInfo: navigateToBasicInfoCallback,
     navigateToEnterEmail: navigateToEnterEmailCallback,
+    navigateToAdditionalVerification: navigateToAdditionalVerificationCallback,
+    navigateToKycProcessing: navigateToKycProcessingCallback,
     handleApprovedKycFlow,
   };
 };

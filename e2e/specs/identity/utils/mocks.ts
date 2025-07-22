@@ -48,10 +48,6 @@ export async function mockIdentityServices(server: Mockttp) {
     server,
   );
   await userStorageMockttpControllerInstance.setupPath(
-    USER_STORAGE_FEATURE_NAMES.networks,
-    server,
-  );
-  await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.addressBook,
     server,
   );

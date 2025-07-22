@@ -442,8 +442,12 @@ describe('fiatOrderReducer', () => {
       setFiatOrdersRegionDeposit(null),
     );
 
-    expect(stateWithSelectedDepositRegion.selectedRegionDeposit).toEqual(testDepositRegion);
-    expect(stateWithoutSelectedDepositRegion.selectedRegionDeposit).toEqual(null);
+    expect(stateWithSelectedDepositRegion.selectedRegionDeposit).toEqual(
+      testDepositRegion,
+    );
+    expect(stateWithoutSelectedDepositRegion.selectedRegionDeposit).toEqual(
+      null,
+    );
   });
 
   it('should set the selected payment method', () => {

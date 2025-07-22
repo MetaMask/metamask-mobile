@@ -66,14 +66,16 @@ import {
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  DEBIT_CREDIT_PAYMENT_METHOD,
+  APPLE_PAY_PAYMENT_METHOD,
 } from '../../constants';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import Logger from '../../../../../../util/Logger';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const trackEvent = useAnalytics();
 
   const supportedTokens = useSupportedTokens();
   const paymentMethods = usePaymentMethods();
@@ -81,7 +83,7 @@ const BuildQuote = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
-    DEBIT_CREDIT_PAYMENT_METHOD,
+    APPLE_PAY_PAYMENT_METHOD,
   );
   const [cryptoCurrency, setCryptoCurrency] =
     useState<DepositCryptoCurrency>(USDC_TOKEN);
@@ -171,7 +173,20 @@ const BuildQuote = () => {
   const handleOnPressContinue = useCallback(async () => {
     setIsLoading(true);
     let quote: BuyQuote | undefined;
+
     try {
+      trackEvent('RAMPS_ORDER_PROPOSED', {
+        ramp_type: 'DEPOSIT',
+        amount_source: amountAsNumber,
+        amount_destination: Number(tokenAmount),
+        payment_method_id: paymentMethod.id,
+        region: selectedRegion?.isoCode || '',
+        chain_id: cryptoCurrency.chainId,
+        currency_destination: cryptoCurrency.assetId,
+        currency_source: fiatCurrency.id,
+        is_authenticated: isAuthenticated,
+      });
+
       quote = await getQuote(
         getTransakFiatCurrencyId(fiatCurrency),
         getTransakCryptoCurrencyId(cryptoCurrency),
@@ -188,6 +203,20 @@ const BuildQuote = () => {
         quoteError as Error,
         'Deposit::BuildQuote - Error fetching quote',
       );
+
+      trackEvent('RAMPS_ORDER_FAILED', {
+        ramp_type: 'DEPOSIT',
+        amount_source: amountAsNumber,
+        amount_destination: Number(tokenAmount),
+        payment_method_id: paymentMethod.id,
+        region: selectedRegion?.isoCode || '',
+        chain_id: cryptoCurrency.chainId,
+        currency_destination: cryptoCurrency.assetId,
+        currency_source: fiatCurrency.id,
+        error_message: 'BuildQuote - Error fetching quote',
+        is_authenticated: isAuthenticated,
+      });
+
       setError(
         quoteError instanceof Error && quoteError.message
           ? quoteError.message
@@ -203,12 +232,47 @@ const BuildQuote = () => {
         return;
       }
 
+      trackEvent('RAMPS_ORDER_SELECTED', {
+        ramp_type: 'DEPOSIT',
+        amount_source: quote.fiatAmount,
+        amount_destination: quote.cryptoAmount,
+        exchange_rate: Number(quote.conversionPrice || 0),
+        gas_fee: Number(
+          quote.feeBreakdown?.find((fee) => fee.type === 'network_fee')
+            ?.value || 0,
+        ),
+        processing_fee: Number(
+          quote.feeBreakdown?.find((fee) => fee.type === 'transak_fee')
+            ?.value || 0,
+        ),
+        total_fee: Number(quote.totalFee || 0),
+        payment_method_id: quote.paymentMethod,
+        region: selectedRegion?.isoCode || '',
+        chain_id: cryptoCurrency.chainId,
+        currency_destination: cryptoCurrency.assetId,
+        currency_source: quote.fiatCurrency,
+      });
+
       await routeAfterAuthentication(quote);
     } catch (routeError) {
       Logger.error(
         routeError as Error,
         'Deposit::BuildQuote - Error handling authentication',
       );
+
+      trackEvent('RAMPS_ORDER_FAILED', {
+        ramp_type: 'DEPOSIT',
+        amount_source: quote?.fiatAmount || amountAsNumber,
+        amount_destination: quote?.cryptoAmount || Number(tokenAmount),
+        payment_method_id: quote?.paymentMethod || paymentMethod.id,
+        region: selectedRegion?.isoCode || '',
+        chain_id: cryptoCurrency.chainId,
+        currency_destination: cryptoCurrency.assetId,
+        currency_source: quote?.fiatCurrency || fiatCurrency.id,
+        error_message: 'BuildQuote - Error handling authentication',
+        is_authenticated: isAuthenticated,
+      });
+
       setError(
         routeError instanceof Error && routeError.message
           ? routeError.message
@@ -219,12 +283,16 @@ const BuildQuote = () => {
       setIsLoading(false);
     }
   }, [
-    getQuote,
-    fiatCurrency,
-    cryptoCurrency,
+    trackEvent,
+    amountAsNumber,
+    tokenAmount,
     paymentMethod,
-    amount,
+    selectedRegion?.isoCode,
+    cryptoCurrency,
+    fiatCurrency,
     isAuthenticated,
+    getQuote,
+    amount,
     routeAfterAuthentication,
     navigateToVerifyIdentity,
   ]);
@@ -251,11 +319,25 @@ const BuildQuote = () => {
         (token) => token.assetId === assetId,
       );
       if (selectedToken) {
+        trackEvent('RAMPS_TOKEN_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+          chain_id: selectedToken.chainId,
+          currency_destination: selectedToken.assetId,
+          currency_source: fiatCurrency.id,
+          is_authenticated: isAuthenticated,
+        });
         setCryptoCurrency(selectedToken);
       }
       setError(null);
     },
-    [supportedTokens],
+    [
+      supportedTokens,
+      trackEvent,
+      selectedRegion?.isoCode,
+      fiatCurrency.id,
+      isAuthenticated,
+    ],
   );
 
   const handleCryptoPress = useCallback(
@@ -275,11 +357,17 @@ const BuildQuote = () => {
         (_paymentMethod) => _paymentMethod.id === selectedPaymentMethodId,
       );
       if (selectedPaymentMethod) {
+        trackEvent('RAMPS_PAYMENT_METHOD_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+          payment_method_id: selectedPaymentMethod.id,
+          is_authenticated: isAuthenticated,
+        });
         setPaymentMethod(selectedPaymentMethod);
       }
       setError(null);
     },
-    [paymentMethods],
+    [paymentMethods, trackEvent, selectedRegion?.isoCode, isAuthenticated],
   );
 
   const handlePaymentMethodPress = useCallback(() => {

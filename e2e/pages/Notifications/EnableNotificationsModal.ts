@@ -19,7 +19,7 @@ class EnableNotificationsModal {
 
   async tapOnConfirm() {
     await Gestures.waitAndTap(this.enable_button, {
-      elemDescription: 'Confirm Enable Notifications'
+      elemDescription: 'Confirm Enable Notifications',
     });
   }
 }
