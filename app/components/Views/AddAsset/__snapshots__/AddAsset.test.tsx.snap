@@ -298,7 +298,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
+                  "alignSelf": "flex-start",
                   "backgroundColor": "#3c4d9d1a",
                   "borderColor": "transparent",
                   "borderRadius": 12,
@@ -340,7 +340,7 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "alignSelf": "stretch",
+                  "alignSelf": "flex-start",
                   "backgroundColor": "#121314",
                   "borderRadius": 12,
                   "flex": 1,
