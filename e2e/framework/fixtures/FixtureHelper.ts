@@ -352,7 +352,9 @@ export async function withFixtures(
   } = options;
 
   if (mockServerInstance && testSpecificMock) {
-    throw new Error('Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.');
+    throw new Error(
+      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
+    );
   }
 
   // Prepare android devices for testing to avoid having this in all tests
@@ -364,7 +366,7 @@ export async function withFixtures(
 
   if (mockServerInstance && !testSpecificMock) {
     mockServer = mockServerInstance;
-  } 
+  }
 
   if (testSpecificMock && !mockServerInstance) {
     mockServerPort = getMockServerPort();
@@ -433,7 +435,7 @@ export async function withFixtures(
     throw error;
   } finally {
     if (endTestfn) {
-      // Pass the mockServer to the endTestfn if it exists as we may want 
+      // Pass the mockServer to the endTestfn if it exists as we may want
       // to capture events before cleanup
       await endTestfn({ mockServer });
     }

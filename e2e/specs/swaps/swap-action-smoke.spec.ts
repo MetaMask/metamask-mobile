@@ -75,8 +75,11 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
           restartDevice: true,
           endTestfn: async ({ mockServer }) => {
             // Capture events before cleanup
-            capturedEvents = await getEventsPayloads(mockServer, Object.values(EVENT_NAMES));
-          }
+            capturedEvents = await getEventsPayloads(
+              mockServer,
+              Object.values(EVENT_NAMES),
+            );
+          },
         },
         async () => {
           await loginToApp();
@@ -118,7 +121,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
               ActivitiesViewSelectorsText.CONFIRM_TEXT,
             );
           }
-
         },
       );
     },
