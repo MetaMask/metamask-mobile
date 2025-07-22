@@ -24,12 +24,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../constants/navigation/Routes', () => ({
-  BRIDGE: {
-    BRIDGE_TRANSACTION_DETAILS: 'BRIDGE_TRANSACTION_DETAILS',
-  },
-}));
-
 describe('getBridgeTxActivityTitle', () => {
   it('should return undefined when destChainName is not found in NETWORK_TO_SHORT_NETWORK_NAME_MAP', () => {
     const bridgeHistoryItem: BridgeHistoryItem = {
