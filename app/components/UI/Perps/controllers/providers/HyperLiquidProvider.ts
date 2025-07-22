@@ -23,6 +23,7 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
+import { transformMarketData } from '../../utils/marketDataTransform';
 import type {
   AccountState,
   AssetRoute,
@@ -40,6 +41,7 @@ import type {
   LiveDataConfig,
   LiquidationPriceParams,
   MaintenanceMarginParams,
+  PerpsMarketData,
   MarketInfo,
   OrderResult,
   OrderParams as PerpsOrderParams,
@@ -617,6 +619,43 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Get market data with prices, volumes, and 24h changes
+   */
+  async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
+    try {
+      DevLogger.log('Getting market data with prices via HyperLiquid SDK');
+
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+
+      // Fetch all required data in parallel for better performance
+      const [perpsMeta, allMids] = await Promise.all([
+        infoClient.meta(),
+        infoClient.allMids(),
+      ]);
+
+      if (!perpsMeta?.universe || !allMids) {
+        throw new Error('Failed to fetch market data - no data received');
+      }
+
+      // Also fetch asset contexts for additional data like volume and previous day prices
+      const metaAndCtxs = await infoClient.metaAndAssetCtxs();
+      const assetCtxs = metaAndCtxs?.[1] || [];
+
+      // Transform to UI-friendly format using standalone utility
+      return transformMarketData({
+        universe: perpsMeta.universe,
+        assetCtxs,
+        allMids,
+      });
+    } catch (error) {
+      DevLogger.log('Error getting market data with prices:', error);
+      return [];
+    }
+  }
+
+  /**
    * Validate deposit parameters according to HyperLiquid-specific rules
    * This method enforces protocol-specific requirements like minimum amounts
    */
@@ -627,9 +666,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
       isTestnet: this.clientService.isTestnetMode(),
     });
   }
-
-  // NOTE: deposit() method removed from provider - handled by PerpsController routing
-  // withdraw() method stays here since it's a HyperLiquid API operation
 
   /**
    * Withdraw funds from HyperLiquid trading account

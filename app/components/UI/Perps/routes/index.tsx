@@ -2,6 +2,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
+import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsDepositAmountView from '../Views/PerpsDepositAmountView';
 import PerpsDepositPreviewView from '../Views/PerpsDepositPreviewView';
 import PerpsDepositProcessingView from '../Views/PerpsDepositProcessingView';
@@ -13,7 +15,6 @@ import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsOrderSuccessView from '../Views/PerpsOrderSuccessView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import PerpsSlippageModal from '../components/PerpsSlippageModal';
-import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -53,6 +54,15 @@ const PerpsScreenStack = () => (
       />
 
       <Stack.Screen
+        name={Routes.PERPS.MARKETS}
+        component={PerpsMarketListView}
+        options={{
+          title: strings('perps.markets.title'),
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
         name={Routes.PERPS.DEPOSIT}
         component={PerpsDepositAmountView}
         options={{
@@ -60,6 +70,7 @@ const PerpsScreenStack = () => (
           headerShown: false,
         }}
       />
+
       <Stack.Screen
         name={Routes.PERPS.DEPOSIT_PREVIEW}
         component={PerpsDepositPreviewView}
@@ -68,6 +79,7 @@ const PerpsScreenStack = () => (
           headerShown: false,
         }}
       />
+
       <Stack.Screen
         name={Routes.PERPS.DEPOSIT_PROCESSING}
         component={PerpsDepositProcessingView}
@@ -76,6 +88,7 @@ const PerpsScreenStack = () => (
           headerShown: false,
         }}
       />
+
       <Stack.Screen
         name={Routes.PERPS.DEPOSIT_SUCCESS}
         component={PerpsDepositSuccessView}

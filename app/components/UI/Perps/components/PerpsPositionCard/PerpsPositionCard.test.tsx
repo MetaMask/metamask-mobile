@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';
@@ -231,7 +232,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'PerpsPositionDetails',
+        Routes.PERPS.POSITION_DETAILS,
         { position: mockPosition, action: 'view' },
       );
     });
@@ -275,7 +276,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'PerpsPositionDetails',
+        Routes.PERPS.POSITION_DETAILS,
         { position: mockPosition, action: 'close' },
       );
     });

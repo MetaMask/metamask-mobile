@@ -1,6 +1,7 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -52,7 +53,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const handleCardPress = async () => {
     // await triggerSelectionHaptic();
-    navigation.navigate('PerpsPositionDetails', {
+    navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
       position,
       action: 'view',
     });
@@ -64,7 +65,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       onClose(position);
     } else {
       // Navigate to position details with close action
-      navigation.navigate('PerpsPositionDetails', {
+      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
         position,
         action: 'close',
       });
