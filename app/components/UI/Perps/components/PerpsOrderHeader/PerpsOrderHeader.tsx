@@ -1,8 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
-import { Theme } from '../../../../../util/theme/models';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -18,6 +17,7 @@ import TokenIcon from '../../../Swaps/components/TokenIcon';
 import { formatPrice, formatPercentage } from '../../utils/formatUtils';
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidConfig';
 import type { OrderType } from '../../controllers/types';
+import { createStyles } from './PerpsOrderHeader.styles';
 
 const FALLBACK_PRICE_DISPLAY = '$---';
 
@@ -29,47 +29,6 @@ interface PerpsOrderHeaderProps {
   onBack?: () => void;
   onOrderTypePress?: () => void;
 }
-
-const createStyles = (colors: Theme['colors']) =>
-  StyleSheet.create({
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingVertical: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
-    },
-    headerCenter: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    headerCenterRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    headerTitle: {
-      fontSize: 18,
-    },
-    headerPriceChange: {
-      fontSize: 14,
-    },
-    marketButton: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
-      backgroundColor: colors.background.alternative,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-    },
-    tokenIcon: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-    },
-  });
 
 const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   asset,
