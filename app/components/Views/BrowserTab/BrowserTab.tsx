@@ -158,6 +158,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const [connectionType, setConnectionType] = useState(
       ConnectionType.UNKNOWN,
     );
+    const [webViewWidth, setWebViewWidth] = useState<number>(0);
     const webviewRef = useRef<WebView>(null);
     const blockListType = useRef<string>(''); // TODO: Consider improving this type
     const webStates = useRef<
@@ -1535,11 +1536,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                       onShouldStartLoadWithRequest={
                         onShouldStartLoadWithRequest
                       }
+                      onLayout={(event) => {
+                        setWebViewWidth(event.nativeEvent.layout.width);
+                      }}
                       allowsInlineMediaPlayback
                       {...(process.env.IS_TEST === 'true'
                         ? { javaScriptEnabled: true }
                         : {})}
-                      testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
+                      testID={
+                        webViewWidth > 0
+                          ? BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID
+                          : BrowserViewSelectorsIDs.BROWSER_HIDDEN_WEBVIEW_ID // In hierarchy we have multiple WebViews, but only one of them is active and focused. Set different IDs for active and inactive ones
+                      }
                       applicationNameForUserAgent={'WebView MetaMaskMobile'}
                       onFileDownload={handleOnFileDownload}
                       webviewDebuggingEnabled={isTest}
