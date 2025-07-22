@@ -18,6 +18,7 @@ const mockQuote = {
 } as BuyQuote;
 
 const mockRouteAfterAuthentication = jest.fn();
+const mockTrackEvent = jest.fn();
 
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: () => ({
@@ -31,8 +32,11 @@ jest.mock('../../sdk', () => ({
   useDepositSDK: () => ({
     setAuthToken: mockSetAuthToken,
     selectedWalletAddress: '0x1234567890abcdef',
+    selectedRegion: { isoCode: 'US' },
   }),
 }));
+
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
@@ -108,6 +112,7 @@ describe('OtpCode Screen', () => {
     jest.clearAllMocks();
     mockVerifyUserOtp.mockResolvedValue('Success');
     mockSendUserOtp.mockResolvedValue('Success');
+    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -185,6 +190,45 @@ describe('OtpCode Screen', () => {
       expect(mockVerifyUserOtp).toHaveBeenCalled();
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
       expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
+    });
+  });
+
+  it('tracks analytics event when OTP is successfully confirmed', async () => {
+    const mockResponse = {
+      id: 'mock-id-123',
+      ttl: 1000,
+      userId: 'mock-user-id',
+    } as NativeTransakAccessToken;
+
+    mockVerifyUserOtp.mockResolvedValue(mockResponse);
+    mockSetAuthToken.mockResolvedValue(undefined);
+    const { getByTestId } = render(OtpCode);
+    act(() => {
+      const codeInput = getByTestId('otp-code-input');
+      fireEvent.changeText(codeInput, '123456');
+    });
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_OTP_CONFIRMED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+      });
+    });
+  });
+
+  it('tracks analytics event when OTP submission fails', async () => {
+    mockVerifyUserOtp.mockImplementation(() => {
+      throw new Error('API call failed');
+    });
+    const { getByTestId } = render(OtpCode);
+    act(() => {
+      const codeInput = getByTestId('otp-code-input');
+      fireEvent.changeText(codeInput, '123456');
+    });
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_OTP_FAILED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+      });
     });
   });
 });

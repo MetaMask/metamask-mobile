@@ -23,9 +23,20 @@ export const EUR_CURRENCY: DepositFiatCurrency = {
 
 export const TRANSAK_NETWORKS: Record<string, CaipChainId> = {
   ethereum: 'eip155:1',
+  linea: 'eip155:59144',
+  base: 'eip155:8453',
+  solana: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  bsc: 'eip155:56',
 };
 
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
+export const TRANSAK_URL = 'https://www.transak.com';
+export const CONSENSYS_PRIVACY_POLICY_URL =
+  'https://consensys.net/privacy-policy';
+export const TRANSAK_TERMS_URL_US =
+  'https://www.transak.com/terms-of-service-us';
+export const TRANSAK_TERMS_URL_WORLD =
+  'https://www.transak.com/terms-of-service';
 
 export enum KycStatus {
   NOT_SUBMITTED = 'NOT_SUBMITTED',
@@ -47,4 +58,5 @@ export const VALIDATION_REGEX = {
   postCode: /^(?!\s*$).+/,
 };
 
-export const REDIRECTION_URL = 'https://metamask.io/';
+export const REDIRECTION_URL =
+  'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback';

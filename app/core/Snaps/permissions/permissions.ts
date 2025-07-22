@@ -2,7 +2,7 @@
 // TODO: Figure out which permissions should be disabled at this point
 export const ExcludedSnapPermissions = Object.freeze({
   eth_accounts:
-  'eth_accounts is disabled. For more information please see https://github.com/MetaMask/snaps/issues/990.',
+    'eth_accounts is disabled. For more information please see https://github.com/MetaMask/snaps/issues/990.',
 });
 export const ExcludedSnapEndowments = Object.freeze({});
 

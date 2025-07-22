@@ -4,7 +4,9 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 jest.mock('../../../core/Analytics/MetaMetrics');
 
 // create mock for shouldTrackExpectedErrors
-const shouldTrackMock = jest.requireMock('../shouldTrackExpectedErrors/shouldTrackExpectedErrors');
+const shouldTrackMock = jest.requireMock(
+  '../shouldTrackExpectedErrors/shouldTrackExpectedErrors',
+);
 jest.mock('../shouldTrackExpectedErrors/shouldTrackExpectedErrors', () => ({
   shouldTrackExpectedErrors: jest.fn(() => Promise.resolve(true)),
 }));

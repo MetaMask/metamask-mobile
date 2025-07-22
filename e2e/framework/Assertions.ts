@@ -11,7 +11,11 @@ export default class Assertions {
    * Assert element is visible with auto-retry
    */
   static async expectElementToBeVisible(
-    detoxElement: DetoxElement | WebElement,
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -43,7 +47,11 @@ export default class Assertions {
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
-    detoxElement: DetoxElement | WebElement,
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -213,7 +221,9 @@ export default class Assertions {
     return Utilities.executeWithRetry(
       async () => {
         try {
-          const el = await Utilities.waitForReadyState(detoxElement) as Detox.IndexableNativeElement;
+          const el = (await Utilities.waitForReadyState(
+            detoxElement,
+          )) as Detox.IndexableNativeElement;
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).toHaveToggleValue(true);
         } catch (error) {
@@ -246,11 +256,12 @@ export default class Assertions {
       description = 'element should be disabled',
     } = options;
 
-
     return Utilities.executeWithRetry(
       async () => {
         try {
-          const el = await Utilities.waitForReadyState(detoxElement) as Detox.IndexableNativeElement;
+          const el = (await Utilities.waitForReadyState(
+            detoxElement,
+          )) as Detox.IndexableNativeElement;
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).toHaveToggleValue(false);
         } catch (error) {
@@ -522,7 +533,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if an element has specific label
-   * @deprecated Use expectLabel() instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToHaveLabel() instead for better error handling and retry mechanisms
    */
   static async checkIfElementHasLabel(
     detoxElement: DetoxElement,
