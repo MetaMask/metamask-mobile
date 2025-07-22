@@ -18,7 +18,6 @@ import {
   Platform,
 } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { EXISTING_USER } from '../../../constants/storage';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
@@ -34,13 +33,23 @@ const mockInitialState = {
     passwordSet: false,
     loadingSet: false,
     loadingMsg: '',
+    existingUser: false,
   },
 };
 
-const mockInitialStateWithPassword = {
+const mockInitialStateWithExistingUser = {
   ...mockInitialState,
   user: {
     ...mockInitialState.user,
+    existingUser: true,
+  },
+};
+
+const mockInitialStateWithExistingUserAndPassword = {
+  ...mockInitialState,
+  user: {
+    ...mockInitialState.user,
+    existingUser: true,
     passwordSet: true,
   },
 };
@@ -88,7 +97,9 @@ jest.mock('../../../core', () => ({
 
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
-  trace: jest.fn(),
+  trace: jest
+    .fn()
+    .mockReturnValue({ _buffered: true, _name: 'test', _id: 'test' }),
   endTrace: jest.fn(),
 }));
 
@@ -313,9 +324,13 @@ describe('Onboarding', () => {
         await Promise.resolve();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ChoosePassword',
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
   });
 
@@ -383,20 +398,21 @@ describe('Onboarding', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        { [PREVIOUS_SCREEN]: ONBOARDING },
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          onboardingTraceCtx: expect.any(Object),
+        }),
       );
     });
   });
 
   describe('Navigation behavior', () => {
     it('should navigate to HOME_NAV when unlock is pressed and password is not set', async () => {
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue('existingUser');
-
       const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
-          state: mockInitialState,
+          state: mockInitialStateWithExistingUser,
         },
       );
 
@@ -417,13 +433,11 @@ describe('Onboarding', () => {
     });
 
     it('should navigate to LOGIN when unlock is pressed and password is set', async () => {
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue('existingUser');
-
       const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
-          state: mockInitialStateWithPassword,
+          state: mockInitialStateWithExistingUserAndPassword,
         },
       );
 
@@ -446,18 +460,18 @@ describe('Onboarding', () => {
 
   describe('componentDidMount behavior', () => {
     it('should check for existing user on mount', async () => {
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue('existingUser');
-
       renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
-          state: mockInitialState,
+          state: mockInitialStateWithExistingUser,
         },
       );
 
       await waitFor(() => {
-        expect(StorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
+        // The component now reads from Redux state, not MMKV storage
+        // So we don't expect StorageWrapper.getItem to be called
+        expect(StorageWrapper.getItem).not.toHaveBeenCalled();
       });
     });
 
@@ -491,7 +505,9 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(StorageWrapper.getItem).toHaveBeenCalled();
+        // The component now reads from Redux state, not MMKV storage
+        // So we don't expect StorageWrapper.getItem to be called
+        expect(StorageWrapper.getItem).not.toHaveBeenCalled();
       });
 
       await act(async () => {
@@ -571,10 +587,14 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
       );
-      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ChoosePassword',
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
 
     it('should call Apple OAuth login for import wallet flow', async () => {
@@ -616,10 +636,14 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
       );
-      expect(mockNavigate).toHaveBeenCalledWith('Rehydrate', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Rehydrate',
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
 
     it('should handle OAuth login error with user cancellation', async () => {
@@ -751,10 +775,14 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('AccountAlreadyExists', {
-        accountName: 'existing@example.com',
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'AccountAlreadyExists',
+        expect.objectContaining({
+          accountName: 'existing@example.com',
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
 
     it('should navigate to AccountNotFound for new user in import wallet flow', async () => {
@@ -792,10 +820,14 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('AccountNotFound', {
-        accountName: 'newuser@icloud.com',
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'AccountNotFound',
+        expect.objectContaining({
+          accountName: 'newuser@icloud.com',
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
   });
 });

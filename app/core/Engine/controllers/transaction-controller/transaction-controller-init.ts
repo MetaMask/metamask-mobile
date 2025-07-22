@@ -8,9 +8,8 @@ import {
   type PublishBatchHookResult,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
-import { hasProperty, Hex } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { ApprovalController } from '@metamask/approval-controller';
-import { NetworkController } from '@metamask/network-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 
@@ -18,7 +17,6 @@ import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confi
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
-import { getGlobalChainId as getGlobalChainIdSelector } from '../../../../util/networks/global-network';
 import {
   submitSmartTransactionHook,
   submitBatchSmartTransactionHook,
@@ -47,13 +45,8 @@ export const TransactionControllerInit: ControllerInitFunction<
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
 > = (request) => {
-  const {
-    controllerMessenger,
-    getState,
-    getGlobalChainId,
-    initMessenger,
-    persistedState,
-  } = request;
+  const { controllerMessenger, getState, initMessenger, persistedState } =
+    request;
 
   const {
     approvalController,
@@ -88,7 +81,10 @@ export const TransactionControllerInit: ControllerInitFunction<
         getNetworkState: () => networkController.state,
         hooks: {
           // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
-          publish: (transactionMeta: TransactionMeta, signedTransactionInHex: Hex) =>
+          publish: (
+            transactionMeta: TransactionMeta,
+            signedTransactionInHex: Hex,
+          ) =>
             publishHook({
               transactionMeta,
               getState,
@@ -110,12 +106,7 @@ export const TransactionControllerInit: ControllerInitFunction<
             }),
         },
         incomingTransactions: {
-          isEnabled: () =>
-            isIncomingTransactionsEnabled(
-              preferencesController,
-              networkController,
-              getGlobalChainId,
-            ),
+          isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
         },
         isSimulationEnabled: () =>
@@ -150,7 +141,7 @@ function publishHook({
   smartTransactionsController,
   approvalController,
   initMessenger,
-  signedTransactionInHex
+  signedTransactionInHex,
 }: {
   transactionMeta: TransactionMeta;
   getState: () => RootState;
@@ -179,7 +170,10 @@ function publishHook({
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId?: Hex) {
-  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state, chainId);
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+    state,
+    chainId,
+  );
   const featureFlags = selectSwapsChainFeatureFlags(state, chainId);
 
   return {
@@ -235,25 +229,14 @@ function publishBatchSmartTransactionHook({
     shouldUseSmartTransaction,
     approvalController,
     featureFlags,
-    transactionMeta
+    transactionMeta,
   });
 }
 
 function isIncomingTransactionsEnabled(
   preferencesController: PreferencesController,
-  networkController: NetworkController,
-  getGlobalChainId: () => string,
 ): boolean {
-  const currentHexChainId = getGlobalChainIdSelector(networkController);
-  const showIncomingTransactions =
-    preferencesController.state?.showIncomingTransactions;
-  const currentChainId = getGlobalChainId();
-  return Boolean(
-    hasProperty(showIncomingTransactions, currentChainId) &&
-      showIncomingTransactions?.[
-        currentHexChainId as unknown as keyof typeof showIncomingTransactions
-      ],
-  );
+  return preferencesController.state?.privacyMode !== true;
 }
 
 function getControllers(

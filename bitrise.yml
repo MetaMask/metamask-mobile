@@ -58,6 +58,7 @@ pipelines:
   #Run E2E test suite for  Flask builds
   run_e2e_flask_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android: {}
       - notify: {}
@@ -90,6 +91,7 @@ pipelines:
 
   flask_smoke_e2e_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android_stage: {}
       - notify: {}
@@ -97,6 +99,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
@@ -292,9 +295,12 @@ stages:
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
   build_regression_e2e_ios_android_stage:
+    abort_on_fail: true
     workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+      - ios_build_regression_tests:
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+      - android_build_regression_tests:
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -354,8 +360,10 @@ stages:
       - release_announcing_stores: {}
   build_e2e_flask_ios_android:
     workflows:
-      - build_flask_e2e_android: {}
-      - build_flask_e2e_ios: {}
+      - build_flask_e2e_android: 
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+      - build_flask_e2e_ios: 
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
   run_e2e_flask_ios_android:
     workflows:
       - run_flask_e2e_android: {}
@@ -1639,7 +1647,7 @@ workflows:
             - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
-            - source: $BITRISEIO_ANDROID_KEYSTORE_URL
+            - source: $KEYSTORE_FILE_PATH
             - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
       - restore-gradle-cache@2: {}
@@ -1892,10 +1900,26 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_flask_prod:
+    envs:
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
+      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - APP_NAME: 'flask'
+      - OUTPUT_PATH: 'flaskRelease'
+      - YARN_COMMAND: 'build:android:flask:prod'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_main_prod:
     envs:
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1911,6 +1935,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1925,6 +1950,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1939,6 +1965,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1954,6 +1981,7 @@ workflows:
       - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -1972,27 +2000,19 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  # TODO: This is exactly the same as build_android_release_and_upload_sourcemaps, remove once consolidated
   build_android_rc_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
-      - build_android_main_prod
+      - build_android_main_rc
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_android_flask_release:
-    envs:
-      - METAMASK_BUILD_TYPE: 'flask'
-      - METAMASK_ENVIRONMENT: 'production'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
-      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
-      - APP_NAME: 'flask'
-      - OUTPUT_PATH: 'flaskRelease'
     after_run:
-      - _android_build_template
+      - build_android_flask_prod
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -2504,12 +2524,11 @@ workflows:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
       - build_ios_main_prod
-  # TODO: This is exactly the same as build_ios_release_and_upload_sourcemaps, remove once consolidated
   build_ios_rc_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
-      - build_ios_main_prod
+      - build_ios_main_rc
   build_ios_beta:
     envs:
       - METAMASK_BUILD_TYPE: "beta"
@@ -2520,14 +2539,17 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_flask_release:
+    after_run:
+      - build_ios_flask_prod
+  build_ios_flask_prod:
     envs:
-      - METAMASK_BUILD_TYPE: "flask"
-      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+      - YARN_COMMAND: 'build:ios:flask:prod'
     after_run:
       - _ios_build_template
   build_ios_simbuild:
@@ -2818,7 +2840,7 @@ app:
       MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
-      BRIDGE_USE_DEV_APIS: true
+      BRIDGE_USE_DEV_APIS: false
     - opts:
         is_expand: false
       MM_BRIDGE_ENABLED: true

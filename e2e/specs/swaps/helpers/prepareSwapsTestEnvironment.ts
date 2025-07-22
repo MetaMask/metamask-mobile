@@ -1,5 +1,5 @@
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
-import SettingsView from '../../../pages/Settings/SettingsView.js';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import SettingsView from '../../../pages/Settings/SettingsView';
 import AdvancedSettingsView from '../../../pages/Settings/AdvancedView.js';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';

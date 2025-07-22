@@ -2,6 +2,9 @@
 export { usePerpsTrading } from './usePerpsTrading';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsNetwork } from './usePerpsNetwork';
+export { usePerpsMarkets } from './usePerpsMarkets';
+export { usePerpsDeposit } from './usePerpsDeposit';
+export { usePerpsDepositQuote } from './usePerpsDepositQuote';
 
 // Connection management hooks
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
@@ -10,6 +13,7 @@ export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 export { usePerpsAccount } from './usePerpsAccount';
 
 // Live data hooks (WebSocket subscriptions)
+export { usePerpsPositionData } from './usePerpsPositionData';
 // - usePerpsPrices (removed with Live Market Prices component)
 
 // Removed for minimal PR:

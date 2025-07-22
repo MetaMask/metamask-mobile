@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Image,
@@ -6,6 +6,8 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
+import { Dispatch } from 'redux';
+import { connect } from 'react-redux';
 import Text from '../../../component-library/components/Texts/Text';
 import {
   TextColor,
@@ -27,43 +29,99 @@ import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
-
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
+import {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../core/Analytics/MetaMetrics.types';
+import {
+  OnboardingActionTypes,
+  saveOnboardingEvent as saveEvent,
+} from '../../../actions/onboarding';
 import AccountStatusImg from '../../../images/account_status.png';
 
 interface AccountStatusProps {
   type?: 'found' | 'not_exist';
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
 interface AccountRouteParams {
   accountName?: string;
   oauthLoginSuccess?: boolean;
+  onboardingTraceCtx?: string;
 }
 
-const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
+const AccountStatus = ({
+  type = 'not_exist',
+  saveOnboardingEvent,
+}: AccountStatusProps) => {
   const navigation = useNavigation();
   const route = useRoute();
 
   const accountName = (route.params as AccountRouteParams)?.accountName;
   const oauthLoginSuccess = (route.params as AccountRouteParams)
     ?.oauthLoginSuccess;
+  const onboardingTraceCtx = (route.params as AccountRouteParams)
+    ?.onboardingTraceCtx;
 
   // check for small screen size
   const isSmallScreen = Dimensions.get('window').width < 375;
 
   const track = (event: IMetaMetricsEvent) => {
-    trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(event).build(),
+      saveOnboardingEvent,
+    );
   };
+
+  useEffect(() => {
+    const traceName =
+      type === 'found'
+        ? TraceName.OnboardingNewSocialAccountExists
+        : TraceName.OnboardingExistingSocialAccountNotFound;
+
+    trace({
+      name: traceName,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: getTraceTags(store.getState()),
+      parentContext: onboardingTraceCtx,
+    });
+    return () => {
+      endTrace({ name: traceName });
+    };
+  }, [onboardingTraceCtx, type]);
 
   const navigateNextScreen = (
     targetRoute: string,
     previousScreen: string,
     metricEvent: string,
   ) => {
+    const nextScenarioTraceName =
+      type === 'found'
+        ? TraceName.OnboardingExistingSocialLogin
+        : TraceName.OnboardingNewSocialCreateWallet;
+    trace({
+      name: nextScenarioTraceName,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: {
+        ...getTraceTags(store.getState()),
+        source: 'account_status_redirect',
+      },
+      parentContext: onboardingTraceCtx,
+    });
+
     navigation.dispatch(
       StackActions.replace(targetRoute, {
         [PREVIOUS_SCREEN]: previousScreen,
         oauthLoginSuccess,
+        onboardingTraceCtx,
       }),
     );
     track(
@@ -136,4 +194,9 @@ const AccountStatus = ({ type = 'not_exist' }: AccountStatusProps) => {
   );
 };
 
-export default AccountStatus;
+const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
+  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
+    dispatch(saveEvent(eventArgs)),
+});
+
+export default connect(null, mapDispatchToProps)(AccountStatus);
