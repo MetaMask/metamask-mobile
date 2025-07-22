@@ -4,7 +4,7 @@ import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { BridgeQuoteRequest, getBridgeQuotes } from '../../utils/bridge';
 import { useEffect, useMemo } from 'react';
-import { usePayAsset } from './usePayAsset';
+import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useDispatch } from 'react-redux';
 import { setTransactionBridgeQuotes } from '../../../../../core/redux/slices/confirmationMetrics';
@@ -21,8 +21,8 @@ export function useTransactionBridgeQuotes() {
   const from = transactionMeta?.txParams.from as Hex;
 
   const {
-    payAsset: { address: sourceTokenAddress, chainId: sourceChainId },
-  } = usePayAsset();
+    payToken: { address: sourceTokenAddress, chainId: sourceChainId },
+  } = useTransactionPayToken();
 
   const transactionId = transactionMeta?.id as string;
   const targetChainId = transactionMeta?.chainId as Hex;
@@ -49,8 +49,8 @@ export function useTransactionBridgeQuotes() {
       }) ?? [],
     [
       from,
-      JSON.stringify(requiredTokens),
-      JSON.stringify(sourceAmounts),
+      requiredTokens,
+      sourceAmounts,
       sourceChainId,
       sourceTokenAddress,
       targetChainId,

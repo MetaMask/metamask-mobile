@@ -1,14 +1,14 @@
 import { BigNumber } from 'bignumber.js';
 import { useMemo } from 'react';
-import { usePayAsset } from './usePayAsset';
+import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { useTokenFiatRates } from '../useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 
 export function useTransactionPayTokenAmounts() {
-  const { payAsset } = usePayAsset();
-  const { address, chainId } = payAsset;
+  const { payToken } = useTransactionPayToken();
+  const { address, chainId } = payToken;
 
   const tokens = useTokensWithBalance({
     chainIds: [chainId],
@@ -23,8 +23,7 @@ export function useTransactionPayTokenAmounts() {
     [tokens],
   );
 
-  const tokenDecimals =
-    tokensByAddress[payAsset.address.toLowerCase()]?.decimals ?? 18;
+  const tokenDecimals = tokensByAddress[address.toLowerCase()]?.decimals ?? 18;
 
   const fiatRequest = useMemo(
     () => [
