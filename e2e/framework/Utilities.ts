@@ -1,3 +1,4 @@
+import { waitFor } from 'detox';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types';
 import { createLogger } from './logger';
