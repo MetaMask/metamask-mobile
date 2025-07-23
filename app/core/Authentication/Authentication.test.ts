@@ -1480,7 +1480,9 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
 
       await expect(
-        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
+        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword, {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        }),
       ).rejects.toThrow('change password failed');
 
       expect(Authentication.lockApp).toHaveBeenCalledWith({ locked: true });
