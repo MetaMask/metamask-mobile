@@ -6,8 +6,8 @@ import React, {
   useState,
 } from 'react';
 import { Hex } from '@metamask/utils';
-import { useNavigation } from '@react-navigation/native';
 import { TransactionParams } from '@metamask/transaction-controller';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 import Engine from '../../../../../core/Engine';
