@@ -163,21 +163,33 @@ const BuildQuote = () => {
   }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchOtt = async () => {
       if (isAuthenticated) {
         try {
           const ottResult = await requestOtt();
-          if (ottResult) {
+          if (ottResult && isMounted) {
             setOtt(ottResult.token);
           }
         } catch (ottError) {
-          Logger.error(ottError as Error, 'BuildQuote - Error requesting OTT');
+          if (isMounted) {
+            Logger.error(
+              ottError as Error,
+              'BuildQuote - Error requesting OTT',
+            );
+          }
         }
       }
     };
 
     fetchOtt();
-  }, [isAuthenticated, requestOtt]);
+
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());
