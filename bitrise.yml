@@ -238,6 +238,9 @@ stages:
     abort_on_fail: true
     workflows:
       - build_ios_main_e2e:
+          envs:
+            - IS_SIM_BUILD: 'true'
+            - IS_RELEASE_BUILD: 'true'
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
       - build_android_main_e2e:
           run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
@@ -2462,9 +2465,17 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
+
+                # Set build type
+                if [ "$IS_RELEASE_BUILD" = "true" ]; then
+                  BUILD_TYPE="Release"
+                else
+                  BUILD_TYPE="Debug"
+                fi
+
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
-                  BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
+                  BUILD_DIR="ios/build/Build/Products/${BUILD_TYPE}-iphonesimulator"
                   DEVICE_TYPE="simulator"
                   BINARY_EXTENSION=".app"
                 else
@@ -2562,7 +2573,6 @@ workflows:
       - _ios_build_template
   build_ios_main_e2e:
     envs:
-      - IS_SIM_BUILD: 'true'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
