@@ -44,7 +44,6 @@ export const SendContextProvider: React.FC<{
   const [transactionParams, setTransactionParams] = useState<TransactionParams>(
     {
       from: from?.address as string,
-      to: '0xa4A80ce0AFDfb8E6bd1221D3b18a1653EEE6d19d',
     },
   );
   const { chainId } = asset ?? { chainId: undefined };
