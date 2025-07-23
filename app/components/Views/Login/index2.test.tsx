@@ -67,8 +67,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const mockEngine = jest.mocked(Engine);
-
 jest.mock('../../../util/mnemonic', () => ({
   uint8ArrayToMnemonic: jest.fn(),
 }));
