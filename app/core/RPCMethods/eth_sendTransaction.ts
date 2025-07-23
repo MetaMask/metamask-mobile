@@ -11,6 +11,7 @@ import {
 } from '@metamask/transaction-controller';
 import { rpcErrors } from '@metamask/rpc-errors';
 import ppomUtil, { PPOMRequest } from '../../lib/ppom/ppom-util';
+import Engine from '../Engine';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.
@@ -99,13 +100,19 @@ async function eth_sendTransaction({
       message: `Invalid parameters: expected the first parameter to be an object`,
     });
   }
+
+  const networkConfig =
+    Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId(
+      req.networkClientId,
+    );
+
   // TODO: Normalize chainId to Hex string
-  const nChainId = parseInt(req.networkClientId, 16);
+  const nChainId = parseInt(networkConfig?.chainId || '0x0', 16);
+
   await validateAccountAndChainId({
     from: req.params[0].from,
     chainId: nChainId,
   });
-
 
   const { result, transactionMeta } = await sendTransaction(req.params[0], {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
