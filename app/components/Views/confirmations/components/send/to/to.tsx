@@ -20,6 +20,7 @@ const To = () => {
           updateTransactionParams({ to });
         }}
         value={transactionParams?.to}
+        testID="send_to_address"
       />
     </View>
   );

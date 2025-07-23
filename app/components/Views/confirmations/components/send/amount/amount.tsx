@@ -19,6 +19,7 @@ const Amount = () => {
         onChangeText={(value: string) => {
           updateTransactionParams({ value });
         }}
+        testID="send_amount"
       />
     </View>
   );

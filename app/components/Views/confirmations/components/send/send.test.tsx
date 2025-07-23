@@ -8,6 +8,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import * as TransactionUtils from '../../../../../util/transaction-controller';
 import { SendContextProvider } from '../../context/send-context';
 import Send from './send';
+import { getByTestId } from '@testing-library/react';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -91,8 +92,9 @@ describe('Send', () => {
           transactionMeta: { id: '123' } as TransactionMeta,
         }),
       );
-    const { getByText } = renderComponent();
-
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_to_address'), '0x123');
+    fireEvent.changeText(getByTestId('send_amount'), '1');
     fireEvent.press(getByText('Confirm'));
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
   });
