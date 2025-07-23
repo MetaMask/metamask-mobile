@@ -188,14 +188,14 @@ export const startMockServer = async (
       }
 
       // DEFAULT RESPONSE MOCKING
-      const defaultResponse = getDefaultResponse(host, pathname);
+      const defaultResponse = getDefaultResponse(urlEndpoint);
       if (defaultResponse) {
         conditionalLogger.debug(
-          `📋 DEFAULT MOCK: Using default response for ${host}${pathname}`,
+          `📋 DEFAULT MOCK: Using default response for ${urlEndpoint}`,
         );
         return {
-          statusCode: defaultResponse.statusCode,
-          body: JSON.stringify(defaultResponse),
+          statusCode: defaultResponse.responseCode,
+          body: JSON.stringify(defaultResponse.response),
         };
       }
 
@@ -207,7 +207,7 @@ export const startMockServer = async (
         return {
           statusCode: 200,
           body: JSON.stringify({
-            message: 'Catch-all response, no specific mock found',
+            message: '',
           }),
         };
       }
