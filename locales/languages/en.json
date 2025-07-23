@@ -1372,8 +1372,8 @@
   "accounts": {
     "srp_index": "SRP #{{index}}",
     "bitcoin_p2pkh": "Legacy",
-    "bitcoin_p2sh": "SegWit",
-    "bitcoin_p2wpkh": "Nested SegWit",
+    "bitcoin_p2sh": "Nested SegWit",
+    "bitcoin_p2wpkh": "SegWit",
     "bitcoin_p2tr": "Taproot",
     "snap_account_tag": "Snaps (Beta)",
     "create_new_account": "Create a new account",

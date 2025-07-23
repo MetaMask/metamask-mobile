@@ -50,7 +50,7 @@ jest.mock('../../../util/address', () => {
   const actual = jest.requireActual('../../../util/address');
   return {
     ...actual,
-    getLabelTextByInternalAccount: jest.fn(),
+    getLabelsTextByInternalAccount: jest.fn(),
   };
 });
 
@@ -1328,13 +1328,13 @@ describe('EvmAccountSelectorList', () => {
   it('does not render tag labels when multichain accounts enabled', () => {
     jest
       .requireMock('../../../util/address')
-      .getLabelTextByInternalAccount.mockReturnValue('Imported');
+      .getLabelsTextByInternalAccount.mockReturnValue('Imported');
 
     const multichainState = getMultichainState();
     const { queryByText } = renderComponent(multichainState);
 
     // Tag labels should not be rendered when multichain is enabled
-    // Even though getLabelTextByInternalAccount might be called, its result shouldn't be displayed
+    // Even though getLabelsTextByInternalAccount might be called, its result shouldn't be displayed
     expect(queryByText('Imported')).toBeNull();
   });
 

@@ -387,11 +387,14 @@ export function getLabelsTextByInternalAccount(
       break;
     }
     case ExtendedKeyringTypes.ledger:
-      return strings('accounts.ledger');
+      labels.push(strings('accounts.ledger'));
+      break;
     case ExtendedKeyringTypes.qr:
-      return strings('accounts.qr_hardware');
+      labels.push(strings('accounts.qr_hardware'));
+      break;
     case ExtendedKeyringTypes.simple:
-      return strings('accounts.imported');
+      labels.push(strings('accounts.imported'));
+      break;
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     case KeyringTypes.snap: {
       const srpLabel = getSrpLabel(internalAccount);
@@ -414,6 +417,8 @@ export function getLabelsTextByInternalAccount(
       ) {
         labels.push(getBitcoinLabel(internalAccount.type));
       }
+
+      break;
     }
     ///: END:ONLY_INCLUDE_IF
   }
