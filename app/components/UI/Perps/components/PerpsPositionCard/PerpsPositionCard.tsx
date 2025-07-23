@@ -42,6 +42,7 @@ interface PerpsPositionCardProps {
   expanded?: boolean;
   showIcon?: boolean;
   rightAccessory?: React.ReactNode;
+  isInPerpsNavContext?: boolean; // NEW: Indicates if this is used within the Perps navigation stack
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -52,6 +53,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   expanded = true, // Default to expanded for backward compatibility
   showIcon = false, // Default to not showing icon
   rightAccessory,
+  isInPerpsNavContext = true, // Default to true since most usage is within Perps stack
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -64,10 +66,22 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const handleCardPress = async () => {
     // await triggerSelectionHaptic();
-    navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
-      position,
-      action: 'view',
-    });
+    if (isInPerpsNavContext) {
+      // Direct navigation when already in Perps stack
+      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
+        position,
+        action: 'view',
+      });
+    } else {
+      // Navigate to nested Perps screen when in main navigation context
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.POSITION_DETAILS,
+        params: {
+          position,
+          action: 'view',
+        },
+      });
+    }
   };
 
   const handleClosePress = () => {

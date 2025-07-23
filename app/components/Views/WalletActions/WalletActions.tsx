@@ -459,15 +459,17 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
-        <WalletAction
-          actionType={WalletActionType.PerpsSandbox}
-          iconName={IconName.Arrow2Right}
-          onPress={onPerpsSandbox}
-          iconStyle={sendIconStyle}
-          actionID={WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON}
-          iconSize={AvatarSize.Md}
-          disabled={!canSignTransactions}
-        />
+        {isPerpsEnabled && (
+          <WalletAction
+            actionType={WalletActionType.PerpsSandbox}
+            iconName={IconName.Arrow2Right}
+            onPress={onPerpsSandbox}
+            iconStyle={sendIconStyle}
+            actionID={WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
         <WalletAction
           actionType={WalletActionType.Receive}
           iconName={IconName.Received}
