@@ -44,6 +44,7 @@ const Routes = {
       STATE_SELECTOR: 'DepositStateSelectorModal',
       WEBVIEW: 'DepositWebviewModal',
       KYC_WEBVIEW: 'DepositKycWebviewModal',
+      INCOMPATIBLE_ACCOUNT_TOKEN: 'IncompatibleAccountTokenModal',
     },
   },
   HW: {

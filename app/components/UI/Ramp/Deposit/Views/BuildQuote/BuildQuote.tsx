@@ -42,13 +42,17 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
 
 import { useStyles } from '../../../../../hooks/useStyles';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
+import useAnalytics from '../../../hooks/useAnalytics';
 import useSupportedTokens from '../../hooks/useSupportedTokens';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
+import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
 
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
 import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal';
 import { createUnsupportedRegionModalNavigationDetails } from '../Modals/UnsupportedRegionModal';
+import { createIncompatibleAccountTokenModalNavigationDetails } from '../Modals/IncompatibleAccountTokenModal';
 
 import {
   getTransakCryptoCurrencyId,
@@ -60,6 +64,7 @@ import {
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';
+import Logger from '../../../../../../util/Logger';
 
 import {
   selectChainId,
@@ -74,9 +79,6 @@ import {
   EUR_CURRENCY,
   APPLE_PAY_PAYMENT_METHOD,
 } from '../../constants';
-import { useDepositRouting } from '../../hooks/useDepositRouting';
-import Logger from '../../../../../../util/Logger';
-import useAnalytics from '../../../hooks/useAnalytics';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -100,6 +102,8 @@ const BuildQuote = () => {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
+
+  const isAccountTokenCompatible = useAccountTokenCompatible(cryptoCurrency);
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting({
@@ -204,7 +208,17 @@ const BuildQuote = () => {
     }, [selectedRegion, navigation]),
   );
 
+  const handleNavigateToIncompatibleAccountTokenModal = useCallback(() => {
+    navigation.navigate(
+      ...createIncompatibleAccountTokenModalNavigationDetails(),
+    );
+  }, [navigation]);
+
   const handleOnPressContinue = useCallback(async () => {
+    if (!isAccountTokenCompatible) {
+      handleNavigateToIncompatibleAccountTokenModal();
+      return;
+    }
     setIsLoading(true);
     let quote: BuyQuote | undefined;
 
@@ -317,6 +331,8 @@ const BuildQuote = () => {
       setIsLoading(false);
     }
   }, [
+    isAccountTokenCompatible,
+    handleNavigateToIncompatibleAccountTokenModal,
     trackEvent,
     amountAsNumber,
     tokenAmount,
@@ -502,7 +518,11 @@ const BuildQuote = () => {
             </TouchableOpacity>
             {error && (
               <View style={styles.errorContainer}>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Error}
+                  style={styles.errorText}
+                >
                   {error}
                 </Text>
               </View>
