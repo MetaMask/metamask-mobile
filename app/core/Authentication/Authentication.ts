@@ -487,7 +487,7 @@ class AuthenticationService {
         await this.rehydrateSeedPhrase(password, authData);
       } else if (await this.checkIsSeedlessPasswordOutdated()) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-        await this.syncPasswordAndUnlockWallet(password);
+        await this.syncPasswordAndUnlockWallet(password, authData);
       } else {
         // else srp flow
         await this.loginVaultCreation(password);
@@ -854,6 +854,9 @@ class AuthenticationService {
       throw err;
     }
     await this.resetPassword();
+
+    // set solana discovery pending to true
+    StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
   };
 
   /**
