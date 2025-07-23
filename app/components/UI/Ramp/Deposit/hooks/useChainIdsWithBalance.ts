@@ -47,7 +47,7 @@ function useChainIdsWithBalance() {
       const amount =
         selectedMultichainBalances[selectedSelectedInternalAccount.id][
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501'
-        ].amount;
+        ]?.amount;
       if (parseFloat(amount) > 0) {
         chainIdsWithBalance.push(SOLANA_MAINNET.chainId);
       }
