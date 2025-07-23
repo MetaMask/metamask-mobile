@@ -12,7 +12,7 @@ on:
 jobs:
   smoke-confirmations-ios:
     name: "Confirmations Smoke (iOS)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-confirmations-ios
@@ -24,7 +24,7 @@ jobs:
 
   smoke-confirmations-android:
     name: "Confirmations Smoke (Android)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-confirmations-android
@@ -36,7 +36,7 @@ jobs:
 
   smoke-confirmations-redesigned-ios:
     name: "Confirmations Redesigned Smoke (iOS)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-confirmations-redesigned-ios
@@ -60,7 +60,7 @@ jobs:
 
   smoke-trade-android:
     name: "Trade Smoke (Android)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-trade-android
@@ -72,7 +72,7 @@ jobs:
 
   smoke-wallet-platform-ios:
     name: "Wallet Platform Smoke (iOS)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-wallet-platform-ios
@@ -84,7 +84,7 @@ jobs:
 
   smoke-wallet-platform-android:
     name: "Wallet Platform Smoke (Android)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-wallet-platform-android
@@ -96,7 +96,7 @@ jobs:
 
   smoke-identity-ios:
     name: "Identity Smoke (iOS)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-identity-ios
@@ -108,7 +108,7 @@ jobs:
 
   smoke-identity-android:
     name: "Identity Smoke (Android)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-identity-android
@@ -120,7 +120,7 @@ jobs:
 
   smoke-accounts-ios:
     name: "Accounts Smoke (iOS)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-accounts-ios
@@ -132,7 +132,7 @@ jobs:
 
   smoke-accounts-android:
     name: "Accounts Smoke (Android)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-accounts-android
@@ -144,7 +144,7 @@ jobs:
 
   smoke-network-abstraction-ios:
     name: "Network Abstraction Smoke (iOS)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-network-abstraction-ios
@@ -156,7 +156,7 @@ jobs:
 
   smoke-network-abstraction-android:
     name: "Network Abstraction Smoke (Android)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-network-abstraction-android
