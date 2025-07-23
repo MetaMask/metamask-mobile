@@ -186,6 +186,36 @@ export const mockEvents = {
       responseCode: 200,
     },
 
+    remoteFeatureMultichainAccountsEnabled: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '1',
+            minimumVersion: '7.46.0',
+          },
+        },
+      ],
+      responseCode: 200,
+    },
+
+    remoteFeatureMultichainAccountsDisabled: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          enableMultichainAccounts: {
+            enabled: false,
+            featureVersion: '1',
+            minimumVersion: '7.46.0',
+          },
+        },
+      ],
+      responseCode: 200,
+    },
+
     remoteFeatureEip7702: {
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',

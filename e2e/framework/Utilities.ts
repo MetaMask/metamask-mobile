@@ -1,3 +1,4 @@
+import { waitFor } from 'detox';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types';
 import { createLogger } from './logger';
@@ -283,6 +284,42 @@ export default class Utilities {
         elemDescription,
       },
     );
+  }
+
+  /**
+   * Wait for element to be visible and throw on failure
+   */
+  static async waitForElementToBeVisible(
+    detoxElement: DetoxElement | DetoxMatcher,
+    timeout: number = 2000,
+  ): Promise<void> {
+    const el = await detoxElement as Detox.IndexableNativeElement;
+    const isWebElement = this.isWebElement(el);
+
+    if (isWebElement) {
+      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+      await (expect(el) as any).toExist();
+    } else if (device.getPlatform() === 'ios') {
+      await waitFor(el).toExist().withTimeout(timeout);
+    } else {
+      await waitFor(el).toBeVisible().withTimeout(timeout);
+    }
+  }
+
+  /**
+   * Check if element is currently visible
+   * Returns true if element is visible, false if not visible or doesn't exist
+   */
+  static async isElementVisible(
+    detoxElement: DetoxElement | DetoxMatcher,
+    timeout: number = 2000,
+  ): Promise<boolean> {
+    try {
+      await this.waitForElementToBeVisible(detoxElement, timeout);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
