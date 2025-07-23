@@ -7,13 +7,11 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import MultichainTransactionListItem from '../MultichainTransactionListItem';
-import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
   useTheme: () => mockUseTheme(),
 }));
-jest.mock('../../hooks/useMultichainTransactionDisplay');
 jest.mock('../../../util/transaction-icons', () => ({
   getTransactionIcon: jest.fn(),
 }));
@@ -50,28 +48,53 @@ describe('MultichainTransactionListItem', () => {
     from: [
       {
         address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
-        asset: null,
+        asset: {
+          amount: '1.5',
+          unit: 'SOL',
+          fungible: true,
+          type: 'solana:mainnet/SOL:SOL',
+        },
       },
     ],
     to: [
-      { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY', asset: null },
+      {
+        address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
+        asset: {
+          amount: '1.5',
+          unit: 'SOL',
+          fungible: true,
+          type: 'solana:mainnet/SOL:SOL',
+        },
+      },
     ],
     type: TransactionType.Send,
     timestamp: 1742313600000,
     status: 'confirmed',
     events: [],
-    fees: [],
+    fees: [
+      {
+        type: 'priority',
+        asset: {
+          amount: '0.00005',
+          unit: 'SOL',
+          fungible: true,
+          type: 'solana:mainnet/SOL:SOL',
+        },
+      },
+      {
+        type: 'base',
+        asset: {
+          amount: '0.00001',
+          unit: 'SOL',
+          fungible: true,
+          type: 'solana:mainnet/SOL:SOL',
+        },
+      },
+    ],
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      type: TransactionType.Send,
-      status: 'confirmed',
-      to: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-      from: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-      asset: { amount: '1.5', unit: 'SOL' },
-    });
   });
 
   it('renders correctly for a Send transaction', () => {
@@ -83,36 +106,16 @@ describe('MultichainTransactionListItem', () => {
       />,
     );
 
-    expect(getByText('Send')).toBeTruthy();
-    expect(getByText('1.5 SOL')).toBeTruthy();
+    expect(getByText('transactions.sent')).toBeTruthy();
+    expect(getByText('transaction.confirmed')).toBeTruthy();
+    expect(getByText('-1.5 SOL')).toBeTruthy();
     expect(getByText('Mar 15, 2025')).toBeTruthy();
   });
 
   it('renders correctly for a Receive transaction', () => {
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      type: TransactionType.Receive,
-      status: 'confirmed',
-      to: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-      from: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-      asset: { amount: '2.0', unit: 'SOL' },
-    });
-
     const receiveTransaction = {
       ...mockTransaction,
       type: TransactionType.Receive,
-      from: [
-        {
-          address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
-          asset: null,
-        },
-      ],
-      to: [
-        {
-          address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
-          asset: null,
-        },
-      ],
-      value: '2000000000',
     };
 
     const { getByText } = renderWithProvider(
@@ -123,28 +126,31 @@ describe('MultichainTransactionListItem', () => {
       />,
     );
 
-    expect(getByText('Receive')).toBeTruthy();
-    expect(getByText('2.0 SOL')).toBeTruthy();
+    expect(getByText('transactions.received')).toBeTruthy();
+    expect(getByText('transaction.confirmed')).toBeTruthy();
+    expect(getByText('1.5 SOL')).toBeTruthy();
   });
 
   it('renders correctly for a Swap transaction', () => {
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
+    const swapTransaction: Transaction = {
+      ...mockTransaction,
       type: TransactionType.Swap,
-      status: 'confirmed',
-      to: {
-        address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
-        asset: { fungible: true, unit: 'USDC' },
-      },
-      from: {
-        address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
-        asset: { fungible: true, unit: 'SOL' },
-      },
-      asset: { amount: '1.5', unit: 'SOL' },
-    });
+      to: [
+        {
+          address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
+          asset: {
+            amount: '100',
+            unit: 'USDC',
+            fungible: true,
+            type: 'solana:mainnet/USDC:USDC',
+          },
+        },
+      ],
+    };
 
     const { getByText } = renderWithProvider(
       <MultichainTransactionListItem
-        transaction={mockTransaction}
+        transaction={swapTransaction}
         chainId={SolScope.Mainnet}
         navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
@@ -153,6 +159,24 @@ describe('MultichainTransactionListItem', () => {
     expect(
       getByText('transactions.swap SOL transactions.to USDC'),
     ).toBeTruthy();
+  });
+
+  it('renders correctly for a Redeposit transaction', () => {
+    const swapTransaction = {
+      ...mockTransaction,
+      to: [],
+    };
+
+    const { getByText } = renderWithProvider(
+      <MultichainTransactionListItem
+        transaction={swapTransaction}
+        chainId={SolScope.Mainnet}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+      />,
+    );
+
+    expect(getByText('transactions.redeposit')).toBeTruthy();
+    expect(getByText('-0.00005 SOL')).toBeTruthy();
   });
 
   it('opens transaction details modal when pressed', () => {
@@ -172,14 +196,6 @@ describe('MultichainTransactionListItem', () => {
   });
 
   it('handles failed transaction status', () => {
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      type: TransactionType.Send,
-      status: 'failed',
-      to: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-      from: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-      asset: { amount: '1.5', unit: 'SOL' },
-    });
-
     const { getByTestId } = renderWithProvider(
       <MultichainTransactionListItem
         transaction={mockTransaction}
@@ -189,28 +205,5 @@ describe('MultichainTransactionListItem', () => {
     );
 
     expect(getByTestId('transaction-status-tx-123')).toBeTruthy();
-  });
-
-  it('shows the network fees of a transaction', () => {
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      type: TransactionType.Send,
-      status: 'confirmed',
-      to: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-      from: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-      asset: { amount: '1.5', unit: 'SOL' },
-      baseFee: { amount: '0.000005', unit: 'SOL' },
-      priorityFee: { amount: '0.000001', unit: 'SOL' },
-    });
-
-    const { getByText } = renderWithProvider(
-      <MultichainTransactionListItem
-        transaction={mockTransaction}
-        chainId={SolScope.Mainnet}
-        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
-      />,
-    );
-
-    expect(getByText('Send')).toBeTruthy();
-    expect(getByText('1.5 SOL')).toBeTruthy();
   });
 });

@@ -129,7 +129,9 @@ describe('MultichainBridgeTransactionListItem', () => {
     expect(
       getByText('bridge_transaction_details.bridge_to_chain'),
     ).toBeTruthy();
-    expect(getByText('1.5 SOL')).toBeTruthy();
+    expect(getByText('transaction.confirmed')).toBeTruthy();
+    expect(getByText('1000000000000000000 ETH')).toBeTruthy();
+    expect(getByText('Mar 15, 2025')).toBeTruthy();
   });
 
   it('renders a pending bridge transaction with segments', () => {
