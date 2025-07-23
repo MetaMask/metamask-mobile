@@ -287,12 +287,13 @@ const BridgeView = () => {
             displayValidationError = true;
             const isValidationError =
               !!validationResult.result.validation.reason;
+            const { error_details } = validationResult;
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
               params: {
                 errorType: isValidationError ? 'validation' : 'simulation',
-                errorMessage: isValidationError
-                  ? validationResult.result.validation.reason
+                errorMessage: error_details?.message
+                  ? `The ${error_details.message}.`
                   : validationResult.error,
               },
             });
