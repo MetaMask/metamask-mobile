@@ -493,13 +493,6 @@ class ResetPassword extends PureComponent {
     try {
       this.setState({ loading: true, showPasswordChangeWarning: false });
 
-      const isGlobalPasswordOutdated =
-        await Authentication.checkIsSeedlessPasswordOutdated();
-      if (isGlobalPasswordOutdated) {
-        this.handleSeedlessPasswordOutdated();
-        return;
-      }
-
       try {
         await this.recreateVault();
       } catch (error) {
