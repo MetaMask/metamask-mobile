@@ -8,7 +8,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import * as TransactionUtils from '../../../../../util/transaction-controller';
 import { SendContextProvider } from '../../context/send-context';
 import Send from './send';
-import { getByTestId } from '@testing-library/react';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
