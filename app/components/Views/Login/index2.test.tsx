@@ -749,7 +749,7 @@ describe('Login test suite 2', () => {
       } as unknown as ReduxStore);
       jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
 
-      mockEngine.context.KeyringController.verifyPassword = jest.fn();
+      mockEngine.context.KeyringController.submitPassword = jest.fn();
       // jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
 
       const { getByTestId } = renderWithProvider(<Login />);
