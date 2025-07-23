@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Alert,
-  ActivityIndicator,
   Keyboard,
   View,
   SafeAreaView,
@@ -92,7 +91,7 @@ import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import ConcealingFox from '../../../animations/Concealing_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
-import LottieView from 'lottie-react-native';
+import LottieView, { AnimationObject } from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
 import {
@@ -475,7 +474,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       if (loading || locked) return;
 
       setLoading(true);
-      setError(null);
 
       await performAuthentication();
       Keyboard.dismiss();
@@ -494,6 +492,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setPassword('');
       setLoading(false);
       setHasBiometricCredentials(false);
+      setError(null);
       fieldRef.current?.clear();
     } catch (loginErr: unknown) {
       await handleLoginError(loginErr);
@@ -574,7 +573,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   );
 
   const lottieSrc = useMemo(
-    () => (password.length > 0 ? ConcealingFox : SearchingFox),
+    () =>
+      (password.length > 0 ? ConcealingFox : SearchingFox) as AnimationObject,
     [password.length],
   );
 
@@ -629,7 +629,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={strings('login.password_placeholder')}
-                placeholderTextColor={colors.text.muted}
+                placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
                 autoCapitalize="none"
@@ -647,6 +647,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 }
                 keyboardAppearance={themeAppearance}
                 isDisabled={disabledInput}
+                isError={!!error}
               />
             </View>
 
@@ -670,18 +671,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
                 onPress={onLogin}
-                label={
-                  loading ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={colors.primary.inverse}
-                    />
-                  ) : (
-                    strings('login.unlock_button')
-                  )
-                }
-                isDisabled={password.length === 0 || disabledInput}
+                label={strings('login.unlock_button')}
+                isDisabled={password.length === 0 || disabledInput || loading}
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+                loading={loading}
               />
 
               {!oauthLoginSuccess && (
