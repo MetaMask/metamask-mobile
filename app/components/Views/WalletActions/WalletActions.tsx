@@ -275,6 +275,12 @@ const WalletActions = () => {
         .build(),
     );
 
+    if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
+      closeBottomSheetAndNavigate(() => {
+        navigate(Routes.SEND.ROOT, {});
+      });
+    }
+
     // Try non-EVM first, if handled, return early
     const wasHandledAsNonEvm = await sendNonEvmAsset();
     if (wasHandledAsNonEvm) {

@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 import { device } from 'detox';
+import { encryptVault } from './fixture-helper';
 import { getGanachePort, getSecondTestDappLocalUrl } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
@@ -11,6 +12,13 @@ import {
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
+import {
+  MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
+  SNAPS_CONTROLLER_STATE,
+  CORE_USER_STATE,
+  POWER_USER_STATE,
+  CASUAL_USER_STATE,
+} from './constants';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -456,7 +464,14 @@ class FixtureBuilder {
             },
             MultichainNetworkController: {
               selectedMultichainNetworkChainId: SolScope.Mainnet,
-              multichainNetworkConfigurationsByChainId: {},
+              multichainNetworkConfigurationsByChainId: {
+                [SolScope.Mainnet]: {
+                  chainId: SolScope.Mainnet,
+                  name: 'Solana Mainnet',
+                  nativeCurrency: `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+                  isEvm: false,
+                },
+              },
               isEvmSelected: true,
               networksWithTransactionActivity: {},
             },
@@ -471,6 +486,7 @@ class FixtureBuilder {
               jobs: {},
               events: {},
             },
+            SnapController: {},
           },
         },
         privacy: {
@@ -1000,6 +1016,24 @@ class FixtureBuilder {
     return this.ensureSolanaModalSuppressed();
   }
 
+  withImportedAccountKeyringController() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: ['0xDDFFa077069E1d4d478c5967809f31294E24E674'],
+        },
+      ],
+      vault:
+        '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
+    });
+    return this;
+  }
+
   withPopularNetworks() {
     const fixtures = this.fixture.state.engine.backgroundState;
     const networkConfigurationsByChainId = {
@@ -1052,11 +1086,68 @@ class FixtureBuilder {
     return this.ensureSolanaModalSuppressed();
   }
 
+  /**
+   * Disables smart transactions
+   * @returns FixtureBuilder
+   */
+  withDisabledSmartTransactions() {
+    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
+      smartTransactionsOptInStatus: false,
+    });
+    return this;
+  }
+
   withPreferencesController(data) {
     merge(
       this.fixture.state.engine.backgroundState.PreferencesController,
       data,
     );
+    return this;
+  }
+
+  /**
+   * Merges provided data into the KeyringController's state with a random imported account.
+   * and also includes the default HD Key Tree fixture account.
+   *
+   * @param {Object} account - ethers.Wallet object containing address and privateKey.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withRandomImportedAccountKeyringController(account) {
+    // mnemonics belonging to the DEFAULT_FIXTURE_ACCOUNT
+    const vault = encryptVault([
+      {
+        type: 'HD Key Tree',
+        data: {
+          mnemonic: [
+            100, 114, 105, 118, 101, 32, 109, 97, 110, 97, 103, 101, 32, 99,
+            108, 111, 115, 101, 32, 114, 97, 118, 101, 110, 32, 116, 97, 112,
+            101, 32, 97, 118, 101, 114, 97, 103, 101, 32, 115, 97, 117, 115, 97,
+            103, 101, 32, 112, 108, 101, 100, 103, 101, 32, 114, 105, 111, 116,
+            32, 102, 117, 114, 110, 97, 99, 101, 32, 97, 117, 103, 117, 115,
+            116, 32, 116, 105, 112,
+          ],
+          numberOfAccounts: 1,
+          hdPath: "m/44'/60'/0'/0",
+        },
+      },
+      {
+        type: 'Simple Key Pair',
+        data: [account.privateKey],
+      },
+    ]);
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+          type: 'HD Key Tree',
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: [account.address],
+        },
+      ],
+      vault,
+    });
     return this;
   }
 
@@ -1071,24 +1162,6 @@ class FixtureBuilder {
       ],
       vault:
         '{"cipher":"T+MXWPPwXOh8RLxpryUuoFCObwXqNQdwak7FafAoVeXOehhpuuUDbjWiHkeVs9slsy/uzG8z+4Va+qyz4dlRnd/Gvc/2RbHTAb/LG1ECk1rvLZW23JPGkBBVAu36FNGCTtT+xrF4gRzXPfIBVAAgg40YuLJWkcfVty6vGcHr3R3/9gpsqs3etrF5tF4tHYWPEhzhhx6HN6Tr4ts3G9sqgyEhyxTLCboAYWp4lsq2iTEl1vQ6T/UyBRNhfDj8RyQMF6hwkJ0TIq2V+aAYkr5NJguBBSi0YKPFI/SGLrin9/+d66gcOSFhIH0GhUbez3Yf54852mMtvOH8Vj7JZc664ukOvEdJIpvCw1CbtA9TItyVApkjQypLtE+IdV3sT5sy+v0mK7Xc054p6+YGiV8kTiTG5CdlI4HkKvCOlP9axwXP0aRwc4ffsvp5fKbnAVMf9+otqmOmlA5nCKdx4FOefTkr/jjhMlTGV8qUAJ2c6Soi5X02fMcrhAfdUtFxtUqHovOh3KzOe25XhjxZ6KCuix8OZZiGtbNDu3xJezPc3vzkTFwF75ubYozLDvw8HzwI+D5Ifn0S3q4/hiequ6NGiR3Dd0BIhWODSvFzbaD7BKdbgXhbJ9+3FXFF9Xkp74msFp6o7nLsx02ywv/pmUNqQhwtVBfoYhcFwqZZQlOPKcH8otguhSvZ7dPgt7VtUuf8gR23eAV4ffVsYK0Hll+5n0nZztpLX4jyFZiV/kSaBp+D2NZM2dnQbsWULKOkjo/1EpNBIjlzjXRBg5Ui3GgT3JXUDx/2GmJXceacrbMcos3HC2yfxwUTXC+yda4IrBx/81eYb7sIjEVNxDuoBxNdRLKoxwmAJztxoQLF3gRexS45QKoFZZ0kuQ9MqLyY6HDK","iv":"3271713c2b35a7c246a2a9b263365c3d","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"l4e+sn/jdsaofDWIB/cuGQ=="}',
-    });
-    return this;
-  }
-
-  withImportedAccountKeyringController() {
-    merge(this.fixture.state.engine.backgroundState.KeyringController, {
-      keyrings: [
-        {
-          type: 'HD Key Tree',
-          accounts: [DEFAULT_FIXTURE_ACCOUNT],
-        },
-        {
-          type: 'Simple Key Pair',
-          accounts: ['0xDDFFa077069E1d4d478c5967809f31294E24E674'],
-        },
-      ],
-      vault:
-        '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
     });
     return this;
   }
@@ -1119,48 +1192,496 @@ class FixtureBuilder {
     return this;
   }
 
+  withUserProfileSnapUnencryptedState(userState) {
+    merge(
+      this.fixture.state.engine.backgroundState.SnapController,
+      userState.SNAPS_CONTROLLER_STATE,
+    );
+
+    return this;
+  }
+
+  withUserProfileSnapPermissions(userState) {
+    merge(
+      this.fixture.state.engine.backgroundState.PermissionController,
+      userState.PERMISSION_CONTROLLER_STATE,
+    );
+    return this;
+  }
+
+  // This method basically make sure the default account is an evm account and not solana
+  withUserProfileKeyRing(userState) {
+    merge(
+      this.fixture.state.engine.backgroundState.KeyringController,
+      userState.KEYRING_CONTROLLER_STATE,
+    );
+
+    // Add accounts controller with the first account selected
+    const firstAccountAddress =
+      userState.KEYRING_CONTROLLER_STATE.keyrings[0].accounts[0];
+    const accountId = '4d7a5e0b-b261-4aed-8126-43972b0fa0a1';
+
+    merge(this.fixture.state.engine.backgroundState.AccountsController, {
+      internalAccounts: {
+        accounts: {
+          [accountId]: {
+            address: firstAccountAddress,
+            id: accountId,
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            type: 'eip155:eoa',
+            scopes: ['eip155:1'],
+          },
+        },
+        selectedAccount: accountId,
+      },
+    });
+
+    return this;
+  }
+
+  withSnapPermissions() {
+    merge(this.fixture.state.engine.backgroundState.PermissionController, {
+      subjects: {
+        'npm:@metamask/message-signing-snap': {
+          origin: 'npm:@metamask/message-signing-snap',
+          permissions: {
+            snap_getEntropy: {
+              id: '4ZiGu5AY86BDYxhzzkAYK',
+              parentCapability: 'snap_getEntropy',
+              invoker: 'npm:@metamask/message-signing-snap',
+              caveats: null,
+              date: 1751473353645,
+            },
+            'endowment:rpc': {
+              id: 'f4KZLHAusny9OkDCAVCqa',
+              parentCapability: 'endowment:rpc',
+              invoker: 'npm:@metamask/message-signing-snap',
+              caveats: [
+                {
+                  type: 'rpcOrigin',
+                  value: {
+                    dapps: true,
+                    snaps: true,
+                  },
+                },
+              ],
+              date: 1751473353646,
+            },
+          },
+        },
+        'https://portfolio.metamask.io': {
+          origin: 'https://portfolio.metamask.io',
+          permissions: {
+            wallet_snap: {
+              id: 'gv0_3nc0IZkl0wYU3ruZQ',
+              parentCapability: 'wallet_snap',
+              invoker: 'https://portfolio.metamask.io',
+              caveats: [
+                {
+                  type: 'snapIds',
+                  value: {
+                    'npm:@metamask/message-signing-snap': {},
+                    'npm:@metamask/solana-wallet-snap': {},
+                  },
+                },
+              ],
+              date: 1751473353650,
+            },
+          },
+        },
+        'https://portfolio-builds.metafi-dev.codefi.network': {
+          origin: 'https://portfolio-builds.metafi-dev.codefi.network',
+          permissions: {
+            wallet_snap: {
+              id: 'zwDEouLctYBlyyCu363u9',
+              parentCapability: 'wallet_snap',
+              invoker: 'https://portfolio-builds.metafi-dev.codefi.network',
+              caveats: [
+                {
+                  type: 'snapIds',
+                  value: {
+                    'npm:@metamask/message-signing-snap': {},
+                  },
+                },
+              ],
+              date: 1751473353651,
+            },
+          },
+        },
+        'https://docs.metamask.io': {
+          origin: 'https://docs.metamask.io',
+          permissions: {
+            wallet_snap: {
+              id: '1IxIvP9AC4feW5dKUNZpv',
+              parentCapability: 'wallet_snap',
+              invoker: 'https://docs.metamask.io',
+              caveats: [
+                {
+                  type: 'snapIds',
+                  value: {
+                    'npm:@metamask/message-signing-snap': {},
+                  },
+                },
+              ],
+              date: 1751473353652,
+            },
+          },
+        },
+        'https://developer.metamask.io': {
+          origin: 'https://developer.metamask.io',
+          permissions: {
+            wallet_snap: {
+              id: 'qqGP9vBgo4bJUzWqzK9Le',
+              parentCapability: 'wallet_snap',
+              invoker: 'https://developer.metamask.io',
+              caveats: [
+                {
+                  type: 'snapIds',
+                  value: {
+                    'npm:@metamask/message-signing-snap': {},
+                  },
+                },
+              ],
+              date: 1751473353653,
+            },
+          },
+        },
+        'npm:@metamask/gator-permissions-snap': {
+          origin: 'npm:@metamask/gator-permissions-snap',
+          permissions: {
+            wallet_snap: {
+              id: 'gQmp7dPg0BEWzrHckgmBH',
+              parentCapability: 'wallet_snap',
+              invoker: 'npm:@metamask/gator-permissions-snap',
+              caveats: [
+                {
+                  type: 'snapIds',
+                  value: {
+                    'npm:@metamask/message-signing-snap': {},
+                  },
+                },
+              ],
+              date: 1751473353653,
+            },
+          },
+        },
+        'npm:@metamask/solana-wallet-snap': {
+          origin: 'npm:@metamask/solana-wallet-snap',
+          permissions: {
+            'endowment:rpc': {
+              id: 'zbb1Hd2raCkRpybTytnhe',
+              parentCapability: 'endowment:rpc',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'rpcOrigin',
+                  value: {
+                    dapps: true,
+                    snaps: false,
+                  },
+                },
+              ],
+              date: 1751473353714,
+            },
+            'endowment:keyring': {
+              id: 'GjvoLZ7uM0hBQEW10qrDH',
+              parentCapability: 'endowment:keyring',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'keyringOrigin',
+                  value: {
+                    allowedOrigins: ['https://portfolio.metamask.io'],
+                  },
+                },
+              ],
+              date: 1751473353714,
+            },
+            snap_getBip32Entropy: {
+              id: 'OAhfPijQMJC6dYebEs8zg',
+              parentCapability: 'snap_getBip32Entropy',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'permittedDerivationPaths',
+                  value: [
+                    {
+                      path: ['m', "44'", "501'"],
+                      curve: 'ed25519',
+                    },
+                  ],
+                },
+              ],
+              date: 1751473353714,
+            },
+            'endowment:network-access': {
+              id: '6wTIQuOmTttI-PTF0s8YN',
+              parentCapability: 'endowment:network-access',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: null,
+              date: 1751473353715,
+            },
+            'endowment:cronjob': {
+              id: 'jBrDsGDkYHAtFEWGTbo8q',
+              parentCapability: 'endowment:cronjob',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'snapCronjob',
+                  value: {
+                    jobs: [
+                      {
+                        expression: '* * * * *',
+                        request: {
+                          method: 'refreshSend',
+                          params: {},
+                        },
+                      },
+                      {
+                        expression: '* * * * *',
+                        request: {
+                          method: 'refreshConfirmationEstimation',
+                          params: {},
+                        },
+                      },
+                      {
+                        expression: '*/2 * * * *',
+                        request: {
+                          method: 'scheduleRefreshAccounts',
+                          params: {},
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+              date: 1751473353716,
+            },
+            'endowment:protocol': {
+              id: 'z8CbR3ogtpYu9ezmXZ75y',
+              parentCapability: 'endowment:protocol',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'protocolSnapScopes',
+                  value: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                      methods: [
+                        'getGenesisHash',
+                        'getLatestBlockhash',
+                        'getMinimumBalanceForRentExemption',
+                      ],
+                    },
+                    'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': {
+                      methods: [
+                        'getGenesisHash',
+                        'getLatestBlockhash',
+                        'getMinimumBalanceForRentExemption',
+                      ],
+                    },
+                  },
+                },
+              ],
+              date: 1751473353718,
+            },
+            'endowment:assets': {
+              id: 'x9K_-0OkqWvbtjRDum0WY',
+              parentCapability: 'endowment:assets',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: [
+                {
+                  type: 'chainIds',
+                  value: [
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                    'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+                  ],
+                },
+              ],
+              date: 1751473353718,
+            },
+            snap_manageAccounts: {
+              id: 'BsuPVu-Bym8ettmbknIna',
+              parentCapability: 'snap_manageAccounts',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: null,
+              date: 1751473353718,
+            },
+            snap_manageState: {
+              id: '_PYVL55h9JrLLlff4TlOk',
+              parentCapability: 'snap_manageState',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: null,
+              date: 1751473353718,
+            },
+            snap_dialog: {
+              id: 'aFrRFn3nDwyC8VlWhkR8q',
+              parentCapability: 'snap_dialog',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: null,
+              date: 1751473353718,
+            },
+            snap_getPreferences: {
+              id: 'fqXkfMCvNdmy-qjqoElVZ',
+              parentCapability: 'snap_getPreferences',
+              invoker: 'npm:@metamask/solana-wallet-snap',
+              caveats: null,
+              date: 1751473353719,
+            },
+          },
+        },
+      },
+    });
+
+    return this;
+  }
+
   withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
         {
-          accounts: [
-            '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-            '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da',
-          ],
-          metadata: {
-            id: '01JXA9KQBWD60ZB6STX279GQMF',
-            name: '',
-          },
+          accounts: ['0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6'],
+          metadata: { id: '01JXA9M05DGJ92SMSEPFG8VN17', name: '' },
           type: 'HD Key Tree',
         },
         {
           accounts: ['0x428f04e9ea21b31090d377f24501065cbb48512f'],
-          metadata: {
-            id: '01JXA9M05DGJ92SMSEPFG8VN17',
-            name: '',
-          },
+          metadata: { id: '01JXA9MYRXNW16JZSZJXD6F9SD', name: '' },
           type: 'QR Hardware Wallet Device',
         },
         {
           accounts: ['0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b'],
-          metadata: {
-            id: '01JXA9MYRXNW16JZSZJXD6F9SD',
-            name: '',
-          },
+          metadata: { id: '01JXA9MYRXNW16JZSZJXD6F9SD', name: '' },
           type: 'HD Key Tree',
         },
         {
           accounts: ['0x84b4ebb7492e6deb8892b16b0ee425e39d3116a4'],
-          metadata: {
-            id: '01JXA9YPC99YPE39C063RYGVX1',
-            name: '',
-          },
+          metadata: { id: '01JXA9YPC99YPE39C063RYGVX1', name: '' },
           type: 'Simple Key Pair',
         },
       ],
       vault:
         '{"cipher":"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","iv":"4df215ad8ea053bc082a369a40267680","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"TWbGoRlf8VcWi4RXapCjOg44EaJ6xskBCbvgevIjiWc="}',
     });
+    return this;
+  }
+
+  withKeyringControllerOfMultipleAccounts() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: ['0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6'],
+          metadata: { id: '01JYMQCWV547WJ1X7X8KA72BHB', name: null },
+          type: 'HD Key Tree',
+        },
+        // {
+        //   accounts: ['C8WwCAxqd7CsdF2nmQWaMqj8bc6b4RtTZEmaQCAusgkh'],
+        //   metadata: { id: '01JYMQCXJR780W8479CHWADRMW', name: null },
+        //   type: 'Snap Keyring',
+        // },
+        {
+          accounts: [],
+          metadata: { id: '01JYMQD2ZW9MH3QDV97J1T9H9A', name: null },
+          type: 'QR Hardware Wallet Device',
+        },
+      ],
+      vault:
+        '{"cipher":"DUx7iAsJoxlE+MKGopEvRQBL50daKCxL5stSFkxjZl4ZA3DMv4tLxUs1yAr31VMwM9rDuTFDZmZmTLj/WVNnPUgu8PXioD+Qufj3NP6cFmU3oTN1mw+sneI+9CSVlPYnuTzBOWaCXhxHEqTe4jfjPRc0rEeiBAzvJvvnZh93BNoBO7aqr5LNEx32cIuNqefG4mBzNbKq8ytfWHRsKZOZRl9yROpPtUtCaiuk8tuSAtTbtEOT5Btbiha/gAEYT5JjLsMe2Gw96oqyqS8Oza4WagQSVCIJvT/kJDPuO+KZJiIV2VZXmpck+UF02xiw2qvrnm9gu/hZ20t19alx3nbKsF3Q/Kxrfxt02MS/5Z+XKgRDl6qrNmD2K7NkMphuiWI4TdKT8yEU7ZWucJ83XLdQwAhyG2T1ugoe5dwbN9QvY4Fcyw92kba3A3ILKlV3XLnDnel1ZG6V9GAa4SRRCs7z/+lTzfj/h1QpO24ETznMi+PqJF4gtp/RNtgu/aTHwAqj0zkenZYtSME44lYe5hgbJCZXdK5zUTC1czqXshkVotccoKBly9kyML/ajAfO9RIGhSjglrrRUsCco7yyUafz2jLZYuQvFFAuVVukgbAEdINimRlHbYGran1klp9YVaMDADrTB31IVnDCAuNMb5RVoiiS7J0iCuvJWLAVrV5sukHFMi9oA6XMRYCYE6v6jvHgOPXRhJfxV8k7U96Vgv6o7VXkaA9s10y/tuYUhnQpH8AuhOqtQthytlt1FeTF1c74G+Vt/fLfWd3B2p6Iyqrf+XMOT+e/4fAZc0jTsmMM9cfoYoVd8ofyAmRGhql19cAYUEAwvMNfu3QAiOLl00EicHdX8IK8EzoObwLHO+008erBUKbjRvJ1ePl9Dvx83BZkqb2wlP5GmXSQjy9JmUDrCS6TuquVVNHpVKA8EoBwORN68p3B1hnP29yC79Kq7hc8K94K/Xofm0T0wj+Tzspru2iFxA0aZhEAoe13CGy9hBq9QqT285XPGby7vvek9wifIgvwA1yBXjU6lQ5ObyYCKitp8NLXPb5U0UXEOho7mu0QE+GwhoI3uxjtcKyIWkZlPldYsh2eZfcP/mfNhuFsqqlRin+SWynNUY9HMyaDw3FvtPkDZ6VgYMymP3DnWbmiOUa82iKJ2uGKuVgzvKzOlP5pf/GyWSdBz9ZjPNWMTEW/WYPvTkfGDdDCbTWxAG7fKU9locF+D09CV9mboSAQGTbZSI2f7d48Uo+77rntE6ODcumD++qASMZrGHOapCRtv0a4fHbMa3dWDtx6GHLlbvViDbvCsec7ChOUBoL39sgZEyWrC5JiOgYuRUWnU7xkaZHtYha7yKEVLWg4UFtXnLliYQLQseDa/k2/SDbSqLrz9ACVHgKpS3vtY6mSdhNWyrBkWamwVPXinb1Wjni3OQUqN0R7TeQ/QmRRp20atkY5OoFUuYOkBWU4HgyJHg0wEiYOXkscktGS1vl6RvOHyoTPKiWPJFgtz46NOP5ynmlBqS2+srespbKPh2GEN5EGhbdFWGAXSUoecbvjzizxRQdzm8nLNWtx2eDHo54fv3IahvWQNvmDIL265Ezfo+ZEYhOeHTerWvuVBzg78ZeHpOd1ZwTZz/k5JVtW9BZDoJoO1DZ98Bliew7i2uaN0De2ZP10RMQzH5GL636aptqRiUw9mwbavkaI2xC8f2Y9J2jsgtZ8Gjp48lGjBMxWpG4xywu3J8aUi+rLEiOthEK1Ob6LjkUEBeKC8eFreM1LeB9adIuWpdre84RdWTfWvirzCpvyStNc6USpZtgMKTYGmbqgFtZouphiNEvW2zbUi82Qp5v9XqhXB/zGnJwHRFs+Qk/k20tTLnp1U1+5uIjm+uzbXkLix5KGHNwdDpsx4GrZs04HHN2aRcBHnPZokGajwtcv/1PDHW4VMLKb0bttZSYr1tiYYuFp/0p1EcsCJ1cUcQTdTm8xmjKJWune9L2L","iv":"9e427fa9c50d74903acc326dc5f57f32","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"r6Ta3qV3uqZgiXbnJ6bmT5oJhqKpH3ojd2NUzmc2ZLU="}',
+    });
+
+    // Update AccountsController to only include Ethereum account (hide Solana account)
+    this.fixture.state.engine.backgroundState.AccountsController = {
+      internalAccounts: {
+        accounts: {
+          // Ethereum Account 1 only
+          '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
+            address: '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
+            id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            type: 'eip155:eoa',
+            scopes: ['eip155:1'],
+          },
+        },
+        selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1', // Default to Ethereum account
+      },
+    };
+    // this.fixture.state.engine.backgroundState.PreferencesController.identities = {
+    //   '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6': {
+    //     address: '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
+    //     name: 'Account 1',
+    //     importTime: 1684232000456,
+    //   },
+    // };
+    // this.fixture.state.engine.backgroundState.PreferencesController.selectedAddress = '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6';
+
+    // Configure for Ethereum mainnet only
+    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
+      selectedMultichainNetworkChainId: 'eip155:1', // Default to Ethereum mainnet
+      multichainNetworkConfigurationsByChainId: {
+        'eip155:1': {
+          chainId: 'eip155:1',
+          name: 'Ethereum Mainnet',
+          nativeCurrency: 'ETH',
+          isEvm: true,
+        },
+      },
+      isEvmSelected: true, // Default to EVM mode
+      networksWithTransactionActivity: {},
+    };
+
+    return this;
+  }
+
+  withProfileSyncingEnabled() {
+    // Enable AuthenticationController - user must be signed in for profile syncing
+    merge(this.fixture.state.engine.backgroundState.AuthenticationController, {
+      isSignedIn: true,
+    });
+
+    // Enable UserStorageController with all profile syncing features
+    merge(this.fixture.state.engine.backgroundState.UserStorageController, {
+      isBackupAndSyncEnabled: true,
+      isBackupAndSyncUpdateLoading: false,
+      isAccountSyncingEnabled: true,
+      isContactSyncingEnabled: true,
+      hasAccountSyncingSyncedAtLeastOnce: true,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
+      isContactSyncingInProgress: false,
+    });
+
+    // Enable basic functionality in settings (required for profile syncing)
+    merge(this.fixture.state.settings, {
+      basicFunctionalityEnabled: true,
+    });
+
     return this;
   }
 
@@ -1174,14 +1695,168 @@ class FixtureBuilder {
     return this;
   }
 
-  withTokens(tokens) {
+  withTokens(tokens, chainId = CHAIN_IDS.MAINNET) {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens: {
-        [CHAIN_IDS.MAINNET]: {
+        [chainId]: {
           [DEFAULT_FIXTURE_ACCOUNT]: tokens,
         },
       },
     });
+    return this;
+  }
+
+  withTokensRates(tokens, chainId = CHAIN_IDS.MAINNET) {
+    // Generate mock market data for each token
+    const tokenMarketData = {};
+
+    tokens.forEach((token, index) => {
+      // Generate realistic but varied market data for testing
+      const basePrice = (index + 1) * 100; // Starting price based on token index
+      const randomVariation = Math.random() * 50; // Add some randomness
+      const price = basePrice + randomVariation;
+
+      tokenMarketData[token.address] = {
+        tokenAddress: token.address,
+        currency: 'USD',
+        allTimeHigh: price * 1.8, // 80% higher than current price
+        allTimeLow: price * 0.2, // 80% lower than current price
+        circulatingSupply: 1000000000, // 1 billion tokens
+        dilutedMarketCap: price * 1200000000, // Based on total supply
+        high1d: price * 1.05, // 5% higher than current
+        low1d: price * 0.95, // 5% lower than current
+        marketCap: price * 1000000000, // Based on circulating supply
+        marketCapPercentChange1d: (Math.random() - 0.5) * 10, // Random change between -5% and +5%
+        price,
+        priceChange1d: (Math.random() - 0.5) * price * 0.1, // Random change up to 10%
+        pricePercentChange1d: (Math.random() - 0.5) * 10, // Random percentage between -5% and +5%
+        pricePercentChange1h: (Math.random() - 0.5) * 2, // Random percentage between -1% and +1%
+        pricePercentChange1y: (Math.random() - 0.5) * 200, // Random percentage between -100% and +100%
+        pricePercentChange7d: (Math.random() - 0.5) * 30, // Random percentage between -15% and +15%
+        pricePercentChange14d: (Math.random() - 0.5) * 50, // Random percentage between -25% and +25%
+        pricePercentChange30d: (Math.random() - 0.5) * 80, // Random percentage between -40% and +40%
+        pricePercentChange200d: (Math.random() - 0.5) * 150, // Random percentage between -75% and +75%
+        totalVolume: price * 50000000, // Volume based on price
+      };
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokenRatesController, {
+      marketData: {
+        [chainId]: tokenMarketData,
+      },
+    });
+    return this;
+  }
+
+  withTokensBalances(tokens, chainId = CHAIN_IDS.MAINNET) {
+    // Generate mock token balances for the default account
+    const tokenBalances = {};
+    tokenBalances[DEFAULT_FIXTURE_ACCOUNT] = {};
+    tokenBalances[DEFAULT_FIXTURE_ACCOUNT][chainId] = {};
+
+    tokens.forEach((token, index) => {
+      // Generate realistic but varied balances for testing
+      const baseBalance = (index + 1) * 1000;
+      const randomVariation = Math.floor(Math.random() * 5000);
+      const finalBalance = baseBalance + randomVariation;
+
+      // Convert to hex with proper padding for token decimals
+      const balanceInWei = (
+        finalBalance * Math.pow(10, token.decimals)
+      ).toString(16);
+      tokenBalances[DEFAULT_FIXTURE_ACCOUNT][chainId][
+        token.address
+      ] = `0x${balanceInWei}`;
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokenBalancesController, {
+      tokenBalances,
+    });
+    return this;
+  }
+
+  withTokensForAllPopularNetworks(tokens, userState = null) {
+    // Get all popular network chain IDs using proper constants
+    const popularChainIds = [
+      CHAIN_IDS.MAINNET, // Ethereum Mainnet
+      CHAIN_IDS.POLYGON, // Polygon Mainnet
+      CHAIN_IDS.BSC, // BNB Smart Chain
+      CHAIN_IDS.OPTIMISM, // Optimism
+      CHAIN_IDS.ARBITRUM, // Arbitrum One
+      CHAIN_IDS.AVALANCHE, // Avalanche C-Chain
+      CHAIN_IDS.BASE, // Base
+      CHAIN_IDS.ZKSYNC_ERA, // zkSync Era
+      CHAIN_IDS.SEI, // Sei Network
+    ];
+
+    // Use userState accounts if provided, otherwise fall back to MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER
+    let allAccountAddresses;
+    if (userState && userState.KEYRING_CONTROLLER_STATE) {
+      // Extract all account addresses from the user state keyring
+      allAccountAddresses = userState.KEYRING_CONTROLLER_STATE.keyrings.flatMap(
+        (keyring) => keyring.accounts,
+      );
+    } else {
+      // Fallback to the hardcoded accounts
+      const accountsData =
+        MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER.internalAccounts.accounts;
+      allAccountAddresses = Object.values(accountsData).map(
+        (account) => account.address,
+      );
+    }
+
+    // Create tokens object for all accounts
+    const accountTokens = {};
+    allAccountAddresses.forEach((address) => {
+      accountTokens[address] = tokens;
+    });
+
+    const allTokens = {};
+
+    // Add tokens to each popular network
+    popularChainIds.forEach((chainId) => {
+      allTokens[chainId] = accountTokens;
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allTokens,
+    });
+
+    // we need to test this ...
+
+    // Create token balances for TokenBalancesController
+    // Structure: { [accountAddress]: { [chainId]: { [tokenAddress]: balance } } }
+    const tokenBalances = {};
+
+    allAccountAddresses.forEach((accountAddress, accountIndex) => {
+      tokenBalances[accountAddress] = {};
+
+      // Add balances for each popular network
+      popularChainIds.forEach((chainId) => {
+        tokenBalances[accountAddress][chainId] = {};
+
+        tokens.forEach((token, tokenIndex) => {
+          // Generate realistic but varied balances for testing
+          // Using different multipliers to create variety across accounts and tokens
+          const baseBalance = (accountIndex + 1) * (tokenIndex + 1) * 1000;
+          const randomVariation = Math.floor(Math.random() * 5000);
+          const finalBalance = baseBalance + randomVariation;
+
+          // Convert to hex with proper padding for token decimals
+          const balanceInWei = (
+            finalBalance * Math.pow(10, token.decimals)
+          ).toString(16);
+          tokenBalances[accountAddress][chainId][
+            token.address
+          ] = `0x${balanceInWei}`;
+        });
+      });
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokenBalancesController, {
+      tokenBalances,
+    });
+
     return this;
   }
 

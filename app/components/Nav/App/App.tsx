@@ -158,6 +158,8 @@ import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
+import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
+import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -892,6 +894,14 @@ const AppFlow = () => {
           name={Routes.SMART_ACCOUNT_OPT_IN}
           component={ModalSmartAccountOptIn}
         />
+        <Stack.Screen
+          name={Routes.CONFIRMATION_PAY_WITH_MODAL}
+          component={PayWithModal}
+        />
+        <Stack.Screen
+          name={Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL}
+          component={PayWithNetworkModal}
+        />
       </Stack.Navigator>
     </>
   );
@@ -926,18 +936,17 @@ const App: React.FC = () => {
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
+  const firstLoad = useRef(true);
   // periodically check seedless password outdated when app UI is open
   useInterval(
     async () => {
       if (isSeedlessOnboardingLoginFlow) {
-        await Authentication.checkIsSeedlessPasswordOutdated().catch(
-          (error) => {
-            Logger.error(
-              error,
-              'App: Error in checkIsSeedlessPasswordOutdated',
-            );
-          },
-        );
+        await Authentication.checkIsSeedlessPasswordOutdated(
+          firstLoad.current,
+        ).catch((error) => {
+          Logger.error(error, 'App: Error in checkIsSeedlessPasswordOutdated');
+        });
+        firstLoad.current = false;
       }
     },
     {

@@ -3,7 +3,7 @@ import { loginToApp } from '../../viewHelper';
 import QuoteView from '../../pages/swaps/QuoteView.ts';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import Tenderly from '../../tenderly.js';
 import {
