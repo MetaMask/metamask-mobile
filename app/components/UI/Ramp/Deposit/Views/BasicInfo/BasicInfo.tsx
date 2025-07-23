@@ -36,7 +36,6 @@ import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
-  kycUrl?: string;
 }
 
 export const createBasicInfoNavDetails =
@@ -54,7 +53,7 @@ const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
-  const { quote, kycUrl } = useParams<BasicInfoParams>();
+  const { quote } = useParams<BasicInfoParams>();
   const { selectedRegion } = useDepositSDK();
 
   const firstNameInputRef = useRef<TextInput>(null);
@@ -152,7 +151,6 @@ const BasicInfo = (): JSX.Element => {
               : '',
           },
           quote,
-          kycUrl,
         }),
       );
     }
@@ -161,7 +159,6 @@ const BasicInfo = (): JSX.Element => {
     validateFormData,
     formData,
     quote,
-    kycUrl,
     selectedRegion?.isoCode,
     trackEvent,
   ]);

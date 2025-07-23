@@ -12,7 +12,6 @@ import { passwordRequirementsMet } from '../../../util/password';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { passcodeType } from '../../../util/authentication';
-import OAuthService from '../../../core/OAuthService/OAuthService';
 import {
   TraceName,
   TraceOperation,

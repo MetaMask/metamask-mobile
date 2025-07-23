@@ -1,14 +1,15 @@
 import React from 'react';
-import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import KycWebviewModal from './KycWebviewModal';
 import { KycStatus } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockStartPolling = jest.fn();
 const mockStopPolling = jest.fn();
+const mockRouteAfterAuthentication = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -30,6 +31,12 @@ jest.mock(
   '../../../hooks/useUserDetailsPolling',
   () => () => mockUseUserDetailsPolling(),
 );
+
+jest.mock('../../../hooks/useDepositRouting', () => ({
+  useDepositRouting: jest.fn(() => ({
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+  })),
+}));
 
 jest.mock('./WebviewModal', () => () => 'WebviewModal');
 
@@ -57,6 +64,7 @@ describe('KycWebviewModal', () => {
       startPolling: mockStartPolling,
       stopPolling: mockStopPolling,
     });
+    mockRouteAfterAuthentication.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -78,7 +86,7 @@ describe('KycWebviewModal', () => {
     expect(mockStopPolling).toHaveBeenCalled();
   });
 
-  it('navigates to KYC processing when status changes to approved', () => {
+  it('calls routeAfterAuthentication when status changes to approved', () => {
     mockUseUserDetailsPolling.mockReturnValue({
       userDetails: {
         kyc: {
@@ -95,12 +103,12 @@ describe('KycWebviewModal', () => {
     render(KycWebviewModal);
 
     expect(mockStopPolling).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
-      quote: { id: 'test-quote' },
+    expect(mockRouteAfterAuthentication).toHaveBeenCalledWith({
+      id: 'test-quote',
     });
   });
 
-  it('navigates to KYC processing when status changes to rejected', () => {
+  it('calls routeAfterAuthentication when status changes to rejected', () => {
     mockUseUserDetailsPolling.mockReturnValue({
       userDetails: {
         kyc: {
@@ -117,12 +125,12 @@ describe('KycWebviewModal', () => {
     render(KycWebviewModal);
 
     expect(mockStopPolling).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
-      quote: { id: 'test-quote' },
+    expect(mockRouteAfterAuthentication).toHaveBeenCalledWith({
+      id: 'test-quote',
     });
   });
 
-  it('does not navigate when KYC status is not submitted', () => {
+  it('does not call routeAfterAuthentication when KYC status is not submitted', () => {
     mockUseUserDetailsPolling.mockReturnValue({
       userDetails: {
         kyc: {
@@ -138,10 +146,10 @@ describe('KycWebviewModal', () => {
 
     render(KycWebviewModal);
 
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
-  it('does not navigate when quote is missing', () => {
+  it('does not call routeAfterAuthentication when quote is missing', () => {
     const mockUseParams = jest.requireMock(
       '../../../../../../../util/navigation/navUtils',
     ).useParams;
@@ -162,6 +170,6 @@ describe('KycWebviewModal', () => {
 
     render(KycWebviewModal);
 
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 });

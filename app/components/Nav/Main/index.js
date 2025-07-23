@@ -66,10 +66,7 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
-import {
-  selectShowIncomingTransactionNetworks,
-  selectTokenNetworkFilter,
-} from '../../../selectors/preferencesController';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 import useNotificationHandler from '../../../util/notifications/hooks';
 import {
@@ -131,8 +128,9 @@ const Main = (props) => {
       if (isSeedlessPasswordOutdated) {
         // Check for latest seedless password outdated state
         // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-        const isOutdated =
-          await Authentication.checkIsSeedlessPasswordOutdated();
+        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
+          false,
+        );
         if (!isOutdated) {
           return;
         }
@@ -170,7 +168,7 @@ const Main = (props) => {
   useIdentityEffects();
   useMinimumVersions();
 
-  const { chainId, networkClientId, showIncomingTransactionsNetworks } = props;
+  const { chainId, networkClientId } = props;
 
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
@@ -183,12 +181,7 @@ const Main = (props) => {
   useEffect(() => {
     stopIncomingTransactionPolling();
     startIncomingTransactionPolling();
-  }, [
-    chainId,
-    networkClientId,
-    showIncomingTransactionsNetworks,
-    props.networkConfigurations,
-  ]);
+  }, [chainId, networkClientId, props.networkConfigurations]);
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
@@ -515,10 +508,6 @@ Main.propTypes = {
   hideCurrentNotification: PropTypes.func,
   removeNotificationById: PropTypes.func,
   /**
-   * Indicates whether networks allows incoming transactions
-   */
-  showIncomingTransactionsNetworks: PropTypes.object,
-  /**
    * Network provider type
    */
   providerType: PropTypes.string,
@@ -553,8 +542,6 @@ Main.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  showIncomingTransactionsNetworks:
-    selectShowIncomingTransactionNetworks(state),
   providerType: selectProviderType(state),
   chainId: selectChainId(state),
   networkClientId: selectNetworkClientId(state),

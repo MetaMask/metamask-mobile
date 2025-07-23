@@ -1151,8 +1151,6 @@ describe('Authentication', () => {
     });
 
     it('should rehydrate with multiple seed phrases', async () => {
-      const mockMnemonic1 = 'mnemonic-1';
-      const mockMnemonic2 = 'mnemonic-2';
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
@@ -1472,7 +1470,7 @@ describe('Authentication', () => {
     });
 
     it(`throw when old password is provided`, async () => {
-      Engine.context.KeyringController.submitPassword = jest
+      Engine.context.KeyringController.verifyPassword = jest
         .fn()
         .mockResolvedValueOnce('');
       (
@@ -1536,7 +1534,7 @@ describe('Authentication', () => {
       Engine.context.KeyringController.changePassword = jest.fn();
       Engine.context.KeyringController.exportEncryptionKey = jest.fn();
 
-      Engine.context.KeyringController.submitPassword = jest
+      Engine.context.KeyringController.verifyPassword = jest
         .fn()
         .mockRejectedValueOnce(new Error('submit password failed'));
 
@@ -1588,7 +1586,7 @@ describe('Authentication', () => {
           .syncLatestGlobalPassword as jest.Mock
       ).mockResolvedValueOnce(undefined);
 
-      Engine.context.KeyringController.submitPassword = jest
+      Engine.context.KeyringController.verifyPassword = jest
         .fn()
         .mockRejectedValueOnce(new Error('submit password failed'));
 
@@ -1695,6 +1693,41 @@ describe('Authentication', () => {
       const result = await Authentication.checkIsSeedlessPasswordOutdated();
 
       expect(result).toBe(mockIsOutdated);
+      expect(
+        Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
+      ).toHaveBeenCalledWith({ skipCache: true });
+    });
+
+    it('return false when seedless controller checkAuthenticationMethod throw error', async () => {
+      mockIsOutdated = true;
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+              socialBackupsMetadata: [],
+              passwordOutdatedCache: {
+                isExpiredPwd: mockIsOutdated,
+                timestamp: Date.now(),
+              },
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      Engine.context.SeedlessOnboardingController = {
+        state: { vault: {} },
+        checkIsPasswordOutdated: jest.fn().mockRejectedValue(mockIsOutdated),
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      const result = await Authentication.checkIsSeedlessPasswordOutdated();
+
+      expect(result).toBe(false);
       expect(
         Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
       ).toHaveBeenCalledWith({ skipCache: true });

@@ -992,7 +992,7 @@ class AuthenticationService {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
 
     try {
-      await KeyringController.submitPassword(globalPassword);
+      await KeyringController.verifyPassword(globalPassword);
       throw new SeedlessOnboardingControllerError(
         'Password Recently Updated',
         SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
