@@ -7,6 +7,7 @@ import {
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 import { captureException } from '@sentry/react-native';
+import { Authentication } from './Authentication/Authentication';
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 import Logger from '../util/Logger';
 
@@ -56,6 +57,7 @@ export const recreateVaultWithNewPassword = async (
         op: TraceOperation.OnboardingSecurityOp,
       });
       await SeedlessOnboardingController.changePassword(newPassword, password);
+      await Authentication.syncKeyringEncryptionKey();
       specificTraceSucceeded = true;
     } catch (error) {
       const errorMessage =
@@ -82,7 +84,7 @@ export const recreateVaultWithNewPassword = async (
       captureException(seedlessChangePasswordError);
       // restore the vault with the old password
       await KeyringController.changePassword(password);
-      throw seedlessChangePasswordError;
+      await Authentication.syncKeyringEncryptionKey();
     } finally {
       endTrace({
         name: TraceName.OnboardingResetPassword,

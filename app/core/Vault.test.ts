@@ -154,6 +154,7 @@ jest.mock('./Engine', () => ({
       exportSeedPhrase: (password: string) => mockExportSeedPhrase(password),
       createNewVaultAndRestore: (password: string, seedPhrases: string[]) =>
         mockCreateNewVaultAndRestore(password, seedPhrases),
+      exportEncryptionKey: jest.fn(),
       state: {
         get keyrings() {
           return [
@@ -169,6 +170,10 @@ jest.mock('./Engine', () => ({
     },
     SeedlessOnboardingController: {
       changePassword: jest.fn(),
+      storeKeyringEncryptionKey: jest.fn(),
+      loadKeyringEncryptionKey: jest.fn(),
+      submitGlobalPassword: jest.fn(),
+      checkIsPasswordOutdated: jest.fn(),
     },
   },
   setSelectedAddress: jest.fn(),
@@ -239,6 +244,7 @@ describe('Vault', () => {
       } as unknown as RootState);
       const mockSeedlessOnboardingController = {
         changePassword: jest.fn().mockResolvedValue(null),
+        storeKeyringEncryptionKey: jest.fn(),
       };
       (Engine.context as Record<string, unknown>).SeedlessOnboardingController =
         mockSeedlessOnboardingController;
@@ -276,17 +282,16 @@ describe('Vault', () => {
       } as unknown as RootState);
       const mockSeedlessOnboardingController = {
         changePassword: jest.fn().mockRejectedValueOnce(error),
+        storeKeyringEncryptionKey: jest.fn(),
       };
       (Engine.context as Record<string, unknown>).SeedlessOnboardingController =
         mockSeedlessOnboardingController;
 
-      await expect(
-        recreateVaultWithNewPassword(
-          'password',
-          newPassword,
-          mockHdAccount1.address,
-        ),
-      ).rejects.toThrow('Password change failed');
+      await recreateVaultWithNewPassword(
+        'password',
+        newPassword,
+        mockHdAccount1.address,
+      );
 
       // Expect change password on the keyring controller to be called twice
       // The second call should be to revert to the old password
