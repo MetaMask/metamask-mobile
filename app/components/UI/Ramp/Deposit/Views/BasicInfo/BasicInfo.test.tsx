@@ -123,7 +123,6 @@ describe('BasicInfo Component', () => {
           mobileNumber: '+1234567890',
           ssn: '123456789',
         },
-        kycUrl: undefined,
         quote: mockQuote,
       }),
     );
