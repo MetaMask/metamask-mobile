@@ -37,7 +37,7 @@ describe(Regression('Swap from Token view'), (): void => {
 
   beforeAll(async (): Promise<void> => {
     localNode = new Ganache();
-    await localNode.start({...defaultGanacheOptions, chainId: 1});
+    await localNode.start({ ...defaultGanacheOptions, chainId: 1 });
 
     const mockServerPort = getMockServerPort();
     mockServer = await startMockServer(testSpecificMock, mockServerPort);

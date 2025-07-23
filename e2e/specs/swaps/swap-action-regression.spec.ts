@@ -40,7 +40,7 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     jest.setTimeout(2500000);
 
     localNode = new Ganache();
-    await localNode.start({...defaultGanacheOptions, chainId: 1});
+    await localNode.start({ ...defaultGanacheOptions, chainId: 1 });
 
     const mockServerPort = getMockServerPort();
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
