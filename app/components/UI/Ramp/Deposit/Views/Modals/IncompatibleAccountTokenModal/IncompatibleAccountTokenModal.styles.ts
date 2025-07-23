@@ -6,7 +6,8 @@ const styleSheet = () =>
       textAlign: 'center',
     },
     content: {
-      padding: 24,
+      paddingHorizontal: 16,
+      gap: 16,
     },
   });
 

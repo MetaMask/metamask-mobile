@@ -549,8 +549,9 @@
       "buy_crypto": "Buy Crypto"
     },
     "incompatible_token_acount_modal": {
-      "title": "Incompatible token account",
-      "description": "The selected token is not compatible with the current account. Please select a different token or switch accounts."
+      "title": "Switch your account",
+      "description": "The {{networkName}} account you’re on doesn't support the selected token. Switch your account or token to continue.",
+      "cta": "I understand"
     },
     "get_started": {
       "navbar_title": "Deposit",
