@@ -300,12 +300,12 @@ const BridgeView = () => {
         await submitBridgeTx({
           quoteResponse: activeQuote,
         });
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
       }
     } catch (error) {
       console.error('Error submitting bridge tx', error);
     } finally {
       dispatch(setIsSubmittingTx(false));
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
   };
 
