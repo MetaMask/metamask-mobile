@@ -35,6 +35,19 @@ import { ReduxStore } from '../../../core/redux/types';
 
 const mockEngine = jest.mocked(Engine);
 
+// Mock useMetrics with a dynamic isEnabled function
+const mockIsEnabled = jest.fn().mockReturnValue(true);
+jest.mock('../../hooks/useMetrics', () => {
+  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
+  return {
+    ...actualUseMetrics,
+    useMetrics: jest.fn().mockReturnValue({
+      ...actualUseMetrics.useMetrics,
+      isEnabled: () => mockIsEnabled(),
+    }),
+  };
+});
+
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockReset = jest.fn();
@@ -463,8 +476,48 @@ describe('Login test suite 2', () => {
       clearTimeoutSpy.mockRestore();
     });
 
-    it('handle generic error (else case)', async () => {
+    it('handle generic error when metrics are disabled', async () => {
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      mockIsEnabled.mockReturnValue(false);
+
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - generic error cases',
+      );
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValue(seedlessError);
+
+      const { getByText, getByTestId, unmount } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Expect ErrorBoundary UI instead of login form error
+      expect(getByText('An error occurred')).toBeTruthy();
+      expect(
+        getByText(
+          'Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.',
+        ),
+      ).toBeTruthy();
+
+      await act(async () => {
+        unmount();
+      });
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      mockIsEnabled.mockReturnValue(true);
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it('handle generic error when metrics are enabled', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      mockIsEnabled.mockReturnValue(true);
+
       const seedlessError = new Error(
         'SeedlessOnboardingController - generic error cases',
       );
@@ -482,6 +535,7 @@ describe('Login test suite 2', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
+      // Expect normal login form error instead of ErrorBoundary
       expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement.props.children).toEqual('generic error cases');
@@ -491,7 +545,6 @@ describe('Login test suite 2', () => {
       });
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
-
       clearTimeoutSpy.mockRestore();
     });
   });
@@ -653,6 +706,7 @@ describe('Login test suite 2', () => {
     });
 
     it('should handle OAuth login success when metrics UI is not seen', async () => {
+      mockIsEnabled.mockReturnValue(false);
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -719,6 +773,7 @@ describe('Login test suite 2', () => {
           },
         ],
       });
+      mockIsEnabled.mockReturnValue(true);
     });
 
     it('should replace navigation when non-OAuth login with existing onboarding wizard', async () => {
