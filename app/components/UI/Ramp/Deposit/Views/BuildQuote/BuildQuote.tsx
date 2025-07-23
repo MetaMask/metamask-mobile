@@ -191,8 +191,11 @@ const BuildQuote = () => {
         );
         if (token) {
           setCryptoCurrency(token);
+          return;
         }
-      } else if (
+      }
+
+      if (
         !supportedTokens.some(
           (token) => token.assetId === cryptoCurrency.assetId,
         )
