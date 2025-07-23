@@ -17,6 +17,7 @@ import { startMockServer } from './helpers/swap-mocks';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
+import { logger } from '../../framework/logger';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',
@@ -39,6 +40,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       testSpecificMock,
       mockServerPort,
     );
+    logger.debug(`Test side Mock server started on port ${mockServerPort}`);
   });
 
   beforeEach(async (): Promise<void> => {
