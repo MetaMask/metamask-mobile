@@ -33,6 +33,7 @@ export function getNavbar({
     },
     headerStyle: {
       backgroundColor: theme.colors.background.alternative,
+      // eslint-disable-next-line react-native/no-color-literals
       shadowColor: 'transparent',
       elevation: 0,
     },
