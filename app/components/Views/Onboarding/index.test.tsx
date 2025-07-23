@@ -551,7 +551,9 @@ describe('Onboarding', () => {
     const mockCreateLoginHandler = jest.requireMock(
       '../../../core/OAuthService/OAuthLoginHandlers',
     ).createLoginHandler;
-    const { OAuthError } = jest.requireMock('../../../core/OAuthService/error');
+    const { OAuthError, OAuthErrorType } = jest.requireMock(
+      '../../../core/OAuthService/error',
+    );
 
     beforeEach(() => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
@@ -657,6 +659,53 @@ describe('Onboarding', () => {
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
           onboardingTraceCtx: expect.any(Object),
+        }),
+      );
+    });
+
+    it('should handle OAuth login error with user cancellation', async () => {
+      const cancelError = new OAuthError(OAuthErrorType.UserCancelled);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(cancelError);
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('error_sheet.user_cancelled_title'),
+            description: strings('error_sheet.user_cancelled_description'),
+            descriptionAlign: 'center',
+            buttonLabel: strings('error_sheet.user_cancelled_button'),
+            type: 'error',
+          }),
         }),
       );
     });
