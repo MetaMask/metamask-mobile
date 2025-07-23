@@ -35,7 +35,10 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { processFiatOrder } from '../../../index';
 import { useTheme } from '../../../../../../util/theme';
 import { RootState } from '../../../../../../reducers';
-import { hasDepositOrderField } from '../../utils';
+import {
+  getCryptoCurrencyFromTransakId,
+  hasDepositOrderField,
+} from '../../utils';
 import { useDepositSDK } from '../../sdk';
 import Button, {
   ButtonSize,
@@ -44,6 +47,7 @@ import Button, {
 import { SUPPORTED_PAYMENT_METHODS } from '../../constants';
 import { DepositOrder } from '@consensys/native-ramps-sdk';
 import PrivacySection from '../../components/PrivacySection';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -59,7 +63,8 @@ const BankDetails = () => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const { sdk } = useDepositSDK();
+  const { sdk, selectedWalletAddress, selectedRegion } = useDepositSDK();
+  const trackEvent = useAnalytics();
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
@@ -210,6 +215,26 @@ const BankDetails = () => {
         return;
       }
 
+      const cryptoCurrency = getCryptoCurrencyFromTransakId(
+        order.data.cryptoCurrency,
+        order.data.network,
+      );
+
+      trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+        ramp_type: 'DEPOSIT',
+        amount_source: Number(order.data.fiatAmount),
+        amount_destination: Number(order.cryptoAmount),
+        exchange_rate: Number(order.data.exchangeRate),
+        gas_fee: 0, //Number(order.data.gasFee),
+        processing_fee: 0, //Number(order.data.processingFee),
+        total_fee: Number(order.data.totalFeesFiat),
+        payment_method_id: order.data.paymentMethod,
+        country: selectedRegion?.isoCode || '',
+        chain_id: cryptoCurrency?.chainId || '',
+        currency_destination: selectedWalletAddress || order.data.walletAddress,
+        currency_source: order.data.fiatCurrency,
+      });
+
       await confirmPayment(order.id, paymentOptionId);
 
       await handleOnRefresh();
@@ -222,7 +247,15 @@ const BankDetails = () => {
     } catch (fetchError) {
       console.error(fetchError);
     }
-  }, [navigation, confirmPayment, handleOnRefresh, order]);
+  }, [
+    navigation,
+    confirmPayment,
+    handleOnRefresh,
+    order,
+    selectedRegion?.isoCode,
+    selectedWalletAddress,
+    trackEvent,
+  ]);
 
   const handleCancelOrder = useCallback(async () => {
     try {
