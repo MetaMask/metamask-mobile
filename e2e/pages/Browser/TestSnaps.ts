@@ -96,12 +96,32 @@ class TestSnaps {
   }
 
   async tapButton(buttonLocator: keyof typeof TestSnapViewSelectorWebIDS) {
-    const webElement = Matchers.getElementByWebID(
+    const webElement = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapViewSelectorWebIDS[buttonLocator],
-    ) as any;
+    );
     await Gestures.scrollToWebViewPort(webElement);
     await Gestures.tapWebElement(webElement);
+  }
+
+  async tapOkButton() {
+    const button = Matchers.getElementByText('OK');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapApproveButton() {
+    const button = Matchers.getElementByText('Approve');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapConfirmButton() {
+    const button = Matchers.getElementByText('Confirm');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapCancelButton() {
+    const button = Matchers.getElementByText('Cancel');
+    await Gestures.waitAndTap(button);
   }
 
   async getOptionValueByText(webElement: IndexableWebElement, text: string) {
