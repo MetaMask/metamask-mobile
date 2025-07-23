@@ -44,10 +44,11 @@ describe('Asset', () => {
       params: {
         asset: {
           name: 'Ethereum',
+          address: '0x123',
         },
       },
     } as RouteProp<ParamListBase, string>);
     const { getByText } = renderComponent();
-    expect(getByText('Asset: Ethereum')).toBeTruthy();
+    expect(getByText('Asset: 0x123')).toBeTruthy();
   });
 });

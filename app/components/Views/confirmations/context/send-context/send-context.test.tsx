@@ -16,6 +16,7 @@ jest.mock('@react-navigation/native', () => ({
       asset: {
         chainId: '0x1',
         name: 'Ethereum',
+        address: '0x123',
       },
     },
   }),
@@ -35,7 +36,7 @@ describe('SendContext', () => {
         },
       },
     );
-    expect(getByText('Asset: Ethereum')).toBeTruthy();
+    expect(getByText('Asset: 0x123')).toBeTruthy();
   });
 });
 
