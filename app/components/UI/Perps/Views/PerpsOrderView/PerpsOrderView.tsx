@@ -315,9 +315,11 @@ const PerpsOrderView: React.FC = () => {
     if (!currentPrice) {
       return { price: 0, change: 0 };
     }
+    const price = parseFloat(currentPrice.price || '0');
+    const change = parseFloat(currentPrice.percentChange24h || '0');
     return {
-      price: parseFloat(currentPrice.price || '0'), // Mid price used for display
-      change: parseFloat(currentPrice.percentChange24h || '0'),
+      price: isNaN(price) ? 0 : price, // Mid price used for display
+      change: isNaN(change) ? 0 : change,
     };
   }, [currentPrice]);
 
@@ -498,7 +500,7 @@ const PerpsOrderView: React.FC = () => {
           direction: orderForm.direction,
           asset: orderForm.asset,
           size: orderForm.amount,
-          price: currentPrice?.toString() || '0',
+          price: assetData.price.toString(),
           leverage: orderForm.leverage,
           takeProfitPrice: orderForm.takeProfitPrice,
           stopLossPrice: orderForm.stopLossPrice,
