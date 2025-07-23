@@ -523,6 +523,7 @@ class Onboarding extends PureComponent {
   handleLoginError = (error, socialConnectionType) => {
     if (error instanceof OAuthError) {
       if (error.code === OAuthErrorType.UserCancelled) {
+        // QA: do not show error sheet if user cancelled
         return;
       }
     }
