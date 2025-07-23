@@ -180,6 +180,8 @@ const BuildQuote = () => {
             );
           }
         }
+      } else if (isMounted) {
+        setOtt(null);
       }
     };
 
