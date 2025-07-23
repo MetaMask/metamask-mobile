@@ -33,14 +33,26 @@ import { RecursivePartial } from '../../../core/Authentication/Authentication.te
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
 
-const mockEngine = jest.mocked(Engine);
-
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockReset = jest.fn();
 const mockGoBack = jest.fn();
 
 const mockRoute = jest.fn();
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      verifyPassword: jest.fn(),
+      submitPassword: jest.fn(),
+    },
+    SeedlessOnboardingController: {
+      submitGlobalPassword: jest.fn(),
+    },
+  },
+}));
+
+const mockEngine = jest.mocked(Engine);
 
 jest.mock('../../../util/mnemonic', () => ({
   uint8ArrayToMnemonic: jest.fn(),
@@ -513,7 +525,12 @@ describe('Login test suite 2', () => {
         .mockResolvedValue(true);
 
       // mock keyring controller verifyPassword
-      mockEngine.context.KeyringController.verifyPassword = jest.fn();
+      mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(
+        undefined,
+      );
+      mockEngine.context.SeedlessOnboardingController.submitGlobalPassword.mockRejectedValue(
+        new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
+      );
 
       const { getByTestId } = renderWithProvider(<Login />);
 
@@ -545,7 +562,9 @@ describe('Login test suite 2', () => {
           oauthLoginSuccess: true,
         },
       });
-      mockEngine.context.KeyringController.verifyPassword = jest.fn();
+      mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(
+        undefined,
+      );
 
       jest
         .spyOn(Authentication, 'rehydrateSeedPhrase')
@@ -748,9 +767,6 @@ describe('Login test suite 2', () => {
         getState: jest.fn(() => mockState),
       } as unknown as ReduxStore);
       jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
-
-      mockEngine.context.KeyringController.submitPassword = jest.fn();
-      // jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
 
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
