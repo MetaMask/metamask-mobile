@@ -148,6 +148,12 @@ class AccountListBottomSheet {
     });
   }
 
+  async tapAccountByName(accountName: string): Promise<void> {
+    const name = Matchers.getElementByText(accountName);
+
+    await Gestures.waitAndTap(name);
+  }
+
   async scrollToAccount(index: number): Promise<void> {
     await Gestures.scrollToElement(
       Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index),
