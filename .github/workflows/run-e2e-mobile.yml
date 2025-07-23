@@ -74,13 +74,30 @@ jobs:
           android-abi: x86_64
           configure-keystores: false
 
-      # test workadound
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
         run: |
           echo "Building Detox framework cache for iOS..."
           yarn detox clean-framework-cache
           yarn detox build-framework-cache
+
+      - name: Additional Detox setup for API specs (iOS)
+        if: ${{ inputs.is_api_specs && inputs.platform == 'ios' }}
+        run: |
+          echo "🔧 Additional Detox setup for API specs..."
+          yarn detox reset-lock-file
+          
+          # Verify framework cache is properly built
+          if [[ ! -d ~/Library/Detox/ios/framework ]]; then
+            echo "⚠️  Detox framework directory not found, rebuilding..."
+            yarn detox clean-framework-cache
+            yarn detox build-framework-cache
+          fi
+          
+          # Clean up any existing lock files that might interfere
+          find . -name "*.lock" -type f -delete 2>/dev/null || true
+          
+          echo "✅ Detox setup complete for API specs"
 
       #- name: Build E2E app
       #  if: ${{ !inputs.use_prebuilt_apps }}
@@ -238,7 +255,6 @@ jobs:
           # Platform-specific preparation
           if [[ "$platform" == "ios" ]]; then
             echo "🔧 Preparing iOS environment..."
-            yarn detox build-framework-cache
             yarn detox reset-lock-file
 
           else
