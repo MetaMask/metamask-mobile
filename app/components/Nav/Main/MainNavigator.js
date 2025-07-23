@@ -26,7 +26,7 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import Send from '../../Views/confirmations/legacy/Send';
+import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
@@ -106,6 +106,7 @@ import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOn
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
+import Send from '../../Views/confirmations/components/send';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -613,9 +614,15 @@ const SendView = () => (
   <Stack.Navigator>
     <Stack.Screen
       name="Send"
-      component={Send}
-      options={Send.navigationOptions}
+      component={SendLegacy}
+      options={SendLegacy.navigationOptions}
     />
+  </Stack.Navigator>
+);
+
+const SendComponent = () => (
+  <Stack.Navigator headerMode="screen">
+    <Stack.Screen name="Send" component={Send} />
   </Stack.Navigator>
 );
 
@@ -834,8 +841,18 @@ const MainNavigator = () => {
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
+        name="Send"
+        component={SendComponent}
+        //Disabling swipe down on IOS
+        options={{ gestureEnabled: false }}
+      />
+      <Stack.Screen
         name="SendFlowView"
-        component={SendFlowView}
+        component={
+          process.env.MM_SEND_REDESIGNS_ENABLED === 'true'
+            ? SendComponent
+            : SendFlowView
+        }
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />
