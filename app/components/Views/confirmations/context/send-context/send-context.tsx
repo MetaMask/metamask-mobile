@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { Hex } from '@metamask/utils';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 

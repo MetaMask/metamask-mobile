@@ -17,7 +17,7 @@ const Asset = () => {
 
   useEffect(() => {
     updateAsset(paramsAsset);
-  }, [paramsAsset]);
+  }, [paramsAsset, updateAsset]);
 
   return (
     <View style={styles.container}>
