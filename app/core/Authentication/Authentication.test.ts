@@ -1333,7 +1333,7 @@ describe('Authentication', () => {
     });
 
     it(`throw when old password is provided`, async () => {
-      Engine.context.KeyringController.submitPassword = jest
+      Engine.context.KeyringController.verifyPassword = jest
         .fn()
         .mockResolvedValueOnce('');
       (
@@ -1397,7 +1397,7 @@ describe('Authentication', () => {
       Engine.context.KeyringController.changePassword = jest.fn();
       Engine.context.KeyringController.exportEncryptionKey = jest.fn();
 
-      Engine.context.KeyringController.submitPassword = jest
+      Engine.context.KeyringController.verifyPassword = jest
         .fn()
         .mockRejectedValueOnce(new Error('submit password failed'));
 
@@ -1449,7 +1449,7 @@ describe('Authentication', () => {
           .syncLatestGlobalPassword as jest.Mock
       ).mockResolvedValueOnce(undefined);
 
-      Engine.context.KeyringController.submitPassword = jest
+      Engine.context.KeyringController.verifyPassword = jest
         .fn()
         .mockRejectedValueOnce(new Error('submit password failed'));
 
