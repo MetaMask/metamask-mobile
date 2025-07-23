@@ -1,32 +1,59 @@
 import React from 'react';
-import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+// eslint-disable-next-line import/no-namespace
+import * as TransactionUtils from '../../../../../util/transaction-controller';
+import { SendContextProvider } from '../../context/send-context';
 import Send from './send';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
   useRoute: jest.fn().mockReturnValue({
     params: {
-      asset: {},
+      asset: {
+        chainId: '0x1',
+      },
     },
   }),
 }));
 
 const renderComponent = () =>
-  renderWithProvider(<Send />, {
-    state: {
-      engine: {
-        backgroundState,
+  renderWithProvider(
+    <SendContextProvider>
+      <Send />
+    </SendContextProvider>,
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'evm-account-id',
+                accounts: {
+                  'evm-account-id': {
+                    id: 'evm-account-id',
+                    type: 'eip155:eoa',
+                    address: '0x12345',
+                    metadata: {},
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
-  });
+  );
 
 describe('Send', () => {
   beforeEach(() => {
@@ -41,6 +68,13 @@ describe('Send', () => {
     expect(getByText('Value:')).toBeTruthy();
   });
 
+  it('use from address returned from SendContext', async () => {
+    const { getByText } = renderComponent();
+
+    expect(getByText('From:')).toBeTruthy();
+    expect(getByText('0x12345')).toBeTruthy();
+  });
+
   it('navigate back when cancel is clicked', async () => {
     const { getByText } = renderComponent();
 
@@ -49,22 +83,17 @@ describe('Send', () => {
   });
 
   it('when confirm is clicked create transaction', async () => {
+    const mockAddTransaction = jest
+      .spyOn(TransactionUtils, 'addTransaction')
+      .mockImplementation(() =>
+        Promise.resolve({
+          result: Promise.resolve('123'),
+          transactionMeta: { id: '123' } as TransactionMeta,
+        }),
+      );
     const { getByText } = renderComponent();
 
-    // actual implementation to come here when confirm is implemented
     fireEvent.press(getByText('Confirm'));
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('asset passed in nav params should be used if present', async () => {
-    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-      params: {
-        asset: {
-          name: 'Ethereum',
-        },
-      },
-    } as RouteProp<ParamListBase, string>);
-    const { getByText } = renderComponent();
-    expect(getByText('Asset: Ethereum')).toBeTruthy();
+    expect(mockAddTransaction).toHaveBeenCalledTimes(1);
   });
 });
