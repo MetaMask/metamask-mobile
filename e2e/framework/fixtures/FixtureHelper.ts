@@ -367,11 +367,23 @@ export async function withFixtures(
   if (mockServerInstance && !testSpecificMock) {
     mockServer = mockServerInstance;
     mockServerPort = mockServer.port;
+    logger.debug(
+      `Mock server started from mockServerInstance on port ${mockServerPort}`,
+    );
+    const endpoints = await mockServer.getMockedEndpoints();
+    logger.debug(
+      `Mocked endpoints: ${endpoints.length} Mock server endpoints: ${endpoints
+        .map((endpoint) => endpoint.id)
+        .join(', ')}`,
+    );
   }
 
   if (testSpecificMock && !mockServerInstance) {
     mockServerPort = getMockServerPort();
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
+    logger.debug(
+      `Mock server started from testSpecificMock on port ${mockServerPort}`,
+    );
   }
 
   // Handle local nodes
