@@ -2,97 +2,109 @@ import {
   ActivitiesViewSelectorsIDs,
   ActivitiesViewSelectorsText,
 } from '../../selectors/Transactions/ActivitiesView.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class ActivitiesView {
-  get title() {
+  get title(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
 
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
   }
 
-  get confirmedLabel() {
+  get confirmedLabel(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
   }
 
-  get stakeDepositedLabel() {
+  get stakeDepositedLabel(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
   }
 
-  get stakeMoreDepositedLabel() {
+  get stakeMoreDepositedLabel(): DetoxElement {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.STAKE_DEPOSIT,
       0,
     );
   }
 
-  get unstakeLabel() {
+  get unstakeLabel(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
   }
 
-  get stackingClaimLabel() {
+  get stackingClaimLabel(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
   }
 
-  transactionStatus(row) {
+  transactionStatus(row: number): DetoxElement {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
 
-  transactionItem(row) {
+  transactionItem(row: number): DetoxElement {
     return Matchers.getElementByID(`transaction-item-${row}`);
   }
 
-  generateSwapActivityLabel(sourceToken, destinationToken) {
+  generateSwapActivityLabel(
+    sourceToken: string,
+    destinationToken: string,
+  ): string {
     let title = ActivitiesViewSelectorsText.SWAP;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
     return title;
   }
 
-  generateBridgeActivityLabel(destNetwork) {
+  generateBridgeActivityLabel(destNetwork: string): string {
     let title = ActivitiesViewSelectorsText.BRIDGE;
     title = title.replace('{{chainName}}', destNetwork);
     return title;
   }
 
-  generateApprovedTokenActivityLabel(sourceToken) {
+  generateApprovedTokenActivityLabel(sourceToken: string): string {
     let title = ActivitiesViewSelectorsText.APPROVE;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{upTo}}', '.*');
-    return new RegExp(`^${title}`);
+    return `^${title}`;
   }
 
-  swapActivityTitle(sourceToken, destinationToken) {
+  swapActivityTitle(
+    sourceToken: string,
+    destinationToken: string,
+  ): DetoxElement {
     return Matchers.getElementByText(
       this.generateSwapActivityLabel(sourceToken, destinationToken),
     );
   }
 
-  bridgeActivityTitle(destNetwork) {
+  bridgeActivityTitle(destNetwork: string): DetoxElement {
     return Matchers.getElementByText(
       this.generateBridgeActivityLabel(destNetwork),
     );
   }
-  tokenApprovalActivity(sourceToken) {
+  tokenApprovalActivity(sourceToken: string): DetoxElement {
     return Matchers.getElementByText(
       this.generateApprovedTokenActivityLabel(sourceToken),
     );
   }
 
-  async tapOnSwapActivity(sourceToken, destinationToken) {
-    const element = this.swapActivityTitle(sourceToken, destinationToken);
-    await Gestures.waitAndTap(element);
+  async tapOnSwapActivity(
+    sourceToken: string,
+    destinationToken: string,
+  ): Promise<void> {
+    const el = this.swapActivityTitle(sourceToken, destinationToken);
+    await Gestures.waitAndTap(el);
   }
-  async tapConfirmedTransaction() {
+  async tapConfirmedTransaction(): Promise<void> {
     await Gestures.waitAndTap(this.confirmedLabel);
   }
-  async swipeDown() {
-    await Gestures.swipe(this.container, 'down', 'slow', 0.5);
+  async swipeDown(): Promise<void> {
+    await Gestures.swipe(this.container, 'down', {
+      speed: 'slow',
+      percentage: 0.5,
+    });
   }
-  async tapOnTransactionItem(row) {
+  async tapOnTransactionItem(row: number): Promise<void> {
     await Gestures.waitAndTap(this.transactionItem(row));
   }
 }
