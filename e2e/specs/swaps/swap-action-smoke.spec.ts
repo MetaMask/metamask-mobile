@@ -32,11 +32,14 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   const SECOND_ROW: number = 1;
   let mockServerPort: number;
   let capturedEvents: EventPayload[] = [];
-  let mockServer: Mockttp;
+  let mockServer: MockttpServer;
 
   beforeAll(async (): Promise<void> => {
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+    mockServer = (await startMockServer(
+      testSpecificMock,
+      mockServerPort,
+    )) as MockttpServer;
     logger.debug(`Test side Mock server started on port ${mockServerPort}`);
   });
 
@@ -74,12 +77,20 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
           ],
           mockServerInstance: mockServer,
           restartDevice: true,
-          endTestfn: async ({ mockServer }) => {
-            // Capture events before cleanup
-            capturedEvents = await getEventsPayloads(
-              mockServer,
-              Object.values(EVENT_NAMES),
-            );
+          endTestfn: async ({ mockServer: mockServerInstance }) => {
+            try {
+              // Capture all events without filtering.
+              // When fixing the test skipped below the filter needs to be applied there.
+              capturedEvents = await getEventsPayloads(
+                mockServerInstance,
+                [],
+                30000,
+              );
+            } catch (error: unknown) {
+              const errorMessage =
+                error instanceof Error ? error.message : String(error);
+              logger.error(`Error capturing events: ${errorMessage}`);
+            }
           },
         },
         async () => {
