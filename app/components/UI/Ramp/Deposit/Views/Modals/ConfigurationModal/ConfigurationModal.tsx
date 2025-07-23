@@ -19,17 +19,16 @@ import Icon, {
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './ConfigurationModal.styles';
 
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
 import { useDepositSDK } from '../../../sdk';
 import { useNavigation } from '@react-navigation/native';
-import { ToastContext } from '../../../../../../../component-library/components/Toast';
-import { ToastVariants } from '../../../../../../../component-library/components/Toast';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../../../component-library/components/Toast';
 
 export const createConfigurationModalNavigationDetails =
   createNavigationDetails(

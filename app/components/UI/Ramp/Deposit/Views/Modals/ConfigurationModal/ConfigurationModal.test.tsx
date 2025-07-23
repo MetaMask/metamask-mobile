@@ -8,6 +8,14 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
 import { ToastContext } from '../../../../../../../component-library/components/Toast';
 
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: {
+    showToast: mockShowToast,
+    closeToast: jest.fn(),
+  },
+};
+
 function renderWithProvider(component: React.ComponentType) {
   const WrappedComponent = () => {
     const Component = component;
@@ -37,7 +45,6 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockClearAuthToken = jest.fn();
-const mockShowToast = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -67,13 +74,6 @@ const mockUseDepositSDK = jest.fn();
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
 }));
-
-const mockToastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: jest.fn(),
-  },
-};
 
 jest.mock('../../../../../../../component-library/components/Toast', () => {
   const actualToast = jest.requireActual(
