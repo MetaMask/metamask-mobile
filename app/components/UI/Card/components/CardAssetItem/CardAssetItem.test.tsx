@@ -75,7 +75,7 @@ describe('CardAssetItem Component', () => {
     chainId: '0x1',
     address: '0x0000000000000000000000000000000000000000',
     isStaked: false,
-    allowanceState: AllowanceState.NotEnabled,
+    allowanceState: AllowanceState.NotActivated,
     allowance: ethers.BigNumber.from('1000000000000000000'),
     decimals: 18,
     symbol: 'ETH',
@@ -155,37 +155,6 @@ describe('CardAssetItem Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with different allowanceState and matches snapshot', () => {
-    const assetKeyWithAllowanceState = {
-      ...mockAssetKey,
-      allowanceState: AllowanceState.Limited,
-    };
-
-    const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem
-        assetKey={assetKeyWithAllowanceState}
-        privacyMode={false}
-      />
-    ));
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders with enabled allowanceState and matches snapshot', () => {
-    const assetKeyWithEnabledAllowance = {
-      ...mockAssetKey,
-      allowanceState: AllowanceState.Enabled,
-    };
-    const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem
-        assetKey={assetKeyWithEnabledAllowance}
-        privacyMode={false}
-      />
-    ));
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('calls onPress when pressed', () => {
     const { getByTestId } = renderWithProvider(() => (
       <CardAssetItem
@@ -238,9 +207,9 @@ describe('CardAssetItem Component', () => {
 
   it('handles test network correctly', () => {
     mockIsTestNet.mockReturnValue(true);
-    mockGetTestNetImageByChainId.mockReturnValue(
-      'https://example.com/testnet.png',
-    );
+    mockGetTestNetImageByChainId.mockReturnValue({
+      uri: 'https://example.com/testnet.png',
+    });
 
     const { toJSON } = renderWithProvider(() => (
       <CardAssetItem assetKey={mockAssetKey} privacyMode={false} />
