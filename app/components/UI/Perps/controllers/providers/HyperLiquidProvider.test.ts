@@ -136,6 +136,29 @@ describe('HyperLiquidProvider', () => {
               },
               type: 'oneWay',
             },
+            {
+              position: {
+                coin: 'ETH',
+                szi: '1.5',
+                entryPx: '3000',
+                positionValue: '4500',
+                unrealizedPnl: '50',
+                marginUsed: '450',
+                leverage: {
+                  type: 'cross',
+                  value: 10,
+                },
+                liquidationPx: '2700',
+                maxLeverage: 50,
+                returnOnEquity: '10',
+                cumFunding: {
+                  allTime: '5',
+                  sinceOpen: '2',
+                  sinceChange: '1',
+                },
+              },
+              type: 'oneWay',
+            },
           ],
           crossMarginSummary: {
             accountValue: '10000',
@@ -153,6 +176,7 @@ describe('HyperLiquidProvider', () => {
           ],
         }),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
       }),
       disconnect: jest.fn().mockResolvedValue(undefined),
       toggleTestnet: jest.fn(),
@@ -358,6 +382,43 @@ describe('HyperLiquidProvider', () => {
       };
 
       const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('updatePositionTPSL', () => {
+    it('should update position TP/SL successfully', async () => {
+      const updateParams = {
+        coin: 'ETH',
+        takeProfitPrice: '3500',
+        stopLossPrice: '2500',
+      };
+
+      const result = await provider.updatePositionTPSL(updateParams);
+
+      expect(result.success).toBe(true);
+      expect(result.orderId).toBeDefined();
+    });
+
+    it('should handle update with only take profit price', async () => {
+      const updateParams = {
+        coin: 'ETH',
+        takeProfitPrice: '3500',
+      };
+
+      const result = await provider.updatePositionTPSL(updateParams);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle update with only stop loss price', async () => {
+      const updateParams = {
+        coin: 'ETH',
+        stopLossPrice: '2500',
+      };
+
+      const result = await provider.updatePositionTPSL(updateParams);
 
       expect(result.success).toBe(true);
     });

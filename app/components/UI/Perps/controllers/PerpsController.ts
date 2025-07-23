@@ -40,6 +40,7 @@ import type {
   SubscribePricesParams,
   SwitchProviderResult,
   ToggleTestnetResult,
+  UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
 } from './types';
@@ -493,6 +494,24 @@ export class PerpsController extends BaseController<
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
     const provider = this.getActiveProvider();
     const result = await provider.closePosition(params);
+
+    if (result.success) {
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Update TP/SL for an existing position
+   */
+  async updatePositionTPSL(
+    params: UpdatePositionTPSLParams,
+  ): Promise<OrderResult> {
+    const provider = this.getActiveProvider();
+    const result = await provider.updatePositionTPSL(params);
 
     if (result.success) {
       this.update((state) => {

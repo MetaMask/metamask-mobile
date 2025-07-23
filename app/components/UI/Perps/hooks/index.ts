@@ -26,8 +26,9 @@ export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 export { usePerpsMarketData } from './usePerpsMarketData';
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 
-// Removed for minimal PR:
-// - usePerpsPositions (positions management)
+// UI utility hooks
+export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
+export { usePerpsPositions } from './usePerpsPositions';
 // - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)

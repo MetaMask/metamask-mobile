@@ -63,6 +63,8 @@ export type Position = {
     sinceOpen: string; // Funding since position opened
     sinceChange: string; // Funding since last size change
   };
+  takeProfitPrice?: string; // Take profit price (if set)
+  stopLossPrice?: string; // Stop loss price (if set)
 };
 
 export type AccountState = {
@@ -310,6 +312,12 @@ export interface MaintenanceMarginParams {
   positionSize?: number; // Optional: for tiered margin systems
 }
 
+export interface UpdatePositionTPSLParams {
+  coin: string; // Asset symbol
+  takeProfitPrice?: string; // Optional: undefined to remove
+  stopLossPrice?: string; // Optional: undefined to remove
+}
+
 export interface IPerpsProvider {
   readonly protocolId: string;
 
@@ -322,6 +330,7 @@ export interface IPerpsProvider {
   editOrder(params: EditOrderParams): Promise<OrderResult>;
   cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult>;
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
+  updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
   getMarkets(): Promise<MarketInfo[]>;

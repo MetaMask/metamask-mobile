@@ -26,8 +26,6 @@ import {
   usePerpsPrices,
 } from '../hooks';
 
-// Preview market data component removed for minimal PR
-
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import PerpsLoader from '../components/PerpsLoader';
@@ -51,7 +49,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 32,
     },
     buttonContainer: {
-      marginBottom: 24,
+      gap: 10,
     },
     button: {
       marginBottom: 16,

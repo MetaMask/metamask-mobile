@@ -281,23 +281,20 @@ describe('PerpsPositionCard', () => {
       );
     });
 
-    it('shows TP/SL bottom sheet when edit is pressed without onEdit prop', () => {
+    it('navigates to position details with edit_tpsl action when edit is pressed without onEdit prop', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
-
-      // Bottom sheet should not be visible initially
-      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
 
       // Press edit button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
       );
 
-      // Assert - Bottom sheet should be visible
-      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeDefined();
-
-      // Navigation should NOT be called
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      // Assert - Should navigate to position details with edit_tpsl action
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.POSITION_DETAILS,
+        { position: mockPosition, action: 'edit_tpsl' },
+      );
     });
   });
 

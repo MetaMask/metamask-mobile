@@ -18,6 +18,7 @@ import type {
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
   SubscribePricesParams,
+  UpdatePositionTPSLParams,
 } from '../controllers/types';
 
 /**
@@ -133,6 +134,14 @@ export function usePerpsTrading() {
     return controller.getMaxLeverage(asset);
   }, []);
 
+  const updatePositionTPSL = useCallback(
+    async (params: UpdatePositionTPSLParams): Promise<OrderResult> => {
+      const controller = Engine.context.PerpsController;
+      return controller.updatePositionTPSL(params);
+    },
+    [],
+  );
+
   return {
     placeOrder,
     cancelOrder,
@@ -149,5 +158,6 @@ export function usePerpsTrading() {
     calculateLiquidationPrice,
     calculateMaintenanceMargin,
     getMaxLeverage,
+    updatePositionTPSL,
   };
 }

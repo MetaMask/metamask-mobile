@@ -974,6 +974,11 @@
         "error_message": "Position data not found. Please go back and try again.",
         "section_title": "Position"
       },
+      "tpsl": {
+        "update_success": "TP/SL updated successfully",
+        "update_failed": "Failed to update TP/SL",
+        "update_error": "Error updating TP/SL"
+      },
       "account": {
         "summary_title": "Account Summary",
         "total_balance": "Total Balance",

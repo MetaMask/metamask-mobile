@@ -45,6 +45,11 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
+// Mock hooks
+jest.mock('../../hooks', () => ({
+  usePerpsPrices: jest.fn(() => ({})), // Return empty object for prices
+}));
+
 // Mock format utilities
 jest.mock('../../utils/formatUtils', () => ({
   formatPrice: jest.fn((value) => {
@@ -709,12 +714,12 @@ describe('PerpsTPSLBottomSheet', () => {
       ).not.toThrow();
     });
 
-    it('uses position entry price when available', () => {
+    it('uses currentPrice when provided, falls back to entry price', () => {
       // Arrange
       const propsWithPosition = {
         ...defaultProps,
         position: mockPosition,
-        currentPrice: 3200, // This should be ignored in favor of position.entryPrice
+        currentPrice: 3200, // This will be used (live price)
       };
 
       render(<PerpsTPSLBottomSheet {...propsWithPosition} />);
@@ -724,7 +729,31 @@ describe('PerpsTPSLBottomSheet', () => {
       // Act
       fireEvent.changeText(takeProfitPriceInput, '2950');
 
-      // Assert - Should use position.entryPrice (2800) not currentPrice (3200)
+      // Assert - Should use currentPrice (3200) when provided
+      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
+      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
+        '2950',
+        true,
+        { currentPrice: 3200, direction: 'long' },
+      );
+    });
+
+    it('uses position entry price when currentPrice not provided', () => {
+      // Arrange
+      const propsWithPosition = {
+        ...defaultProps,
+        position: mockPosition,
+        currentPrice: undefined, // No current price provided
+      };
+
+      render(<PerpsTPSLBottomSheet {...propsWithPosition} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0];
+
+      // Act
+      fireEvent.changeText(takeProfitPriceInput, '2950');
+
+      // Assert - Should fall back to position.entryPrice (2800)
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
       expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
         '2950',

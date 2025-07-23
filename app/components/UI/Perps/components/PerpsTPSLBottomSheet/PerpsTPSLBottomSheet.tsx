@@ -16,8 +16,10 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { formatPrice } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
+import { usePerpsPrices } from '../../hooks';
 import {
   isValidTakeProfitPrice,
   isValidStopLossPrice,
@@ -80,11 +82,37 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     number | null
   >(null);
 
-  // Use the current price passed as prop, don't subscribe to updates
-  // For existing positions, use the position's entry price as reference
-  const currentPrice = position?.entryPrice
-    ? parseFloat(position.entryPrice)
-    : initialCurrentPrice || 0;
+  // Subscribe to real-time price only when visible and we have an asset
+  const priceData = usePerpsPrices(isVisible && asset ? [asset] : []);
+  const livePrice = priceData[asset]?.price
+    ? parseFloat(priceData[asset].price)
+    : undefined;
+
+  // Use the current market price if available, otherwise use entry price
+  // For new orders, use initialCurrentPrice
+  // For existing positions, prefer live price over initial price over entry price
+  const currentPrice =
+    livePrice ||
+    initialCurrentPrice ||
+    (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
+
+  // Determine direction: from position size (positive = long, negative = short) or from prop
+  const actualDirection = position
+    ? parseFloat(position.size) > 0
+      ? 'long'
+      : 'short'
+    : direction;
+
+  // Debug logging
+  if (position) {
+    DevLogger.log('PerpsTPSLBottomSheet Debug:', {
+      positionSize: position.size,
+      parsedSize: parseFloat(position.size),
+      determinedDirection: actualDirection,
+      entryPrice: position.entryPrice,
+      currentPrice,
+    });
+  }
 
   useEffect(() => {
     if (isVisible) {
@@ -137,7 +165,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       if (sanitized) {
         const percentage = calculatePercentageForPrice(sanitized, true, {
           currentPrice,
-          direction,
+          direction: actualDirection,
         });
         setTakeProfitPercentage(percentage);
       } else {
@@ -145,7 +173,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       }
       setSelectedTpPercentage(null);
     },
-    [currentPrice, direction],
+    [currentPrice, actualDirection],
   );
 
   // Memoized callbacks for take profit percentage input
@@ -162,7 +190,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       if (sanitized && !isNaN(parseFloat(sanitized))) {
         const price = calculatePriceForPercentage(parseFloat(sanitized), true, {
           currentPrice,
-          direction,
+          direction: actualDirection,
         });
         setTakeProfitPrice(formatPrice(price));
         setSelectedTpPercentage(parseFloat(sanitized));
@@ -171,7 +199,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         setSelectedTpPercentage(null);
       }
     },
-    [currentPrice, direction],
+    [currentPrice, actualDirection],
   );
 
   // Memoized callbacks for stop loss price input
@@ -188,7 +216,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       if (sanitized) {
         const percentage = calculatePercentageForPrice(sanitized, false, {
           currentPrice,
-          direction,
+          direction: actualDirection,
         });
         setStopLossPercentage(percentage);
       } else {
@@ -196,7 +224,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       }
       setSelectedSlPercentage(null);
     },
-    [currentPrice, direction],
+    [currentPrice, actualDirection],
   );
 
   // Memoized callbacks for stop loss percentage input
@@ -214,7 +242,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         const price = calculatePriceForPercentage(
           parseFloat(sanitized),
           false,
-          { currentPrice, direction },
+          { currentPrice, direction: actualDirection },
         );
         setStopLossPrice(formatPrice(price));
         setSelectedSlPercentage(parseFloat(sanitized));
@@ -223,34 +251,41 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         setSelectedSlPercentage(null);
       }
     },
-    [currentPrice, direction],
+    [currentPrice, actualDirection],
   );
 
   // Memoized callbacks for percentage buttons
   const handleTakeProfitPercentageButton = useCallback(
     (percentage: number) => {
+      DevLogger.log('TP Percentage Button Debug:', {
+        percentage,
+        currentPrice,
+        actualDirection,
+        isProfit: true,
+      });
       const price = calculatePriceForPercentage(percentage, true, {
         currentPrice,
-        direction,
+        direction: actualDirection,
       });
+      DevLogger.log('Calculated TP price:', price);
       setTakeProfitPrice(formatPrice(price));
       setTakeProfitPercentage(percentage.toString());
       setSelectedTpPercentage(percentage);
     },
-    [currentPrice, direction],
+    [currentPrice, actualDirection],
   );
 
   const handleStopLossPercentageButton = useCallback(
     (percentage: number) => {
       const price = calculatePriceForPercentage(percentage, false, {
         currentPrice,
-        direction,
+        direction: actualDirection,
       });
       setStopLossPrice(formatPrice(price));
       setStopLossPercentage(percentage.toString());
       setSelectedSlPercentage(percentage);
     },
-    [currentPrice, direction],
+    [currentPrice, actualDirection],
   );
 
   const footerButtonProps = [
@@ -261,7 +296,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       onPress: handleConfirm,
       disabled: !validateTPSLPrices(takeProfitPrice, stopLossPrice, {
         currentPrice,
-        direction,
+        direction: actualDirection,
       }),
     },
   ];
@@ -305,7 +340,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 takeProfitPrice &&
                   !isValidTakeProfitPrice(takeProfitPrice, {
                     currentPrice,
-                    direction,
+                    direction: actualDirection,
                   }) &&
                   styles.inputContainerError,
               ]}
@@ -382,17 +417,17 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           {takeProfitPrice &&
             !isValidTakeProfitPrice(takeProfitPrice, {
               currentPrice,
-              direction,
+              direction: actualDirection,
             }) &&
-            direction && (
+            actualDirection && (
               <Text
                 variant={TextVariant.BodySM}
                 color={TextColor.Error}
                 style={styles.helperText}
               >
                 {strings('perps.validation.invalid_take_profit', {
-                  direction: getTakeProfitErrorDirection(direction),
-                  positionType: direction,
+                  direction: getTakeProfitErrorDirection(actualDirection),
+                  positionType: actualDirection,
                 })}
               </Text>
             )}
@@ -414,7 +449,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 stopLossPrice &&
                   !isValidStopLossPrice(stopLossPrice, {
                     currentPrice,
-                    direction,
+                    direction: actualDirection,
                   }) &&
                   styles.inputContainerError,
               ]}
@@ -489,16 +524,19 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             ))}
           </View>
           {stopLossPrice &&
-            !isValidStopLossPrice(stopLossPrice, { currentPrice, direction }) &&
-            direction && (
+            !isValidStopLossPrice(stopLossPrice, {
+              currentPrice,
+              direction: actualDirection,
+            }) &&
+            actualDirection && (
               <Text
                 variant={TextVariant.BodySM}
                 color={TextColor.Error}
                 style={styles.helperText}
               >
                 {strings('perps.validation.invalid_stop_loss', {
-                  direction: getStopLossErrorDirection(direction),
-                  positionType: direction,
+                  direction: getStopLossErrorDirection(actualDirection),
+                  positionType: actualDirection,
                 })}
               </Text>
             )}
