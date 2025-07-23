@@ -996,9 +996,9 @@ const PerpsOrderView: React.FC = () => {
         <View style={styles.fixedBottomContainer}>
           {orderValidation.errors.length > 0 && (
             <View style={styles.validationContainer}>
-              {orderValidation.errors.map((error, index) => (
+              {orderValidation.errors.map((error) => (
                 <Text
-                  key={index}
+                  key={error}
                   variant={TextVariant.BodySM}
                   color={TextColor.Error}
                 >

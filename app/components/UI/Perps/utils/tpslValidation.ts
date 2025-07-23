@@ -107,13 +107,9 @@ export const calculatePriceForPercentage = (
   // For long positions: profit = price up, loss = price down
   // For short positions: profit = price down, loss = price up
   const isLong = direction === 'long';
-  const multiplier = isProfit
-    ? isLong
-      ? 1 + percentage / 100
-      : 1 - percentage / 100
-    : isLong
-    ? 1 - percentage / 100
-    : 1 + percentage / 100;
+  const profitMultiplier = isLong ? 1 + percentage / 100 : 1 - percentage / 100;
+  const lossMultiplier = isLong ? 1 - percentage / 100 : 1 + percentage / 100;
+  const multiplier = isProfit ? profitMultiplier : lossMultiplier;
 
   const calculatedPrice = currentPrice * multiplier;
   // Return raw number string without formatting

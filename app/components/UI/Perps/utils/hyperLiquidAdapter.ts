@@ -1,18 +1,17 @@
-import type {
-  OrderParams as PerpsOrderParams,
-  Position,
-  MarketInfo,
-  AccountState,
-} from '../controllers/types';
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
-  PerpsClearinghouseState,
   AssetPosition,
+  PerpsClearinghouseState,
   SpotClearinghouseState,
 } from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
 import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
 import { isHexString } from '@metamask/utils';
+import type {
+  AccountState,
+  MarketInfo,
+  OrderParams as PerpsOrderParams,
+  Position,
+} from '../controllers/types';
 
 /**
  * HyperLiquid SDK Adapter Utilities

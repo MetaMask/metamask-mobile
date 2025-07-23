@@ -59,11 +59,11 @@ const PerpsPositionsView: React.FC = () => {
     const positionCount = positions.length;
     return positionCount > 1
       ? strings('perps.position.list.position_count_plural', {
-        count: positionCount,
-      })
+          count: positionCount,
+        })
       : strings('perps.position.list.position_count', {
-        count: positionCount,
-      });
+          count: positionCount,
+        });
   }, [positions]);
 
   // Calculate total unrealized PnL using utility function
