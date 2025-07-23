@@ -11,7 +11,7 @@ import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { waitForTestDappToLoad } from '../../viewHelper';
 import {
-  TEST_DAPP_LOCAL_URL,
+  getLocalTestDappUrl,
   getSecondTestDappLocalUrl,
 } from '../../fixtures/utils';
 
@@ -228,7 +228,7 @@ class Browser {
 
   async navigateToTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
-    await this.navigateToURL(TEST_DAPP_LOCAL_URL);
+    await this.navigateToURL(getLocalTestDappUrl());
     await waitForTestDappToLoad();
   }
 
@@ -248,7 +248,7 @@ class Browser {
     await this.tapUrlInputBox();
     const encodedParams = encodeURIComponent(JSON.stringify(transactionParams));
     await this.navigateToURL(
-      `${TEST_DAPP_LOCAL_URL}/request?method=eth_sendTransaction&params=${encodedParams}`,
+      `${getLocalTestDappUrl()}/request?method=eth_sendTransaction&params=${encodedParams}`,
     );
   }
 
