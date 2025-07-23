@@ -1,7 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 
 import Button, {
   ButtonSize,
@@ -17,7 +16,6 @@ import To from './to';
 import styleSheet from './send.styles';
 
 export const Send = () => {
-  const navigation = useNavigation();
   const from = useSelector(selectSelectedInternalAccount);
   const { styles } = useStyles(styleSheet, {});
   const { cancelSend, submitSend } = useSendContext();

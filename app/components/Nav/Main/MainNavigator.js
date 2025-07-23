@@ -106,7 +106,7 @@ import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOn
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
-import SendRoot from '../../Views/confirmations/components/send/send-root';
+import { SendRoot } from '../../Views/confirmations/components/send/send-root';
 import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
 
 const Stack = createStackNavigator();
