@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { colors as importedColors } from '../../../../../../styles/common';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
@@ -33,8 +34,7 @@ export function getNavbar({
     },
     headerStyle: {
       backgroundColor: theme.colors.background.alternative,
-      // eslint-disable-next-line react-native/no-color-literals
-      shadowColor: 'transparent',
+      shadowColor: importedColors.transparent,
       elevation: 0,
     },
   });
