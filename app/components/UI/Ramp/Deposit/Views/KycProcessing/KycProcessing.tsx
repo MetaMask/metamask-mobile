@@ -54,7 +54,7 @@ const KycProcessing = () => {
     quote.network,
   );
 
-  const { handleApprovedKycFlow } = useDepositRouting({
+  const { routeAfterAuthentication } = useDepositRouting({
     cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
     paymentMethodId: quote.paymentMethod,
   });
@@ -98,14 +98,14 @@ const KycProcessing = () => {
 
   const handleContinue = useCallback(async () => {
     try {
-      await handleApprovedKycFlow(quote);
+      await routeAfterAuthentication(quote);
     } catch (error) {
       Logger.error(error as Error, {
         message: 'KycProcessing::handleContinue error',
         quote,
       });
     }
-  }, [handleApprovedKycFlow, quote]);
+  }, [routeAfterAuthentication, quote]);
 
   const error = userDetailsError || kycFormsError;
   const hasPendingForms = kycForms && kycForms.forms.length > 0;
