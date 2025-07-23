@@ -635,9 +635,15 @@ class Amount extends PureComponent {
         selectedAsset: { address, tokenId },
       },
       selectedAddress,
+      globalNetworkClientId,
     } = this.props;
     try {
-      return await NftController.isNftOwner(selectedAddress, address, tokenId);
+      return await NftController.isNftOwner(
+        selectedAddress,
+        address,
+        tokenId,
+        globalNetworkClientId,
+      );
     } catch (e) {
       return false;
     }
