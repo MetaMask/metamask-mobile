@@ -17,6 +17,7 @@ import TokenIcon from '../../../Swaps/components/TokenIcon';
 import { formatPrice, formatPercentage } from '../../utils/formatUtils';
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidConfig';
 import type { OrderType } from '../../controllers/types';
+import { PerpsOrderHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { createStyles } from './PerpsOrderHeader.styles';
 
 const FALLBACK_PRICE_DISPLAY = '$---';
@@ -79,7 +80,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   }, [price]);
 
   return (
-    <View style={styles.header}>
+    <View style={styles.header} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
       <ButtonIcon
         iconName={IconName.ArrowLeft}
         onPress={handleBack}
@@ -93,7 +94,11 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
             icon={assetIconUrl}
             style={styles.tokenIcon}
           />
-          <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
+          <Text
+            variant={TextVariant.HeadingMD}
+            style={styles.headerTitle}
+            testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
+          >
             {asset} {formattedPrice}
           </Text>
           {price > 0 && (

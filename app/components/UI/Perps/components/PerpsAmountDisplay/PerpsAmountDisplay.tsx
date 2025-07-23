@@ -6,6 +6,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { formatPrice } from '../../utils/formatUtils';
+import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import createStyles from './PerpsAmountDisplay.styles';
 
 interface PerpsAmountDisplayProps {
@@ -53,7 +54,10 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   }, [isActive, fadeAnim]);
 
   const content = (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
+    >
       <View style={styles.amountRow}>
         <RNText
           style={[styles.amountValue, isActive && styles.amountValueActive]}

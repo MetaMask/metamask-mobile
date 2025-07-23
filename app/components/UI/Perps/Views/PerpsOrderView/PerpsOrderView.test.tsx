@@ -148,41 +148,6 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-icon' })),
 }));
 
-// Mock component library components - these are imported but not owned by this module
-jest.mock(
-  '../../../../../component-library/components/List/ListItem',
-  () => 'ListItem',
-);
-jest.mock(
-  '../../../../../component-library/components/List/ListItemColumn',
-  () => ({
-    __esModule: true,
-    default: 'ListItemColumn',
-    WidthType: { Fill: 'fill', Auto: 'auto' },
-  }),
-);
-jest.mock('../../../../../component-library/components/Badges/Badge', () => ({
-  __esModule: true,
-  default: 'Badge',
-  BadgeVariant: { Network: 'network' },
-}));
-jest.mock(
-  '../../../../../component-library/components/Badges/BadgeWrapper',
-  () => ({
-    __esModule: true,
-    default: 'BadgeWrapper',
-    BadgePosition: { BottomRight: 'bottom-right' },
-  }),
-);
-jest.mock(
-  '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
-  () => 'AvatarToken',
-);
-jest.mock('../../../../../component-library/components/Avatars/Avatar', () => ({
-  AvatarSize: { Md: 'md' },
-}));
-jest.mock('../../../Swaps/components/TokenIcon', () => 'TokenIcon');
-
 // Mock bottom sheet components as they are complex and not part of the test focus
 jest.mock('../../components/PerpsTPSLBottomSheet', () => {
   const MockReact = jest.requireActual('react');
@@ -194,6 +159,7 @@ jest.mock('../../components/PerpsTPSLBottomSheet', () => {
         : null,
   };
 });
+
 jest.mock('../../components/PerpsLeverageBottomSheet', () => {
   const MockReact = jest.requireActual('react');
   return {
@@ -226,43 +192,43 @@ jest.mock('../../components/PerpsOrderTypeBottomSheet', () => {
         : null,
   };
 });
-jest.mock('../../components/PerpsOrderHeader', () => {
-  const MockReact = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ asset, price }: { asset: string; price: number }) =>
-      MockReact.createElement(
-        View,
-        { testID: 'perps-order-header' },
-        MockReact.createElement(Text, null, asset),
-        MockReact.createElement(Text, null, price),
-      ),
-  };
-});
-jest.mock('../../components/PerpsAmountDisplay', () => {
-  const MockReact = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ amount }: { amount: string }) =>
-      MockReact.createElement(
-        View,
-        { testID: 'perps-amount-display' },
-        MockReact.createElement(Text, null, amount),
-      ),
-  };
-});
-jest.mock('../../components/PerpsTokenSelector', () => {
-  const MockReact = jest.requireActual('react');
-  return {
-    __esModule: true,
-    default: ({ isVisible }: { isVisible: boolean }) =>
-      isVisible
-        ? MockReact.createElement('View', { testID: 'token-selector' })
-        : null,
-  };
-});
+// jest.mock('../../components/PerpsOrderHeader', () => {
+//   const MockReact = jest.requireActual('react');
+//   const { View, Text } = jest.requireActual('react-native');
+//   return {
+//     __esModule: true,
+//     default: ({ asset, price }: { asset: string; price: number }) =>
+//       MockReact.createElement(
+//         View,
+//         { testID: 'perps-order-header' },
+//         MockReact.createElement(Text, null, asset),
+//         MockReact.createElement(Text, null, price),
+//       ),
+//   };
+// });
+// jest.mock('../../components/PerpsAmountDisplay', () => {
+//   const MockReact = jest.requireActual('react');
+//   const { View, Text } = jest.requireActual('react-native');
+//   return {
+//     __esModule: true,
+//     default: ({ amount }: { amount: string }) =>
+//       MockReact.createElement(
+//         View,
+//         { testID: 'perps-amount-display' },
+//         MockReact.createElement(Text, null, amount),
+//       ),
+//   };
+// });
+// jest.mock('../../components/PerpsTokenSelector', () => {
+//   const MockReact = jest.requireActual('react');
+//   return {
+//     __esModule: true,
+//     default: ({ isVisible }: { isVisible: boolean }) =>
+//       isVisible
+//         ? MockReact.createElement('View', { testID: 'token-selector' })
+//         : null,
+//   };
+// });
 
 // Mock Keypad component
 jest.mock('../../../Ramp/Aggregator/components/Keypad', () => {
@@ -416,7 +382,9 @@ describe('PerpsOrderView', () => {
     // The component should display ETH from the route params
     await waitFor(() => {
       expect(screen.getByTestId('perps-order-header')).toBeDefined();
-      expect(screen.getByText('ETH')).toBeDefined();
+      const assetTitle = screen.getByTestId('perps-order-header-asset-title');
+      expect(assetTitle).toBeDefined();
+      expect(assetTitle.props.children).toContain('ETH');
     });
   });
 

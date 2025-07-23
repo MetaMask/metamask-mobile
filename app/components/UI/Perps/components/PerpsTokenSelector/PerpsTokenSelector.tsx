@@ -39,6 +39,7 @@ import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
 } from '../../constants/hyperLiquidConfig';
+import { PerpsTokenSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Re-export BridgeToken as PerpsToken for backward compatibility
 export type PerpsToken = BridgeToken;
@@ -236,16 +237,19 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
       propagateSwipe
       swipeDirection="down"
       onSwipeComplete={onClose}
-      testID="perps-token-selector-modal"
+      testID={PerpsTokenSelectorSelectorsIDs.MODAL}
     >
-      <View style={styles.container}>
+      <View
+        style={styles.container}
+        testID={PerpsTokenSelectorSelectorsIDs.CONTAINER}
+      >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.placeholder} />
           <Text
             variant={TextVariant.HeadingMD}
             style={styles.headerTitle}
-            testID="token-selector-title"
+            testID={PerpsTokenSelectorSelectorsIDs.TITLE}
           >
             {title}
           </Text>
@@ -255,7 +259,7 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
               onPress={onClose}
               iconColor={IconColor.Default}
               size={ButtonIconSizes.Sm}
-              testID="close-token-selector"
+              testID={PerpsTokenSelectorSelectorsIDs.CLOSE_BUTTON}
             />
           </View>
         </View>
