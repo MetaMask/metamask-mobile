@@ -171,20 +171,20 @@ export const mockEvents = {
       responseCode: 200,
     },
 
-    remoteFeatureMultichainAccountsAccountDetails: {
+    remoteFeatureMultichainAccountsAccountDetails: (enabled = true) => ({
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
       response: [
         {
           enableMultichainAccounts: {
-            enabled: true,
+            enabled,
             featureVersion: '1',
             minimumVersion: '7.46.0',
           },
         },
       ],
       responseCode: 200,
-    },
+    }),
 
     remoteFeatureEip7702: {
       urlEndpoint:
