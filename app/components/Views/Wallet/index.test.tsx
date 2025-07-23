@@ -544,7 +544,7 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND_FLOW_VIEW, {});
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
     });
 
     it('should handle onSend callback correctly without native currency', async () => {
@@ -578,7 +578,7 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND_FLOW_VIEW, {});
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
     });
 
     it('should handle onBuy callback correctly', () => {
@@ -691,7 +691,7 @@ describe('Wallet', () => {
       await onSend();
 
       // Should still navigate even if there's an error
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND_FLOW_VIEW, {});
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
     });
   });
 });
