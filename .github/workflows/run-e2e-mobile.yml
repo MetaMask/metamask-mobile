@@ -229,8 +229,6 @@ jobs:
           path: e2e/reports/
           retention-days: 7
       
-
-      
       - name: Upload screenshots
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
