@@ -12,9 +12,7 @@ import PerpsView from '../Views/PerpsView';
 import PerpsPositionDetailsView from '../Views/PerpsPositionDetailsView';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsOrderView from '../Views/PerpsOrderView';
-import PerpsOrderSuccessView from '../Views/PerpsOrderSuccessView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
-import PerpsSlippageModal from '../components/PerpsSlippageModal';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -29,10 +27,6 @@ const PerpsModalStack = () => (
       },
     }}
   >
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.SLIPPAGE_MODAL}
-      component={PerpsSlippageModal}
-    />
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
       component={PerpsQuoteExpiredModal}
@@ -121,15 +115,6 @@ const PerpsScreenStack = () => (
         component={PerpsOrderView}
         options={{
           title: strings('perps.order.title'),
-          headerShown: false,
-        }}
-      />
-
-      <Stack.Screen
-        name={Routes.PERPS.ORDER_SUCCESS}
-        component={PerpsOrderSuccessView}
-        options={{
-          title: strings('perps.order.success.title'),
           headerShown: false,
         }}
       />
