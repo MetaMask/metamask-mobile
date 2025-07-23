@@ -45,6 +45,8 @@ export async function withSolanaAccountEnabled(
         },
       ],
       restartDevice: true,
+      // @ts-ignore - disableGanache is supported in JS version but not in TS types
+      disableGanache: true,
     },
     async () => {
       await TestHelpers.reverseServerPort();
