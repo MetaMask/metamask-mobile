@@ -8,7 +8,9 @@ class SigningBottomSheet {
   }
 
   get cancelButton(): DetoxElement {
-    return Matchers.getElementByID(SigningBottomSheetSelectorsIDs.CANCEL_BUTTON);
+    return Matchers.getElementByID(
+      SigningBottomSheetSelectorsIDs.CANCEL_BUTTON,
+    );
   }
 
   get personalRequest(): DetoxElement {
