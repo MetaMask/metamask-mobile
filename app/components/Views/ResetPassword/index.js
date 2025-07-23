@@ -27,7 +27,7 @@ import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
-import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
+import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   TRUE,
   BIOMETRY_CHOICE_DISABLED,
@@ -73,7 +73,11 @@ import Checkbox from '../../../component-library/components/Checkbox';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
-import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import {
+  selectSeedlessOnboardingLoginFlow,
+  selectSeedlessOnboardingAuthConnection,
+} from '../../../selectors/seedlessOnboardingController';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
 // Constants
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
@@ -295,6 +299,7 @@ const createStyles = (colors) =>
       flexDirection: 'column',
       rowGap: 16,
       flexGrow: 1,
+      paddingTop: 16,
     },
     passwordLabel: {
       marginBottom: -4,
@@ -341,6 +346,10 @@ class ResetPassword extends PureComponent {
      * A boolean representing if the user is in the seedless onboarding login flow
      */
     isSeedlessOnboardingLoginFlow: PropTypes.bool,
+    /**
+     * A string representing the auth connection type i.e. Apple or Google
+     */
+    authConnection: PropTypes.string,
   };
 
   state = {
@@ -816,6 +825,10 @@ class ResetPassword extends PureComponent {
     const canSubmit =
       passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
 
+    const isSrp =
+      this.props.authConnection !== AuthConnection.Apple &&
+      this.props.authConnection !== AuthConnection.Google;
+
     return (
       <SafeAreaView style={styles.mainWrapper}>
         {loading ? (
@@ -835,7 +848,9 @@ class ResetPassword extends PureComponent {
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                 >
-                  {strings('choose_password.description')}
+                  {isSrp
+                    ? strings('choose_password.description')
+                    : strings('choose_password.description_social_login')}
                 </Text>
 
                 <View style={styles.field}>
@@ -948,7 +963,9 @@ class ResetPassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Default}
                       >
-                        {strings('reset_password.checkbox_forgot_password')}
+                        {isSrp
+                          ? strings('reset_password.i_understand')
+                          : strings('reset_password.checkbox_forgot_password')}
                         <Text
                           variant={TextVariant.BodyMD}
                           color={TextColor.Primary}
@@ -1013,6 +1030,7 @@ ResetPassword.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isSeedlessOnboardingLoginFlow: selectSeedlessOnboardingLoginFlow(state),
+  authConnection: selectSeedlessOnboardingAuthConnection(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
