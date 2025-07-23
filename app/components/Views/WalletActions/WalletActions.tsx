@@ -313,7 +313,7 @@ const WalletActions = () => {
       } else {
         dispatch(newAssetTransaction(assetToSend));
       }
-      navigate(Routes.SEND_FLOW_VIEW, {});
+      navigate('SendFlowView', {});
     });
   }, [
     closeBottomSheetAndNavigate,

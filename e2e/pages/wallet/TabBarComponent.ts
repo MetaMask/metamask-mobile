@@ -38,8 +38,6 @@ class TabBarComponent {
   async tapActions(): Promise<void> {
     await Gestures.waitAndTap(this.tabBarActionButton, {
       elemDescription: 'Tab Bar - Actions Button',
-      timeout: 30000, // Extended timeout for reliability
-      delay: 2000, // Pre-tap delay to allow UI stabilization
     });
   }
 

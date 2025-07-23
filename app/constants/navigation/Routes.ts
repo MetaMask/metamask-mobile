@@ -183,7 +183,6 @@ const Routes = {
   },
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
-  SEND_FLOW_VIEW: 'SendFlowView',
   SWAPS: 'Swaps',
   SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {

@@ -55,6 +55,7 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkClientId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectNativeCurrencyByChainId,
 } from '../../../selectors/networkController';
@@ -263,6 +264,7 @@ const Wallet = ({
   const { colors } = theme;
   const dispatch = useDispatch();
 
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -355,14 +357,14 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigate(Routes.SEND_FLOW_VIEW, {});
+      navigate('SendFlowView', {});
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigate(Routes.SEND_FLOW_VIEW, {});
+      navigate('SendFlowView', {});
     }
   }, [
     nativeCurrency,
@@ -520,7 +522,8 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const networkName = useSelector(selectNetworkName);
+  const name = useSelector(selectNetworkName);
+  const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
