@@ -72,7 +72,6 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import Checkbox from '../../../component-library/components/Checkbox';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
-import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
   selectSeedlessOnboardingLoginFlow,
   selectSeedlessOnboardingAuthConnection,
