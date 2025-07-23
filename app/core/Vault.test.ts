@@ -176,6 +176,7 @@ jest.mock('./Engine', () => ({
         mockExportAccount(password, account),
       importAccountWithStrategy: (strategy: string, accounts: string[]) =>
         mockImportAccountWithStrategy(strategy, accounts),
+      exportEncryptionKey: jest.fn(),
       state: {
         get keyrings() {
           return [
@@ -194,6 +195,10 @@ jest.mock('./Engine', () => ({
     },
     SeedlessOnboardingController: {
       changePassword: jest.fn(),
+      storeKeyringEncryptionKey: jest.fn(),
+      loadKeyringEncryptionKey: jest.fn(),
+      submitGlobalPassword: jest.fn(),
+      checkIsPasswordOutdated: jest.fn(),
     },
   },
   setSelectedAddress: jest.fn(),
@@ -519,6 +524,7 @@ describe('Vault', () => {
       } as unknown as RootState);
       const mockSeedlessOnboardingController = {
         changePassword: jest.fn().mockResolvedValue(null),
+        storeKeyringEncryptionKey: jest.fn(),
       };
       (Engine.context as Record<string, unknown>).SeedlessOnboardingController =
         mockSeedlessOnboardingController;
@@ -564,6 +570,7 @@ describe('Vault', () => {
       } as unknown as RootState);
       const mockSeedlessOnboardingController = {
         changePassword: jest.fn().mockRejectedValueOnce(error),
+        storeKeyringEncryptionKey: jest.fn(),
       };
       (Engine.context as Record<string, unknown>).SeedlessOnboardingController =
         mockSeedlessOnboardingController;

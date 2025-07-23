@@ -17,7 +17,7 @@ import Ganache from '../../../app/util/test/ganache.js';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView.js';
 import SettingsView from '../../pages/Settings/SettingsView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';

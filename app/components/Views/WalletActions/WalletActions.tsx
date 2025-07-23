@@ -13,7 +13,7 @@ import {
   selectChainId,
   selectEvmTicker,
 } from '../../../selectors/networkController';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { swapsLivenessMultichainSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
@@ -73,7 +73,7 @@ const WalletActions = () => {
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector(swapsLivenessMultichainSelector);
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
