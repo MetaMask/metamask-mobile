@@ -93,7 +93,7 @@ export const createStyles = (colors: Theme['colors']) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: colors.overlay.default,
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 1000,
@@ -103,7 +103,7 @@ export const createStyles = (colors: Theme['colors']) =>
       borderRadius: 12,
       padding: 24,
       alignItems: 'center',
-      shadowColor: '#000',
+      shadowColor: colors.shadow.default,
       shadowOffset: {
         width: 0,
         height: 2,

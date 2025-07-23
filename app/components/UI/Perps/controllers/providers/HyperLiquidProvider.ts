@@ -589,8 +589,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         DevLogger.log(
           `Canceling ${tpslOrdersToCancel.length} existing TP/SL orders for ${coin}`,
         );
+        const assetId = this.coinToAssetId.get(coin);
+        if (assetId === undefined) {
+          throw new Error(`Asset ID not found for ${coin}`);
+        }
         const cancelRequests = tpslOrdersToCancel.map((order) => ({
-          a: this.coinToAssetId.get(coin)!,
+          a: assetId,
           o: order.oid,
         }));
 

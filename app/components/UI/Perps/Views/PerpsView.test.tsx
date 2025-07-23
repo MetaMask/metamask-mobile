@@ -30,31 +30,6 @@ jest.mock('../hooks', () => ({
   usePerpsPrices: jest.fn(),
 }));
 
-jest.mock('../components/PerpsConnectionErrorView', () => ({
-  __esModule: true,
-  default: ({ error, onRetry }: any) => {
-    const { View, Text, Button } = jest.requireActual('react-native');
-    return (
-      <View testID="connection-error-view">
-        <Text>{error.message}</Text>
-        <Button title="Retry" onPress={onRetry} />
-      </View>
-    );
-  },
-}));
-
-jest.mock('../components/PerpsLoader', () => ({
-  __esModule: true,
-  default: ({ message }: any) => {
-    const { View, Text } = jest.requireActual('react-native');
-    return (
-      <View testID="perps-loader">
-        <Text>{message}</Text>
-      </View>
-    );
-  },
-}));
-
 jest.mock('../../../Base/ScreenView', () => 'ScreenView');
 
 const mockNavigate = jest.fn();
@@ -133,7 +108,6 @@ describe('PerpsView', () => {
 
     render(<PerpsView />);
 
-    expect(screen.getByTestId('connection-error-view')).toBeDefined();
     expect(screen.getByText('Connection failed')).toBeDefined();
   });
 
@@ -149,7 +123,7 @@ describe('PerpsView', () => {
 
     render(<PerpsView />);
 
-    expect(screen.getByTestId('perps-loader')).toBeDefined();
+    expect(screen.getByTestId('perps-loader-text')).toBeDefined();
     expect(screen.getByText('Initializing Perps controller...')).toBeDefined();
   });
 
@@ -165,7 +139,7 @@ describe('PerpsView', () => {
 
     render(<PerpsView />);
 
-    expect(screen.getByTestId('perps-loader')).toBeDefined();
+    expect(screen.getByTestId('perps-loader-text')).toBeDefined();
     expect(screen.getByText('Connecting to Perps trading...')).toBeDefined();
   });
 
@@ -328,7 +302,7 @@ describe('PerpsView', () => {
 
     render(<PerpsView />);
 
-    const retryButton = screen.getByText('Retry');
+    const retryButton = screen.getByText('Retry Connection');
     fireEvent.press(retryButton);
 
     expect(mockResetError).toHaveBeenCalled();
