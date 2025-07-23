@@ -7,5 +7,5 @@ export enum TokenStandard {
 }
 
 export interface AssetType extends TokenI {
-  tokenId: string;
+  tokenId?: string;
 }
