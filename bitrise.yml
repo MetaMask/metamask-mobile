@@ -2562,6 +2562,7 @@ workflows:
       - _ios_build_template
   build_ios_main_e2e:
     envs:
+      - IS_SIM_BUILD: 'true'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
