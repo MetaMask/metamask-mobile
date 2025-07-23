@@ -262,8 +262,8 @@ export const recreateVaultWithNewPassword = async (
         primaryKeyringSeedPhrase,
       );
       seedlessChangePasswordError = new SeedlessOnboardingControllerError(
-        error || 'Password change failed',
         SeedlessOnboardingControllerErrorType.ChangePasswordError,
+        error || 'Password change failed',
       );
       await Authentication.syncKeyringEncryptionKey();
     } finally {

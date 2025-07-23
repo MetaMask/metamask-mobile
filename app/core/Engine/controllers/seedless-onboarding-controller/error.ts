@@ -22,8 +22,8 @@ export class SeedlessOnboardingControllerError extends Error {
   public readonly code: SeedlessOnboardingControllerErrorType;
 
   constructor(
-    errMessage: string | Error,
     code: SeedlessOnboardingControllerErrorType,
+    errMessage?: string | Error,
   ) {
     if (errMessage instanceof Error) {
       super(errMessage.message);
