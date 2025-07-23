@@ -1724,6 +1724,10 @@ workflows:
                 envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
                 envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
       - deploy-to-bitrise-io@2.2.3:
+          inputs:
+            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+          title: Share Detox files between pipelines
+      - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
