@@ -837,7 +837,7 @@
       },
       "off": "Off",
       "estimated_execution_time": "Estimated execution time",
-      "less_than_one_second": "< 1 second",
+      "one_to_three_seconds": "1 to 3 seconds",
       "margin": "Margin",
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",

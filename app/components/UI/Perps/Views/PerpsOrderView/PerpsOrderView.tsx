@@ -64,6 +64,7 @@ import PerpsTokenSelector, {
   type PerpsToken,
 } from '../../components/PerpsTokenSelector';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
+import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
   HYPERLIQUID_MAINNET_CHAIN_ID,
@@ -141,7 +142,7 @@ const PerpsOrderView: React.FC = () => {
   } = route.params || {};
 
   // Get PerpsController methods and state
-  const { placeOrder } = usePerpsTrading();
+  const { placeOrder, getPositions } = usePerpsTrading();
   const currentNetwork = usePerpsNetwork();
   const cachedAccountState = usePerpsAccount();
 
@@ -196,6 +197,7 @@ const PerpsOrderView: React.FC = () => {
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const paymentTokens = usePerpsPaymentTokens();
 
@@ -435,6 +437,35 @@ const PerpsOrderView: React.FC = () => {
 
   // Handlers
 
+  const handleAmountPress = useCallback(() => {
+    setIsInputFocused(true);
+  }, []);
+
+  const handleKeypadChange = useCallback(
+    ({ value }: { value: string; valueAsNumber: number }) => {
+      setOrderForm((prev) => ({ ...prev, amount: value || '0' }));
+    },
+    [],
+  );
+
+  const handlePercentagePress = useCallback(
+    (percentage: number) => {
+      if (availableBalance === 0) return;
+      const newAmount = (availableBalance * percentage).toFixed(2);
+      setOrderForm((prev) => ({ ...prev, amount: newAmount }));
+    },
+    [availableBalance],
+  );
+
+  const handleMaxPress = useCallback(() => {
+    if (availableBalance === 0) return;
+    setOrderForm((prev) => ({ ...prev, amount: availableBalance.toString() }));
+  }, [availableBalance]);
+
+  const handleDonePress = useCallback(() => {
+    setIsInputFocused(false);
+  }, []);
+
   const handlePlaceOrder = useCallback(async () => {
     if (!orderValidation.isValid) {
       const firstError = orderValidation.errors[0];
@@ -495,16 +526,30 @@ const PerpsOrderView: React.FC = () => {
           hasNoTimeout: false,
         });
 
-        navigation.navigate(Routes.PERPS.ORDER_SUCCESS, {
-          orderId: result.orderId,
-          direction: orderForm.direction,
-          asset: orderForm.asset,
-          size: orderForm.amount,
-          price: assetData.price.toString(),
-          leverage: orderForm.leverage,
-          takeProfitPrice: orderForm.takeProfitPrice,
-          stopLossPrice: orderForm.stopLossPrice,
-        });
+        // Fetch positions to get the newly created position
+        try {
+          // Add a small delay to ensure the position is available
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          const positions = await getPositions();
+          const newPosition = positions.find((p) => p.coin === orderForm.asset);
+
+          if (newPosition) {
+            navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
+              position: newPosition,
+            });
+          } else {
+            // Fallback: Navigate to positions list if we can't find the specific position
+            navigation.navigate(Routes.PERPS.POSITIONS);
+          }
+        } catch (error) {
+          DevLogger.log(
+            'PerpsOrderView: Error fetching positions after order',
+            error,
+          );
+          // Fallback: Navigate to positions list
+          navigation.navigate(Routes.PERPS.POSITIONS);
+        }
       } else {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -562,6 +607,7 @@ const PerpsOrderView: React.FC = () => {
     positionSize,
     assetData.price,
     placeOrder,
+    getPositions,
     navigation,
     currentPrice,
     orderType,
@@ -588,21 +634,25 @@ const PerpsOrderView: React.FC = () => {
           amount={orderForm.amount}
           maxAmount={availableBalance}
           showWarning={availableBalance === 0}
+          onPress={handleAmountPress}
+          isActive={isInputFocused}
         />
 
-        {/* Amount Slider */}
-        <View style={styles.sliderSection}>
-          <PerpsSlider
-            value={parseFloat(orderForm.amount || '0')}
-            onValueChange={(value) =>
-              setOrderForm((prev) => ({ ...prev, amount: value.toString() }))
-            }
-            minimumValue={0}
-            maximumValue={availableBalance}
-            step={1}
-            showPercentageLabels
-          />
-        </View>
+        {/* Amount Slider - Hide when keypad is active */}
+        {!isInputFocused && (
+          <View style={styles.sliderSection}>
+            <PerpsSlider
+              value={parseFloat(orderForm.amount || '0')}
+              onValueChange={(value) =>
+                setOrderForm((prev) => ({ ...prev, amount: value.toString() }))
+              }
+              minimumValue={0}
+              maximumValue={availableBalance}
+              step={1}
+              showPercentageLabels
+            />
+          </View>
+        )}
 
         {/* Order Details */}
         <View style={styles.detailsWrapper}>
@@ -798,7 +848,7 @@ const PerpsOrderView: React.FC = () => {
               </TouchableOpacity>
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.order.less_than_one_second')}
+              {strings('perps.order.one_to_three_seconds')}
             </Text>
           </View>
 
@@ -863,40 +913,96 @@ const PerpsOrderView: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* Fixed Place Order Button */}
-      <View style={styles.fixedBottomContainer}>
-        {orderValidation.errors.length > 0 && (
-          <View style={styles.validationContainer}>
-            {orderValidation.errors.map((error, index) => (
-              <Text
-                key={index}
-                variant={TextVariant.BodySM}
-                color={TextColor.Error}
-              >
-                {error}
-              </Text>
-            ))}
+      {/* Keypad Section - Show when input is focused */}
+      {isInputFocused && (
+        <View style={styles.bottomSection}>
+          <View style={styles.percentageButtonsContainer}>
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="25%"
+              onPress={() => handlePercentagePress(0.25)}
+              style={styles.percentageButton}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="50%"
+              onPress={() => handlePercentagePress(0.5)}
+              style={styles.percentageButton}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="75%"
+              onPress={() => handlePercentagePress(0.75)}
+              style={styles.percentageButton}
+            />
           </View>
-        )}
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings(
-            orderForm.direction === 'long'
-              ? 'perps.order.button.long'
-              : 'perps.order.button.short',
-            { asset: orderForm.asset },
+
+          <View style={styles.percentageButtonsContainer}>
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label={strings('perps.deposit.max_button')}
+              onPress={handleMaxPress}
+              style={styles.percentageButton}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label={strings('perps.deposit.done_button')}
+              onPress={handleDonePress}
+              style={styles.percentageButton}
+            />
+          </View>
+
+          <Keypad
+            style={styles.keypad}
+            value={orderForm.amount}
+            onChange={handleKeypadChange}
+            currency="USD"
+            decimals={2}
+          />
+        </View>
+      )}
+
+      {/* Fixed Place Order Button - Hide when keypad is active */}
+      {!isInputFocused && (
+        <View style={styles.fixedBottomContainer}>
+          {orderValidation.errors.length > 0 && (
+            <View style={styles.validationContainer}>
+              {orderValidation.errors.map((error, index) => (
+                <Text
+                  key={index}
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                >
+                  {error}
+                </Text>
+              ))}
+            </View>
           )}
-          onPress={handlePlaceOrder}
-          disabled={
-            !orderValidation.isValid ||
-            isPlacingOrder ||
-            orderValidation.errors.length > 0
-          }
-          loading={isPlacingOrder}
-        />
-      </View>
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label={strings(
+              orderForm.direction === 'long'
+                ? 'perps.order.button.long'
+                : 'perps.order.button.short',
+              { asset: orderForm.asset },
+            )}
+            onPress={handlePlaceOrder}
+            disabled={
+              !orderValidation.isValid ||
+              isPlacingOrder ||
+              orderValidation.errors.length > 0
+            }
+            loading={isPlacingOrder}
+          />
+        </View>
+      )}
 
       {/* Token Selector */}
       <PerpsTokenSelector

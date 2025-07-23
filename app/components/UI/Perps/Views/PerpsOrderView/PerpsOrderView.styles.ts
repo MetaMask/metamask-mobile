@@ -481,6 +481,19 @@ const createStyles = (colors: Colors) =>
     tooltipItem: {
       marginBottom: 8,
     },
+    percentageButtonsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 24,
+      marginBottom: 16,
+      gap: 12,
+    },
+    percentageButton: {
+      flex: 1,
+    },
+    keypad: {
+      backgroundColor: colors.background.default,
+    },
   });
 
 export default createStyles;

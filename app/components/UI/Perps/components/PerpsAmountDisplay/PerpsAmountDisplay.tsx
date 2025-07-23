@@ -1,55 +1,77 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, TouchableOpacity, Animated, Text as RNText } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import { Theme } from '../../../../../util/theme/models';
 import { formatPrice } from '../../utils/formatUtils';
+import createStyles from './PerpsAmountDisplay.styles';
 
 interface PerpsAmountDisplayProps {
   amount: string;
   maxAmount: number;
   showWarning?: boolean;
   warningMessage?: string;
+  onPress?: () => void;
+  isActive?: boolean;
 }
-
-const createStyles = (colors: Theme['colors']) =>
-  StyleSheet.create({
-    container: {
-      alignItems: 'center',
-      paddingVertical: 24,
-      paddingHorizontal: 24,
-    },
-    amountValue: {
-      fontSize: 48,
-      fontWeight: '300',
-      color: colors.text.default,
-      lineHeight: 56,
-    },
-    maxAmount: {
-      marginTop: 4,
-    },
-    warning: {
-      marginTop: 12,
-    },
-  });
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   amount,
   maxAmount,
   showWarning = false,
   warningMessage = 'No funds available. Please deposit first.',
+  onPress,
+  isActive = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  return (
+  useEffect(() => {
+    if (isActive) {
+      // Start blinking animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+    } else {
+      // Stop animation and hide cursor
+      fadeAnim.setValue(0);
+    }
+  }, [isActive, fadeAnim]);
+
+  const content = (
     <View style={styles.container}>
-      <Text style={styles.amountValue}>
-        {amount ? formatPrice(amount) : '$0'}
-      </Text>
+      <View style={styles.amountRow}>
+        <RNText
+          style={[styles.amountValue, isActive && styles.amountValueActive]}
+        >
+          {amount ? formatPrice(amount) : '$0'}
+        </RNText>
+        {isActive && (
+          <Animated.View
+            testID="cursor"
+            style={[
+              styles.cursor,
+              {
+                opacity: fadeAnim,
+              },
+            ]}
+          />
+        )}
+      </View>
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
@@ -68,6 +90,16 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       )}
     </View>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };
 
 export default PerpsAmountDisplay;
