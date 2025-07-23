@@ -4980,5 +4980,8 @@
     "send_report": "Send report",
     "try_again": "Try again",
     "report_submitted": "Error report has been submitted."
+  },
+  "pay_with_modal": {
+    "title": "Select payment method"
   }
 }
