@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { Text } from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import Keypad from './index';
 
 export default {
@@ -18,7 +18,7 @@ const DefaultKeypadStory = () => {
   return (
     <View>
       <View>
-        <Text>Current Value: {value}</Text>
+        <Text variant={TextVariant.DisplayMd}>Current Value: {value}</Text>
       </View>
       <Keypad currency="native" value={value} onChange={handleChange} />
     </View>
