@@ -211,6 +211,7 @@ const Routes = {
     DEPOSIT_PROCESSING: 'PerpsDepositProcessing',
     DEPOSIT_SUCCESS: 'PerpsDepositSuccess',
     POSITIONS: 'PerpsPositions',
+    MARKETS: 'PerpsMarketListView',
     POSITION_DETAILS: 'PerpsPositionDetails',
     MODALS: {
       ROOT: 'PerpsModals',
