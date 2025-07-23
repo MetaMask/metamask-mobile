@@ -92,8 +92,8 @@ class ActivitiesView {
     sourceToken: string,
     destinationToken: string,
   ): Promise<void> {
-    const element = this.swapActivityTitle(sourceToken, destinationToken);
-    await Gestures.waitAndTap(element);
+    const el = this.swapActivityTitle(sourceToken, destinationToken);
+    await Gestures.waitAndTap(el);
   }
   async tapConfirmedTransaction(): Promise<void> {
     await Gestures.waitAndTap(this.confirmedLabel);
