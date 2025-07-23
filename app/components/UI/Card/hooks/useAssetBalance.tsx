@@ -80,16 +80,17 @@ export const useAssetBalance = (
     const iconUrl = buildTokenIconUrl(token.chainId, token.address);
 
     asset = {
+      symbol: token.symbol,
+      name: token.name,
       address: token.address,
-      aggregators: [],
+      chainId: token.chainId,
       decimals: token.decimals,
       image: iconUrl,
-      name: token.name,
-      symbol: token.symbol,
-      balance: '0',
-      balanceFiat: '0',
       logo: iconUrl,
       isETH: false,
+      aggregators: [],
+      balance: '0',
+      balanceFiat: '0',
     } as TokenI;
     isMappedAsset = true;
   }
