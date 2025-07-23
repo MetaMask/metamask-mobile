@@ -798,6 +798,7 @@ class AuthenticationService {
 
       discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
         id,
+        SolScope.Mainnet,
       );
     }
     ///: END:ONLY_INCLUDE_IF
