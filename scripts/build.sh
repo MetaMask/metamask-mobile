@@ -165,8 +165,6 @@ remapEnvVariableE2E() {
 	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
-
-	export IGNORE_BOXLOGS_DEVELOPMENT="true"
 }
 
 remapEnvVariableProduction() {
@@ -460,15 +458,6 @@ buildIosMainLocal() {
 	generateIosBinary "MetaMask" "Debug"
 }
 
-# Builds the Main binary for E2E testing
-buildIosMainE2E(){
-	# Build for simulator
-	export IS_SIM_BUILD="true"
-
-	# Generate Main release binary
-	buildIosMainProduction
-}
-
 # Builds the Flask binary for local development
 buildIosFlaskLocal() {
 	prebuild_ios
@@ -656,8 +645,6 @@ buildIos() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildIosMainLocal
-		elif [ "$METAMASK_ENVIRONMENT" == "e2e" ] ; then
-			buildIosMainE2E
 		else
 			buildIosMainProduction
 		fi
@@ -768,6 +755,13 @@ elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
 elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" ] || [ "$MODE" == "QA" ]; then
 	# TODO: Map environment variables based on environment
 	remapEnvVariableQA
+fi
+
+if [ "$ENVIRONMENT" == "e2e" ]; then
+	# Build for simulator
+	export IS_SIM_BUILD="true"
+	# Ignore Boxlogs for E2E builds
+	export IGNORE_BOXLOGS_DEVELOPMENT="true"
 fi
 
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
