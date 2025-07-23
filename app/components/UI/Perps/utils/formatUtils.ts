@@ -13,7 +13,7 @@ export const formatPerpsFiat = (balance: string | number): string => {
   const num = typeof balance === 'string' ? parseFloat(balance) : balance;
 
   if (isNaN(num)) {
-    return '$0.00';
+    return minDecimals === 0 ? '$0' : '$0.00';
   }
 
   return formatWithThreshold(num, 0.0001, 'en-US', {
