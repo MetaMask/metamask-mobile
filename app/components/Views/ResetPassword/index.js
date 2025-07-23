@@ -467,6 +467,28 @@ class ResetPassword extends PureComponent {
     this.setState(() => ({ isSelected: !isSelected }));
   };
 
+  handleSeedlessPasswordOutdated = () => {
+    // show seedless password outdated modal and force user to lock app
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings('login.seedless_password_outdated_modal_title'),
+        description: strings('login.seedless_password_outdated_modal_content'),
+        primaryButtonLabel: strings(
+          'login.seedless_password_outdated_modal_confirm',
+        ),
+        type: 'error',
+        icon: IconName.Danger,
+        isInteractable: false,
+        onPrimaryButtonPress: async () => {
+          await Authentication.lockApp({ locked: true });
+          this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
+        },
+        closeOnPrimaryButtonPress: true,
+      },
+    });
+  };
+
   onPressCreate = async () => {
     const { loading, password, confirmPassword } = this.state;
 
@@ -481,13 +503,16 @@ class ResetPassword extends PureComponent {
     try {
       this.setState({ loading: true, showPasswordChangeWarning: false });
 
+      const isGlobalPasswordOutdated =
+        await Authentication.checkIsSeedlessPasswordOutdated();
+      if (isGlobalPasswordOutdated) {
+        this.handleSeedlessPasswordOutdated();
+        return;
+      }
+
       try {
         await this.recreateVault();
       } catch (error) {
-        if (error instanceof SeedlessOnboardingControllerError) {
-          // prompt sheet
-          Logger.info(error);
-        }
         Logger.error(error);
         throw error;
       }
@@ -538,6 +563,9 @@ class ResetPassword extends PureComponent {
           strings('choose_password.security_alert_message'),
         );
         this.setState({ loading: false });
+      } else if (error.message.includes('SeedlessOnboardingController')) {
+        // prompt sheet
+        Logger.info(error);
       } else {
         this.setState({ loading: false, error: error.toString() });
       }
