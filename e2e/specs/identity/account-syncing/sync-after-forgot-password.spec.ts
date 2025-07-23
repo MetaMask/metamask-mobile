@@ -2,22 +2,22 @@ import {
   CreateNewWallet,
   importWalletWithRecoveryPhrase,
   loginToApp,
-} from '../../../viewHelper.js';
+} from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView.js';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
-import Assertions from '../../../framework/Assertions.ts';
+import WalletView from '../../../pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../framework/Assertions';
 import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
-import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet.js';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
-import SettingsView from '../../../pages/Settings/SettingsView.js';
+import SettingsView from '../../../pages/Settings/SettingsView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import LoginView from '../../../pages/wallet/LoginView.js';
-import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView.ts';
+import LoginView from '../../../pages/wallet/LoginView';
+import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView';
 import { createUserStorageController } from '../utils/mocks.ts';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
 

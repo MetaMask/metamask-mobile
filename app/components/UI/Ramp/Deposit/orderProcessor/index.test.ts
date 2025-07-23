@@ -4,7 +4,7 @@ import { depositOrderToFiatOrder, processDepositOrder } from './';
 import { DepositOrder, NativeRampsSdk } from '@consensys/native-ramps-sdk';
 
 jest.mock('../sdk', () => ({
-  DepositSDKOrders: {
+  DepositSDKNoAuth: {
     getOrder: jest.fn(),
   },
 }));

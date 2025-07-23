@@ -57,6 +57,48 @@ export const PerpsPositionHeaderSelectorsIDs = {
 };
 
 // ========================================
+// PERPS LOADER SELECTORS
+// ========================================
+
+export const PerpsLoaderSelectorsIDs = {
+  FULLSCREEN: 'perps-loader-fullscreen',
+  INLINE: 'perps-loader-inline',
+  SPINNER: 'perps-loader-spinner',
+  TEXT: 'perps-loader-text',
+};
+
+// ========================================
+// PERPS DEPOSIT PROCESSING VIEW SELECTORS
+// ========================================
+
+export const PerpsDepositProcessingViewSelectorsIDs = {
+  HEADER_TITLE: 'header-title',
+  CLOSE_BUTTON: 'close-button',
+  STATUS_TITLE: 'status-title',
+  STATUS_DESCRIPTION: 'status-description',
+  PROCESSING_ANIMATION: 'processing-animation',
+  SUCCESS_CHECKMARK: 'success-checkmark',
+  PROCESSING_ICON: 'processing-icon',
+  VIEW_BALANCE_BUTTON: 'view-balance-button',
+  RETRY_BUTTON: 'retry-button',
+  GO_BACK_BUTTON: 'go-back-button',
+};
+
+// ========================================
+// PERPS PAY WITH ROW SELECTORS
+// ========================================
+
+export const PerpsPayWithRowSelectorsIDs = {
+  MAIN: 'perps-pay-with-row',
+  USD_EQUIVALENT: 'perps-pay-with-row-usd-equivalent',
+};
+
+// Helper functions for dynamic PerpsPayWithRow selectors
+export const getPerpsPayWithRowSelector = {
+  usdEquivalent: (baseTestID: string) => `${baseTestID}-usd-equivalent`,
+};
+
+// ========================================
 // PERPS VIEWS SELECTORS
 // ========================================
 

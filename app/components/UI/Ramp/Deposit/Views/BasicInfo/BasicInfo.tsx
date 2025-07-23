@@ -32,10 +32,10 @@ import Button, {
 import PoweredByTransak from '../../components/PoweredByTransak';
 import PrivacySection from '../../components/PrivacySection';
 import { timestampToTransakFormat } from '../../utils';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
-  kycUrl?: string;
 }
 
 export const createBasicInfoNavDetails =
@@ -52,7 +52,8 @@ export interface BasicInfoFormData {
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { quote, kycUrl } = useParams<BasicInfoParams>();
+  const trackEvent = useAnalytics();
+  const { quote } = useParams<BasicInfoParams>();
   const { selectedRegion } = useDepositSDK();
 
   const firstNameInputRef = useRef<TextInput>(null);
@@ -135,6 +136,12 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
+      trackEvent('RAMPS_BASIC_INFO_ENTERED', {
+        region: selectedRegion?.isoCode || '',
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'SIMPLE',
+      });
+
       navigation.navigate(
         ...createEnterAddressNavDetails({
           formData: {
@@ -144,11 +151,17 @@ const BasicInfo = (): JSX.Element => {
               : '',
           },
           quote,
-          kycUrl,
         }),
       );
     }
-  }, [navigation, validateFormData, formData, quote, kycUrl]);
+  }, [
+    navigation,
+    validateFormData,
+    formData,
+    quote,
+    selectedRegion?.isoCode,
+    trackEvent,
+  ]);
 
   const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {

@@ -1,6 +1,7 @@
-/* eslint-disable no-console */
+import { waitFor } from 'detox';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types';
+import { createLogger } from './logger';
 
 const TEST_CONFIG_DEFAULTS = {
   timeout: 15000,
@@ -9,6 +10,8 @@ const TEST_CONFIG_DEFAULTS = {
   stabilityCheckInterval: 200,
   stabilityCheckCount: 3,
 };
+
+const logger = createLogger({ name: 'Utilities' });
 
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking
@@ -109,7 +112,7 @@ export default class Utilities {
         errorMessage.includes('window-focus') ||
         errorMessage.includes('has-window-focus=false')
       ) {
-        console.warn(
+        logger.warn(
           '⚠️ Skipping obscuration check - window has no focus (common in CI environments)',
         );
         return;
@@ -284,6 +287,42 @@ export default class Utilities {
   }
 
   /**
+   * Wait for element to be visible and throw on failure
+   */
+  static async waitForElementToBeVisible(
+    detoxElement: DetoxElement | DetoxMatcher,
+    timeout: number = 2000,
+  ): Promise<void> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
+    const isWebElement = this.isWebElement(el);
+
+    if (isWebElement) {
+      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+      await (expect(el) as any).toExist();
+    } else if (device.getPlatform() === 'ios') {
+      await waitFor(el).toExist().withTimeout(timeout);
+    } else {
+      await waitFor(el).toBeVisible().withTimeout(timeout);
+    }
+  }
+
+  /**
+   * Check if element is currently visible
+   * Returns true if element is visible, false if not visible or doesn't exist
+   */
+  static async isElementVisible(
+    detoxElement: DetoxElement | DetoxMatcher,
+    timeout: number = 2000,
+  ): Promise<boolean> {
+    try {
+      await this.waitForElementToBeVisible(detoxElement, timeout);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Check if an element is a WebElement
    */
   static isWebElement(el: unknown): boolean {
@@ -333,7 +372,7 @@ export default class Utilities {
             '.',
           ].join('');
 
-          console.log(successMessage);
+          logger.debug(successMessage);
         }
 
         return result;
@@ -357,8 +396,8 @@ export default class Utilities {
             `. Retrying... (timeout: ${timeout}ms)`,
           ].join('');
 
-          console.log(retryMessage);
-          console.log(`🔍 Error: ${lastError.message}`);
+          logger.debug(retryMessage);
+          logger.debug(`🔍 Error: ${lastError.message}`);
         }
 
         // eslint-disable-next-line no-restricted-syntax

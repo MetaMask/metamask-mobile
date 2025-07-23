@@ -44,6 +44,7 @@ const Routes = {
       STATE_SELECTOR: 'DepositStateSelectorModal',
       WEBVIEW: 'DepositWebviewModal',
       KYC_WEBVIEW: 'DepositKycWebviewModal',
+      CONFIGURATION: 'DepositConfigurationModal',
     },
   },
   HW: {
@@ -211,13 +212,21 @@ const Routes = {
     DEPOSIT_PROCESSING: 'PerpsDepositProcessing',
     DEPOSIT_SUCCESS: 'PerpsDepositSuccess',
     POSITIONS: 'PerpsPositions',
+    MARKETS: 'PerpsMarketListView',
     POSITION_DETAILS: 'PerpsPositionDetails',
+    MODALS: {
+      ROOT: 'PerpsModals',
+      QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
+      SLIPPAGE_MODAL: 'PerpsSlippageModal',
+    },
     ORDER_HISTORY: 'PerpsOrderHistory',
     ORDER_DETAILS: 'PerpsOrderDetails',
   },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
+  CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
+  CONFIRMATION_PAY_WITH_NETWORK_MODAL: 'ConfirmationPayWithNetworkModal',
   SMART_ACCOUNT_OPT_IN: 'SmartAccountOptIn',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
@@ -279,6 +288,9 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  SEND: {
+    ROOT: 'Send',
+  },
 };
 
 export default Routes;

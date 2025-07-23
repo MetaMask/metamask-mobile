@@ -257,6 +257,7 @@ const BridgeView = () => {
     }
   }, [isError]);
 
+  // Keypad already handles max token decimals, so we don't need to check here
   const handleKeypadChange = ({
     value,
   }: {
@@ -271,6 +272,7 @@ const BridgeView = () => {
   };
 
   const handleContinue = async () => {
+    let displayValidationError = false;
     try {
       if (activeQuote) {
         dispatch(setIsSubmittingTx(true));
@@ -282,6 +284,7 @@ const BridgeView = () => {
             validationResult.error ||
             validationResult.result.validation.reason
           ) {
+            displayValidationError = true;
             const isValidationError =
               !!validationResult.result.validation.reason;
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -299,12 +302,14 @@ const BridgeView = () => {
         await submitBridgeTx({
           quoteResponse: activeQuote,
         });
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
       }
     } catch (error) {
       console.error('Error submitting bridge tx', error);
     } finally {
       dispatch(setIsSubmittingTx(false));
+      if (activeQuote && !displayValidationError) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
     }
   };
 
@@ -445,6 +450,11 @@ const BridgeView = () => {
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             onInputPress={() => setIsInputFocused(true)}
+            onMaxPress={() => {
+              if (latestSourceBalance?.displayBalance) {
+                dispatch(setSourceAmount(latestSourceBalance.displayBalance));
+              }
+            }}
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
