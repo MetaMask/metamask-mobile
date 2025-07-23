@@ -20,7 +20,7 @@ import { isCaipChainId } from '@metamask/utils';
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
 export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 export const DEFAULT_MULTICHAIN_TEST_DAPP_URL =
-  'https://metamask.github.io/multichain-test-dapp/';
+  'https://metamask.github.io/test-dapp-multichain/';
 
 /**
  * Get the multichain test dapp URL based on environment configuration
@@ -133,10 +133,16 @@ class MultichainTestDApp {
   /**
    * Common test setup: reverse port, login, navigate to browser, and open multichain dapp
    * @param urlParams - Optional URL parameters for the dapp (e.g., '?autoMode=true')
+   * @param skipLogin - Optional boolean value to determine if login should be skipped
    */
-  async setupAndNavigateToTestDapp(urlParams = ''): Promise<void> {
-    await TestHelpers.reverseServerPort();
-    await loginToApp();
+  async setupAndNavigateToTestDapp(
+    urlParams = '',
+    skipLogin?: boolean,
+  ): Promise<void> {
+    if (!skipLogin) {
+      await TestHelpers.reverseServerPort();
+      await loginToApp();
+    }
     await TabBarComponent.tapBrowser();
     await Assertions.checkIfVisible(Browser.browserScreenID);
     await this.navigateToMultichainTestDApp(urlParams);

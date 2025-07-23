@@ -157,7 +157,8 @@
     "your_wallet": "You successfully reset your wallet!",
     "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet",
-    "import_using_srp": "Import using Secret Recovery Phrase"
+    "import_using_srp": "Import using Secret Recovery Phrase",
+    "import_using_srp_social_login": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
@@ -290,7 +291,7 @@
   "login": {
     "title": "Welcome Back!",
     "password": "Password",
-    "password_placeholder": "Enter password",
+    "password_placeholder": "Enter MetaMask password",
     "unlock_button": "Unlock",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
     "forgot_password": "Forgot password?",
@@ -322,7 +323,7 @@
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
-    "other_methods": "Use another method",
+    "other_methods": "Use a different login method",
 
     "forgot_password_desc": "Forgot your password?",
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
@@ -353,6 +354,7 @@
   "choose_password": {
     "title": "MetaMask password",
     "description": "Unlocks MetaMask on this device only.",
+    "description_social_login": "Use this for wallet recovery on all devices.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create new password",
     "confirm_password": "Confirm password",
@@ -981,6 +983,14 @@
       "positions": "Positions",
       "result": "Result:"
     },
+    "buttons": {
+      "get_account_balance": "Get Account Balance",
+      "deposit_funds": "Deposit Funds",
+      "switch_to_mainnet": "Switch to Mainnet",
+      "switch_to_testnet": "Switch to Testnet",
+      "view_markets": "View Markets",
+      "positions": "Positions"
+    },
     "connection": {
       "connecting": "Connecting to Perps...",
       "initializing": "Initializing Perps controller...",
@@ -992,7 +1002,13 @@
     },
     "chart": {
       "no_data": "No chart data available"
-    }
+    },
+    "perpetual_markets": "Perpetual Markets",
+    "search": "Search",
+    "token_volume": "Token Volume",
+    "last_price_24h_change": "Last Price / 24h Change",
+    "failed_to_load_market_data": "Failed to load market data",
+    "tap_to_retry": "Tap to retry"
   },
   "receive": {
     "title": "Receive"
@@ -1756,8 +1772,6 @@
     "display_nft_media": "Display NFT Media",
     "display_nft_media_desc": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.",
-    "incoming_transactions_title": "Show incoming transactions",
-    "incoming_transactions_content": "This relies on the network you select which will expose your Ethereum address and your IP address.",
     "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.",
     "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
     "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
@@ -2514,7 +2528,8 @@
       "gas_limit_too_low": "Gas limit must be greater than 21000",
       "priority_fee_too_high": "Priority fee must be less than max base fee",
       "no_zero_value": "{{field}} must be greater than 0",
-      "speed": "Speed"
+      "speed": "Speed",
+      "only_integers_allowed": "Only whole numbers are allowed"
     }
   },
   "smart_transactions": {
@@ -3785,7 +3800,7 @@
     "bug_report_prompt_description": "Add details so we can figure out what went wrong.",
     "bug_report_thanks": "Thanks! We’ll take a look soon.",
     "save_seedphrase_1": "If you keep getting this error,",
-    "save_seedphrase_2": "save your Secret Recovery Phrase",
+    "save_seedphrase_2": "Save your Secret Recovery Phrase",
     "save_seedphrase_3": "and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.",
     "copied_clipboard": "Copied to clipboard",
     "ok": "OK",
@@ -4955,5 +4970,18 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+  },
+  "onboarding_error_fallback": {
+    "title": "An error occurred",
+    "description": "Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.",
+    "recovery_warning": "If you keep getting this error, save your Secret Recovery Phrase and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.",
+    "error_message_report": "Error report:",
+    "copy": "Copy",
+    "send_report": "Send report",
+    "try_again": "Try again",
+    "report_submitted": "Error report has been submitted."
+  },
+  "pay_with_modal": {
+    "title": "Select payment method"
   }
 }
