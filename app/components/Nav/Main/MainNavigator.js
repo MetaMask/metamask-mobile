@@ -665,7 +665,7 @@ const SendFlowView = () => (
       options={Amount.navigationOptions}
     />
     <Stack.Screen
-      name={'SendFlowView'}
+      name={Routes.SEND_FLOW.CONFIRM}
       component={Confirm}
       options={Confirm.navigationOptions}
     />
@@ -847,7 +847,7 @@ const MainNavigator = () => {
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
-        name={Routes.SEND_FLOW_VIEW}
+        name={'SendFlowView'}
         component={
           process.env.MM_SEND_REDESIGNS_ENABLED === 'true'
             ? SendComponent
