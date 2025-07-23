@@ -17,7 +17,7 @@ interface Asset {
   name: string;
 }
 
-const Send = () => {
+export const Send = () => {
   const navigation = useNavigation();
   const from = useSelector(selectSelectedInternalAccount);
   const route = useRoute<RouteProp<Record<string, { asset: Asset }>, string>>();
@@ -63,5 +63,3 @@ const Send = () => {
     </View>
   );
 };
-
-export default Send;

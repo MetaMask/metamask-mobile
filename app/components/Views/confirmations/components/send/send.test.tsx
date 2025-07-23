@@ -4,7 +4,7 @@ import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import Send from './send';
+import { Send } from './send';
 
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({

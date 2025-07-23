@@ -17,6 +17,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -99,7 +100,7 @@ class CollectibleContractOverview extends PureComponent {
       areAddressesEqual(collectible.address, collectibleContract.address),
     );
     this.props.newAssetTransaction(collectible);
-    if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
+    if (isSendRedesignEnabled()) {
       this.props.navigation.navigate(Routes.SEND.DEFAULT, {
         screen: Routes.SEND.ROOT,
         params: {

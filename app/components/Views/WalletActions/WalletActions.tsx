@@ -63,6 +63,7 @@ import { selectMultichainTokenListForAccountId } from '../../../selectors/multic
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { isSendRedesignEnabled } from '../confirmations/utils/confirm';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -275,12 +276,6 @@ const WalletActions = () => {
         .build(),
     );
 
-    if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
-      closeBottomSheetAndNavigate(() => {
-        navigate(Routes.SEND.ROOT, {});
-      });
-    }
-
     // Try non-EVM first, if handled, return early
     const wasHandledAsNonEvm = await sendNonEvmAsset();
     if (wasHandledAsNonEvm) {
@@ -300,6 +295,13 @@ const WalletActions = () => {
       await MultichainNetworkController.setActiveNetwork(
         networkClientId as string,
       );
+    }
+
+    if (isSendRedesignEnabled()) {
+      closeBottomSheetAndNavigate(() => {
+        navigate(Routes.SEND.ROOT, {});
+      });
+      return;
     }
 
     closeBottomSheetAndNavigate(() => {
