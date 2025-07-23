@@ -506,6 +506,11 @@ describe('Wallet', () => {
           onReceive: expect.any(Function),
           onSend: expect.any(Function),
           onBuy: expect.any(Function),
+          buyButtonActionID: 'wallet-buy-button',
+          swapButtonActionID: 'wallet-swap-button',
+          bridgeButtonActionID: 'wallet-bridge-button',
+          sendButtonActionID: 'wallet-send-button',
+          receiveButtonActionID: 'wallet-receive-button',
         }),
       );
     });

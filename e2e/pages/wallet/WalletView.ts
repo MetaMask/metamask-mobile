@@ -461,6 +461,59 @@ class WalletView {
       await this.toggleBalanceVisibility();
     }
   }
+
+  // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
+  get walletBuyButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
+  }
+
+  get walletSwapButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON);
+  }
+
+  get walletBridgeButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
+  }
+
+  get walletSendButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
+  }
+
+  get walletReceiveButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
+    );
+  }
+
+  async tapWalletBuyButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletBuyButton, {
+      elemDescription: 'Wallet Buy Button',
+    });
+  }
+
+  async tapWalletSwapButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletSwapButton, {
+      elemDescription: 'Wallet Swap Button',
+    });
+  }
+
+  async tapWalletBridgeButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletBridgeButton, {
+      elemDescription: 'Wallet Bridge Button',
+    });
+  }
+
+  async tapWalletSendButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletSendButton, {
+      elemDescription: 'Wallet Send Button',
+    });
+  }
+
+  async tapWalletReceiveButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletReceiveButton, {
+      elemDescription: 'Wallet Receive Button',
+    });
+  }
 }
 
 export default new WalletView();

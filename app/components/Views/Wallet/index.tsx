@@ -901,6 +901,11 @@ const Wallet = ({
             onReceive={onReceive}
             onSend={onSend}
             onBuy={onBuy}
+            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+            bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
+            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
           />
           <Carousel style={styles.carouselContainer} />
           <WalletTokensTabView
