@@ -158,6 +158,7 @@ import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
+import { PrivacyOverlay } from '../../Views/PrivacyOverlay';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1213,6 +1214,7 @@ const App: React.FC = () => {
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
+      <PrivacyOverlay />
     </>
   );
 };
