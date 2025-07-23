@@ -33,7 +33,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         dapps: [
           {
             dappVariant: DappVariants.TEST_DAPP,
-          },
+          }
         ],
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
@@ -90,7 +90,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         dapps: [
           {
             dappVariant: DappVariants.TEST_DAPP,
-          },
+          }
         ],
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
@@ -108,9 +108,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
 
-        await Assertions.expectElementToNotBeVisible(
-          ToastModal.notificationTitle,
-        );
+        await Assertions.expectElementToNotBeVisible(ToastModal.notificationTitle);
 
         // validate that one account is connected
         await ConnectedAccountsModal.tapManagePermissionsButton();
@@ -191,16 +189,10 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToNotBeVisible(
-          ConnectedAccountsModal.title,
-        );
-        await Assertions.expectElementToBeVisible(
-          NetworkListModal.networkScroll,
-        );
+        await Assertions.expectElementToNotBeVisible(ConnectedAccountsModal.title);
+        await Assertions.expectElementToBeVisible(NetworkListModal.networkScroll);
         await NetworkListModal.swipeToDismissModal();
-        await Assertions.expectElementToNotBeVisible(
-          NetworkListModal.networkScroll,
-        );
+        await Assertions.expectElementToNotBeVisible(NetworkListModal.networkScroll);
       },
     );
   });
