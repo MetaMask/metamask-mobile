@@ -25,7 +25,7 @@ jest.mock('../../core/Engine', () => ({
       usePPOM: jest.fn(),
     },
     NetworkController: {
-      getNetworkConfigurationByNetworkClientId: () => '0x1',
+      getNetworkConfigurationByNetworkClientId: () => ({ chainId: '0x1' }),
       getNetworkClientById: () => ({
         configuration: {
           chainId: '0x1',
