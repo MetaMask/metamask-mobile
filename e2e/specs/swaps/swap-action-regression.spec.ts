@@ -22,9 +22,10 @@ import Assertions from '../../utils/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import Ganache from '../../../app/util/test/ganache';
-import { localNodeOptions, testSpecificMock } from './helpers/constants';
+import { testSpecificMock } from './helpers/constants';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { startMockServer } from './helpers/swap-mocks';
+import { defaultGanacheOptions } from '../../framework/Constants';
 
 const fixtureServer = new FixtureServer();
 
@@ -39,7 +40,7 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     jest.setTimeout(2500000);
 
     localNode = new Ganache();
-    await localNode.start(localNodeOptions);
+    await localNode.start({...defaultGanacheOptions, chainId: 1});
 
     const mockServerPort = getMockServerPort();
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
