@@ -603,6 +603,9 @@ export async function captureExceptionForced(error, extra = {}) {
       'Failed to capture exception with forced Sentry:',
       sentryError,
     );
+  } finally {
+    // Reset Sentry to its default state
+    await setupSentry();
   }
 }
 
