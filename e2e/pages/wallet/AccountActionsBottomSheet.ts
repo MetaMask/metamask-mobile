@@ -90,14 +90,19 @@ class AccountActionsBottomSheet {
       return false;
     }
 
-    throw new Error('Unable to detect rename UI flow - neither multichain nor legacy UI elements found');
+    throw new Error(
+      'Unable to detect rename UI flow - neither multichain nor legacy UI elements found',
+    );
   }
 
   /**
    * Handles the modern multichain rename flow
    */
   private async handleMultichainRename(newName: string): Promise<void> {
-    await Utilities.waitForElementToBeVisible(MultichainAccountDetails.container, 5000);
+    await Utilities.waitForElementToBeVisible(
+      MultichainAccountDetails.container,
+      5000,
+    );
     await MultichainAccountDetails.tapEditAccountName();
     await MultichainEditAccountName.updateAccountName(newName);
     await MultichainEditAccountName.tapSave();

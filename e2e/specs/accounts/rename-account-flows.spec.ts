@@ -27,7 +27,9 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         testSpecificMock: {
-          GET: [mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false)],
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
         },
       },
       async () => {
@@ -36,26 +38,34 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
 
         // Verify original account name is visible
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountName(ORIGINAL_ACCOUNT_NAME),
+          AccountListBottomSheet.getAccountElementByAccountName(
+            ORIGINAL_ACCOUNT_NAME,
+          ),
           {
             description: `Original account "${ORIGINAL_ACCOUNT_NAME}" should be visible`,
           },
         );
 
         await AccountListBottomSheet.tapEditAccountActionsAtIndex(0);
-        await AccountActionsBottomSheet.renameActiveAccountLegacy(NEW_ACCOUNT_NAME);
+        await AccountActionsBottomSheet.renameActiveAccountLegacy(
+          NEW_ACCOUNT_NAME,
+        );
 
         await WalletView.tapIdenticon();
 
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
+          AccountListBottomSheet.getAccountElementByAccountName(
+            NEW_ACCOUNT_NAME,
+          ),
           {
             description: `Renamed account "${NEW_ACCOUNT_NAME}" should be visible`,
           },
         );
 
         await Assertions.expectElementToNotBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountName(ORIGINAL_ACCOUNT_NAME),
+          AccountListBottomSheet.getAccountElementByAccountName(
+            ORIGINAL_ACCOUNT_NAME,
+          ),
           {
             description: `Original account name "${ORIGINAL_ACCOUNT_NAME}" should not be visible`,
           },
@@ -71,12 +81,12 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
   it('should rename account using modern multichain UI flow', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .build(),
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         testSpecificMock: {
-          GET: [mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(true)],
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(true),
+          ],
         },
       },
       async () => {
@@ -84,24 +94,32 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
         await WalletView.tapIdenticon();
 
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountName(ORIGINAL_ACCOUNT_NAME),
+          AccountListBottomSheet.getAccountElementByAccountName(
+            ORIGINAL_ACCOUNT_NAME,
+          ),
           {
             description: `Original account "${ORIGINAL_ACCOUNT_NAME}" should be visible`,
           },
         );
 
         await AccountListBottomSheet.tapEditAccountActionsAtIndex(0);
-        await AccountActionsBottomSheet.renameActiveAccountMultichain(NEW_ACCOUNT_NAME);
+        await AccountActionsBottomSheet.renameActiveAccountMultichain(
+          NEW_ACCOUNT_NAME,
+        );
 
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
+          AccountListBottomSheet.getAccountElementByAccountName(
+            NEW_ACCOUNT_NAME,
+          ),
           {
             description: `Renamed account "${NEW_ACCOUNT_NAME}" should be visible`,
           },
         );
 
         await Assertions.expectElementToNotBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountName(ORIGINAL_ACCOUNT_NAME),
+          AccountListBottomSheet.getAccountElementByAccountName(
+            ORIGINAL_ACCOUNT_NAME,
+          ),
           {
             description: `Original account name "${ORIGINAL_ACCOUNT_NAME}" should not be visible`,
           },

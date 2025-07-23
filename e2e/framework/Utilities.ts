@@ -293,7 +293,7 @@ export default class Utilities {
     detoxElement: DetoxElement | DetoxMatcher,
     timeout: number = 2000,
   ): Promise<void> {
-    const el = await detoxElement as Detox.IndexableNativeElement;
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
     const isWebElement = this.isWebElement(el);
 
     if (isWebElement) {
