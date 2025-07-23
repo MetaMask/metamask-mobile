@@ -359,6 +359,14 @@ const WalletActions = () => {
 
   const onPerps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
+      navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
+  const onPerpsSandbox = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
       navigate(Routes.PERPS.ROOT);
     });
   }, [closeBottomSheetAndNavigate, navigate]);
@@ -452,9 +460,9 @@ const WalletActions = () => {
           />
         )}
         <WalletAction
-          actionType={WalletActionType.Send}
+          actionType={WalletActionType.PerpsSandbox}
           iconName={IconName.Arrow2Right}
-          onPress={onSend}
+          onPress={onPerpsSandbox}
           iconStyle={sendIconStyle}
           actionID={WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON}
           iconSize={AvatarSize.Md}
