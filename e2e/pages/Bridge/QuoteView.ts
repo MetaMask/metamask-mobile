@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
@@ -48,7 +48,7 @@ class QuoteView {
   async enterAmount(amount: string): Promise<void> {
     for (const digit of amount) {
       const button = Matchers.getElementByText(digit);
-      await Gestures.waitAndTap(button, { delayBeforeTap: 500 });
+      await Gestures.waitAndTap(button, { delay: 500 });
     }
   }
 
@@ -57,32 +57,35 @@ class QuoteView {
   }
 
   async tapBridgeTo(): Promise<void> {
-    await Gestures.waitAndTap(this.bridgeTo, { delayBeforeTap: 1000 });
+    await Gestures.waitAndTap(this.bridgeTo, { delay: 1000 });
   }
 
   async tapToken(chainId: string, symbol: string): Promise<void> {
-    await Gestures.waitAndTap(this.token(chainId, symbol), {
-      delayBeforeTap: 1000,
-    });
+    await Gestures.waitAndTap(
+      this.token(chainId, symbol) as unknown as DetoxElement,
+      {
+        delay: 1000,
+      },
+    );
   }
 
   async tapSourceToken(): Promise<void> {
     const token = Matchers.getElementByText('ETH');
-    await Gestures.waitAndTap(token, { delayBeforeTap: 1000 });
+    await Gestures.waitAndTap(token, { delay: 1000 });
   }
 
   async tapDestToken(): Promise<void> {
     const token = Matchers.getElementByText('USDC');
-    await Gestures.waitAndTap(token, { delayBeforeTap: 1000 });
+    await Gestures.waitAndTap(token, { delay: 1000 });
   }
 
   async tapSwapTo(): Promise<void> {
-    await Gestures.waitAndTap(this.swapTo, { delayBeforeTap: 1000 });
+    await Gestures.waitAndTap(this.swapTo, { delay: 1000 });
   }
 
   async selectNetwork(network: string): Promise<void> {
     const networkElement = Matchers.getElementByText(network);
-    await Gestures.waitAndTap(networkElement, { delayBeforeTap: 1000 });
+    await Gestures.waitAndTap(networkElement, { delay: 1000 });
   }
 
   async typeSearchToken(symbol: string): Promise<void> {
@@ -94,7 +97,9 @@ class QuoteView {
   }
 
   async tapConfirmSwap(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmSwap);
+    await Gestures.waitAndTap(this.confirmSwap, {
+      delay: 1300,
+    });
   }
 
   async tapOnCancelButton() {
