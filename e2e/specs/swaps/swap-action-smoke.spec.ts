@@ -1,4 +1,4 @@
-import { Mockttp, MockttpServer } from 'mockttp';
+import { MockttpServer } from 'mockttp';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNodeType } from '../../framework/types';
 import SoftAssert from '../../utils/SoftAssert';
