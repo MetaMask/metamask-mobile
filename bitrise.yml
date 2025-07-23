@@ -1917,6 +1917,36 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_flask_test:
+    envs:
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
+      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - APP_NAME: 'flask'
+      - OUTPUT_PATH: 'flaskRelease'
+      - YARN_COMMAND: 'build:android:flask:test'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_flask_e2e:
+    envs:
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
+      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - APP_NAME: 'flask'
+      - OUTPUT_PATH: 'flaskRelease'
+      - YARN_COMMAND: 'build:android:flask:e2e'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_main_prod:
     envs:
       - NAME: $VERSION_NAME
@@ -1950,6 +1980,36 @@ workflows:
   build_android_main_rc:
     envs:
       - YARN_COMMAND: 'build:android:main:rc'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_test:
+    envs:
+      - YARN_COMMAND: 'build:android:main:test'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_e2e:
+    envs:
+      - YARN_COMMAND: 'build:android:main:e2e'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
@@ -2531,6 +2591,24 @@ workflows:
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
       - YARN_COMMAND: 'build:ios:flask:prod'
+    after_run:
+      - _ios_build_template
+  build_ios_flask_test:
+    envs:
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - APP_NAME: "MetaMask-Flask"
+      - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+      - YARN_COMMAND: 'build:ios:flask:test'
+    after_run:
+      - _ios_build_template
+  build_ios_flask_e2e:
+    envs:
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - APP_NAME: "MetaMask-Flask"
+      - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+      - YARN_COMMAND: 'build:ios:flask:e2e'
     after_run:
       - _ios_build_template
   build_ios_main_local:
