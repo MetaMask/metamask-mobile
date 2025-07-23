@@ -823,16 +823,16 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
-                          "paddingHorizontal": 8,
+                          "padding": 16,
                         }
                       }
                     >
                       <View
                         style={
                           {
-                            "backgroundColor": "#ffffff",
                             "flex": 1,
-                            "paddingHorizontal": 8,
+                            "flexDirection": "column",
+                            "rowGap": 16,
                           }
                         }
                       >
@@ -840,29 +840,35 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           style={
                             {
                               "alignItems": "center",
+                              "display": "flex",
+                              "flexDirection": "column",
                               "paddingTop": 20,
+                              "rowGap": 16,
                             }
                           }
                         >
-                          <Image
-                            source={1}
+                          <SvgMock
+                            color="#9a6300"
+                            fill="currentColor"
+                            height={32}
+                            name="Danger"
                             style={
                               {
                                 "height": 32,
                                 "width": 32,
                               }
                             }
+                            width={32}
                           />
                           <Text
+                            accessibilityRole="text"
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Bold",
+                                "fontFamily": "Geist Bold",
                                 "fontSize": 24,
-                                "fontWeight": "600",
-                                "lineHeight": 34,
-                                "paddingBottom": 20,
-                                "paddingTop": 10,
+                                "letterSpacing": 0,
+                                "lineHeight": 32,
                               }
                             }
                           >
@@ -877,7 +883,6 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
-                              "marginBottom": 20,
                               "padding": 12,
                               "paddingLeft": 8,
                             }
@@ -971,27 +976,33 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "lineHeight": 20,
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
                               If you keep getting this error,
                                
                               <Text
+                                accessibilityRole="text"
                                 onPress={[Function]}
                                 style={
                                   {
                                     "color": "#4459ff",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
-                                save your Secret Recovery Phrase
+                                Save your Secret Recovery Phrase
                               </Text>
                                
                               and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
@@ -999,148 +1010,162 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           </View>
                         </View>
                         <Text
+                          accessibilityRole="text"
+                          onPress={[Function]}
                           style={
                             {
-                              "color": "#121314",
-                              "fontFamily": "CentraNo1-Book",
-                              "fontSize": 14,
-                              "fontWeight": "400",
-                              "lineHeight": 20,
+                              "color": "#4459ff",
+                              "fontFamily": "Geist Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
                             }
                           }
                         >
-                          <Text
-                            onPress={[Function]}
-                            style={
-                              {
-                                "color": "#4459ff",
-                              }
-                            }
-                          >
-                            save your Secret Recovery Phrase
-                          </Text>
+                          Save your Secret Recovery Phrase
                         </Text>
-                        <View
-                          style={
-                            {
-                              "flexDirection": "row",
-                              "justifyContent": "space-between",
-                              "marginTop": 20,
-                            }
-                          }
-                        >
-                          <Text
-                            style={
-                              {
-                                "fontWeight": "600",
-                              }
-                            }
-                          >
-                            Error message:
-                          </Text>
-                          <TouchableOpacity
-                            onPress={[Function]}
+                        <View>
+                          <View
                             style={
                               {
                                 "flexDirection": "row",
+                                "justifyContent": "space-between",
                               }
                             }
                           >
-                            <SvgMock
-                              color="#4459ff"
-                              fill="currentColor"
-                              height={16}
-                              name="Copy"
-                              style={
-                                {
-                                  "height": 16,
-                                  "width": 16,
-                                }
-                              }
-                              width={16}
-                            />
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#4459ff",
-                                  "fontSize": 14,
-                                  "fontWeight": "500",
-                                  "paddingLeft": 5,
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
-                              Copy
+                              Error message:
                             </Text>
-                          </TouchableOpacity>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "backgroundColor": "#ca35421a",
-                              "borderRadius": 8,
-                              "flexShrink": 1,
-                              "marginTop": 10,
-                              "padding": 10,
-                            }
-                          }
-                        >
-                          <RCTScrollView
-                            collapsable={false}
-                            handlerTag={49}
-                            handlerType="NativeViewGestureHandler"
-                            onGestureHandlerEvent={[Function]}
-                            onGestureHandlerStateChange={[Function]}
-                          >
-                            <View>
-                              <Text
+                            <TouchableOpacity
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "columnGapgap": 4,
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "justifyContent": "center",
+                                }
+                              }
+                            >
+                              <SvgMock
+                                color="#4459ff"
+                                fill="currentColor"
+                                height={16}
+                                name="Copy"
                                 style={
                                   {
-                                    "color": "#ca3542",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "lineHeight": 20,
-                                    "padding": 8,
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
-                                View: Wallet
-TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
+                                Copy
                               </Text>
-                            </View>
-                          </RCTScrollView>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ca35421a",
+                                "borderRadius": 8,
+                                "flexShrink": 1,
+                                "marginTop": 8,
+                                "padding": 16,
+                              }
+                            }
+                          >
+                            <RCTScrollView
+                              collapsable={false}
+                              handlerTag={49}
+                              handlerType="NativeViewGestureHandler"
+                              onGestureHandlerEvent={[Function]}
+                              onGestureHandlerStateChange={[Function]}
+                            >
+                              <View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#ca3542",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  View: Wallet
+TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
+                                </Text>
+                              </View>
+                            </RCTScrollView>
+                          </View>
                         </View>
                         <View
                           style={
                             {
-                              "bottom": 10,
+                              "flexDirection": "column",
                               "flexGrow": 1,
                               "justifyContent": "flex-end",
+                              "rowGap": 16,
                             }
                           }
                         >
                           <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
                             onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
-                                "backgroundColor": "#4459ff",
-                                "borderColor": "#4459ff",
-                                "borderRadius": 48,
-                                "borderWidth": 1,
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#121314",
+                                "borderRadius": 12,
+                                "flexDirection": "row",
                                 "height": 48,
-                                "marginTop": 16,
-                                "padding": 12,
-                                "paddingHorizontal": 34,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
                               }
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontWeight": "400",
-                                  "textAlign": "center",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -1148,26 +1173,37 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
                             onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
-                                "borderColor": "#4459ff",
-                                "borderRadius": 48,
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#3c4d9d1a",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
                                 "borderWidth": 1,
+                                "flexDirection": "row",
                                 "height": 48,
-                                "marginTop": 16,
-                                "padding": 12,
-                                "paddingHorizontal": 34,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
                               }
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#4459ff",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontWeight": "400",
-                                  "textAlign": "center",
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -1175,26 +1211,37 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
                             onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
-                                "borderColor": "#4459ff",
-                                "borderRadius": 48,
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#3c4d9d1a",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
                                 "borderWidth": 1,
+                                "flexDirection": "row",
                                 "height": 48,
-                                "marginTop": 16,
-                                "padding": 12,
-                                "paddingHorizontal": 34,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
                               }
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#4459ff",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontWeight": "400",
-                                  "textAlign": "center",
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2039,16 +2086,16 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
-                          "paddingHorizontal": 8,
+                          "padding": 16,
                         }
                       }
                     >
                       <View
                         style={
                           {
-                            "backgroundColor": "#ffffff",
                             "flex": 1,
-                            "paddingHorizontal": 8,
+                            "flexDirection": "column",
+                            "rowGap": 16,
                           }
                         }
                       >
@@ -2056,29 +2103,35 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           style={
                             {
                               "alignItems": "center",
+                              "display": "flex",
+                              "flexDirection": "column",
                               "paddingTop": 20,
+                              "rowGap": 16,
                             }
                           }
                         >
-                          <Image
-                            source={1}
+                          <SvgMock
+                            color="#9a6300"
+                            fill="currentColor"
+                            height={32}
+                            name="Danger"
                             style={
                               {
                                 "height": 32,
                                 "width": 32,
                               }
                             }
+                            width={32}
                           />
                           <Text
+                            accessibilityRole="text"
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Bold",
+                                "fontFamily": "Geist Bold",
                                 "fontSize": 24,
-                                "fontWeight": "600",
-                                "lineHeight": 34,
-                                "paddingBottom": 20,
-                                "paddingTop": 10,
+                                "letterSpacing": 0,
+                                "lineHeight": 32,
                               }
                             }
                           >
@@ -2093,7 +2146,6 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
-                              "marginBottom": 20,
                               "padding": 12,
                               "paddingLeft": 8,
                             }
@@ -2187,27 +2239,33 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "lineHeight": 20,
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
                               If you keep getting this error,
                                
                               <Text
+                                accessibilityRole="text"
                                 onPress={[Function]}
                                 style={
                                   {
                                     "color": "#4459ff",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
-                                save your Secret Recovery Phrase
+                                Save your Secret Recovery Phrase
                               </Text>
                                
                               and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
@@ -2215,148 +2273,162 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           </View>
                         </View>
                         <Text
+                          accessibilityRole="text"
+                          onPress={[Function]}
                           style={
                             {
-                              "color": "#121314",
-                              "fontFamily": "CentraNo1-Book",
-                              "fontSize": 14,
-                              "fontWeight": "400",
-                              "lineHeight": 20,
+                              "color": "#4459ff",
+                              "fontFamily": "Geist Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
                             }
                           }
                         >
-                          <Text
-                            onPress={[Function]}
-                            style={
-                              {
-                                "color": "#4459ff",
-                              }
-                            }
-                          >
-                            save your Secret Recovery Phrase
-                          </Text>
+                          Save your Secret Recovery Phrase
                         </Text>
-                        <View
-                          style={
-                            {
-                              "flexDirection": "row",
-                              "justifyContent": "space-between",
-                              "marginTop": 20,
-                            }
-                          }
-                        >
-                          <Text
-                            style={
-                              {
-                                "fontWeight": "600",
-                              }
-                            }
-                          >
-                            Error message:
-                          </Text>
-                          <TouchableOpacity
-                            onPress={[Function]}
+                        <View>
+                          <View
                             style={
                               {
                                 "flexDirection": "row",
+                                "justifyContent": "space-between",
                               }
                             }
                           >
-                            <SvgMock
-                              color="#4459ff"
-                              fill="currentColor"
-                              height={16}
-                              name="Copy"
-                              style={
-                                {
-                                  "height": 16,
-                                  "width": 16,
-                                }
-                              }
-                              width={16}
-                            />
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#4459ff",
-                                  "fontSize": 14,
-                                  "fontWeight": "500",
-                                  "paddingLeft": 5,
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
-                              Copy
+                              Error message:
                             </Text>
-                          </TouchableOpacity>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "backgroundColor": "#ca35421a",
-                              "borderRadius": 8,
-                              "flexShrink": 1,
-                              "marginTop": 10,
-                              "padding": 10,
-                            }
-                          }
-                        >
-                          <RCTScrollView
-                            collapsable={false}
-                            handlerTag={52}
-                            handlerType="NativeViewGestureHandler"
-                            onGestureHandlerEvent={[Function]}
-                            onGestureHandlerStateChange={[Function]}
-                          >
-                            <View>
-                              <Text
+                            <TouchableOpacity
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "columnGapgap": 4,
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "justifyContent": "center",
+                                }
+                              }
+                            >
+                              <SvgMock
+                                color="#4459ff"
+                                fill="currentColor"
+                                height={16}
+                                name="Copy"
                                 style={
                                   {
-                                    "color": "#ca3542",
-                                    "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "lineHeight": 20,
-                                    "padding": 8,
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
-                                View: Wallet
-TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
+                                Copy
                               </Text>
-                            </View>
-                          </RCTScrollView>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ca35421a",
+                                "borderRadius": 8,
+                                "flexShrink": 1,
+                                "marginTop": 8,
+                                "padding": 16,
+                              }
+                            }
+                          >
+                            <RCTScrollView
+                              collapsable={false}
+                              handlerTag={52}
+                              handlerType="NativeViewGestureHandler"
+                              onGestureHandlerEvent={[Function]}
+                              onGestureHandlerStateChange={[Function]}
+                            >
+                              <View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#ca3542",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  View: Wallet
+TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
+                                </Text>
+                              </View>
+                            </RCTScrollView>
+                          </View>
                         </View>
                         <View
                           style={
                             {
-                              "bottom": 10,
+                              "flexDirection": "column",
                               "flexGrow": 1,
                               "justifyContent": "flex-end",
+                              "rowGap": 16,
                             }
                           }
                         >
                           <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
                             onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
-                                "backgroundColor": "#4459ff",
-                                "borderColor": "#4459ff",
-                                "borderRadius": 48,
-                                "borderWidth": 1,
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#121314",
+                                "borderRadius": 12,
+                                "flexDirection": "row",
                                 "height": 48,
-                                "marginTop": 16,
-                                "padding": 12,
-                                "paddingHorizontal": 34,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
                               }
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontWeight": "400",
-                                  "textAlign": "center",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2364,26 +2436,37 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
                             onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
-                                "borderColor": "#4459ff",
-                                "borderRadius": 48,
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#3c4d9d1a",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
                                 "borderWidth": 1,
+                                "flexDirection": "row",
                                 "height": 48,
-                                "marginTop": 16,
-                                "padding": 12,
-                                "paddingHorizontal": 34,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
                               }
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#4459ff",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontWeight": "400",
-                                  "textAlign": "center",
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2391,26 +2474,37 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
                             onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
                             style={
                               {
-                                "borderColor": "#4459ff",
-                                "borderRadius": 48,
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#3c4d9d1a",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
                                 "borderWidth": 1,
+                                "flexDirection": "row",
                                 "height": 48,
-                                "marginTop": 16,
-                                "padding": 12,
-                                "paddingHorizontal": 34,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
                               }
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#4459ff",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontWeight": "400",
-                                  "textAlign": "center",
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
