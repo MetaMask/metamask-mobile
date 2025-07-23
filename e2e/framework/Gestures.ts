@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable no-restricted-syntax */
 import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities';
@@ -10,6 +9,9 @@ import {
   GestureOptions,
   TypeTextOptions,
 } from './types';
+import { createLogger } from './logger';
+
+const logger = createLogger({ name: 'Gestures' });
 
 /**
  * Gestures class with element stability and auto-retry
@@ -27,6 +29,7 @@ export default class Gestures {
       checkVisibility?: boolean;
       checkEnabled?: boolean;
       elemDescription?: string;
+      delay?: number;
     },
     point?: { x: number; y: number },
   ) => {
@@ -50,11 +53,18 @@ export default class Gestures {
       checkEnabled,
     });
 
+    if (options.delay) {
+      await new Promise((resolve) => setTimeout(resolve, options.delay));
+    } else {
+      await new Promise((resolve) =>
+        setTimeout(resolve, BASE_DEFAULTS.actionDelay),
+      );
+    }
     await el.tap(point);
     const successMessage = elemDescription
       ? `✅ Successfully tapped element: ${elemDescription}`
       : `✅ Successfully tapped element`;
-    console.log(successMessage);
+    logger.debug(successMessage);
   };
 
   /**
@@ -90,7 +100,8 @@ export default class Gestures {
 
   /**
    * Wait for an element to be visible and then tap it with enhanced options
-   * This is the same as tap() - keeping it for backwards compatibility
+   * This is the same as tap() - but with an additional delay before the tap.
+   * This is useful for cases where the element might not be immediately ready for interaction.
    * @returns A Promise that resolves when the tap is successful
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
@@ -104,14 +115,16 @@ export default class Gestures {
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
+      delay = 500,
     } = options;
 
-    const fn = () =>
-      this.tapWithChecks(elem, {
+    const fn = async () =>
+      await this.tapWithChecks(elem, {
         checkStability,
         checkVisibility,
         checkEnabled,
         elemDescription,
+        delay,
       });
 
     return Utilities.executeWithRetry(fn, {
@@ -303,7 +316,7 @@ export default class Gestures {
         const textToType = hideKeyboard ? text + '\n' : text;
         await el.typeText(textToType);
 
-        console.log(
+        logger.debug(
           `✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${
             elemDescription || 'unknown'
           }`,
@@ -426,7 +439,7 @@ export default class Gestures {
             await waitFor(target).toBeVisible().withTimeout(100);
             return;
           } catch {
-            await scrollableElement.scroll(scrollAmount / 3, direction); // Scroll a third of the amount to avoid overshooting
+            await scrollableElement.scroll(scrollAmount / 2, direction); // Decrease scroll amount for Android to avoid overshooting
             await waitFor(target).toBeVisible().withTimeout(100);
           }
         } else {

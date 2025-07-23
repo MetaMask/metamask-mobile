@@ -9,17 +9,12 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual('@react-navigation/native'),
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-    }),
-    useRoute: jest.fn().mockReturnValue({
-      params: {
-        bridgeViewMode: 'Bridge',
-      },
-    })
-  }));
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+  }),
+}));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => {
   const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
@@ -28,6 +23,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     ...actual,
     default: actual.default,
     setSourceToken: jest.fn(actual.setSourceToken),
+    selectBridgeViewMode: jest.fn().mockReturnValue('Bridge'),
   };
 });
 

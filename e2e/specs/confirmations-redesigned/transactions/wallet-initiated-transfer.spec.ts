@@ -13,7 +13,7 @@ import {
 import Assertions from '../../../utils/Assertions';
 import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';

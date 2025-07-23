@@ -75,7 +75,7 @@ describe('Migration #58 - Update default search engine from DDG to Google', () =
       },
       settings: {
         searchEngine: 'DuckDuckGo',
-      }
+      },
     };
 
     const expectedState = {
@@ -84,7 +84,7 @@ describe('Migration #58 - Update default search engine from DDG to Google', () =
       },
       settings: {
         searchEngine: 'Google',
-      }
+      },
     };
 
     const migratedState = await migrate(oldState);

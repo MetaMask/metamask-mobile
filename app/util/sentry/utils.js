@@ -9,7 +9,7 @@ import { isE2E } from '../test/utils';
 import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
-import { TraceName } from '../trace';
+import { TraceName, hasMetricsConsent } from '../trace';
 import { getTraceTags } from './tags';
 /**
  * This symbol matches all object properties when used in a mask
@@ -281,7 +281,7 @@ function getProtocolFromURL(url) {
   return new URL(url).protocol;
 }
 
-function rewriteBreadcrumb(breadcrumb) {
+export function rewriteBreadcrumb(breadcrumb) {
   if (breadcrumb.data?.url) {
     breadcrumb.data.url = getProtocolFromURL(breadcrumb.data.url);
   }
@@ -412,7 +412,7 @@ export function maskObject(objectToMask, mask = {}) {
   }, {});
 }
 
-function rewriteReport(report) {
+export function rewriteReport(report) {
   try {
     // filter out SES from error stack trace
     removeSES(report);
@@ -478,8 +478,11 @@ function sanitizeUrlsFromErrorMessages(report) {
     const urlsInMessage = errorMessage.match(regex.sanitizeUrl);
 
     urlsInMessage?.forEach((url) => {
-      if (!ERROR_URL_ALLOWLIST.some((allowedUrl) => url.match(allowedUrl))) {
-        errorMessage.replace(url, '**');
+      const isAllowed = ERROR_URL_ALLOWLIST.some((allowedUrl) =>
+        url.match(allowedUrl),
+      );
+      if (!isAllowed) {
+        errorMessage = errorMessage.replace(url, '**');
       }
     });
     return errorMessage;
@@ -526,6 +529,8 @@ export function deriveSentryEnvironment(
         return 'main-beta';
       case 'rc':
         return 'main-rc';
+      case 'exp':
+        return 'main-exp';
       default:
         return metamaskEnvironment;
     }
@@ -535,7 +540,7 @@ export function deriveSentryEnvironment(
 }
 
 // Setup sentry remote error reporting
-export function setupSentry() {
+export async function setupSentry() {
   const dsn = process.env.MM_SENTRY_DSN;
 
   // Disable Sentry for E2E tests or when DSN is not provided
@@ -547,7 +552,8 @@ export function setupSentry() {
   const isDev = __DEV__;
 
   const init = async () => {
-    const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
+    // Ensure consent cache is populated early
+    const hasConsent = await hasMetricsConsent();
 
     const integrations = [dedupeIntegration(), extraErrorDataIntegration()];
     const environment = deriveSentryEnvironment(
@@ -567,12 +573,12 @@ export function setupSentry() {
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
-      enabled: metricsOptIn === AGREED,
+      enabled: hasConsent,
       // Use tracePropagationTargets from v5 SDK as default
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
     });
   };
-  init();
+  await init();
 }
 
 // eslint-disable-next-line no-empty-function

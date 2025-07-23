@@ -17,5 +17,5 @@ export interface UserState {
   appTheme: AppThemeKey;
   ambiguousAddressEntries: Record<string, string[]>;
   appServicesReady: boolean;
-  isMetaMetricsUISeen: boolean;
+  existingUser: boolean;
 }

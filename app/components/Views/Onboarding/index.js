@@ -14,7 +14,6 @@ import {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import StorageWrapper from '../../../store/storage-wrapper';
 import {
   fontStyles,
   baseStyles,
@@ -32,15 +31,23 @@ import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { EXISTING_USER } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Button, {
   ButtonVariants,
@@ -48,8 +55,6 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import fox from '../../../animations/Searching_Fox.json';
-import { endTrace, trace, TraceName } from '../../../util/trace';
-
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
@@ -63,34 +68,43 @@ const createStyles = (colors) =>
     wrapper: {
       flex: 1,
       alignItems: 'center',
-      paddingVertical: 30,
+      justifyContent: 'center',
+      paddingVertical: Device.isMediumDevice() ? 16 : 30,
+    },
+    loaderWrapper: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      rowGap: 32,
+      marginBottom: 160,
     },
     image: {
       alignSelf: 'center',
-      width: 240,
-      height: 240,
+      width: Device.isMediumDevice() ? 180 : 240,
+      height: Device.isMediumDevice() ? 180 : 240,
     },
     largeFoxWrapper: {
-      width: 240,
-      height: 240,
+      width: Device.isMediumDevice() ? 180 : 240,
+      height: Device.isMediumDevice() ? 180 : 240,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       marginHorizontal: 'auto',
-      padding: 40,
+      padding: Device.isMediumDevice() ? 30 : 40,
       marginTop: 16,
     },
     foxImage: {
-      width: 145,
-      height: 145,
+      width: Device.isMediumDevice() ? 110 : 145,
+      height: Device.isMediumDevice() ? 110 : 145,
       resizeMode: 'contain',
     },
     title: {
-      fontSize: 40,
-      lineHeight: 40,
+      fontSize: Device.isMediumDevice() ? 30 : 40,
+      lineHeight: Device.isMediumDevice() ? 30 : 40,
       textAlign: 'center',
-      paddingHorizontal: 60,
-      fontFamily: 'MMSans-Regular',
+      paddingHorizontal: Device.isMediumDevice() ? 40 : 60,
+      fontFamily:
+        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
       color: importedColors.gettingStartedTextColor,
       width: '100%',
       marginVertical: 16,
@@ -102,7 +116,15 @@ const createStyles = (colors) =>
       alignItems: 'center',
       width: '100%',
       paddingHorizontal: 20,
-      rowGap: 24,
+      rowGap: Device.isMediumDevice() ? 16 : 24,
+    },
+    titleWrapper: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      flex: 1,
+      rowGap: Device.isMediumDevice() ? 24 : 32,
     },
     footer: {
       marginBottom: 40,
@@ -122,14 +144,14 @@ const createStyles = (colors) =>
     },
     createWrapper: {
       flexDirection: 'column',
-      rowGap: 16,
+      rowGap: Device.isMediumDevice() ? 12 : 16,
       marginBottom: 16,
       width: '100%',
     },
     buttonWrapper: {
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      gap: 16,
+      gap: Device.isMediumDevice() ? 12 : 16,
       width: '100%',
     },
     buttonLabel: {
@@ -138,7 +160,6 @@ const createStyles = (colors) =>
       columnGap: 8,
     },
     loader: {
-      marginTop: 180,
       justifyContent: 'center',
       textAlign: 'center',
     },
@@ -182,18 +203,6 @@ const createStyles = (colors) =>
       borderWidth: 1,
       color: colors.text.default,
     },
-    createWalletButton: {
-      borderRadius: 12,
-      color: importedColors.whiteTransparent,
-      backgroundColor: importedColors.btnBlack,
-    },
-    existingWalletButton: {
-      borderRadius: 12,
-      color: importedColors.btnBlack,
-      backgroundColor: colors.transparent,
-      borderWidth: 1,
-      borderColor: importedColors.btnBlack,
-    },
   });
 
 /**
@@ -223,6 +232,10 @@ class Onboarding extends PureComponent {
      */
     unsetLoading: PropTypes.func,
     /**
+     * redux flag that indicates if the user is existing
+     */
+    existingUser: PropTypes.bool,
+    /**
      * Action to save onboarding event
      */
     saveOnboardingEvent: PropTypes.func,
@@ -239,6 +252,9 @@ class Onboarding extends PureComponent {
   detailsYAnimated = new Animated.Value(0);
   actionXAnimated = new Animated.Value(0);
   detailsAnimated = new Animated.Value(0);
+
+  onboardingTraceCtx = null;
+  socialLoginTraceCtx = null;
 
   animatedTimingStart = (animatedRef, toValue) => {
     Animated.timing(animatedRef, {
@@ -297,6 +313,12 @@ class Onboarding extends PureComponent {
   };
 
   componentDidMount() {
+    this.onboardingTraceCtx = trace({
+      name: TraceName.OnboardingJourneyOverall,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: getTraceTags(store.getState()),
+    });
+
     this.props.unsetLoading();
     this.updateNavBar();
     this.mounted = true;
@@ -326,8 +348,9 @@ class Onboarding extends PureComponent {
   };
 
   async checkIfExistingUser() {
-    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-    if (existingUser !== null) {
+    // Read from Redux state instead of MMKV storage
+    const { existingUser } = this.props;
+    if (existingUser) {
       this.setState({ existingUser: true });
     }
   }
@@ -357,8 +380,15 @@ class Onboarding extends PureComponent {
     }
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
+      trace({
+        name: TraceName.OnboardingNewSrpCreateWallet,
+        op: TraceOperation.OnboardingUserJourney,
+        tags: getTraceTags(store.getState()),
+        parentContext: this.onboardingTraceCtx,
+      });
       this.props.navigation.navigate('ChoosePassword', {
         [PREVIOUS_SCREEN]: ONBOARDING,
+        onboardingTraceCtx: this.onboardingTraceCtx,
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
         account_type: 'metamask',
@@ -374,10 +404,17 @@ class Onboarding extends PureComponent {
       OAuthLoginService.resetOauthState();
     }
     const action = async () => {
+      trace({
+        name: TraceName.OnboardingExistingSrpImport,
+        op: TraceOperation.OnboardingUserJourney,
+        tags: getTraceTags(store.getState()),
+        parentContext: this.onboardingTraceCtx,
+      });
       this.props.navigation.navigate(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
         {
           [PREVIOUS_SCREEN]: ONBOARDING,
+          onboardingTraceCtx: this.onboardingTraceCtx,
         },
       );
       this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
@@ -387,32 +424,55 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-  handlePostSocialLogin = (result, createWallet) => {
+  handlePostSocialLogin = (result, createWallet, provider) => {
+    if (this.socialLoginTraceCtx) {
+      endTrace({ name: TraceName.OnboardingSocialLoginAttempt });
+      this.socialLoginTraceCtx = null;
+    }
+
     if (result.type === 'success') {
+      // Track social login completed
+      this.track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
+        account_type: provider,
+      });
       if (createWallet) {
         if (result.existingUser) {
           this.props.navigation.navigate('AccountAlreadyExists', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
+            onboardingTraceCtx: this.onboardingTraceCtx,
           });
         } else {
+          trace({
+            name: TraceName.OnboardingNewSocialCreateWallet,
+            op: TraceOperation.OnboardingUserJourney,
+            tags: getTraceTags(store.getState()),
+            parentContext: this.onboardingTraceCtx,
+          });
           this.props.navigation.navigate('ChoosePassword', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
+            onboardingTraceCtx: this.onboardingTraceCtx,
           });
-          this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
         }
       } else if (!createWallet) {
         if (result.existingUser) {
+          trace({
+            name: TraceName.OnboardingExistingSocialLogin,
+            op: TraceOperation.OnboardingUserJourney,
+            tags: getTraceTags(store.getState()),
+            parentContext: this.onboardingTraceCtx,
+          });
           this.props.navigation.navigate('Rehydrate', {
             [PREVIOUS_SCREEN]: ONBOARDING,
             oauthLoginSuccess: true,
+            onboardingTraceCtx: this.onboardingTraceCtx,
           });
-          this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
         } else {
           this.props.navigation.navigate('AccountNotFound', {
             accountName: result.accountName,
             oauthLoginSuccess: true,
+            onboardingTraceCtx: this.onboardingTraceCtx,
           });
         }
       }
@@ -421,37 +481,46 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressContinueWithApple = async (createWallet) => {
+  onPressContinueWithSocialLogin = async (createWallet, provider) => {
     this.props.navigation.navigate('Onboarding');
-    const action = async () => {
-      const loginHandler = createLoginHandler(Platform.OS, 'apple');
-      const result = await OAuthLoginService.handleOAuthLogin(
-        loginHandler,
-      ).catch((e) => {
-        this.handleLoginError(e);
-        return { type: 'error', error: e, existingUser: false };
-      });
-      this.handlePostSocialLogin(result, createWallet);
-    };
-    this.handleExistingUser(action);
-  };
 
-  onPressContinueWithGoogle = async (createWallet) => {
-    this.props.navigation.navigate('Onboarding');
+    if (createWallet) {
+      this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
+        account_type: `metamask_${provider}`,
+      });
+    } else {
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
+        account_type: `imported_${provider}`,
+      });
+    }
+
+    this.socialLoginTraceCtx = trace({
+      name: TraceName.OnboardingSocialLoginAttempt,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: { ...getTraceTags(store.getState()), provider },
+      parentContext: this.onboardingTraceCtx,
+    });
+
     const action = async () => {
-      const loginHandler = createLoginHandler(Platform.OS, 'google');
+      const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
       ).catch((error) => {
-        this.handleLoginError(error);
+        this.handleLoginError(error, 'google');
         return { type: 'error', error, existingUser: false };
       });
-      this.handlePostSocialLogin(result, createWallet);
+      this.handlePostSocialLogin(result, createWallet, provider);
     };
     this.handleExistingUser(action);
   };
 
-  handleLoginError = (error) => {
+  onPressContinueWithApple = async (createWallet) =>
+    this.onPressContinueWithSocialLogin(createWallet, 'apple');
+
+  onPressContinueWithGoogle = async (createWallet) =>
+    this.onPressContinueWithSocialLogin(createWallet, 'google');
+
+  handleLoginError = (error, socialConnectionType) => {
     let errorMessage;
     if (error instanceof OAuthError) {
       if (error.code === OAuthErrorType.UserCancelled) {
@@ -461,6 +530,22 @@ class Onboarding extends PureComponent {
       }
     } else {
       errorMessage = 'oauth_error';
+    }
+
+    trace({
+      name: TraceName.OnboardingSocialLoginError,
+      op: TraceOperation.OnboardingError,
+      tags: { provider: socialConnectionType, errorMessage },
+      parentContext: this.onboardingTraceCtx,
+    });
+    endTrace({ name: TraceName.OnboardingSocialLoginError });
+
+    if (this.socialLoginTraceCtx) {
+      endTrace({
+        name: TraceName.OnboardingSocialLoginAttempt,
+        data: { success: false },
+      });
+      this.socialLoginTraceCtx = null;
     }
 
     this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -521,7 +606,16 @@ class Onboarding extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.wrapper}>
+      <View style={styles.loaderWrapper}>
+        <View style={styles.largeFoxWrapper}>
+          <LottieView
+            style={styles.image}
+            autoPlay
+            loop
+            source={fox}
+            resizeMode="contain"
+          />
+        </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
           <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
@@ -536,23 +630,25 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
-        <View style={styles.largeFoxWrapper}>
-          <LottieView
-            style={styles.image}
-            autoPlay
-            loop
-            source={fox}
-            resizeMode="contain"
-          />
-        </View>
+        <View style={styles.titleWrapper}>
+          <View style={styles.largeFoxWrapper}>
+            <LottieView
+              style={styles.image}
+              autoPlay
+              loop
+              source={fox}
+              resizeMode="contain"
+            />
+          </View>
 
-        <Text
-          variant={TextVariant.BodyMD}
-          style={styles.title}
-          testID={OnboardingSelectorIDs.SCREEN_TITLE}
-        >
-          {strings('onboarding.title')}
-        </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.title}
+            testID={OnboardingSelectorIDs.SCREEN_TITLE}
+          >
+            {strings('onboarding.title')}
+          </Text>
+        </View>
 
         <View style={styles.createWrapper}>
           <Button
@@ -561,22 +657,22 @@ class Onboarding extends PureComponent {
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             label={strings('onboarding.start_exploring_now')}
             width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            style={styles.createWalletButton}
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
           />
           <Button
             variant={ButtonVariants.Secondary}
             onPress={() => this.handleCtaActions('existing')}
             testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            style={styles.existingWalletButton}
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={importedColors.btnBlack}
               >
-                {strings('onboarding.import_using_srp')}
+                {SEEDLESS_ONBOARDING_ENABLED
+                  ? strings('onboarding.import_using_srp_social_login')
+                  : strings('onboarding.import_using_srp')}
               </Text>
             }
           />
@@ -630,17 +726,6 @@ class Onboarding extends PureComponent {
           contentContainerStyle={styles.scroll}
         >
           <View style={styles.wrapper}>
-            {loading && (
-              <View style={styles.largeFoxWrapper}>
-                <LottieView
-                  style={styles.image}
-                  autoPlay
-                  loop
-                  source={fox}
-                  resizeMode="contain"
-                />
-              </View>
-            )}
             {loading ? this.renderLoader() : this.renderContent()}
           </View>
 
@@ -651,7 +736,7 @@ class Onboarding extends PureComponent {
                 onPress={this.onLogin}
                 label={strings('onboarding.unlock')}
                 width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
+                size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
               />
             </View>
           )}
@@ -670,6 +755,7 @@ Onboarding.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   passwordSet: state.user.passwordSet,
+  existingUser: selectExistingUser(state),
   loading: state.user.loadingSet,
   loadingMsg: state.user.loadingMsg,
 });

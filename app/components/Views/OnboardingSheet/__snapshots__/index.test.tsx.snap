@@ -23,7 +23,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -164,7 +164,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
+                "backgroundColor": "#ffffff",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -172,6 +172,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -219,7 +220,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
+                "backgroundColor": "#ffffff",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -227,6 +228,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -287,7 +289,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             accessibilityRole="text"
             style={
               {
-                "color": "#9ca1af",
+                "color": "#b7bbc8",
                 "fontFamily": "Geist Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
@@ -328,13 +330,14 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -344,7 +347,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
+                  "color": "#121314",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -385,7 +388,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -526,7 +529,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
+                "backgroundColor": "#ffffff",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -534,6 +537,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -581,7 +585,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
+                "backgroundColor": "#ffffff",
                 "borderColor": "#b7bbc866",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -589,6 +593,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -649,7 +654,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             accessibilityRole="text"
             style={
               {
-                "color": "#9ca1af",
+                "color": "#b7bbc8",
                 "fontFamily": "Geist Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
@@ -690,13 +695,14 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -706,7 +712,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
+                  "color": "#121314",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,

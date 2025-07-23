@@ -8,11 +8,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../../../util/etherscan';
 import { useSelector } from 'react-redux';
-import {
-  selectEvmChainId,
-  selectProviderConfig,
-} from '../../../../selectors/networkController';
-import { selectNetworkName } from '../../../../selectors/networkInfos';
+import { selectProviderConfig } from '../../../../selectors/networkController';
 
 function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
   const [explorer, setExplorer] = useState({
@@ -23,72 +19,62 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
     baseUrl: '',
   });
   const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectEvmChainId);
-  const networkName = useSelector(selectNetworkName);
 
   useEffect(() => {
     const definitiveProviderConfig =
       providerConfigTokenExplorer ?? providerConfig;
-    if (definitiveProviderConfig.type === RPC) {
-      try {
-        const blockExplorer = findBlockExplorerForRpc(
-          definitiveProviderConfig.rpcUrl,
-          networkConfigurations,
-        );
-        if (!blockExplorer) {
-          throw new Error('No block explorer url');
-        }
-        const url = new URL(blockExplorer);
-        if (!['http:', 'https:'].includes(url.protocol)) {
-          throw new Error('Block explorer URL is not a valid http(s) protocol');
-        }
+    try {
+      const { rpcUrl, type } = definitiveProviderConfig;
 
-        const name =
+      let blockExplorer;
+      let name;
+
+      if (type === RPC) {
+        blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations);
+        name =
           getBlockExplorerName(blockExplorer) ||
           strings('swaps.block_explorer');
-        setExplorer({
-          name,
-          value: blockExplorer,
-          isValid: true,
-          isRPC: true,
-          baseUrl: url.href,
-        });
-      } catch {
-        setExplorer({
-          name: '',
-          value: null,
-          isValid: false,
-          isRPC: false,
-          baseUrl: '',
-        });
+      } else {
+        blockExplorer = getEtherscanBaseUrl(type);
+        name = 'Etherscan';
       }
-    } else {
+
+      if (!blockExplorer) {
+        throw new Error('No block explorer url');
+      }
+
+      const url = new URL(blockExplorer);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw new Error('Block explorer URL is not a valid http(s) protocol');
+      }
+
       setExplorer({
-        name: 'Etherscan',
-        value: chainId,
+        name,
+        value: blockExplorer,
         isValid: true,
+        isRPC: type === RPC,
+        baseUrl: url.href,
+      });
+    } catch {
+      setExplorer({
+        name: '',
+        value: null,
+        isValid: false,
         isRPC: false,
-        baseUrl: getEtherscanBaseUrl(definitiveProviderConfig.type),
+        baseUrl: '',
       });
     }
-  }, [
-    networkConfigurations,
-    providerConfig,
-    providerConfigTokenExplorer,
-    chainId,
-    networkName,
-  ]);
+  }, [networkConfigurations, providerConfig, providerConfigTokenExplorer]);
 
   const tx = useCallback(
     (hash) => {
       if (!explorer.isValid) {
         return '';
       }
-
-      const create = explorer.isRPC
-        ? etherscanLink.createCustomExplorerLink
-        : etherscanLink.createExplorerLink;
-      return create(hash, explorer.value);
+      // Regardless of whether the chain uses Etherscan,
+      // we should always use the RPC explorer URL that we retrieved,
+      // as the built-in URL mapping from `etherscanLink` may be outdated.
+      return etherscanLink.createCustomExplorerLink(hash, explorer.value);
     },
     [explorer],
   );
@@ -97,11 +83,10 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
       if (!explorer.isValid) {
         return '';
       }
-
-      const create = explorer.isRPC
-        ? etherscanLink.createCustomAccountLink
-        : etherscanLink.createAccountLink;
-      return create(address, explorer.value);
+      // Regardless of whether the chain uses Etherscan,
+      // we should always use the RPC explorer URL that we retrieved,
+      // as the built-in URL mapping from `etherscanLink` may be outdated.
+      return etherscanLink.createCustomAccountLink(address, explorer.value);
     },
     [explorer],
   );
@@ -110,11 +95,13 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
       if (!explorer.isValid) {
         return '';
       }
-
-      const create = explorer.isRPC
-        ? etherscanLink.createCustomTokenTrackerLink
-        : etherscanLink.createTokenTrackerLink;
-      return create(address, explorer.value);
+      // Regardless of whether the chain uses Etherscan,
+      // we should always use the RPC explorer URL that we retrieved,
+      // as the built-in URL mapping from `etherscanLink` may be outdated.
+      return etherscanLink.createCustomTokenTrackerLink(
+        address,
+        explorer.value,
+      );
     },
     [explorer],
   );

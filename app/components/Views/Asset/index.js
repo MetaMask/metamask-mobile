@@ -73,11 +73,12 @@ import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -190,6 +191,7 @@ class Asset extends PureComponent {
      * Function to set the swaps liveness
      */
     setLiveness: PropTypes.func,
+    isUnifiedSwapsEnabled: PropTypes.bool,
   };
 
   state = {
@@ -572,12 +574,17 @@ class Asset extends PureComponent {
       swapsTokens: this.props.swapsTokens,
     });
 
+    // Check if unified swaps is enabled
+    const isUnifiedSwapsEnabled = this.props.isUnifiedSwapsEnabled;
+
     const displaySwapsButton =
       isSwapsNetworkAllowed && isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
 
-    const displayBridgeButton = isPortfolioViewEnabled()
-      ? isBridgeAllowed(asset.chainId)
-      : isBridgeAllowed(chainId);
+    const displayBridgeButton =
+      !isUnifiedSwapsEnabled &&
+      (isPortfolioViewEnabled()
+        ? isBridgeAllowed(asset.chainId)
+        : isBridgeAllowed(chainId));
 
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
@@ -670,7 +677,7 @@ const mapStateToProps = (state, { route }) => {
     route.params?.chainId &&
     isNonEvmChainId(route.params.chainId)
   ) {
-    const solanaTransactionData = selectSolanaAccountTransactions(state);
+    const solanaTransactionData = selectNonEvmTransactions(state);
     const solanaTransactions = solanaTransactionData?.transactions || [];
 
     const assetAddress = route.params?.address?.toLowerCase();
@@ -789,6 +796,7 @@ const mapStateToProps = (state, { route }) => {
       getRampNetworks(state),
     ),
     networkClientId: selectNetworkClientId(state),
+    isUnifiedSwapsEnabled: selectIsUnifiedSwapsEnabled(state),
   };
 };
 
