@@ -111,7 +111,7 @@ export class BackgroundBridge extends EventEmitter {
   }) {
     super();
     this.url = url;
-    this.realOrigin = new URL(url).origin;
+    this.origin = new URL(url).origin;
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
     this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
@@ -140,7 +140,7 @@ export class BackgroundBridge extends EventEmitter {
 
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
-      this.realOrigin,
+      this.origin,
     );
 
     const networkClient = Engine.controllerMessenger.call(
@@ -253,7 +253,7 @@ export class BackgroundBridge extends EventEmitter {
   get channelIdOrOrigin() {
     return this.isWalletConnect || this.isMMSDK
       ? this.channelId
-      : this.realOrigin;
+      : this.origin;
   }
 
   onUnlock() {
@@ -592,7 +592,7 @@ export class BackgroundBridge extends EventEmitter {
     // user-facing RPC methods
     engine.push(
       this.createMiddleware({
-        hostname: this.realOrigin,
+        hostname: this.origin,
         getProviderState: this.getProviderState.bind(this),
       }),
     );
@@ -678,7 +678,7 @@ export class BackgroundBridge extends EventEmitter {
         handleNonEvmRequestForOrigin: (params) =>
           Engine.controllerMessenger.call('MultichainRouter:handleRequest', {
             ...params,
-            origin: this.realOrigin,
+            origin: this.origin,
           }),
         getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
@@ -745,7 +745,7 @@ export class BackgroundBridge extends EventEmitter {
     // user-facing RPC methods
     engine.push(
       this.createMiddleware({
-        hostname: this.realOrigin,
+        hostname: this.origin,
         getProviderState: this.getProviderState.bind(this),
       }),
     );
