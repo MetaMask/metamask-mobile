@@ -58,7 +58,7 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
-// Mock the hooks module
+// Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
   usePerpsAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
@@ -91,28 +91,26 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
-// Mock Toast context
-jest.mock('../../../../../component-library/components/Toast', () => {
-  const mockReact = jest.requireActual('react');
-  return {
-    ToastContext: mockReact.createContext({
-      showToast: jest.fn(),
-    }),
-    ToastVariants: {
-      Account: 'account',
-      Network: 'network',
-      Transaction: 'transaction',
-      Simple: 'simple',
-      Success: 'success',
-      Error: 'error',
-    },
-  };
-});
-
 // Mock DevLogger
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
+  },
+}));
+
+// Mock Engine context to prevent accessing real PerpsController
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      subscribeToPrices: jest.fn(() => jest.fn()),
+      getAccountState: jest.fn().mockResolvedValue({
+        totalBalance: '1000',
+        availableBalance: '1000',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+      }),
+      placeOrder: jest.fn().mockResolvedValue({ success: true }),
+    },
   },
 }));
 
@@ -148,113 +146,28 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-icon' })),
 }));
 
-// Mock bottom sheet components as they are complex and not part of the test focus
-jest.mock('../../components/PerpsTPSLBottomSheet', () => {
+// Consolidated mock for all bottom sheet components
+const createBottomSheetMock = (testId: string) => {
   const MockReact = jest.requireActual('react');
   return {
     __esModule: true,
     default: ({ isVisible }: { isVisible: boolean }) =>
-      isVisible
-        ? MockReact.createElement('View', { testID: 'tpsl-bottom-sheet' })
-        : null,
+      isVisible ? MockReact.createElement('View', { testID: testId }) : null,
   };
-});
+};
 
-jest.mock('../../components/PerpsLeverageBottomSheet', () => {
-  const MockReact = jest.requireActual('react');
-  return {
-    __esModule: true,
-    default: ({ isVisible }: { isVisible: boolean }) =>
-      isVisible
-        ? MockReact.createElement('View', { testID: 'leverage-bottom-sheet' })
-        : null,
-  };
-});
-jest.mock('../../components/PerpsLimitPriceBottomSheet', () => {
-  const MockReact = jest.requireActual('react');
-  return {
-    __esModule: true,
-    default: ({ isVisible }: { isVisible: boolean }) =>
-      isVisible
-        ? MockReact.createElement('View', {
-            testID: 'limit-price-bottom-sheet',
-          })
-        : null,
-  };
-});
-jest.mock('../../components/PerpsOrderTypeBottomSheet', () => {
-  const MockReact = jest.requireActual('react');
-  return {
-    __esModule: true,
-    default: ({ isVisible }: { isVisible: boolean }) =>
-      isVisible
-        ? MockReact.createElement('View', { testID: 'order-type-bottom-sheet' })
-        : null,
-  };
-});
-// jest.mock('../../components/PerpsOrderHeader', () => {
-//   const MockReact = jest.requireActual('react');
-//   const { View, Text } = jest.requireActual('react-native');
-//   return {
-//     __esModule: true,
-//     default: ({ asset, price }: { asset: string; price: number }) =>
-//       MockReact.createElement(
-//         View,
-//         { testID: 'perps-order-header' },
-//         MockReact.createElement(Text, null, asset),
-//         MockReact.createElement(Text, null, price),
-//       ),
-//   };
-// });
-// jest.mock('../../components/PerpsAmountDisplay', () => {
-//   const MockReact = jest.requireActual('react');
-//   const { View, Text } = jest.requireActual('react-native');
-//   return {
-//     __esModule: true,
-//     default: ({ amount }: { amount: string }) =>
-//       MockReact.createElement(
-//         View,
-//         { testID: 'perps-amount-display' },
-//         MockReact.createElement(Text, null, amount),
-//       ),
-//   };
-// });
-// jest.mock('../../components/PerpsTokenSelector', () => {
-//   const MockReact = jest.requireActual('react');
-//   return {
-//     __esModule: true,
-//     default: ({ isVisible }: { isVisible: boolean }) =>
-//       isVisible
-//         ? MockReact.createElement('View', { testID: 'token-selector' })
-//         : null,
-//   };
-// });
-
-// Mock Keypad component
-jest.mock('../../../Ramp/Aggregator/components/Keypad', () => {
-  const MockReact = jest.requireActual('react');
-  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      onChange,
-    }: {
-      onChange: (data: { value: string; valueAsNumber: number }) => void;
-    }) =>
-      MockReact.createElement(
-        View,
-        { testID: 'keypad' },
-        MockReact.createElement(
-          TouchableOpacity,
-          {
-            testID: 'keypad-1',
-            onPress: () => onChange({ value: '1', valueAsNumber: 1 }),
-          },
-          MockReact.createElement(Text, null, '1'),
-        ),
-      ),
-  };
-});
+jest.mock('../../components/PerpsTPSLBottomSheet', () =>
+  createBottomSheetMock('tpsl-bottom-sheet'),
+);
+jest.mock('../../components/PerpsLeverageBottomSheet', () =>
+  createBottomSheetMock('leverage-bottom-sheet'),
+);
+jest.mock('../../components/PerpsLimitPriceBottomSheet', () =>
+  createBottomSheetMock('limit-price-bottom-sheet'),
+);
+jest.mock('../../components/PerpsOrderTypeBottomSheet', () =>
+  createBottomSheetMock('order-type-bottom-sheet'),
+);
 
 // Test setup
 const mockNavigate = jest.fn();
