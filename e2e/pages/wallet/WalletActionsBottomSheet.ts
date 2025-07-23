@@ -1,65 +1,65 @@
 import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class WalletActionsBottomSheet {
-  get sendButton() {
+  get sendButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
     );
   }
 
-  get receiveButton() {
+  get receiveButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON,
     );
   }
 
-  get swapButton() {
+  get swapButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
     );
   }
 
-  get bridgeButton() {
+  get bridgeButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
     );
   }
 
-  get buyButton() {
+  get buyButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
     );
   }
 
-  get sellButton() {
+  get sellButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
     );
   }
 
-  async tapSendButton() {
+  async tapSendButton(): Promise<void> {
     await Gestures.waitAndTap(this.sendButton);
   }
 
-  async tapReceiveButton() {
+  async tapReceiveButton(): Promise<void> {
     await Gestures.waitAndTap(this.receiveButton);
   }
 
-  async tapSwapButton() {
+  async tapSwapButton(): Promise<void> {
     await Gestures.waitAndTap(this.swapButton, {
-      delayBeforeTap: 1000,
+      delay: 1000,
     });
   }
 
-  async tapBridgeButton() {
+  async tapBridgeButton(): Promise<void> {
     await Gestures.waitAndTap(this.bridgeButton, {
-      delayBeforeTap: 1000,
+      delay: 1000,
     });
   }
 
-  async tapBuyButton() {
+  async tapBuyButton(): Promise<void> {
     await Gestures.waitAndTap(this.buyButton);
   }
 
@@ -67,8 +67,10 @@ class WalletActionsBottomSheet {
     await Gestures.waitAndTap(this.sellButton);
   }
 
-  async swipeDownActionsBottomSheet() {
-    await Gestures.swipe(this.sendButton, 'down', 'fast');
+  async swipeDownActionsBottomSheet(): Promise<void> {
+    await Gestures.swipe(this.sendButton, 'down', {
+      speed: 'fast',
+    });
   }
 }
 

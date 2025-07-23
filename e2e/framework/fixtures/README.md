@@ -41,6 +41,8 @@ describe('My Test Suite', () => {
 | `launcArgs`         | `LaunchArgs`            | `false`  | `-`     | Allows sending arbitrary launchArgs such as the fixtureServerPort |
 | `languageAndLocale` | `LanguageAndLocale`     | `false`  | -       | Set the device Language and Locale of the device                  |
 | `permissions`       | `object`                | `false`  | -       | Allows setting specific device permissions                        |
+| `mockServerInstance` | `Mockttp` | `false` | - | Allows providing a mock server instance instead of having one created automatically. Should not be used together with `testSpecificMock` | 
+| `endTestfn` | `fn()` | `false` | - | Allows providing a function that is executed at the end of the test before the cleanup | 
 
 ## Migration from Legacy Options
 

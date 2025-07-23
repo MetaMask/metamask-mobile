@@ -1520,6 +1520,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         onShouldStartLoadWithRequest
                       }
                       allowsInlineMediaPlayback
+                      {...(process.env.IS_TEST === 'true'
+                        ? { javaScriptEnabled: true }
+                        : {})}
                       testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                       applicationNameForUserAgent={'WebView MetaMaskMobile'}
                       onFileDownload={handleOnFileDownload}

@@ -129,15 +129,15 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -854,15 +854,15 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -1593,15 +1593,15 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -2318,15 +2318,15 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
