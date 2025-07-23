@@ -112,7 +112,10 @@ function waitForQuoteOrTimeout(
 
         return isMatch;
       },
-      { onTimeout: reject, timeout: QUOTE_TIMEOUT },
+      {
+        onTimeout: reject,
+        timeout: QUOTE_TIMEOUT,
+      },
     );
   });
 }
@@ -125,9 +128,9 @@ function getActiveQuote(
   const state = {
     ...fullState,
     engine: {
-      ...fullState.engine,
+      ...fullState?.engine,
       backgroundState: {
-        ...fullState.engine.backgroundState,
+        ...fullState?.engine?.backgroundState,
         BridgeController: controllerState,
       },
     },
