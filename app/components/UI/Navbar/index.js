@@ -22,7 +22,7 @@ import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
-import { getLabelTextByAddress } from '../../../util/address';
+import { getLabelsTextByAddress } from '../../../util/address';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -1094,7 +1094,7 @@ export function getWalletNavbarOptions(
             navigation.navigate(...createAccountSelectorNavDetails({}));
           }}
           accountTypeLabel={
-            getLabelTextByAddress(formattedAddress) || undefined
+            getLabelsTextByAddress(formattedAddress) || undefined
           }
           showAddress
           cellAccountContainerStyle={styles.account}

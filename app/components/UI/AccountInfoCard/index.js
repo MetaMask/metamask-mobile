@@ -16,7 +16,7 @@ import {
 import { selectEvmTicker } from '../../../selectors/networkController';
 import { fontStyles } from '../../../styles/common';
 import {
-  getLabelTextByAddress,
+  getLabelsTextByAddress,
   renderAccountName,
   renderShortAddress,
   safeToChecksumAddress,
@@ -157,7 +157,7 @@ class AccountInfoCard extends PureComponent {
 
     const signatureRequest = Object.values(signatureRequests || {})?.[0];
     const fromAddress = safeToChecksumAddress(rawFromAddress);
-    const accountLabelTag = getLabelTextByAddress(fromAddress);
+    const accountLabelTag = getLabelsTextByAddress(fromAddress);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const weiBalance = accounts?.[fromAddress]?.balance

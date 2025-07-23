@@ -32,7 +32,7 @@ const CellSelectWithMenu = ({
   titleProps,
   secondaryText,
   tertiaryText,
-  tagLabel,
+  tagLabels,
   isSelected = false,
   children,
   withAvatar = true,
@@ -95,17 +95,17 @@ const CellSelectWithMenu = ({
               </TouchableOpacity>
             </TouchableWithoutFeedback>
           )}
-          {!!tagLabel && (
+          {tagLabels?.map((label) => (
             <Tag
               testID={CellComponentSelectorsIDs.TAG_LABEL}
-              label={tagLabel}
+              label={label}
               style={
                 isSelected
                   ? [styles.tagLabel, styles.selectedTag]
                   : styles.tagLabel
               }
             />
-          )}
+          ))}
         </View>
         {children && <View style={styles.optionalAccessory}>{children}</View>}
       </View>

@@ -15,7 +15,7 @@ import {
   isHardwareAccount,
   resemblesAddress,
   getKeyringByAddress,
-  getLabelTextByAddress,
+  getLabelsTextByAddress,
   isSnapAccount,
   toFormattedAddress,
   isHDOrFirstPartySnapAccount,
@@ -475,33 +475,33 @@ describe('isHardwareAccount,', () => {
 });
 describe('getLabelTextByAddress,', () => {
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
-    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe('QR hardware');
+    expect(getLabelsTextByAddress(mockQrKeyringAddress)).toBe('QR hardware');
   });
 
   it('should return KeyringTypes.simple if address is a imported account', () => {
-    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe('Imported');
+    expect(getLabelsTextByAddress(mockSimpleKeyringAddress)).toBe('Imported');
   });
 
   it('returns "Snaps (Beta)" if account is a Snap keyring and there is no snap name', () => {
-    expect(getLabelTextByAddress(mockSnapAddress1)).toBe('Snaps (Beta)');
+    expect(getLabelsTextByAddress(mockSnapAddress1)).toBe('Snaps (Beta)');
   });
 
   it('should return null if address is empty', () => {
-    expect(getLabelTextByAddress('')).toBe(null);
+    expect(getLabelsTextByAddress('')).toBe(null);
   });
 
   it('should return null if account not found', () => {
     expect(
-      getLabelTextByAddress('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
+      getLabelsTextByAddress('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBe(null);
   });
 
   it('returns srp label for hd accounts when there are multiple hd keyrings', () => {
-    expect(getLabelTextByAddress(mockSecondHDKeyringAddress)).toBe('SRP #2');
+    expect(getLabelsTextByAddress(mockSecondHDKeyringAddress)).toBe('SRP #2');
   });
 
   it('returns srp label for snap accounts that uses hd keyring for its entropy source', () => {
-    expect(getLabelTextByAddress(mockSolanaAddress)).toBe('SRP #1');
+    expect(getLabelsTextByAddress(mockSolanaAddress)).toBe('SRP #1');
   });
 });
 describe('getAddressAccountType', () => {

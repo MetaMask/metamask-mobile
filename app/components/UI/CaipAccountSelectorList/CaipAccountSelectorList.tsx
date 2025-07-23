@@ -21,7 +21,7 @@ import { useStyles } from '../../../component-library/hooks';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-import { formatAddress, getLabelTextByAddress } from '../../../util/address';
+import { formatAddress, getLabelsTextByAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
@@ -217,7 +217,7 @@ const CaipAccountSelectorList = ({
         scopes,
       };
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getLabelTextByAddress(address);
+      const tagLabels = getLabelsTextByAddress(address);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -283,7 +283,7 @@ const CaipAccountSelectorList = ({
           tertiaryText={balanceError}
           onPress={handlePress}
           avatarProps={avatarProps}
-          tagLabel={tagLabel}
+          tagLabels={tagLabels}
           disabled={isDisabled}
           style={cellStyle}
           buttonProps={buttonProps}

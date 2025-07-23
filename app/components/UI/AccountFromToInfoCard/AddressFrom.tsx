@@ -13,7 +13,7 @@ import {
   selectEvmNetworkName,
 } from '../../../selectors/networkInfos';
 import {
-  getLabelTextByAddress,
+  getLabelsTextByAddress,
   renderAccountName,
   toChecksumAddress,
 } from '../../../util/address';
@@ -93,7 +93,7 @@ const AddressFrom = ({
     ? perDappNetworkInfo.networkImage
     : networkImage;
 
-  const accountTypeLabel = getLabelTextByAddress(activeAddress);
+  const accountTypeLabel = getLabelsTextByAddress(activeAddress);
 
   return (
     <View style={styles.container}>

@@ -28,7 +28,7 @@ import SensitiveText, {
 import {
   areAddressesEqual,
   formatAddress,
-  getLabelTextByInternalAccount,
+  getLabelsTextByInternalAccount,
   toFormattedAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -414,9 +414,9 @@ const EvmAccountSelectorList = ({
 
       const internalAccount = internalAccountsById[id];
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = accountTreeSections
-        ? undefined
-        : getLabelTextByInternalAccount(internalAccount);
+      const tagLabels = accountTreeSections
+        ? []
+        : getLabelsTextByInternalAccount(internalAccount);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
@@ -498,7 +498,7 @@ const EvmAccountSelectorList = ({
           tertiaryText={balanceError}
           onPress={handlePress}
           avatarProps={avatarProps}
-          tagLabel={tagLabel}
+          tagLabels={tagLabels}
           disabled={isDisabled}
           style={cellStyle}
           buttonProps={buttonProps}

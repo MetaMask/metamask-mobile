@@ -7,7 +7,7 @@ import { View, TouchableOpacity } from 'react-native';
 // External dependencies
 import {
   renderShortAddress,
-  getLabelTextByAddress,
+  getLabelsTextByAddress,
 } from '../../../../../../util/address';
 import Identicon from '../../../../../UI/Identicon';
 import { useTheme } from '../../../../../../util/theme';
@@ -95,7 +95,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
       : renderShortAddress(address);
   const secondaryLabel =
     displayName && !displayName.startsWith(' ') && renderShortAddress(address);
-  const accountTypeLabel = getLabelTextByAddress(address);
+  const accountTypeLabel = getLabelsTextByAddress(address);
 
   return (
     <TouchableOpacity

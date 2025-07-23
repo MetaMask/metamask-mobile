@@ -27,7 +27,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import { getLabelTextByAddress } from '../../../../../../../util/address';
+import { getLabelsTextByAddress } from '../../../../../../../util/address';
 import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
@@ -60,7 +60,7 @@ const AccountNetworkInfoCollapsed = () => {
     fromAddress = transactionBatchesMetadata?.from as string;
   }
   const { accountName } = useAccountInfo(fromAddress, chainId as Hex);
-  const accountLabel = getLabelTextByAddress(fromAddress);
+  const accountLabel = getLabelsTextByAddress(fromAddress);
   const { styles } = useStyles(styleSheet, {
     accountNameWide: Boolean(!accountLabel),
   });

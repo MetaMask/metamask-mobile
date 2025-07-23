@@ -9,7 +9,7 @@ import { BadgeVariant } from '../../../../../../component-library/components/Bad
 import { useStyles } from '../../../../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
 import {
-  getLabelTextByAddress,
+  getLabelsTextByAddress,
   renderAccountName,
   toChecksumAddress,
 } from '../../../../../../util/address';
@@ -78,7 +78,7 @@ const ApproveTransactionHeader = ({
     setIsOriginDeepLink(isOriginDeepLinkVal);
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const accountTypeLabel = getLabelTextByAddress(activeAddress) ?? undefined;
+  const accountTypeLabel = getLabelsTextByAddress(activeAddress) ?? undefined;
 
   const showOrigin =
     origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);

@@ -30,9 +30,9 @@ export interface CellBaseProps {
    */
   tertiaryText?: string;
   /**
-   * Optional label (using Tag component) below the title/secondaryText/tertiaryText.
+   * Optional labels (using Tag component) below the title/secondaryText/tertiaryText.
    */
-  tagLabel?: string;
+  tagLabels?: string[];
   /**
    * Optional accessory that can be inserted on the right of Cell Account.
    */

@@ -49,7 +49,7 @@ import type {
 } from '@metamask/network-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
-import { EntropySourceId } from '@metamask/keyring-api';
+import { BtcAccountType, EntropySourceId } from '@metamask/keyring-api';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -320,14 +320,14 @@ export function getInternalAccountByAddress(
 }
 
 /**
- * gets account label tag text based from an account
+ * gets account label tags text based from an account
  *
- * @param {String} address - String corresponding to an address
- * @returns {String} - Returns address's translated label text
+ * @param {InternalAccount} internalAccount - Account from which to get the labels
+ * @returns {Array<String>} - Returns address's translated label text
  */
-export function getLabelTextByInternalAccount(
+export function getLabelsTextByInternalAccount(
   internalAccount: InternalAccount,
-) {
+): string[] {
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
 
@@ -361,13 +361,28 @@ export function getLabelTextByInternalAccount(
     return null;
   };
 
+  const getBitcoinLabel = (accountType: InternalAccount['type']) => {
+    switch (accountType) {
+      case BtcAccountType.P2pkh:
+        return strings('accounts.bitcoin_p2pkh');
+      case BtcAccountType.P2sh:
+        return strings('accounts.bitcoin_p2sh');
+      case BtcAccountType.P2tr:
+        return strings('accounts.bitcoin_p2tr');
+      default:
+        return strings('accounts.bitcoin_p2wpkh');
+    }
+  };
+
+  const labels = [];
+
   switch (internalAccount?.metadata?.keyring?.type) {
     case ExtendedKeyringTypes.hd: {
       // Since @metamask/accounts-controller@28.0.0, HD accounts also have their entropy source
       // within the options bag, so re-use this:
       const srpLabel = getSrpLabel(internalAccount);
       if (srpLabel) {
-        return srpLabel;
+        labels.push(srpLabel);
       }
       break;
     }
@@ -379,12 +394,9 @@ export function getLabelTextByInternalAccount(
       return strings('accounts.imported');
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     case KeyringTypes.snap: {
-      // TODO: We should return multiple labels if one day we allow 3rd party Snaps (since they might have 2 pills:
-      // 1. For the SRP (if they provide `options.entropySource`)
-      // 2. For the "Snap tag" (`accounts.snap_account_tag`)
       const srpLabel = getSrpLabel(internalAccount);
       if (srpLabel) {
-        return srpLabel;
+        labels.push(srpLabel);
       }
 
       const isPreinstalledSnap = PREINSTALLED_SNAPS.some(
@@ -392,27 +404,36 @@ export function getLabelTextByInternalAccount(
       );
 
       if (!isPreinstalledSnap) {
-        return strings('accounts.snap_account_tag');
+        labels.push(strings('accounts.snap_account_tag'));
+      }
+
+      if (
+        Object.values(BtcAccountType).includes(
+          internalAccount.type as BtcAccountType,
+        )
+      ) {
+        labels.push(getBitcoinLabel(internalAccount.type));
       }
     }
     ///: END:ONLY_INCLUDE_IF
   }
-  return null;
+
+  return labels;
 }
 
 /**
- * gets account label tag text based on address
+ * gets account label tags text based on address
  *
  * @param {String} address - String corresponding to an address
  * @returns {String} - Returns address's translated label text
  */
-export function getLabelTextByAddress(address: string) {
-  if (!address) return null;
+export function getLabelsTextByAddress(address: string) {
+  if (!address) return [];
 
   const internalAccount = getInternalAccountByAddress(address);
-  if (!internalAccount) return null;
+  if (!internalAccount) return [];
 
-  return getLabelTextByInternalAccount(internalAccount);
+  return getLabelsTextByInternalAccount(internalAccount);
 }
 
 /**
