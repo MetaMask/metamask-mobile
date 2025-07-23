@@ -991,6 +991,8 @@ class ChoosePassword extends PureComponent {
   }
 }
 
+ChoosePassword.contextType = ThemeContext;
+
 const mapDispatchToProps = (dispatch) => ({
   passwordSet: () => dispatch(passwordSet()),
   passwordUnset: () => dispatch(passwordUnset()),
