@@ -1139,7 +1139,7 @@ workflows:
           title: Set Env Path for caching deps
       - script@1:
           title: Run detox test
-          timeout: 1200
+          timeout: 1800
           is_always_run: false
           inputs:
             - content: |-
@@ -1211,7 +1211,7 @@ workflows:
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
           title: Run detox build
-          timeout: 1200
+          timeout: 1800
           is_always_run: true
           inputs:
             - content: |-
@@ -1530,7 +1530,7 @@ workflows:
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
           title: Run detox build
-          timeout: 1200
+          timeout: 1800
           is_always_run: true
           inputs:
             - content: |-
