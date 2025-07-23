@@ -12,7 +12,7 @@ const Asset = () => {
   const { styles } = useStyles(styleSheet, {});
   const route =
     useRoute<RouteProp<Record<string, { asset: AssetType }>, string>>();
-  const { asset: paramsAsset } = route?.params;
+  const paramsAsset = route?.params?.asset;
   const { asset, updateAsset } = useSendContext();
 
   useEffect(() => {
