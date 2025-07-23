@@ -11,7 +11,8 @@ import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
 import { SmokeConfirmations } from '../../../tags';
-import { buildPermissions, TEST_DAPP_LOCAL_URL } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../fixtures/utils';
+import { TEST_DAPP_LOCAL_URL } from '../../../framework/fixtures/FixtureUtils';
 
 describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   beforeAll(async () => {

@@ -12,7 +12,8 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { withFixtures } from '../../../fixtures/fixture-helper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import { buildPermissions, TEST_DAPP_LOCAL_URL } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../fixtures/utils';
+import { TEST_DAPP_LOCAL_URL } from '../../../framework/fixtures/FixtureUtils';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
