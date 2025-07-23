@@ -46,7 +46,6 @@ function StateSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<{ code: string; name: string }>>(null);
   const navigation = useNavigation();
-
   const { selectedState, onStateSelect } =
     useParams<StateSelectorModalParams>();
   const [searchString, setSearchString] = useState('');
@@ -91,7 +90,6 @@ function StateSelectorModal() {
 
   const handleOnStatePressCallback = useCallback(
     (state: { code: string; name: string }) => {
-      // Check if the selected state is unsupported
       if (state.code === 'NY') {
         sheetRef.current?.onCloseBottomSheet(() => {
           navigation.navigate(
@@ -106,7 +104,7 @@ function StateSelectorModal() {
         sheetRef.current?.onCloseBottomSheet();
       }
     },
-    [onStateSelect, navigation],
+    [navigation, onStateSelect],
   );
 
   const renderStateItem = useCallback(
