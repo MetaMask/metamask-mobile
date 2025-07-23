@@ -7,7 +7,7 @@ import { createLogger } from '../framework/logger';
 import { MockServerOptions, TestSpecificMock } from '../framework/types';
 
 const logger = createLogger({
-  prefix: 'Mock Server',
+  name: 'MockServer',
 });
 
 const conditionalLogger =
