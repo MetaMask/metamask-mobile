@@ -31,9 +31,14 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   const SECOND_ROW: number = 1;
   let mockServerPort: number;
   let capturedEvents: EventPayload[] = [];
+  let mockServer: Mockttp;
 
   beforeAll(async (): Promise<void> => {
     mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(
+      testSpecificMock,
+      mockServerPort,
+    );
   });
 
   beforeEach(async (): Promise<void> => {
@@ -68,10 +73,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
               },
             },
           ],
-          mockServerInstance: await startMockServer(
-            testSpecificMock,
-            mockServerPort,
-          ),
+          mockServerInstance: mockServer,
           restartDevice: true,
           endTestfn: async ({ mockServer }) => {
             // Capture events before cleanup
