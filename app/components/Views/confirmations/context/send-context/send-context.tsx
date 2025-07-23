@@ -49,12 +49,9 @@ export const SendContextProvider: React.FC<{
   const { chainId } = asset ?? { chainId: undefined };
   const { NetworkController } = Engine.context;
 
-  const updateTransactionParams = useCallback(
-    (params: Partial<TransactionParams>) => {
-      setTransactionParams({ ...transactionParams, ...params });
-    },
-    [setTransactionParams, transactionParams],
-  );
+  const updateTransactionParams = (params: Partial<TransactionParams>) => {
+    setTransactionParams({ ...transactionParams, ...params });
+  };
 
   const submitSend = useCallback(async () => {
     if (!chainId) {
