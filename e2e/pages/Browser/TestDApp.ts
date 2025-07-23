@@ -3,7 +3,7 @@ import enContent from '../../../locales/languages/en.json';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import TestHelpers from '../../helpers';
-import { TEST_DAPP_LOCAL_URL } from '../../fixtures/utils';
+import { getLocalTestDappUrl } from '../../fixtures/utils';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from '../Browser/BrowserView';
@@ -343,7 +343,7 @@ class TestDApp {
   }: ContractNavigationParams): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${TEST_DAPP_LOCAL_URL}?scrollTo=''&contract=${contractAddress}`,
+      `${getLocalTestDappUrl()}?scrollTo=''&contract=${contractAddress}`,
     );
     await TestHelpers.delay(3000); // should have a better assertion that waits until the webpage loads
   }
