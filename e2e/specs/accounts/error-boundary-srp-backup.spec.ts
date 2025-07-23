@@ -3,17 +3,15 @@ import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
 import TestDApp from '../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { DappVariants, defaultGanacheOptions } from '../../framework/Constants';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeAccounts } from '../../tags';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
-import { buildPermissions } from '../../fixtures/utils';
+
 const PASSWORD = '123123123';
 
 describe(SmokeAccounts('Error Boundary Screen'), () => {
@@ -25,15 +23,17 @@ describe(SmokeAccounts('Error Boundary Screen'), () => {
   it('should trigger error boundary screen to reveal SRP', async () => {
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
+          .withPermissionControllerConnectedToMultipleTestDapps()
+          .withChainPermission(['0x539'])
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -42,7 +42,7 @@ describe(SmokeAccounts('Error Boundary Screen'), () => {
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapInvalidSigButton();
-        await Assertions.checkIfVisible(ErrorBoundaryView.title);
+        await Assertions.expectElementToBeVisible(ErrorBoundaryView.title);
         await ErrorBoundaryView.tapSRPLinkText();
 
         await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
@@ -50,9 +50,11 @@ describe(SmokeAccounts('Error Boundary Screen'), () => {
         );
         // If the following step fails, ensure you are using a test build with tap and hold to reveal animation disabled
         await RevealSecretRecoveryPhrase.tapToReveal();
-        await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
+        await Assertions.expectElementToBeVisible(
+          RevealSecretRecoveryPhrase.container,
+        );
 
-        await Assertions.checkIfTextIsDisplayed(defaultGanacheOptions.mnemonic);
+        await Assertions.expectTextDisplayed(defaultGanacheOptions.mnemonic);
       },
     );
   });
