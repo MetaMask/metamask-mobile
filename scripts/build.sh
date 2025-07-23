@@ -411,7 +411,7 @@ buildIosDeviceFlask(){
 # Generates the iOS binary for the given scheme and configuration
 generateIosBinary() {
 	scheme="$1"
-	configuration="${2:-"Release"}"
+	configuration="${BUILD_TYPE:-"Release"}"
 
 	if [ "$scheme" = "MetaMask" ] ; then
 		# Main target
@@ -454,61 +454,6 @@ generateIosBinary() {
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 	fi
 
-}
-
-# Builds the Main binary for production
-buildIosMainProduction(){
-
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask"
-}
-
-# Builds the Main binary for local development
-buildIosMainLocal() {
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask" "Debug"
-}
-
-# Builds the Flask binary for local development
-buildIosFlaskLocal() {
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask-Flask" "Debug"
-}
-
-# Builds the QA binary for local development
-buildIosQaLocal() {
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask-QA" "Debug"
-}
-
-# Builds the Flask binary for production
-buildIosFlaskProduction(){
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask-Flask"
-}
-
-# Builds the QA binary for production
-buildIosQaProduction(){
-	prebuild_ios
-
-	# Go to ios directory
-	cd ios
-	generateIosBinary "MetaMask-QA"
 }
 
 buildIosReleaseE2E(){
@@ -640,8 +585,6 @@ buildAndroid() {
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
-	elif [ "$MODE" == "devBuild" ] ; then
-		buildAndroidMainLocal
 	else
 		buildAndroidRun
 	fi
@@ -660,17 +603,19 @@ buildAndroidRunE2E(){
 buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
-		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
-			buildIosMainLocal
-		else
-			buildIosMainProduction
-		fi
+		# Prepare iOS dependencies
+		prebuild_ios
+		# Go to ios directory
+		cd ios
+		# Generate iOS binary
+		generateIosBinary "MetaMask"
 	elif [ "$MODE" == "flask" ] ; then
-		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
-			buildIosFlaskLocal
-		else
-			buildIosFlaskProduction
-		fi
+		# Prepare iOS dependencies
+		prebuild_ios
+		# Go to ios directory
+		cd ios
+		# Generate iOS binary
+		generateIosBinary "MetaMask-Flask"
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
@@ -680,11 +625,12 @@ buildIos() {
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
 	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
-		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
-			buildIosQaLocal
-		else
-			buildIosQaProduction
-		fi
+		# Prepare iOS dependencies
+		prebuild_ios
+		# Go to ios directory
+		cd ios
+		# Generate iOS binary
+		generateIosBinary "MetaMask-QA"
 	elif [ "$MODE" == "qaDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDeviceQA
@@ -697,8 +643,6 @@ buildIos() {
 		else
 			buildIosSimulatorFlask
 		fi
-	elif [ "$MODE" == "devbuild" ] ; then
-		buildIosMainLocal
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice

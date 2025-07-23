@@ -2463,13 +2463,6 @@ workflows:
                 #!/usr/bin/env bash
                 set -ex
 
-                # Set build type
-                if [ "$IS_RELEASE_BUILD" = "true" ]; then
-                  BUILD_TYPE="Release"
-                else
-                  BUILD_TYPE="Debug"
-                fi
-
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
                   BUILD_DIR="ios/build/Build/Products/${BUILD_TYPE}-iphonesimulator"
@@ -2509,6 +2502,14 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: |-
+                ios/build/Build/Products/{{ getenv "BUILD_TYPE" }}-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
+                ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
+          title: Share Detox files between pipelines
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
             - pipeline_intermediate_files: $BINARY_DEPLOY_PATH:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: $BINARY_DEPLOY_PATH
             - is_compress: true
@@ -2534,6 +2535,7 @@ workflows:
       - build_ios_main_prod
   build_ios_main_prod:
     envs:
+      - BUILD_TYPE: 'Release'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -2543,6 +2545,7 @@ workflows:
       - _ios_build_template
   build_ios_main_beta:
     envs:
+      - BUILD_TYPE: 'Release'
       - YARN_COMMAND: 'build:ios:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -2552,6 +2555,7 @@ workflows:
       - _ios_build_template
   build_ios_main_rc:
     envs:
+      - BUILD_TYPE: 'Release'
       - YARN_COMMAND: 'build:ios:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -2561,6 +2565,7 @@ workflows:
       - _ios_build_template
   build_ios_main_exp:
     envs:
+      - BUILD_TYPE: 'Release'
       - YARN_COMMAND: 'build:ios:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -2570,8 +2575,8 @@ workflows:
       - _ios_build_template
   build_ios_main_e2e:
     envs:
+      - BUILD_TYPE: 'Release'
       - IS_SIM_BUILD: 'true'
-      - IS_RELEASE_BUILD: 'true'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -2591,6 +2596,7 @@ workflows:
       - build_ios_main_rc
   build_ios_beta:
     envs:
+      - BUILD_TYPE: 'Release'
       - METAMASK_BUILD_TYPE: "beta"
       - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
@@ -2605,6 +2611,7 @@ workflows:
       - build_ios_flask_prod
   build_ios_flask_prod:
     envs:
+      - BUILD_TYPE: 'Release'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
@@ -2614,6 +2621,7 @@ workflows:
       - _ios_build_template
   build_ios_flask_test:
     envs:
+      - BUILD_TYPE: 'Release'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
@@ -2623,6 +2631,7 @@ workflows:
       - _ios_build_template
   build_ios_flask_e2e:
     envs:
+      - BUILD_TYPE: 'Release'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
@@ -2632,6 +2641,7 @@ workflows:
       - _ios_build_template
   build_ios_main_local:
     envs:
+      - BUILD_TYPE: 'Debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'MetaMask'
@@ -2651,6 +2661,7 @@ workflows:
       - build_ios_main_local
   build_ios_flask_local:
     envs:
+      - BUILD_TYPE: 'Debug'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
@@ -2669,6 +2680,7 @@ workflows:
       - build_ios_flask_local
   build_ios_qa_local:
     envs:
+      - BUILD_TYPE: 'Debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
@@ -2687,6 +2699,7 @@ workflows:
       - build_ios_qa_local
   build_ios_qa_prod:
     envs:
+      - BUILD_TYPE: 'Release'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
