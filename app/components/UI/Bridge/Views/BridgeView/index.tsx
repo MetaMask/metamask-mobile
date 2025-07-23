@@ -280,10 +280,7 @@ const BridgeView = () => {
           const validationResult = await validateBridgeTx({
             quoteResponse: activeQuote,
           });
-          if (
-            validationResult.error ||
-            validationResult.result.validation.reason
-          ) {
+          if (validationResult.status === 'ERROR') {
             displayValidationError = true;
             const isValidationError =
               !!validationResult.result.validation.reason;
@@ -294,7 +291,7 @@ const BridgeView = () => {
                 errorType: isValidationError ? 'validation' : 'simulation',
                 errorMessage: error_details?.message
                   ? `The ${error_details.message}.`
-                  : validationResult.error,
+                  : '',
               },
             });
             return;
