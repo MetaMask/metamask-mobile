@@ -58,7 +58,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         <RNText
           style={[styles.amountValue, isActive && styles.amountValueActive]}
         >
-          {amount ? formatPrice(amount) : '$0'}
+          {amount ? formatPrice(amount, { minimumDecimals: 0 }) : '$0'}
         </RNText>
         {isActive && (
           <Animated.View

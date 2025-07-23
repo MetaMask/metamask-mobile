@@ -451,7 +451,7 @@ const PerpsOrderView: React.FC = () => {
   const handlePercentagePress = useCallback(
     (percentage: number) => {
       if (availableBalance === 0) return;
-      const newAmount = (availableBalance * percentage).toFixed(2);
+      const newAmount = Math.floor(availableBalance * percentage).toString();
       setOrderForm((prev) => ({ ...prev, amount: newAmount }));
     },
     [availableBalance],
@@ -459,8 +459,22 @@ const PerpsOrderView: React.FC = () => {
 
   const handleMaxPress = useCallback(() => {
     if (availableBalance === 0) return;
-    setOrderForm((prev) => ({ ...prev, amount: availableBalance.toString() }));
+    setOrderForm((prev) => ({
+      ...prev,
+      amount: Math.floor(availableBalance).toString(),
+    }));
   }, [availableBalance]);
+
+  const handleMinPress = useCallback(() => {
+    const minAmount =
+      currentNetwork === 'mainnet'
+        ? TRADING_DEFAULTS.amount.mainnet
+        : TRADING_DEFAULTS.amount.testnet;
+    setOrderForm((prev) => ({
+      ...prev,
+      amount: minAmount.toString(),
+    }));
+  }, [currentNetwork]);
 
   const handleDonePress = useCallback(() => {
     setIsInputFocused(false);
@@ -644,7 +658,10 @@ const PerpsOrderView: React.FC = () => {
             <PerpsSlider
               value={parseFloat(orderForm.amount || '0')}
               onValueChange={(value) =>
-                setOrderForm((prev) => ({ ...prev, amount: value.toString() }))
+                setOrderForm((prev) => ({
+                  ...prev,
+                  amount: Math.floor(value).toString(),
+                }))
               }
               minimumValue={0}
               maximumValue={availableBalance}
@@ -944,6 +961,13 @@ const PerpsOrderView: React.FC = () => {
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
+              label="Min"
+              onPress={handleMinPress}
+              style={styles.percentageButton}
+            />
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
               label={strings('perps.deposit.max_button')}
               onPress={handleMaxPress}
               style={styles.percentageButton}
@@ -962,7 +986,7 @@ const PerpsOrderView: React.FC = () => {
             value={orderForm.amount}
             onChange={handleKeypadChange}
             currency="USD"
-            decimals={2}
+            decimals={0}
           />
         </View>
       )}

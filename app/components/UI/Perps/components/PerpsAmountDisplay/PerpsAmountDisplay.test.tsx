@@ -22,7 +22,13 @@ jest.mock('../../../../../util/theme', () => ({
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
-  formatPrice: jest.fn((value) => `$${value}`),
+  formatPrice: jest.fn((value, options) => {
+    const num = parseFloat(value);
+    if (options?.minimumDecimals === 0 && Number.isInteger(num)) {
+      return `$${num}`;
+    }
+    return `$${value}`;
+  }),
 }));
 
 describe('PerpsAmountDisplay', () => {
@@ -113,7 +119,7 @@ describe('PerpsAmountDisplay', () => {
   it('should format prices correctly', () => {
     render(<PerpsAmountDisplay amount="1234.56" maxAmount={9876.54} />);
 
-    expect(formatPrice).toHaveBeenCalledWith('1234.56');
+    expect(formatPrice).toHaveBeenCalledWith('1234.56', { minimumDecimals: 0 });
     expect(formatPrice).toHaveBeenCalledWith(9876.54);
   });
 });
