@@ -86,7 +86,7 @@ describe('useAccountTokenCompatible', () => {
       { state },
     );
 
-    expect(result.current).toBe(true); // Incompatible
+    expect(result.current).toBe(true);
   });
 
   it('returns true when the non-EVM account is compatible with the token', () => {
@@ -117,7 +117,7 @@ describe('useAccountTokenCompatible', () => {
       { state },
     );
 
-    expect(result.current).toBe(true); // Incompatible
+    expect(result.current).toBe(true);
   });
 
   it('returns false when no account is selected', () => {
