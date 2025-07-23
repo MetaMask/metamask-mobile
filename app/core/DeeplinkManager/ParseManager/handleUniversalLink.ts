@@ -167,12 +167,18 @@ async function handleUniversalLink({
     // Normal links (same as dapp)
     instance._handleBrowserUrl(urlObj.href, browserCallBack);
   } else if (action === SUPPORTED_ACTIONS.SEND) {
-    const deeplinkUrl = urlObj.href.replace(
-      new RegExp(`^${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}/?`),
-      PREFIXES[ACTIONS.SEND],
-    );
+    const deeplinkUrl = urlObj.href
+      .replace(
+        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}/`,
+        PREFIXES[ACTIONS.SEND],
+      )
+      .replace(
+        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`,
+        PREFIXES[ACTIONS.SEND],
+      );
     // loops back to open the link with the right protocol
     instance.parse(deeplinkUrl, { origin: source });
+    return;
   }
 }
 
