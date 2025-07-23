@@ -30,6 +30,7 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
+        disableGanache: true,
       },
       async () => {
         //should navigate to browser
