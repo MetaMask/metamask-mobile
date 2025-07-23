@@ -166,7 +166,9 @@
     "multihashes/**/base-x": "3.0.11",
     "@keystonehq/ur-decoder/**/base-x": "3.0.11",
     "@ethereumjs/tx": "^5.4.0",
-    "@metamask/controller-utils": "npm:@metamask/controller-utils@^11.11.0"
+    "@metamask/controller-utils": "npm:@metamask/controller-utils@^11.11.0",
+    "appium-adb/@appium/support/form-data": "^4.0.4",
+    "appium/@appium/support/form-data": "^4.0.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -565,7 +567,6 @@
     "multiple-cucumber-html-reporter": "^3.0.1",
     "nock": "^13.3.1",
     "nyc": "^15.1.0",
-    "octonode": "0.10.2",
     "patch-package": "^6.2.2",
     "portfinder": "^1.0.32",
     "prettier": "2.8.8",
