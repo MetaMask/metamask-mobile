@@ -471,6 +471,15 @@ const WalletActions = () => {
           />
         )}
         <WalletAction
+          actionType={WalletActionType.Send}
+          iconName={IconName.Arrow2Right}
+          onPress={onSend}
+          iconStyle={sendIconStyle}
+          actionID={WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON}
+          iconSize={AvatarSize.Md}
+          disabled={!canSignTransactions}
+        />
+        <WalletAction
           actionType={WalletActionType.Receive}
           iconName={IconName.Received}
           onPress={onReceive}
