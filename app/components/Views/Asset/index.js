@@ -701,10 +701,9 @@ const mapStateToProps = (state, { route }) => {
     } else {
       filteredTransactions = txs;
 
-      // Only filter Solana or EVM transactions
-      if (namespace === KnownCaipNamespace.Solana) {
+      if (isNativeAsset) {
         filteredTransactions = txs.filter((tx) => {
-          const txData = tx.from || tx.to || [];
+          const txData = (tx.from || []).concat(tx.to || []);
 
           if (!txData || txData.length === 0) {
             return false;
@@ -723,20 +722,18 @@ const mapStateToProps = (state, { route }) => {
             (participant) => {
               const assetId = participant.asset.type;
               return (
-                AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[SolScope.Mainnet]
-                  .nativeCurrency === assetId
+                AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+                  route.params.chainId
+                ].nativeCurrency === assetId
               );
             },
           );
 
           return allParticipantsAreNativeSol;
         });
-      } else if (
-        namespace === KnownCaipNamespace.Eip155 &&
-        (assetAddress || assetSymbol)
-      ) {
+      } else if (assetAddress || assetSymbol) {
         filteredTransactions = txs.filter((tx) => {
-          const txData = tx.from || tx.to || [];
+          const txData = (tx.from || []).concat(tx.to || []);
 
           const involvesToken = txData.some((participant) => {
             if (participant.asset && typeof participant.asset === 'object') {

@@ -33,10 +33,10 @@ export interface AggregatedMovementDisplayData {
 
 export interface MultichainTransactionDisplayData {
   title?: string;
-  from: AggregatedMovementDisplayData;
-  to: AggregatedMovementDisplayData;
-  baseFee: AggregatedMovementDisplayData;
-  priorityFee: AggregatedMovementDisplayData;
+  from?: AggregatedMovementDisplayData;
+  to?: AggregatedMovementDisplayData;
+  baseFee?: AggregatedMovementDisplayData;
+  priorityFee?: AggregatedMovementDisplayData;
   isRedeposit: boolean;
 }
 
