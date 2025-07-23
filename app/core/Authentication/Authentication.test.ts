@@ -1949,6 +1949,7 @@ describe('Authentication', () => {
       });
       expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
         'test-keyring-id',
+        SolScope.Mainnet,
       );
       expect(result).toEqual({
         newAccountAddress: '0x1234567890abcdef',
@@ -2006,6 +2007,7 @@ describe('Authentication', () => {
       );
       expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
         'test-keyring-id',
+        SolScope.Mainnet,
       );
       expect(result).toEqual({
         newAccountAddress: '0x1234567890abcdef',
