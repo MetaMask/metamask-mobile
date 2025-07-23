@@ -1,6 +1,6 @@
 import React from 'react';
 import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -19,15 +19,14 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const renderComponent = () => {
-  return renderWithProvider(<Send />, {
+const renderComponent = () =>
+  renderWithProvider(<Send />, {
     state: {
       engine: {
         backgroundState,
       },
     },
   });
-};
 
 describe('Send', () => {
   beforeEach(() => {
