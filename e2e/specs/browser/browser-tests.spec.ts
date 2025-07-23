@@ -115,15 +115,11 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
   });
 
   it('Should download blob file', async () => {
-    await testDownloadFile(
-      'https://tyschenko.github.io/download_blob_file.html',
-    );
+    await testDownloadFile(ExternalSites.DOWNLOAD_BLOB_FILE_WEBSITE);
   });
 
   it('Should download base64 file', async () => {
-    await testDownloadFile(
-      'https://tyschenko.github.io/download_base64_file.html',
-    );
+    await testDownloadFile(ExternalSites.DOWNLOAD_BASE64_FILE_WEBSITE);
   });
 
   async function testDownloadFile(url: string) {
@@ -181,7 +177,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       });
 
       await Browser.tapUrlInputBox();
-      await Browser.navigateToURL('https://uniswap.org');
+      await Browser.navigateToURL(ExternalSites.UNISWAP_WEBSITE);
 
       // Click Connect button
       await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
@@ -223,12 +219,41 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
         description: 'Browser screen is visible',
       });
       await Browser.tapUrlInputBox();
-      await Browser.navigateToURL('vitalik.eth');
+      await Browser.navigateToURL(ExternalSites.ENS_WEBSITE);
       await TestHelpers.delay(1000); // Wait for a website to load
       // Click General to interact with vitalik website and make sure it's loaded
       await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
         .element(by.web.xpath("//a[@href='./categories/general.html']"))
         .tap();
+    });
+  });
+
+  it('Should display redireced URL after redirect on website', async () => {
+    await withBrowser(async () => {
+      await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+        description: 'Browser screen is visible',
+      });
+      await Browser.tapUrlInputBox();
+      await Browser.navigateToURL(ExternalSites.WEBSITE_WITH_REDIRECT);
+      await Assertions.expectElementToHaveText(
+        Browser.urlInputBoxID,
+        getHostFromURL(ExternalSites.WEBSITE_WITH_REDIRECT),
+        {
+          description:
+            'URL input box has the correct text from the initial website',
+        },
+      );
+      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
+        .element(by.web.id('redirect_button'))
+        .tap(); // Click button to redirect to portfolio.metamask.io website
+      await Assertions.expectElementToHaveText(
+        Browser.urlInputBoxID,
+        getHostFromURL(ExternalSites.PORTFOLIO),
+        {
+          description:
+            'URL input box has the correct text from the redirected website',
+        },
+      );
     });
   });
 });
