@@ -27,7 +27,7 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         testSpecificMock: {
-          GET: [mockEvents.GET.remoteFeatureMultichainAccountsDisabled],
+          GET: [mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false)],
         },
       },
       async () => {
@@ -76,7 +76,7 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: {
-          GET: [mockEvents.GET.remoteFeatureMultichainAccountsEnabled],
+          GET: [mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(true)],
         },
       },
       async () => {
