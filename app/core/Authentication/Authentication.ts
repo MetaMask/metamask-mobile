@@ -66,12 +66,6 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-// to replace with SecretMetadata type from seedless-onboarding-controller when it is exported
-interface SecretMetadata {
-  data: Uint8Array;
-  type: SecretType;
-}
-
 /**
  * Holds auth data used to determine auth configuration
  */
