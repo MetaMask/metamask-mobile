@@ -19,7 +19,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
 import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
-import { strings } from 'locales/i18n';
+import { strings } from '../../../../locales/i18n';
 
 const MultichainBridgeTransactionListItem = ({
   transaction,
