@@ -54,7 +54,10 @@ import {
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { SolScope } from '@metamask/keyring-api';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
-import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedless-onboarding-controller/error';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../Engine/controllers/seedless-onboarding-controller/error';
 
 // to replace with SecretMetadata type from seedless-onboarding-controller when it is exported
 interface SecretMetadata {
@@ -823,8 +826,8 @@ class AuthenticationService {
       ) {
         // Case 2: Keyring controller password verification succeeds and seedless controller failed.
         if (isKeyringPasswordValid) {
-          throw new Error(
-            SeedlessOnboardingControllerErrorMessage.OutdatedPassword,
+          throw new SeedlessOnboardingControllerError(
+            SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
           );
         } else {
           throw seedlessSyncError;

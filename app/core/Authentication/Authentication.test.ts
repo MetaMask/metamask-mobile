@@ -24,6 +24,7 @@ import {
 import {
   SecretType,
   SeedlessOnboardingController,
+  SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
 import { KeyringController, KeyringTypes } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
@@ -1331,6 +1332,12 @@ describe('Authentication', () => {
     });
 
     it(`throw when old password is provided`, async () => {
+      Engine.context.SeedlessOnboardingController.submitGlobalPassword = jest
+        .fn()
+        .mockRejectedValue(
+          new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
+        );
+
       Engine.context.KeyringController.verifyPassword = jest
         .fn()
         .mockResolvedValueOnce('');
@@ -1368,7 +1375,6 @@ describe('Authentication', () => {
         Authentication.userEntryAuth(mockGlobalPassword, mockAuthType),
       ).rejects.toThrow(
         new SeedlessOnboardingControllerError(
-          'Password Recently Updated',
           SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
         ),
       );
@@ -1428,7 +1434,10 @@ describe('Authentication', () => {
       expect(spySyncPasswordAndUnlockWallet).toHaveBeenCalled();
       expect(
         Engine.context.SeedlessOnboardingController.submitGlobalPassword,
-      ).toHaveBeenCalledWith({ globalPassword: mockGlobalPassword });
+      ).toHaveBeenCalledWith({
+        globalPassword: mockGlobalPassword,
+        maxKeyChainLength: 20,
+      });
       expect(
         Engine.context.SeedlessOnboardingController.syncLatestGlobalPassword,
       ).toHaveBeenCalledWith({
