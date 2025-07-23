@@ -13,7 +13,7 @@ import {
   selectChainId,
   selectEvmTicker,
 } from '../../../selectors/networkController';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { swapsLivenessMultichainSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
@@ -63,6 +63,7 @@ import { selectMultichainTokenListForAccountId } from '../../../selectors/multic
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { isSendRedesignEnabled } from '../confirmations/utils/confirm';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -73,7 +74,7 @@ const WalletActions = () => {
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector(swapsLivenessMultichainSelector);
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
@@ -275,12 +276,6 @@ const WalletActions = () => {
         .build(),
     );
 
-    if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
-      closeBottomSheetAndNavigate(() => {
-        navigate(Routes.SEND.ROOT, {});
-      });
-    }
-
     // Try non-EVM first, if handled, return early
     const wasHandledAsNonEvm = await sendNonEvmAsset();
     if (wasHandledAsNonEvm) {
@@ -300,6 +295,15 @@ const WalletActions = () => {
       await MultichainNetworkController.setActiveNetwork(
         networkClientId as string,
       );
+    }
+
+    if (isSendRedesignEnabled()) {
+      closeBottomSheetAndNavigate(() => {
+        navigate(Routes.SEND.DEFAULT, {
+          screen: Routes.SEND.ROOT,
+        });
+      });
+      return;
     }
 
     closeBottomSheetAndNavigate(() => {

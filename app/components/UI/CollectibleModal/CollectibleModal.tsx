@@ -29,6 +29,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
+import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
 
 const CollectibleModal = () => {
   const navigation = useNavigation();
@@ -80,7 +81,7 @@ const CollectibleModal = () => {
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
-    if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
+    if (isSendRedesignEnabled()) {
       //@ts-expect-error replace do not exist on ParamListBase
       navigation.replace(Routes.SEND.DEFAULT, {
         screen: Routes.SEND.ROOT,

@@ -1,4 +1,5 @@
 import React from 'react';
+import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { fireEvent } from '@testing-library/react-native';
 
@@ -7,8 +8,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../../util/transaction-controller';
 import { SendContextProvider } from '../../context/send-context';
-import Send from './send';
-import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
+import { Send } from './send';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();

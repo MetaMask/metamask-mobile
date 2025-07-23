@@ -50,6 +50,7 @@ import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { isSendRedesignEnabled } from '../confirmations/utils/confirm';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -185,7 +186,7 @@ const NftDetails = () => {
     dispatch(
       newAssetTransaction({ contractName: collectible.name, ...collectible }),
     );
-    if (process.env.MM_SEND_REDESIGNS_ENABLED === 'true') {
+    if (isSendRedesignEnabled()) {
       navigation.navigate(Routes.SEND.DEFAULT, {
         screen: Routes.SEND.ROOT,
         params: {
