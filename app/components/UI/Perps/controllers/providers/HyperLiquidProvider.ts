@@ -75,7 +75,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   // Asset mapping
   private coinToAssetId = new Map<string, number>();
-  private assetIdToCoin = new Map<number, string>();
 
   constructor(options: { isTestnet?: boolean } = {}) {
     const isTestnet = options.isTestnet || false;
@@ -117,10 +116,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private async buildAssetMapping(): Promise<void> {
     const infoClient = this.clientService.getInfoClient();
     const meta = await infoClient.meta();
-    const { coinToAssetId, assetIdToCoin } = buildAssetMapping(meta.universe);
+    const { coinToAssetId } = buildAssetMapping(meta.universe);
 
     this.coinToAssetId = coinToAssetId;
-    this.assetIdToCoin = assetIdToCoin;
 
     DevLogger.log('Asset mapping built', {
       assetCount: meta.universe.length,
@@ -535,7 +533,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const { coin, takeProfitPrice, stopLossPrice } = params;
 
       // Get current position to validate it exists
-      const positions = await this.getPositions();
+      let positions: Position[];
+      try {
+        positions = await this.getPositions();
+      } catch (error) {
+        DevLogger.log('Error getting positions:', error);
+        // If it's a WebSocket error, try to provide a more helpful message
+        if (error instanceof Error && error.message.includes('WebSocket')) {
+          throw new Error(
+            'Connection error. Please check your network and try again.',
+          );
+        }
+        throw error;
+      }
+
       const position = positions.find((p) => p.coin === coin);
 
       if (!position) {
@@ -565,15 +576,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
         user: userAddress,
       });
 
-      const tpslOrdersToCancel = openOrders.filter((order) => {
-        return (
+      const tpslOrdersToCancel = openOrders.filter(
+        (order) =>
           order.coin === coin &&
           order.reduceOnly === true &&
           order.isTrigger === true &&
           (order.orderType.includes('Take Profit') ||
-            order.orderType.includes('Stop'))
-        );
-      });
+            order.orderType.includes('Stop')),
+      );
 
       if (tpslOrdersToCancel.length > 0) {
         DevLogger.log(

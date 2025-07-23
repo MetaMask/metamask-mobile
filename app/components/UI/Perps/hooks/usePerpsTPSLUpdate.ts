@@ -1,4 +1,4 @@
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import {
   ToastContext,
   ToastVariants,
@@ -21,12 +21,13 @@ interface UseTPSLUpdateOptions {
 /**
  * Hook for handling TP/SL updates with consistent toast notifications
  * @param options Optional callbacks for success and error cases
- * @returns handleUpdateTPSL function to be used as onConfirm callback
+ * @returns handleUpdateTPSL function and loading state
  */
 export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
   const toastContext = useContext(ToastContext);
   const toastRef = toastContext?.toastRef;
   const { updatePositionTPSL } = usePerpsTrading();
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdateTPSL = useCallback(
     async (
@@ -34,6 +35,9 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       takeProfitPrice: string | undefined,
       stopLossPrice: string | undefined,
     ) => {
+      setIsUpdating(true);
+      DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
+
       try {
         const result = await updatePositionTPSL({
           coin: position.coin,
@@ -129,10 +133,13 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
         // Call error callback if provided
         options?.onError?.(errorMessage);
+      } finally {
+        DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to false');
+        setIsUpdating(false);
       }
     },
     [updatePositionTPSL, toastRef, options],
   );
 
-  return { handleUpdateTPSL };
+  return { handleUpdateTPSL, isUpdating };
 }

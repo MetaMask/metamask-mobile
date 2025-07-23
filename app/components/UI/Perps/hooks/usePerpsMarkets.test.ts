@@ -63,6 +63,10 @@ const mockProvider = {
   calculateLiquidationPrice: jest.fn(),
   calculateMaintenanceMargin: jest.fn(),
   getMaxLeverage: jest.fn(),
+  updatePositionTPSL: jest.fn().mockResolvedValue({
+    success: true,
+    orderId: '123',
+  }),
 } as const;
 
 const mockPerpsController = Engine.context.PerpsController as jest.Mocked<

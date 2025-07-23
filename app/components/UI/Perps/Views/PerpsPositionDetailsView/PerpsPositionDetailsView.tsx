@@ -38,7 +38,7 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const [selectedInterval, setSelectedInterval] = useState('1h');
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const { handleUpdateTPSL } = usePerpsTPSLUpdate({
+  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Navigate back to refresh the position
       navigation.goBack();
@@ -138,6 +138,7 @@ const PerpsPositionDetailsView: React.FC = () => {
           }
           initialTakeProfitPrice={position.takeProfitPrice}
           initialStopLossPrice={position.stopLossPrice}
+          isUpdating={isUpdating}
         />
       )}
     </SafeAreaView>

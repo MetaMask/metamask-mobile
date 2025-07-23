@@ -1,5 +1,10 @@
 import React, { useRef, useState, useCallback, useEffect, memo } from 'react';
-import { View, TouchableOpacity, TextInput } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -45,6 +50,7 @@ interface PerpsTPSLBottomSheetProps {
   position?: Position; // For existing positions
   initialTakeProfitPrice?: string;
   initialStopLossPrice?: string;
+  isUpdating?: boolean;
 }
 
 const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
@@ -57,6 +63,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   position,
   initialTakeProfitPrice,
   initialStopLossPrice,
+  isUpdating = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -81,6 +88,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const [selectedSlPercentage, setSelectedSlPercentage] = useState<
     number | null
   >(null);
+  // Track if user is using percentage-based calculation (vs manual price input)
+  const [tpUsingPercentage, setTpUsingPercentage] = useState(false);
+  const [slUsingPercentage, setSlUsingPercentage] = useState(false);
 
   // Subscribe to real-time price only when visible and we have an asset
   const priceData = usePerpsPrices(isVisible && asset ? [asset] : []);
@@ -120,23 +130,60 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     }
   }, [isVisible]);
 
-  // Calculate initial percentages when component mounts or props change
+  // Calculate initial percentages only once when component first becomes visible
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible && currentPrice) {
       // Calculate initial percentages when opening
-      if (initialTakeProfitPrice && currentPrice) {
+      if (initialTakeProfitPrice && takeProfitPercentage === '') {
         const tpPrice = parseFloat(initialTakeProfitPrice);
         const percentage = ((tpPrice - currentPrice) / currentPrice) * 100;
+        // For short positions, TP percentage is negative (price below current)
         setTakeProfitPercentage(percentage.toFixed(2));
       }
 
-      if (initialStopLossPrice && currentPrice) {
+      if (initialStopLossPrice && stopLossPercentage === '') {
         const slPrice = parseFloat(initialStopLossPrice);
-        const percentage = ((currentPrice - slPrice) / currentPrice) * 100;
+        const percentage =
+          Math.abs((currentPrice - slPrice) / currentPrice) * 100;
         setStopLossPercentage(percentage.toFixed(2));
       }
     }
-  }, [isVisible, initialTakeProfitPrice, initialStopLossPrice, currentPrice]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible]); // Only run when visibility changes, not on price updates
+
+  // Recalculate prices when current price changes but only if using percentage mode
+  useEffect(() => {
+    if (currentPrice && isVisible) {
+      // Only update take profit price if user is using percentage-based calculation
+      if (
+        tpUsingPercentage &&
+        takeProfitPercentage &&
+        !isNaN(parseFloat(takeProfitPercentage))
+      ) {
+        const absPercentage = Math.abs(parseFloat(takeProfitPercentage));
+        const price = calculatePriceForPercentage(absPercentage, true, {
+          currentPrice,
+          direction: actualDirection,
+        });
+        setTakeProfitPrice(formatPrice(price));
+      }
+
+      // Only update stop loss price if user is using percentage-based calculation
+      if (
+        slUsingPercentage &&
+        stopLossPercentage &&
+        !isNaN(parseFloat(stopLossPercentage))
+      ) {
+        const price = calculatePriceForPercentage(
+          parseFloat(stopLossPercentage),
+          false,
+          { currentPrice, direction: actualDirection },
+        );
+        setStopLossPrice(formatPrice(price));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPrice, actualDirection]); // Update prices when current price changes
 
   const handleConfirm = () => {
     // Parse the formatted prices back to plain numbers for storage
@@ -148,7 +195,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       : undefined;
 
     onConfirm(parseTakeProfitPrice, parseStopLossPrice);
-    onClose();
+    // Don't close immediately - let the parent handle closing after update completes
   };
 
   // Memoized callbacks for take profit price input
@@ -167,11 +214,27 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           currentPrice,
           direction: actualDirection,
         });
-        setTakeProfitPercentage(percentage);
+        DevLogger.log('TP Price Change Debug:', {
+          sanitizedPrice: sanitized,
+          currentPrice,
+          actualDirection,
+          calculatedPercentage: percentage,
+        });
+        // For short positions, show take profit percentage as negative
+        // The function returns positive for valid directions, but UI convention
+        // is to show negative percentages for shorts (price going down)
+        const displayPercentage =
+          actualDirection === 'short' &&
+          percentage &&
+          !percentage.startsWith('-')
+            ? `-${percentage}`
+            : percentage;
+        setTakeProfitPercentage(displayPercentage);
       } else {
         setTakeProfitPercentage('');
       }
       setSelectedTpPercentage(null);
+      setTpUsingPercentage(false); // User is manually entering price
     },
     [currentPrice, actualDirection],
   );
@@ -179,25 +242,32 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   // Memoized callbacks for take profit percentage input
   const handleTakeProfitPercentageChange = useCallback(
     (text: string) => {
-      // Allow only numbers and decimal point
-      const sanitized = text.replace(/[^0-9.]/g, '');
-      // Prevent multiple decimal points
+      // Allow only numbers, decimal point, and minus sign
+      const sanitized = text.replace(/[^0-9.-]/g, '');
+      // Prevent multiple decimal points or minus signs
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
+      if ((sanitized.match(/-/g) || []).length > 1) return;
+      // Ensure minus sign is only at the beginning
+      if (sanitized.indexOf('-') > 0) return;
+
       setTakeProfitPercentage(sanitized);
 
       // Update price based on percentage
       if (sanitized && !isNaN(parseFloat(sanitized))) {
-        const price = calculatePriceForPercentage(parseFloat(sanitized), true, {
+        // Use absolute value for calculation, the function handles direction
+        const absPercentage = Math.abs(parseFloat(sanitized));
+        const price = calculatePriceForPercentage(absPercentage, true, {
           currentPrice,
           direction: actualDirection,
         });
         setTakeProfitPrice(formatPrice(price));
-        setSelectedTpPercentage(parseFloat(sanitized));
+        setSelectedTpPercentage(absPercentage);
       } else {
         setTakeProfitPrice('');
         setSelectedTpPercentage(null);
       }
+      setTpUsingPercentage(true); // User is using percentage-based calculation
     },
     [currentPrice, actualDirection],
   );
@@ -218,11 +288,16 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           currentPrice,
           direction: actualDirection,
         });
-        setStopLossPercentage(percentage);
+        // Always show stop loss percentage as positive
+        const absPercentage = percentage.startsWith('-')
+          ? percentage.substring(1)
+          : percentage;
+        setStopLossPercentage(absPercentage);
       } else {
         setStopLossPercentage('');
       }
       setSelectedSlPercentage(null);
+      setSlUsingPercentage(false); // User is manually entering price
     },
     [currentPrice, actualDirection],
   );
@@ -250,6 +325,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         setStopLossPrice('');
         setSelectedSlPercentage(null);
       }
+      setSlUsingPercentage(true); // User is using percentage-based calculation
     },
     [currentPrice, actualDirection],
   );
@@ -269,8 +345,12 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       });
       DevLogger.log('Calculated TP price:', price);
       setTakeProfitPrice(formatPrice(price));
-      setTakeProfitPercentage(percentage.toString());
+      // For short positions, display take profit percentage as negative
+      const displayPercentage =
+        actualDirection === 'short' ? -percentage : percentage;
+      setTakeProfitPercentage(displayPercentage.toString());
       setSelectedTpPercentage(percentage);
+      setTpUsingPercentage(true); // Using percentage button
     },
     [currentPrice, actualDirection],
   );
@@ -282,22 +362,39 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         direction: actualDirection,
       });
       setStopLossPrice(formatPrice(price));
+      // For short positions, stop loss percentage should be positive
+      // (already positive since it's a loss when price goes up)
       setStopLossPercentage(percentage.toString());
       setSelectedSlPercentage(percentage);
+      setSlUsingPercentage(true); // Using percentage button
     },
     [currentPrice, actualDirection],
   );
 
+  // Debug log for loading state
+  useEffect(() => {
+    if (isUpdating !== undefined) {
+      DevLogger.log('PerpsTPSLBottomSheet: isUpdating state changed', {
+        isUpdating,
+      });
+    }
+  }, [isUpdating]);
+
   const footerButtonProps = [
     {
-      label: strings('perps.tpsl.set_button'),
+      label: isUpdating
+        ? strings('perps.tpsl.updating')
+        : strings('perps.tpsl.set_button'),
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
-      disabled: !validateTPSLPrices(takeProfitPrice, stopLossPrice, {
-        currentPrice,
-        direction: actualDirection,
-      }),
+      disabled:
+        isUpdating ||
+        !validateTPSLPrices(takeProfitPrice, stopLossPrice, {
+          currentPrice,
+          direction: actualDirection,
+        }),
+      loading: isUpdating,
     },
   ];
 
@@ -409,7 +506,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                       : TextColor.Default
                   }
                 >
-                  +{percentage}%
+                  {actualDirection === 'short' ? '-' : '+'}
+                  {percentage}%
                 </Text>
               </TouchableOpacity>
             ))}
@@ -518,7 +616,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                       : TextColor.Default
                   }
                 >
-                  -{percentage}%
+                  {actualDirection === 'short' ? '+' : '-'}
+                  {percentage}%
                 </Text>
               </TouchableOpacity>
             ))}
@@ -544,6 +643,22 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       </View>
 
       <BottomSheetFooter buttonPropsArray={footerButtonProps} />
+
+      {/* Loading Overlay */}
+      {isUpdating && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary.default} />
+            <Text
+              variant={TextVariant.BodyLGMedium}
+              color={TextColor.Default}
+              style={styles.loadingText}
+            >
+              {strings('perps.tpsl.updating')}
+            </Text>
+          </View>
+        </View>
+      )}
     </BottomSheet>
   );
 };
@@ -558,5 +673,6 @@ export default memo(
     prevProps.asset === nextProps.asset &&
     prevProps.direction === nextProps.direction &&
     prevProps.initialTakeProfitPrice === nextProps.initialTakeProfitPrice &&
-    prevProps.initialStopLossPrice === nextProps.initialStopLossPrice,
+    prevProps.initialStopLossPrice === nextProps.initialStopLossPrice &&
+    prevProps.isUpdating === nextProps.isUpdating,
 );

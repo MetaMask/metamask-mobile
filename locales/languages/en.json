@@ -897,6 +897,7 @@
     "tpsl": {
       "title": "Set take profit and stop loss",
       "set_button": "Set",
+      "updating": "Updating...",
       "usd_label": "USD"
     },
     "token_selector": {

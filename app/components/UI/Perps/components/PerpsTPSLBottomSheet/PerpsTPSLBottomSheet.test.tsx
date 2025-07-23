@@ -621,7 +621,7 @@ describe('PerpsTPSLBottomSheet', () => {
       expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined);
     });
 
-    it('calls onClose after confirm', () => {
+    it('does not call onClose immediately after confirm', () => {
       // Arrange
       const mockOnClose = jest.fn();
       render(<PerpsTPSLBottomSheet {...defaultProps} onClose={mockOnClose} />);
@@ -631,8 +631,8 @@ describe('PerpsTPSLBottomSheet', () => {
       // Act
       fireEvent.press(confirmButton);
 
-      // Assert
-      expect(mockOnClose).toHaveBeenCalled();
+      // Assert - onClose should not be called immediately
+      expect(mockOnClose).not.toHaveBeenCalled();
     });
   });
 
@@ -671,7 +671,9 @@ describe('PerpsTPSLBottomSheet', () => {
 
         render(<PerpsTPSLBottomSheet {...props} />);
 
-        const fivePercentButton = screen.getByText('+5%');
+        // For short positions, the button shows -5%, for long it shows +5%
+        const buttonText = direction === 'short' ? '-5%' : '+5%';
+        const fivePercentButton = screen.getByText(buttonText);
 
         // Act
         fireEvent.press(fivePercentButton);

@@ -47,7 +47,7 @@ const PerpsPositionsView: React.FC = () => {
       refreshOnFocus: true,
     });
 
-  const { handleUpdateTPSL } = usePerpsTPSLUpdate({
+  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Refresh positions to show updated data
       loadPositions({ isRefresh: true });
@@ -238,6 +238,7 @@ const PerpsPositionsView: React.FC = () => {
           position={selectedPosition}
           initialTakeProfitPrice={selectedPosition.takeProfitPrice}
           initialStopLossPrice={selectedPosition.stopLossPrice}
+          isUpdating={isUpdating}
         />
       )}
     </SafeAreaView>
