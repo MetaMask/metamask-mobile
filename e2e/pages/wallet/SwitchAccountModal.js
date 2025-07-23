@@ -1,8 +1,6 @@
 import Matchers from '../../framework/Matchers.ts';
 import Gestures from '../../framework/Gestures.ts';
 import { SwitchAccountModalSelectorIDs } from '../../selectors/wallet/SwitchAccountModal.selectors.js';
-import EditAccountNameView from './EditAccountNameView.js';
-
 class SwitchAccountModal {
   get switchAccountButton() {
     return Matchers.getElementByID(

@@ -10,7 +10,7 @@ const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockStopPolling = jest.fn();
 const mockStartPolling = jest.fn();
-const mockHandleApprovedKycFlow = jest.fn();
+const mockRouteAfterAuthentication = jest.fn();
 
 const mockTrackEvent = jest.fn();
 
@@ -78,7 +78,7 @@ jest.mock('../../../../../UI/Navbar', () => ({
 
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
-    handleApprovedKycFlow: mockHandleApprovedKycFlow,
+    routeAfterAuthentication: mockRouteAfterAuthentication,
   })),
 }));
 
@@ -95,7 +95,7 @@ describe('KycProcessing Component', () => {
     mockUseUserDetailsPolling.userDetails = null;
     mockUseUserDetailsPolling.loading = false;
     mockUseUserDetailsPolling.error = null;
-    mockHandleApprovedKycFlow.mockClear();
+    mockRouteAfterAuthentication.mockClear();
     mockTrackEvent.mockClear();
   });
 
@@ -156,15 +156,15 @@ describe('KycProcessing Component', () => {
       };
     });
 
-    it('calls handleApprovedKycFlow when continue button is pressed', async () => {
-      mockHandleApprovedKycFlow.mockResolvedValueOnce(undefined);
+    it('calls routeAfterAuthentication when continue button is pressed', async () => {
+      mockRouteAfterAuthentication.mockResolvedValueOnce(undefined);
       render(KycProcessing);
 
       const continueButton = screen.getByText('Complete your order');
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(mockHandleApprovedKycFlow).toHaveBeenCalledWith(mockQuote);
+        expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
       });
     });
   });
