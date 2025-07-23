@@ -525,7 +525,9 @@ describe('Login test suite 2', () => {
         .mockResolvedValue(true);
 
       // mock keyring controller verifyPassword
-      mockEngine.context.KeyringController.verifyPassword = jest.fn();
+      mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(
+        undefined,
+      );
       mockEngine.context.SeedlessOnboardingController.submitGlobalPassword.mockRejectedValue(
         new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
       );
@@ -560,7 +562,9 @@ describe('Login test suite 2', () => {
           oauthLoginSuccess: true,
         },
       });
-      mockEngine.context.KeyringController.verifyPassword = jest.fn();
+      mockEngine.context.KeyringController.verifyPassword.mockResolvedValue(
+        undefined,
+      );
 
       jest
         .spyOn(Authentication, 'rehydrateSeedPhrase')
