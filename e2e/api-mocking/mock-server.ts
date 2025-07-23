@@ -5,7 +5,6 @@ import _ from 'lodash';
 import { isHostAllowed, isUrlAllowed } from './mock-config/request-allowlist';
 import { createLogger } from '../framework/logger';
 import { MockServerOptions, TestSpecificMock } from '../framework/types';
-import { getDefaultResponse } from './mock-config/default-mock-responses';
 
 const logger = createLogger({
   prefix: 'Mock Server',
@@ -184,18 +183,6 @@ export const startMockServer = async (
         return {
           statusCode: matchingEvent.responseCode,
           body: JSON.stringify(matchingEvent.response),
-        };
-      }
-
-      // DEFAULT RESPONSE MOCKING
-      const defaultResponse = getDefaultResponse(urlEndpoint);
-      if (defaultResponse) {
-        conditionalLogger.debug(
-          `📋 DEFAULT MOCK: Using default response for ${urlEndpoint}`,
-        );
-        return {
-          statusCode: defaultResponse.responseCode,
-          body: JSON.stringify(defaultResponse.response),
         };
       }
 
