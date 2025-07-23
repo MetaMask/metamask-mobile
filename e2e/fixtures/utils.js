@@ -35,8 +35,6 @@ export function getSecondTestDappLocalUrl() {
   return `http://${host}:${getSecondTestDappPort()}`;
 }
 
-export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
-
 export function getGanachePort() {
   return getServerPort(DEFAULT_GANACHE_PORT);
 }
@@ -49,6 +47,10 @@ export function getFixturesServerPort() {
 
 export function getLocalTestDappPort() {
   return getServerPort(DEFAULT_DAPP_SERVER_PORT);
+}
+
+export function getLocalTestDappUrl() {
+  return `http://localhost:${getLocalTestDappPort()}`;
 }
 
 export function getMockServerPort() {

@@ -5,69 +5,70 @@ import {
 } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
-import TestHelpers from '../../helpers';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class AccountListBottomSheet {
-  get accountList() {
+  get accountList(): DetoxElement {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
     );
   }
 
-  get accountTypeLabel() {
+  get accountTypeLabel(): DetoxElement {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_TYPE_LABEL,
     );
   }
 
-  get accountTagLabel() {
+  get accountTagLabel(): DetoxElement {
     return Matchers.getElementByID(CellComponentSelectorsIDs.TAG_LABEL);
   }
 
-  get title() {
+  get title(): DetoxElement {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
     );
   }
 
-  get addAccountButton() {
+  get addAccountButton(): DetoxElement {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
     );
   }
 
-  get addEthereumAccountButton() {
+  get addEthereumAccountButton(): DetoxElement {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
     );
   }
 
-  get removeAccountAlertText() {
+  get removeAccountAlertText(): DetoxElement {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.REMOVE_IMPORTED_ACCOUNT,
     );
   }
 
-  get connectAccountsButton() {
+  get connectAccountsButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
 
-  async getAccountElementByAccountName(accountName) {
+  async getAccountElementByAccountName(
+    accountName: string,
+  ): Promise<DetoxElement> {
     return Matchers.getElementByIDAndLabel(
       CellComponentSelectorsIDs.BASE_TITLE,
       accountName,
     );
   }
 
-  getSelectElement(index) {
+  async getSelectElement(index: number): DetoxElement {
     return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, index);
   }
 
-  getMultiselectElement(index) {
+  async getMultiselectElement(index: number): Promise<DetoxElement> {
     return Matchers.getElementByID(
       CellComponentSelectorsIDs.MULTISELECT,
       index,
@@ -82,68 +83,90 @@ class AccountListBottomSheet {
    * @param {number} index - The index of the element to retrieve.
    * @returns {Detox.IndexableNativeElement} The matcher for the element's title/name.
    */
-  getSelectWithMenuElementName(index) {
+  getSelectWithMenuElementName(index: number): DetoxElement {
     return Matchers.getElementByID(CellComponentSelectorsIDs.BASE_TITLE, index);
   }
 
-  async tapEditAccountActionsAtIndex(index) {
+  async tapEditAccountActionsAtIndex(index: number): Promise<void> {
     await Gestures.tapAtIndex(
       Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS),
       index,
     );
   }
 
-  async accountNameInList(accountName) {
+  async accountNameInList(accountName: string): Promise<DetoxElement> {
     return Matchers.getElementByText(accountName, 1);
   }
-  async tapAccountIndex(index) {
+  async tapAccountIndex(index: number): Promise<void> {
     await Gestures.tap(this.getMultiselectElement(index));
   }
 
-  async tapToSelectActiveAccountAtIndex(index) {
+  async tapToSelectActiveAccountAtIndex(index: number): Promise<void> {
     await Gestures.tap(this.getSelectWithMenuElementName(index));
   }
 
-  async longPressAccountAtIndex(index) {
-    await Gestures.tapAndLongPress(this.getSelectWithMenuElementName(index));
+  async longPressAccountAtIndex(index: number): Promise<void> {
+    await Gestures.longPress(this.getSelectWithMenuElementName(index), {
+      elemDescription: 'Account name',
+    });
   }
 
-  async tapAddAccountButton() {
+  async tapAddAccountButton(): Promise<void> {
     await Gestures.waitAndTap(this.addAccountButton, {
       elemDescription: 'Add Account button',
     });
   }
 
-  async tapAddEthereumAccountButton() {
-    await Gestures.waitAndTap(this.addEthereumAccountButton);
+  async tapAddEthereumAccountButton(): Promise<void> {
+    await Gestures.waitAndTap(this.addEthereumAccountButton, {
+      elemDescription: 'Add Ethereum Account button',
+    });
   }
 
-  async longPressImportedAccount() {
-    await Gestures.tapAndLongPress(this.getSelectElement(1));
+  async longPressImportedAccount(): Promise<void> {
+    await Gestures.longPress(this.getSelectElement(1), {
+      elemDescription: 'Imported account',
+    });
   }
 
-  async swipeToDismissAccountsModal() {
-    await Gestures.swipe(this.title, 'down', 'fast', 0.6);
-    await TestHelpers.delay(2000);
+  async swipeToDismissAccountsModal(): Promise<void> {
+    await Gestures.swipe(this.title, 'down', {
+      speed: 'fast',
+      percentage: 0.6,
+    });
   }
 
-  async tapYesToRemoveImportedAccountAlertButton() {
-    await Gestures.waitAndTap(this.removeAccountAlertText);
+  async tapYesToRemoveImportedAccountAlertButton(): Promise<void> {
+    await Gestures.waitAndTap(this.removeAccountAlertText, {
+      elemDescription: 'Yes to remove imported account alert button',
+    });
   }
 
-  async tapConnectAccountsButton() {
-    await Gestures.waitAndTap(this.connectAccountsButton);
+  async tapConnectAccountsButton(): Promise<void> {
+    await Gestures.waitAndTap(this.connectAccountsButton, {
+      elemDescription: 'Connect accounts button',
+    });
   }
 
-  async scrollToAccount(index) {
+  async tapAccountByName(accountName: string): Promise<void> {
+    const name = Matchers.getElementByText(accountName);
+
+    await Gestures.waitAndTap(name);
+  }
+
+  async scrollToAccount(index: number): Promise<void> {
     await Gestures.scrollToElement(
       Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index),
-      by.id(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      Matchers.getIdentifier(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+      ),
     );
   }
 
-  async scrollToBottomOfAccountList() {
-    await Gestures.swipe(this.accountList, 'up', 'fast');
+  async scrollToBottomOfAccountList(): Promise<void> {
+    await Gestures.swipe(this.accountList, 'up', {
+      speed: 'fast',
+    });
   }
 }
 
