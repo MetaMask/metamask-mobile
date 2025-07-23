@@ -847,7 +847,7 @@ const MainNavigator = () => {
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
-        name={'SendFlowView'}
+        name="SendFlowView"
         component={
           process.env.MM_SEND_REDESIGNS_ENABLED === 'true'
             ? SendComponent
