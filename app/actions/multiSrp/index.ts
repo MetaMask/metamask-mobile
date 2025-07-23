@@ -21,6 +21,7 @@ import { getTraceTags } from '../../util/sentry/tags';
 import ReduxService from '../../core/redux';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { SecretType } from '@metamask/seedless-onboarding-controller';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -85,9 +86,12 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
         name: TraceName.OnboardingAddSrp,
         op: TraceOperation.OnboardingSecurityOp,
       });
-      await SeedlessOnboardingController.addNewSeedPhraseBackup(
+      await SeedlessOnboardingController.addNewSecretData(
         seed,
-        newKeyring.id,
+        SecretType.Mnemonic,
+        {
+          keyringId: newKeyring.id,
+        },
       );
       addSeedPhraseSuccess = true;
     } catch (error) {

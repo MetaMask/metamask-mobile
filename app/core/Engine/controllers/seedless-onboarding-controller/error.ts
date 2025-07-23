@@ -2,6 +2,7 @@ export enum SeedlessOnboardingControllerErrorType {
   UnknownError = 10101,
   AuthenticationError = 10102,
   ChangePasswordError = 10103,
+  PasswordRecentlyUpdated = 10104,
 }
 
 export const SeedlessOnboardingControllerErrorMessages: Record<
@@ -13,6 +14,8 @@ export const SeedlessOnboardingControllerErrorMessages: Record<
     'Authentication error',
   [SeedlessOnboardingControllerErrorType.ChangePasswordError]:
     'Change password error',
+  [SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated]:
+    'Password recently updated',
 } as const;
 
 export class SeedlessOnboardingControllerError extends Error {
@@ -27,9 +30,11 @@ export class SeedlessOnboardingControllerError extends Error {
       this.stack = errMessage.stack;
       this.name = errMessage.name;
     } else {
-      super(errMessage);
+      super(errMessage || SeedlessOnboardingControllerErrorMessages[code]);
     }
-    this.message = `${SeedlessOnboardingControllerErrorMessages[code]} - ${errMessage}`;
+    this.message = `SeedlessOnboardingController- ${
+      errMessage || SeedlessOnboardingControllerErrorMessages[code]
+    }`;
     this.code = code;
   }
 }
