@@ -358,10 +358,9 @@ exports[`ManageCardListItem Component renders with React.ReactNode description a
                             >
                               Title with React Node
                             </Text>
-                            <span>
+                            <View>
                               Custom
-                            </span>
-                             description
+                            </View>
                           </View>
                           <View
                             accessible={false}

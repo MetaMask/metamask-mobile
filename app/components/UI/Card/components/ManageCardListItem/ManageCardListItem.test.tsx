@@ -4,6 +4,7 @@ import ManageCardListItem from './ManageCardListItem';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { View } from 'react-native';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -53,7 +54,7 @@ describe('ManageCardListItem Component', () => {
   it('renders with React.ReactNode description and matches snapshot', () => {
     const customDescription = (
       <React.Fragment>
-        <span>Custom</span> description
+        <View>Custom</View>
       </React.Fragment>
     );
 
