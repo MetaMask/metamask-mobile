@@ -1080,6 +1080,17 @@ class FixtureBuilder {
     return this.ensureSolanaModalSuppressed();
   }
 
+  /**
+   * Disables smart transactions
+   * @returns FixtureBuilder
+   */
+  withDisabledSmartTransactions() {
+    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
+      smartTransactionsOptInStatus: false,
+    });
+    return this;
+  }
+
   withPreferencesController(data: Record<string, unknown>) {
     merge(
       this.fixture.state.engine.backgroundState.PreferencesController,

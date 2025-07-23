@@ -23,7 +23,6 @@ import {
   selectMultichainAssets,
   selectMultichainAssetsRates,
 } from '../../../selectors/multichain';
-import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
 import { useMemo } from 'react';
 import {
@@ -73,7 +72,6 @@ const useSelectedAccountMultichainBalances =
     const multichainBalances = useSelector(selectMultichainBalances);
     const multichainAssets = useSelector(selectMultichainAssets);
     const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-    const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
     ///: END:ONLY_INCLUDE_IF
 
     const isPortfolioEnabled = isPortfolioViewEnabled();
@@ -89,7 +87,6 @@ const useSelectedAccountMultichainBalances =
           multichainBalances,
           multichainAssets,
           multichainAssetsRates,
-          nonEvmChainId,
           shouldShowFiat,
           ///: END:ONLY_INCLUDE_IF
         );
@@ -123,7 +120,6 @@ const useSelectedAccountMultichainBalances =
       multichainAssets,
       multichainAssetsRates,
       multichainBalances,
-      nonEvmChainId,
       shouldShowFiat,
       ///: END:ONLY_INCLUDE_IF
     ]);
