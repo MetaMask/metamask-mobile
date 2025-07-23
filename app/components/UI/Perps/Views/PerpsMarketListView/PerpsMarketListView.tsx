@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -18,12 +24,20 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { useNavigation } from '@react-navigation/native';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
+import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import { usePerpsTrading } from '../../hooks';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import styleSheet from './PerpsMarketListView.styles';
-import type { PerpsMarketData } from '../../controllers/types';
-import type { PerpsMarketListViewProps } from './PerpsMarketListView.types';
+import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
+import type {
+  Position,
+  PerpsMarketData,
+  PerpsNavigationParamList,
+} from '../../controllers/types';
+import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -74,14 +88,27 @@ const PerpsMarketListView = ({
   protocolId: _protocolId,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const [searchQuery, setSearchQuery] = useState('');
 
-  const navigation = useNavigation();
+  const hiddenButtonStyle = {
+    position: 'absolute' as const,
+    opacity: 0,
+    pointerEvents: 'box-none' as const,
+  };
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'markets' | 'positions'>(
+    'markets',
+  );
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const { markets, isLoading, error, refresh, isRefreshing } = usePerpsMarkets({
     enablePolling: false,
   });
+
+  const { getPositions } = usePerpsTrading();
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [positionsLoading, setPositionsLoading] = useState(false);
 
   useEffect(() => {
     if (markets.length > 0) {
@@ -115,11 +142,42 @@ const PerpsMarketListView = ({
     );
   }, [markets, searchQuery]);
 
+  const handleSearchToggle = () => {
+    setIsSearchVisible(!isSearchVisible);
+    if (isSearchVisible) {
+      // Clear search when hiding search bar
+      setSearchQuery('');
+    }
+  };
+
   const handleClose = () => {
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
   };
+
+  const loadPositions = useCallback(async () => {
+    setPositionsLoading(true);
+    try {
+      const positionsData = await getPositions();
+      setPositions(positionsData || []);
+    } catch (positionsError) {
+      DevLogger.log('Failed to load positions:', positionsError);
+      setPositions([]);
+    } finally {
+      setPositionsLoading(false);
+    }
+  }, [getPositions]);
+
+  // Load positions when positions tab is selected
+  useEffect(() => {
+    if (activeTab === 'positions') {
+      loadPositions();
+    }
+    if (activeTab === 'markets') {
+      setPositions([]);
+    }
+  }, [activeTab, loadPositions]);
 
   const renderMarketList = () => {
     // Skeleton List
@@ -181,51 +239,151 @@ const PerpsMarketListView = ({
     );
   };
 
+  const renderPositionsList = () => {
+    // Loading state
+    if (positionsLoading) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {strings('perps.loading_positions')}
+          </Text>
+        </View>
+      );
+    }
+
+    // Empty state
+    if (positions.length === 0) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {strings('perps.no_positions_found')}
+          </Text>
+        </View>
+      );
+    }
+
+    // Positions list
+    return (
+      <View style={styles.animatedListContainer}>
+        {positions.map((position, index) => (
+          <PerpsPositionCard
+            key={`${position.coin}-${index}`}
+            position={position}
+            expanded={false}
+            showIcon
+          />
+        ))}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
+        {/* Hidden close button for navigation tests */}
+        <TouchableOpacity
+          onPress={handleClose}
+          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+          style={hiddenButtonStyle}
+        />
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerSpacer} />
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.HeadingMD}
             color={TextColor.Default}
             style={styles.headerTitle}
           >
-            {strings('perps.perpetual_markets')}
+            {strings('perps.perpetuals')}
           </Text>
-          <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-            <Icon name={IconName.Close} size={IconSize.Md} />
-          </TouchableOpacity>
+          {activeTab === 'markets' && (
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={handleSearchToggle}
+              testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
+            >
+              <Icon
+                name={isSearchVisible ? IconName.Close : IconName.Search}
+                size={IconSize.Md}
+              />
+            </TouchableOpacity>
+          )}
         </View>
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputContainer}>
-            <Icon
-              name={IconName.Search}
-              size={IconSize.Lg}
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder={strings('perps.search')}
-              placeholderTextColor={theme.colors.text.muted}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setSearchQuery('')}
-                style={styles.clearButton}
+
+        {/* Tab Buttons or Search Bar */}
+        {!isSearchVisible ? (
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                activeTab === 'markets'
+                  ? styles.tabButtonActive
+                  : styles.tabButtonInactive,
+              ]}
+              onPress={() => setActiveTab('markets')}
+            >
+              <Text
+                variant={TextVariant.BodyMDBold}
+                color={
+                  activeTab === 'markets' ? TextColor.Default : TextColor.Muted
+                }
               >
-                <Icon name={IconName.Close} size={IconSize.Sm} />
-              </TouchableOpacity>
-            )}
+                {strings('perps.perpetual_markets')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                activeTab === 'positions'
+                  ? styles.tabButtonActive
+                  : styles.tabButtonInactive,
+              ]}
+              onPress={() => setActiveTab('positions')}
+            >
+              <Text
+                variant={TextVariant.BodyMDBold}
+                color={
+                  activeTab === 'positions'
+                    ? TextColor.Default
+                    : TextColor.Muted
+                }
+              >
+                {strings('perps.your_positions')}
+              </Text>
+            </TouchableOpacity>
           </View>
+        ) : (
+          <View style={styles.searchContainer}>
+            <View style={styles.searchInputContainer}>
+              <Icon
+                name={IconName.Search}
+                size={IconSize.Lg}
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder={strings('perps.search')}
+                placeholderTextColor={theme.colors.text.muted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoFocus
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setSearchQuery('')}
+                  style={styles.clearButton}
+                  testID={PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON}
+                >
+                  <Icon name={IconName.Close} size={IconSize.Sm} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
+        <View style={styles.listContainer}>
+          {activeTab === 'markets' ? renderMarketList() : renderPositionsList()}
         </View>
-        <View style={styles.listContainer}>{renderMarketList()}</View>
       </View>
     </SafeAreaView>
   );
