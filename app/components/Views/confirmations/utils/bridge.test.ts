@@ -1,4 +1,5 @@
 import {
+  BridgeController,
   BridgeControllerEvents,
   BridgeControllerState,
   QuoteResponse,
@@ -47,20 +48,20 @@ describe('Confirmations Bridge Utils', () => {
   const selectBridgeQuotesMock = jest.mocked(selectBridgeQuotes);
   const engineMock = jest.mocked(Engine);
   let messengerMock: ExtendedControllerMessenger<never, BridgeControllerEvents>;
+  let bridgeControllerMock: jest.Mocked<BridgeController>;
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     messengerMock = new ExtendedControllerMessenger();
 
-    engineMock.controllerMessenger = messengerMock as never;
+    bridgeControllerMock = {
+      resetState: jest.fn(),
+      updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue({}),
+    } as unknown as jest.Mocked<BridgeController>;
 
-    engineMock.context = {
-      BridgeController: {
-        resetState: jest.fn(),
-        updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue({}),
-      },
-    } as never;
+    engineMock.controllerMessenger = messengerMock as never;
+    engineMock.context.BridgeController = bridgeControllerMock as never;
 
     selectBridgeQuotesMock.mockImplementation(
       (state) =>
@@ -73,10 +74,7 @@ describe('Confirmations Bridge Utils', () => {
 
   describe('getBridgeQuotes', () => {
     it('returns quotes', async () => {
-      jest
-        .mocked(
-          engineMock.context.BridgeController.updateBridgeQuoteRequestParams,
-        )
+      bridgeControllerMock.updateBridgeQuoteRequestParams
         .mockImplementationOnce(() => {
           messengerMock.publish(
             'BridgeController:stateChange',
@@ -124,10 +122,7 @@ describe('Confirmations Bridge Utils', () => {
     });
 
     it('returns empty array if quotes do not match request', async () => {
-      jest
-        .mocked(
-          engineMock.context.BridgeController.updateBridgeQuoteRequestParams,
-        )
+      bridgeControllerMock.updateBridgeQuoteRequestParams
         .mockImplementationOnce(() => {
           messengerMock.publish(
             'BridgeController:stateChange',
@@ -161,6 +156,67 @@ describe('Confirmations Bridge Utils', () => {
       const quotes = await quotesPromise;
 
       expect(quotes).toStrictEqual([]);
+    });
+
+    it('updates bridge request parameters', async () => {
+      bridgeControllerMock.updateBridgeQuoteRequestParams
+        .mockImplementationOnce(() => {
+          messengerMock.publish(
+            'BridgeController:stateChange',
+            {
+              quotes: [QUOTE_1_MOCK],
+            } as BridgeControllerState,
+            [],
+          );
+
+          return Promise.resolve();
+        })
+        .mockImplementationOnce(() => {
+          messengerMock.publish(
+            'BridgeController:stateChange',
+            {
+              quotes: [QUOTE_2_MOCK],
+            } as BridgeControllerState,
+            [],
+          );
+
+          return Promise.resolve();
+        });
+
+      const quotesPromise = getBridgeQuotes([
+        QUOTE_REQUEST_1_MOCK,
+        QUOTE_REQUEST_2_MOCK,
+      ]);
+
+      await quotesPromise;
+
+      expect(
+        bridgeControllerMock.updateBridgeQuoteRequestParams,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          walletAddress: QUOTE_REQUEST_1_MOCK.from,
+          srcChainId: QUOTE_REQUEST_1_MOCK.sourceChainId,
+          srcTokenAddress: QUOTE_REQUEST_1_MOCK.sourceTokenAddress,
+          srcTokenAmount: QUOTE_REQUEST_1_MOCK.sourceTokenAmount,
+          destChainId: QUOTE_REQUEST_1_MOCK.targetChainId,
+          destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
+        }),
+        expect.any(Object),
+      );
+
+      expect(
+        bridgeControllerMock.updateBridgeQuoteRequestParams,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          walletAddress: QUOTE_REQUEST_2_MOCK.from,
+          srcChainId: QUOTE_REQUEST_2_MOCK.sourceChainId,
+          srcTokenAddress: QUOTE_REQUEST_2_MOCK.sourceTokenAddress,
+          srcTokenAmount: QUOTE_REQUEST_2_MOCK.sourceTokenAmount,
+          destChainId: QUOTE_REQUEST_2_MOCK.targetChainId,
+          destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
+        }),
+        expect.any(Object),
+      );
     });
   });
 });
