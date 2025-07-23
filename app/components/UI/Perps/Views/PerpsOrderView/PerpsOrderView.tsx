@@ -623,7 +623,6 @@ const PerpsOrderView: React.FC = () => {
     placeOrder,
     getPositions,
     navigation,
-    currentPrice,
     orderType,
   ]);
 
