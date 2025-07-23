@@ -299,7 +299,9 @@ const WalletActions = () => {
 
     if (isSendRedesignEnabled()) {
       closeBottomSheetAndNavigate(() => {
-        navigate(Routes.SEND.ROOT, {});
+        navigate(Routes.SEND.DEFAULT, {
+          screen: Routes.SEND.ROOT,
+        });
       });
       return;
     }
