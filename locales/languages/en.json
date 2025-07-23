@@ -517,6 +517,13 @@
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\""
     },
+    "configuration_modal": {
+      "title": "Options",
+      "view_order_history": "View order history",
+      "contact_support": "Contact support",
+      "log_out": "Log out",
+      "logged_out_success": "Successfully logged out"
+    },
     "region_modal": {
       "select_a_region": "Select a region",
       "search_by_country": "Search by country",
