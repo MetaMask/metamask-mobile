@@ -238,9 +238,6 @@ stages:
     abort_on_fail: true
     workflows:
       - build_ios_main_e2e:
-          envs:
-            - IS_SIM_BUILD: 'true'
-            - IS_RELEASE_BUILD: 'true'
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
       - build_android_main_e2e:
           run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
@@ -2573,8 +2570,8 @@ workflows:
       - _ios_build_template
   build_ios_main_e2e:
     envs:
-      - IS_SIM_BUILD: $IS_SIM_BUILD
-      - IS_RELEASE_BUILD: $IS_RELEASE_BUILD
+      - IS_SIM_BUILD: 'true'
+      - IS_RELEASE_BUILD: 'true'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
