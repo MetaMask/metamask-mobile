@@ -59,7 +59,7 @@ const Keypad = ({
   return (
     <KeypadComponent
       {...props}
-      style={style ? [styles.keypad, style] : styles.keypad}
+      style={[styles.keypad, ...(style ? [style] : [])]}
       digitButtonStyle={styles.digitButton}
       digitTextStyle={styles.digitText}
       periodButtonStyle={styles.periodButton}
