@@ -206,6 +206,46 @@ class WalletView {
     });
   }
 
+  async scrollDownOnTokensTabAggressive(): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
+      speed: 'slow',
+      percentage: 0.8, // Much more aggressive scrolling
+    });
+  }
+
+  async scrollToBottomOfTokensList(): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+    // Perform multiple large swipes to reach the bottom
+    for (let i = 0; i < 8; i++) {
+      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
+        speed: 'slow',
+        percentage: 0.7,
+      });
+      await TestHelpers.delay(300);
+    }
+  }
+
+  async scrollUpOnTokensTabSlightly(): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
+      speed: 'slow',
+      percentage: 0.2,
+    });
+  }
+
+  async scrollToBottomOfTokensListAndroid(): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+    // Android needs even more aggressive scrolling with longer delays
+    for (let i = 0; i < 10; i++) {
+      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
+        speed: 'slow',
+        percentage: 0.8, // More aggressive percentage for Android
+      });
+      await TestHelpers.delay(400); // Slightly longer delays for Android
+    }
+  }
+
   async scrollToToken(
     tokenName: string,
     direction: 'up' | 'down' = 'down',
