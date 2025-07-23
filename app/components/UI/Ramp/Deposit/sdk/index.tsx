@@ -39,7 +39,7 @@ export interface DepositSDK {
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
-  clearAuthToken: () => Promise<void>;
+  logoutFromProvider: () => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
   getStarted: boolean;
   setGetStarted: (seen: boolean) => void;
@@ -183,12 +183,12 @@ export const DepositSDKProvider = ({
     [sdk],
   );
 
-  const clearAuthToken = useCallback(async () => {
+  const logoutFromProvider = useCallback(async () => {
     await resetProviderToken();
     setAuthToken(undefined);
     setIsAuthenticated(false);
     if (sdk) {
-      sdk.clearAccessToken();
+      sdk.logout();
     }
   }, [sdk]);
 
@@ -201,7 +201,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthToken: setAuthTokenCallback,
-      clearAuthToken,
+      logoutFromProvider,
       checkExistingToken,
       getStarted,
       setGetStarted: setGetStartedCallback,
@@ -217,7 +217,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthTokenCallback,
-      clearAuthToken,
+      logoutFromProvider,
       checkExistingToken,
       getStarted,
       setGetStartedCallback,

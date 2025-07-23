@@ -81,6 +81,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       isKycApproved: jest.fn().mockReturnValue(true),
     }),
     setAccessToken: jest.fn(),
+    logout: jest.fn(),
   })),
 }));
 
@@ -464,15 +465,15 @@ describe('Deposit SDK Context', () => {
       jest.requireMock('../utils/ProviderTokenVault').getProviderToken =
         originalMock;
     });
-    it('clears authentication state when calling clearAuthToken', async () => {
+    it('clears authentication state when calling logoutFromProvider', async () => {
       const resetProviderTokenMock = jest.fn().mockResolvedValue(undefined);
       jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
         resetProviderTokenMock;
 
-      const clearAccessTokenMock = jest.fn();
+      const logoutMock = jest.fn();
       (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
         setAccessToken: jest.fn(),
-        clearAccessToken: clearAccessTokenMock,
+        logout: logoutMock,
       }));
 
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
@@ -504,11 +505,11 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.authToken).toEqual(mockToken);
 
       await act(async () => {
-        contextValue?.clearAuthToken();
+        contextValue?.logoutFromProvider();
       });
 
       expect(resetProviderTokenMock).toHaveBeenCalled();
-      expect(clearAccessTokenMock).toHaveBeenCalled();
+      expect(logoutMock).toHaveBeenCalled();
       expect(contextValue?.isAuthenticated).toBe(false);
       expect(contextValue?.authToken).toBeUndefined();
     });

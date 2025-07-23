@@ -36,7 +36,7 @@ const depositProviderName = 'Transak';
 function Settings() {
   const navigation = useNavigation();
   const { selectedRegion, setSelectedRegion, isInternalBuild } = useRampSDK();
-  const { clearAuthToken, isAuthenticated, checkExistingToken } =
+  const { logoutFromProvider, isAuthenticated, checkExistingToken } =
     useDepositSDK();
   const { colors } = useAppTheme();
   const style = styles();
@@ -67,9 +67,9 @@ function Settings() {
   }, [setSelectedRegion, trackEvent]);
 
   const handleResetDepositAuth = useCallback(async () => {
-    await clearAuthToken();
+    await logoutFromProvider();
     setDisplayLogoutMessage(true);
-  }, [clearAuthToken]);
+  }, [logoutFromProvider]);
 
   return (
     <KeyboardAvoidingView

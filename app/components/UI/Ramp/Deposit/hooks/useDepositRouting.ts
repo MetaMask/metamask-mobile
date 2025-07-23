@@ -43,7 +43,7 @@ export const useDepositRouting = ({
 }: UseDepositRoutingParams) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
-  const { selectedRegion, clearAuthToken, selectedWalletAddress } =
+  const { selectedRegion, logoutFromProvider, selectedWalletAddress } =
     useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
@@ -448,7 +448,7 @@ export const useDepositRouting = ({
         throw new Error(strings('deposit.buildQuote.unexpectedError'));
       } catch (error) {
         if ((error as AxiosError).status === 401) {
-          clearAuthToken();
+          logoutFromProvider();
           navigateToEnterEmailCallback({ quote });
           return;
         }
@@ -465,7 +465,7 @@ export const useDepositRouting = ({
       navigateToWebviewModalCallback,
       navigateToKycProcessingCallback,
       submitPurposeOfUsage,
-      clearAuthToken,
+      logoutFromProvider,
       navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
       trackEvent,

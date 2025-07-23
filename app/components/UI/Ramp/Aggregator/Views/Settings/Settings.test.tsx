@@ -102,12 +102,12 @@ jest.mock('../../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-const mockClearAuthToken = jest.fn();
+const mockLogoutFromProvider = jest.fn();
 const mockCheckExistingToken = jest.fn();
 
 const mockUseDepositSDKInitialValues = {
   isInternalBuild: false,
-  clearAuthToken: mockClearAuthToken,
+  logoutFromProvider: mockLogoutFromProvider,
   isAuthenticated: false,
   checkExistingToken: mockCheckExistingToken,
 };
@@ -307,7 +307,7 @@ describe('Settings', () => {
       expect(logoutButton).toBeTruthy();
     });
 
-    it('calls clearAuthToken when pressing logout button', () => {
+    it('calls logoutFromProvider when pressing logout button', () => {
       mockUseDepositSDKValues = {
         ...mockUseDepositSDKInitialValues,
         isInternalBuild: true,
@@ -318,7 +318,7 @@ describe('Settings', () => {
         name: 'Log out of Transak',
       });
       fireEvent.press(logoutButton);
-      expect(mockClearAuthToken).toHaveBeenCalled();
+      expect(mockLogoutFromProvider).toHaveBeenCalled();
     });
 
     it('calls checkExistingToken on component mount', () => {
