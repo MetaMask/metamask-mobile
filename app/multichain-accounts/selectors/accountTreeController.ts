@@ -12,7 +12,7 @@ import { AccountId } from '@metamask/accounts-controller';
  * @param state - Root redux state
  * @returns AccountTreeController state
  */
-const selectAccountTreeControllerState = (state: RootState) =>
+export const selectAccountTreeControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTreeController;
 
 /**
