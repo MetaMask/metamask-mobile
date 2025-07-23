@@ -13,7 +13,6 @@ import { useTheme } from '../../../util/theme';
 import Button, {
   ButtonVariants,
   ButtonSize,
-  ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 
 export const ConfirmButtonState = {
@@ -121,49 +120,6 @@ export default function ActionView({
               isDanger={confirmButtonState === ConfirmButtonState.Error}
             />
           )}
-          {/* TODO: Remove this once all UI looks good with the new Button component */}
-          {/* {showCancelButton && (
-            <StyledButton
-              testID={cancelTestID}
-              type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
-              onPress={onCancelPress}
-              containerStyle={[
-                styles.button,
-                showConfirmButton && styles.cancel,
-              ]}
-              disabled={confirmed}
-            >
-              {cancelText}
-            </StyledButton>
-          )} */}
-          {/* TODO: Remove this once all UI looks good with the new Button component */}
-          {/* {showConfirmButton && (
-            <StyledButton
-              testID={confirmTestID}
-              type={confirmButtonMode}
-              onPress={onConfirmPress}
-              containerStyle={[
-                styles.button,
-                showCancelButton && styles.confirm,
-                confirmButtonState === ConfirmButtonState.Error
-                  ? styles.confirmButtonError
-                  : {},
-                confirmButtonState === ConfirmButtonState.Warning
-                  ? styles.confirmButtonWarning
-                  : {},
-              ]}
-              disabled={confirmed || confirmDisabled || loading}
-            >
-              {confirmed || loading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary.default}
-                />
-              ) : (
-                confirmText
-              )}
-            </StyledButton>
-          )} */}
         </View>
       </KeyboardAwareScrollView>
     </View>
