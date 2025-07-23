@@ -1553,11 +1553,11 @@ exports[`CardImage Component renders with custom props and matches snapshot 1`] 
                     >
                       <RNSVGSvgView
                         align="xMidYMid"
-                        bbHeight="100%"
-                        bbWidth="100%"
+                        bbHeight={100}
+                        bbWidth={200}
                         fill="none"
                         focusable={false}
-                        height="100%"
+                        height={100}
                         meetOrSlice={0}
                         minX={0}
                         minY={0}
@@ -1569,15 +1569,15 @@ exports[`CardImage Component renders with custom props and matches snapshot 1`] 
                             },
                             {
                               "flex": 0,
-                              "height": "100%",
-                              "width": "100%",
+                              "height": 100,
+                              "width": 200,
                             },
                           ]
                         }
                         testID="custom-card-image"
                         vbHeight={194.688}
                         vbWidth={338}
-                        width="100%"
+                        width={200}
                       >
                         <RNSVGGroup
                           fill={null}
