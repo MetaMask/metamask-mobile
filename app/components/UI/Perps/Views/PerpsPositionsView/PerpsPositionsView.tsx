@@ -1,34 +1,34 @@
-import React, { useCallback, useState, useMemo } from 'react';
-import { SafeAreaView, ScrollView, RefreshControl, View } from 'react-native';
 import {
   useNavigation,
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
+import React, { useMemo, useState } from 'react';
+import { RefreshControl, SafeAreaView, ScrollView, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
+import PerpsPositionCard from '../../components/PerpsPositionCard';
+import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
+import type { Position } from '../../controllers/types';
 import {
   usePerpsAccount,
-  usePerpsTPSLUpdate,
   usePerpsPositions,
+  usePerpsTPSLUpdate,
 } from '../../hooks';
-import PerpsPositionCard from '../../components/PerpsPositionCard';
-import type { Position } from '../../controllers/types';
 import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
-import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles, theme } = useStyles(createStyles, {});
@@ -59,11 +59,11 @@ const PerpsPositionsView: React.FC = () => {
     const positionCount = positions.length;
     return positionCount > 1
       ? strings('perps.position.list.position_count_plural', {
-          count: positionCount,
-        })
+        count: positionCount,
+      })
       : strings('perps.position.list.position_count', {
-          count: positionCount,
-        });
+        count: positionCount,
+      });
   }, [positions]);
 
   // Calculate total unrealized PnL using utility function
