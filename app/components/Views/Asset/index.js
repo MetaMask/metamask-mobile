@@ -722,7 +722,7 @@ const mapStateToProps = (state, { route }) => {
               return (
                 AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
                   route.params.chainId
-                ].nativeCurrency === assetId
+                ]?.nativeCurrency === assetId
               );
             },
           );
