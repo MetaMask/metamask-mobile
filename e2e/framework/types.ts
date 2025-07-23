@@ -185,5 +185,6 @@ export interface WithFixturesOptions {
   languageAndLocale?: LanguageAndLocale;
   permissions?: Record<string, unknown>;
   mockServerInstance?: Mockttp;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   endTestfn?: (...args: any[]) => Promise<void>;
 }
