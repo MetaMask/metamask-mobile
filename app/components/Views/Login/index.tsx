@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Alert,
-  Keyboard,
   View,
   SafeAreaView,
   Image,

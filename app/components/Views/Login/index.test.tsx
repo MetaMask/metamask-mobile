@@ -1,7 +1,7 @@
 import React from 'react';
 import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import { InteractionManager, BackHandler, Alert } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
