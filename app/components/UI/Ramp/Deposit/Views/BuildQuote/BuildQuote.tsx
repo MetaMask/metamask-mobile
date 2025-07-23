@@ -71,6 +71,7 @@ import {
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
+import { createConfigurationModalNavigationDetails } from '../Modals/ConfigurationModal/ConfigurationModal';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -126,7 +127,17 @@ const BuildQuote = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.buildQuote.title') },
+        {
+          title: strings('deposit.buildQuote.title'),
+          showBack: false,
+          showClose: true,
+          showConfiguration: true,
+          onConfigurationPress: () => {
+            navigation.navigate(
+              ...createConfigurationModalNavigationDetails({}),
+            );
+          },
+        },
         theme,
       ),
     );
