@@ -20,6 +20,7 @@ import {
 } from './Engine/controllers/seedless-onboarding-controller/error';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
+import { Authentication } from './Authentication/Authentication';
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
@@ -236,6 +237,7 @@ export const recreateVaultWithNewPassword = async (
         op: TraceOperation.OnboardingSecurityOp,
       });
       await SeedlessOnboardingController.changePassword(newPassword, password);
+      await Authentication.syncKeyringEncryptionKey();
       specificTraceSucceeded = true;
     } catch (error) {
       const errorMessage =
@@ -263,6 +265,7 @@ export const recreateVaultWithNewPassword = async (
         error || 'Password change failed',
         SeedlessOnboardingControllerErrorType.ChangePasswordError,
       );
+      await Authentication.syncKeyringEncryptionKey();
     } finally {
       endTrace({
         name: TraceName.OnboardingResetPassword,
