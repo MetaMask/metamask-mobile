@@ -108,7 +108,7 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
 
       return (
         <NetworkAssetLogo
-          chainId={chainId as Hex}
+          chainId={chainId}
           style={styles.ethLogo}
           ticker={asset.ticker || ''}
           testID={asset.name}
