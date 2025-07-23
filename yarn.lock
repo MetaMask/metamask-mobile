@@ -4872,10 +4872,10 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/auth-network-utils@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/auth-network-utils/-/auth-network-utils-0.3.0.tgz#f4b02c3d9837082ad880d93728139d874c1fbc9f"
-  integrity sha512-/X+weoqPMnjLv+IToAjU2jfI0JOtreZ2aEEsd0mKxg2vIbWUWxNKWH4o4wImvLrnNb/wQhTH9aeEvd9bcj0W/Q==
+"@metamask/auth-network-utils@^0.3.0", "@metamask/auth-network-utils@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@metamask/auth-network-utils/-/auth-network-utils-0.3.1.tgz#3bf58a008c6526da266eb5a70e85d0ffc78fca18"
+  integrity sha512-W8oT3xn41eTzqbAtFZSXOyNPRJdDXHFXoB5l1piReZ784ny/em7PN4/ZLttyg8G0goI5ho446KgY6IoMtRDeZQ==
   dependencies:
     "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.7.1"
@@ -4884,7 +4884,7 @@
     "@toruslabs/eccrypto" "^6.1.0"
     bn.js "^5.2.1"
     elliptic "^6.6.1"
-    json-stable-stringify "^1.2.1"
+    json-stable-stringify-without-jsonify "^1.0.1"
     loglevel "^1.9.2"
 
 "@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.1.1":
@@ -5383,10 +5383,10 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-controller@^22.0.1":
-  version "22.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-22.0.1.tgz#a672c97a8640bf3dc96ec316fa315cc9a50b2e7b"
-  integrity sha512-LJqqrOPKZOWk3zDLrEDwFHB58qn1wGX1b56aduUpO2HVnpIwWt5b8W2sNbCqqfdL5vKqDhIB0QAMIMqiGu4DxQ==
+"@metamask/keyring-controller@^22.1.0":
+  version "22.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-22.1.0.tgz#3211634e05d969593c023578dc4666b511a3adc0"
+  integrity sha512-iwIjAbfbZiMyTJ53wKHbswSyG5bnb3r8snNxuceDHqGOnWM28LX33QZoHa04xOEe5cIxh1r7/vRw9w943PyX3w==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
@@ -5896,15 +5896,15 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-1.0.0.tgz#af218ca329cc71a92a423174693050bc709aa45a"
-  integrity sha512-7Pi2t7ZhHcUmd/tyGSKHQcbLMafhwviKjsEPW3TGkzwkX9rVlYLjNWz/SNS5gIbuykl5HILkdQ5aZLKqQQjAnQ==
+"@metamask/seedless-onboarding-controller@2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-2.4.0.tgz#d98f86d0090f088b148b4c33ada20438527c7bbf"
+  integrity sha512-k2FeV9LxrT0nzTHWWkz6bsdzlMLS4Tb4Kb4Q7rtOFETS/qldlLIjeqTasxUJT2U3RPsEvtALGS8tMM2ScHmgZA==
   dependencies:
     "@metamask/auth-network-utils" "^0.3.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/toprf-secure-backup" "^0.3.1"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/toprf-secure-backup" "^0.7.0"
+    "@metamask/utils" "^11.4.2"
     async-mutex "^0.5.0"
 
 "@metamask/selected-network-controller@^22.1.0":
@@ -6193,12 +6193,12 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/toprf-secure-backup@^0.3.1":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@metamask/toprf-secure-backup/-/toprf-secure-backup-0.3.2.tgz#0fe6c7455e29622dec43b2d2621206f39e7ab565"
-  integrity sha512-FRa2PcH5cf3bRNQVx07yxbvJbyt74BeRTJ1lSy+fLJng+h08jANXqy5r4DFoTcjKD9sROCSEh8IBg95T1QqDxw==
+"@metamask/toprf-secure-backup@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/toprf-secure-backup/-/toprf-secure-backup-0.7.0.tgz#a81be8c4e93fdbd5ddb4b486ad5a0393e9d7e9af"
+  integrity sha512-hRYkUw7DbgxZE2GjY4mKCpa8buH3fGyrN9NqXVPrQCZto7VNbLr6qUrsJbOrWsdHQAAS+h9y+VxCLonyw0CPkg==
   dependencies:
-    "@metamask/auth-network-utils" "^0.3.0"
+    "@metamask/auth-network-utils" "^0.3.1"
     "@noble/ciphers" "^1.2.1"
     "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.7.1"
@@ -23266,7 +23266,7 @@ json-stable-stringify-without-jsonify@^1.0.1:
   resolved "https://registry.yarnpkg.com/json-stable-stringify-without-jsonify/-/json-stable-stringify-without-jsonify-1.0.1.tgz#9db7b59496ad3f3cfef30a75142d2d930ad72651"
   integrity sha1-nbe1lJatPzz+8wp1FC0tkwrXJlE=
 
-json-stable-stringify@^1.1.1, json-stable-stringify@^1.2.1:
+json-stable-stringify@^1.1.1:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/json-stable-stringify/-/json-stable-stringify-1.3.0.tgz#8903cfac42ea1a0f97f35d63a4ce0518f0cc6a70"
   integrity sha512-qtYiSSFlwot9XHtF9bD9c7rwKjr+RecWT//ZnPvSmEjpV5mmPOCN4j8UjY5hbjNkOwZ/jQv3J6R1/pL7RwgMsg==
