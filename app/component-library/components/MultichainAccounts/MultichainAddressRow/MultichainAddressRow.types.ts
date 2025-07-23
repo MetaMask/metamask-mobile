@@ -1,11 +1,14 @@
 import { StyleProp, ViewStyle } from 'react-native';
-import { ProviderConfig } from '../../../../selectors/networkController';
 
 export interface MultichainAddressRowProps {
   /**
-   * Network provider configuration containing nickname, chainId, and other network details
+   * Chain ID to identify the network
    */
-  network: ProviderConfig;
+  chainId: string;
+  /**
+   * Network name to display
+   */
+  networkName: string;
   /**
    * Address string to display (will be truncated)
    */
