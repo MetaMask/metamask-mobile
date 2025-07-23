@@ -754,6 +754,11 @@ class AuthenticationService {
       numberOfAccounts: 1,
     });
 
+    const [newAccountAddress] = await KeyringController.withKeyring(
+      { id },
+      async ({ keyring }) => keyring.getAccounts(),
+    );
+
     const isSeedlessOnboardingFlow = selectSeedlessOnboardingLoginFlow(
       ReduxService.store.getState(),
     );
@@ -765,19 +770,29 @@ class AuthenticationService {
         wordlist,
       );
 
-      await SeedlessOnboardingController.addNewSecretData(
-        seedPhraseAsUint8Array,
-        SecretType.Mnemonic,
-        {
-          keyringId: id,
-        },
-      );
+      try {
+        if (options.shouldCreateSocialBackup) {
+          await SeedlessOnboardingController.addNewSecretData(
+            seedPhraseAsUint8Array,
+            SecretType.Mnemonic,
+            {
+              keyringId: id,
+            },
+          );
+        } else {
+          SeedlessOnboardingController.updateBackupMetadataState({
+            keyringId: id,
+            data: seedPhraseAsUint8Array,
+            type: SecretType.Mnemonic,
+          });
+        }
+      } catch (error) {
+        // handle seedless controller import error by reverting keyring controller mnemonic import
+        // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+        await KeyringController.removeAccount(newAccountAddress);
+        throw error;
+      }
     }
-
-    const [newAccountAddress] = await KeyringController.withKeyring(
-      { id },
-      async ({ keyring }) => keyring.getAccounts(),
-    );
 
     if (options.shouldSelectAccount) {
       Engine.setSelectedAddress(newAccountAddress);
@@ -918,8 +933,6 @@ class AuthenticationService {
       }
 
       if (allSRPs.length > 0) {
-        const { KeyringController } = Engine.context;
-
         const [firstSeedPhrase, ...restOfSeedPhrases] = allSRPs;
         if (!firstSeedPhrase?.data) {
           throw new Error('No seed phrase found');
@@ -937,21 +950,12 @@ class AuthenticationService {
                   shouldCreateSocialBackup: false,
                   shouldSelectAccount: false,
                 });
-                continue;
               } else if (item.type === SecretType.Mnemonic) {
-                // vault add new seedphrase
-                const keyringMetadata = await KeyringController.addNewKeyring(
-                  KeyringTypes.hd,
-                  {
-                    mnemonic: uint8ArrayToMnemonic(item.data, wordlist),
-                    numberOfAccounts: 1,
-                  },
-                );
-
-                SeedlessOnboardingController.updateBackupMetadataState({
-                  keyringId: keyringMetadata.id,
-                  data: item.data,
-                  type: SecretType.Mnemonic,
+                const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
+                await this.importMnemonicToVault(mnemonic, {
+                  shouldCreateSocialBackup: false,
+                  shouldSelectAccount: false,
+                  shouldImportSolanaAccount: true,
                 });
               } else {
                 Logger.error(new Error('Unknown secret type'), item.type);

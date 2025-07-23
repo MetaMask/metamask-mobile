@@ -109,6 +109,7 @@ jest.mock('../Engine', () => ({
       submitPassword: jest.fn(),
       setLocked: jest.fn(),
       isUnlocked: jest.fn(() => true),
+      removeAccount: jest.fn(),
       state: {
         keyrings: [{ metadata: { id: 'test-keyring-id' } }],
       },
@@ -1092,6 +1093,9 @@ describe('Authentication', () => {
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
 
+      const mockKeyring = {
+        getAccounts: jest.fn().mockResolvedValue(['0x1234567890abcdef']),
+      };
       Engine.context.SeedlessOnboardingController = {
         fetchAllSecretData: jest.fn(),
         updateBackupMetadataState: jest.fn(),
@@ -1103,6 +1107,12 @@ describe('Authentication', () => {
       Engine.context.KeyringController = {
         addNewKeyring: jest.fn(),
         createNewVaultAndRestore: jest.fn(),
+        withKeyring: jest
+          .fn()
+          .mockImplementation(
+            async ({ id: _id }, callback) =>
+              await callback({ keyring: mockKeyring }),
+          ),
         state: {
           keyrings: [
             { name: 'HD Key Tree', metadata: { id: 'test-keyring-id' } },
@@ -1164,6 +1174,22 @@ describe('Authentication', () => {
           type: SecretType.Mnemonic,
         },
       ]);
+      const mockStateLocal: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data',
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+      // mock redux
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockStateLocal),
+      } as unknown as ReduxStore);
+
       const newWalletAndRestoreSpy = jest
         .spyOn(Authentication, 'newWalletAndRestore')
         .mockResolvedValueOnce(undefined);
@@ -1197,7 +1223,7 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).toHaveBeenCalledWith({
-        data: mockSeedPhrase2,
+        data: new Uint8Array([1, 2, 3, 4]),
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
@@ -1791,6 +1817,7 @@ describe('Authentication', () => {
             async ({ id: _id }, callback) =>
               await callback({ keyring: mockKeyring }),
           ),
+        removeAccount: jest.fn(),
       } as unknown as KeyringController;
 
       Engine.context.SeedlessOnboardingController = {
