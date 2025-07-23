@@ -14,7 +14,6 @@ import {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import StorageWrapper from '../../../store/storage-wrapper';
 import {
   fontStyles,
   baseStyles,
@@ -69,33 +68,41 @@ const createStyles = (colors) =>
     wrapper: {
       flex: 1,
       alignItems: 'center',
-      paddingVertical: 30,
+      justifyContent: 'center',
+      paddingVertical: Device.isMediumDevice() ? 16 : 30,
+    },
+    loaderWrapper: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      rowGap: 32,
+      marginBottom: 160,
     },
     image: {
       alignSelf: 'center',
-      width: 240,
-      height: 240,
+      width: Device.isMediumDevice() ? 180 : 240,
+      height: Device.isMediumDevice() ? 180 : 240,
     },
     largeFoxWrapper: {
-      width: 240,
-      height: 240,
+      width: Device.isMediumDevice() ? 180 : 240,
+      height: Device.isMediumDevice() ? 180 : 240,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       marginHorizontal: 'auto',
-      padding: 40,
+      padding: Device.isMediumDevice() ? 30 : 40,
       marginTop: 16,
     },
     foxImage: {
-      width: 145,
-      height: 145,
+      width: Device.isMediumDevice() ? 110 : 145,
+      height: Device.isMediumDevice() ? 110 : 145,
       resizeMode: 'contain',
     },
     title: {
-      fontSize: 40,
-      lineHeight: 40,
+      fontSize: Device.isMediumDevice() ? 30 : 40,
+      lineHeight: Device.isMediumDevice() ? 30 : 40,
       textAlign: 'center',
-      paddingHorizontal: 60,
+      paddingHorizontal: Device.isMediumDevice() ? 40 : 60,
       fontFamily:
         Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
       color: importedColors.gettingStartedTextColor,
@@ -109,7 +116,15 @@ const createStyles = (colors) =>
       alignItems: 'center',
       width: '100%',
       paddingHorizontal: 20,
-      rowGap: 24,
+      rowGap: Device.isMediumDevice() ? 16 : 24,
+    },
+    titleWrapper: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      flex: 1,
+      rowGap: Device.isMediumDevice() ? 24 : 32,
     },
     footer: {
       marginBottom: 40,
@@ -129,14 +144,14 @@ const createStyles = (colors) =>
     },
     createWrapper: {
       flexDirection: 'column',
-      rowGap: 16,
+      rowGap: Device.isMediumDevice() ? 12 : 16,
       marginBottom: 16,
       width: '100%',
     },
     buttonWrapper: {
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      gap: 16,
+      gap: Device.isMediumDevice() ? 12 : 16,
       width: '100%',
     },
     buttonLabel: {
@@ -145,7 +160,6 @@ const createStyles = (colors) =>
       columnGap: 8,
     },
     loader: {
-      marginTop: 180,
       justifyContent: 'center',
       textAlign: 'center',
     },
@@ -592,7 +606,16 @@ class Onboarding extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={styles.wrapper}>
+      <View style={styles.loaderWrapper}>
+        <View style={styles.largeFoxWrapper}>
+          <LottieView
+            style={styles.image}
+            autoPlay
+            loop
+            source={fox}
+            resizeMode="contain"
+          />
+        </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
           <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
@@ -607,23 +630,25 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
-        <View style={styles.largeFoxWrapper}>
-          <LottieView
-            style={styles.image}
-            autoPlay
-            loop
-            source={fox}
-            resizeMode="contain"
-          />
-        </View>
+        <View style={styles.titleWrapper}>
+          <View style={styles.largeFoxWrapper}>
+            <LottieView
+              style={styles.image}
+              autoPlay
+              loop
+              source={fox}
+              resizeMode="contain"
+            />
+          </View>
 
-        <Text
-          variant={TextVariant.BodyMD}
-          style={styles.title}
-          testID={OnboardingSelectorIDs.SCREEN_TITLE}
-        >
-          {strings('onboarding.title')}
-        </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.title}
+            testID={OnboardingSelectorIDs.SCREEN_TITLE}
+          >
+            {strings('onboarding.title')}
+          </Text>
+        </View>
 
         <View style={styles.createWrapper}>
           <Button
@@ -632,20 +657,22 @@ class Onboarding extends PureComponent {
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             label={strings('onboarding.start_exploring_now')}
             width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
           />
           <Button
             variant={ButtonVariants.Secondary}
             onPress={() => this.handleCtaActions('existing')}
             testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
+            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={importedColors.btnBlack}
               >
-                {strings('onboarding.import_using_srp')}
+                {SEEDLESS_ONBOARDING_ENABLED
+                  ? strings('onboarding.import_using_srp_social_login')
+                  : strings('onboarding.import_using_srp')}
               </Text>
             }
           />
@@ -699,17 +726,6 @@ class Onboarding extends PureComponent {
           contentContainerStyle={styles.scroll}
         >
           <View style={styles.wrapper}>
-            {loading && (
-              <View style={styles.largeFoxWrapper}>
-                <LottieView
-                  style={styles.image}
-                  autoPlay
-                  loop
-                  source={fox}
-                  resizeMode="contain"
-                />
-              </View>
-            )}
             {loading ? this.renderLoader() : this.renderContent()}
           </View>
 
@@ -720,7 +736,7 @@ class Onboarding extends PureComponent {
                 onPress={this.onLogin}
                 label={strings('onboarding.unlock')}
                 width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
+                size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
               />
             </View>
           )}
