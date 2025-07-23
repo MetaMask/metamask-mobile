@@ -145,12 +145,7 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
           value={searchPattern}
           onChangeText={handleSearchChange}
           size={TextFieldSize.Lg}
-          style={{
-            borderWidth: 0,
-            borderColor: 'transparent',
-            borderRadius: 16,
-            backgroundColor: colors.background.muted,
-          }}
+          style={styles.searchTextField}
           testID={MULTICHAIN_ADDRESS_ROWS_LIST_SEARCH_TEST_ID}
         />
       </View>
