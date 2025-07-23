@@ -272,6 +272,7 @@ const BridgeView = () => {
   };
 
   const handleContinue = async () => {
+    let displayValidationError = false;
     try {
       if (activeQuote) {
         dispatch(setIsSubmittingTx(true));
@@ -283,6 +284,7 @@ const BridgeView = () => {
             validationResult.error ||
             validationResult.result.validation.reason
           ) {
+            displayValidationError = true;
             const isValidationError =
               !!validationResult.result.validation.reason;
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -305,7 +307,9 @@ const BridgeView = () => {
       console.error('Error submitting bridge tx', error);
     } finally {
       dispatch(setIsSubmittingTx(false));
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      if (activeQuote && !displayValidationError) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
     }
   };
 
