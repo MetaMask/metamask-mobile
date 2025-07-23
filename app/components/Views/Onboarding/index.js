@@ -58,7 +58,14 @@ import fox from '../../../animations/Searching_Fox.json';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
-import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
+import {
+  BuildType,
+  AndroidGoogleWebGID,
+  IosGID,
+  SEEDLESS_ONBOARDING_ENABLED,
+  AppleWebClientId,
+  IosGoogleRedirectUri,
+} from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -725,6 +732,13 @@ class Onboarding extends PureComponent {
           style={baseStyles.flexGrow}
           contentContainerStyle={styles.scroll}
         >
+          <View>
+            <Text>BUILD TYPE: {BuildType}</Text>
+            <Text> IOS GOOGLE CLIENT ID: {IosGID}</Text>
+            <Text> IOS GOOGLE REDIRECT URI: {IosGoogleRedirectUri}</Text>
+            <Text> ANDROID GOOGLE CLIENT ID: {AndroidGoogleWebGID}</Text>
+            <Text> APPLE WEB CLIENT ID: {AppleWebClientId}</Text>
+          </View>
           <View style={styles.wrapper}>
             {loading ? this.renderLoader() : this.renderContent()}
           </View>
