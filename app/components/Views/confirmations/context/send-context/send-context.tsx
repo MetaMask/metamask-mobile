@@ -44,6 +44,7 @@ export const SendContextProvider: React.FC<{
   const [transactionParams, setTransactionParams] = useState<TransactionParams>(
     {
       from: from?.address as string,
+      // to: '0x089595380921f555d52AB6f5a49defdAaB23B444',
     },
   );
   const { chainId } = asset ?? { chainId: undefined };
@@ -64,9 +65,9 @@ export const SendContextProvider: React.FC<{
       origin: MMM_ORIGIN,
       networkClientId,
     });
-    navigation.navigate(Routes.SEND.DEFAULT, {
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    });
+    navigation.navigate(
+      Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    );
   }, [chainId, NetworkController, navigation, transactionParams]);
 
   const cancelSend = useCallback(() => {
