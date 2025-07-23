@@ -83,9 +83,18 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await WalletView.scrollDownOnTokensTab();
     await TestHelpers.delay(1000);
 
-    // Then scroll to AVAX with more aggressive scrolling
-    await WalletView.scrollToToken('AVAX');
-    await TestHelpers.delay(1500); // Extra time for scroll to complete
+    // Use more robust scrolling for AVAX - try scrollToToken first, then additional scrolls if needed
+    try {
+      await WalletView.scrollToToken('AVAX');
+      await TestHelpers.delay(1500);
+    } catch (e) {
+      // If scrollToToken fails, use multiple scroll operations
+      for (let i = 0; i < 4; i++) {
+        await WalletView.scrollDownOnTokensTab();
+        await TestHelpers.delay(500);
+      }
+      await TestHelpers.delay(1500);
+    }
 
     const avax = WalletView.tokenInWallet('AVAX');
     await Assertions.expectElementToBeVisible(avax);
@@ -121,9 +130,15 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await WalletView.scrollDownOnTokensTab();
     await TestHelpers.delay(1000);
 
-    // Then scroll to BNB with more aggressive scrolling
-    await WalletView.scrollToToken('BNB');
-    await TestHelpers.delay(1500); // Extra time for scroll to complete
+    // BNB is at the bottom - use more aggressive scrolling with multiple scroll operations
+    // Perform multiple downward scrolls to get to BNB at the bottom
+    for (let i = 0; i < 6; i++) {
+      await WalletView.scrollDownOnTokensTab();
+      await TestHelpers.delay(500);
+    }
+
+    // Additional delay for scroll to settle
+    await TestHelpers.delay(2000);
 
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.expectElementToBeVisible(bnb);
