@@ -506,7 +506,7 @@ class Onboarding extends PureComponent {
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
       ).catch((error) => {
-        this.handleLoginError(error, 'google');
+        this.handleLoginError('google');
         return { type: 'error', error, existingUser: false };
       });
       this.handlePostSocialLogin(result, createWallet, provider);
@@ -520,17 +520,8 @@ class Onboarding extends PureComponent {
   onPressContinueWithGoogle = async (createWallet) =>
     this.onPressContinueWithSocialLogin(createWallet, 'google');
 
-  handleLoginError = (error, socialConnectionType) => {
-    let errorMessage;
-    if (error instanceof OAuthError) {
-      if (error.code === OAuthErrorType.UserCancelled) {
-        errorMessage = 'user_cancelled';
-      } else {
-        errorMessage = 'oauth_error';
-      }
-    } else {
-      errorMessage = 'oauth_error';
-    }
+  handleLoginError = (socialConnectionType) => {
+    const errorMessage = 'oauth_error';
 
     trace({
       name: TraceName.OnboardingSocialLoginError,
@@ -559,6 +550,7 @@ class Onboarding extends PureComponent {
       },
     });
   };
+
   track = (event, properties) => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(event)
