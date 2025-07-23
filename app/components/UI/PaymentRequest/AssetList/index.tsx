@@ -6,10 +6,10 @@ import { fontStyles } from '../../../../styles/common';
 import Identicon from '../../Identicon';
 import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 import { useSelector } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { useTheme } from '../../../../util/theme';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { ImportTokenViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { toChecksumAddress } from '../../../../util/address';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
