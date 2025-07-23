@@ -80,7 +80,7 @@ import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
-import { MULTICHAIN_NETWORK_TICKER } from '@metamask/multichain-network-controller';
+import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -721,8 +721,11 @@ const mapStateToProps = (state, { route }) => {
 
           const allParticipantsAreNativeSol = participantsWithAssets.every(
             (participant) => {
-              const assetUnit = participant.asset.unit || '';
-              return MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet] === assetUnit;
+              const assetId = participant.asset.type;
+              return (
+                AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[SolScope.Mainnet]
+                  .nativeCurrency === assetId
+              );
             },
           );
 
