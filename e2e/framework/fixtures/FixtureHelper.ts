@@ -366,6 +366,7 @@ export async function withFixtures(
 
   if (mockServerInstance && !testSpecificMock) {
     mockServer = mockServerInstance;
+    mockServerPort = mockServer.port;
   }
 
   if (testSpecificMock && !mockServerInstance) {
