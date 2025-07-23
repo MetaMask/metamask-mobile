@@ -371,11 +371,7 @@ export async function withFixtures(
       `Mock server started from mockServerInstance on port ${mockServerPort}`,
     );
     const endpoints = await mockServer.getMockedEndpoints();
-    logger.debug(
-      `Mocked endpoints: ${endpoints.length} Mock server endpoints: ${endpoints
-        .map((endpoint) => endpoint.id)
-        .join(', ')}`,
-    );
+    logger.debug(`Mocked endpoints: ${endpoints.length}`);
   }
 
   if (testSpecificMock && !mockServerInstance) {

@@ -36,10 +36,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
   beforeAll(async (): Promise<void> => {
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(
-      testSpecificMock,
-      mockServerPort,
-    );
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
     logger.debug(`Test side Mock server started on port ${mockServerPort}`);
   });
 
