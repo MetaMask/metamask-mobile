@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import {
   useColorPulseAnimation,
   type PulseColor,
-} from './useColorPulseAnimation.test';
+} from './useColorPulseAnimation';
 
 // Mock dependencies
 jest.mock('../../../../component-library/hooks', () => ({

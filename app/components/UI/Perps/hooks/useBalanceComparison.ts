@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { PulseColor } from './useColorPulseAnimation.test';
+import type { PulseColor } from './useColorPulseAnimation';
 
 interface UseBalanceComparisonReturn {
   previousBalance: string;
