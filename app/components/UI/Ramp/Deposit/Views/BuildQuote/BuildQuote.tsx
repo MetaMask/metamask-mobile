@@ -53,6 +53,7 @@ import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/Pay
 import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal';
 import { createUnsupportedRegionModalNavigationDetails } from '../Modals/UnsupportedRegionModal';
 import { createIncompatibleAccountTokenModalNavigationDetails } from '../Modals/IncompatibleAccountTokenModal';
+import { createConfigurationModalNavigationDetails } from '../Modals/ConfigurationModal/ConfigurationModal';
 
 import {
   getTransakCryptoCurrencyId,
@@ -137,7 +138,17 @@ const BuildQuote = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.buildQuote.title') },
+        {
+          title: strings('deposit.buildQuote.title'),
+          showBack: false,
+          showClose: true,
+          showConfiguration: true,
+          onConfigurationPress: () => {
+            navigation.navigate(
+              ...createConfigurationModalNavigationDetails({}),
+            );
+          },
+        },
         theme,
       ),
     );

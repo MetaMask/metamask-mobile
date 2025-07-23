@@ -26,6 +26,7 @@ import UnsupportedRegionModal from '../Views/Modals/UnsupportedRegionModal';
 import StateSelectorModal from '../Views/Modals/StateSelectorModal';
 import WebviewModal, { KycWebviewModal } from '../Views/Modals/WebviewModal';
 import IncompatibleAccountTokenModal from '../Views/Modals/IncompatibleAccountTokenModal';
+import ConfigurationModal from '../Views/Modals/ConfigurationModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -154,6 +155,10 @@ const DepositModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.INCOMPATIBLE_ACCOUNT_TOKEN}
       component={IncompatibleAccountTokenModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.CONFIGURATION}
+      component={ConfigurationModal}
     />
   </ModalsStack.Navigator>
 );
