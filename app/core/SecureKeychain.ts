@@ -93,6 +93,46 @@ const SecureKeychain = {
     return Keychain.getSupportedBiometryType();
   },
 
+  async resetConsumerGenericPassword(consumerOptions: Keychain.Options) {
+    return Keychain.resetGenericPassword(consumerOptions);
+  },
+
+  async setConsumerGenericPassword(
+    username: string,
+    password: string,
+    consumerOptions: Keychain.Options,
+  ) {
+    const encryptedPassword = await instance.encryptPassword(password);
+    return Keychain.setGenericPassword(
+      username,
+      encryptedPassword,
+      consumerOptions,
+    );
+  },
+
+  async getConsumerGenericPassword(consumerOptions: Keychain.Options) {
+    if (instance) {
+      try {
+        instance.isAuthenticating = true;
+        const keychainObject = await Keychain.getGenericPassword(
+          consumerOptions,
+        );
+        if (keychainObject && keychainObject.password) {
+          const encryptedPassword = keychainObject.password;
+          const decrypted = await instance.decryptPassword(encryptedPassword);
+          keychainObject.password = decrypted.password;
+          instance.isAuthenticating = false;
+          return keychainObject;
+        }
+        instance.isAuthenticating = false;
+      } catch (error) {
+        instance.isAuthenticating = false;
+        throw new Error((error as Error).message);
+      }
+    }
+    return null;
+  },
+
   async resetGenericPassword() {
     const options = { service: defaultOptions.service };
     await StorageWrapper.removeItem(BIOMETRY_CHOICE);
