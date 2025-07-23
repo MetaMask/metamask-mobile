@@ -113,7 +113,7 @@ const getNonEvmCachedBalance = (
   return balanceOfAsset?.amount ?? undefined;
 };
 
-const selectNonEvmCachedBalance = createDeepEqualSelector(
+export const selectNonEvmCachedBalance = createDeepEqualSelector(
   selectSelectedInternalAccount,
   selectMultichainBalances,
   selectSelectedNonEvmNetworkChainId,
