@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 import { device } from 'detox';
+import { encryptVault } from './fixture-helper';
 import { getGanachePort, getSecondTestDappLocalUrl } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
@@ -1109,6 +1110,52 @@ class FixtureBuilder {
       this.fixture.state.engine.backgroundState.PreferencesController,
       data,
     );
+    return this;
+  }
+
+  /**
+   * Merges provided data into the KeyringController's state with a random imported account.
+   * and also includes the default HD Key Tree fixture account.
+   *
+   * @param {Object} account - ethers.Wallet object containing address and privateKey.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withRandomImportedAccountKeyringController(account) {
+    // mnemonics belonging to the DEFAULT_FIXTURE_ACCOUNT
+    const vault = encryptVault([
+      {
+        type: 'HD Key Tree',
+        data: {
+          mnemonic: [
+            100, 114, 105, 118, 101, 32, 109, 97, 110, 97, 103, 101, 32, 99,
+            108, 111, 115, 101, 32, 114, 97, 118, 101, 110, 32, 116, 97, 112,
+            101, 32, 97, 118, 101, 114, 97, 103, 101, 32, 115, 97, 117, 115, 97,
+            103, 101, 32, 112, 108, 101, 100, 103, 101, 32, 114, 105, 111, 116,
+            32, 102, 117, 114, 110, 97, 99, 101, 32, 97, 117, 103, 117, 115,
+            116, 32, 116, 105, 112,
+          ],
+          numberOfAccounts: 1,
+          hdPath: "m/44'/60'/0'/0",
+        },
+      },
+      {
+        type: 'Simple Key Pair',
+        data: [account.privateKey],
+      },
+    ]);
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+          type: 'HD Key Tree',
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: [account.address],
+        },
+      ],
+      vault,
+    });
     return this;
   }
 

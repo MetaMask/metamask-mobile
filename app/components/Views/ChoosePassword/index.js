@@ -775,7 +775,9 @@ class ChoosePassword extends PureComponent {
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                   >
-                    {strings('choose_password.description')}
+                    {this.getOauth2LoginSuccess()
+                      ? strings('choose_password.description_social_login')
+                      : strings('choose_password.description')}
                   </Text>
                 </View>
 
