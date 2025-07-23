@@ -10,6 +10,7 @@ import {
   MANUAL_BANK_TRANSFER_PAYMENT_METHODS,
   KycStatus,
   REDIRECTION_URL,
+  TransakFormId,
 } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
@@ -29,6 +30,7 @@ import { useDepositSDK, DEPOSIT_ENVIRONMENT } from '../sdk';
 import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
 import useAnalytics from '../../hooks/useAnalytics';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
+import Logger from '../../../../../../app/util/Logger';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
@@ -149,17 +151,9 @@ export const useDepositRouting = ({
   );
 
   const navigateToBasicInfoCallback = useCallback(
-    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl?: string }) => {
+    ({ quote }: { quote: BuyQuote }) => {
       popToBuildQuote();
-      navigation.navigate(...createBasicInfoNavDetails({ quote, kycUrl }));
-    },
-    [navigation, popToBuildQuote],
-  );
-
-  const navigateToKycProcessingCallback = useCallback(
-    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl?: string }) => {
-      popToBuildQuote();
-      navigation.navigate(...createKycProcessingNavDetails({ quote, kycUrl }));
+      navigation.navigate(...createBasicInfoNavDetails({ quote }));
     },
     [navigation, popToBuildQuote],
   );
@@ -298,174 +292,168 @@ export const useDepositRouting = ({
     [navigation, popToBuildQuote, handleNavigationStateChange],
   );
 
-  const handleApprovedKycFlow = useCallback(
-    async (quote: BuyQuote) => {
-      try {
-        const userDetails = await fetchUserDetails();
-        if (!userDetails) {
-          throw new Error('Missing user details');
-        }
-
-        if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
-          const isManualBankTransfer =
-            MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
-              (method) => method.id === paymentMethodId,
-            );
-          if (isManualBankTransfer) {
-            const reservation = await createReservation(
-              quote,
-              selectedWalletAddress,
-            );
-
-            if (!reservation) {
-              throw new Error('Missing reservation');
-            }
-
-            const order = await createOrder(reservation);
-
-            if (!order) {
-              throw new Error('Missing order');
-            }
-
-            const processedOrder = {
-              ...depositOrderToFiatOrder(order),
-              account: selectedWalletAddress || order.walletAddress,
-              network: cryptoCurrencyChainId,
-            };
-
-            await handleNewOrder(processedOrder);
-
-            navigateToBankDetailsCallback({
-              orderId: order.id,
-              shouldUpdate: false,
-            });
-          } else {
-            let ottToken = ott;
-
-            if (!ottToken) {
-              const ottResponse = await requestOtt();
-              if (!ottResponse) {
-                throw new Error('Failed to get OTT token');
-              }
-              ottToken = ottResponse.token;
-            }
-
-            const paymentUrl = await generatePaymentUrl(
-              ottToken,
-              quote,
-              selectedWalletAddress,
-              { ...generateThemeParameters(themeAppearance, colors) },
-            );
-
-            if (!paymentUrl) {
-              throw new Error('Failed to generate payment URL');
-            }
-
-            navigateToWebviewModalCallback({ paymentUrl });
-          }
-          return true;
-        }
-
-        navigateToKycProcessingCallback({ quote });
-        return false;
-      } catch (error) {
-        throw new Error(
-          error instanceof Error && error.message
-            ? error.message
-            : 'Failed to process KYC flow',
-        );
-      }
+  const navigateToKycProcessingCallback = useCallback(
+    ({ quote }: { quote: BuyQuote }) => {
+      popToBuildQuote();
+      navigation.navigate(...createKycProcessingNavDetails({ quote }));
     },
-    [
-      fetchUserDetails,
-      paymentMethodId,
-      createReservation,
-      createOrder,
-      selectedWalletAddress,
-      handleNewOrder,
-      cryptoCurrencyChainId,
-      ott,
-      requestOtt,
-      generatePaymentUrl,
-      navigateToKycProcessingCallback,
-      navigateToBankDetailsCallback,
-      navigateToWebviewModalCallback,
-      themeAppearance,
-      colors,
-    ],
+    [navigation, popToBuildQuote],
   );
 
   const navigateToKycWebviewCallback = useCallback(
     ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
       popToBuildQuote();
       navigation.navigate(
-        ...createKycWebviewModalNavigationDetails({ quote, sourceUrl: kycUrl }),
+        ...createKycWebviewModalNavigationDetails({
+          quote,
+          sourceUrl: kycUrl,
+          cryptoCurrencyChainId,
+          paymentMethodId,
+        }),
       );
     },
-    [navigation, popToBuildQuote],
+    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
   );
 
   const routeAfterAuthentication = useCallback(
-    async (quote: BuyQuote) => {
+    async (quote: BuyQuote, depth = 0) => {
       try {
         const forms = await fetchKycForms(quote);
         const { forms: requiredForms } = forms || {};
+
+        const getForm = (formId: string) =>
+          requiredForms?.find((form) => form.id === formId);
+
+        // If there are no forms, we can assume that all KYC data has been submitted
+        // check kyc status and route to approved or pending flow
         if (requiredForms?.length === 0) {
-          await handleApprovedKycFlow(quote);
+          try {
+            const userDetails = await fetchUserDetails();
+
+            if (!userDetails) {
+              throw new Error('Missing user details');
+            }
+            if (userDetails?.kyc?.l1?.status === KycStatus.APPROVED) {
+              const isManualBankTransfer =
+                MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
+                  (method) => method.id === paymentMethodId,
+                );
+
+              if (isManualBankTransfer) {
+                const reservation = await createReservation(
+                  quote,
+                  selectedWalletAddress,
+                );
+
+                if (!reservation) {
+                  throw new Error('Missing reservation');
+                }
+
+                const order = await createOrder(reservation);
+
+                if (!order) {
+                  throw new Error('Missing order');
+                }
+
+                const processedOrder = {
+                  ...depositOrderToFiatOrder(order),
+                  account: selectedWalletAddress || order.walletAddress,
+                  network: cryptoCurrencyChainId,
+                };
+
+                await handleNewOrder(processedOrder);
+
+                navigateToBankDetailsCallback({
+                  orderId: order.id,
+                  shouldUpdate: false,
+                });
+              } else {
+                let ottToken = ott;
+                if (!ottToken) {
+                  const ottResponse = await requestOtt();
+
+                  if (ottResponse) {
+                    ottToken = ottResponse.token;
+                  }
+                }
+
+                if (!ottToken) {
+                  throw new Error('Failed to get OTT token');
+                }
+
+                const paymentUrl = await generatePaymentUrl(
+                  ottToken,
+                  quote,
+                  selectedWalletAddress,
+                  generateThemeParameters(themeAppearance, colors),
+                );
+
+                if (!paymentUrl) {
+                  throw new Error('Failed to generate payment URL');
+                }
+
+                navigateToWebviewModalCallback({ paymentUrl });
+              }
+              return true;
+            }
+
+            navigateToKycProcessingCallback({ quote });
+            return false;
+          } catch (error) {
+            throw new Error(
+              error instanceof Error && error.message
+                ? error.message
+                : 'Failed to process KYC flow',
+            );
+          }
+        }
+
+        // auto-submit purpose of usage form and then recursive call to route again
+        if (!getForm(TransakFormId.PURPOSE_OF_USAGE)?.isSubmitted) {
+          if (depth < 5) {
+            await submitPurposeOfUsage([
+              'Buying/selling crypto for investments',
+            ]);
+            await routeAfterAuthentication(quote, depth + 1);
+          } else {
+            Logger.error(
+              new Error(`Submit of purpose depth exceeded: ${depth}`),
+            );
+          }
           return;
         }
 
-        const personalDetailsKycForm = requiredForms?.find(
-          (form) => form.id === 'personalDetails',
-        );
-
-        const addressKycForm = requiredForms?.find(
-          (form) => form.id === 'address',
-        );
-
-        const idProofKycForm = requiredForms?.find(
-          (form) => form.id === 'idProof',
-        );
-
-        const ssnKycForm = requiredForms?.find((form) => form.id === 'usSSN');
-
-        const purposeOfUsageKycForm = requiredForms?.find(
-          (form) => form.id === 'purposeOfUsage',
-        );
-
-        // Auto submit the Purpose of Usage form if it's the only remaining form
-        if (purposeOfUsageKycForm && requiredForms?.length === 1) {
-          await submitPurposeOfUsage(['Buying/selling crypto for investments']);
-          await routeAfterAuthentication(quote);
-          return;
-        }
-
-        const idProofData = idProofKycForm
-          ? await fetchKycFormData(quote, idProofKycForm)
-          : null;
-
-        const shouldShowSsnForm =
-          ssnKycForm && selectedRegion?.isoCode === 'US';
-
-        if (personalDetailsKycForm || addressKycForm || shouldShowSsnForm) {
+        // if personal details or address form is not submitted, route to basic info
+        // SSN is always submitted with personal details for US users, so we don't need to check for it
+        const personalDetailsForm = getForm(TransakFormId.PERSONAL_DETAILS);
+        const addressForm = getForm(TransakFormId.ADDRESS);
+        if (
+          personalDetailsForm?.isSubmitted === false ||
+          addressForm?.isSubmitted === false
+        ) {
           trackEvent('RAMPS_KYC_STARTED', {
             ramp_type: 'DEPOSIT',
             kyc_type: forms?.kycType || '',
             region: selectedRegion?.isoCode || '',
           });
 
-          navigateToBasicInfoCallback({
-            quote,
-            kycUrl: idProofData?.data?.kycUrl,
-          });
-          return;
-        } else if (idProofData?.data?.kycUrl) {
-          navigateToAdditionalVerificationCallback({
-            quote,
-            kycUrl: idProofData.data.kycUrl,
-          });
+          navigateToBasicInfoCallback({ quote });
           return;
         }
+
+        // check for id proof form and route to additional verification if needed
+        const idProofForm = getForm(TransakFormId.ID_PROOF);
+        if (idProofForm?.isSubmitted === false) {
+          const idProofData = await fetchKycFormData(quote, idProofForm);
+          if (idProofData?.data?.kycUrl) {
+            navigateToAdditionalVerificationCallback({
+              quote,
+              kycUrl: idProofData.data.kycUrl,
+            });
+            return;
+          }
+        }
+
         throw new Error(strings('deposit.buildQuote.unexpectedError'));
       } catch (error) {
         if ((error as AxiosError).status === 401) {
@@ -479,25 +467,38 @@ export const useDepositRouting = ({
     [
       fetchKycForms,
       fetchKycFormData,
+      fetchUserDetails,
       selectedRegion?.isoCode,
-      handleApprovedKycFlow,
+      handleNewOrder,
+      navigateToBankDetailsCallback,
+      navigateToWebviewModalCallback,
+      navigateToKycProcessingCallback,
       submitPurposeOfUsage,
       clearAuthToken,
       navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
       trackEvent,
       navigateToAdditionalVerificationCallback,
+      createReservation,
+      createOrder,
+      requestOtt,
+      generatePaymentUrl,
+      selectedWalletAddress,
+      cryptoCurrencyChainId,
+      paymentMethodId,
+      themeAppearance,
+      colors,
     ],
   );
 
   return {
     routeAfterAuthentication,
+
+    // needed for direct route from Additional Verification Page
     navigateToKycWebview: navigateToKycWebviewCallback,
+
+    // needed for direct route from BQ to Verify Identity starter page, then to Enter Email page before the user logs in
     navigateToVerifyIdentity: navigateToVerifyIdentityCallback,
-    navigateToBasicInfo: navigateToBasicInfoCallback,
     navigateToEnterEmail: navigateToEnterEmailCallback,
-    navigateToAdditionalVerification: navigateToAdditionalVerificationCallback,
-    navigateToKycProcessing: navigateToKycProcessingCallback,
-    handleApprovedKycFlow,
   };
 };
