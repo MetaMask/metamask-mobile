@@ -42,7 +42,7 @@ class NetworkConnectMultiSelector {
     const el = await Matchers.getElementByID(chainPermissionTestId);
     await Assertions.expectElementToBeVisible(el, {
       timeout: 10000,
-      description: `Network chain permission ${chainName} should be selected`,
+      description: `Network chain permission ${chainName} should be not selected`,
     });
   }
 }
