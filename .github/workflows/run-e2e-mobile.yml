@@ -265,34 +265,6 @@ jobs:
           
           ./scripts/run-e2e-tags.sh
           
-          # Verify emulator configuration after Detox launches it (Android only)
-          if [[ "$platform" == "android" ]]; then
-            echo "📱 Verifying emulator display configuration after Detox launch..."
-            
-            # Give emulator a moment to stabilize after Detox startup
-            sleep 5
-            
-            # Check if emulator is running and get display info
-            if adb devices | grep -q emulator; then
-              width=$(adb shell wm size 2>/dev/null | grep -o '[0-9]*x[0-9]*' | cut -d'x' -f1 || echo "unknown")
-              height=$(adb shell wm size 2>/dev/null | grep -o '[0-9]*x[0-9]*' | cut -d'x' -f2 || echo "unknown")
-              density=$(adb shell wm density 2>/dev/null | grep -o '[0-9]*' || echo "unknown")
-              
-              echo "📋 Detox Emulator Display: ${width}x${height}, density: ${density}"
-              
-              if [[ "$width" == "1080" && "$height" == "2340" && "$density" == "440" ]]; then
-                echo "✅ Emulator running with correct display configuration"
-              else
-                echo "⚠️  Display configuration doesn't match expected values"
-                echo "Expected: 1080x2340, density 440"
-                echo "Actual: ${width}x${height}, density ${density}"
-                echo "This may cause test failures due to element visibility issues"
-              fi
-            else
-              echo "⚠️  No emulator detected by ADB after test run"
-            fi
-          fi
-          
           echo "✅ Test execution completed"
 
       - name: Upload test results
@@ -302,8 +274,6 @@ jobs:
           name: ${{ inputs.test-suite-name }}
           path: e2e/reports/
           retention-days: 7
-      
-
       
       - name: Upload screenshots
         if: failure() || cancelled()
