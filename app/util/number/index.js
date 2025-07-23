@@ -234,14 +234,11 @@ export function renderFromTokenMinimalUnit(
   decimalsToShow = 5,
 ) {
   const minimalUnit = fromTokenMinimalUnit(tokenValue || 0, decimals);
-  
   // Use BigNumber to handle very large numbers without scientific notation
   const minimalUnitBN = new BigNumber(minimalUnit);
-  
   if (minimalUnitBN.isLessThan(0.00001) && minimalUnitBN.isGreaterThan(0)) {
     return '< 0.00001';
   }
-  
   // Format the number with proper decimal places without scientific notation
   return minimalUnitBN.toFixed(decimalsToShow).replace(/\.?0+$/, '');
 }
