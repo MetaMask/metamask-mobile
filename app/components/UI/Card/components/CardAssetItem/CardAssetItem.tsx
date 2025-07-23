@@ -35,7 +35,6 @@ import { useAssetBalance } from '../../hooks/useAssetBalance';
 interface CardAssetItemProps {
   assetKey: CardTokenAllowance;
   privacyMode: boolean;
-  shouldShowAllowance?: boolean;
   disabled?: boolean;
   onPress?: (asset: TokenI) => void;
 }
