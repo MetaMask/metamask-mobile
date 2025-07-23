@@ -52,6 +52,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Metrics mocks
+const mockTrackEvent = jest.fn();
+
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {
@@ -152,18 +155,37 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
-const mockBackHandlerAddEventListener = jest.fn();
-const mockBackHandlerRemoveEventListener = jest.fn();
+const mockMetricsTrackEvent = jest.fn();
+const mockMetricsCreateEventBuilder = jest.fn((eventName) => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({ name: eventName }),
+}));
 
 jest.mock('../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(() => ({
     isEnabled: jest.fn(() => true),
   })),
-  withMetricsAwareness: jest.fn().mockImplementation((Component) => Component),
-  MetaMetricsEvents: {},
+  withMetricsAwareness: jest.fn(
+    (Component) => (props: Record<string, unknown>) =>
+      (
+        <Component
+          {...props}
+          metrics={{
+            trackEvent: mockMetricsTrackEvent,
+            createEventBuilder: mockMetricsCreateEventBuilder,
+          }}
+        />
+      ),
+  ),
+  MetaMetricsEvents: {
+    ERROR_SCREEN_VIEWED: 'Error Screen Viewed',
+  },
 }));
 
 const mockUseMetrics = jest.mocked(useMetrics);
+
+const mockBackHandlerAddEventListener = jest.fn();
+const mockBackHandlerRemoveEventListener = jest.fn();
 
 describe('Login', () => {
   const mockTrace = jest.mocked(trace);
@@ -172,6 +194,8 @@ describe('Login', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockMetricsTrackEvent.mockClear();
+    mockMetricsCreateEventBuilder.mockClear();
     mockReplace.mockClear();
     mockGoBack.mockClear();
     mockReset.mockClear();
@@ -202,6 +226,7 @@ describe('Login', () => {
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
     mockUseMetrics.mockReturnValue({
       isEnabled: jest.fn(() => false),
+      trackEvent: mockTrackEvent,
     } as unknown as IUseMetricsHook);
     mockBackHandlerAddEventListener.mockClear();
     mockBackHandlerRemoveEventListener.mockClear();
@@ -293,6 +318,7 @@ describe('Login', () => {
 
         mockUseMetrics.mockReturnValue({
           isEnabled: jest.fn(() => false),
+          trackEvent: mockTrackEvent,
         } as unknown as IUseMetricsHook);
 
         (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
@@ -348,6 +374,7 @@ describe('Login', () => {
 
         mockUseMetrics.mockReturnValue({
           isEnabled: jest.fn(() => true),
+          trackEvent: mockTrackEvent,
         } as unknown as IUseMetricsHook);
 
         (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
@@ -392,6 +419,7 @@ describe('Login', () => {
 
         mockUseMetrics.mockReturnValue({
           isEnabled: jest.fn(() => false),
+          trackEvent: mockTrackEvent,
         } as unknown as IUseMetricsHook);
 
         (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
@@ -436,6 +464,7 @@ describe('Login', () => {
 
         mockUseMetrics.mockReturnValue({
           isEnabled: jest.fn(() => true),
+          trackEvent: mockTrackEvent,
         } as unknown as IUseMetricsHook);
 
         (Authentication.userEntryAuth as jest.Mock).mockResolvedValueOnce(
