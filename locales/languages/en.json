@@ -4977,5 +4977,8 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+  },
+  "pay_with_modal": {
+    "title": "Select payment method"
   }
 }
