@@ -779,16 +779,10 @@ class AuthenticationService {
   ): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
 
-    const { success: isKeyringPasswordValid, error: keyringError } =
+    const { success: isKeyringPasswordValid } =
       await KeyringController.verifyPassword(globalPassword)
         .then(() => ({ success: true, error: null }))
         .catch((err) => ({ success: false, error: err }));
-
-    // throw if not valid password and not incorrect password error
-    if (!isKeyringPasswordValid) {
-      if (!(keyringError as Error).message.includes('Incorrect password'))
-        throw keyringError;
-    }
 
     // recover the current keyring encryption key
     // here e could be invalid password or outdated password error, which can result in following cases:
