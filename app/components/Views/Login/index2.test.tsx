@@ -512,8 +512,8 @@ describe('Login test suite 2', () => {
         .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
         .mockResolvedValue(true);
 
-      // mock keyring controller submitPassword
-      mockEngine.context.KeyringController.submitPassword = jest.fn();
+      // mock keyring controller verifyPassword
+      mockEngine.context.KeyringController.verifyPassword = jest.fn();
 
       const { getByTestId } = renderWithProvider(<Login />);
 
@@ -545,7 +545,7 @@ describe('Login test suite 2', () => {
           oauthLoginSuccess: true,
         },
       });
-      mockEngine.context.KeyringController.submitPassword = jest.fn();
+      mockEngine.context.KeyringController.verifyPassword = jest.fn();
 
       jest
         .spyOn(Authentication, 'rehydrateSeedPhrase')
@@ -749,7 +749,7 @@ describe('Login test suite 2', () => {
       } as unknown as ReduxStore);
       jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
 
-      mockEngine.context.KeyringController.submitPassword = jest.fn();
+      mockEngine.context.KeyringController.verifyPassword = jest.fn();
       // jest.spyOn(Authentication, 'userEntryAuth').mockResolvedValue(undefined);
 
       const { getByTestId } = renderWithProvider(<Login />);

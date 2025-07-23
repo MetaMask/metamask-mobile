@@ -1112,8 +1112,6 @@ describe('Authentication', () => {
     });
 
     it('should rehydrate with multiple seed phrases', async () => {
-      const mockMnemonic1 = 'mnemonic-1';
-      const mockMnemonic2 = 'mnemonic-2';
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
