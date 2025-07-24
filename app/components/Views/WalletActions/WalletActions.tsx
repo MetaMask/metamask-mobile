@@ -64,12 +64,12 @@ import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { handleSendPageNavigation } from '../confirmations/utils/send';
+import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
-  const { navigate } = navigation;
+  const { navigate } = useNavigation();
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
@@ -95,6 +95,7 @@ const WalletActions = () => {
       location: SwapBridgeNavigationLocation.TabBar,
       sourcePage: 'MainView',
     });
+  const navigateToSendPage = useSendNavigation();
 
   const selectedAsset = useSelector(
     (state: RootState) => state.transaction.selectedAsset,
@@ -313,7 +314,7 @@ const WalletActions = () => {
       } else {
         dispatch(newAssetTransaction(assetToSend));
       }
-      handleSendPageNavigation(navigation, asset);
+      navigateToSendPage(asset);
     });
   }, [
     closeBottomSheetAndNavigate,

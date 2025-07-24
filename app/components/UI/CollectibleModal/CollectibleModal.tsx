@@ -30,6 +30,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 import { handleSendPageNavigation } from '../../Views/confirmations/utils/send';
+import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 const CollectibleModal = () => {
   const navigation = useNavigation();
@@ -49,6 +50,7 @@ const CollectibleModal = () => {
   const collectibles: Nft[] = useSelector(collectiblesSelector);
   const isIpfsGatewatEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
+  const navigateToSendPage = useSendNavigation();
 
   const handleUpdateCollectible = useCallback(() => {
     if (isIpfsGatewatEnabled || displayNftMedia) {
@@ -81,7 +83,7 @@ const CollectibleModal = () => {
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
-    handleSendPageNavigation(navigation, collectible);
+    navigateToSendPage(collectible);
   }, [contractName, collectible, navigation, dispatch]);
 
   const isTradable = useCallback(

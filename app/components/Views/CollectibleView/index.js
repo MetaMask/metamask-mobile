@@ -84,7 +84,7 @@ class CollectibleView extends PureComponent {
       route: { params },
     } = this.props;
     this.props.newAssetTransaction(params);
-    handleSendPageNavigation(this.props.navigation, params);
+    handleSendPageNavigation(this.props.navigation.navigate, params);
   };
 
   render() {

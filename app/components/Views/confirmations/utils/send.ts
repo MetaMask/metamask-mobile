@@ -1,23 +1,38 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { Nft } from '@metamask/assets-controllers';
+
 import Routes from '../../../../constants/navigation/Routes';
 import { AssetType } from '../types/token';
-import { Nft } from '@metamask/assets-controllers';
+
+interface NavigateType {
+  <RouteName extends string>(
+    ...args: [RouteName] | [RouteName, object | undefined]
+  ): void;
+  <RouteName extends string>(
+    route:
+      | { key: string; params?: object | undefined }
+      | {
+          name: RouteName;
+          key?: string | undefined;
+          params: object | undefined;
+        },
+  ): void;
+}
 
 export const isSendRedesignEnabled = () =>
   process.env.MM_SEND_REDESIGN_ENABLED === 'true';
 
 export const handleSendPageNavigation = (
-  navigation: NavigationProp<ParamListBase>,
+  navigate: NavigateType,
   asset: AssetType | Nft,
 ) => {
   if (isSendRedesignEnabled()) {
-    navigation.navigate(Routes.SEND.DEFAULT, {
+    navigate(Routes.SEND.DEFAULT, {
       screen: Routes.SEND.ROOT,
       params: {
         asset,
       },
     });
   } else {
-    navigation.navigate('SendFlowView', {});
+    navigate('SendFlowView');
   }
 };

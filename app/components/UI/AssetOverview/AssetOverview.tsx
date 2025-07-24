@@ -75,7 +75,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { handleSendPageNavigation } from '../../Views/confirmations/utils/send';
+import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -110,6 +110,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
+  const navigateToSendPage = useSendNavigation();
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -235,7 +236,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    handleSendPageNavigation(navigation, asset);
+    navigateToSendPage(asset);
   };
 
   const onBuy = () => {
