@@ -584,7 +584,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   placeholder="Search token by name or address"
                                   style={
                                     {
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",

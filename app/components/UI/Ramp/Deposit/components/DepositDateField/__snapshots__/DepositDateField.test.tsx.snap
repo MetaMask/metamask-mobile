@@ -112,7 +112,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
             readOnly={true}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "inherit",
                 "borderColor": "transparent",
                 "borderWidth": 1,
                 "color": "#121314",
@@ -257,7 +257,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
             readOnly={true}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "inherit",
                 "borderColor": "transparent",
                 "borderWidth": 1,
                 "color": "#121314",
@@ -559,7 +559,7 @@ exports[`DepositDateField render matches snapshot 1`] = `
           readOnly={true}
           style={
             {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "inherit",
               "borderColor": "transparent",
               "borderWidth": 1,
               "color": "#121314",
@@ -690,7 +690,7 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
           readOnly={true}
           style={
             {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "inherit",
               "borderColor": "transparent",
               "borderWidth": 1,
               "color": "#121314",
@@ -821,7 +821,7 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
           readOnly={true}
           style={
             {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "inherit",
               "borderColor": "transparent",
               "borderWidth": 1,
               "color": "#121314",
@@ -967,7 +967,7 @@ exports[`DepositDateField render matches snapshot with empty value 1`] = `
           readOnly={true}
           style={
             {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "inherit",
               "borderColor": "transparent",
               "borderWidth": 1,
               "color": "#121314",
