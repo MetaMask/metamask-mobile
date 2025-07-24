@@ -49,7 +49,7 @@ const CollectibleModal = () => {
   const collectibles: Nft[] = useSelector(collectiblesSelector);
   const isIpfsGatewatEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const navigateToSendPage = useSendNavigation();
+  const { navigateToSendPage } = useSendNavigation();
 
   const handleUpdateCollectible = useCallback(() => {
     if (isIpfsGatewatEnabled || displayNftMedia) {

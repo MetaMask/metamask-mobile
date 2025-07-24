@@ -8,9 +8,12 @@ import { AssetType } from '../types/token';
 export const useSendNavigation = () => {
   const { navigate } = useNavigation();
 
-  const navigateToSendPage = useCallback((asset: AssetType | Nft) => {
-    handleSendPageNavigation(navigate, asset);
-  }, []);
+  const navigateToSendPage = useCallback(
+    (asset: AssetType | Nft) => {
+      handleSendPageNavigation(navigate, asset);
+    },
+    [navigate],
+  );
 
-  return navigateToSendPage;
+  return { navigateToSendPage };
 };

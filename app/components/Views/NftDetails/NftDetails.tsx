@@ -61,7 +61,7 @@ const NftDetails = () => {
   const ticker = useSelector(selectEvmTicker);
   const { trackEvent, createEventBuilder } = useMetrics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
-  const navigateToSendPage = useSendNavigation();
+  const { navigateToSendPage } = useSendNavigation();
   const hasLastSalePrice = Boolean(
     collectible.lastSale?.price?.amount?.usd &&
       collectible.lastSale?.price?.amount?.native,

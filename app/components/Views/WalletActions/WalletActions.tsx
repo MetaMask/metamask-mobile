@@ -94,7 +94,7 @@ const WalletActions = () => {
       location: SwapBridgeNavigationLocation.TabBar,
       sourcePage: 'MainView',
     });
-  const navigateToSendPage = useSendNavigation();
+  const { navigateToSendPage } = useSendNavigation();
 
   const selectedAsset = useSelector(
     (state: RootState) => state.transaction.selectedAsset,
