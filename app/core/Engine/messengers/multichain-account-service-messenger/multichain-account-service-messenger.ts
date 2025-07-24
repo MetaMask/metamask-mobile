@@ -31,11 +31,11 @@ export type MultichainAccountServiceMessenger = ReturnType<
 >;
 
 /**
- * Get a restricted messenger for the account wallet controller. This is scoped to the
- * actions and events that this controller is allowed to handle.
+ * Get a restricted messenger for the multichain account service. This is scoped to the
+ * actions and events that this service is allowed to handle.
  *
- * @param messenger - The controller messenger to restrict.
- * @returns The restricted controller messenger.
+ * @param messenger - The service messenger to restrict.
+ * @returns The restricted service messenger.
  */
 export function getMultichainAccountServiceMessenger(
   messenger: Messenger<Actions, Events>,
