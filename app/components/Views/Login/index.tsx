@@ -400,6 +400,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           '',
         );
         setError(errMessage);
+        return;
       }
     } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
       if (
