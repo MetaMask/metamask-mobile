@@ -5,7 +5,6 @@ import {
   TRUE,
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
-  SOLANA_DISCOVERY_PENDING,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -33,12 +32,11 @@ import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
+  WALLET_SNAP_MAP,
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../SnapKeyring/MultichainWalletSnapClient';
-///: END:ONLY_INCLUDE_IF
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -52,7 +50,6 @@ import {
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
-import { SolScope } from '@metamask/keyring-api';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
   SeedlessOnboardingControllerError,
@@ -126,63 +123,63 @@ class AuthenticationService {
       password,
       parsedSeedUint8Array,
     );
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn(
-        'Solana account discovery failed during wallet creation:',
-        error,
-      );
-      // Store flag to retry on next unlock
-      StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
-    });
-    ///: END:ONLY_INCLUDE_IF
+
+    for (const clientType of Object.values(WalletClientType)) {
+      const { discoveryStorageId: storageId } = WALLET_SNAP_MAP[clientType];
+
+      this.attemptAccountDiscovery(clientType).catch((error) => {
+        console.warn('Account discovery failed during wallet creation:', error);
+        // Store flag to retry on next unlock
+        StorageWrapper.setItem(storageId, TRUE);
+      });
+    }
 
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  private attemptSolanaAccountDiscovery = async (): Promise<void> => {
-    const performSolanaAccountDiscovery = async (): Promise<void> => {
+  private attemptAccountDiscovery = async (
+    clientType: WalletClientType,
+  ): Promise<void> => {
+    const performAccountDiscovery = async (): Promise<void> => {
       const primaryHdKeyringId =
         Engine.context.KeyringController.state.keyrings[0].metadata.id;
-      const client = MultichainWalletSnapFactory.createClient(
-        WalletClientType.Solana,
-        {
-          setSelectedAccount: false,
-        },
-      );
-      await client.addDiscoveredAccounts(primaryHdKeyringId, SolScope.Mainnet);
+      const client = MultichainWalletSnapFactory.createClient(clientType, {
+        setSelectedAccount: false,
+      });
+      const { discoveryScope: scope, discoveryStorageId: storageId } =
+        WALLET_SNAP_MAP[clientType];
 
-      await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
+      await client.addDiscoveredAccounts(primaryHdKeyringId, scope);
+      await StorageWrapper.removeItem(storageId);
     };
 
     try {
       await retryWithExponentialDelay(
-        performSolanaAccountDiscovery,
+        performAccountDiscovery,
         3, // maxRetries
         1000, // baseDelay
         10000, // maxDelay
       );
     } catch (error) {
-      console.error(
-        'Solana account discovery failed after all retries:',
-        error,
-      );
+      console.error('Account discovery failed after all retries:', error);
     }
   };
 
-  private retrySolanaDiscoveryIfPending = async (): Promise<void> => {
-    try {
-      const isPending = await StorageWrapper.getItem(SOLANA_DISCOVERY_PENDING);
-      if (isPending === 'true') {
-        await this.attemptSolanaAccountDiscovery();
+  private retryDiscoveryIfPending = async (): Promise<void> => {
+    for (const clientType of Object.values(WalletClientType)) {
+      const { discoveryStorageId: storageId } = WALLET_SNAP_MAP[clientType];
+
+      try {
+        const isPending = await StorageWrapper.getItem(storageId);
+        if (isPending === 'true') {
+          await this.attemptAccountDiscovery(clientType);
+        }
+      } catch (error) {
+        console.warn('Failed to check/retry discovery:', error);
       }
-    } catch (error) {
-      console.warn('Failed to check/retry Solana discovery:', error);
     }
   };
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * This method creates a new wallet with all new data
@@ -197,15 +194,16 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn(
-        'Solana account discovery failed during wallet creation:',
-        error,
-      );
-      StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
-    });
-    ///: END:ONLY_INCLUDE_IF
+    for (const clientType of Object.values(WalletClientType)) {
+      const { discoveryStorageId: storageId } = WALLET_SNAP_MAP[clientType];
+
+      this.attemptAccountDiscovery(clientType).catch((error) => {
+        console.warn('Account discovery failed during wallet creation:', error);
+        // Store flag to retry on next unlock
+        StorageWrapper.setItem(storageId, TRUE);
+      });
+    }
+
     password = this.wipeSensitiveData();
   };
 
@@ -503,10 +501,8 @@ class AuthenticationService {
       this.authData = authData;
       this.dispatchPasswordSet();
 
-      // Try to complete any pending Solana account discovery
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      this.retrySolanaDiscoveryIfPending();
-      ///: END:ONLY_INCLUDE_IF
+      // Try to complete any pending account discovery
+      this.retryDiscoveryIfPending();
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -576,10 +572,8 @@ class AuthenticationService {
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
 
-      // Try to complete any pending Solana account discovery
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      this.retrySolanaDiscoveryIfPending();
-      ///: END:ONLY_INCLUDE_IF
+      // Try to complete any pending account discovery
+      this.retryDiscoveryIfPending();
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -858,10 +852,11 @@ class AuthenticationService {
     }
     await this.resetPassword();
 
-    // set solana discovery pending to true
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
-    ///: END:ONLY_INCLUDE_IF
+    // set discovery pending to true
+    for (const clientType of Object.values(WalletClientType)) {
+      const { discoveryStorageId: storageId } = WALLET_SNAP_MAP[clientType];
+      StorageWrapper.setItem(storageId, TRUE);
+    }
   };
 
   /**

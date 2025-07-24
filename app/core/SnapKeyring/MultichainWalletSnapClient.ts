@@ -1,6 +1,6 @@
 import { CaipChainId, Json, SnapId } from '@metamask/snaps-sdk';
 import { KeyringClient, Sender } from '@metamask/keyring-snap-client';
-import { EntropySourceId, SolScope } from '@metamask/keyring-api';
+import { BtcScope, EntropySourceId, SolScope } from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
 import {
   BITCOIN_WALLET_SNAP_ID,
@@ -19,21 +19,35 @@ import { startPerformanceTrace } from '../redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
 
 export enum WalletClientType {
-  Bitcoin = 'bitcoin',
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
   Solana = 'solana',
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  Bitcoin = 'bitcoin',
+  ///: END:ONLY_INCLUDE_IF
 }
+
 import { getMultichainAccountName } from './utils/getMultichainAccountName';
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
+import {
+  BITCOIN_DISCOVERY_PENDING,
+  SOLANA_DISCOVERY_PENDING,
+} from 'app/constants/storage';
 
 export const WALLET_SNAP_MAP = {
   [WalletClientType.Bitcoin]: {
     id: BITCOIN_WALLET_SNAP_ID,
     name: BITCOIN_WALLET_NAME,
+    discoveryScope: BtcScope.Mainnet,
+    discoveryStorageId: BITCOIN_DISCOVERY_PENDING,
   },
   [WalletClientType.Solana]: {
     id: SOLANA_WALLET_SNAP_ID,
     name: SOLANA_WALLET_NAME,
+    discoveryScope: SolScope.Mainnet,
+    discoveryStorageId: SOLANA_DISCOVERY_PENDING,
   },
 };
 
@@ -233,6 +247,7 @@ export abstract class MultichainWalletSnapClient {
               {
                 scope,
                 entropySource,
+                synchronize: false,
               },
               {
                 displayConfirmation: false,

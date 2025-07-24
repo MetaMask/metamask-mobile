@@ -4,20 +4,11 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   MultichainWalletSnapFactory,
+  WALLET_SNAP_MAP,
   WalletClientType,
 } from '../../core/SnapKeyring/MultichainWalletSnapClient';
-///: END:ONLY_INCLUDE_IF
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  SolScope,
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  BtcScope,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/keyring-api';
 import {
   endPerformanceTrace,
   startPerformanceTrace,
@@ -126,26 +117,13 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
 
   let discoveredAccountsCount = 0;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  const bitcoinMultichainClient = MultichainWalletSnapFactory.createClient(
-    WalletClientType.Bitcoin,
-  );
-  discoveredAccountsCount +=
-    await bitcoinMultichainClient.addDiscoveredAccounts(
+  for (const clientType of Object.values(WalletClientType)) {
+    const snapClient = MultichainWalletSnapFactory.createClient(clientType);
+    discoveredAccountsCount += await snapClient.addDiscoveredAccounts(
       newKeyring.id,
-      BtcScope.Mainnet,
+      WALLET_SNAP_MAP[clientType].discoveryScope,
     );
-  ///: END:ONLY_INCLUDE_IF
-
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  const solanaMultichainClient = MultichainWalletSnapFactory.createClient(
-    WalletClientType.Solana,
-  );
-  discoveredAccountsCount += await solanaMultichainClient.addDiscoveredAccounts(
-    newKeyring.id,
-    SolScope.Mainnet,
-  );
-  ///: END:ONLY_INCLUDE_IF
+  }
 
   Engine.setSelectedAddress(newAccountAddress);
 
