@@ -89,7 +89,6 @@ describe('PerpsTabControlBar', () => {
   const mockGetAccountState = jest.fn();
   const mockSubscribeToPositions = jest.fn();
   const mockStartPulseAnimation = jest.fn();
-  const mockGetAnimatedStyle = jest.fn();
   const mockStopAnimation = jest.fn();
   const mockCompareAndUpdateBalance = jest.fn();
   const mockOnManageBalancePress = jest.fn();
@@ -136,10 +135,8 @@ describe('PerpsTabControlBar', () => {
     jest
       .mocked(jest.requireMock('../../hooks').useColorPulseAnimation)
       .mockReturnValue({
-        pulseAnim: new Animated.Value(1),
-        colorAnim: new Animated.Value(0),
+        getAnimatedStyle: defaultAnimatedStyle,
         startPulseAnimation: mockStartPulseAnimation,
-        getAnimatedStyle: mockGetAnimatedStyle,
         stopAnimation: mockStopAnimation,
       });
 
@@ -156,7 +153,7 @@ describe('PerpsTabControlBar', () => {
     mockSubscribeToPositions.mockReturnValue(() => {
       /* empty unsubscribe function */
     });
-    mockGetAnimatedStyle.mockReturnValue(defaultAnimatedStyle);
+
     mockCompareAndUpdateBalance.mockReturnValue('increase');
   });
 
@@ -199,15 +196,10 @@ describe('PerpsTabControlBar', () => {
     });
 
     it('applies animated styles to balance text', () => {
-      const customAnimatedStyle = {
-        opacity: new Animated.Value(0.8),
-        backgroundColor: 'rgba(0, 255, 0, 0.1)',
-      };
-      mockGetAnimatedStyle.mockReturnValue(customAnimatedStyle);
-
       render(<PerpsTabControlBar />);
 
-      expect(mockGetAnimatedStyle).toHaveBeenCalled();
+      // Verify that the useColorPulseAnimation hook is called
+      expect(PerpsHooks.useColorPulseAnimation).toHaveBeenCalled();
     });
   });
 
@@ -286,16 +278,16 @@ describe('PerpsTabControlBar', () => {
       });
     });
 
-    it('refreshes balance on polling interval', async () => {
+    it('only calls getAccountState once without position updates', async () => {
       render(<PerpsTabControlBar />);
 
-      // Fast forward 60 seconds
+      // Fast forward time to ensure no polling occurs
       act(() => {
         jest.advanceTimersByTime(60000);
       });
 
       await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(2); // Initial + polling
+        expect(mockGetAccountState).toHaveBeenCalledTimes(1); // Initial load only
       });
     });
   });
@@ -390,14 +382,6 @@ describe('PerpsTabControlBar', () => {
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
-    it('clears interval on unmount', () => {
-      const { unmount } = render(<PerpsTabControlBar />);
-
-      unmount();
-
-      expect(clearInterval).toHaveBeenCalled();
-    });
-
     it('stops animation on unmount', () => {
       const { unmount } = render(<PerpsTabControlBar />);
 
@@ -442,18 +426,30 @@ describe('PerpsTabControlBar', () => {
       });
     });
 
-    it('handles multiple rapid balance updates', async () => {
+    it('handles multiple rapid balance updates via position changes', async () => {
+      let positionCallback: ((positions: Position[]) => void) | undefined;
+      mockSubscribeToPositions.mockImplementation(({ callback }) => {
+        positionCallback = callback;
+        return jest.fn();
+      });
+
       render(<PerpsTabControlBar />);
 
-      // Simulate multiple rapid updates
+      // Simulate multiple rapid position updates
       act(() => {
-        jest.advanceTimersByTime(60000);
-        jest.advanceTimersByTime(60000);
-        jest.advanceTimersByTime(60000);
+        positionCallback?.([
+          { id: '1', symbol: 'BTC' },
+        ] as unknown as Position[]);
+        positionCallback?.([
+          { id: '2', symbol: 'ETH' },
+        ] as unknown as Position[]);
+        positionCallback?.([
+          { id: '3', symbol: 'SOL' },
+        ] as unknown as Position[]);
       });
 
       await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(4); // Initial + 3 intervals
+        expect(mockGetAccountState).toHaveBeenCalledTimes(4); // Initial + 3 position updates
       });
     });
   });
@@ -475,7 +471,6 @@ describe('PerpsTabControlBar', () => {
         expect(mockGetAccountState).toHaveBeenCalled();
         expect(mockCompareAndUpdateBalance).toHaveBeenCalled();
         expect(mockStartPulseAnimation).toHaveBeenCalled();
-        expect(mockGetAnimatedStyle).toHaveBeenCalled();
       });
 
       // Test press interaction
