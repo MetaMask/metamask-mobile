@@ -548,6 +548,11 @@
       "change_region": "Change region",
       "buy_crypto": "Buy Crypto"
     },
+    "incompatible_token_acount_modal": {
+      "title": "Switch your account",
+      "description": "The {{networkName}} account you’re on doesn't support the selected token. Switch your account or token to continue.",
+      "cta": "I understand"
+    },
     "get_started": {
       "navbar_title": "Deposit",
       "title": "Starting is easy with USDC",
