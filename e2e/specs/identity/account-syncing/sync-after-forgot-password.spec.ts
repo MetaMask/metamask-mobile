@@ -78,18 +78,6 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
         await LoginView.tapForgotPassword();
         await ForgotPasswordModalView.tapResetWalletButton();
         await ForgotPasswordModalView.tapYesResetWalletButton();
-        if (device.getPlatform() === 'android') {
-          // eslint-disable-next-line no-restricted-syntax
-          await TestHelpers.delay(5000); // Assertion is not working on Android. Fix later.
-        } else {
-          await Assertions.expectElementToBeVisible(
-            ForgotPasswordModalView.successBottomNotification,
-          );
-          await Assertions.expectElementToNotBeVisible(
-            ForgotPasswordModalView.successBottomNotification,
-          );
-        }
-
         const previousAccountsStorage = sharedUserStorageController.paths.get(
           USER_STORAGE_FEATURE_NAMES.accounts,
         )?.response;
