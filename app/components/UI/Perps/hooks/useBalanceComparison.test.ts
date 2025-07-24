@@ -332,7 +332,7 @@ describe('useBalanceComparison', () => {
       const initialResetFunction = result.current.resetBalance;
 
       // Trigger re-render
-      rerender();
+      rerender({});
 
       expect(result.current.compareAndUpdateBalance).toBe(
         initialCompareFunction,
