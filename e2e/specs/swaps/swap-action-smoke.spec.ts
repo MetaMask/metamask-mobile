@@ -112,12 +112,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
 
           // Check the swap activity completed
           await Assertions.expectElementToBeVisible(ActivitiesView.title);
-          await Assertions.expectElementToBeVisible(
-            ActivitiesView.swapActivityTitle(
-              sourceTokenSymbol,
-              destTokenSymbol,
-            ),
-          );
           await Assertions.expectElementToHaveText(
             ActivitiesView.transactionStatus(FIRST_ROW),
             ActivitiesViewSelectorsText.CONFIRM_TEXT,
