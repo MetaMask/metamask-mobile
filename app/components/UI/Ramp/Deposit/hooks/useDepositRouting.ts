@@ -35,11 +35,13 @@ import Logger from '../../../../../../app/util/Logger';
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
   paymentMethodId: string;
+  ott?: string | null;
 }
 
 export const useDepositRouting = ({
   cryptoCurrencyChainId,
   paymentMethodId,
+  ott,
 }: UseDepositRoutingParams) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
@@ -366,14 +368,21 @@ export const useDepositRouting = ({
                   shouldUpdate: false,
                 });
               } else {
-                const ottResponse = await requestOtt();
+                let ottToken = ott;
+                if (!ottToken) {
+                  const ottResponse = await requestOtt();
 
-                if (!ottResponse) {
+                  if (ottResponse) {
+                    ottToken = ottResponse.token;
+                  }
+                }
+
+                if (!ottToken) {
                   throw new Error('Failed to get OTT token');
                 }
 
                 const paymentUrl = await generatePaymentUrl(
-                  ottResponse.token,
+                  ottToken,
                   quote,
                   selectedWalletAddress,
                   generateThemeParameters(themeAppearance, colors),
@@ -479,6 +488,7 @@ export const useDepositRouting = ({
       paymentMethodId,
       themeAppearance,
       colors,
+      ott,
     ],
   );
 

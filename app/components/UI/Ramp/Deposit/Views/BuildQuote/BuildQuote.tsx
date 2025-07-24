@@ -94,14 +94,22 @@ const BuildQuote = () => {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
+  const [ott, setOtt] = useState<string | null>(null);
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting({
       cryptoCurrencyChainId: cryptoCurrency.chainId,
       paymentMethodId: paymentMethod.id,
+      ott,
     });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const [, requestOtt] = useDepositSdkMethod({
+    method: 'requestOtt',
+    onMount: false,
+    throws: true,
+  });
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
@@ -164,6 +172,37 @@ const BuildQuote = () => {
       }
     }
   }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchOtt = async () => {
+      if (isAuthenticated) {
+        try {
+          const ottResult = await requestOtt();
+          if (ottResult && isMounted) {
+            setOtt(ottResult.token);
+          }
+        } catch (ottError) {
+          if (isMounted) {
+            Logger.error(
+              ottError as Error,
+              'BuildQuote - Error requesting OTT',
+            );
+          }
+        }
+      } else if (isMounted) {
+        setOtt(null);
+      }
+    };
+
+    fetchOtt();
+
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());
