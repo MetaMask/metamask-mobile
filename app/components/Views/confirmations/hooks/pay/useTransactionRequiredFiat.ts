@@ -3,33 +3,24 @@ import { BigNumber } from 'bignumber.js';
 import { useMemo } from 'react';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
-import { BridgeToken } from '../../../../UI/Bridge/types';
+import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
+import { useSelector } from 'react-redux';
 
 export const PAY_BRIDGE_SLIPPAGE = 0.02;
 export const PAY_BRIDGE_FEE = 0.005;
 
 /**
  * Calculate the fiat value of any tokens required by the transaction.
- * Necessary for MetaMask Pay to calculate the how much of the selected pay token is needed.
+ * Necessary for MetaMask Pay to calculate how much of the selected pay token is needed.
  */
 export function useTransactionRequiredFiat() {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
   const requiredTokens = useTransactionRequiredTokens();
 
-  const tokens = useTokensWithBalance({
-    chainIds: [chainId],
-  });
-
-  const tokensByAddress = useMemo(
-    () =>
-      tokens.reduce((acc, token) => {
-        acc[token.address.toLowerCase()] = token;
-        return acc;
-      }, {} as Record<string, BridgeToken>),
-    [tokens],
+  const tokens = useSelector((state) =>
+    selectTokensByChainIdAndAddress(state, chainId),
   );
 
   const fiatRequests = useMemo(
@@ -46,9 +37,9 @@ export function useTransactionRequiredFiat() {
   const tokenDecimals = useMemo(
     () =>
       requiredTokens.map(
-        (token) => tokensByAddress[token.address.toLowerCase()]?.decimals ?? 18,
+        (token) => tokens[token.address.toLowerCase()]?.decimals ?? 18,
       ),
-    [requiredTokens, tokensByAddress],
+    [requiredTokens, tokens],
   );
 
   const fiatValues = useMemo(

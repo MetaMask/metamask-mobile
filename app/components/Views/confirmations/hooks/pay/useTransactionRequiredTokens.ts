@@ -27,17 +27,26 @@ export function useTransactionRequiredTokens() {
     chainIds: [chainId],
   });
 
-  const requiredTokens = [
-    useGasToken(),
-    useValueToken(),
-    useTokenTransferToken(),
-  ].filter((t) => t) as TransactionToken[];
+  const gasToken = useGasToken();
+  const valueToken = useValueToken();
+  const tokenTransferToken = useTokenTransferToken();
 
-  return useMemo(
+  const requiredTokens = useMemo(
     () =>
-      getPartialTokens(getUniqueTokens(requiredTokens), balanceTokens, chainId),
-    [balanceTokens, chainId, requiredTokens],
+      [gasToken, valueToken, tokenTransferToken].filter(
+        (t) => t,
+      ) as TransactionToken[],
+    [gasToken, valueToken, tokenTransferToken],
   );
+
+  const finalTokens = getPartialTokens(
+    getUniqueTokens(requiredTokens),
+    balanceTokens,
+    chainId,
+  );
+
+  // Temporarily using deep equality as useTokensWithBalance is unstable and finalTokens is likely very small.
+  return useMemo(() => finalTokens, [JSON.stringify(finalTokens)]);
 }
 
 function useTokenTransferToken(): TransactionToken | undefined {

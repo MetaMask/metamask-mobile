@@ -15,7 +15,7 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  return useMemo(
+  const result = useMemo(
     () =>
       requests.map(({ address, chainId }) => {
         const tokenMarketData =
@@ -39,4 +39,6 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
       networkConfigurations,
     ],
   );
+
+  return useMemo(() => result, [JSON.stringify(result)]);
 }

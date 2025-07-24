@@ -6,27 +6,30 @@ import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { toHex } from '@metamask/controller-utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import {
+  accountsControllerMock,
+  tokenAddress1Mock,
+  tokenAddress2Mock,
+  tokensControllerMock,
+} from '../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('./useTransactionRequiredTokens');
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
 
-const TOKEN_ADDRESS_1_MOCK = '0x123';
-const TOKEN_ADDRESS_2_MOCK = '0x789';
-const CHAIN_ID_MOCK = '0x1';
-
 function runHook() {
   const state = merge(
-    simpleSendTransactionControllerMock,
-    transactionApprovalControllerMock,
     {
       engine: {
         backgroundState,
       },
     },
+    simpleSendTransactionControllerMock,
+    transactionApprovalControllerMock,
+    tokensControllerMock,
+    accountsControllerMock
   );
 
   return renderHookWithProvider(useTransactionRequiredFiat, { state }).result
@@ -35,7 +38,6 @@ function runHook() {
 
 describe('useTransactionRequiredFiat', () => {
   const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
-  const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
   const useTransactionRequiredTokensMock = jest.mocked(
     useTransactionRequiredTokens,
   );
@@ -45,27 +47,12 @@ describe('useTransactionRequiredFiat', () => {
 
     useTransactionRequiredTokensMock.mockReturnValue([
       {
-        address: TOKEN_ADDRESS_1_MOCK,
+        address: tokenAddress1Mock,
         amount: toHex(20000),
       },
       {
-        address: TOKEN_ADDRESS_2_MOCK,
+        address: tokenAddress2Mock,
         amount: toHex(3000000),
-      },
-    ]);
-
-    useTokensWithBalanceMock.mockReturnValue([
-      {
-        address: TOKEN_ADDRESS_1_MOCK,
-        chainId: CHAIN_ID_MOCK,
-        decimals: 4,
-        symbol: 'T1',
-      },
-      {
-        address: TOKEN_ADDRESS_2_MOCK,
-        chainId: CHAIN_ID_MOCK,
-        decimals: 6,
-        symbol: 'T2',
       },
     ]);
 
