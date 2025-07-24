@@ -201,4 +201,62 @@ jobs:
       smoke-category: api-specs
       use_prebuilt_apps: true
     secrets: inherit
+  test-e2e-mobile-report:
+    name: "📊 E2E Test Results Summary"
+    needs: [
+      smoke-confirmations-ios,
+      smoke-confirmations-android,
+      smoke-confirmations-redesigned-ios,
+      smoke-trade-ios,
+      smoke-trade-android,
+      smoke-wallet-platform-ios,
+      smoke-wallet-platform-android,
+      smoke-identity-ios,
+      smoke-identity-android,
+      smoke-accounts-ios,
+      smoke-accounts-android,
+      smoke-network-abstraction-ios,
+      smoke-network-abstraction-android,
+      smoke-network-expansion-ios,
+      smoke-network-expansion-android,
+      smoke-api-specs-ios
+    ]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      OWNER: ${{ github.repository_owner }}
+      REPOSITORY: ${{ github.event.repository.name }}
+      BRANCH: ${{ github.head_ref || github.ref_name }}
+      TEST_RUNS_PATH: e2e/test-results/test-runs-mobile.json
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install script dependencies
+        run: yarn --immutable
+        working-directory: '.github/scripts'
+
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          path: .
+          pattern: smoke-*
+          merge-multiple: true
+
+      - name: Create test report
+        run: yarn create-e2e-test-report
+        working-directory: '.github/scripts'
+
+      - name: Upload test runs
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-e2e-mobile-report
+          path: ${{ env.TEST_RUNS_PATH }}
     
