@@ -14,7 +14,6 @@ import TestHelpers from '../../helpers';
 describe(Regression('Unified UI Asset Details Actions'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    // No server port setup needed for simplified tests
   });
 
   it('should display asset details actions when viewing a token', async () => {
