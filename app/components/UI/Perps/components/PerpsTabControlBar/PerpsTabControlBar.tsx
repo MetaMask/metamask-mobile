@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { TouchableOpacity, View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
@@ -124,7 +124,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
         >
           {strings('perps.hyperliquid_usdc_balance')}
         </Text>
-        <Animated.View style={[styles.balanceText, getAnimatedStyle()]}>
+        <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {formatPerpsFiat(result.totalBalance || '0')}
           </Text>

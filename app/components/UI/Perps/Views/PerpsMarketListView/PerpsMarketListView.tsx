@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-} from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -27,12 +21,10 @@ import Text, {
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import { usePerpsPositions, usePerpsTrading } from '../../hooks';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { usePerpsPositions } from '../../hooks';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import type {
-  Position,
   PerpsMarketData,
   PerpsNavigationParamList,
 } from '../../controllers/types';
@@ -113,14 +105,11 @@ const PerpsMarketListView = ({
   });
 
   const {
-    isRefreshing: isRefreshingPositions,
     positions,
     isLoading: isLoadingPositions,
     isRefreshing: isRefreshingPositions,
     loadPositions,
   } = usePerpsPositions();
-
-  const { getPositions } = usePerpsTrading();
 
   useEffect(() => {
     if (markets.length > 0) {
