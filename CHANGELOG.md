@@ -6016,7 +6016,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [7.50.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.0...v7.50.1
 [7.50.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.3...v7.50.0
 [7.47.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.2...v7.47.3
-[7.47.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.1...v7.47.20
+[7.47.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.1...v7.47.2
 [7.47.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.47.0...v7.47.1
 [7.47.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.2...v7.47.0
 [7.46.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.46.1...v7.46.2
