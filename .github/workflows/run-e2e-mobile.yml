@@ -67,8 +67,6 @@ jobs:
           yarn detox clean-framework-cache
           yarn detox build-framework-cache
 
-
-
       #- name: Build E2E app
       #  if: ${{ !inputs.use_prebuilt_apps }}
       #  run: |
@@ -96,7 +94,7 @@ jobs:
           echo "🚀 Setting up pre-built apps for $platform..."
 
           # Base URL for artifacts
-          base_url="https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/test5"
+          base_url="https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/test6"
 
           # Create required directories
           mkdir -p android/app/build/outputs/apk/qa/release/
@@ -182,9 +180,6 @@ jobs:
           # Clean up lock files (iOS-specific issue)
           find . -name "*.lock" -type f -delete 2>/dev/null || true
 
-          # Clean Detox cache
-          yarn detox clean-framework-cache 2>/dev/null || true
-
           # Reset iOS simulator
           xcrun simctl shutdown all 2>/dev/null || true
           xcrun simctl erase all 2>/dev/null || true
@@ -213,6 +208,7 @@ jobs:
           # Platform-specific preparation
           if [[ "$platform" == "ios" ]]; then
             echo "🔧 Preparing iOS environment..."
+            yarn detox build-framework-cache
             yarn detox reset-lock-file
 
           else
@@ -245,7 +241,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.job }}-test-results
+          name: test-results-${{ inputs.platform }}-${{ github.run_number }}-${{ github.run_attempt }}
           path: e2e/reports/
           retention-days: 7
       
@@ -253,6 +249,6 @@ jobs:
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.job }}-screenshots
+          name: screenshots-${{ inputs.platform }}-${{ github.run_number }}-${{ github.run_attempt }}
           path: artifacts/
           retention-days: 7
