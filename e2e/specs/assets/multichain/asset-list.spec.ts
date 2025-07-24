@@ -41,22 +41,20 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
   it('should display tokens across networks when all networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply and layout to stabilize - INCREASED delay for iOS
-    const platformDelay = device.getPlatform() === 'android' ? 6000 : 6000; // Same long delay for iOS
+    // Wait for network filter to apply and layout to stabilize - reasonable delay
+    const platformDelay = device.getPlatform() === 'android' ? 4000 : 3000;
     await TestHelpers.delay(platformDelay);
 
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
     await Assertions.expectElementToBeVisible(eth);
 
-    // Use new gradual scrolling method for AVAX with extra settling time
+    // Use new gradual scrolling method for AVAX with brief settling time
     await WalletView.ensureTokenIsFullyVisible(AVAX_NAME);
-    // Extra settling time for BOTH platforms
-    await TestHelpers.delay(2000);
+    await TestHelpers.delay(1000);
 
-    // Use new gradual scrolling method for BNB with extra settling time
+    // Use new gradual scrolling method for BNB with brief settling time
     await WalletView.ensureTokenIsFullyVisible(BNB_NAME);
-    // Extra settling time for BOTH platforms
-    await TestHelpers.delay(2000);
+    await TestHelpers.delay(1000);
   });
 
   it('should display tokens of current network when current networks filter is toggled on', async () => {
@@ -65,8 +63,8 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await TestHelpers.delay(1000); // Wait for filter to apply
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterCurrent();
-    // Platform-aware delay for layout stabilization - INCREASED for iOS
-    const platformDelay = device.getPlatform() === 'android' ? 3000 : 4000;
+    // Platform-aware delay for layout stabilization
+    const platformDelay = device.getPlatform() === 'android' ? 2500 : 2000;
     await TestHelpers.delay(platformDelay);
 
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
@@ -81,8 +79,8 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply and layout to stabilize - SAME long delay for both
-    const platformDelay = device.getPlatform() === 'android' ? 6000 : 6000;
+    // Wait for network filter to apply and layout to stabilize
+    const platformDelay = device.getPlatform() === 'android' ? 4000 : 3000;
     await TestHelpers.delay(platformDelay);
 
     // Use stability method to ensure AVAX is ready for interaction
@@ -115,8 +113,8 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const BNB_NETWORK_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply and layout to stabilize - SAME long delay for both
-    const platformDelay = device.getPlatform() === 'android' ? 6000 : 6000;
+    // Wait for network filter to apply and layout to stabilize
+    const platformDelay = device.getPlatform() === 'android' ? 4000 : 3000;
     await TestHelpers.delay(platformDelay);
 
     // Use stability method to ensure BNB is ready for interaction
@@ -148,8 +146,8 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
 
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply and layout to stabilize - INCREASED for iOS
-    const platformDelay = device.getPlatform() === 'android' ? 3000 : 4000;
+    // Wait for network filter to apply and layout to stabilize
+    const platformDelay = device.getPlatform() === 'android' ? 2500 : 2000;
     await TestHelpers.delay(platformDelay);
 
     // Use the new method to ensure AVAX is fully hittable before tapping
