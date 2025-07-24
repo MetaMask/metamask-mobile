@@ -37,7 +37,6 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   });
 
   const { getAccountState, subscribeToPositions } = usePerpsTrading();
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Use the reusable hooks
   const { startPulseAnimation, getAnimatedStyle, stopAnimation } =
@@ -100,24 +99,10 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
       );
     }
 
-    // Fallback polling every 60 seconds for balance updates
-    refreshIntervalRef.current = setInterval(() => {
-      DevLogger.log(
-        'PerpsTabControlBar: Auto-refreshing balance (60s interval)',
-      );
-      getAccountBalance();
-    }, 60000); // 60 seconds
-
     return () => {
       // Cleanup WebSocket subscription
       if (unsubscribePositions) {
         unsubscribePositions();
-      }
-
-      // Cleanup polling interval
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-        refreshIntervalRef.current = null;
       }
 
       // Cleanup animations
