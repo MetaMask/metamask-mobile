@@ -4,7 +4,7 @@ import {
 } from '@metamask/multichain-account-service';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
-import { multichainAccountServiceInit } from './multichain-accounts-service-init';
+import { multichainAccountServiceInit } from './multichain-account-service-init';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 jest.mock('@metamask/multichain-account-service');
