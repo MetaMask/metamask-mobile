@@ -7,9 +7,9 @@ import {
 import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
 
 jest.mock('../../../../../core/SecureKeychain', () => ({
-  setConsumerGenericPassword: jest.fn(),
-  getConsumerGenericPassword: jest.fn(),
-  resetConsumerGenericPassword: jest.fn(),
+  setSecureItem: jest.fn(),
+  getSecureItem: jest.fn(),
+  clearSecureScope: jest.fn(),
   ACCESSIBLE: {
     WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
   },
@@ -38,13 +38,11 @@ describe('ProviderTokenVault', () => {
 
   describe('storeProviderToken', () => {
     it('stores token with calculated expiration time', async () => {
-      (
-        SecureKeychain.setConsumerGenericPassword as jest.Mock
-      ).mockResolvedValue(true);
+      (SecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(true);
 
       const result = await storeProviderToken(mockToken);
 
-      expect(SecureKeychain.setConsumerGenericPassword).toHaveBeenCalledWith(
+      expect(SecureKeychain.setSecureItem).toHaveBeenCalledWith(
         'TRANSAK_ACCESS_TOKEN',
         expect.stringContaining('"expiresAt":4600000'),
         expect.objectContaining({
@@ -59,15 +57,12 @@ describe('ProviderTokenVault', () => {
     });
 
     it('stores token with correct JSON structure', async () => {
-      (
-        SecureKeychain.setConsumerGenericPassword as jest.Mock
-      ).mockResolvedValue(true);
+      (SecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(true);
 
       await storeProviderToken(mockToken);
 
       const storedData = JSON.parse(
-        (SecureKeychain.setConsumerGenericPassword as jest.Mock).mock
-          .calls[0][1],
+        (SecureKeychain.setSecureItem as jest.Mock).mock.calls[0][1],
       );
 
       expect(storedData).toEqual({
@@ -80,9 +75,7 @@ describe('ProviderTokenVault', () => {
     });
 
     it('returns error when storage fails', async () => {
-      (
-        SecureKeychain.setConsumerGenericPassword as jest.Mock
-      ).mockResolvedValue(false);
+      (SecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(false);
 
       const result = await storeProviderToken(mockToken);
 
@@ -94,9 +87,9 @@ describe('ProviderTokenVault', () => {
 
     it('returns error when exception occurs', async () => {
       const errorMessage = 'Storage error';
-      (
-        SecureKeychain.setConsumerGenericPassword as jest.Mock
-      ).mockRejectedValue(new Error(errorMessage));
+      (SecureKeychain.setSecureItem as jest.Mock).mockRejectedValue(
+        new Error(errorMessage),
+      );
 
       const result = await storeProviderToken(mockToken);
 
@@ -114,16 +107,14 @@ describe('ProviderTokenVault', () => {
         expiresAt: 2000000, // Future time
       };
 
-      (
-        SecureKeychain.getConsumerGenericPassword as jest.Mock
-      ).mockResolvedValue({
-        username: 'TRANSAK_ACCESS_TOKEN',
-        password: JSON.stringify(storedData),
+      (SecureKeychain.getSecureItem as jest.Mock).mockResolvedValue({
+        key: 'TRANSAK_ACCESS_TOKEN',
+        value: JSON.stringify(storedData),
       });
 
       const result = await getProviderToken();
 
-      expect(SecureKeychain.getConsumerGenericPassword).toHaveBeenCalledWith(
+      expect(SecureKeychain.getSecureItem).toHaveBeenCalledWith(
         expect.objectContaining({
           service: 'com.metamask.TRANSAK_ACCESS_TOKEN',
           accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
@@ -145,16 +136,14 @@ describe('ProviderTokenVault', () => {
         expiresAt: 500000, // Past time
       };
 
-      (
-        SecureKeychain.getConsumerGenericPassword as jest.Mock
-      ).mockResolvedValue({
-        username: 'TRANSAK_ACCESS_TOKEN',
-        password: JSON.stringify(expiredData),
+      (SecureKeychain.getSecureItem as jest.Mock).mockResolvedValue({
+        key: 'TRANSAK_ACCESS_TOKEN',
+        value: JSON.stringify(expiredData),
       });
 
       const result = await getProviderToken();
 
-      expect(SecureKeychain.resetConsumerGenericPassword).toHaveBeenCalledWith(
+      expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
         expect.objectContaining({
           service: 'com.metamask.TRANSAK_ACCESS_TOKEN',
           accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
@@ -168,9 +157,7 @@ describe('ProviderTokenVault', () => {
     });
 
     it('returns error when no token found', async () => {
-      (
-        SecureKeychain.getConsumerGenericPassword as jest.Mock
-      ).mockResolvedValue(null);
+      (SecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(null);
 
       const result = await getProviderToken();
 
@@ -182,9 +169,9 @@ describe('ProviderTokenVault', () => {
 
     it('returns error when exception occurs', async () => {
       const errorMessage = 'Retrieval error';
-      (
-        SecureKeychain.getConsumerGenericPassword as jest.Mock
-      ).mockRejectedValue(new Error(errorMessage));
+      (SecureKeychain.getSecureItem as jest.Mock).mockRejectedValue(
+        new Error(errorMessage),
+      );
 
       const result = await getProviderToken();
 
@@ -196,14 +183,12 @@ describe('ProviderTokenVault', () => {
   });
 
   describe('resetProviderToken', () => {
-    it('calls SecureKeychain reset with correct options', async () => {
-      (
-        SecureKeychain.resetConsumerGenericPassword as jest.Mock
-      ).mockResolvedValue(true);
+    it('calls SecureKeychain clear scope with correct options', async () => {
+      (SecureKeychain.clearSecureScope as jest.Mock).mockResolvedValue(true);
 
       await resetProviderToken();
 
-      expect(SecureKeychain.resetConsumerGenericPassword).toHaveBeenCalledWith(
+      expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
         expect.objectContaining({
           service: 'com.metamask.TRANSAK_ACCESS_TOKEN',
           accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,

@@ -202,140 +202,121 @@ describe('SecureKeychain - setGenericPassword', () => {
   });
 });
 
-describe('SecureKeychain - Consumer Methods', () => {
+describe('SecureKeychain - Secure Item Methods', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     SecureKeychain.init('test_salt');
   });
 
-  describe('setConsumerGenericPassword', () => {
-    it('encrypts password and stores parameters correctly', async () => {
-      const username = 'test-username';
-      const password = 'plain-text-password';
-      const consumerOptions = {
+  describe('setSecureItem', () => {
+    it('encrypts value and stores parameters correctly', async () => {
+      const key = 'test-key';
+      const value = 'plain-text-value';
+      const scopeOptions = {
         service: 'com.metamask.test-service',
         accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       };
 
-      await SecureKeychain.setConsumerGenericPassword(
-        username,
-        password,
-        consumerOptions,
-      );
+      await SecureKeychain.setSecureItem(key, value, scopeOptions);
 
-      const storedUsername = (Keychain.setGenericPassword as jest.Mock).mock
+      const storedKey = (Keychain.setGenericPassword as jest.Mock).mock
         .calls[0][0];
-      const storedPassword = (Keychain.setGenericPassword as jest.Mock).mock
+      const storedValue = (Keychain.setGenericPassword as jest.Mock).mock
         .calls[0][1];
-      const storedConsumerOptions = (Keychain.setGenericPassword as jest.Mock)
-        .mock.calls[0][2];
+      const storedScopeOptions = (Keychain.setGenericPassword as jest.Mock).mock
+        .calls[0][2];
 
-      expect(storedUsername).toBe(username);
+      expect(storedKey).toBe(key);
 
-      expect(typeof storedPassword).toBe('string');
-      expect(storedPassword).toMatch(/^{"cipher":/);
+      expect(typeof storedValue).toBe('string');
+      expect(storedValue).toMatch(/^{"cipher":/);
 
-      expect(storedConsumerOptions).toEqual(consumerOptions);
+      expect(storedScopeOptions).toEqual(scopeOptions);
     });
   });
 
-  describe('getConsumerGenericPassword', () => {
-    it('retrieves and decrypts password successfully', async () => {
-      const username = 'test-username';
-      const originalPassword = 'plain-text-password';
-      const consumerOptions = {
+  describe('getSecureItem', () => {
+    it('retrieves and decrypts item successfully', async () => {
+      const key = 'test-key';
+      const originalValue = 'plain-text-value';
+      const scopeOptions = {
         service: 'com.metamask.test-service',
         accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       };
 
       jest.spyOn(QuickCrypto.subtle, 'decrypt').mockImplementation(() => {
-        const jsonString = JSON.stringify({ password: originalPassword });
+        const jsonString = JSON.stringify({ password: originalValue });
         const encoder = new TextEncoder();
         return Promise.resolve(encoder.encode(jsonString));
       });
 
-      await SecureKeychain.setConsumerGenericPassword(
-        username,
-        originalPassword,
-        consumerOptions,
-      );
+      await SecureKeychain.setSecureItem(key, originalValue, scopeOptions);
 
-      const storedEncryptedPassword = (Keychain.setGenericPassword as jest.Mock)
+      const storedEncryptedValue = (Keychain.setGenericPassword as jest.Mock)
         .mock.calls[0][1];
 
       (Keychain.getGenericPassword as jest.Mock).mockResolvedValue({
-        username,
-        password: storedEncryptedPassword,
-        service: consumerOptions.service,
+        username: key,
+        password: storedEncryptedValue,
+        service: scopeOptions.service,
       });
 
-      const result = await SecureKeychain.getConsumerGenericPassword(
-        consumerOptions,
-      );
+      const result = await SecureKeychain.getSecureItem(scopeOptions);
 
       expect(result).toEqual({
-        username,
-        password: originalPassword,
-        service: consumerOptions.service,
+        key,
+        value: originalValue,
       });
 
-      expect(Keychain.getGenericPassword).toHaveBeenCalledWith(consumerOptions);
+      expect(Keychain.getGenericPassword).toHaveBeenCalledWith(scopeOptions);
     });
 
-    it('returns null when no credentials are found', async () => {
-      const consumerOptions = { service: 'test-service' };
+    it('returns null when no item is found', async () => {
+      const scopeOptions = { service: 'test-service' };
       (Keychain.getGenericPassword as jest.Mock).mockResolvedValue(false);
 
-      const result = await SecureKeychain.getConsumerGenericPassword(
-        consumerOptions,
-      );
+      const result = await SecureKeychain.getSecureItem(scopeOptions);
 
       expect(result).toBeNull();
     });
 
-    it('returns null when password field is missing', async () => {
-      const consumerOptions = { service: 'test-service' };
+    it('returns null when value field is missing', async () => {
+      const scopeOptions = { service: 'test-service' };
       (Keychain.getGenericPassword as jest.Mock).mockResolvedValue({
-        username: 'test-user',
+        username: 'test-key',
       });
 
-      const result = await SecureKeychain.getConsumerGenericPassword(
-        consumerOptions,
-      );
+      const result = await SecureKeychain.getSecureItem(scopeOptions);
 
       expect(result).toBeNull();
     });
 
     it('throws error when decryption fails', async () => {
-      const consumerOptions = { service: 'test-service' };
+      const scopeOptions = { service: 'test-service' };
 
       (Keychain.getGenericPassword as jest.Mock).mockResolvedValue({
-        username: 'test-user',
+        username: 'test-key',
         password: 'invalid-encrypted-data',
       });
 
       await expect(
-        SecureKeychain.getConsumerGenericPassword(consumerOptions),
+        SecureKeychain.getSecureItem(scopeOptions),
       ).rejects.toThrow();
     });
   });
 
-  describe('resetConsumerGenericPassword', () => {
-    it('resets password using consumer options', async () => {
-      const consumerOptions = {
+  describe('clearSecureScope', () => {
+    it('clears scope using scope options', async () => {
+      const scopeOptions = {
         service: 'com.metamask.test-service',
         accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       };
 
       (Keychain.resetGenericPassword as jest.Mock).mockResolvedValue(true);
 
-      const result = await SecureKeychain.resetConsumerGenericPassword(
-        consumerOptions,
-      );
+      const result = await SecureKeychain.clearSecureScope(scopeOptions);
 
-      expect(Keychain.resetGenericPassword).toHaveBeenCalledWith(
-        consumerOptions,
-      );
+      expect(Keychain.resetGenericPassword).toHaveBeenCalledWith(scopeOptions);
       expect(result).toBe(true);
     });
   });

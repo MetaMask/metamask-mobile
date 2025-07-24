@@ -93,36 +93,50 @@ const SecureKeychain = {
     return Keychain.getSupportedBiometryType();
   },
 
-  async resetConsumerGenericPassword(consumerOptions: Keychain.Options) {
-    return Keychain.resetGenericPassword(consumerOptions);
+  /**
+   * Clears all secure data for a specific scope
+   * @param scopeOptions - Keychain options that define the scope to clear
+   * @returns Promise that resolves when the scope is cleared
+   */
+  async clearSecureScope(scopeOptions: Keychain.Options) {
+    return Keychain.resetGenericPassword(scopeOptions);
   },
 
-  async setConsumerGenericPassword(
-    username: string,
-    password: string,
-    consumerOptions: Keychain.Options,
+  /**
+   * Securely stores a key-value pair in the keychain with encryption
+   * @param key - The key to store
+   * @param value - The value to store (will be encrypted)
+   * @param scopeOptions - Keychain options that define the storage scope
+   * @returns Promise that resolves when the item is stored
+   */
+  async setSecureItem(
+    key: string,
+    value: string,
+    scopeOptions: Keychain.Options,
   ) {
-    const encryptedPassword = await instance.encryptPassword(password);
-    return Keychain.setGenericPassword(
-      username,
-      encryptedPassword,
-      consumerOptions,
-    );
+    const encryptedValue = await instance.encryptPassword(value);
+    return Keychain.setGenericPassword(key, encryptedValue, scopeOptions);
   },
 
-  async getConsumerGenericPassword(consumerOptions: Keychain.Options) {
+  /**
+   * Retrieves and decrypts a secure item from the keychain
+   * @param scopeOptions - Keychain options that define the scope to retrieve from
+   * @returns Promise that resolves to an object with key and value, or null if not found
+   */
+  async getSecureItem(scopeOptions: Keychain.Options) {
     if (instance) {
       try {
         instance.isAuthenticating = true;
-        const keychainObject = await Keychain.getGenericPassword(
-          consumerOptions,
-        );
+        const keychainObject = await Keychain.getGenericPassword(scopeOptions);
         if (keychainObject && keychainObject.password) {
-          const encryptedPassword = keychainObject.password;
-          const decrypted = await instance.decryptPassword(encryptedPassword);
-          keychainObject.password = decrypted.password;
+          const encryptedValue = keychainObject.password;
+          const decryptedValue = await instance.decryptPassword(encryptedValue);
           instance.isAuthenticating = false;
-          return keychainObject;
+
+          return {
+            key: keychainObject.username,
+            value: decryptedValue.password,
+          };
         }
         instance.isAuthenticating = false;
       } catch (error) {

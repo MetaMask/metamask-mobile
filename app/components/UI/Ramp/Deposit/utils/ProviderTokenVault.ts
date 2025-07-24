@@ -3,7 +3,7 @@ import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
 
 const PROVIDER_TOKEN_KEY = 'TRANSAK_ACCESS_TOKEN';
 
-const consumerOptions = {
+const scopeOptions = {
   service: `com.metamask.${PROVIDER_TOKEN_KEY}`,
   accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
@@ -31,10 +31,10 @@ export async function storeProviderToken(
 
     const stringifiedToken = JSON.stringify(storedToken);
 
-    const storeResult = await SecureKeychain.setConsumerGenericPassword(
+    const storeResult = await SecureKeychain.setSecureItem(
       PROVIDER_TOKEN_KEY,
       stringifiedToken,
-      consumerOptions,
+      scopeOptions,
     );
 
     if (storeResult === false) {
@@ -57,12 +57,10 @@ export async function storeProviderToken(
 
 export async function getProviderToken(): Promise<ProviderTokenResponse> {
   try {
-    const credentials = await SecureKeychain.getConsumerGenericPassword(
-      consumerOptions,
-    );
+    const secureItem = await SecureKeychain.getSecureItem(scopeOptions);
 
-    if (credentials) {
-      const storedToken: ProviderToken = JSON.parse(credentials.password);
+    if (secureItem) {
+      const storedToken: ProviderToken = JSON.parse(secureItem.value);
 
       if (Date.now() > storedToken.expiresAt) {
         await resetProviderToken();
@@ -91,5 +89,5 @@ export async function getProviderToken(): Promise<ProviderTokenResponse> {
 }
 
 export async function resetProviderToken(): Promise<void> {
-  await SecureKeychain.resetConsumerGenericPassword(consumerOptions);
+  await SecureKeychain.clearSecureScope(scopeOptions);
 }
