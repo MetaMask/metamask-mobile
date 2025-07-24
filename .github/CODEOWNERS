@@ -134,6 +134,14 @@ app/selectors/earnController         @MetaMask/metamask-earn
 **/Earn/**                           @MetaMask/metamask-earn
 **/earn/**                           @MetaMask/metamask-earn
 
+# Rewards Team
+app/core/Engine/controllers/rewards-controller @MetaMask/rewards
+app/core/Engine/messengers/rewards-controller-messenger @MetaMask/rewards
+app/selectors/rewardscontroller.ts   @MetaMask/rewards
+app/selectors/featureFlagController/rewards @MetaMask/rewards
+**/Rewards/**                        @MetaMask/rewards
+**/rewards/**                        @MetaMask/rewards
+
 # Perps Team
 app/components/UI/Perps/             @MetaMask/perps
 app/components/UI/WalletAction/*perps* @MetaMask/perps
