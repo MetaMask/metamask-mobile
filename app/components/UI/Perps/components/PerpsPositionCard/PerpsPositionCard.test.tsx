@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';
@@ -31,6 +32,28 @@ jest.mock('../../utils/formatUtils', () => ({
 // Mock PnL calculations
 jest.mock('../../utils/pnlCalculations', () => ({
   calculatePnLPercentageFromUnrealized: jest.fn().mockReturnValue(5.0),
+}));
+
+// Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
+jest.mock('../PerpsTPSLBottomSheet', () => ({
+  __esModule: true,
+  default: ({
+    isVisible,
+    onClose,
+  }: {
+    isVisible: boolean;
+    onClose: () => void;
+  }) => {
+    if (!isVisible) return null;
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-tpsl-bottomsheet">
+        <TouchableOpacity onPress={onClose}>
+          <Text>Close</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
 }));
 
 // Mock styles
@@ -209,7 +232,7 @@ describe('PerpsPositionCard', () => {
 
       // Assert
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'PerpsPositionDetails',
+        Routes.PERPS.POSITION_DETAILS,
         { position: mockPosition, action: 'view' },
       );
     });
@@ -253,22 +276,24 @@ describe('PerpsPositionCard', () => {
 
       // Assert
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'PerpsPositionDetails',
+        Routes.PERPS.POSITION_DETAILS,
         { position: mockPosition, action: 'close' },
       );
     });
 
-    it('navigates to position details with edit action when no onEdit prop', () => {
+    it('navigates to position details with edit_tpsl action when edit is pressed without onEdit prop', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
+
+      // Press edit button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
       );
 
-      // Assert
+      // Assert - Should navigate to position details with edit_tpsl action
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'PerpsPositionDetails',
-        { position: mockPosition, action: 'edit' },
+        Routes.PERPS.POSITION_DETAILS,
+        { position: mockPosition, action: 'edit_tpsl' },
       );
     });
   });

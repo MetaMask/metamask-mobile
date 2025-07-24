@@ -66,11 +66,12 @@ import {
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  DEBIT_CREDIT_PAYMENT_METHOD,
+  APPLE_PAY_PAYMENT_METHOD,
 } from '../../constants';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
+import { createConfigurationModalNavigationDetails } from '../Modals/ConfigurationModal/ConfigurationModal';
 
 const BuildQuote = () => {
   const navigation = useNavigation();
@@ -83,7 +84,7 @@ const BuildQuote = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
-    DEBIT_CREDIT_PAYMENT_METHOD,
+    APPLE_PAY_PAYMENT_METHOD,
   );
   const [cryptoCurrency, setCryptoCurrency] =
     useState<DepositCryptoCurrency>(USDC_TOKEN);
@@ -126,7 +127,17 @@ const BuildQuote = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.buildQuote.title') },
+        {
+          title: strings('deposit.buildQuote.title'),
+          showBack: false,
+          showClose: true,
+          showConfiguration: true,
+          onConfigurationPress: () => {
+            navigation.navigate(
+              ...createConfigurationModalNavigationDetails({}),
+            );
+          },
+        },
         theme,
       ),
     );

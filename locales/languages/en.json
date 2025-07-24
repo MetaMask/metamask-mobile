@@ -157,7 +157,8 @@
     "your_wallet": "You successfully reset your wallet!",
     "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet",
-    "import_using_srp": "Import using Secret Recovery Phrase"
+    "import_using_srp": "Import using Secret Recovery Phrase",
+    "import_using_srp_social_login": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
@@ -290,7 +291,7 @@
   "login": {
     "title": "Welcome Back!",
     "password": "Password",
-    "password_placeholder": "Enter password",
+    "password_placeholder": "Enter MetaMask password",
     "unlock_button": "Unlock",
     "go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
     "forgot_password": "Forgot password?",
@@ -322,7 +323,7 @@
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
-    "other_methods": "Use another method",
+    "other_methods": "Use a different login method",
 
     "forgot_password_desc": "Forgot your password?",
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
@@ -353,6 +354,7 @@
   "choose_password": {
     "title": "MetaMask password",
     "description": "Unlocks MetaMask on this device only.",
+    "description_social_login": "Use this for wallet recovery on all devices.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create new password",
     "confirm_password": "Confirm password",
@@ -515,6 +517,13 @@
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\""
     },
+    "configuration_modal": {
+      "title": "Options",
+      "view_order_history": "View order history",
+      "contact_support": "Contact support",
+      "log_out": "Log out",
+      "logged_out_success": "Successfully logged out"
+    },
     "region_modal": {
       "select_a_region": "Select a region",
       "search_by_country": "Search by country",
@@ -643,7 +652,7 @@
       "postal_code_invalid": "Please enter a valid postal code",
       "unexpected_error": "Unexpected error."
     },
-    "privacy_section":{
+    "privacy_section": {
       "transak": "Transak encrypts and stores this information.",
       "metamask": "MetaMask never receives or uses your data."
     },
@@ -736,11 +745,9 @@
   },
   "perps": {
     "title": "Perps Trading",
-    "unknown_network": "Unknown Network",
     "deposit": {
       "title": "Amount to deposit",
       "pay_with": "Pay with",
-      "available": "Available",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
       "insufficient_funds": "Insufficient funds",
       "enter_amount": "Enter amount",
@@ -748,32 +755,30 @@
       "submitting": "Submitting transaction",
       "get_usdc": "Get USDC",
       "network_fee": "Network fee",
-      "network_fee_tooltip": "Fee paid to the network for processing your transaction",
       "estimated_time": "Estimated time",
       "rate": "Rate",
       "slippage": "Slippage",
-      "slippage_tooltip": "Maximum price difference allowed for this transaction",
       "slippage_info": "If the price changes between the time your order is placed and confirmed it's called slippage. Your transaction will automatically cancel if slippage exceeds the tolerance you set here.",
       "slippage_auto": "Auto",
       "apply": "Apply",
-      "select_token": "Select token",
-      "fund_hyperliquid": "Fund Hyperliquid Wallet",
-      "networkFee": "Network fee",
-      "estimatedTime": "Estimated time",
+      "max_button": "Max",
+      "done_button": "Done",
       "metamask_fee": "MetaMask fee",
       "metamask_fee_tooltip": "MetaMask does not charge any fees for deposits to Hyperliquid",
       "minimum_deposit_error": "Minimum deposit amount is {{amount}} USDC",
-      "continue": "Continue",
-      "confirm_deposit": "Confirm deposit",
-      "confirming": "Confirming...",
       "processing_title": "Processing deposit",
+      "preview": {
+        "title": "Deposit Preview"
+      },
+      "processing": {
+        "title": "Processing Deposit"
+      },
       "deposit_completed": "Deposit completed successfully!",
       "deposit_failed": "Deposit Failed",
       "retry_deposit": "Retry Deposit",
       "go_back": "Go Back",
       "view_balance": "View Balance",
       "calculating_fee": "Calculating...",
-      "switch_network": "Switch network required",
       "quote_expired_modal": {
         "title": "Quote Expired",
         "description": "The quote for your deposit has expired after {{refreshRate}} seconds. Get a new quote to continue.",
@@ -797,13 +802,6 @@
       "quote_fetch_error": "Failed to fetch deposit quote. Please try again.",
       "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
       "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
-      "swap_not_supported": "Same-chain token swaps are not supported yet. Please use USDC or a token from a different network.",
-      "processing": "Processing...",
-      "completed": "Transaction completed",
-      "transactionHash": "Transaction Hash",
-      "transaction_hash": "Transaction Hash",
-      "viewTransaction": "View Transaction",
-      "view_transaction": "View Transaction",
       "success": {
         "title": "Deposit Successful!",
         "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
@@ -836,38 +834,10 @@
     },
     "order": {
       "title": "New Order",
-      "orderSuccess": {
-        "title": "Order Success"
-      },
-      "details": {
-        "title": "Order Details"
-      },
-      "history": {
-        "title": "Order History"
-      },
-      "long_title": "Long {{asset}}",
-      "short_title": "Short {{asset}}",
-      "market": "Market",
-      "margin_required": "Margin required",
       "leverage": "Leverage",
+      "limit_price": "Limit price",
       "liquidation_price": "Liquidation price",
-      "take_profit_stop_loss": "Take profit/Stop loss",
-      "add_tpsl": "Add",
-      "balance": "Balance",
       "fees": "Fees",
-      "place_order": "Place order",
-      "cannot_place_order": "Cannot place order ({{count}} errors)",
-      "tpsl_modal": {
-        "title": "Set take profit/stop loss",
-        "mark_price": "Mark price",
-        "set_limit": "Set limit",
-        "take_profit_short": "TP",
-        "stop_loss_short": "SL",
-        "add_tp": "+ TP",
-        "remove_tp": "✕ TP",
-        "add_sl": "+ SL",
-        "remove_sl": "✕ SL"
-      },
       "validation": {
         "failed": "Order validation failed",
         "amount_required": "Order amount must be greater than 0",
@@ -878,25 +848,86 @@
         "high_leverage_warning": "High leverage increases liquidation risk",
         "invalid_take_profit": "Take profit must be {{direction}} current price for {{positionType}} positions",
         "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
-        "liquidation_warning": "Position is close to liquidation price"
-      },
-      "orderPlaced": {
-        "title": "Order Placed Successfully",
-        "subtitle": "Your {{direction}} position for {{asset}} has been created",
-        "order_placed": "Order placed successfully",
-        "asset": "Asset",
-        "direction": "Direction",
-        "amount": "Amount",
-        "order_id": "Order ID",
-        "view_positions": "View Positions",
-        "place_another": "Place Another Order"
+        "liquidation_warning": "Position is close to liquidation price",
+        "limit_price_required": "Please set a limit price for limit orders",
+        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment"
       },
       "error": {
         "placement_failed": "Order placement failed",
         "network_error": "Network error",
         "unknown": "Unknown error occurred",
-        "dismiss": "Dismiss"
+        "dismiss": "Dismiss",
+        "invalid_asset": "Invalid asset",
+        "go_back": "Go Back",
+        "asset_not_tradable": "{{asset}} is not a tradable asset"
+      },
+      "off": "Off",
+      "estimated_execution_time": "Estimated execution time",
+      "one_to_three_seconds": "1 to 3 seconds",
+      "margin": "Margin",
+      "take_profit": "Take profit",
+      "stop_loss": "Stop loss",
+      "select_payment_asset": "Select asset to pay with",
+      "button": {
+        "long": "Long {{asset}}",
+        "short": "Short {{asset}}"
+      },
+      "tpsl_modal": {
+        "title": "Take profit & Stop loss",
+        "save": "Save",
+        "current_price": "Current price: {{price}}",
+        "on": "ON",
+        "off": "OFF",
+        "take_profit_helper": "Close position when price reaches this level",
+        "stop_loss_helper": "Limit losses by closing position at this price"
+      },
+      "limit_price_modal": {
+        "title": "Set limit price",
+        "set": "Set",
+        "market_price": "Market price: {{price}}",
+        "market": "Market",
+        "current_price": "Current price",
+        "ask_price": "Ask price",
+        "bid_price": "Bid price"
+      },
+      "leverage_modal": {
+        "title": "Set Leverage",
+        "confirm": "Confirm",
+        "entry_price": "Entry Price",
+        "liquidation_price": "Liquidation Price",
+        "liquidation_distance": "Liquidation Distance"
+      },
+      "type": {
+        "title": "Order Type",
+        "market": {
+          "title": "Market",
+          "description": "Execute immediately at current market price"
+        },
+        "limit": {
+          "title": "Limit",
+          "description": "Execute only at your specified price or better"
+        }
+      },
+      "success": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "orderId": "Order ID",
+        "viewPositions": "View Positions",
+        "placeAnother": "Place Another Order",
+        "backToPerps": "Back to Perps"
       }
+    },
+    "tpsl": {
+      "title": "Set take profit and stop loss",
+      "set_button": "Set",
+      "updating": "Updating...",
+      "usd_label": "USD"
+    },
+    "token_selector": {
+      "no_tokens": "No tokens available"
     },
     "errors": {
       "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
@@ -906,7 +937,6 @@
       "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
       "infoClientNotAvailable": "InfoClient not available after initialization",
       "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",
-      "failedToInitialize": "Failed to initialize HyperLiquid SDK clients",
       "failedToSubscribePosition": "Failed to subscribe to position updates",
       "failedToUnsubscribePosition": "Failed to unsubscribe from position updates",
       "failedToSubscribeOrderFill": "Failed to subscribe to order fill updates",
@@ -941,15 +971,9 @@
       "accountStateFailed": "Failed to get account state",
       "marketsFailed": "Failed to get markets",
       "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
-      "onlyDirectDepositsSupported": "Only direct deposits are currently supported",
       "providerNotAvailable": "Provider {{providerId}} not available",
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
-      "gasFeeEstimateFailed": "Failed to estimate gas fee",
-      "exchangeRateFailed": "Failed to get exchange rate",
-      "refreshQuoteFailed": "Failed to refresh quote data",
       "assetMappingFailed": "Failed to build asset mapping",
-      "invalidOrder": "Invalid order parameters",
-      "invalidWithdrawal": "Invalid withdrawal parameters",
       "depositFailed": "Deposit failed"
     },
     "position": {
@@ -979,6 +1003,11 @@
         "error_message": "Position data not found. Please go back and try again.",
         "section_title": "Position"
       },
+      "tpsl": {
+        "update_success": "TP/SL updated successfully",
+        "update_failed": "Failed to update TP/SL",
+        "update_error": "Error updating TP/SL"
+      },
       "account": {
         "summary_title": "Account Summary",
         "total_balance": "Total Balance",
@@ -987,23 +1016,18 @@
         "total_unrealized_pnl": "Total Unrealized P&L"
       }
     },
-    "trading": {
-      "title": "Perps Trading (Minimal)",
-      "subtitle": "Core Controller & Services Testing",
-      "network": "Network:",
-      "cached_balance": "Cached Balance:",
-      "loading_balance": "Loading balance...",
-      "balance_auto_load": "Balance will load automatically",
+    "network": {
+      "hyperliquid": "Hyperliquid"
+    },
+    "buttons": {
       "get_account_balance": "Get Account Balance",
+      "deposit_funds": "Deposit Funds",
       "switch_to_mainnet": "Switch to Mainnet",
       "switch_to_testnet": "Switch to Testnet",
-      "positions": "Positions",
-      "result": "Result:"
+      "view_markets": "View Markets",
+      "positions": "Positions"
     },
     "connection": {
-      "connecting": "Connecting to Perps...",
-      "initializing": "Initializing Perps controller...",
-      "connecting_to_trading": "Connecting to Perps trading...",
       "failed": "Connection Failed",
       "error_message": "Unable to connect to Perps trading service.",
       "retry_connection": "Retry Connection",
@@ -1011,7 +1035,13 @@
     },
     "chart": {
       "no_data": "No chart data available"
-    }
+    },
+    "perpetual_markets": "Perpetual Markets",
+    "search": "Search",
+    "token_volume": "Token Volume",
+    "last_price_24h_change": "Last Price / 24h Change",
+    "failed_to_load_market_data": "Failed to load market data",
+    "tap_to_retry": "Tap to retry"
   },
   "receive": {
     "title": "Receive"
@@ -1440,6 +1470,8 @@
     "labels": {
       "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
       "bitcoin_account_name": "Bitcoin Account",
+      "bitcoin_signet_account_name": "Bitcoin Signet Account",
+      "bitcoin_regtest_account_name": "Bitcoin Regtest Account",
       "solana_devnet_account_name": "Solana Devnet Account",
       "solana_testnet_account_name": "Solana Testnet Account",
       "solana_account_name": "Solana Account"
@@ -1773,8 +1805,6 @@
     "display_nft_media": "Display NFT Media",
     "display_nft_media_desc": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.",
-    "incoming_transactions_title": "Show incoming transactions",
-    "incoming_transactions_content": "This relies on the network you select which will expose your Ethereum address and your IP address.",
     "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.",
     "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
     "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
@@ -2531,7 +2561,8 @@
       "gas_limit_too_low": "Gas limit must be greater than 21000",
       "priority_fee_too_high": "Priority fee must be less than max base fee",
       "no_zero_value": "{{field}} must be greater than 0",
-      "speed": "Speed"
+      "speed": "Speed",
+      "only_integers_allowed": "Only whole numbers are allowed"
     }
   },
   "smart_transactions": {
@@ -2762,11 +2793,15 @@
   },
   "import_private_key": {
     "title": "Import Account",
-    "description_one": "Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.",
-    "learn_more_here": "Learn more about imported accounts here.",
+    "description_one": "Imported private keys are backed up to your account and sync automatically when you sign in with the same Google or Apple login.",
+    "description_srp": "Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.",
+    "learn_more": "Learn more",
+    "learn_more_here": "about how imported keys work.",
+    "learn_more_srp": "Learn more about imported accounts",
+    "here": "here.",
     "subtitle": "Paste your private key string",
-    "cta_text": "IMPORT",
-    "example": "e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
+    "cta_text": "Import",
+    "example": "e.g.\n3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
     "error_title": "Something went wrong",
     "error_message": "We couldn't import that private key. Please make sure you entered it correctly.",
     "error_empty_message": "You need to enter your private key.",
@@ -2944,7 +2979,7 @@
     "watching": "Make sure no one is watching your screen.",
     "view": "View",
     "confirm_password": "Confirm your password",
-    "before_continiuing": "Before continuing we need you to confirm your password",
+    "before_continiuing": "Enter password to continue",
     "enter_current_password": "Enter your current password",
     "confirm": "Confirm",
     "got_it": "Got it",
@@ -3798,7 +3833,7 @@
     "bug_report_prompt_description": "Add details so we can figure out what went wrong.",
     "bug_report_thanks": "Thanks! We’ll take a look soon.",
     "save_seedphrase_1": "If you keep getting this error,",
-    "save_seedphrase_2": "save your Secret Recovery Phrase",
+    "save_seedphrase_2": "Save your Secret Recovery Phrase",
     "save_seedphrase_3": "and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.",
     "copied_clipboard": "Copied to clipboard",
     "ok": "OK",
@@ -4229,8 +4264,7 @@
     "import_srp": "Secret Recovery Phrase",
     "add_hardware_wallet": "Hardware wallet",
     "import_account": "Private key",
-    "add_bitcoin_account_testnet": "Bitcoin testnet account",
-    "add_bitcoin_account_mainnet": "Bitcoin account",
+    "add_bitcoin_account": "Bitcoin account",
     "add_solana_account": "Solana account",
     "switch_to_smart_account": "Switch to Smart account",
     "headers": {
@@ -4969,5 +5003,18 @@
     },
     "back_button": "Back",
     "continue_button": "Continue"
+  },
+  "onboarding_error_fallback": {
+    "title": "An error occurred",
+    "description": "Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.",
+    "recovery_warning": "If you keep getting this error, save your Secret Recovery Phrase and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.",
+    "error_message_report": "Error report:",
+    "copy": "Copy",
+    "send_report": "Send report",
+    "try_again": "Try again",
+    "report_submitted": "Error report has been submitted."
+  },
+  "pay_with_modal": {
+    "title": "Select payment method"
   }
 }
