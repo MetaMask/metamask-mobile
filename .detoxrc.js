@@ -67,10 +67,6 @@ module.exports = {
       device: 'android.bitrise.emulator',
       app: 'android.qa',
     },
-    'android.emu.flask': {
-      device: 'android.emulator',
-      app: 'android.flask',
-    },
   },
   devices: {
     'ios.simulator': {
@@ -121,12 +117,6 @@ module.exports = {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/qa/release/app-qa-release.apk',
       build: `METAMASK_BUILD_TYPE='${process.env.METAMASK_BUILD_TYPE || 'main'}' METAMASK_ENVIRONMENT='qa' yarn build:android:qa`,
-    },
-    'android.flask': {
-      type: 'android.apk',
-      binaryPath: process.env.PREBUILT_ANDROID_FLASK_APK_PATH || 'android/app/build/outputs/apk/flask/debug/app-flask-debug.apk',
-      testBinaryPath: process.env.PREBUILT_ANDROID_FLASK_TEST_APK_PATH,
-      build: 'yarn start:android:e2e:flask',
-    },
+    }
   },
 };
