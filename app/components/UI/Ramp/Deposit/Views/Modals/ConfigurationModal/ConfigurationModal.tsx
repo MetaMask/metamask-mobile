@@ -72,7 +72,7 @@ function ConfigurationModal() {
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
 
-  const { clearAuthToken, isAuthenticated } = useDepositSDK();
+  const { logoutFromProvider, isAuthenticated } = useDepositSDK();
 
   const navigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -89,9 +89,9 @@ function ConfigurationModal() {
     Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
-  const handleLogOut = useCallback(() => {
+  const handleLogOut = useCallback(async () => {
     sheetRef.current?.onCloseBottomSheet();
-    clearAuthToken();
+    await logoutFromProvider();
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
       labelOptions: [
@@ -101,7 +101,7 @@ function ConfigurationModal() {
       iconColor: IconColor.Success,
       hasNoTimeout: false,
     });
-  }, [clearAuthToken, toastRef]);
+  }, [logoutFromProvider, toastRef]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
