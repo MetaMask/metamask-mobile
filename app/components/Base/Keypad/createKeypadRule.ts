@@ -1,4 +1,4 @@
-import { regex, hasDecimals } from '../../../../app/util/regex';
+import { regex } from '../../../../app/util/regex';
 import { Keys } from './constants';
 
 interface KeypadRuleConfig {
@@ -54,12 +54,12 @@ export default function createKeypadRule({
           return inputKey;
         }
 
-        if (
-          decimalSeparator &&
-          decimals !== null &&
-          hasDecimals(decimalSeparator, decimals.toString()).test(currentAmount)
-        ) {
-          return currentAmount;
+        if (decimalSeparator && typeof decimals === 'number' && decimals > 0) {
+          // Count current decimal places
+          const parts = currentAmount.split(decimalSeparator);
+          if (parts.length === 2 && parts[1].length >= decimals) {
+            return currentAmount; // Block if already at max decimals
+          }
         }
 
         return `${currentAmount}${inputKey}`;
