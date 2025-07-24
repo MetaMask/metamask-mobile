@@ -50,6 +50,10 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.qa',
     },
+    'ios.sim.flask': {
+      device: 'ios.simulator',
+      app: 'ios.flask',
+    },
 
     'android.emu.debug': {
       device: 'android.emulator',
@@ -62,6 +66,10 @@ module.exports = {
     'android.emu.release.qa': {
       device: 'android.bitrise.emulator',
       app: 'android.qa',
+    },
+    'android.emu.flask': {
+      device: 'android.emulator',
+      app: 'android.flask',
     },
   },
   devices: {
@@ -97,6 +105,12 @@ module.exports = {
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
       build: `METAMASK_BUILD_TYPE='${process.env.METAMASK_BUILD_TYPE || 'main'}' METAMASK_ENVIRONMENT='qa' yarn build:ios:qa`,
     },
+    'ios.flask': {
+      type: 'ios.app',
+      binaryPath:
+        process.env.PREBUILT_IOS_FLASK_APP_PATH || 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask-Flask.app',
+      build: 'yarn start:ios:e2e:flask',
+    },
     'android.debug': {
       type: 'android.apk',
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
@@ -107,6 +121,12 @@ module.exports = {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/qa/release/app-qa-release.apk',
       build: `METAMASK_BUILD_TYPE='${process.env.METAMASK_BUILD_TYPE || 'main'}' METAMASK_ENVIRONMENT='qa' yarn build:android:qa`,
+    },
+    'android.flask': {
+      type: 'android.apk',
+      binaryPath: process.env.PREBUILT_ANDROID_FLASK_APK_PATH || 'android/app/build/outputs/apk/flask/debug/app-flask-debug.apk',
+      testBinaryPath: process.env.PREBUILT_ANDROID_FLASK_TEST_APK_PATH,
+      build: 'yarn start:android:e2e:flask',
     },
   },
 };
