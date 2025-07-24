@@ -548,6 +548,11 @@
       "change_region": "Change region",
       "buy_crypto": "Buy Crypto"
     },
+    "incompatible_token_acount_modal": {
+      "title": "Switch your account",
+      "description": "The {{networkName}} account you’re on doesn't support the selected token. Switch your account or token to continue.",
+      "cta": "I understand"
+    },
     "get_started": {
       "navbar_title": "Deposit",
       "title": "Starting is easy with USDC",
@@ -1258,7 +1263,8 @@
   },
   "defi_positions": {
     "loading_positions": "Loading DeFi positions...",
-    "no_positions": "No positions yet",
+    "no_visible_positions": "Can't find what you're looking for?",
+    "not_supported": "We may not support your protocol yet.",
     "error_cannot_load_page": "We could not load this page.",
     "error_visit_again": "Try visiting again later.",
     "single_token": "{{symbol}} only",
@@ -2071,7 +2077,8 @@
       "1m": "Past month",
       "3m": "Past 3 months",
       "1y": "Past year",
-      "3y": "Past 3 years"
+      "3y": "Past 3 years",
+      "all": "All"
     },
     "chart_time_period_navigation": {
       "1d": "1D",
@@ -2080,7 +2087,8 @@
       "1m": "1M",
       "3m": "3M",
       "1y": "1Y",
-      "3y": "3Y"
+      "3y": "3Y",
+      "all": "All"
     },
     "no_chart_data": {
       "title": "No chart data",
@@ -2142,7 +2150,7 @@
     "allow_camera_dialog_message": "We need your permission to scan QR codes",
     "scanning": "scanning...",
     "ok": "Ok",
-      "continue": "Continue",
+    "continue": "Continue",
     "cancel": "Cancel",
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Looks like you're trying to scan a QR code, you need to unlock your wallet to be able to use it.",
@@ -2164,7 +2172,7 @@
   "transaction": {
     "transaction_id": "Transaction ID",
     "alert": "ALERT",
-        "amount": "Amount",
+    "amount": "Amount",
     "details": "Details",
     "next": "Next",
     "back": "Back",
@@ -2457,6 +2465,8 @@
     "receive": "Receive",
     "swap": "Swap",
     "send": "Send",
+    "redeposit": "Redeposit",
+    "interaction": "Interaction",
     "contract_deploy": "Contract Deployment",
     "to_contract": "New Contract",
     "tx_details_free": "Free",
@@ -3365,8 +3375,8 @@
     "date": "Date",
     "from": "From",
     "to": "To",
-        "status": "Status",
-        "completed": "Completed",
+    "status": "Status",
+    "completed": "Completed",
     "pending": "Pending",
     "failed": "Failed",
     "cancelled": "Canceled",
@@ -3937,7 +3947,7 @@
     "low": "Low",
     "medium": "Medium",
     "high": "High",
-      "market": "Market",
+    "market": "Market",
     "aggressive": "Aggressive",
     "low_fee_warning": "Take note of your processing time. Future transactions will queue after this one.",
     "edit_priority": "Edit priority",
@@ -4411,7 +4421,7 @@
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
     "not_enough_token": "Not enough {{ticker}}",
-      "balance": "Balance",
+    "balance": "Balance",
     "stake_eth_and_earn": "Stake ETH and earn",
     "how_it_works": "How it works",
     "stake_any_amount_of_eth": "Stake any amount of ETH.",

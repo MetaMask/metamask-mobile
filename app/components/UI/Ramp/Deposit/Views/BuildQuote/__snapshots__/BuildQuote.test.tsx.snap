@@ -351,7 +351,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={17}
+              handlerTag={18}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -803,6 +803,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -2171,7 +2172,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={19}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2623,6 +2624,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -3991,7 +3993,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={21}
+              handlerTag={22}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4443,6 +4445,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >

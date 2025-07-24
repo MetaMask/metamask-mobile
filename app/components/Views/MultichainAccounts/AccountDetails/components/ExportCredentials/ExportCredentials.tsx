@@ -64,6 +64,13 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
 
   const showSeedphraseBackReminder = useMemo(() => {
     const [primaryKeyring] = hdKeyringsWithSnapAccounts;
+
+    // This would be undefined when the app is locked
+    // The keyring controller state is cleared when the app is locked
+    if (!primaryKeyring) {
+      return false;
+    }
+
     const accountAssociatedWithPrimaryKeyring = primaryKeyring.accounts.find(
       (address) => areAddressesEqual(address, account.address),
     );
