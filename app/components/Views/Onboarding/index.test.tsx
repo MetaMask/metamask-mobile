@@ -22,7 +22,6 @@ import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
-import Logger from '../../../util/Logger';
 
 const mockInitialState = {
   engine: {
