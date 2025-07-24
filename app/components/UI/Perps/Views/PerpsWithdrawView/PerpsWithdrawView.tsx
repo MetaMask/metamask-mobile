@@ -55,7 +55,7 @@ import {
   USDC_DECIMALS,
   USDC_NAME,
   USDC_SYMBOL,
-  ZERO_ADDRESS
+  ZERO_ADDRESS,
 } from '../../constants/hyperLiquidConfig';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
@@ -328,7 +328,14 @@ const PerpsWithdrawView: React.FC = () => {
     } finally {
       setIsSubmittingTx(false);
     }
-  }, [withdrawAmount, hasValidQuote, toastRef, isTestnet, withdraw, navigation]);
+  }, [
+    withdrawAmount,
+    hasValidQuote,
+    toastRef,
+    isTestnet,
+    withdraw,
+    navigation,
+  ]);
 
   // Button state
   const hasAmount = withdrawAmount && parseFloat(withdrawAmount) > 0;

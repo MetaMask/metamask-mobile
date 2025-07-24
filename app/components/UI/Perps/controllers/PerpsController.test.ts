@@ -793,7 +793,8 @@ describe('PerpsController', () => {
             assetId:
               'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
             chainId: 'eip155:42161' as CaipChainId,
-            contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+            contractAddress:
+              '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
           },
         ]);
 
