@@ -17,7 +17,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
+import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
 
 const createStyles = (colors) =>
   StyleSheet.create({

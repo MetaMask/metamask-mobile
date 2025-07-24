@@ -63,7 +63,7 @@ import { selectMultichainTokenListForAccountId } from '../../../selectors/multic
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
-import { isSendRedesignEnabled } from '../confirmations/utils/confirm';
+import { isSendRedesignEnabled } from '../confirmations/utils/send';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});

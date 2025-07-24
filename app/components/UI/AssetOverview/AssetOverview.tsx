@@ -75,7 +75,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
+import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
 
 interface AssetOverviewProps {
   asset: TokenI;
