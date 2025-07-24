@@ -751,7 +751,7 @@ describe('AssetOverview', () => {
         Engine.context.MultichainNetworkController.setActiveNetwork,
       ).not.toHaveBeenCalled();
 
-      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView');
     });
 
     it('should handle error in multichain send for Solana assets', async () => {
@@ -786,7 +786,7 @@ describe('AssetOverview', () => {
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
 
       // Should not navigate to traditional send flow since hook handled it
-      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView');
     });
 
     it('should handle non-EVM account validation through hook', async () => {
@@ -818,7 +818,7 @@ describe('AssetOverview', () => {
 
       // Hook should be called and handle validation
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView');
     });
 
     it('should delegate snap validation to hook', async () => {
@@ -850,7 +850,7 @@ describe('AssetOverview', () => {
 
       // Hook should handle all snap validation
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView');
     });
 
     it('should use traditional EVM send flow for EVM accounts', async () => {
