@@ -259,7 +259,7 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+    expect(navigate).toHaveBeenLastCalledWith('SendFlowView');
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
@@ -333,7 +333,7 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+    expect(navigate).toHaveBeenLastCalledWith('SendFlowView');
     expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
   });
 
@@ -883,7 +883,7 @@ describe('AssetOverview', () => {
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
 
       // Should navigate to traditional send flow
-      expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).toHaveBeenLastCalledWith('SendFlowView');
     });
 
     it('should display Solana balance correctly for non-EVM assets', async () => {
