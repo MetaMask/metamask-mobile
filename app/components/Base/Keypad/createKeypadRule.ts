@@ -9,8 +9,8 @@ interface KeypadRuleConfig {
 export default function createKeypadRule({
   decimalSeparator = null,
   decimals = null,
-}: KeypadRuleConfig = {}): (currentAmount: string, inputKey: string) => string {
-  return function handler(currentAmount: string, inputKey: string): string {
+}: KeypadRuleConfig = {}): (currentAmount: string, inputKey: Keys) => string {
+  return function handler(currentAmount: string, inputKey: Keys): string {
     if (!currentAmount) {
       currentAmount = '0';
     }
