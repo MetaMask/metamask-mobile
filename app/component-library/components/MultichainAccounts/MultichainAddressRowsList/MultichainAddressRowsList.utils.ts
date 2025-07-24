@@ -5,11 +5,11 @@ import { CaipChainId } from '@metamask/utils';
 import { TEST_NETWORK_IDS } from '../../../../constants/network';
 import { PopularList } from '../../../../util/networks/customNetworks';
 
-export type NetworkAddressItem = {
+export interface NetworkAddressItem {
   chainId: string;
   networkName: string;
   address: string;
-};
+}
 
 /**
  * Extracts hex chain ID from CAIP chain ID format for EVM networks
@@ -63,15 +63,14 @@ const getNetworkPriority = (chainId: string): number => {
  */
 export const sortNetworkAddressItems = (
   items: NetworkAddressItem[],
-): NetworkAddressItem[] => {
-  return items.sort((a, b) => {
+): NetworkAddressItem[] =>
+  items.sort((a, b) => {
     const priorityDiff =
       getNetworkPriority(a.chainId) - getNetworkPriority(b.chainId);
     return priorityDiff === 0
       ? a.networkName.localeCompare(b.networkName)
       : priorityDiff;
   });
-};
 
 /**
  * Creates a NetworkAddressItem from chain ID, network config, and address
