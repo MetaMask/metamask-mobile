@@ -1,5 +1,3 @@
-import { Hex } from '@metamask/utils';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { BridgeQuoteRequest, getBridgeQuotes } from '../../utils/bridge';
@@ -8,24 +6,23 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useDispatch } from 'react-redux';
 import { setTransactionBridgeQuotes } from '../../../../../core/redux/slices/confirmationMetrics';
-import { throttle } from 'lodash';
-
-const throttledGetBridgeQuotes = throttle(
-  (requests: BridgeQuoteRequest[]) => getBridgeQuotes(requests),
-  10000,
-);
+import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
+import { Hex } from '@metamask/utils';
 
 export function useTransactionBridgeQuotes() {
   const dispatch = useDispatch();
-  const transactionMeta = useTransactionMetadataRequest();
-  const from = transactionMeta?.txParams.from as Hex;
+  const transactionMeta = useTransactionMetadataOrThrow();
+
+  const {
+    chainId: targetChainId,
+    id: transactionId,
+    txParams: { from },
+  } = transactionMeta;
 
   const {
     payToken: { address: sourceTokenAddress, chainId: sourceChainId },
   } = useTransactionPayToken();
 
-  const transactionId = transactionMeta?.id as string;
-  const targetChainId = transactionMeta?.chainId as Hex;
   const sourceAmounts = useTransactionPayTokenAmounts();
   const requiredTokens = useTransactionRequiredTokens();
 
@@ -39,7 +36,7 @@ export function useTransactionBridgeQuotes() {
         }
 
         return {
-          from,
+          from: from as Hex,
           sourceChainId,
           sourceTokenAddress,
           sourceTokenAmount,
@@ -62,7 +59,7 @@ export function useTransactionBridgeQuotes() {
       return [];
     }
 
-    return throttledGetBridgeQuotes(requests as BridgeQuoteRequest[]);
+    return getBridgeQuotes(requests as BridgeQuoteRequest[]);
   }, [requests]);
 
   useEffect(() => {
