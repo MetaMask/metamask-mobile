@@ -23,9 +23,12 @@ import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
+import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
+const SEEDLESS_ONBOARDING_ENABLED =
+  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 /**
  * Accepts the terms of use modal.
@@ -167,10 +170,21 @@ export const importWalletWithRecoveryPhrase = async ({
     await acceptTermOfUse();
   }
 
-  await Assertions.expectElementToBeVisible(OnboardingView.importSeedButton, {
-    description: 'Import with seed button should be visible',
-  });
-  await OnboardingView.tapImportWalletFromSeedPhrase();
+  await Assertions.expectElementToBeVisible(
+    OnboardingView.existingWalletButton,
+    {
+      description: 'Have an existing wallet button should be visible',
+    },
+  );
+
+  await OnboardingView.tapHaveAnExistingWallet();
+
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
+      description: 'Onboarding Sheet should be visible',
+    });
+    await OnboardingSheet.tapImportSeedButton();
+  }
 
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -238,9 +252,17 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
+      description: 'Onboarding Sheet should be visible',
+    });
+    await OnboardingSheet.tapImportSeedButton();
+  }
+
   await Assertions.expectElementToBeVisible(CreatePasswordView.container, {
     description: 'Create Password View should be visible',
   });
+
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();

@@ -21,6 +21,9 @@ import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModa
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import Assertions from '../../utils/Assertions';
 import ToastModal from '../../pages/wallet/ToastModal';
+import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
+const SEEDLESS_ONBOARDING_ENABLED =
+  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 const PASSWORD = '12345678';
 
@@ -76,6 +79,10 @@ describe(Regression('Permission System'), () => {
           await TestHelpers.delay(3000);
         }
         await OnboardingView.tapCreateWallet();
+        if (SEEDLESS_ONBOARDING_ENABLED) {
+          await Assertions.checkIfVisible(OnboardingSheet.container);
+          await OnboardingSheet.tapImportSeedButton();
+        }
 
         // Create new wallet
         await Assertions.checkIfVisible(MetaMetricsOptIn.container);
