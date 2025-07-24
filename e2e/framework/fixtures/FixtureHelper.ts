@@ -31,7 +31,11 @@ import {
 import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
-import { logger } from '../logger';
+import { createLogger } from '../logger';
+
+const logger = createLogger({
+  name: 'FixtureHelper',
+});
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
@@ -340,10 +344,18 @@ export async function withFixtures(
       },
     ],
     testSpecificMock,
+    mockServerInstance,
     launchArgs,
     languageAndLocale,
     permissions = {},
+    endTestfn,
   } = options;
+
+  if (mockServerInstance && testSpecificMock) {
+    throw new Error(
+      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
+    );
+  }
 
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
@@ -351,9 +363,23 @@ export async function withFixtures(
   // Handle mock server
   let mockServer;
   let mockServerPort = DEFAULT_MOCKSERVER_PORT;
-  if (testSpecificMock) {
+
+  if (mockServerInstance && !testSpecificMock) {
+    mockServer = mockServerInstance;
+    mockServerPort = mockServer.port;
+    logger.debug(
+      `Mock server started from mockServerInstance on port ${mockServerPort}`,
+    );
+    const endpoints = await mockServer.getMockedEndpoints();
+    logger.debug(`Mocked endpoints: ${endpoints.length}`);
+  }
+
+  if (testSpecificMock && !mockServerInstance) {
     mockServerPort = getMockServerPort();
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
+    logger.debug(
+      `Mock server started from testSpecificMock on port ${mockServerPort}`,
+    );
   }
 
   // Handle local nodes
@@ -417,6 +443,12 @@ export async function withFixtures(
     logger.error('Error in withFixtures:', error);
     throw error;
   } finally {
+    if (endTestfn) {
+      // Pass the mockServer to the endTestfn if it exists as we may want
+      // to capture events before cleanup
+      await endTestfn({ mockServer });
+    }
+
     // Clean up all local nodes
     if (localNodes && localNodes.length > 0) {
       await handleLocalNodeCleanup(localNodes);
@@ -426,7 +458,7 @@ export async function withFixtures(
       await handleDappCleanup(dapps, dappServer);
     }
 
-    if (testSpecificMock) {
+    if (mockServer) {
       await stopMockServer(mockServer);
     }
 

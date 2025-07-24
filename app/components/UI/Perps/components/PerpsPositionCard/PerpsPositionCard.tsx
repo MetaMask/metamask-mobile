@@ -1,6 +1,7 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -12,6 +13,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PerpsNavigationParamList,
   Position,
@@ -37,7 +39,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   position,
   onClose,
   onEdit,
-  disabled,
+  disabled = false,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -50,7 +52,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const handleCardPress = async () => {
     // await triggerSelectionHaptic();
-    navigation.navigate('PerpsPositionDetails', {
+    navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
       position,
       action: 'view',
     });
@@ -62,7 +64,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       onClose(position);
     } else {
       // Navigate to position details with close action
-      navigation.navigate('PerpsPositionDetails', {
+      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
         position,
         action: 'close',
       });
@@ -70,14 +72,21 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   };
 
   const handleEditPress = () => {
+    DevLogger.log('PerpsPositionCard: handleEditPress called', {
+      hasOnEdit: !!onEdit,
+      position: position.coin,
+      disabled,
+    });
     // await triggerSelectionHaptic();
     if (onEdit) {
+      DevLogger.log('PerpsPositionCard: calling onEdit callback');
       onEdit(position);
     } else {
+      DevLogger.log('PerpsPositionCard: navigating to position details');
       // Navigate to position details with edit action
-      navigation.navigate('PerpsPositionDetails', {
+      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
         position,
-        action: 'edit',
+        action: 'edit_tpsl',
       });
     }
   };
@@ -174,7 +183,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               {strings('perps.position.card.take_profit')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {strings('perps.position.card.not_set')}
+              {position.takeProfitPrice
+                ? formatPrice(position.takeProfitPrice)
+                : strings('perps.position.card.not_set')}
             </Text>
           </View>
           <View style={styles.bodyItem}>
@@ -182,7 +193,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               {strings('perps.position.card.stop_loss')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {strings('perps.position.card.not_set')}
+              {position.stopLossPrice
+                ? formatPrice(position.stopLossPrice)
+                : strings('perps.position.card.not_set')}
             </Text>
           </View>
           <View style={styles.bodyItem}>
@@ -203,7 +216,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           size={ButtonSize.Md}
           width={ButtonWidthTypes.Auto}
           label={strings('perps.position.card.edit_tpsl')}
-          onPress={handleEditPress}
+          onPress={() => handleEditPress()}
           disabled={disabled}
           style={styles.footerButton}
           testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
@@ -213,7 +226,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           size={ButtonSize.Md}
           width={ButtonWidthTypes.Auto}
           label={strings('perps.position.card.close_position')}
-          onPress={handleClosePress}
+          onPress={() => handleClosePress()}
           disabled={disabled}
           style={styles.footerButton}
           testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
