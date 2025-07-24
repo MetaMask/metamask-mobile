@@ -119,6 +119,6 @@ export function formatTime(ms: number): string {
  */
 export function consoleBold(str: string): string {
   return str
-    .replaceAll('<strong>', '\x1b[1m')
-    .replaceAll('</strong>', '\x1b[0m');
+    .replace(/<strong>/g, '\x1b[1m')
+    .replace(/<\/strong>/g, '\x1b[0m');
 }
