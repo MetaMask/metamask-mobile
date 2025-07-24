@@ -9,6 +9,10 @@ export const selectMultichainWallets = createDeepEqualSelector(
       return [];
     }
 
+    if (!accountTreeState?.accountTree?.wallets) {
+      return [];
+    }
+
     return Object.values(accountTreeState.accountTree.wallets);
   },
 );

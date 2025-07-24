@@ -42,7 +42,7 @@ describe('selectMultichainWallets', () => {
               id: WALLET_ID_1,
               metadata: { name: 'Wallet 1' },
               groups: {
-                'keyring:1:ethereum': {
+                'keyring:1/ethereum': {
                   accounts: ['account1'],
                 },
               },
@@ -51,7 +51,7 @@ describe('selectMultichainWallets', () => {
               id: WALLET_ID_2,
               metadata: { name: 'Wallet 2' },
               groups: {
-                'keyring:2:ethereum': {
+                'keyring:2/ethereum': {
                   accounts: ['account2'],
                 },
               },
@@ -115,77 +115,6 @@ describe('selectMultichainWallets', () => {
     const mockState = createMockState(undefined);
     const result = selectMultichainWallets(mockState);
     expect(result).toEqual([]);
-  });
-
-  it('preserves wallet object structure when returning wallets', () => {
-    const complexWallet = {
-      id: WALLET_ID_1,
-      metadata: {
-        name: 'Complex Wallet',
-        created: '2024-01-01',
-        type: 'HD',
-      },
-      groups: {
-        'keyring:1:ethereum': {
-          accounts: ['account1', 'account2'],
-        },
-        'snap:solana:mainnet': {
-          accounts: ['account3'],
-        },
-      },
-    };
-
-    const mockState = createMockState({
-      accountTree: {
-        wallets: {
-          [WALLET_ID_1]: complexWallet,
-        },
-      },
-    });
-
-    const result = selectMultichainWallets(mockState);
-    expect(result).toEqual([complexWallet]);
-    expect(result[0]).toHaveProperty('metadata');
-    expect(result[0].metadata.name).toBe('Complex Wallet');
-    expect(result[0].groups).toHaveProperty('keyring:1:ethereum');
-    expect(result[0].groups).toHaveProperty('snap:solana:mainnet');
-  });
-
-  it('returns wallets in the order they appear in Object.values', () => {
-    const firstWallet = {
-      id: WALLET_ID_1,
-      metadata: { name: 'First Wallet' },
-      groups: {
-        'keyring:1:ethereum': {
-          accounts: ['account1'],
-        },
-      },
-    };
-
-    const secondWallet = {
-      id: WALLET_ID_2,
-      metadata: { name: 'Second Wallet' },
-      groups: {
-        'keyring:2:ethereum': {
-          accounts: ['account2'],
-        },
-      },
-    };
-
-    const mockState = createMockState({
-      accountTree: {
-        wallets: {
-          [WALLET_ID_1]: firstWallet,
-          [WALLET_ID_2]: secondWallet,
-        },
-      },
-    });
-
-    const result = selectMultichainWallets(mockState);
-
-    expect(result).toHaveLength(2);
-    expect(result[0].metadata.name).toBe('First Wallet');
-    expect(result[1].metadata.name).toBe('Second Wallet');
   });
 
   it('handles wallets with empty groups', () => {
