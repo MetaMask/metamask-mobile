@@ -129,12 +129,12 @@ class AuthenticationService {
     );
 
     for (const clientType of Object.values(WalletClientType)) {
-      const { discoveryStorageId: storageId } = WALLET_SNAP_MAP[clientType];
+      const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
       this.attemptAccountDiscovery(clientType).catch((error) => {
         console.warn('Account discovery failed during wallet creation:', error);
         // Store flag to retry on next unlock
-        StorageWrapper.setItem(storageId, TRUE);
+        StorageWrapper.setItem(discoveryStorageId, TRUE);
       });
     }
 
@@ -151,11 +151,11 @@ class AuthenticationService {
       const client = MultichainWalletSnapFactory.createClient(clientType, {
         setSelectedAccount: false,
       });
-      const { discoveryScope: scope, discoveryStorageId: storageId } =
+      const { discoveryScope, discoveryStorageId } =
         WALLET_SNAP_MAP[clientType];
 
-      await client.addDiscoveredAccounts(primaryHdKeyringId, scope);
-      await StorageWrapper.removeItem(storageId);
+      await client.addDiscoveredAccounts(primaryHdKeyringId, discoveryScope);
+      await StorageWrapper.removeItem(discoveryStorageId);
     };
 
     try {
@@ -172,11 +172,11 @@ class AuthenticationService {
 
   private retryDiscoveryIfPending = async (): Promise<void> => {
     for (const clientType of Object.values(WalletClientType)) {
-      const { discoveryStorageId: storageId } = WALLET_SNAP_MAP[clientType];
+      const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
       try {
-        const isPending = await StorageWrapper.getItem(storageId);
-        if (isPending === 'true') {
+        const isPending = await StorageWrapper.getItem(discoveryStorageId);
+        if (isPending === TRUE) {
           await this.attemptAccountDiscovery(clientType);
         }
       } catch (error) {
@@ -199,12 +199,12 @@ class AuthenticationService {
     await KeyringController.createNewVaultAndKeychain(password);
 
     for (const clientType of Object.values(WalletClientType)) {
-      const { discoveryStorageId: storageId } = WALLET_SNAP_MAP[clientType];
+      const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
       this.attemptAccountDiscovery(clientType).catch((error) => {
         console.warn('Account discovery failed during wallet creation:', error);
         // Store flag to retry on next unlock
-        StorageWrapper.setItem(storageId, TRUE);
+        StorageWrapper.setItem(discoveryStorageId, TRUE);
       });
     }
 
@@ -725,7 +725,7 @@ class AuthenticationService {
           await this.importMnemonicToVault(mnemonicToRestore, {
             shouldCreateSocialBackup: false,
             shouldSelectAccount: false,
-            shouldImportSolanaAccount: true,
+            shouldImportAccounts: true,
           });
         } else {
           Logger.error(new Error('Unknown secret type'), secret.type);
@@ -739,7 +739,7 @@ class AuthenticationService {
     options: {
       shouldCreateSocialBackup: boolean;
       shouldSelectAccount: boolean;
-      shouldImportSolanaAccount: boolean;
+      shouldImportAccounts: boolean;
     },
   ): Promise<{
     newAccountAddress: string;
@@ -797,18 +797,18 @@ class AuthenticationService {
     }
 
     let discoveredAccountsCount = 0;
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    if (options.shouldImportSolanaAccount) {
-      const multichainClient = MultichainWalletSnapFactory.createClient(
-        WalletClientType.Solana,
-      );
+    if (options.shouldImportAccounts) {
+      for (const clientType of Object.values(WalletClientType)) {
+        const { discoveryScope } = WALLET_SNAP_MAP[clientType];
+        const multichainClient =
+          MultichainWalletSnapFactory.createClient(clientType);
 
-      discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
-        id,
-        SolScope.Mainnet,
-      );
+        discoveredAccountsCount += await multichainClient.addDiscoveredAccounts(
+          id,
+          discoveryScope,
+        );
+      }
     }
-    ///: END:ONLY_INCLUDE_IF
 
     return {
       newAccountAddress,
@@ -953,7 +953,7 @@ class AuthenticationService {
                 await this.importMnemonicToVault(mnemonic, {
                   shouldCreateSocialBackup: false,
                   shouldSelectAccount: false,
-                  shouldImportSolanaAccount: true,
+                  shouldImportAccounts: true,
                 });
               } else {
                 Logger.error(new Error('Unknown secret type'), item.type);
@@ -1067,8 +1067,8 @@ class AuthenticationService {
 
     // set discovery pending to true
     for (const clientType of Object.values(WalletClientType)) {
-      const { discoveryStorageId: storageId } = WALLET_SNAP_MAP[clientType];
-      StorageWrapper.setItem(storageId, TRUE);
+      const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+      StorageWrapper.setItem(discoveryStorageId, TRUE);
     }
   };
 
