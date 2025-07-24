@@ -13,11 +13,13 @@ import {
 } from '../../../actions/onboardNetwork';
 import { toggleInfoNetworkModal } from '../../../actions/modals';
 import { getIsNetworkOnboarded } from '../../../util/networks';
+import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 
 const InfoNetworkModal = () => {
   const prevNetwork = useRef<string>();
 
   const isFocused = useIsFocused();
+  const isOnBridgeRoute = useIsOnBridgeRoute();
 
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -46,7 +48,7 @@ const InfoNetworkModal = () => {
           chainId,
           networkOnboardingState,
         );
-        if (!networkOnboarded) {
+        if (!networkOnboarded && !isOnBridgeRoute) {
           InteractionManager.runAfterInteractions(() => {
             dispatch(toggleInfoNetworkModal(true));
           });
@@ -54,7 +56,7 @@ const InfoNetworkModal = () => {
       }
       prevNetwork.current = chainId;
     }
-  }, [chainId, dispatch, networkOnboardingState]);
+  }, [chainId, dispatch, networkOnboardingState, isOnBridgeRoute]);
 
   // If the Main screen is not focused, don't render it
   if (!isFocused) {
