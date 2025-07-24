@@ -2,13 +2,14 @@
 import { loginToApp } from '../../viewHelper';
 import { SmokeNetworkAbstractions } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../framework/Assertions';
+import DetectedTokensView from '../../pages/wallet/DetectedTokensView';
+import Assertions from '../../utils/Assertions';
 import TestHelpers from '../../helpers';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { withFixtures } from '../../fixtures/fixture-helper';
 
 const ETHEREUM_NAME = 'Ethereum';
-const USDC_NAME = 'USDCoin';
+const USDC_NAME = 'USDC';
 
 describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
   beforeAll(async () => {
@@ -25,12 +26,12 @@ describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
       async () => {
         await loginToApp();
 
-        await Assertions.expectElementToBeVisible(WalletView.container);
+        await Assertions.checkIfVisible(WalletView.container);
         const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
         const usdc = WalletView.tokenInWallet(USDC_NAME);
 
-        await Assertions.expectElementToBeVisible(eth);
-        await Assertions.expectElementToBeVisible(usdc);
+        await Assertions.checkIfVisible(eth);
+        await Assertions.checkIfVisible(usdc);
       },
     );
   });
