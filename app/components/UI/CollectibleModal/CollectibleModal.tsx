@@ -29,7 +29,6 @@ import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { handleSendPageNavigation } from '../../Views/confirmations/utils/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 const CollectibleModal = () => {
