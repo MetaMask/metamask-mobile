@@ -90,7 +90,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
 
     const avax = WalletView.tokenInWallet('AVAX');
     await Assertions.expectElementToBeVisible(avax);
-    await WalletView.tapOnToken('AVAX');
+    await WalletView.tapOnTokenWithRetry('AVAX');
     await Assertions.expectElementToBeVisible(TokenOverview.sendButton);
     await TokenOverview.tapSendButton();
     await Assertions.checkIfVisible(NetworkEducationModal.container);
@@ -124,7 +124,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
 
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.expectElementToBeVisible(bnb);
-    await WalletView.tapOnToken('BNB');
+    await WalletView.tapOnTokenWithRetry('BNB');
     await TokenOverview.tapSwapButton();
     await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
     await Assertions.expectElementToHaveText(
@@ -151,15 +151,8 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     // Wait for network filter to apply and layout to stabilize
     await TestHelpers.delay(2000);
 
-    // Scroll to top first to ensure consistent starting position
-    await WalletView.scrollDownOnTokensTab();
-    await TestHelpers.delay(1000);
-
-    // Then scroll to AVAX with more aggressive scrolling
-    await WalletView.scrollToToken('AVAX', 'up');
-    await TestHelpers.delay(1500); // Extra time for scroll to complete
-
-    await WalletView.tapOnToken('AVAX');
+    // Use the new method to ensure AVAX is fully hittable before tapping
+    await WalletView.tapOnTokenWithRetry('AVAX');
 
     await Assertions.expectElementToBeVisible(TokenOverview.container);
     await TokenOverview.tapChartPeriod1d();

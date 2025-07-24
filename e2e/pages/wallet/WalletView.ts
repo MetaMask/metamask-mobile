@@ -438,6 +438,120 @@ class WalletView {
     }
   }
 
+  async ensureTokenIsFullyHittable(tokenName: string): Promise<void> {
+    // First ensure it's visible and stable
+    await this.waitForTokenToBeStableAndVisible(tokenName);
+
+    const tokensContainer = await this.getTokensInWallet();
+
+    // Additional centering attempts to make sure token is fully hittable
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const token = this.tokenInWallet(tokenName);
+        await Assertions.expectElementToBeVisible(token);
+
+        // Test if it's actually hittable by trying a quick tap test
+        // If this fails, we know it needs better centering
+        return; // If we get here, it should be hittable
+      } catch (e) {
+        // Try to center the token better
+        if (attempt === 0) {
+          // Slight scroll up to move token away from bottom edge
+          await Gestures.swipe(
+            tokensContainer as unknown as DetoxElement,
+            'down',
+            {
+              speed: 'slow',
+              percentage: 0.15,
+            },
+          );
+        } else if (attempt === 1) {
+          // Slight scroll down to move token away from top edge
+          await Gestures.swipe(
+            tokensContainer as unknown as DetoxElement,
+            'up',
+            {
+              speed: 'slow',
+              percentage: 0.1,
+            },
+          );
+        }
+
+        await TestHelpers.delay(
+          device.getPlatform() === 'android' ? 1500 : 1000,
+        );
+      }
+    }
+  }
+
+  async centerTokenInViewport(tokenName: string): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+
+    // Try to center the token using scrollToElement first
+    try {
+      await Gestures.scrollToElement(
+        this.tokenInWallet(tokenName) as unknown as DetoxElement,
+        Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+        {
+          direction: 'down',
+        },
+      );
+      await TestHelpers.delay(device.getPlatform() === 'android' ? 2000 : 1000);
+    } catch (e) {
+      // If scrollToElement fails, use manual centering
+    }
+
+    // Additional manual centering for Android which needs more precise positioning
+    if (device.getPlatform() === 'android') {
+      // Small adjustment to move token toward center of viewport
+      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
+        speed: 'slow',
+        percentage: 0.1, // Small adjustment to center better
+      });
+      await TestHelpers.delay(1000);
+    }
+  }
+
+  async tapOnTokenWithRetry(token: string, index = 0): Promise<void> {
+    // First center the token in viewport for optimal hittability
+    await this.centerTokenInViewport(token);
+
+    // Then ensure the token is fully hittable
+    await this.ensureTokenIsFullyHittable(token);
+
+    // Now attempt to tap with retries
+    const maxAttempts = device.getPlatform() === 'android' ? 5 : 3;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const elem = Matchers.getElementByText(
+          token || WalletViewSelectorsText.DEFAULT_TOKEN,
+          index,
+        );
+
+        await Gestures.waitAndTap(elem, {
+          elemDescription: 'Token',
+        });
+
+        // If tap succeeded, return
+        return;
+      } catch (e) {
+        if (attempt < maxAttempts - 1) {
+          // Re-center and re-ensure token is hittable before retrying
+          await this.centerTokenInViewport(token);
+          await this.ensureTokenIsFullyHittable(token);
+          await TestHelpers.delay(
+            device.getPlatform() === 'android' ? 1000 : 500,
+          );
+        } else {
+          throw new Error(
+            `Failed to tap on token ${token} after ${maxAttempts} attempts: ${e}`,
+          );
+        }
+      }
+    }
+  }
+
   async scrollToToken(
     tokenName: string,
     direction: 'up' | 'down' = 'down',
