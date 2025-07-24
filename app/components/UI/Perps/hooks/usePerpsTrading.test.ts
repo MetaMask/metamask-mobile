@@ -19,6 +19,7 @@ import type {
   SubscribePricesParams,
   WithdrawParams,
   WithdrawResult,
+  CaipAssetId,
 } from '../controllers/types';
 
 // Mock Engine
@@ -464,8 +465,7 @@ describe('usePerpsTrading', () => {
     it('should call PerpsController.withdraw with correct parameters', async () => {
       const mockWithdrawResult: WithdrawResult = {
         success: true,
-        txHash: '0xdef456',
-        amount: '1000',
+        txHash: 'mock-tx-hash',
       };
 
       (Engine.context.PerpsController.withdraw as jest.Mock).mockResolvedValue(
@@ -475,8 +475,8 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const withdrawParams: WithdrawParams = {
-        amount: '1000',
-        destinationAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f89591',
+        amount: 'mock-amount',
+        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
       };
 
       const response = await result.current.withdraw(withdrawParams);
@@ -490,8 +490,7 @@ describe('usePerpsTrading', () => {
     it('should handle withdraw without destination address', async () => {
       const mockWithdrawResult: WithdrawResult = {
         success: true,
-        txHash: '0xghi789',
-        amount: '500',
+        txHash: 'mock-tx-hash-2',
       };
 
       (Engine.context.PerpsController.withdraw as jest.Mock).mockResolvedValue(
@@ -501,8 +500,8 @@ describe('usePerpsTrading', () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       const withdrawParams: WithdrawParams = {
-        amount: '500',
-        // No destinationAddress - should default to user's address
+        amount: 'mock-amount-2',
+        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
       };
 
       const response = await result.current.withdraw(withdrawParams);

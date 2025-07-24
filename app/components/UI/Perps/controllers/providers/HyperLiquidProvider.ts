@@ -1523,7 +1523,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         // Access nested structure: tokenBalances[account][chainId][tokenAddress]
         const accountBalances =
           tokenBalancesState.tokenBalances[accountAddress];
-        const chainBalances = accountBalances?.[hexChainId];
+        const chainBalances = accountBalances?.[hexChainId as `0x${string}`];
         currentUsdcBalance = chainBalances?.[usdcAddress];
 
         DevLogger.log('🔍 HyperLiquid: Balance check result', {

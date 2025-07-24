@@ -62,6 +62,7 @@ const mockShowToast = jest.fn();
 const mockToastRef = {
   current: {
     showToast: mockShowToast,
+    closeToast: jest.fn(),
   },
 };
 
