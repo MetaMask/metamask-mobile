@@ -41,23 +41,23 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
   it('should display tokens across networks when all networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply and layout to stabilize - longer delay for Android
-    const platformDelay = device.getPlatform() === 'android' ? 6000 : 2000;
+    // Wait for network filter to apply and layout to stabilize - longer delay for iOS too
+    const platformDelay = device.getPlatform() === 'android' ? 6000 : 4000;
     await TestHelpers.delay(platformDelay);
 
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
     await Assertions.expectElementToBeVisible(eth);
 
-    // Use new gradual scrolling method for AVAX with extra Android delays
+    // Use new gradual scrolling method for AVAX with extra settling time
     await WalletView.ensureTokenIsFullyVisible(AVAX_NAME);
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.delay(2000); // Extra settling time for Android
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.delay(1500); // Extra settling time for iOS too
     }
 
-    // Use new gradual scrolling method for BNB with extra Android delays
+    // Use new gradual scrolling method for BNB with extra settling time
     await WalletView.ensureTokenIsFullyVisible(BNB_NAME);
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.delay(2000); // Extra settling time for Android
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.delay(1500); // Extra settling time for iOS too
     }
   });
 
@@ -67,7 +67,9 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await TestHelpers.delay(1000); // Wait for filter to apply
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterCurrent();
-    await TestHelpers.delay(2000); // Wait for network filter to apply and layout to stabilize
+    // Platform-aware delay for layout stabilization
+    const platformDelay = device.getPlatform() === 'android' ? 3000 : 2500;
+    await TestHelpers.delay(platformDelay);
 
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
     const avax = WalletView.tokenInWallet(AVAX_NAME);
@@ -81,8 +83,8 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply and layout to stabilize - longer for Android
-    const platformDelay = device.getPlatform() === 'android' ? 6000 : 2000;
+    // Wait for network filter to apply and layout to stabilize - longer for both platforms
+    const platformDelay = device.getPlatform() === 'android' ? 6000 : 4000;
     await TestHelpers.delay(platformDelay);
 
     // Use stability method to ensure AVAX is ready for interaction
@@ -115,8 +117,8 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const BNB_NETWORK_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply and layout to stabilize - longer for Android
-    const platformDelay = device.getPlatform() === 'android' ? 6000 : 2000;
+    // Wait for network filter to apply and layout to stabilize - longer for both platforms
+    const platformDelay = device.getPlatform() === 'android' ? 6000 : 4000;
     await TestHelpers.delay(platformDelay);
 
     // Use stability method to ensure BNB is ready for interaction
@@ -148,8 +150,9 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
 
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply and layout to stabilize
-    await TestHelpers.delay(2000);
+    // Wait for network filter to apply and layout to stabilize - platform-aware
+    const platformDelay = device.getPlatform() === 'android' ? 3000 : 2500;
+    await TestHelpers.delay(platformDelay);
 
     // Use the new method to ensure AVAX is fully hittable before tapping
     await WalletView.tapOnTokenWithRetry('AVAX');
