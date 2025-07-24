@@ -18,6 +18,3 @@ export function isStakingConfirmation(requestType: string) {
     TransactionType.stakingClaim,
   ].includes(requestType as TransactionType);
 }
-
-export const isSendRedesignEnabled = () =>
-  process.env.MM_SEND_REDESIGN_ENABLED === 'true';

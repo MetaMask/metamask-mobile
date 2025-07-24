@@ -22,8 +22,8 @@ import { isNativeToken } from '../../utils/generic';
 
 export interface SendContextType {
   asset?: AssetType;
-  cancelSend: () => void;
-  submitSend: () => void;
+  handleCancelPress: () => void;
+  handleSubmitPress: () => void;
   transactionParams?: TransactionParams;
   updateAsset: (asset: AssetType) => void;
   updateTransactionParams: (params: Partial<TransactionParams>) => void;
@@ -31,8 +31,8 @@ export interface SendContextType {
 
 export const SendContext = createContext<SendContextType>({
   asset: undefined,
-  cancelSend: () => undefined,
-  submitSend: () => undefined,
+  handleCancelPress: () => undefined,
+  handleSubmitPress: () => undefined,
   transactionParams: undefined,
   updateAsset: () => undefined,
   updateTransactionParams: () => undefined,
@@ -87,7 +87,7 @@ export const SendContextProvider: React.FC<{
     setTransactionParams({ ...transactionParams, ...params });
   };
 
-  const submitSend = useCallback(async () => {
+  const handleSubmitPress = useCallback(async () => {
     if (!chainId || !asset) {
       return;
     }
@@ -105,7 +105,7 @@ export const SendContextProvider: React.FC<{
     );
   }, [asset, chainId, NetworkController, navigation, transactionParams]);
 
-  const cancelSend = useCallback(() => {
+  const handleCancelPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
@@ -113,8 +113,8 @@ export const SendContextProvider: React.FC<{
     <SendContext.Provider
       value={{
         asset,
-        cancelSend,
-        submitSend,
+        handleCancelPress,
+        handleSubmitPress,
         transactionParams,
         updateAsset,
         updateTransactionParams,

@@ -107,7 +107,7 @@ import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPosi
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
 import { SendRoot } from '../../Views/confirmations/components/send/send-root';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
+import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
