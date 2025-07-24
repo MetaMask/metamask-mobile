@@ -6,8 +6,6 @@ import { DEFAULT_GANACHE_PORT } from '../../app/util/test/ganache';
 import { DEFAULT_ANVIL_PORT } from '../../e2e/seeder/anvil-manager';
 import { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import { DEFAULT_DAPP_SERVER_PORT } from './fixture-helper';
-// Import the DappPortRegistry to get dynamic ports
-import DappPortRegistry from '../framework/fixtures/DappPortRegistry';
 export const DEFAULT_MOCKSERVER_PORT = 8000;
 
 function transformToValidPort(defaultPort, pid) {
@@ -33,14 +31,8 @@ function getServerPort(defaultPort) {
  * @returns {string} The URL for the second test dapp
  */
 export function getSecondTestDappLocalUrl() {
-  // Try to get the port from the registry first
-  const registry = DappPortRegistry.getInstance();
-  const registeredPort = registry.getSecondDappPort();
-
-  // If we have a registered port, use it; otherwise fall back to the calculated port
-  const port = registeredPort || getSecondTestDappPort();
   const host = device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
-  return `http://${host}:${port}`;
+  return `http://${host}:${getSecondTestDappPort()}`;
 }
 
 export function getGanachePort() {
@@ -58,13 +50,7 @@ export function getLocalTestDappPort() {
 }
 
 export function getLocalTestDappUrl() {
-  // Try to get the port from the registry first
-  const registry = DappPortRegistry.getInstance();
-  const registeredPort = registry.getFirstDappPort();
-
-  // If we have a registered port, use it; otherwise fall back to the calculated port
-  const port = registeredPort || getLocalTestDappPort();
-  return `http://localhost:${port}`;
+  return `http://localhost:${getLocalTestDappPort()}`;
 }
 
 export function getMockServerPort() {
