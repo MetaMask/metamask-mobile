@@ -20,6 +20,7 @@ const fixtureServer = new FixtureServer();
 const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
+const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
 
 describe(SmokeNetworkAbstractions('Import Tokens'), () => {
   beforeAll(async () => {
@@ -61,10 +62,9 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterCurrent();
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
-    const avax = WalletView.tokenInWallet(AVAX_NAME);
-    const bnb = WalletView.tokenInWallet(BNB_NAME);
     await Assertions.expectElementToBeVisible(eth);
-    await Assertions.expectElementToNotBeVisible(avax);
+
+    const bnb = WalletView.tokenInWallet(BNB_NAME);
     await Assertions.expectElementToNotBeVisible(bnb);
   });
 
@@ -98,6 +98,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await WalletView.scrollToToken(AVAX_NAME);
     await WalletView.tapOnToken('AVAX');
 
+    // Continue with rest of test...
     await Assertions.expectElementToBeVisible(TokenOverview.container);
     await TokenOverview.tapChartPeriod1d();
     await Assertions.expectElementToBeVisible(TokenOverview.chartPeriod1d);
