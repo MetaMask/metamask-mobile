@@ -59,6 +59,7 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
   isAndroid: jest.fn(),
   isIos: jest.fn(),
+  isMediumDevice: jest.fn(),
 }));
 
 // expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
@@ -97,7 +98,9 @@ jest.mock('../../../core', () => ({
 
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
-  trace: jest.fn(),
+  trace: jest
+    .fn()
+    .mockReturnValue({ _buffered: true, _name: 'test', _id: 'test' }),
   endTrace: jest.fn(),
 }));
 
@@ -190,6 +193,22 @@ describe('Onboarding', () => {
     (Device.isIphoneX as jest.Mock).mockReturnValue(true);
     (Device.isAndroid as jest.Mock).mockReturnValue(false);
     (Device.isIos as jest.Mock).mockReturnValue(true);
+
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render correctly with medium device and android', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
+    (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (Device.isIos as jest.Mock).mockReturnValue(false);
 
     const { toJSON } = renderScreen(
       Onboarding,
@@ -322,9 +341,13 @@ describe('Onboarding', () => {
         await Promise.resolve();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ChoosePassword',
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
   });
 
@@ -392,7 +415,10 @@ describe('Onboarding', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        { [PREVIOUS_SCREEN]: ONBOARDING },
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          onboardingTraceCtx: expect.any(Object),
+        }),
       );
     });
   });
@@ -578,10 +604,14 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
       );
-      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ChoosePassword',
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
 
     it('should call Apple OAuth login for import wallet flow', async () => {
@@ -623,10 +653,14 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
       );
-      expect(mockNavigate).toHaveBeenCalledWith('Rehydrate', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Rehydrate',
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
 
     it('should handle OAuth login error with user cancellation', async () => {
@@ -758,10 +792,14 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('AccountAlreadyExists', {
-        accountName: 'existing@example.com',
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'AccountAlreadyExists',
+        expect.objectContaining({
+          accountName: 'existing@example.com',
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
 
     it('should navigate to AccountNotFound for new user in import wallet flow', async () => {
@@ -799,10 +837,14 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('AccountNotFound', {
-        accountName: 'newuser@icloud.com',
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'AccountNotFound',
+        expect.objectContaining({
+          accountName: 'newuser@icloud.com',
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
   });
 });
