@@ -18,7 +18,6 @@ import {
   sortNetworkAddressItems,
   getCompatibleNetworksForAccount,
 } from './MultichainAddressRowsList.utils';
-import { useTheme } from '../../../../util/theme';
 
 export interface MultichainAddressRowsListProps {
   accounts?: InternalAccount[];
@@ -37,7 +36,6 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
   style,
   testID = MULTICHAIN_ADDRESS_ROWS_LIST_TEST_ID,
 }) => {
-  const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { style });
   const [searchPattern, setSearchPattern] = useState<string>('');
 

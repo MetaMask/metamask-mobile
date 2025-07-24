@@ -3540,7 +3540,7 @@
     "error": "Error",
     "something_went_wrong": "Oops, something went wrong",
     "report_this_issue": "Report this issue",
-    "no_providers_available": "No providers available", 
+    "no_providers_available": "No providers available",
     "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy!",
     "try_different_amount_to_sell_input": "Try choosing a different cash out destination or try to increase or reduce the amount you want to sell!",
     "webview_received_error": "WebView received error status code: {{code}}",
