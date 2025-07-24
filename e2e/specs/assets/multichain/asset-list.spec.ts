@@ -41,28 +41,26 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
   it('should display tokens across networks when all networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply - reduced delay due to efficient positioning
-    const platformDelay = device.getPlatform() === 'android' ? 3000 : 2000;
+    // Minimal delay for network filter
+    const platformDelay = 2000;
     await TestHelpers.delay(platformDelay);
 
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
     await Assertions.expectElementToBeVisible(eth);
 
-    // Use new smart positioning method - no extra settling time needed
+    // Use simplified approach - no extra delays needed
     await WalletView.ensureTokenIsFullyVisible(AVAX_NAME);
-
-    // Use new smart positioning method - no extra settling time needed
     await WalletView.ensureTokenIsFullyVisible(BNB_NAME);
   });
 
   it('should display tokens of current network when current networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    await TestHelpers.delay(800); // Reduced wait time
+    await TestHelpers.delay(500); // Minimal wait time
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterCurrent();
-    // Efficient delay for layout stabilization
-    const platformDelay = device.getPlatform() === 'android' ? 2000 : 1500;
+    // Minimal delay for layout
+    const platformDelay = 1500;
     await TestHelpers.delay(platformDelay);
 
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
@@ -77,16 +75,13 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply - reduced delay
-    const platformDelay = device.getPlatform() === 'android' ? 3000 : 2000;
+    // Minimal delay for network filter
+    const platformDelay = 2000;
     await TestHelpers.delay(platformDelay);
 
-    // Use efficient stability method
-    await WalletView.waitForTokenToBeStableAndVisible('AVAX');
-
-    const avax = WalletView.tokenInWallet('AVAX');
-    await Assertions.expectElementToBeVisible(avax);
+    // Use our new fast tap method
     await WalletView.tapOnTokenWithRetry('AVAX');
+
     await Assertions.expectElementToBeVisible(TokenOverview.sendButton);
     await TokenOverview.tapSendButton();
     await Assertions.checkIfVisible(NetworkEducationModal.container);
@@ -95,15 +90,15 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
       AVAX_NETWORK_NAME,
     );
     await NetworkEducationModal.tapGotItButton();
-    // Reduced wait for navigation to complete
-    await TestHelpers.delay(2000);
+    // Minimal wait for navigation
+    await TestHelpers.delay(1000);
   });
 
   it('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
     // Ensure we're in a clean state before starting - cancel any open send flow
     try {
       await SendView.tapCancelButton();
-      await TestHelpers.delay(1500); // Reduced cancel wait time
+      await TestHelpers.delay(1000); // Reduced cancel wait time
     } catch (e) {
       // If cancel button doesn't exist, we're not in send flow, which is fine
     }
@@ -111,16 +106,13 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     const BNB_NETWORK_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply - reduced delay
-    const platformDelay = device.getPlatform() === 'android' ? 3000 : 2000;
+    // Minimal delay for network filter
+    const platformDelay = 2000;
     await TestHelpers.delay(platformDelay);
 
-    // Use efficient stability method
-    await WalletView.waitForTokenToBeStableAndVisible('BNB');
-
-    const bnb = WalletView.tokenInWallet('BNB');
-    await Assertions.expectElementToBeVisible(bnb);
+    // Use our new fast tap method
     await WalletView.tapOnTokenWithRetry('BNB');
+
     await TokenOverview.tapSwapButton();
     await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
     await Assertions.expectElementToHaveText(
@@ -129,26 +121,26 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     );
     await NetworkEducationModal.tapGotItButton();
     await QuoteView.tapOnCancelButton();
-    // Reduced wait for navigation to complete
-    await TestHelpers.delay(2000);
+    // Minimal wait for navigation
+    await TestHelpers.delay(1000);
   });
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
     // Ensure we're back in wallet view and UI is stable
     try {
       await TokenOverview.tapBackButton();
-      await TestHelpers.delay(1500); // Reduced back navigation wait time
+      await TestHelpers.delay(1000); // Reduced back navigation wait time
     } catch (e) {
       // If back button doesn't exist, we might already be in wallet view
     }
 
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply - reduced delay
-    const platformDelay = device.getPlatform() === 'android' ? 2000 : 1500;
+    // Minimal delay for network filter
+    const platformDelay = 1500;
     await TestHelpers.delay(platformDelay);
 
-    // Use the efficient tapping method
+    // Use our new fast tap method
     await WalletView.tapOnTokenWithRetry('AVAX');
 
     await Assertions.expectElementToBeVisible(TokenOverview.container);

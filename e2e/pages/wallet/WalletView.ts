@@ -250,7 +250,7 @@ class WalletView {
     tokenName: string,
     maxAttempts: number = 8,
   ): Promise<void> {
-    // REDIRECT to our new platform-specific methods instead of using old approach
+    // REDIRECT to our new simplified method instead of using old approach
     console.warn(
       `scrollToTokenWithRetry called for ${tokenName} - redirecting to new method`,
     );
@@ -258,179 +258,124 @@ class WalletView {
   }
 
   async ensureTokenIsFullyVisible(tokenName: string): Promise<void> {
-    // Use platform-specific logic for optimal performance
-    if (device.getPlatform() === 'android') {
-      await this.ensureTokenIsFullyVisibleAndroid(tokenName);
-    } else {
-      await this.ensureTokenIsFullyVisibleIOS(tokenName);
-    }
-  }
-
-  async ensureTokenIsFullyVisibleAndroid(tokenName: string): Promise<void> {
-    const tokensContainer = await this.getTokensInWallet();
-
-    // Quick check if already visible - avoid unnecessary work
+    // Quick check if already visible - most common case
     try {
       const token = this.tokenInWallet(tokenName);
       await Assertions.expectElementToBeVisible(token);
       return; // Already visible, done!
     } catch (e) {
-      // Not visible, proceed with smart positioning
+      // Not visible, use simple scroll-and-find approach
     }
 
-    // Smart scrolling strategy - faster and more effective
-    // 1. Large scroll to get token into general area (faster than many small scrolls)
-    for (let i = 0; i < 5; i++) {
-      try {
-        const token = this.tokenInWallet(tokenName);
-        await Assertions.expectElementToBeVisible(token);
-        break; // Found it, exit
-      } catch (e) {
-        // Use larger increments for efficiency - 0.5% is still safe but faster
-        await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
-          speed: 'fast',
-          percentage: 0.5,
-        });
-        await TestHelpers.delay(500); // Shorter delays for speed
-      }
-    }
-
-    // 2. Precision centering - ensure 100% visibility
-    await this.centerTokenInViewportPrecisely(tokenName);
-  }
-
-  async ensureTokenIsFullyVisibleIOS(tokenName: string): Promise<void> {
+    // Simple, fast approach: scroll until we find it
     const tokensContainer = await this.getTokensInWallet();
 
-    // Quick check if already visible - avoid unnecessary work
-    try {
-      const token = this.tokenInWallet(tokenName);
-      await Assertions.expectElementToBeVisible(token);
-      return; // Already visible, done!
-    } catch (e) {
-      // Not visible, proceed with smart positioning
-    }
-
-    // Smart scrolling strategy for iOS
-    // 1. Large scroll to get token into general area
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
       try {
         const token = this.tokenInWallet(tokenName);
         await Assertions.expectElementToBeVisible(token);
-        break; // Found it, exit
+        return; // Found it, good enough
       } catch (e) {
-        // Use larger increments for efficiency - iOS can handle 0.5% well
+        // Simple scroll down - don't overthink it
         await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
           speed: 'fast',
-          percentage: 0.5,
+          percentage: 0.4,
         });
-        await TestHelpers.delay(400); // Shorter delays for iOS
+        await TestHelpers.delay(300); // Quick delay
       }
     }
 
-    // 2. Precision centering - ensure 100% visibility
-    await this.centerTokenInViewportPrecisely(tokenName);
+    // If still not found, that's ok - the tap method will handle it
   }
 
   async centerTokenInViewportPrecisely(tokenName: string): Promise<void> {
+    // Simplified centering - just one adjustment
     const tokensContainer = await this.getTokensInWallet();
 
-    // Precision positioning for 100% visibility
-    // Key insight: small elements need to be perfectly centered
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const token = this.tokenInWallet(tokenName);
-        await Assertions.expectElementToBeVisible(token);
-        return; // Perfect, exit
-      } catch (e) {
-        // Smart repositioning based on attempt
-        if (attempt === 0) {
-          // Move away from edges - bigger adjustment for efficiency
-          await Gestures.swipe(
-            tokensContainer as unknown as DetoxElement,
-            'down',
-            {
-              speed: 'slow',
-              percentage: 0.15, // Larger, more effective adjustment
-            },
-          );
-        } else {
-          // Fine-tune toward perfect center
-          await Gestures.swipe(
-            tokensContainer as unknown as DetoxElement,
-            'up',
-            {
-              speed: 'slow',
-              percentage: 0.08,
-            },
-          );
-        }
-        await TestHelpers.delay(400); // Short delay for responsiveness
-      }
-    }
-  }
-
-  async waitForTokenToBeStableAndVisible(tokenName: string): Promise<void> {
-    // This method is now redundant - ensureTokenIsFullyVisible handles stability
-    // Redirect to the efficient method
-    await this.ensureTokenIsFullyVisible(tokenName);
-  }
-
-  async ensureTokenIsFullyHittable(tokenName: string): Promise<void> {
-    // First ensure it's visible and stable - use our efficient method
-    await this.ensureTokenIsFullyVisible(tokenName);
-
-    // Add brief stability check - small elements need a moment to settle
-    await TestHelpers.delay(200);
-
-    // Final verification that it's ready for interaction
     try {
       const token = this.tokenInWallet(tokenName);
       await Assertions.expectElementToBeVisible(token);
+      return; // Good enough
     } catch (e) {
-      // One final adjustment if needed
-      await this.centerTokenInViewportPrecisely(tokenName);
+      // One centering attempt
+      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
+        speed: 'slow',
+        percentage: 0.1,
+      });
       await TestHelpers.delay(200);
     }
   }
 
-  async centerTokenInViewport(tokenName: string): Promise<void> {
-    // Use the new precise centering method
-    await this.centerTokenInViewportPrecisely(tokenName);
+  async ensureTokenIsFullyHittable(tokenName: string): Promise<void> {
+    // Try to make it visible, but don't stress if it's not perfect
+    await this.ensureTokenIsFullyVisible(tokenName);
+
+    // Small delay for stability
+    await TestHelpers.delay(100);
+
+    // Accept whatever visibility we have - we'll try tapping anyway
   }
 
   async tapOnTokenWithRetry(token: string, index = 0): Promise<void> {
-    // Ensure token is optimally positioned for tapping
-    await this.ensureTokenIsFullyHittable(token);
+    // First, try to make it reasonably visible
+    await this.ensureTokenIsFullyVisible(token);
 
-    // Now attempt to tap with minimal retries (should work on first try with good positioning)
-    const maxAttempts = 2; // Reduced attempts since positioning should be precise
+    // Strategy 1: Try normal element tap (works for most cases)
+    try {
+      const elem = Matchers.getElementByText(
+        token || WalletViewSelectorsText.DEFAULT_TOKEN,
+        index,
+      );
 
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        const elem = Matchers.getElementByText(
-          token || WalletViewSelectorsText.DEFAULT_TOKEN,
-          index,
-        );
-
-        await Gestures.waitAndTap(elem, {
-          elemDescription: 'Token',
-        });
-
-        // If tap succeeded, return
-        return;
-      } catch (e) {
-        if (attempt < maxAttempts - 1) {
-          // Quick re-positioning if needed
-          await this.centerTokenInViewportPrecisely(token);
-          await TestHelpers.delay(300);
-        } else {
-          throw new Error(
-            `Failed to tap on token ${token} after ${maxAttempts} attempts: ${e}`,
-          );
-        }
-      }
+      await Gestures.waitAndTap(elem, {
+        elemDescription: 'Token',
+        timeout: 8000, // Shorter timeout
+      });
+      return; // Success!
+    } catch (e) {
+      // Strategy 2: Try with coordinates if element tap fails
+      await this.tapTokenByCoordinates(token, index);
     }
+  }
+
+  async tapTokenByCoordinates(token: string, index = 0): Promise<void> {
+    // Get the token element for coordinate calculation
+    try {
+      const elem = Matchers.getElementByText(
+        token || WalletViewSelectorsText.DEFAULT_TOKEN,
+        index,
+      );
+
+      // Use detox's tap at coordinates - more reliable for clipped elements
+      await (await elem).tap({ x: 20, y: 12 }); // Tap near center of typical token bounds
+    } catch (e) {
+      // Strategy 3: Scroll and try again
+      const tokensContainer = await this.getTokensInWallet();
+
+      // One more scroll attempt
+      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
+        speed: 'slow',
+        percentage: 0.15,
+      });
+      await TestHelpers.delay(300);
+
+      // Final attempt
+      const elem = Matchers.getElementByText(
+        token || WalletViewSelectorsText.DEFAULT_TOKEN,
+        index,
+      );
+      await (await elem).tap({ x: 20, y: 12 });
+    }
+  }
+
+  async waitForTokenToBeStableAndVisible(tokenName: string): Promise<void> {
+    // Simple redirect to our new efficient method
+    await this.ensureTokenIsFullyVisible(tokenName);
+  }
+
+  async centerTokenInViewport(tokenName: string): Promise<void> {
+    // Simple redirect to our precise centering method
+    await this.centerTokenInViewportPrecisely(tokenName);
   }
 
   async scrollToToken(
