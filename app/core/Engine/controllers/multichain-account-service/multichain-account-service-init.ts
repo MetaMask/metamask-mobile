@@ -19,5 +19,5 @@ export const multichainAccountServiceInit: ControllerInitFunction<
     messenger: controllerMessenger,
   });
 
-  return { controller };
+  return { controller, memStateKey: null, persistedStateKey: null };
 };
