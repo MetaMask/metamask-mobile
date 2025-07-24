@@ -101,7 +101,10 @@ async function handleDapps(
     }
     dappServer[i].listen(`${dappBasePort + i}`);
     await new Promise((resolve, reject) => {
-      dappServer[i].on('listening', resolve);
+      dappServer[i].on('listening', () => {
+        logger.debug(`Dapp server listening on port ${dappBasePort + i}`);
+        resolve(undefined);
+      });
       dappServer[i].on('error', reject);
     });
   }

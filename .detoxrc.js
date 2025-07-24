@@ -28,6 +28,15 @@ module.exports = {
     },
     retries: 1,
   },
+    session: {
+    sessionId: 'session',
+    debugSynchronization: 30000,
+    cleanup: {
+      shutdownDevice: false,
+      shutdownApp: true,
+      timeoutMs: 15000,
+    },
+  },
   configurations: {
     'ios.sim.apiSpecs': {
       device: 'ios.simulator',

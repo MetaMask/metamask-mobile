@@ -1,8 +1,5 @@
-import FixtureBuilder from './fixtures/fixture-builder';
-import {
-  DEFAULT_SOLANA_TEST_DAPP_PATH,
-  withFixtures,
-} from './fixtures/fixture-helper';
+import FixtureBuilder from './framework/fixtures/FixtureBuilder';
+import { withFixtures } from './framework/fixtures/FixtureHelper';
 import { loginToApp } from './viewHelper';
 import TestHelpers from './helpers';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
@@ -10,7 +7,10 @@ import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/Ad
 import WalletView from './pages/wallet/WalletView';
 import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
-import Assertions from './utils/Assertions';
+import Assertions from './framework/Assertions';
+import { DappVariants } from './framework/Constants';
+// eslint-disable-next-line import/no-nodejs-modules
+import path from 'path';
 
 export async function withSolanaAccountEnabled(
   {
@@ -38,11 +38,18 @@ export async function withSolanaAccountEnabled(
   }
   const fixtures = fixtureBuilder.build();
 
+  // Resolve the dappPath if provided to ensure it's an absolute path
+  const resolvedDappPath = dappPath ? path.resolve(__dirname, dappPath) : undefined;
+
   await withFixtures(
     {
       fixture: fixtures,
-      dapp: true,
-      dappPath: dappPath ?? DEFAULT_SOLANA_TEST_DAPP_PATH,
+      dapps: [
+        {
+          dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          dappPath: resolvedDappPath,
+        },
+      ],
       restartDevice: true,
     },
     async () => {
@@ -58,7 +65,7 @@ export async function withSolanaAccountEnabled(
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapAddSolanaAccount();
         await AddNewHdAccountComponent.tapConfirm();
-        await Assertions.checkIfElementToHaveText(
+        await Assertions.expectElementToHaveText(
           WalletView.accountName,
           `Solana Account ${i + 1}`,
         );

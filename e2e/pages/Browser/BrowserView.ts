@@ -7,8 +7,8 @@ import {
 import { AccountOverviewSelectorsIDs } from '../../selectors/Browser/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import { waitForTestDappToLoad } from '../../viewHelper';
 import {
   getLocalTestDappUrl,
@@ -143,77 +143,110 @@ class Browser {
   }
 
   async tapOpenAllTabsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.tabsButton, { delayBeforeTap: 4000 });
+    await Gestures.waitAndTap(this.tabsButton, {
+      elemDescription: 'Open all tabs button',
+    });
   }
 
   async tapSecondTabButton(): Promise<void> {
     // the interger value is the tabID.
     // This value comes from the `browser` object in fixture builder
     const secondTab = Matchers.getElementByID('browser-tab-1749234797566');
-    await Gestures.waitAndTap(secondTab);
+    await Gestures.waitAndTap(secondTab, {
+      elemDescription: 'Second tab button',
+    });
   }
 
   async tapFirstTabButton(): Promise<void> {
     // the interger value is the tabID.
     // This value comes from the `browser` object in fixture builder
     const secondTab = Matchers.getElementByID('browser-tab-1692550481062');
-    await Gestures.waitAndTap(secondTab);
+    await Gestures.waitAndTap(secondTab, {
+      elemDescription: 'First tab button',
+    });
   }
 
   async tapCloseTabsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeAllTabsButton);
+    await Gestures.waitAndTap(this.closeAllTabsButton, {
+      elemDescription: 'Close all tabs button',
+    });
   }
 
   async tapCloseSecondTabButton(): Promise<void> {
     // the interger value is the tabID.
     // This value comes from the `browser` object in fixture builder
     const secondTab = Matchers.getElementByID('tab-close-button-1749234797566');
-    await Gestures.waitAndTap(secondTab);
+    await Gestures.waitAndTap(secondTab, {
+      elemDescription: 'Close second tab button',
+    });
   }
 
   async tapOpenNewTabButton(): Promise<void> {
-    await Gestures.waitAndTap(this.multiTabButton);
+    await Gestures.waitAndTap(this.multiTabButton, {
+      elemDescription: 'Open new tab button',
+    });
   }
 
   async tapNetworkAvatarOrAccountButtonOnBrowser(): Promise<void> {
-    await TestHelpers.delay(4000);
-    await Gestures.waitAndTap(this.networkAvatarOrAccountButton);
+    await Gestures.waitAndTap(this.networkAvatarOrAccountButton, {
+      elemDescription: 'Network avatar or account button',
+    });
   }
 
   async tapAddToFavoritesButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addFavouritesButton);
+    await Gestures.waitAndTap(this.addFavouritesButton, {
+      elemDescription: 'Add to favorites button',
+    });
   }
 
   async tapAddBookmarksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addBookmarkButton);
+    await Gestures.waitAndTap(this.addBookmarkButton, {
+      elemDescription: 'Add bookmarks button',
+    });
   }
 
   async tapHomeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.homeButton);
+    await Gestures.waitAndTap(this.homeButton, {
+      elemDescription: 'Home button',
+    });
   }
 
   async tapBackToSafetyButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backToSafetyButton);
+    await Gestures.waitAndTap(this.backToSafetyButton, {
+      elemDescription: 'Back to safety button',
+    });
   }
 
   async tapReturnHomeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.returnHomeButton);
+    await Gestures.waitAndTap(this.returnHomeButton, {
+      elemDescription: 'Return home button',
+    });
   }
 
   async tapDappInFavorites(): Promise<void> {
     if (device.getPlatform() === 'ios') {
-      await Gestures.tapWebElement(this.testDappURLInFavouritesTab);
+      await Gestures.tap(this.testDappURLInFavouritesTab, {
+        elemDescription: 'Test dapp URL in favorites tab',
+      });
     } else {
-      await Gestures.tapWebElement(this.homePageFavouritesTab);
-      await Gestures.tapWebElement(this.testDappURLInFavouritesTab);
+      await Gestures.tap(this.homePageFavouritesTab, {
+        elemDescription: 'Home page favorites tab',
+      });
+      await Gestures.tap(this.testDappURLInFavouritesTab, {
+        elemDescription: 'Test dapp URL in favorites tab',
+      });
     }
   }
 
   async navigateToURL(url: string): Promise<void> {
     await device.disableSynchronization(); // because animations makes typing into the browser slow
-    await Gestures.typeTextAndHideKeyboard(
+    await Gestures.typeText(
       this.urlInputBoxID as Promise<IndexableNativeElement>,
       url,
+      {
+        hideKeyboard: true,
+        elemDescription: 'URL input box',
+      },
     );
     await device.enableSynchronization(); // re-enabling synchronization
   }
