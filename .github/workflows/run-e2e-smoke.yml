@@ -12,7 +12,7 @@ on:
 jobs:
   smoke-confirmations-ios:
     name: "Confirmations Smoke (iOS)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    #if: false # github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-confirmations-ios
@@ -23,7 +23,7 @@ jobs:
     secrets: inherit
   smoke-trade-ios:
     name: "Trade Smoke (iOS)"
-    if: false # github.event.label.name == 'Run E2E Smoke Test'
+    #if: false # github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-trade-ios
