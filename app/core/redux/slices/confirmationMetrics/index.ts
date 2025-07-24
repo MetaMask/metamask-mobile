@@ -3,6 +3,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
+import { QuoteResponse } from '@metamask/bridge-controller';
 
 export interface ConfirmationMetrics {
   properties?: Record<string, unknown>;
@@ -17,11 +18,13 @@ export interface TransactionPayToken {
 export interface ConfirmationMetricsState {
   metricsById: Record<string, ConfirmationMetrics>;
   transactionPayTokenById: Record<string, TransactionPayToken>;
+  transactionBridgeQuotesById: Record<string, QuoteResponse[] | undefined>;
 }
 
 export const initialState: ConfirmationMetricsState = {
   metricsById: {},
   transactionPayTokenById: {},
+  transactionBridgeQuotesById: {},
 };
 
 const name = 'confirmationMetrics';
@@ -59,6 +62,17 @@ const slice = createSlice({
       const { transactionId, payToken } = action.payload;
       state.transactionPayTokenById[transactionId] = payToken;
     },
+
+    setTransactionBridgeQuotes: (
+      state,
+      action: PayloadAction<{
+        transactionId: string;
+        quotes: QuoteResponse[] | undefined;
+      }>,
+    ) => {
+      const { transactionId, quotes } = action.payload;
+      state.transactionBridgeQuotesById[transactionId] = quotes;
+    },
   },
 });
 
@@ -67,7 +81,11 @@ const { actions, reducer } = slice;
 export default reducer;
 
 // Actions
-export const { updateConfirmationMetric, setTransactionPayToken } = actions;
+export const {
+  updateConfirmationMetric,
+  setTransactionPayToken,
+  setTransactionBridgeQuotes,
+} = actions;
 
 // Selectors
 export const selectConfirmationMetrics = (state: RootState) =>
@@ -79,4 +97,11 @@ export const selectTransactionPayToken = (state: RootState, id: string) =>
 export const selectConfirmationMetricsById = createSelector(
   [selectConfirmationMetrics, (_: RootState, id: string) => id],
   (metricsById, id) => metricsById[id],
+);
+
+export const selectTransactionBridgeQuotesById = createSelector(
+  (state: RootState) => state[name].transactionBridgeQuotesById,
+  (_: RootState, transactionId: string) => transactionId,
+  (transactionBridgeQuotesById, transactionId) =>
+    transactionBridgeQuotesById[transactionId],
 );
