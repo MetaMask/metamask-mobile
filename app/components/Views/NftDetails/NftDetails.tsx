@@ -188,7 +188,7 @@ const NftDetails = () => {
       newAssetTransaction({ contractName: collectible.name, ...collectible }),
     );
     navigateToSendPage(collectible);
-  }, [collectible, chainId, dispatch, navigation]);
+  }, [collectible, chainId, dispatch, navigation, navigateToSendPage]);
 
   const isTradable = useCallback(
     () =>

@@ -325,6 +325,7 @@ const WalletActions = () => {
     createEventBuilder,
     selectedAsset,
     assetToSend,
+    navigateToSendPage,
     sendNonEvmAsset,
   ]);
 
