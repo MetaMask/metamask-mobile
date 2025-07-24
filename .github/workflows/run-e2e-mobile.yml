@@ -266,3 +266,27 @@ jobs:
           name: ${{ inputs.test-suite-name }}-screenshots
           path: artifacts/
           retention-days: 7
+
+smoke-performance-ios:
+  name: "Performance Smoke (iOS)"
+  if: github.event.label.name == 'Run E2E Smoke Test'
+  uses: ./.github/workflows/run-e2e-mobile.yml
+  with:
+    test-suite-name: smoke-performance-ios
+    platform: ios
+    test_suite_tag: ".*Performance.*"
+    smoke-category: performance
+    use_prebuilt_apps: true
+  secrets: inherit
+
+smoke-performance-android:
+  name: "Performance Smoke (Android)" 
+  if: github.event.label.name == 'Run E2E Smoke Test'
+  uses: ./.github/workflows/run-e2e-mobile.yml
+  with:
+    test-suite-name: smoke-performance-android
+    platform: android
+    test_suite_tag: ".*Performance.*"
+    smoke-category: performance
+    use_prebuilt_apps: true
+  secrets: inherit
