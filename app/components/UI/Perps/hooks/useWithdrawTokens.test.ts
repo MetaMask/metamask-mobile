@@ -30,13 +30,13 @@ describe('useWithdrawTokens', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock enhanceTokenWithIcon to add image property
     (enhanceTokenWithIcon as jest.Mock).mockImplementation(({ token }) => ({
       ...token,
       image: 'https://test.com/usdc.png',
     }));
-    
+
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector.name === 'selectTokenList') {
         return mockTokenList;
@@ -61,7 +61,9 @@ describe('useWithdrawTokens', () => {
     expect(result.current.sourceToken.symbol).toBe(USDC_SYMBOL);
     expect(result.current.sourceToken.decimals).toBe(USDC_DECIMALS);
     expect(result.current.sourceToken.name).toBe(USDC_NAME);
-    expect(result.current.sourceToken.chainId).toBe(HYPERLIQUID_MAINNET_CHAIN_ID);
+    expect(result.current.sourceToken.chainId).toBe(
+      HYPERLIQUID_MAINNET_CHAIN_ID,
+    );
     expect(result.current.sourceToken.currencyExchangeRate).toBe(1);
   });
 
@@ -76,7 +78,7 @@ describe('useWithdrawTokens', () => {
   });
 
   it('should work with token list', () => {
-    // For this test, just verify that when tokenList is present, 
+    // For this test, just verify that when tokenList is present,
     // the tokens are still returned with the expected properties
     const { result } = renderHook(() => useWithdrawTokens());
 

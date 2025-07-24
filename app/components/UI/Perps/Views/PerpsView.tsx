@@ -1,10 +1,10 @@
 /**
  * PerpsView - Debug/Development View for Perps Trading
- * 
- * This is a development and testing view that provides direct access to 
- * controller functionality and debug information. This view is NOT intended 
+ *
+ * This is a development and testing view that provides direct access to
+ * controller functionality and debug information. This view is NOT intended
  * for production use and should not be visible to end users in the final app.
- * 
+ *
  * Features:
  * - Account balance monitoring
  * - Network switching (testnet/mainnet)
@@ -15,11 +15,7 @@
  */
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  TouchableOpacity,
-  View,
-  type DimensionValue,
-} from 'react-native';
+import { TouchableOpacity, View, type DimensionValue } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -51,7 +47,7 @@ import PerpsLoader from '../components/PerpsLoader';
 import PerpsWithdrawalMonitor from '../components/PerpsWithdrawalMonitor';
 import { PerpsNavigationParamList } from '../types/navigation';
 
-interface PerpsViewProps { }
+interface PerpsViewProps {}
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;

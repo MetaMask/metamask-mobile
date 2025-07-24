@@ -25,7 +25,9 @@ jest.mock('../../../../../locales/i18n', () => ({
       return 'Insufficient funds';
     }
     if (key === 'perps.withdrawal.minimum_amount_error') {
-      return params?.amount ? `Minimum amount: ${params.amount}` : 'Minimum amount required';
+      return params?.amount
+        ? `Minimum amount: ${params.amount}`
+        : 'Minimum amount required';
     }
     if (key === 'perps.withdrawal.enter_amount') {
       return 'Enter amount';
@@ -41,7 +43,8 @@ import { usePerpsAccount, usePerpsNetwork } from './index';
 
 describe('useWithdrawValidation', () => {
   const mockRoute = {
-    assetId: 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
+    assetId:
+      'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
     chainId: 'eip155:42161',
     constraints: {
       minAmount: '2.00',
@@ -58,12 +61,14 @@ describe('useWithdrawValidation', () => {
       availableBalance: '$1000.00',
     });
     (usePerpsNetwork as jest.Mock).mockReturnValue('mainnet');
-    (Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock).mockReturnValue([mockRoute]);
+    (
+      Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock
+    ).mockReturnValue([mockRoute]);
   });
 
   it('should parse available balance correctly', () => {
-    const { result } = renderHook(() => 
-      useWithdrawValidation({ withdrawAmount: '100' })
+    const { result } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '100' }),
     );
 
     expect(result.current.availableBalance).toBe('1000.00');
@@ -74,32 +79,32 @@ describe('useWithdrawValidation', () => {
       availableBalance: null,
     });
 
-    const { result } = renderHook(() => 
-      useWithdrawValidation({ withdrawAmount: '100' })
+    const { result } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '100' }),
     );
 
     expect(result.current.availableBalance).toBe('0');
   });
 
   it('should detect insufficient balance', () => {
-    const { result } = renderHook(() => 
-      useWithdrawValidation({ withdrawAmount: '1500' })
+    const { result } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '1500' }),
     );
 
     expect(result.current.hasInsufficientBalance).toBe(true);
   });
 
   it('should detect amount below minimum', () => {
-    const { result } = renderHook(() => 
-      useWithdrawValidation({ withdrawAmount: '1.5' })
+    const { result } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '1.5' }),
     );
 
     expect(result.current.isBelowMinimum).toBe(true);
   });
 
   it('should validate valid amount', () => {
-    const { result } = renderHook(() => 
-      useWithdrawValidation({ withdrawAmount: '100' })
+    const { result } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '100' }),
     );
 
     expect(result.current.hasInsufficientBalance).toBe(false);
@@ -108,45 +113,49 @@ describe('useWithdrawValidation', () => {
   });
 
   it('should use default minimum when route constraints missing', () => {
-    (Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock).mockReturnValue([]);
+    (
+      Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock
+    ).mockReturnValue([]);
 
-    const { result } = renderHook(() => 
-      useWithdrawValidation({ withdrawAmount: '1' })
+    const { result } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '1' }),
     );
 
     // Default minimum is 1.01
     expect(result.current.isBelowMinimum).toBe(true);
-    expect(result.current.getMinimumAmount()).toBe(parseFloat(WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT));
+    expect(result.current.getMinimumAmount()).toBe(
+      parseFloat(WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT),
+    );
   });
 
   describe('getButtonLabel', () => {
     it('should return insufficient funds message', () => {
-      const { result } = renderHook(() => 
-        useWithdrawValidation({ withdrawAmount: '1500' })
+      const { result } = renderHook(() =>
+        useWithdrawValidation({ withdrawAmount: '1500' }),
       );
 
       expect(result.current.getButtonLabel()).toBe('Insufficient funds');
     });
 
     it('should return minimum amount error', () => {
-      const { result } = renderHook(() => 
-        useWithdrawValidation({ withdrawAmount: '1' })
+      const { result } = renderHook(() =>
+        useWithdrawValidation({ withdrawAmount: '1' }),
       );
 
       expect(result.current.getButtonLabel()).toBe('Minimum amount: 2');
     });
 
     it('should return enter amount message', () => {
-      const { result } = renderHook(() => 
-        useWithdrawValidation({ withdrawAmount: '' })
+      const { result } = renderHook(() =>
+        useWithdrawValidation({ withdrawAmount: '' }),
       );
 
       expect(result.current.getButtonLabel()).toBe('Enter amount');
     });
 
     it('should return withdraw message for valid amount', () => {
-      const { result } = renderHook(() => 
-        useWithdrawValidation({ withdrawAmount: '100' })
+      const { result } = renderHook(() =>
+        useWithdrawValidation({ withdrawAmount: '100' }),
       );
 
       expect(result.current.getButtonLabel()).toBe('Withdraw USDC');
@@ -156,7 +165,8 @@ describe('useWithdrawValidation', () => {
   it('should handle testnet network', () => {
     (usePerpsNetwork as jest.Mock).mockReturnValue('testnet');
     const testnetRoute = {
-      assetId: 'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default',
+      assetId:
+        'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default',
       chainId: 'eip155:421614',
       constraints: {
         minAmount: '2.00',
@@ -166,10 +176,12 @@ describe('useWithdrawValidation', () => {
         },
       },
     };
-    (Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock).mockReturnValue([testnetRoute]);
+    (
+      Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock
+    ).mockReturnValue([testnetRoute]);
 
-    const { result } = renderHook(() => 
-      useWithdrawValidation({ withdrawAmount: '100' })
+    const { result } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '100' }),
     );
 
     expect(result.current.withdrawalRoute).toEqual(testnetRoute);

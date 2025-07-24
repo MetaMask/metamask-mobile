@@ -3,7 +3,7 @@ import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { getBridgeInfo, getChainId } from '../../constants/hyperLiquidConfig';
-import { WITHDRAWAL_CONSTANTS } from '../../constants/perpsConfig';
+import { WITHDRAWAL_CONSTANTS , PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -59,7 +59,6 @@ import type {
   WithdrawResult,
 } from '../types';
 import { strings } from '../../../../../../locales/i18n';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 /**
  * HyperLiquid provider implementation

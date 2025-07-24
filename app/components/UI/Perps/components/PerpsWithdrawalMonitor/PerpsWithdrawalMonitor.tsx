@@ -71,9 +71,7 @@ const PerpsWithdrawalMonitor: React.FC<PerpsWithdrawalMonitorProps> = ({
       const updated = updatedWithdrawals.find(
         (w) => w.withdrawalId === current.id,
       );
-      return (
-        current.status !== 'completed' && updated?.status === 'completed'
-      );
+      return current.status !== 'completed' && updated?.status === 'completed';
     }).length;
 
     if (completedCount > 0) {
@@ -148,7 +146,10 @@ const PerpsWithdrawalMonitor: React.FC<PerpsWithdrawalMonitorProps> = ({
           ...
         </Text>
         {/* Debug: Link to Arbiscan */}
-        <TouchableOpacity onPress={handleOpenArbiscan} style={styles.linkButton}>
+        <TouchableOpacity
+          onPress={handleOpenArbiscan}
+          style={styles.linkButton}
+        >
           <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
             🔗 View on Arbiscan
           </Text>

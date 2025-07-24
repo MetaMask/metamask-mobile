@@ -68,7 +68,7 @@ describe('PerpsWithdrawalMonitor', () => {
     jest.clearAllMocks();
     (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('100');
     (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([]);
-    
+
     // Mock useSelector to return appropriate values based on selector
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectContractBalances) {
@@ -87,7 +87,7 @@ describe('PerpsWithdrawalMonitor', () => {
     render(
       <ToastContext.Provider value={{ toastRef: mockToastRef }}>
         <PerpsWithdrawalMonitor {...defaultProps} {...props} />
-      </ToastContext.Provider>
+      </ToastContext.Provider>,
     );
 
   it('should not render when there are no pending withdrawals', () => {
@@ -96,11 +96,13 @@ describe('PerpsWithdrawalMonitor', () => {
   });
 
   it('should render single withdrawal correctly', () => {
-    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([{
-      withdrawalId: '123',
-      amount: '50',
-      status: 'pending',
-    }]);
+    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([
+      {
+        withdrawalId: '123',
+        amount: '50',
+        status: 'pending',
+      },
+    ]);
 
     const { getByText } = renderComponent();
 
@@ -110,11 +112,13 @@ describe('PerpsWithdrawalMonitor', () => {
   });
 
   it('should render processing withdrawal correctly', () => {
-    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([{
-      withdrawalId: '123',
-      amount: '50',
-      status: 'processing',
-    }]);
+    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([
+      {
+        withdrawalId: '123',
+        amount: '50',
+        status: 'processing',
+      },
+    ]);
 
     const { getByText } = renderComponent();
 
@@ -134,27 +138,35 @@ describe('PerpsWithdrawalMonitor', () => {
   });
 
   it('should handle check status button click', async () => {
-    const mockWithdrawals = [{
-      withdrawalId: '123',
-      amount: '50',
-      status: 'pending',
-    }];
+    const mockWithdrawals = [
+      {
+        withdrawalId: '123',
+        amount: '50',
+        status: 'pending',
+      },
+    ];
     (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue(mockWithdrawals);
 
     // Set initial state as pending
-    Engine.context.PerpsController.state.pendingWithdrawals = [{
-      withdrawalId: '123',
-      amount: '50',
-      status: 'pending',
-    }];
-
-    // Mock monitorPendingWithdrawals to update the state to completed
-    (Engine.context.PerpsController.monitorPendingWithdrawals as jest.Mock).mockImplementation(() => {
-      Engine.context.PerpsController.state.pendingWithdrawals = [{
+    Engine.context.PerpsController.state.pendingWithdrawals = [
+      {
         withdrawalId: '123',
         amount: '50',
-        status: 'completed',
-      }];
+        status: 'pending',
+      },
+    ];
+
+    // Mock monitorPendingWithdrawals to update the state to completed
+    (
+      Engine.context.PerpsController.monitorPendingWithdrawals as jest.Mock
+    ).mockImplementation(() => {
+      Engine.context.PerpsController.state.pendingWithdrawals = [
+        {
+          withdrawalId: '123',
+          amount: '50',
+          status: 'completed',
+        },
+      ];
     });
 
     const { getByText } = renderComponent();
@@ -163,7 +175,9 @@ describe('PerpsWithdrawalMonitor', () => {
     fireEvent.press(checkButton);
 
     await waitFor(() => {
-      expect(Engine.context.PerpsController.monitorPendingWithdrawals).toHaveBeenCalled();
+      expect(
+        Engine.context.PerpsController.monitorPendingWithdrawals,
+      ).toHaveBeenCalled();
     });
 
     expect(mockShowToast).toHaveBeenCalledWith({
@@ -178,11 +192,13 @@ describe('PerpsWithdrawalMonitor', () => {
   });
 
   it('should handle Arbiscan link click', () => {
-    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([{
-      withdrawalId: '123',
-      amount: '50',
-      status: 'pending',
-    }]);
+    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([
+      {
+        withdrawalId: '123',
+        amount: '50',
+        status: 'pending',
+      },
+    ]);
 
     const { getByText } = renderComponent();
 
@@ -190,57 +206,73 @@ describe('PerpsWithdrawalMonitor', () => {
     fireEvent.press(arbiscanLink);
 
     expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://arbiscan.io/token/0xaf88d065e77c8cC2239327C5EDb3A432268e5831?a=0x1234567890123456789012345678901234567890'
+      'https://arbiscan.io/token/0xaf88d065e77c8cC2239327C5EDb3A432268e5831?a=0x1234567890123456789012345678901234567890',
     );
   });
 
   it('should start and stop monitoring on mount/unmount', () => {
-    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([{
-      withdrawalId: '123',
-      amount: '50',
-      status: 'pending',
-    }]);
+    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([
+      {
+        withdrawalId: '123',
+        amount: '50',
+        status: 'pending',
+      },
+    ]);
 
     const { unmount } = renderComponent();
 
-    expect(Engine.context.PerpsController.startWithdrawalMonitoring).toHaveBeenCalled();
+    expect(
+      Engine.context.PerpsController.startWithdrawalMonitoring,
+    ).toHaveBeenCalled();
 
     unmount();
 
-    expect(Engine.context.PerpsController.stopWithdrawalMonitoring).toHaveBeenCalled();
+    expect(
+      Engine.context.PerpsController.stopWithdrawalMonitoring,
+    ).toHaveBeenCalled();
   });
 
   it('should not start monitoring when not connected', () => {
-    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([{
-      withdrawalId: '123',
-      amount: '50',
-      status: 'pending',
-    }]);
+    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([
+      {
+        withdrawalId: '123',
+        amount: '50',
+        status: 'pending',
+      },
+    ]);
 
     renderComponent({ isConnected: false });
 
-    expect(Engine.context.PerpsController.startWithdrawalMonitoring).not.toHaveBeenCalled();
+    expect(
+      Engine.context.PerpsController.startWithdrawalMonitoring,
+    ).not.toHaveBeenCalled();
   });
 
   it('should not start monitoring when not initialized', () => {
-    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([{
-      withdrawalId: '123',
-      amount: '50',
-      status: 'pending',
-    }]);
+    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([
+      {
+        withdrawalId: '123',
+        amount: '50',
+        status: 'pending',
+      },
+    ]);
 
     renderComponent({ isInitialized: false });
 
-    expect(Engine.context.PerpsController.startWithdrawalMonitoring).not.toHaveBeenCalled();
+    expect(
+      Engine.context.PerpsController.startWithdrawalMonitoring,
+    ).not.toHaveBeenCalled();
   });
 
   it('should handle missing USDC balance', () => {
-    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([{
-      withdrawalId: '123',
-      amount: '50',
-      status: 'pending',
-    }]);
-    
+    (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue([
+      {
+        withdrawalId: '123',
+        amount: '50',
+        status: 'pending',
+      },
+    ]);
+
     // Mock useSelector to return empty contract balances
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectContractBalances) {
@@ -251,7 +283,7 @@ describe('PerpsWithdrawalMonitor', () => {
       }
       return null;
     });
-    
+
     (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('0');
 
     const { getByText } = renderComponent();
@@ -260,18 +292,22 @@ describe('PerpsWithdrawalMonitor', () => {
   });
 
   it('should not show toast if no withdrawals completed', async () => {
-    const mockWithdrawals = [{
-      withdrawalId: '123',
-      amount: '50',
-      status: 'pending',
-    }];
+    const mockWithdrawals = [
+      {
+        withdrawalId: '123',
+        amount: '50',
+        status: 'pending',
+      },
+    ];
     (usePerpsPendingWithdrawals as jest.Mock).mockReturnValue(mockWithdrawals);
 
     // Set initial state as pending
     Engine.context.PerpsController.state.pendingWithdrawals = mockWithdrawals;
 
     // Mock monitorPendingWithdrawals to keep the state unchanged (still pending)
-    (Engine.context.PerpsController.monitorPendingWithdrawals as jest.Mock).mockImplementation(() => {
+    (
+      Engine.context.PerpsController.monitorPendingWithdrawals as jest.Mock
+    ).mockImplementation(() => {
       // State remains the same - no completion
       Engine.context.PerpsController.state.pendingWithdrawals = mockWithdrawals;
     });
@@ -282,7 +318,9 @@ describe('PerpsWithdrawalMonitor', () => {
     fireEvent.press(checkButton);
 
     await waitFor(() => {
-      expect(Engine.context.PerpsController.monitorPendingWithdrawals).toHaveBeenCalled();
+      expect(
+        Engine.context.PerpsController.monitorPendingWithdrawals,
+      ).toHaveBeenCalled();
     });
 
     expect(mockShowToast).not.toHaveBeenCalled();
