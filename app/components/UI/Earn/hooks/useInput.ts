@@ -105,7 +105,7 @@ const useInputHandler = ({
       const isValueNaN = isNaN(parseFloat(value));
 
       if (
-        pressedKey === 'BACK' ||
+        pressedKey === 'Back' ||
         isValueNaN ||
         (totalDigits <= MAX_DIGITS &&
           fraction.length <= MAX_FRACTION_DIGITS &&
@@ -114,9 +114,9 @@ const useInputHandler = ({
         if (isValueNaN) {
           if (
             pressedKey === digitsOnly[digitsOnly.length - 1] ||
-            pressedKey === 'PERIOD'
+            pressedKey === 'Period'
           ) {
-            value = pressedKey === 'PERIOD' ? '0.' : pressedKey;
+            value = pressedKey === 'Period' ? '0.' : pressedKey;
           } else {
             value = '0';
           }

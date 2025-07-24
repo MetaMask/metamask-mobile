@@ -11,9 +11,9 @@ export enum Keys {
   Digit8 = '8',
   Digit9 = '9',
   Digit0 = '0',
-  Period = 'PERIOD',
-  Back = 'BACK',
-  Initial = 'INITIAL',
+  Period = 'Period',
+  Back = 'Back',
+  Initial = 'Initial',
 }
 
 interface CurrencyConfig {
