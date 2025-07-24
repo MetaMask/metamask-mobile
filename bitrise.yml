@@ -61,6 +61,12 @@ pipelines:
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android: {}
       - notify: {}
+  #Run single suits or test files
+  run_single_test_suite_ios_android:
+    stages:
+      - build_smoke_e2e_ios_android_stage: {}
+      - run_single_e2e_ios_android_stage: {}
+      - notify: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
@@ -138,6 +144,7 @@ stages:
       - build_ios_qa: {}
       - build_android_devbuild: {}
       - build_ios_devbuild: {}
+      - build_ios_simbuild: {}
   create_build_release:
     workflows:
       - build_android_release: {}
@@ -234,7 +241,10 @@ stages:
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_flask_build_tests_ios: {}
       - run_tag_flask_build_tests_android: {}
-
+  run_single_e2e_ios_android_stage:
+    workflows:
+      - run_single_ios_e2e_test: {}
+      - run_single_android_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
@@ -248,6 +258,8 @@ stages:
       - run_wallet_platform_swimlane_android_smoke: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_identity_ios: {}
+      - run_tag_smoke_identity_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_multichain_api_ios: {}
   build_regression_e2e_ios_android_stage:
@@ -943,7 +955,20 @@ workflows:
       - TEST_SUITE_TAG: '.*FlaskBuildTests.*'
     after_run:
       - android_e2e_test
-
+  run_tag_smoke_identity_ios:
+    envs:
+      - TEST_SUITE_TAG: 'SmokeIdentity'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_identity_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'SmokeIdentity'
+    after_run:
+      - android_e2e_test
   android_e2e_build:
     envs:
       - KEYSTORE_URL: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
@@ -954,6 +979,20 @@ workflows:
       bitrise.io:
         machine_type_id: elite-xl
         stack: linux-docker-android-22.04
+
+  run_single_android_e2e_test:
+    run_if: '{{ or (ne "$E2E_TEST_FILE" "") (ne "$TEST_SUITE_TAG" "") }}'
+    after_run:
+      - android_e2e_test
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+
+  run_single_ios_e2e_test:
+    run_if: '{{ or (ne "$E2E_TEST_FILE" "") (ne "$TEST_SUITE_TAG" "") }}'
+    after_run:
+      - ios_e2e_test
 
   android_e2e_test:
     before_run:
@@ -1007,13 +1046,12 @@ workflows:
                 #!/usr/bin/env bash
                 export METAMASK_ENVIRONMENT='local'
                  node -v
-                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                echo "ANVIL VERSION"
-                node_modules/.bin/anvil --version
-                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
-                else
-                ./scripts/run-e2e-tags.sh
+                if [ -n "${E2E_TEST_FILE:-}" ]; then
+                  echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release $E2E_TEST_FILE
+                elif [ -n "${TEST_SUITE_TAG:-}" ]; then
+                  echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
+                  ./scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           title: Export test results
@@ -1068,12 +1106,12 @@ workflows:
                 set -ex
 
                 # Create directories for Detox
-                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
 
                 # Copy saved files for Detox usage
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
-                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       # - restore-cocoapods-cache@2: {}
       - restore-cache@2:
@@ -1194,7 +1232,7 @@ workflows:
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: |-
-                ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
+                ios/build/Build/Products/Release-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
                 ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
           title: Save iOS build
       - save-cache@1:
@@ -1222,12 +1260,12 @@ workflows:
                 set -ex
 
                 # Create directories for Detox
-                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
 
                 # Copy saved files for Detox usage
                 # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
-                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       # - restore-cocoapods-cache@2: {}
       - restore-cache@2:
@@ -1271,10 +1309,17 @@ workflows:
                 # node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
-                else
-                ./scripts/run-e2e-tags.sh
+                # if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
+                # else
+                # ./scripts/run-e2e-tags.sh
+                # fi
+                if [ -n "${E2E_TEST_FILE:-}" ]; then
+                  echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release $E2E_TEST_FILE
+                elif [ -n "${TEST_SUITE_TAG:-}" ]; then
+                  echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
+                  ./scripts/run-e2e-tags.sh
                 fi
       - custom-test-results-export@1:
           is_always_run: true
@@ -2470,16 +2515,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.50.2
+      VERSION_NAME: 7.51.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2128
+      VERSION_NUMBER: 2157
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.50.2
+      FLASK_VERSION_NAME: 7.51.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2128
+      FLASK_VERSION_NUMBER: 2157
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -2504,6 +2549,9 @@ app:
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0
+    - opts:
+        is_expand: false
+      WEB3AUTH_NETWORK: 'sapphire_devnet'
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x

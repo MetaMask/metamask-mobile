@@ -63,6 +63,9 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
   >
     <View
       collapsable={false}
+      enabled={true}
+      handlerTag={-1}
+      handlerType="PanGestureHandler"
       onGestureHandlerEvent={[Function]}
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
@@ -74,7 +77,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
-            "maxHeight": 1333,
+            "maxHeight": 5,
             "overflow": "hidden",
             "paddingBottom": 3,
             "shadowColor": "#0000001a",
@@ -88,7 +91,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
           {
             "transform": [
               {
-                "translateY": 1334,
+                "translateY": 6,
               },
             ],
           },
@@ -155,9 +158,8 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -204,9 +206,8 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

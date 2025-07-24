@@ -13,9 +13,8 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 18,
-        "fontWeight": "700",
         "letterSpacing": 0,
         "lineHeight": 24,
         "paddingHorizontal": 15,
@@ -178,9 +177,8 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
             "alignSelf": "flex-start",
             "color": "#121314",
             "flex": 1,
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "justifyContent": "flex-start",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -195,9 +193,8 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
           style={
             {
               "color": "#ca3542",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 14,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -219,9 +216,8 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -265,9 +261,8 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "CentraNo1-Bold",
+        "fontFamily": "Geist Bold",
         "fontSize": 18,
-        "fontWeight": "700",
         "letterSpacing": 0,
         "lineHeight": 24,
         "paddingHorizontal": 15,
@@ -430,9 +425,8 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
             "alignSelf": "flex-start",
             "color": "#121314",
             "flex": 1,
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "justifyContent": "flex-start",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -447,9 +441,8 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
           style={
             {
               "color": "#ca3542",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 14,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -471,9 +464,8 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }

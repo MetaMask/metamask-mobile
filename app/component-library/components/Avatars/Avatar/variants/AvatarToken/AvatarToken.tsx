@@ -9,7 +9,6 @@ import { isIPFSUri } from '../../../../../../util/general';
 import AvatarBase from '../../foundation/AvatarBase';
 import Text from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
-import { TEXTVARIANT_BY_AVATARSIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import { AvatarTokenProps } from './AvatarToken.types';
@@ -57,9 +56,7 @@ const AvatarToken = ({
   const tokenImage = () => (
     <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback || isIpfsDisabledAndUriIsIpfs ? (
-        <Text style={styles.label} variant={TEXTVARIANT_BY_AVATARSIZE[size]}>
-          {tokenNameFirstLetter}
-        </Text>
+        <Text style={styles.label}>{tokenNameFirstLetter}</Text>
       ) : (
         <Image
           source={imageSource as ImageSourcePropType}

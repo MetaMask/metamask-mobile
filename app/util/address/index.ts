@@ -35,17 +35,14 @@ import Logger from '../../../app/util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import {
-  type NetworkType,
   toChecksumHexAddress,
+  type NetworkType,
 } from '@metamask/controller-utils';
 import type {
   NetworkClientId,
   NetworkState,
 } from '@metamask/network-controller';
-import {
-  AccountImportStrategy,
-  KeyringTypes,
-} from '@metamask/keyring-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import { type Hex, isHexString } from '@metamask/utils';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 import { EntropySourceId } from '@metamask/keyring-api';
@@ -182,30 +179,6 @@ export function renderAccountName(
   }
 
   return renderShortAddress(address);
-}
-
-/**
- * Imports an account from a private key
- *
- * @param {String} private_key - String corresponding to a private key
- * @returns {Promise} - Returns a promise
- */
-
-export async function importAccountFromPrivateKey(private_key: string) {
-  const { KeyringController } = Engine.context;
-  // Import private key
-  let pkey = private_key;
-  // Handle PKeys with 0x
-  if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
-    pkey = pkey.substr(2);
-  }
-  const importedAccountAddress =
-    await KeyringController.importAccountWithStrategy(
-      AccountImportStrategy.privateKey,
-      [pkey],
-    );
-  const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
-  Engine.setSelectedAddress(checksummedAddress);
 }
 
 export function isHDOrFirstPartySnapAccount(account: InternalAccount) {

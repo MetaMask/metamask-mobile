@@ -13,7 +13,7 @@ import {
   hexWEIToDecGWEI,
 } from '../../../../../../util/conversions';
 import styleSheet from './gas-price-input.styles';
-import { validateGasPrice } from '../../../utils/gas-validations';
+import { validateGasPrice } from '../../../utils/validations/gas';
 import { TextFieldWithLabel } from '../../UI/text-field-with-label';
 
 export const GasPriceInput = ({

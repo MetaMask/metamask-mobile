@@ -22,7 +22,10 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { getLabelTextByAddress } from '../../../../../../../util/address';
 import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
@@ -108,7 +111,9 @@ const AccountNetworkInfoCollapsed = () => {
                 </TagBase>
               )}
             </View>
-            <Text style={styles.networkName}>{networkName}</Text>
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              {networkName}
+            </Text>
           </View>
         </View>
         <Icon

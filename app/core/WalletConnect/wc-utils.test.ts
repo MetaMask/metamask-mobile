@@ -53,6 +53,14 @@ jest.mock('../../selectors/networkController', () => ({
     .mockReturnValue({ chainId: '0x1' }) as jest.Mock,
 }));
 
+jest.mock('../../selectors/smartTransactionsController', () => ({
+  selectSmartTransactionsEnabled: () => false,
+}));
+
+jest.mock('../../reducers/swaps', () => ({
+  swapsLivenessSelector: jest.fn().mockReturnValue({}),
+}));
+
 jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
   findExistingNetwork: jest.fn(),
   switchToNetwork: jest.fn().mockResolvedValue(true),

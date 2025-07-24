@@ -16,7 +16,11 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
+import {
+  ONBOARDING_WIZARD,
+  OPTIN_META_METRICS_UI_SEEN,
+  TRUE,
+} from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
@@ -145,10 +149,6 @@ class OptinMetrics extends PureComponent {
 
   state = {
     /**
-     * Used to control the action buttons state.
-     */
-    isActionEnabled: false,
-    /**
      * Tracks the scroll view's content height.
      */
     scrollViewContentHeight: undefined,
@@ -230,6 +230,8 @@ class OptinMetrics extends PureComponent {
    * Action to be triggered when pressing any button
    */
   continue = async () => {
+    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
+
     const onContinue = this.props.route?.params?.onContinue;
     if (onContinue) {
       return onContinue();
@@ -238,10 +240,14 @@ class OptinMetrics extends PureComponent {
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     if (onboardingWizard) {
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+      this.props.navigation.reset({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
     } else {
       this.props.setOnboardingWizardStep(1);
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+      this.props.navigation.reset({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
     }
   };
 
@@ -340,7 +346,6 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
-
     // Handle null case for marketing consent
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -389,7 +394,6 @@ class OptinMetrics extends PureComponent {
       });
     }
     this.props.clearOnboardingEvents();
-
     this.continue();
   };
 
@@ -491,16 +495,10 @@ class OptinMetrics extends PureComponent {
   };
 
   renderActionButtons = () => {
-    const { isActionEnabled } = this.state;
     const styles = this.getStyles();
-    // Once buttons are refactored, it should auto handle disabled colors.
-    const buttonContainerStyle = [
-      styles.actionContainer,
-      isActionEnabled ? undefined : styles.disabledActionContainer,
-    ];
 
     return (
-      <View style={buttonContainerStyle}>
+      <View style={styles.actionContainer}>
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
@@ -529,7 +527,6 @@ class OptinMetrics extends PureComponent {
    */
   onScrollEndReached = () => {
     this.setState({ isEndReached: true });
-    this.setState({ isActionEnabled: true });
   };
 
   /**

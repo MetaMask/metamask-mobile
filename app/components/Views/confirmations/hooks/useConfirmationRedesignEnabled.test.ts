@@ -20,6 +20,7 @@ import { selectConfirmationRedesignFlags } from '../../../../selectors/featureFl
 const disabledFeatureFlags = {
   signatures: false,
   staking_confirmations: false,
+  contract_deployment: false,
   contract_interaction: false,
   transfer: false,
   approve: false,
@@ -289,6 +290,26 @@ describe('useConfirmationRedesignEnabled', () => {
         useConfirmationRedesignEnabled,
         {
           state: approveERC20TransactionStateMock,
+        },
+      );
+
+      expect(result.current.isRedesignedEnabled).toBe(true);
+    });
+
+    it('returns true when flag is enabled for contract deployment transaction', async () => {
+      confirmationRedesignFlagsMock.mockReturnValue({
+        ...disabledFeatureFlags,
+        contract_deployment: true,
+      });
+
+      const state = cloneDeep(approveERC20TransactionStateMock);
+      state.engine.backgroundState.TransactionController.transactions[0].type =
+        TransactionType.deployContract;
+
+      const { result } = renderHookWithProvider(
+        useConfirmationRedesignEnabled,
+        {
+          state,
         },
       );
 

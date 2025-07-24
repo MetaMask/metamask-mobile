@@ -23,7 +23,7 @@ describe('useDepsositTokenExchange', () => {
 
   it('should calculate token amount correctly when rate is available', () => {
     const mockRates = {
-      USDC: 0.99978,
+      'eip155:1/erc20:0x123': 0.99978,
     };
 
     (useFetchTokenRatesMulti as jest.Mock).mockReturnValue({

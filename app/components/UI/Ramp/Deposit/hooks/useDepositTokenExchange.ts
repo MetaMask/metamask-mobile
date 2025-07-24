@@ -28,7 +28,7 @@ const useDepsositTokenExchange = ({
 
   const currentToken = tokens.find(({ assetId }) => assetId === token.assetId);
 
-  const rate = currentToken ? rates[currentToken.symbol] ?? null : null;
+  const rate = currentToken ? rates[currentToken.assetId] ?? null : null;
 
   const tokenAmount = rate
     ? (parseFloat(fiatAmount || '0') * rate).toFixed(token.decimals)

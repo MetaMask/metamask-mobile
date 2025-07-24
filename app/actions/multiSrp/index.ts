@@ -16,6 +16,8 @@ import {
 } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { store } from '../../store';
+import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
+import { getTraceTags } from '../../util/sentry/tags';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -100,6 +102,18 @@ export async function addNewHdAccount(
   keyringId?: string,
   name?: string,
 ): Promise<InternalAccount> {
+  store.dispatch(
+    startPerformanceTrace({
+      eventName: PerformanceEventNames.AddHdAccount,
+    }),
+  );
+
+  trace({
+    name: TraceName.CreateHdAccount,
+    op: TraceOperation.CreateAccount,
+    tags: getTraceTags(store.getState()),
+  });
+
   const { KeyringController, AccountsController } = Engine.context;
   const keyringSelector: KeyringSelector = keyringId
     ? {
@@ -108,12 +122,6 @@ export async function addNewHdAccount(
     : {
         type: ExtendedKeyringTypes.hd,
       };
-
-  store.dispatch(
-    startPerformanceTrace({
-      eventName: PerformanceEventNames.AddHdAccount,
-    }),
-  );
 
   const [addedAccountAddress] = await KeyringController.withKeyring(
     keyringSelector,
@@ -134,6 +142,10 @@ export async function addNewHdAccount(
   }
 
   // We consider the account to be created once it got selected and renamed.
+  endTrace({
+    name: TraceName.CreateHdAccount,
+  });
+
   store.dispatch(
     endPerformanceTrace({
       eventName: PerformanceEventNames.AddHdAccount,

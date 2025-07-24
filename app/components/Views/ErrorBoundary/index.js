@@ -187,7 +187,7 @@ const createStyles = (colors) =>
       marginTop: 20,
       paddingHorizontal: 16,
     },
-    keyboardViewContainer: { flex: 1, justifyContent: 'flex-end' },
+    keyboardViewContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.background.default },
     modalWrapper: { flex: 1, justifyContent: 'space-between' },
     modalTopContainer: { flex: 1, paddingTop: '20%', paddingHorizontal: 16 },
     closeIconWrapper: {
@@ -332,7 +332,7 @@ export const Fallback = (props) => {
         onRequestClose={toggleModal}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={'padding'}
           style={styles.keyboardViewContainer}
         >
           <View style={styles.modalWrapper}>

@@ -74,7 +74,7 @@ const Loader = ({
           />
         )}
       </View>
-      <Text variant={TextVariant.HeadingSMRegular} style={styles.text}>
+      <Text variant={TextVariant.BodyMD} style={styles.text}>
         {errorContent}
       </Text>
       {!!errorText && (

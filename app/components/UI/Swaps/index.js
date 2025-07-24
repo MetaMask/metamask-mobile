@@ -52,7 +52,6 @@ import {
 import { getSwapsAmountNavbar } from '../Navbar';
 
 import useModalHandler from '../../Base/hooks/useModalHandler';
-import Text from '../../Base/Text';
 import Keypad from '../../Base/Keypad';
 import StyledButton from '../StyledButton';
 import ScreenView from '../../Base/ScreenView';
@@ -88,6 +87,9 @@ import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransac
 import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useChainRedirect } from './useChainRedirect';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 ///: END:ONLY_INCLUDE_IF
 
 const createStyles = (colors) =>
@@ -125,6 +127,7 @@ const createStyles = (colors) =>
       textAlignVertical: 'center',
       fontSize: Device.isIphone5() ? 30 : 40,
       height: Device.isIphone5() ? 40 : 50,
+      lineHeight: Device.isIphone5() ? 33 : 44,
     },
     amountInvalid: {
       color: colors.error.default,
@@ -706,7 +709,7 @@ function SwapsAmountView({
         <View
           style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
           pointerEvents={disabledView ? 'none' : 'auto'}
-          testID={QuoteViewSelectorIDs.SOURCE_TOKEN}
+          testID={QuoteViewSelectorIDs.SOURCE_TOKEN_SELECTOR}
         >
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
@@ -716,6 +719,7 @@ function SwapsAmountView({
               onPress={toggleSourceModal}
               icon={sourceToken?.iconUrl}
               symbol={sourceToken?.symbol}
+              testID={QuoteViewSelectorIDs.SOURCE_TOKEN}
             />
           )}
 
@@ -735,7 +739,7 @@ function SwapsAmountView({
         >
           <TouchableOpacity onPress={handleAmountPress}>
             <Text
-              primary
+              variant={TextVariant.BodyMD}
               style={styles.amount}
               numberOfLines={1}
               adjustsFontSizeToFit
@@ -787,10 +791,7 @@ function SwapsAmountView({
           </TouchableOpacity>
           <View style={styles.horizontalRule} />
         </View>
-        <View
-          style={styles.tokenButtonContainer}
-          testID={QuoteViewSelectorIDs.DEST_TOKEN}
-        >
+        <View style={styles.tokenButtonContainer}>
           {isInitialLoadingTokens ? (
             <ActivityIndicator size="small" />
           ) : (
@@ -799,6 +800,7 @@ function SwapsAmountView({
               onPress={toggleDestinationModal}
               icon={destinationToken?.iconUrl}
               symbol={destinationToken?.symbol}
+              testID={QuoteViewSelectorIDs.DEST_TOKEN}
             />
           )}
           <TokenSelectModal

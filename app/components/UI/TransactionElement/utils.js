@@ -3,14 +3,12 @@ import {
   weiToFiat,
   renderFromWei,
   balanceToFiat,
-  renderToGwei,
   isBN,
   renderFromTokenMinimalUnit,
   fromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
   addCurrencySymbol,
-  BNToHex,
   limitToMaximumDecimalPlaces,
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
@@ -19,84 +17,24 @@ import {
   areAddressesEqual,
   toFormattedAddress,
 } from '../../../util/address';
-import { sumHexWEIs } from '../../../util/conversions';
 import {
   decodeTransferData,
   isCollectibleAddress,
-  getTicker,
   getActionKey,
   TRANSACTION_TYPES,
-  calculateEIP1559GasFeeHexes,
 } from '../../../util/transactions';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import Engine from '../../../core/Engine';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
-  isEIP1559Transaction,
-  TransactionType,
-} from '@metamask/transaction-controller';
+  decodeBridgeTx,
+  decodeSwapsTx,
+} from '../Bridge/utils/transaction-history';
+import { calculateTotalGas, renderGwei } from './utils-gas';
 
 const { getSwapsContractAddress } = swapsUtils;
-
-function calculateTotalGas(transaction) {
-  const {
-    gas,
-    gasPrice,
-    gasUsed,
-    estimatedBaseFee,
-    maxPriorityFeePerGas,
-    maxFeePerGas,
-    multiLayerL1FeeTotal,
-  } = transaction;
-  if (isEIP1559Transaction(transaction)) {
-    const eip1559GasHex = calculateEIP1559GasFeeHexes({
-      gasLimitHex: gasUsed || gas,
-      estimatedBaseFeeHex: estimatedBaseFee || '0x0',
-      suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
-      suggestedMaxFeePerGasHex: maxFeePerGas,
-    });
-    return hexToBN(eip1559GasHex.gasFeeMinHex);
-  }
-  const gasBN = hexToBN(gas);
-  const gasPriceBN = hexToBN(gasPrice);
-  const gasUsedBN = gasUsed ? hexToBN(gasUsed) : null;
-  let totalGas = hexToBN('0x0');
-  if (gasUsedBN && isBN(gasUsedBN) && isBN(gasPriceBN)) {
-    totalGas = gasUsedBN.mul(gasPriceBN);
-  }
-  if (isBN(gasBN) && isBN(gasPriceBN)) {
-    totalGas = gasBN.mul(gasPriceBN);
-  }
-  if (multiLayerL1FeeTotal) {
-    totalGas = hexToBN(sumHexWEIs([BNToHex(totalGas), multiLayerL1FeeTotal]));
-  }
-  return totalGas;
-}
-
-function renderGwei(transaction) {
-  const {
-    gasPrice,
-    estimatedBaseFee,
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    gas,
-  } = transaction;
-
-  if (isEIP1559Transaction(transaction)) {
-    const eip1559GasHex = calculateEIP1559GasFeeHexes({
-      gasLimitHex: gas,
-      estimatedBaseFeeHex: estimatedBaseFee || '0x0',
-      suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
-      suggestedMaxFeePerGasHex: maxFeePerGas,
-    });
-
-    return renderToGwei(
-      eip1559GasHex.estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex,
-    );
-  }
-  return renderToGwei(gasPrice);
-}
 
 function getTokenTransfer(args) {
   const {
@@ -104,7 +42,6 @@ function getTokenTransfer(args) {
       txParams: { from, to, data, nonce },
     },
     txChainId,
-    networkConfigurationsByChainId,
     conversionRate,
     currentCurrency,
     tokens,
@@ -113,6 +50,7 @@ function getTokenTransfer(args) {
     actionKey,
     primaryCurrency,
     selectedAddress,
+    ticker,
   } = args;
 
   const [, , encodedAmount] = decodeTransferData('transfer', data);
@@ -150,8 +88,6 @@ function getTokenTransfer(args) {
   const totalFiatNumber = renderTokenFiatNumber
     ? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber
     : weiToFiatNumber(totalGas, conversionRate);
-
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
 
   let transactionDetails = {
     renderTotalGas: `${renderFromWei(totalGas)} ${ticker}`,
@@ -208,17 +144,16 @@ function getCollectibleTransfer(args) {
       txParams: { from, to, data },
     },
     txChainId,
-    networkConfigurationsByChainId,
     collectibleContracts,
     totalGas,
     conversionRate,
     currentCurrency,
     primaryCurrency,
     selectedAddress,
+    ticker,
   } = args;
   let actionKey;
   const [, tokenId] = decodeTransferData('transfer', data);
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
   const collectible = collectibleContracts.find((collectible) =>
     areAddressesEqual(collectible.address, to),
   );
@@ -277,7 +212,7 @@ function getCollectibleTransfer(args) {
   return [transactionElement, transactionDetails];
 }
 
-export function decodeIncomingTransfer(args) {
+function decodeIncomingTransfer(args) {
   const {
     tx: {
       txParams: { to, from, value },
@@ -285,7 +220,6 @@ export function decodeIncomingTransfer(args) {
       hash,
     },
     txChainId,
-    networkConfigurationsByChainId,
     conversionRate,
     currentCurrency,
     contractExchangeRates,
@@ -293,6 +227,7 @@ export function decodeIncomingTransfer(args) {
     actionKey,
     primaryCurrency,
     selectedAddress,
+    ticker,
   } = args;
 
   const amount = hexToBN(value);
@@ -328,8 +263,6 @@ export function decodeIncomingTransfer(args) {
   const totalFiatNumber = renderTokenFiatNumber
     ? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber
     : weiToFiatNumber(totalGas, conversionRate);
-
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
 
   const { SENT_TOKEN, RECEIVED_TOKEN } = TRANSACTION_TYPES;
   const transactionType =
@@ -437,12 +370,12 @@ function decodeTransferFromTx(args) {
       hash,
     },
     txChainId,
-    networkConfigurationsByChainId,
     collectibleContracts,
     conversionRate,
     currentCurrency,
     primaryCurrency,
     selectedAddress,
+    ticker,
   } = args;
   const [addressFrom, addressTo, tokenId] = decodeTransferData(
     'transferFrom',
@@ -463,7 +396,6 @@ function decodeTransferFromTx(args) {
 
   const renderFrom = renderFullAddress(addressFrom);
   const renderTo = renderFullAddress(addressTo);
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency || args.ticker;
 
   const { SENT_COLLECTIBLE, RECEIVED_COLLECTIBLE } = TRANSACTION_TYPES;
   const transactionType =
@@ -528,13 +460,12 @@ function decodeDeploymentTx(args) {
       hash,
     },
     txChainId,
-    networkConfigurationsByChainId,
     conversionRate,
     currentCurrency,
     actionKey,
     primaryCurrency,
+    ticker,
   } = args;
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency || args.ticker;
 
   const totalGas = calculateTotalGas(txParams);
   const renderTotalEth = `${renderFromWei(totalGas)} ${ticker}`;
@@ -699,14 +630,13 @@ function decodeConfirmTx(args) {
   return [transactionElement, transactionDetails];
 }
 
-function decodeSwapsTx(args) {
+function decodeLegacySwapsTx(args) {
   const {
     swapsTransactions,
     swapsTokens,
     conversionRate,
     currentCurrency,
     primaryCurrency,
-    networkConfigurationsByChainId,
     txChainId,
     tx: {
       id,
@@ -718,6 +648,7 @@ function decodeSwapsTx(args) {
     contractExchangeRates,
     assetSymbol,
     chainId,
+    ticker,
   } = args;
   // If the tx was a swaps smart transaction, the swapsTransactions id is the stx.uuid, rather than tx.id
   // We need use the tx.hash and look up the stx with the same hash
@@ -747,7 +678,6 @@ function decodeSwapsTx(args) {
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
-  const ticker = networkConfigurationsByChainId?.[txChainId]?.nativeCurrency;
   const totalEthGas = renderFromWei(totalGas);
   const decimalSourceAmount =
     swapTransaction.sourceAmount &&
@@ -921,11 +851,30 @@ export default async function decodeTransaction(args) {
   );
   let transactionElement, transactionDetails;
 
+  if (args.bridgeTxHistoryData?.bridgeTxHistoryItem) {
+    // Unified Swaps, reads tx data from BridgeStatusController
+    if (tx.type === TransactionType.swap) {
+      const [transactionElement, transactionDetails] = decodeSwapsTx({
+        ...args,
+        actionKey,
+      });
+      return [transactionElement, transactionDetails];
+    }
+    if (tx.type === TransactionType.bridge) {
+      const [transactionElement, transactionDetails] = decodeBridgeTx({
+        ...args,
+        actionKey,
+      });
+      return [transactionElement, transactionDetails];
+    }
+  }
+
   if (
     tx.txParams.to?.toLowerCase() === getSwapsContractAddress(chainIdToUse) ||
     swapsTransactions[tx.id]
   ) {
-    const [transactionElement, transactionDetails] = decodeSwapsTx({
+    // Legacy Swaps, reads tx data from SwapsController
+    const [transactionElement, transactionDetails] = decodeLegacySwapsTx({
       ...args,
       actionKey,
     });

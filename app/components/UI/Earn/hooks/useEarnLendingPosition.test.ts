@@ -1,3 +1,4 @@
+import { act } from 'react';
 import Engine from '../../../../core/Engine';
 import { RootState } from '../../../../reducers';
 import {
@@ -11,11 +12,9 @@ import {
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
 import { MOCK_USDC_MAINNET_ASSET } from '../../Stake/__mocks__/stakeMockData';
-import { TokenI } from '../../Tokens/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../types/lending.types';
 import useEarnLendingPositions from './useEarnLendingPosition';
-import { act } from 'react';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -65,7 +64,7 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
 }));
 
 describe('useEarnLendingPositions', () => {
-  const mockAsset: TokenI = {
+  const mockAsset = {
     address: '0x123',
     chainId: '0x1',
     symbol: 'USDC',
@@ -76,7 +75,8 @@ describe('useEarnLendingPositions', () => {
     name: 'USD Coin',
     balance: '0',
     logo: '',
-  };
+    balanceMinimalUnit: '4',
+  } as unknown as EarnTokenDetails;
 
   const mockState: DeepPartial<RootState> = {
     engine: {
@@ -224,6 +224,14 @@ describe('useEarnLendingPositions', () => {
   });
 
   it('should set hasEarnLendingPositions to true when position assets are greater than 0', async () => {
+    (earnSelectors.selectEarnTokenPair as unknown as jest.Mock).mockReturnValue(
+      {
+        outputToken: {
+          ...mockLendingOutputToken,
+          balanceMinimalUnit: '100000',
+        },
+      },
+    );
     const { result } = renderHookWithProvider(
       () => useEarnLendingPositions(mockAsset),
       {
@@ -322,6 +330,14 @@ describe('useEarnLendingPositions', () => {
   });
 
   it('should refresh lending position data when refreshEarnLendingPositions is called', async () => {
+    (earnSelectors.selectEarnTokenPair as unknown as jest.Mock).mockReturnValue(
+      {
+        outputToken: {
+          ...mockLendingOutputToken,
+          balanceMinimalUnit: '100000',
+        },
+      },
+    );
     const { result } = renderHookWithProvider(
       () => useEarnLendingPositions(mockAsset),
       {

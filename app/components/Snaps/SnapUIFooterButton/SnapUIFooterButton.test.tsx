@@ -15,6 +15,7 @@ jest.mock('../SnapInterfaceContext', () => ({
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (selector: any) => mockUseSelector(selector),
 }));

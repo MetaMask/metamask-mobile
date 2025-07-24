@@ -97,7 +97,7 @@ import {
   WebViewError,
   WebViewProgressEvent,
   WebViewNavigation,
-} from '@metamask/react-native-webview/lib/WebViewTypes';
+} from '@metamask/react-native-webview/src/WebViewTypes';
 import PhishingModal from './components/PhishingModal';
 import BrowserUrlBar, {
   ConnectionType,
@@ -1417,7 +1417,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(({
                       // Needed for Recaptcha
                       'about:srcdoc',
                     ]}
-                    decelerationRate={'normal'}
+                    decelerationRate={0.998}
                     ref={webviewRef}
                     renderError={() => (
                       <WebviewErrorComponent

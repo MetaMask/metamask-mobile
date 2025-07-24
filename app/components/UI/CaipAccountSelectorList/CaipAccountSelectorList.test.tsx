@@ -23,6 +23,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
 import { AVATARGROUP_CONTAINER_TESTID } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 import { KnownCaipNamespace } from '@metamask/utils';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -752,7 +753,7 @@ describe('CaipAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     // Find buttons with the correct test ID
-    const actionButtons = getAllByTestId(/main-wallet-account-actions-/);
+    const actionButtons = getAllByTestId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
     expect(actionButtons.length).toBe(2);
 
     // Click the first account's action button

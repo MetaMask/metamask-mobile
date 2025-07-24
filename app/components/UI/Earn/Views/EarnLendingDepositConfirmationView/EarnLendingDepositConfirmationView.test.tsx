@@ -35,12 +35,12 @@ import {
 } from './components/ConfirmationFooter';
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
+import Routes from '../../../../../constants/navigation/Routes';
 import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
 
 type TxCallback = (event: {
   transactionMeta: Partial<TransactionMeta>;
 }) => void;
-import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
@@ -818,6 +818,11 @@ describe('EarnLendingDepositConfirmationView', () => {
           })
           .build(),
       );
+
+      // Wait for setTimeout to complete before checking navigation
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
 

@@ -74,6 +74,9 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
     >
       <View
         collapsable={false}
+        enabled={false}
+        handlerTag={-1}
+        handlerType="PanGestureHandler"
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
         onLayout={[Function]}
@@ -85,7 +88,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               "borderTopLeftRadius": 8,
               "borderTopRightRadius": 8,
               "borderWidth": 1,
-              "maxHeight": 1334,
+              "maxHeight": 640,
               "overflow": "hidden",
               "paddingBottom": 0,
               "shadowColor": "#0000001a",
@@ -99,7 +102,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
             {
               "transform": [
                 {
-                  "translateY": 1334,
+                  "translateY": 640,
                 },
               ],
             },
@@ -145,9 +148,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 16,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -235,9 +237,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Medium",
+                      "fontFamily": "Geist Medium",
                       "fontSize": 16,
-                      "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -265,9 +266,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Medium",
+                      "fontFamily": "Geist Medium",
                       "fontSize": 16,
-                      "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -295,9 +295,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Medium",
+                      "fontFamily": "Geist Medium",
                       "fontSize": 16,
-                      "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -325,9 +324,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "CentraNo1-Medium",
+                      "fontFamily": "Geist Medium",
                       "fontSize": 16,
-                      "fontWeight": "500",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -351,9 +349,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#1c7e33",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 24,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 32,
                   }
@@ -366,9 +363,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -513,9 +509,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -528,9 +523,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -544,9 +538,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -559,9 +552,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -575,9 +567,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -590,9 +581,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -606,10 +596,9 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-BookItalic",
+                  "fontFamily": "Geist Regular Italic",
                   "fontSize": 14,
                   "fontStyle": "italic",
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -659,9 +648,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -699,9 +687,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

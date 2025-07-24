@@ -2,7 +2,7 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import {
   SafeAreaView,
   Image,
@@ -11,9 +11,14 @@ import {
   View,
   StyleSheet,
 } from 'react-native';
-import { RNCamera } from 'react-native-camera';
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useCodeScanner,
+  Code,
+} from 'react-native-vision-camera';
 import { colors, fontStyles } from '../../../styles/common';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
@@ -23,6 +28,10 @@ import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { useTheme } from '../../../util/theme';
 import { Theme } from '../../../util/theme/models';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -109,6 +118,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(theme);
 
+  const cameraDevice = useCameraDevice('back');
+  const { hasPermission, requestPermission } = useCameraPermission();
+
   let expectedURTypes: string[];
   if (purpose === 'sync') {
     expectedURTypes = [
@@ -118,6 +130,12 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   } else {
     expectedURTypes = [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
   }
+
+  useEffect(() => {
+    if (!hasPermission && visible) {
+      requestPermission();
+    }
+  }, [hasPermission, requestPermission, visible]);
 
   const reset = useCallback(() => {
     setURDecoder(new URRegistryDecoder());
@@ -155,10 +173,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   );
 
   const onBarCodeRead = useCallback(
-    (response: { data: string }) => {
-      if (!visible) {
+    (codes: Code[]) => {
+      if (!visible || !codes.length) {
         return;
       }
+      const response = { data: codes[0].value };
       if (!response.data) {
         return;
       }
@@ -219,14 +238,17 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     ],
   );
 
-  const onStatusChange = useCallback(
-    (event: { cameraStatus: string }) => {
-      if (event.cameraStatus === 'NOT_AUTHORIZED') {
-        onScanError(strings('transaction.no_camera_permission'));
-      }
-    },
-    [onScanError],
-  );
+  const codeScanner = useCodeScanner({
+    codeTypes: ['qr'],
+    onCodeScanned: onBarCodeRead,
+  });
+
+  // Handle camera permission error
+  useEffect(() => {
+    if (visible && !hasPermission) {
+      onScanError(strings('transaction.no_camera_permission'));
+    }
+  }, [visible, hasPermission, onScanError]);
 
   return (
     <Modal
@@ -239,31 +261,35 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       onModalWillShow={() => pauseQRCode?.(true)}
     >
       <View style={styles.container}>
-        <RNCamera
-          onMountError={onError}
-          captureAudio={false}
-          style={styles.preview}
-          type={RNCamera.Constants.Type.back}
-          onBarCodeRead={onBarCodeRead}
-          flashMode={RNCamera.Constants.FlashMode.auto}
-          androidCameraPermissionOptions={{
-            title: strings('qr_scanner.allow_camera_dialog_title'),
-            message: strings('qr_scanner.allow_camera_dialog_message'),
-            buttonPositive: strings('qr_scanner.ok'),
-            buttonNegative: strings('qr_scanner.cancel'),
-          }}
-          onStatusChange={onStatusChange}
-        >
+        {cameraDevice && hasPermission ? (
+          <Camera
+            style={styles.preview}
+            device={cameraDevice}
+            isActive={visible}
+            codeScanner={codeScanner}
+            torch="off"
+            onError={onError}
+          >
+            <SafeAreaView style={styles.innerView}>
+              <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
+                {<Icon name={IconName.Close} size={IconSize.Xl} />}
+              </TouchableOpacity>
+              <Image source={frameImage} style={styles.frame} />
+              <Text style={styles.text}>{`${strings('qr_scanner.scanning')} ${
+                progress ? `${progress.toString()}%` : ''
+              }`}</Text>
+            </SafeAreaView>
+          </Camera>
+        ) : (
           <SafeAreaView style={styles.innerView}>
             <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-              {<Icon name={'close'} size={50} color={'white'} />}
+              {<Icon name={IconName.Close} size={IconSize.Xl} />}
             </TouchableOpacity>
-            <Image source={frameImage} style={styles.frame} />
-            <Text style={styles.text}>{`${strings('qr_scanner.scanning')} ${
-              progress ? `${progress.toString()}%` : ''
-            }`}</Text>
+            <Text style={styles.text}>
+              {strings('transaction.no_camera_permission')}
+            </Text>
           </SafeAreaView>
-        </RNCamera>
+        )}
         <View style={styles.hint}>{hintText}</View>
       </View>
     </Modal>

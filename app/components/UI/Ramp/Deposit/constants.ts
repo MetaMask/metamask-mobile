@@ -1,3 +1,11 @@
+import { CaipChainId } from '@metamask/utils';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
+import { brandColor } from '@metamask/design-tokens';
+import { AppThemeKey } from '../../../../util/theme/models';
+
 export const FIAT_CURRENCIES = ['USD', 'EUR'];
 
 export interface DepositCryptoCurrency {
@@ -14,7 +22,12 @@ export interface DepositCryptoCurrency {
 export interface DepositPaymentMethod {
   id: string;
   name: string;
-  duration: string;
+  duration: 'instant' | '1_to_2_days';
+  icon: IconName;
+  iconColor?:
+    | string
+    | IconColor
+    | { [AppThemeKey.light]: string; [AppThemeKey.dark]: string };
 }
 
 export interface DepositFiatCurrency {
@@ -25,14 +38,17 @@ export interface DepositFiatCurrency {
 }
 
 export interface DepositRegion {
-  code: string;
+  isoCode: string;
   flag: string;
   name: string;
-  phonePrefix: string;
+  phone: {
+    prefix: string;
+    placeholder: string;
+    template: string;
+  };
   currency: string;
-  phoneDigitCount: number;
-  recommended?: boolean;
   supported: boolean;
+  recommended?: boolean;
 }
 
 export const USDC_TOKEN: DepositCryptoCurrency = {
@@ -67,8 +83,33 @@ export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
 export const DEBIT_CREDIT_PAYMENT_METHOD: DepositPaymentMethod = {
   id: 'credit_debit_card',
   name: 'Debit or Credit',
-  duration: 'Instant',
+  duration: 'instant',
+  icon: IconName.Card,
 };
+
+export const SEPA_PAYMENT_METHOD: DepositPaymentMethod = {
+  id: 'sepa_bank_transfer',
+  name: 'SEPA Bank Transfer',
+  duration: '1_to_2_days',
+  icon: IconName.Bank,
+};
+
+export const APPLE_PAY_PAYMENT_METHOD: DepositPaymentMethod = {
+  id: 'apple_pay',
+  name: 'Apple Pay',
+  duration: 'instant',
+  icon: IconName.Apple,
+  iconColor: {
+    light: brandColor.black,
+    dark: brandColor.white,
+  },
+};
+
+export const SUPPORTED_PAYMENT_METHODS: DepositPaymentMethod[] = [
+  DEBIT_CREDIT_PAYMENT_METHOD,
+  APPLE_PAY_PAYMENT_METHOD,
+  SEPA_PAYMENT_METHOD,
+];
 
 export const USD_CURRENCY: DepositFiatCurrency = {
   id: 'USD',
@@ -84,520 +125,672 @@ export const EUR_CURRENCY: DepositFiatCurrency = {
   emoji: '🇪🇺',
 };
 
-import { CaipChainId } from '@metamask/utils';
-
 export const TRANSAK_NETWORKS: Record<string, CaipChainId> = {
   ethereum: 'eip155:1',
 };
 
 export const DEPOSIT_REGIONS: DepositRegion[] = [
-  // Europe - Supported
   {
-    code: 'AD',
+    isoCode: 'AD',
     flag: '🇦🇩',
     name: 'Andorra',
-    phonePrefix: '+376',
+    phone: {
+      prefix: '+376',
+      placeholder: '123 456',
+      template: 'XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 6,
     supported: true,
   },
   {
-    code: 'AT',
+    isoCode: 'AT',
     flag: '🇦🇹',
     name: 'Austria',
-    phonePrefix: '+43',
+    phone: {
+      prefix: '+43',
+      placeholder: '123 456 7890',
+      template: 'XXX XXX XXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 10,
     supported: true,
   },
   {
-    code: 'BE',
+    isoCode: 'BE',
     flag: '🇧🇪',
     name: 'Belgium',
-    phonePrefix: '+32',
+    phone: {
+      prefix: '+32',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'CZ',
+    isoCode: 'CZ',
     flag: '🇨🇿',
     name: 'Czech Republic',
-    phonePrefix: '+420',
+    phone: {
+      prefix: '+420',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'CZK',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'DK',
+    isoCode: 'DK',
     flag: '🇩🇰',
     name: 'Denmark',
-    phonePrefix: '+45',
+    phone: {
+      prefix: '+45',
+      placeholder: '12 34 56 78',
+      template: 'XX XX XX XX',
+    },
     currency: 'DKK',
-    phoneDigitCount: 8,
     supported: true,
   },
   {
-    code: 'EE',
+    isoCode: 'EE',
     flag: '🇪🇪',
     name: 'Estonia',
-    phonePrefix: '+372',
+    phone: {
+      prefix: '+372',
+      placeholder: '1234 5678',
+      template: 'XXXX XXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 8,
     supported: true,
   },
   {
-    code: 'FI',
+    isoCode: 'FI',
     flag: '🇫🇮',
     name: 'Finland',
-    phonePrefix: '+358',
+    phone: {
+      prefix: '+358',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'FR',
+    isoCode: 'FR',
     flag: '🇫🇷',
     name: 'France',
-    phonePrefix: '+33',
+    phone: {
+      prefix: '+33',
+      placeholder: '6 12 34 56 78',
+      template: 'X XX XX XX XX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'DE',
+    isoCode: 'DE',
     flag: '🇩🇪',
     name: 'Germany',
-    phonePrefix: '+49',
+    phone: {
+      prefix: '+49',
+      placeholder: '123 456 7890',
+      template: 'XXX XXX XXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 10,
     supported: true,
   },
   {
-    code: 'GR',
+    isoCode: 'GR',
     flag: '🇬🇷',
     name: 'Greece',
-    phonePrefix: '+30',
+    phone: {
+      prefix: '+30',
+      placeholder: '123 456 7890',
+      template: 'XXX XXX XXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 10,
     supported: true,
   },
   {
-    code: 'HU',
+    isoCode: 'HU',
     flag: '🇭🇺',
     name: 'Hungary',
-    phonePrefix: '+36',
+    phone: {
+      prefix: '+36',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'HUF',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'IS',
+    isoCode: 'IS',
     flag: '🇮🇸',
     name: 'Iceland',
-    phonePrefix: '+354',
-    currency: 'ISK',
-    phoneDigitCount: 7,
+    phone: {
+      prefix: '+354',
+      placeholder: '123 4567',
+      template: 'XXX XXXX',
+    },
+    currency: 'EUR',
     supported: true,
   },
   {
-    code: 'IE',
+    isoCode: 'IE',
     flag: '🇮🇪',
     name: 'Ireland',
-    phonePrefix: '+353',
+    phone: {
+      prefix: '+353',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'IT',
+    isoCode: 'IT',
     flag: '🇮🇹',
     name: 'Italy',
-    phonePrefix: '+39',
+    phone: {
+      prefix: '+39',
+      placeholder: '123 456 7890',
+      template: 'XXX XXX XXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 10,
     supported: true,
   },
   {
-    code: 'LV',
+    isoCode: 'LV',
     flag: '🇱🇻',
     name: 'Latvia',
-    phonePrefix: '+371',
+    phone: {
+      prefix: '+371',
+      placeholder: '1234 5678',
+      template: 'XXXX XXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 8,
     supported: true,
   },
   {
-    code: 'LT',
+    isoCode: 'LT',
     flag: '🇱🇹',
     name: 'Lithuania',
-    phonePrefix: '+370',
+    phone: {
+      prefix: '+370',
+      placeholder: '123 45678',
+      template: 'XXX XXXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 8,
     supported: true,
   },
   {
-    code: 'LU',
+    isoCode: 'LU',
     flag: '🇱🇺',
     name: 'Luxembourg',
-    phonePrefix: '+352',
+    phone: {
+      prefix: '+352',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'MT',
+    isoCode: 'MT',
     flag: '🇲🇹',
     name: 'Malta',
-    phonePrefix: '+356',
+    phone: {
+      prefix: '+356',
+      placeholder: '1234 5678',
+      template: 'XXXX XXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 8,
     supported: true,
   },
   {
-    code: 'ME',
+    isoCode: 'ME',
     flag: '🇲🇪',
     name: 'Montenegro',
-    phonePrefix: '+382',
+    phone: {
+      prefix: '+382',
+      placeholder: '123 45678',
+      template: 'XXX XXXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 8,
     supported: true,
   },
   {
-    code: 'NL',
+    isoCode: 'NL',
     flag: '🇳🇱',
     name: 'Netherlands',
-    phonePrefix: '+31',
+    phone: {
+      prefix: '+31',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'NO',
+    isoCode: 'NO',
     flag: '🇳🇴',
     name: 'Norway',
-    phonePrefix: '+47',
+    phone: {
+      prefix: '+47',
+      placeholder: '123 45 678',
+      template: 'XXX XX XXX',
+    },
     currency: 'NOK',
-    phoneDigitCount: 8,
     supported: true,
   },
   {
-    code: 'PL',
+    isoCode: 'PL',
     flag: '🇵🇱',
     name: 'Poland',
-    phonePrefix: '+48',
+    phone: {
+      prefix: '+48',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'PLN',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'PT',
+    isoCode: 'PT',
     flag: '🇵🇹',
     name: 'Portugal',
-    phonePrefix: '+351',
+    phone: {
+      prefix: '+351',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'RO',
+    isoCode: 'RO',
     flag: '🇷🇴',
     name: 'Romania',
-    phonePrefix: '+40',
+    phone: {
+      prefix: '+40',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'RON',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'RS',
+    isoCode: 'RS',
     flag: '🇷🇸',
     name: 'Serbia',
-    phonePrefix: '+381',
+    phone: {
+      prefix: '+381',
+      placeholder: '123 45678',
+      template: 'XXX XXXXX',
+    },
     currency: 'RSD',
-    phoneDigitCount: 8,
     supported: true,
   },
   {
-    code: 'SK',
+    isoCode: 'SK',
     flag: '🇸🇰',
     name: 'Slovakia',
-    phonePrefix: '+421',
+    phone: {
+      prefix: '+421',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'SI',
+    isoCode: 'SI',
     flag: '🇸🇮',
     name: 'Slovenia',
-    phonePrefix: '+386',
+    phone: {
+      prefix: '+386',
+      placeholder: '123 45678',
+      template: 'XXX XXXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 8,
     supported: true,
   },
   {
-    code: 'ES',
+    isoCode: 'ES',
     flag: '🇪🇸',
     name: 'Spain',
-    phonePrefix: '+34',
+    phone: {
+      prefix: '+34',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'SE',
+    isoCode: 'SE',
     flag: '🇸🇪',
     name: 'Sweden',
-    phonePrefix: '+46',
+    phone: {
+      prefix: '+46',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'SEK',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'CH',
+    isoCode: 'CH',
     flag: '🇨🇭',
     name: 'Switzerland',
-    phonePrefix: '+41',
+    phone: {
+      prefix: '+41',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'CHF',
-    phoneDigitCount: 9,
     supported: true,
   },
   {
-    code: 'GB',
+    isoCode: 'GB',
     flag: '🇬🇧',
     name: 'United Kingdom',
-    phonePrefix: '+44',
+    phone: {
+      prefix: '+44',
+      placeholder: '12345 67890',
+      template: 'XXXXX XXXXX',
+    },
     currency: 'GBP',
-    phoneDigitCount: 10,
     supported: true,
   },
   {
-    code: 'AX',
+    isoCode: 'AX',
     flag: '🇦🇽',
     name: 'Åland Islands',
-    phonePrefix: '+358',
+    phone: {
+      prefix: '+358',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: true,
   },
-
-  // North America - Mixed Support
   {
-    code: 'BM',
-    flag: '🇧🇲',
-    name: 'Bermuda',
-    phonePrefix: '+1',
-    currency: 'BMD',
-    phoneDigitCount: 10,
-    supported: false,
-  },
-  {
-    code: 'CA',
-    flag: '🇨🇦',
-    name: 'Canada',
-    phonePrefix: '+1',
-    currency: 'CAD',
-    phoneDigitCount: 10,
-    supported: false,
-  },
-  {
-    code: 'GP',
-    flag: '🇬🇵',
-    name: 'Guadeloupe',
-    phonePrefix: '+590',
+    isoCode: 'CY',
+    flag: '🇨🇾',
+    name: 'Cyprus',
+    phone: {
+      prefix: '+357',
+      placeholder: '1234 5678',
+      template: 'XXXX XXXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
-    supported: false,
+    supported: true,
   },
   {
-    code: 'MQ',
-    flag: '🇲🇶',
-    name: 'Martinique',
-    phonePrefix: '+596',
-    currency: 'EUR',
-    phoneDigitCount: 9,
-    supported: false,
-  },
-  {
-    code: 'MX',
-    flag: '🇲🇽',
-    name: 'Mexico',
-    phonePrefix: '+52',
-    currency: 'MXN',
-    phoneDigitCount: 10,
-    supported: false,
-  },
-  {
-    code: 'PR',
-    flag: '🇵🇷',
-    name: 'Puerto Rico',
-    phonePrefix: '+1',
-    currency: 'USD',
-    phoneDigitCount: 10,
-    supported: false,
-  },
-  {
-    code: 'MF',
-    flag: '🇲🇫',
-    name: 'Saint Martin',
-    phonePrefix: '+590',
-    currency: 'EUR',
-    phoneDigitCount: 9,
-    supported: false,
-  },
-
-  // United States - Supported
-  {
-    code: 'US',
+    isoCode: 'US',
     flag: '🇺🇸',
     name: 'United States',
-    phonePrefix: '+1',
+    phone: {
+      prefix: '+1',
+      placeholder: '(555) 555-1234',
+      template: '(XXX) XXX-XXXX',
+    },
     currency: 'USD',
-    phoneDigitCount: 10,
     recommended: true,
     supported: true,
   },
-
-  // Asia - Not Supported
   {
-    code: 'CY',
-    flag: '🇨🇾',
-    name: 'Cyprus',
-    phonePrefix: '+357',
-    currency: 'EUR',
-    phoneDigitCount: 8,
+    isoCode: 'BM',
+    flag: '🇧🇲',
+    name: 'Bermuda',
+    phone: {
+      prefix: '+1',
+      placeholder: '(441) 555-1234',
+      template: '(441) XXX-XXXX',
+    },
+    currency: 'BMD',
     supported: false,
   },
   {
-    code: 'GE',
+    isoCode: 'CA',
+    flag: '🇨🇦',
+    name: 'Canada',
+    phone: {
+      prefix: '+1',
+      placeholder: '(555) 555-1234',
+      template: '(XXX) XXX-XXXX',
+    },
+    currency: 'CAD',
+    supported: false,
+  },
+  {
+    isoCode: 'GP',
+    flag: '🇬🇵',
+    name: 'Guadeloupe',
+    phone: {
+      prefix: '+590',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
+    currency: 'EUR',
+    supported: false,
+  },
+  {
+    isoCode: 'MQ',
+    flag: '🇲🇶',
+    name: 'Martinique',
+    phone: {
+      prefix: '+596',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
+    currency: 'EUR',
+    supported: false,
+  },
+  {
+    isoCode: 'MX',
+    flag: '🇲🇽',
+    name: 'Mexico',
+    phone: {
+      prefix: '+52',
+      placeholder: '123 456 7890',
+      template: 'XXX XXX XXXX',
+    },
+    currency: 'MXN',
+    supported: false,
+  },
+  {
+    isoCode: 'PR',
+    flag: '🇵🇷',
+    name: 'Puerto Rico',
+    phone: {
+      prefix: '+1',
+      placeholder: '(787) 555-1234',
+      template: '(787) XXX-XXXX',
+    },
+    currency: 'USD',
+    supported: false,
+  },
+  {
+    isoCode: 'MF',
+    flag: '🇲🇫',
+    name: 'Saint Martin',
+    phone: {
+      prefix: '+590',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
+    currency: 'EUR',
+    supported: false,
+  },
+  {
+    isoCode: 'GE',
     flag: '🇬🇪',
     name: 'Georgia',
-    phonePrefix: '+995',
+    phone: {
+      prefix: '+995',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'GEL',
-    phoneDigitCount: 9,
     supported: false,
   },
   {
-    code: 'HK',
+    isoCode: 'HK',
     flag: '🇭🇰',
     name: 'Hong Kong',
-    phonePrefix: '+852',
+    phone: {
+      prefix: '+852',
+      placeholder: '1234 5678',
+      template: 'XXXX XXXX',
+    },
     currency: 'HKD',
-    phoneDigitCount: 8,
     supported: false,
   },
   {
-    code: 'IN',
+    isoCode: 'IN',
     flag: '🇮🇳',
     name: 'India',
-    phonePrefix: '+91',
+    phone: {
+      prefix: '+91',
+      placeholder: '12345 67890',
+      template: 'XXXXX XXXXX',
+    },
     currency: 'INR',
-    phoneDigitCount: 10,
     supported: false,
   },
   {
-    code: 'IL',
+    isoCode: 'IL',
     flag: '🇮🇱',
     name: 'Israel',
-    phonePrefix: '+972',
+    phone: {
+      prefix: '+972',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'ILS',
-    phoneDigitCount: 9,
     supported: false,
   },
   {
-    code: 'KW',
+    isoCode: 'KW',
     flag: '🇰🇼',
     name: 'Kuwait',
-    phonePrefix: '+965',
+    phone: {
+      prefix: '+965',
+      placeholder: '1234 5678',
+      template: 'XXXX XXXX',
+    },
     currency: 'KWD',
-    phoneDigitCount: 8,
     supported: false,
   },
   {
-    code: 'MY',
+    isoCode: 'MY',
     flag: '🇲🇾',
     name: 'Malaysia',
-    phonePrefix: '+60',
+    phone: {
+      prefix: '+60',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'MYR',
-    phoneDigitCount: 9,
     supported: false,
   },
   {
-    code: 'PH',
+    isoCode: 'PH',
     flag: '🇵🇭',
     name: 'Philippines',
-    phonePrefix: '+63',
+    phone: {
+      prefix: '+63',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'PHP',
-    phoneDigitCount: 9,
     supported: false,
   },
-
-  // South America - Not Supported
   {
-    code: 'BR',
+    isoCode: 'BR',
     flag: '🇧🇷',
     name: 'Brazil',
-    phonePrefix: '+55',
+    phone: {
+      prefix: '+55',
+      placeholder: '11 12345 6789',
+      template: 'XX XXXXX XXXX',
+    },
     currency: 'BRL',
-    phoneDigitCount: 11,
     supported: false,
   },
   {
-    code: 'GF',
+    isoCode: 'GF',
     flag: '🇬🇫',
     name: 'French Guiana',
-    phonePrefix: '+594',
+    phone: {
+      prefix: '+594',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: false,
   },
-
-  // Oceania - Not Supported
   {
-    code: 'AU',
+    isoCode: 'AU',
     flag: '🇦🇺',
     name: 'Australia',
-    phonePrefix: '+61',
+    phone: {
+      prefix: '+61',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'AUD',
-    phoneDigitCount: 9,
     supported: false,
   },
   {
-    code: 'GU',
+    isoCode: 'GU',
     flag: '🇬🇺',
     name: 'Guam',
-    phonePrefix: '+1',
+    phone: {
+      prefix: '+1',
+      placeholder: '(671) 555-1234',
+      template: '(671) XXX-XXXX',
+    },
     currency: 'USD',
-    phoneDigitCount: 10,
     supported: false,
   },
   {
-    code: 'NZ',
+    isoCode: 'NZ',
     flag: '🇳🇿',
     name: 'New Zealand',
-    phonePrefix: '+64',
+    phone: {
+      prefix: '+64',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'NZD',
-    phoneDigitCount: 9,
     supported: false,
   },
-
-  // Africa - Not Supported
   {
-    code: 'YT',
+    isoCode: 'YT',
     flag: '🇾🇹',
     name: 'Mayotte',
-    phonePrefix: '+262',
+    phone: {
+      prefix: '+262',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: false,
   },
   {
-    code: 'RE',
+    isoCode: 'RE',
     flag: '🇷🇪',
     name: 'Réunion',
-    phonePrefix: '+262',
+    phone: {
+      prefix: '+262',
+      placeholder: '123 456 789',
+      template: 'XXX XXX XXX',
+    },
     currency: 'EUR',
-    phoneDigitCount: 9,
     supported: false,
   },
 ];
+
+export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';

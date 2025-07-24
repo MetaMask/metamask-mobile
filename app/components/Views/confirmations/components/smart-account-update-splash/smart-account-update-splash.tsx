@@ -1,29 +1,34 @@
 import React, { ReactElement, useCallback, useState } from 'react';
+import { Hex } from '@metamask/utils';
 import { Image, Linking, View } from 'react-native';
 import { JsonRpcError, serializeError } from '@metamask/rpc-errors';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
+import AvatarIcon from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarIcon';
 import { EIP5792ErrorCode } from '../../../../../constants/transaction';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import AvatarIcon from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarIcon';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { upgradeSplashPageAcknowledgedForAccount } from '../../../../../actions/confirmations';
+import {
+  selectSmartAccountOptIn,
+  selectSmartAccountOptInForAccounts,
+} from '../../../../../selectors/preferencesController';
+import { isHardwareAccount } from '../../../../../util/address';
+import { useTheme } from '../../../../../util/theme';
 import Name from '../../../../UI/Name';
 import { NameType } from '../../../../UI/Name/Name.types';
-import { useTheme } from '../../../../../util/theme';
 import { useStyles } from '../../../../hooks/useStyles';
-import { selectUpgradeSplashPageAcknowledgedForAccounts } from '../../selectors/confirmation';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import styleSheet from './smart-account-update-splash.styles';
+import Engine from '../../../../../core/Engine';
 
 const ACCOUNT_UPGRADE_URL =
   'https://support.metamask.io/configure/accounts/what-is-a-smart-account';
@@ -61,12 +66,13 @@ const ListItem = ({
 };
 
 export const SmartAccountUpdateSplash = () => {
+  const { PreferencesController } = Engine.context;
   const [acknowledged, setAcknowledged] = useState(false);
-  const dispatch = useDispatch();
   const transactionMetadata = useTransactionMetadataRequest();
-  const upgradeSplashPageAcknowledgedForAccounts = useSelector(
-    selectUpgradeSplashPageAcknowledgedForAccounts,
+  const smartAccountOptInForAccounts = useSelector(
+    selectSmartAccountOptInForAccounts,
   );
+  const smartAccountOptIn = useSelector(selectSmartAccountOptIn);
   const {
     txParams: { from },
   } = transactionMetadata ?? { txParams: {} };
@@ -88,14 +94,21 @@ export const SmartAccountUpdateSplash = () => {
     if (!from) {
       return;
     }
-    dispatch(upgradeSplashPageAcknowledgedForAccount(from));
+    if (!smartAccountOptInForAccounts.includes(from as Hex)) {
+      PreferencesController.setSmartAccountOptInForAccounts([
+        ...smartAccountOptInForAccounts,
+        from as Hex,
+      ]);
+    }
+
     setAcknowledged(true);
-  }, [dispatch, from, setAcknowledged]);
+  }, [from, setAcknowledged, smartAccountOptInForAccounts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (
     !transactionMetadata ||
     acknowledged ||
-    upgradeSplashPageAcknowledgedForAccounts.includes(from as string)
+    (smartAccountOptIn && from && !isHardwareAccount(from)) ||
+    smartAccountOptInForAccounts.includes(from as Hex)
   ) {
     return null;
   }

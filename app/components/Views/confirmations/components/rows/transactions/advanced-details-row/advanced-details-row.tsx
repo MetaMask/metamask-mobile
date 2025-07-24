@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -57,12 +58,14 @@ const AdvancedDetailsRow = () => {
     setShowNonceModal(true);
   }, [setShowNonceModal]);
 
-  if (!transactionMetadata?.txParams?.to) {
+  if (!transactionMetadata) {
     return null;
   }
 
-  const data = transactionMetadata.txParams.data ?? '';
-  const hasDataNeedsScroll = data.length > MAX_DATA_LENGTH_FOR_SCROLL;
+  const data = transactionMetadata?.txParams?.data;
+  const to = transactionMetadata?.txParams?.to;
+  const hasDataNeedsScroll = data && data.length > MAX_DATA_LENGTH_FOR_SCROLL;
+  const shouldShowData = !is7702transaction && data && data !== '0x';
 
   return (
     <>
@@ -83,16 +86,16 @@ const AdvancedDetailsRow = () => {
         }
         expandedContent={
           <>
-            {!isDowngrade && (
+            {!isDowngrade && to && (
               <InfoSection>
                 <InfoRow label={strings('stake.interacting_with')}>
                   {isBatched || isUpgrade ? (
                     <SmartContractWithLogo />
                   ) : (
                     <Name
-                      value={transactionMetadata.txParams.to}
+                      value={to}
                       type={NameType.EthereumAddress}
-                      variation={transactionMetadata.chainId}
+                      variation={transactionMetadata?.chainId as Hex}
                     />
                   )}
                 </InfoRow>
@@ -114,11 +117,11 @@ const AdvancedDetailsRow = () => {
                 </Text>
               </InfoRow>
             </InfoSection>
-            {!is7702transaction && (
+            {shouldShowData && (
               <InfoSection>
                 <InfoRow
                   label={strings('transaction.data')}
-                  copyText={transactionMetadata.txParams.data}
+                  copyText={data}
                   valueOnNewLine
                 >
                   {hasDataNeedsScroll ? (

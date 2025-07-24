@@ -433,15 +433,13 @@ class PaymentRequest extends PureComponent {
     this.setState({ searchInputValue, results });
   };
 
-  debouncedHandleSearch = debounce(this.handleSearch, 300);
-
   handleSearchTokenList = (searchInputValue) => {
     if (typeof searchInputValue !== 'string') {
       searchInputValue = this.state.searchInputValue;
     }
     this.setState({ searchInputValue });
 
-    this.debouncedHandleSearch(searchInputValue);
+    this.handleSearch(searchInputValue);
   };
 
   /** Clear search input and focus */

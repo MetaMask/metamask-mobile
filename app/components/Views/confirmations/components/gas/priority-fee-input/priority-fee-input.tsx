@@ -17,7 +17,7 @@ import {
 import { limitToMaximumDecimalPlaces } from '../../../../../../util/number';
 import styleSheet from './priority-fee-input.styles';
 import { TextFieldWithLabel } from '../../UI/text-field-with-label';
-import { validatePriorityFee } from '../../../utils/gas-validations';
+import { validatePriorityFee } from '../../../utils/validations/gas';
 
 const InfoLabel = ({ children }: { children: React.ReactNode }) => {
   const { styles } = useStyles(styleSheet, {});

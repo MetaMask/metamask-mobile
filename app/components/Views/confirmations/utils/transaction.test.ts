@@ -2,6 +2,7 @@ import { Interface } from '@ethersproject/abi';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
   addMMOriginatedTransaction,
+  get4ByteCode,
   parseStandardTokenTransactionData,
 } from './transaction';
 import {
@@ -155,5 +156,13 @@ describe('parseStandardTokenTransactionData', () => {
       ).toHaveBeenCalledTimes(1);
       expect(mockValidateRequest).toHaveBeenCalledTimes(1);
     });
+  });
+});
+
+describe('get4ByteCode', () => {
+  it('returns the 4 byte code for a given transaction data', () => {
+    const transactionData = '0x1234567811111111111111111111111111111111';
+    const result = get4ByteCode(transactionData);
+    expect(result).toBe('0x12345678');
   });
 });

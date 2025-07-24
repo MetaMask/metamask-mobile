@@ -360,18 +360,18 @@ describe('Temp Lending Utils', () => {
       expect(ethers.Contract).toHaveBeenCalledTimes(1);
     });
 
-    it('returns "0" for unsupported chain', async () => {
+    it('returns undefined for unsupported chain', async () => {
       const result = await getLendingPoolLiquidity(
         mockTokenAddress,
         mockReceiptTokenAddress,
         '0x999',
       );
 
-      expect(result).toBe('0');
+      expect(result).toBeUndefined();
       expect(ethers.providers.JsonRpcProvider).not.toHaveBeenCalled();
     });
 
-    it('returns "0" when balanceOf call fails', async () => {
+    it('returns undefined when balanceOf call fails', async () => {
       (ethers.Contract as unknown as jest.Mock).mockImplementation(() => ({
         balanceOf: jest.fn().mockRejectedValue(new Error('Failed')),
       }));
@@ -382,7 +382,7 @@ describe('Temp Lending Utils', () => {
         mainnetChainId,
       );
 
-      expect(result).toBe('0');
+      expect(result).toBeUndefined();
     });
 
     it('handles successful liquidity check on BSC network', async () => {

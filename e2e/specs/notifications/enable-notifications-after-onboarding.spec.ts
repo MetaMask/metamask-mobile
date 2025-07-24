@@ -8,6 +8,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import { getMockServerPort } from '../../fixtures/utils';
 import {
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
@@ -31,11 +32,10 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   let mockServer: Mockttp;
 
   beforeAll(async () => {
-    jest.setTimeout(200000);
     await TestHelpers.reverseServerPort();
 
     // Mock Server
-    mockServer = await startMockServer({});
+    mockServer = await startMockServer({}, getMockServerPort());
     await mockNotificationServices(mockServer);
 
     // Launch App

@@ -15,6 +15,27 @@ class QuotesView {
     return Matchers.getElementByID(QuoteSelectors.QUOTES);
   }
 
+  get exploreMoreOptions() {
+    return Matchers.getElementByText(QuoteSelectors.EXPLORE_MORE_OPTIONS);
+  }
+
+  get expandedQuotesSection() {
+    return Matchers.getElementByID(QuoteSelectors.EXPANDED_QUOTES_SECTION);
+  }
+
+  get continueWithProvider() {
+    const providerLocator = QuoteSelectors.CONTINUE_WITH_PROVIDER.replace('{{provider}}', '.*');
+    return Matchers.getElementByText(new RegExp(`^${providerLocator}$`));
+  }
+
+  async tapContinueWithProvider() {
+    await Gestures.tap(this.continueWithProvider);
+  }
+
+  async tapExploreMoreOptions() {
+    await Gestures.tap(this.exploreMoreOptions);
+  }
+
   async closeQuotesSection() {
     await Gestures.swipe(this.selectAQuoteLabel, 'down', 'fast', 1, 0, 0);
   }

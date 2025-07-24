@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, InteractionManager, UIManager } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
@@ -12,7 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
+import { ForgotPasswordModalSelectorsIDs } from '../../../../e2e/selectors/Common/ForgotPasswordModal.selectors';
 import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 import { useDispatch, useSelector } from 'react-redux';
@@ -38,6 +38,8 @@ import { useMetrics } from '../../hooks/useMetrics';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -45,9 +47,13 @@ if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
 
 const DeleteWalletModal: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { colors } = useTheme();
   const { isEnabled } = useMetrics();
   const styles = createStyles(colors);
+
+  const isResetWalletFromParams =
+    (route.params as { isResetWallet?: boolean })?.isResetWallet || false;
 
   const modalRef = useRef<BottomSheetRef>(null);
 
@@ -107,6 +113,7 @@ const DeleteWalletModal: React.FC = () => {
     triggerClose();
     await resetWalletState();
     await deleteUser();
+    await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     await dispatch(setCompletedOnboarding(false));
     track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
     InteractionManager.runAfterInteractions(() => {
@@ -116,17 +123,25 @@ const DeleteWalletModal: React.FC = () => {
 
   return (
     <BottomSheet ref={modalRef}>
-      {!isResetWallet ? (
-        <View style={styles.forgotPasswordContainer}>
+      {!isResetWallet && !isResetWalletFromParams ? (
+        <View
+          style={styles.forgotPasswordContainer}
+          testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
+        >
           <Text
             style={styles.heading}
             variant={TextVariant.HeadingMD}
             color={TextColor.Default}
+            testID={ForgotPasswordModalSelectorsIDs.TITLE}
           >
             {strings('login.forgot_password_desc')}
           </Text>
 
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            testID={ForgotPasswordModalSelectorsIDs.DESCRIPTION}
+          >
             {strings('login.forgot_password_desc_2')}
           </Text>
 
@@ -185,22 +200,27 @@ const DeleteWalletModal: React.FC = () => {
               setIsResetWallet(true);
               track(MetaMetricsEvents.RESET_WALLET, {});
             }}
-            testID={DeleteWalletModalSelectorsIDs.CONTINUE_BUTTON}
+            testID={ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON}
           />
         </View>
       ) : (
         <View style={styles.container}>
           <View
             style={styles.areYouSure}
-            testID={DeleteWalletModalSelectorsIDs.CONTAINER}
+            testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
           >
             <View style={styles.iconContainer}>
-              <ButtonIcon
-                iconName={IconName.ArrowLeft}
-                size={ButtonIconSizes.Md}
-                iconColor={IconColor.Default}
-                onPress={() => setIsResetWallet(false)}
-              />
+              {!isResetWalletFromParams ? (
+                <ButtonIcon
+                  iconName={IconName.ArrowLeft}
+                  size={ButtonIconSizes.Md}
+                  iconColor={IconColor.Default}
+                  onPress={() => setIsResetWallet(false)}
+                  testID={ForgotPasswordModalSelectorsIDs.BACK_BUTTON}
+                />
+              ) : (
+                <View style={styles.iconEmptyContainer} />
+              )}
               <Icon
                 style={styles.warningIcon}
                 size={IconSize.Xl}
@@ -214,6 +234,7 @@ const DeleteWalletModal: React.FC = () => {
               style={styles.heading}
               variant={TextVariant.HeadingMD}
               color={TextColor.Default}
+              testID={ForgotPasswordModalSelectorsIDs.WARNING_TEXT}
             >
               {strings('login.are_you_sure')}
             </Text>
@@ -241,7 +262,7 @@ const DeleteWalletModal: React.FC = () => {
                 label={strings('login.erase_my')}
                 width={ButtonWidthTypes.Full}
                 isDanger
-                testID={DeleteWalletModalSelectorsIDs.DELETE_PERMANENTLY_BUTTON}
+                testID={ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON}
               />
               <Button
                 variant={ButtonVariants.Secondary}
@@ -249,7 +270,7 @@ const DeleteWalletModal: React.FC = () => {
                 onPress={triggerClose}
                 label={strings('login.cancel')}
                 width={ButtonWidthTypes.Full}
-                testID={DeleteWalletModalSelectorsIDs.CANCEL_BUTTON}
+                testID={ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON}
               />
             </View>
           </View>

@@ -53,7 +53,7 @@ const SnapPermissionCell = ({ title, date }: SnapPermissionCellProps) => {
           <Text
             testID={SNAP_PERMISSIONS_TITLE}
             numberOfLines={2}
-            variant={TextVariant.HeadingSMRegular}
+            variant={TextVariant.BodyMD}
           >
             {title}
           </Text>

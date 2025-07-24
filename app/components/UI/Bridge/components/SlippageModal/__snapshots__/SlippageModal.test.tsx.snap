@@ -74,6 +74,9 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
     >
       <View
         collapsable={false}
+        enabled={true}
+        handlerTag={-1}
+        handlerType="PanGestureHandler"
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
         onLayout={[Function]}
@@ -85,7 +88,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               "borderTopLeftRadius": 8,
               "borderTopRightRadius": 8,
               "borderWidth": 1,
-              "maxHeight": 1334,
+              "maxHeight": 640,
               "overflow": "hidden",
               "paddingBottom": 0,
               "shadowColor": "#0000001a",
@@ -99,7 +102,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
             {
               "transform": [
                 {
-                  "translateY": 1334,
+                  "translateY": 640,
                 },
               ],
             },
@@ -164,9 +167,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 18,
-                  "fontWeight": "700",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -302,9 +304,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                     style={
                       {
                         "color": "#4459ff",
-                        "fontFamily": "CentraNo1-Medium",
+                        "fontFamily": "Geist Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -350,9 +351,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Medium",
+                        "fontFamily": "Geist Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -398,9 +398,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Medium",
+                        "fontFamily": "Geist Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -446,9 +445,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Medium",
+                        "fontFamily": "Geist Medium",
                         "fontSize": 16,
-                        "fontWeight": "500",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -500,9 +498,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "CentraNo1-Medium",
+                    "fontFamily": "Geist Medium",
                     "fontSize": 16,
-                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }

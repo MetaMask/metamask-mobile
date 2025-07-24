@@ -17,7 +17,7 @@ import Assertions from '../../../utils/Assertions';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeWalletPlatform } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { arrangeTestUtils } from '../utils/helpers';
 import {
@@ -27,12 +27,11 @@ import {
 import { Mockttp } from 'mockttp';
 
 describe(
-  SmokeWalletPlatform(
+  SmokeIdentity(
     'Account syncing - syncs and retrieves accounts after adding a custom name account',
   ),
   () => {
     const NEW_ACCOUNT_NAME = 'My third account';
-    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8000;
     let decryptedAccountNames: string[] = [];
     let mockServer: Mockttp;
     let userStorageMockttpController: UserStorageMockttpController;
@@ -40,7 +39,7 @@ describe(
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
+      mockServer = await startMockServer({});
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -70,7 +69,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+        launchArgs: { mockServerPort: mockServer.port },
       });
     });
 
@@ -121,7 +120,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+        launchArgs: { mockServerPort: mockServer.port },
       });
 
       await importWalletWithRecoveryPhrase({
