@@ -32,6 +32,7 @@ import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils'
 export interface UnsupportedStateModalParams {
   stateCode?: string;
   stateName?: string;
+  onStateSelect: (stateCode: string) => void;
 }
 
 export const createUnsupportedStateModalNavigationDetails =
@@ -44,33 +45,39 @@ function UnsupportedStateModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { selectedRegion } = useDepositSDK();
-  const { stateCode, stateName } = useParams<UnsupportedStateModalParams>();
+  const { stateCode, stateName, onStateSelect } =
+    useParams<UnsupportedStateModalParams>();
 
   const { styles } = useStyles(styleSheet, {});
 
+  const closeBottomSheetAndNavigate = useCallback(
+    (navigateFunc: () => void) => {
+      sheetRef.current?.onCloseBottomSheet(navigateFunc);
+    },
+    [],
+  );
+
   const handleSelectDifferentState = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
+    closeBottomSheetAndNavigate(() => {
       navigation.navigate(
         ...createStateSelectorModalNavigationDetails({
           selectedState: stateCode,
-          onStateSelect: () => {
-            // This callback is handled by the StateSelectorModal
-          },
+          onStateSelect,
         }),
       );
     });
-  }, [navigation, stateCode]);
+  }, [closeBottomSheetAndNavigate, navigation, stateCode, onStateSelect]);
 
   const handleTryAnotherOption = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
+    closeBottomSheetAndNavigate(() => {
       // @ts-expect-error navigation prop mismatch
       navigation.dangerouslyGetParent()?.pop();
       navigation.navigate(...createBuyNavigationDetails());
     });
-  }, [navigation]);
+  }, [closeBottomSheetAndNavigate, navigation]);
 
   const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
+    closeBottomSheetAndNavigate(() => {
       navigation.navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
         params: {
@@ -78,7 +85,7 @@ function UnsupportedStateModal() {
         },
       });
     });
-  }, [navigation]);
+  }, [closeBottomSheetAndNavigate, navigation]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>

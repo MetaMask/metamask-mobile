@@ -152,6 +152,7 @@ describe('StateSelectorModal Component', () => {
         params: {
           stateCode: 'NY',
           stateName: 'New York',
+          onStateSelect: mockUseParamsValues.onStateSelect,
         },
         screen: 'DepositUnsupportedStateModal',
       });

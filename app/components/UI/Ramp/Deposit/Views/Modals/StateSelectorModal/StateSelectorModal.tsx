@@ -96,6 +96,7 @@ function StateSelectorModal() {
             ...createUnsupportedStateModalNavigationDetails({
               stateCode: state.code,
               stateName: state.name,
+              onStateSelect,
             }),
           );
         });

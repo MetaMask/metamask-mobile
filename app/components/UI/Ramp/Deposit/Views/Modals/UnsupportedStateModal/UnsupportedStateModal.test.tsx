@@ -9,6 +9,7 @@ const mockNavigate = jest.fn();
 const mockDangerouslyGetParent = jest.fn();
 const mockPop = jest.fn();
 const mockGoBack = jest.fn();
+const mockOnStateSelect = jest.fn();
 
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
@@ -33,8 +34,9 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('../StateSelectorModal', () => ({
-  createStateSelectorModalNavigationDetails: jest.fn(() => [
+  createStateSelectorModalNavigationDetails: jest.fn((params) => [
     'StateSelectorModal',
+    params,
   ]),
 }));
 
@@ -47,6 +49,16 @@ describe('UnsupportedStateModal', () => {
     jest.clearAllMocks();
     mockDangerouslyGetParent.mockReturnValue({
       pop: mockPop,
+    });
+
+    // Mock useParams to return default values including onStateSelect
+    const { useParams } = jest.requireMock(
+      '../../../../../../../util/navigation/navUtils',
+    );
+    useParams.mockReturnValue({
+      stateCode: undefined,
+      stateName: undefined,
+      onStateSelect: mockOnStateSelect,
     });
   });
 
@@ -73,7 +85,7 @@ describe('UnsupportedStateModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays change region button', () => {
+  it('displays change state button', () => {
     const mockSelectedRegion = {
       isoCode: 'US',
       flag: '🇺🇸',
@@ -183,13 +195,14 @@ describe('UnsupportedStateModal', () => {
       selectedRegion: mockSelectedRegion,
     });
 
-    // Mock useParams to return stateName
+    // Mock useParams to return stateName and onStateSelect
     const { useParams } = jest.requireMock(
       '../../../../../../../util/navigation/navUtils',
     );
     useParams.mockReturnValue({
       stateCode: 'CA',
       stateName: 'California',
+      onStateSelect: mockOnStateSelect,
     });
 
     const { getByText } = renderDepositTestComponent(
@@ -218,12 +231,13 @@ describe('UnsupportedStateModal', () => {
       selectedRegion: mockSelectedRegion,
     });
 
-    // Mock useParams to return only stateCode
+    // Mock useParams to return only stateCode and onStateSelect
     const { useParams } = jest.requireMock(
       '../../../../../../../util/navigation/navUtils',
     );
     useParams.mockReturnValue({
       stateCode: 'CA',
+      onStateSelect: mockOnStateSelect,
     });
 
     const { getByText } = renderDepositTestComponent(
@@ -263,5 +277,90 @@ describe('UnsupportedStateModal', () => {
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('BuyScreen');
+  });
+
+  it('handles select different state button press correctly', () => {
+    const mockSelectedRegion = {
+      isoCode: 'US',
+      flag: '🇺🇸',
+      name: 'United States',
+      phone: {
+        prefix: '+1',
+        placeholder: '(555) 123-4567',
+        template: '(XXX) XXX-XXXX',
+      },
+      currency: 'USD',
+      supported: true,
+    };
+
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: mockSelectedRegion,
+    });
+
+    // Mock useParams to return stateCode and onStateSelect
+    const { useParams } = jest.requireMock(
+      '../../../../../../../util/navigation/navUtils',
+    );
+    useParams.mockReturnValue({
+      stateCode: 'NY',
+      stateName: 'New York',
+      onStateSelect: mockOnStateSelect,
+    });
+
+    const { getByText } = renderDepositTestComponent(
+      UnsupportedStateModal,
+      Routes.DEPOSIT.MODALS.UNSUPPORTED_STATE,
+    );
+
+    const changeStateButton = getByText('Change region');
+    fireEvent.press(changeStateButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('StateSelectorModal', {
+      selectedState: 'NY',
+      onStateSelect: mockOnStateSelect,
+    });
+  });
+
+  it('passes onStateSelect callback to StateSelectorModal', () => {
+    const mockSelectedRegion = {
+      isoCode: 'US',
+      flag: '🇺🇸',
+      name: 'United States',
+      phone: {
+        prefix: '+1',
+        placeholder: '(555) 123-4567',
+        template: '(XXX) XXX-XXXX',
+      },
+      currency: 'USD',
+      supported: true,
+    };
+
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: mockSelectedRegion,
+    });
+
+    // Mock useParams to return onStateSelect
+    const { useParams } = jest.requireMock(
+      '../../../../../../../util/navigation/navUtils',
+    );
+    useParams.mockReturnValue({
+      stateCode: 'TX',
+      stateName: 'Texas',
+      onStateSelect: mockOnStateSelect,
+    });
+
+    const { getByText } = renderDepositTestComponent(
+      UnsupportedStateModal,
+      Routes.DEPOSIT.MODALS.UNSUPPORTED_STATE,
+    );
+
+    const changeStateButton = getByText('Change region');
+    fireEvent.press(changeStateButton);
+
+    // Verify that the onStateSelect callback is passed to StateSelectorModal
+    expect(mockNavigate).toHaveBeenCalledWith('StateSelectorModal', {
+      selectedState: 'TX',
+      onStateSelect: mockOnStateSelect,
+    });
   });
 });
