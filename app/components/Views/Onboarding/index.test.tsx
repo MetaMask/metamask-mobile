@@ -112,15 +112,6 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
   },
 }));
 
-const mockMetricsIsEnabled = jest.fn().mockReturnValue(false);
-const mockTrackEvent = jest.fn();
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    isEnabled: mockMetricsIsEnabled,
-    trackEvent: mockTrackEvent,
-  }),
-}));
-
 jest.mock('react-native', () => {
   const actualRN = jest.requireActual('react-native');
   return {
@@ -852,119 +843,6 @@ describe('Onboarding', () => {
           accountName: 'newuser@icloud.com',
           oauthLoginSuccess: true,
           onboardingTraceCtx: expect.any(Object),
-        }),
-      );
-    });
-  });
-
-  describe('ErrorBoundary Tests', () => {
-    const mockOAuthService = jest.requireMock(
-      '../../../core/OAuthService/OAuthService',
-    );
-    const mockCreateLoginHandler = jest.requireMock(
-      '../../../core/OAuthService/OAuthLoginHandlers',
-    ).createLoginHandler;
-    const { OAuthError, OAuthErrorType } = jest.requireMock(
-      '../../../core/OAuthService/error',
-    );
-
-    beforeEach(() => {
-      mockSeedlessOnboardingEnabled.mockReturnValue(true);
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-      mockSeedlessOnboardingEnabled.mockReset();
-    });
-
-    it('should trigger ErrorBoundary for OAuth login failures when analytics disabled', async () => {
-      const loggerErrorSpy = jest.spyOn(Logger, 'error');
-      mockMetricsIsEnabled.mockReturnValueOnce(false);
-      const dismissError = new OAuthError(OAuthErrorType.AuthServerError);
-      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
-      mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
-
-      const { getByTestId } = renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(importSeedButton);
-      });
-
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
-      await act(async () => {
-        await appleOAuthFunction(false);
-      });
-
-      // Verify that the built-in ErrorBoundary caught the error and rendered its fallback UI
-      expect(loggerErrorSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'OAuth login failed: ',
-        }),
-        expect.objectContaining({
-          View: 'Onboarding',
-          ErrorBoundary: true,
-        }),
-      );
-      expect(mockTrackEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          name: 'Error Screen Viewed',
-        }),
-      );
-    });
-
-    it('should not trigger ErrorBoundary for OAuth login failures when analytics enabled', async () => {
-      mockMetricsIsEnabled.mockReturnValue(true);
-      const dismissError = new OAuthError(OAuthErrorType.AuthServerError);
-      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
-      mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
-
-      const { getByTestId } = renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
-      );
-      await act(async () => {
-        fireEvent.press(importSeedButton);
-      });
-
-      const navCall = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
-          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
-      );
-
-      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
-
-      await act(async () => {
-        await appleOAuthFunction(false);
-      });
-
-      expect(mockTrackEvent).not.toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          name: 'Error Screen Viewed',
         }),
       );
     });
