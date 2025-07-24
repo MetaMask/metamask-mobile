@@ -131,7 +131,7 @@ export const selectUseTransactionSimulations = createSelector(
     ).useTransactionSimulations,
 );
 
-export const selectPrivacyMode = createDeepEqualSelector(
+export const selectPrivacyMode = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.privacyMode,
