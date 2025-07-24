@@ -294,7 +294,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       <View style={styles.content}>
         <View style={styles.headerContainer}>
           <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
-            Perps Trading (Minimal)
+            Perps Trading (Dev Mode)
           </Text>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
             Core Controller & Services Testing

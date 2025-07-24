@@ -22,6 +22,17 @@ import {
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
 jest.mock('../../services/HyperLiquidSubscriptionService');
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AccountsController: {
+      getSelectedAccount: jest.fn().mockReturnValue({
+        address: '0xdefaultaddress',
+        id: 'mock-account-id',
+        metadata: { name: 'Test Account' },
+      }),
+    },
+  },
+}));
 jest.mock('../../utils/hyperLiquidValidation', () => ({
   validateOrderParams: jest.fn(),
   validateWithdrawalParams: jest.fn(),

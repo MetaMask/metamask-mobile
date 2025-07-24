@@ -1,9 +1,19 @@
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { v4 as uuidv4 } from 'uuid';
+import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import { getBridgeInfo, getChainId } from '../../constants/hyperLiquidConfig';
-import { WITHDRAWAL_CONSTANTS , PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import {
+  getBridgeInfo,
+  getChainId,
+  HYPERLIQUID_MAINNET_CAIP_CHAIN_ID,
+  HYPERLIQUID_TESTNET_CAIP_CHAIN_ID,
+} from '../../constants/hyperLiquidConfig';
+import {
+  PERPS_CONSTANTS,
+  WITHDRAWAL_CONSTANTS,
+} from '../../constants/perpsConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -30,7 +40,6 @@ import type {
   AccountState,
   AssetRoute,
   CancelOrderParams,
-  PendingWithdrawal,
   CancelOrderResult,
   ClosePositionParams,
   DepositParams,
@@ -41,12 +50,13 @@ import type {
   GetSupportedPathsParams,
   InitializeResult,
   IPerpsProvider,
-  LiveDataConfig,
   LiquidationPriceParams,
+  LiveDataConfig,
   MaintenanceMarginParams,
-  PerpsMarketData,
   MarketInfo,
   OrderResult,
+  PendingWithdrawal,
+  PerpsMarketData,
   OrderParams as PerpsOrderParams,
   Position,
   ReadyToTradeResult,
@@ -58,7 +68,6 @@ import type {
   WithdrawParams,
   WithdrawResult,
 } from '../types';
-import { strings } from '../../../../../../locales/i18n';
 
 /**
  * HyperLiquid provider implementation
@@ -1177,8 +1186,55 @@ export class HyperLiquidProvider implements IPerpsProvider {
             status: result.status,
           },
         );
+
+        // Create PendingWithdrawal object for tracking
+        const now = Date.now();
+        const withdrawalId = `hl_${uuidv4()}`;
+
+        // Get destination address (defaults to current account)
+        const { AccountsController } = Engine.context;
+        const selectedAccount = AccountsController.getSelectedAccount();
+        const destinationAddress =
+          params.destination || (selectedAccount.address as Hex);
+
+        // Parse asset information to get destination chain
+        // assetId is guaranteed to exist from earlier validation
+        if (!params.assetId) {
+          // This should never happen due to earlier validation, but TypeScript needs the check
+          throw new Error('Asset ID is required for withdrawal');
+        }
+        const { chainId: destChainId } = parseCaipAssetId(params.assetId);
+
+        // Get source chain from withdrawal route
+        const sourceChainId =
+          supportedRoutes.find((r) => r.assetId === params.assetId)?.chainId ||
+          (this.clientService.isTestnetMode()
+            ? HYPERLIQUID_TESTNET_CAIP_CHAIN_ID
+            : HYPERLIQUID_MAINNET_CAIP_CHAIN_ID);
+
+        const pendingWithdrawal: PendingWithdrawal = {
+          withdrawalId,
+          provider: 'hyperliquid',
+          amount: params.amount,
+          asset: 'USDC', // Currently only USDC is supported
+          assetId: params.assetId,
+          sourceChainId,
+          destinationChainId: destChainId,
+          destinationAddress,
+          initiatedAt: now,
+          status: 'pending',
+          providerTxHash: undefined, // HyperLiquid doesn't provide immediate tx hash
+          estimatedArrivalTime: now + 5 * 60 * 1000, // HyperLiquid typically takes ~5 minutes
+          metadata: {
+            isTestnet: this.clientService.isTestnetMode(),
+          },
+        };
+
         return {
           success: true,
+          withdrawalId,
+          estimatedArrivalTime: pendingWithdrawal.estimatedArrivalTime,
+          pendingWithdrawal,
           // Don't set txHash if we don't have a real transaction hash
           // HyperLiquid's withdraw3 API doesn't return a transaction hash immediately
         };

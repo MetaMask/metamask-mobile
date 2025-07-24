@@ -784,10 +784,31 @@ describe('PerpsController', () => {
         destination: '0x1234567890123456789012345678901234567890' as any,
       };
 
+      const mockPendingWithdrawal = {
+        withdrawalId: 'hl_test-uuid-123',
+        provider: 'hyperliquid',
+        amount: '100',
+        asset: 'USDC',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        sourceChainId: 'eip155:999' as CaipChainId,
+        destinationChainId: 'eip155:42161' as CaipChainId,
+        destinationAddress: '0x1234567890123456789012345678901234567890' as Hex,
+        initiatedAt: Date.now(),
+        status: 'pending' as const,
+        providerTxHash: undefined,
+        estimatedArrivalTime: Date.now() + 5 * 60 * 1000,
+        metadata: {
+          isTestnet: false,
+        },
+      };
+
       const mockWithdrawResult = {
         success: true,
         txHash: '0xabcdef123456789',
-        withdrawalId: expect.any(String),
+        withdrawalId: 'hl_test-uuid-123',
+        estimatedArrivalTime: mockPendingWithdrawal.estimatedArrivalTime,
+        pendingWithdrawal: mockPendingWithdrawal,
       };
 
       withController(async ({ controller }) => {
@@ -814,14 +835,64 @@ describe('PerpsController', () => {
         await controller.initializeProviders();
         const result = await controller.withdraw(withdrawParams);
 
-        expect(result).toEqual({
-          success: true,
-          txHash: '0xabcdef123456789',
-          withdrawalId: expect.any(String),
-        });
+        // Verify result returned from provider
+        expect(result).toEqual(mockWithdrawResult);
+
+        // Verify withdrawal was added to state
+        expect(controller.state.pendingWithdrawals).toHaveLength(1);
+        expect(controller.state.pendingWithdrawals[0]).toEqual(
+          mockPendingWithdrawal,
+        );
+
         expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
           withdrawParams,
         );
+      });
+    });
+
+    it('should handle withdraw when provider does not return pendingWithdrawal', async () => {
+      const withdrawParams = {
+        amount: '100',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        destination: '0x1234567890123456789012345678901234567890' as any,
+      };
+
+      // Provider returns success but no pendingWithdrawal (legacy behavior)
+      const mockWithdrawResult = {
+        success: true,
+        txHash: '0xabcdef123456789',
+      };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.withdraw.mockResolvedValue(mockWithdrawResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        mockHyperLiquidProvider.getWithdrawalRoutes.mockReturnValue([
+          {
+            assetId:
+              'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+            chainId: 'eip155:42161' as CaipChainId,
+            contractAddress:
+              '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+            constraints: {
+              minAmount: '1.01',
+              estimatedTime: '5 minutes',
+              fees: {
+                fixed: 1,
+                token: 'USDC',
+              },
+            },
+          },
+        ]);
+
+        await controller.initializeProviders();
+        const result = await controller.withdraw(withdrawParams);
+
+        // Verify result returned from provider
+        expect(result).toEqual(mockWithdrawResult);
+
+        // Verify no withdrawal was added to state since provider didn't return one
+        expect(controller.state.pendingWithdrawals).toHaveLength(0);
       });
     });
   });
@@ -1813,6 +1884,229 @@ describe('PerpsController', () => {
 
           // Act & Assert
           await expect(controller.updatePositionTPSL(params)).rejects.toThrow();
+        });
+      });
+    });
+
+    describe('withdrawal cleanup', () => {
+      it('should clean up old completed withdrawals when starting monitoring', async () => {
+        await withController(async ({ controller }) => {
+          // Arrange - Set up withdrawals with different statuses and completion times
+          const now = Date.now();
+          const oneDayMs = 24 * 60 * 60 * 1000;
+
+          // @ts-ignore
+          controller.update((state) => {
+            state.pendingWithdrawals = [
+              // Old completed withdrawal (should be removed)
+              {
+                withdrawalId: 'old-completed',
+                amount: '100',
+                asset: 'USDC',
+                assetId:
+                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+                sourceChainId: 'eip155:999' as CaipChainId,
+                status: 'completed',
+                completedAt: now - 8 * oneDayMs, // 8 days ago
+                initiatedAt: now - 9 * oneDayMs,
+                provider: 'hyperliquid',
+                destinationChainId: 'eip155:42161' as CaipChainId,
+                destinationAddress: '0x123' as Hex,
+              },
+              // Recent completed withdrawal (should be kept)
+              {
+                withdrawalId: 'recent-completed',
+                amount: '200',
+                asset: 'USDC',
+                assetId:
+                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+                sourceChainId: 'eip155:999' as CaipChainId,
+                status: 'completed',
+                completedAt: now - 2 * oneDayMs, // 2 days ago
+                initiatedAt: now - 3 * oneDayMs,
+                provider: 'hyperliquid',
+                destinationChainId: 'eip155:42161' as CaipChainId,
+                destinationAddress: '0x123' as Hex,
+              },
+              // Pending withdrawal (should be kept)
+              {
+                withdrawalId: 'pending',
+                amount: '300',
+                asset: 'USDC',
+                assetId:
+                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+                sourceChainId: 'eip155:999' as CaipChainId,
+                status: 'pending',
+                initiatedAt: now - 1 * oneDayMs,
+                provider: 'hyperliquid',
+                destinationChainId: 'eip155:42161' as CaipChainId,
+                destinationAddress: '0x123' as Hex,
+              },
+              // Processing withdrawal (should be kept)
+              {
+                withdrawalId: 'processing',
+                amount: '400',
+                asset: 'USDC',
+                assetId:
+                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+                sourceChainId: 'eip155:999' as CaipChainId,
+                status: 'processing',
+                initiatedAt: now - 0.5 * oneDayMs,
+                provider: 'hyperliquid',
+                destinationChainId: 'eip155:42161' as CaipChainId,
+                destinationAddress: '0x123' as Hex,
+              },
+            ];
+          });
+
+          // Act - Start monitoring (which triggers cleanup)
+          controller.startWithdrawalMonitoring();
+
+          // Assert - Old completed withdrawal should be removed
+          expect(controller.state.pendingWithdrawals).toHaveLength(3);
+          expect(
+            controller.state.pendingWithdrawals.map((w) => w.withdrawalId),
+          ).toEqual(['recent-completed', 'pending', 'processing']);
+        });
+      });
+
+      it('should clean up withdrawals after monitoring completes', async () => {
+        // Arrange
+        mockHyperLiquidProvider.checkWithdrawalStatus.mockResolvedValue({
+          status: 'completed',
+          metadata: { completedAt: Date.now() },
+        });
+
+        await withController(async ({ controller }) => {
+          const now = Date.now();
+          const oneDayMs = 24 * 60 * 60 * 1000;
+
+          // Set up an old completed withdrawal and a pending one
+          // @ts-ignore
+          controller.update((state) => {
+            state.pendingWithdrawals = [
+              {
+                withdrawalId: 'old-completed',
+                amount: '100',
+                asset: 'USDC',
+                assetId:
+                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+                sourceChainId: 'eip155:999' as CaipChainId,
+                status: 'completed',
+                completedAt: now - 10 * oneDayMs, // 10 days ago
+                initiatedAt: now - 11 * oneDayMs,
+                provider: 'hyperliquid',
+                destinationChainId: 'eip155:42161' as CaipChainId,
+                destinationAddress: '0x123' as Hex,
+              },
+              {
+                withdrawalId: 'pending-to-complete',
+                amount: '200',
+                asset: 'USDC',
+                assetId:
+                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+                sourceChainId: 'eip155:999' as CaipChainId,
+                status: 'pending',
+                initiatedAt: now,
+                provider: 'hyperliquid',
+                destinationChainId: 'eip155:42161' as CaipChainId,
+                destinationAddress: '0x123' as Hex,
+              },
+            ];
+          });
+
+          // Act - Monitor withdrawals (which will complete the pending one and cleanup)
+          await controller.monitorPendingWithdrawals();
+
+          // Assert - Old withdrawal removed, new completion kept
+          expect(controller.state.pendingWithdrawals).toHaveLength(1);
+          expect(controller.state.pendingWithdrawals[0].withdrawalId).toBe(
+            'pending-to-complete',
+          );
+          expect(controller.state.pendingWithdrawals[0].status).toBe(
+            'completed',
+          );
+        });
+      });
+
+      it('should handle withdrawals without completedAt timestamps', async () => {
+        await withController(async ({ controller }) => {
+          // Arrange - Completed withdrawal without completedAt (edge case)
+          // @ts-ignore
+          controller.update((state) => {
+            state.pendingWithdrawals = [
+              {
+                withdrawalId: 'completed-no-timestamp',
+                amount: '100',
+                asset: 'USDC',
+                assetId:
+                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+                sourceChainId: 'eip155:999' as CaipChainId,
+                status: 'completed',
+                // No completedAt field
+                initiatedAt: Date.now() - 30 * 24 * 60 * 60 * 1000, // 30 days ago
+                provider: 'hyperliquid',
+                destinationChainId: 'eip155:42161' as CaipChainId,
+                destinationAddress: '0x123' as Hex,
+              },
+            ];
+          });
+
+          // Act - Start monitoring (triggers cleanup)
+          controller.startWithdrawalMonitoring();
+
+          // Assert - Withdrawal without completedAt is kept (conservative approach)
+          expect(controller.state.pendingWithdrawals).toHaveLength(1);
+        });
+      });
+
+      it('should not run monitoring interval if no pending/processing withdrawals after cleanup', async () => {
+        await withController(async ({ controller }) => {
+          // Arrange - Only old completed withdrawals
+          const now = Date.now();
+          const oneDayMs = 24 * 60 * 60 * 1000;
+
+          // @ts-ignore
+          controller.update((state) => {
+            state.pendingWithdrawals = [
+              {
+                withdrawalId: 'old-completed-1',
+                amount: '100',
+                asset: 'USDC',
+                assetId:
+                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+                sourceChainId: 'eip155:999' as CaipChainId,
+                status: 'completed',
+                completedAt: now - 10 * oneDayMs,
+                initiatedAt: now - 11 * oneDayMs,
+                provider: 'hyperliquid',
+                destinationChainId: 'eip155:42161' as CaipChainId,
+                destinationAddress: '0x123' as Hex,
+              },
+              {
+                withdrawalId: 'old-completed-2',
+                amount: '200',
+                asset: 'USDC',
+                assetId:
+                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+                sourceChainId: 'eip155:999' as CaipChainId,
+                status: 'completed',
+                completedAt: now - 15 * oneDayMs,
+                initiatedAt: now - 16 * oneDayMs,
+                provider: 'hyperliquid',
+                destinationChainId: 'eip155:42161' as CaipChainId,
+                destinationAddress: '0x123' as Hex,
+              },
+            ];
+          });
+
+          // Act - Start monitoring
+          controller.startWithdrawalMonitoring();
+
+          // Assert - All withdrawals cleaned up, no monitoring started
+          expect(controller.state.pendingWithdrawals).toHaveLength(0);
+          // @ts-ignore - Accessing private property for testing
+          expect(controller.withdrawalMonitoringInterval).toBeNull();
         });
       });
     });

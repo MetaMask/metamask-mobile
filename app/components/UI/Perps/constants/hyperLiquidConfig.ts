@@ -19,6 +19,8 @@ export const ARBITRUM_TESTNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_TESTNET_CHAIN_I
 // Hyperliquid chain constants
 export const HYPERLIQUID_MAINNET_CHAIN_ID = '0x3e7'; // 999 in decimal
 export const HYPERLIQUID_TESTNET_CHAIN_ID = '0x3e6'; // 998 in decimal (assumed)
+export const HYPERLIQUID_MAINNET_CAIP_CHAIN_ID = 'eip155:999' as CaipChainId;
+export const HYPERLIQUID_TESTNET_CAIP_CHAIN_ID = 'eip155:998' as CaipChainId;
 export const HYPERLIQUID_NETWORK_NAME = 'Hyperliquid';
 
 // Token constants

@@ -17,4 +17,5 @@ export const WITHDRAWAL_CONSTANTS = {
   DEFAULT_FEE_AMOUNT: 1, // Default withdrawal fee in USDC
   DEFAULT_FEE_TOKEN: 'USDC', // Default fee token
   DEFAULT_ESTIMATED_TIME: '5 minutes', // Default estimated withdrawal time
+  COMPLETED_RETENTION_DAYS: 7, // Keep completed withdrawals for 7 days
 } as const;

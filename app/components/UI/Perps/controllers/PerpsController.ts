@@ -16,6 +16,7 @@ import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { generateTransferData } from '../../../../util/transactions';
 import type { CandleData } from '../types';
+import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -721,54 +722,9 @@ export class PerpsController extends BaseController<
       });
 
       // Update state based on result
-      if (result.success) {
-        // Create a pending withdrawal entry for monitoring
-        const now = Date.now();
-        const withdrawalId =
-          result.withdrawalId ||
-          `withdrawal_${now}_${Math.random().toString(36).substring(2, 9)}`;
-
-        // Get the withdrawal route for this asset to determine source chain
-        const withdrawalRoutes = this.getWithdrawalRoutes();
-        const route = withdrawalRoutes.find(
-          (r) => r.assetId === params.assetId,
-        );
-
-        if (!route) {
-          // This should not happen as withdrawal validation already checks this
-          throw new Error('Withdrawal route not found for asset');
-        }
-
-        // Parse asset information (assetId is guaranteed to exist from validation)
-        const { chainId: destChainId } = parseCaipAssetId(params.assetId);
-        const sourceChainId = route.chainId; // Provider's chain from route
-
-        // Get destination address (defaults to current account)
-        const { AccountsController } = Engine.context;
-        const selectedAccount = AccountsController.getSelectedAccount();
-        const destinationAddress =
-          params.destination || (selectedAccount.address as Hex);
-
-        // Create pending withdrawal entry
-        const pendingWithdrawal: PendingWithdrawal = {
-          withdrawalId,
-          provider: this.state.activeProvider,
-          amount: params.amount,
-          asset: 'USDC', // Currently only USDC is supported
-          assetId: params.assetId,
-          sourceChainId,
-          destinationChainId: destChainId,
-          destinationAddress,
-          initiatedAt: now,
-          status: 'pending',
-          providerTxHash: result.txHash, // Optional - HyperLiquid doesn't provide immediate tx hash
-          estimatedArrivalTime:
-            result.estimatedArrivalTime || now + 5 * 60 * 1000, // Default 5 minutes
-          metadata: {
-            isTestnet: this.state.isTestnet,
-          },
-        };
-
+      if (result.success && result.pendingWithdrawal) {
+        // Provider has created the tracking object
+        const pendingWithdrawal = result.pendingWithdrawal;
         this.update((state) => {
           state.lastError = null;
           state.lastUpdateTimestamp = Date.now();
@@ -780,12 +736,11 @@ export class PerpsController extends BaseController<
           txHash: result.txHash,
           amount: params.amount,
           assetId: params.assetId,
-          withdrawalId,
-          pendingWithdrawal,
+          withdrawalId: result.withdrawalId,
+          pendingWithdrawal: result.pendingWithdrawal,
         });
 
-        // Return result with withdrawal ID
-        return { ...result, withdrawalId };
+        return result;
       }
 
       this.update((state) => {
@@ -1357,6 +1312,9 @@ export class PerpsController extends BaseController<
     // Clear any existing interval
     this.stopWithdrawalMonitoring();
 
+    // Clean up old completed withdrawals first
+    this.cleanupCompletedWithdrawals();
+
     // Check if there are any pending withdrawals
     const hasPending = this.state.pendingWithdrawals.some(
       (w) => w.status === 'pending' || w.status === 'processing',
@@ -1504,6 +1462,54 @@ export class PerpsController extends BaseController<
         });
       }
     }
+
+    // Clean up old completed withdrawals after monitoring
+    this.cleanupCompletedWithdrawals();
+  }
+
+  /**
+   * Clean up old completed withdrawals from persistence
+   * Removes withdrawals that have been completed for more than the retention period
+   */
+  private cleanupCompletedWithdrawals(): void {
+    const retentionPeriodMs =
+      WITHDRAWAL_CONSTANTS.COMPLETED_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+    const cutoffTime = Date.now() - retentionPeriodMs;
+
+    this.update((state) => {
+      const initialCount = state.pendingWithdrawals.length;
+
+      // Filter out old completed withdrawals
+      state.pendingWithdrawals = state.pendingWithdrawals.filter(
+        (withdrawal) => {
+          // Keep non-completed withdrawals
+          if (withdrawal.status !== 'completed') {
+            return true;
+          }
+
+          // Keep recently completed withdrawals
+          const completedAt =
+            withdrawal.completedAt || withdrawal.metadata?.completedAt;
+          if (!completedAt) {
+            // If no completion time recorded, keep it (shouldn't happen)
+            return true;
+          }
+
+          return Number(completedAt) > cutoffTime;
+        },
+      );
+
+      const removedCount = initialCount - state.pendingWithdrawals.length;
+      if (removedCount > 0) {
+        DevLogger.log(
+          '🧹 PerpsController: Cleaned up old completed withdrawals',
+          {
+            removedCount,
+            remainingCount: state.pendingWithdrawals.length,
+          },
+        );
+      }
+    });
   }
 
   /**

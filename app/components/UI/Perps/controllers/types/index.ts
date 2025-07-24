@@ -237,6 +237,7 @@ export interface WithdrawResult {
   error?: string;
   withdrawalId?: string; // Unique ID for tracking
   estimatedArrivalTime?: number; // Provider-specific arrival time
+  pendingWithdrawal?: PendingWithdrawal; // Complete tracking object from provider
 }
 
 // Provider-agnostic withdrawal tracking type
