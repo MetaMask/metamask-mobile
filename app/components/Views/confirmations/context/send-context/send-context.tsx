@@ -3,7 +3,6 @@ import React, {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -71,7 +70,7 @@ export const SendContextProvider: React.FC<{
         contractBalances,
         from: from?.address as Hex,
       }),
-    [accounts, asset, from?.address, transactionParams],
+    [accounts, asset, contractBalances, from?.address, transactionParams],
   );
 
   const sendDisabled = useMemo(() => {
@@ -83,7 +82,7 @@ export const SendContextProvider: React.FC<{
       value === '' ||
       !to
     );
-  }, [amountError]);
+  }, [amountError, transactionParams]);
 
   const submitSend = useCallback(async () => {
     if (!chainId || !asset) {
