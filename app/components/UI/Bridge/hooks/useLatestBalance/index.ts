@@ -40,6 +40,7 @@ export const fetchEvmAtomicBalance = async (
   chainId: Hex,
 ): Promise<BigNumber | undefined> => {
   if (tokenAddress && chainId) {
+    console.log('fetchEvmAtomicBalance', tokenAddress, chainId);
     if (tokenAddress === constants.AddressZero) {
       return await web3Provider.getBalance(getAddress(selectedAddress));
     }
