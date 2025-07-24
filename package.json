@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.50.1",
+  "version": "7.52.99",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -342,6 +342,7 @@
     "expo-build-properties": "~0.13.2",
     "expo-dev-client": "~5.0.18",
     "expo-file-system": "~18.0.7",
+    "expo-updates": "~0.27.4",
     "fast-equals": "^5.2.2",
     "fuse.js": "3.4.4",
     "he": "^1.2.0",

@@ -25,6 +25,7 @@ import {
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+import * as Updates from 'expo-updates';
 
 import {
   ToastContext,
@@ -237,6 +238,12 @@ const Wallet = ({
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
+  const { currentlyRunning, isUpdateAvailable, isUpdatePending, checkError } =
+    Updates.useUpdates();
+  const runTypeMessage = currentlyRunning.isEmbeddedLaunch
+    ? 'This app is running from built-in code'
+    : 'This app is running an update';
+  const error = checkError?.message;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
@@ -296,6 +303,13 @@ const Wallet = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  useEffect(() => {
+    if (isUpdatePending) {
+      // Update has successfully downloaded; apply it now
+      Updates.reloadAsync();
+    }
+  }, [isUpdatePending]);
 
   useEffect(() => {
     if (
@@ -755,6 +769,13 @@ const Wallet = ({
           </View>
         ) : null}
         <>
+          {/* <Text>EAS UPDATED TEST 1</Text> */}
+          <Text>{runTypeMessage}</Text>
+          {error && <Text>error:{error}</Text>}
+          {isUpdateAvailable && <Text>Update available</Text>}
+          {isUpdatePending && <Text>Update pending</Text>}
+          <Text>Updates Channel:{Updates.channel}</Text>
+          <Text>Updates Update ID:{Updates.updateId}</Text>
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
           <WalletTokensTabView

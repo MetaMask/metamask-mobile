@@ -13,6 +13,7 @@
 {
   self.moduleName = @"MetaMask";
   [FIRApp configure];
+  
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
 
   NSString *foxCode;
