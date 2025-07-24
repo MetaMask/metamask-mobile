@@ -250,7 +250,7 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await TestHelpers.delay(2000);
 
     // Scroll to top first to ensure consistent starting position
-    await WalletView.scrollDownOnTokensTab();
+    await WalletView.scrollToBottomOfTokensList();
     await TestHelpers.delay(1000);
 
     // 3rd one is Linea Network
