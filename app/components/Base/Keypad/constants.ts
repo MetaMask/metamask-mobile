@@ -18,7 +18,7 @@ export enum Keys {
 
 interface CurrencyConfig {
   decimalSeparator: string | null;
-  handler: (currentAmount: string, inputKey: string) => string;
+  handler: (currentAmount: string, inputKey: Keys) => string;
   symbol: string | null;
 }
 
