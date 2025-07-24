@@ -2016,7 +2016,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       // Override Redux store to return seedless flow as true
@@ -2068,7 +2068,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: true,
         shouldSelectAccount: true,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       // Override Redux store to return seedless flow as true
@@ -2123,7 +2123,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: true,
+        shouldImportAccounts: true,
       };
 
       // Act
@@ -2155,7 +2155,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: true,
         shouldSelectAccount: true,
-        shouldImportSolanaAccount: true,
+        shouldImportAccounts: true,
       };
 
       // Override Redux store to return seedless flow as true
@@ -2213,7 +2213,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       const error = new Error('Failed to add new keyring');
@@ -2231,7 +2231,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: true,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       // Override Redux store to return seedless flow as true
@@ -2265,7 +2265,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: true,
+        shouldImportAccounts: true,
       };
 
       const error = new Error('Solana discovery failed');
@@ -2283,7 +2283,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       const error = new Error('Failed to get accounts');
@@ -2301,7 +2301,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       mockKeyring.getAccounts.mockResolvedValue([]);
@@ -2325,7 +2325,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: true,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       mockKeyring.getAccounts.mockResolvedValue([
@@ -2865,7 +2865,7 @@ describe('Authentication', () => {
         {
           shouldCreateSocialBackup: false,
           shouldSelectAccount: false,
-          shouldImportSolanaAccount: true,
+          shouldImportAccounts: true,
         },
       );
     });

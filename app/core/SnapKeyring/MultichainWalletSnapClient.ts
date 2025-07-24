@@ -34,7 +34,7 @@ import { getTraceTags } from '../../util/sentry/tags';
 import {
   BITCOIN_DISCOVERY_PENDING,
   SOLANA_DISCOVERY_PENDING,
-} from 'app/constants/storage';
+} from '../../constants/storage';
 
 export const WALLET_SNAP_MAP = {
   [WalletClientType.Bitcoin]: {
