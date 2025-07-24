@@ -25,9 +25,9 @@ class TestDApp {
   }
 
   get DappConnectButton(): WebElement {
-    return Matchers.getElementByXPath(
+    return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      `//*[@id="${TestDappSelectorsWebIDs.CONNECT_BUTTON}"]`,
+      TestDappSelectorsWebIDs.CONNECT_BUTTON,
     );
   }
 

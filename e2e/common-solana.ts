@@ -9,20 +9,18 @@ import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
 import Assertions from './framework/Assertions';
 import { DappVariants } from './framework/Constants';
-// eslint-disable-next-line import/no-nodejs-modules
-import path from 'path';
 
 export async function withSolanaAccountEnabled(
   {
     numberOfAccounts = 1,
-    dappPath,
     solanaAccountPermitted,
     evmAccountPermitted,
+    dappVariant,
   }: {
     numberOfAccounts?: number;
-    dappPath?: string;
     solanaAccountPermitted?: boolean;
     evmAccountPermitted?: boolean;
+    dappVariant?: DappVariants;
   },
   test: () => Promise<void>,
 ) {
@@ -38,16 +36,12 @@ export async function withSolanaAccountEnabled(
   }
   const fixtures = fixtureBuilder.build();
 
-  // Resolve the dappPath if provided to ensure it's an absolute path
-  const resolvedDappPath = dappPath ? path.resolve(__dirname, dappPath) : undefined;
-
   await withFixtures(
     {
       fixture: fixtures,
       dapps: [
         {
-          dappVariant: DappVariants.SOLANA_TEST_DAPP,
-          dappPath: resolvedDappPath,
+          dappVariant: dappVariant || DappVariants.SOLANA_TEST_DAPP, // Default to the Solana test dapp if no variant is provided
         },
       ],
       restartDevice: true,
