@@ -2588,6 +2588,16 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+  build_ios_main_test:
+    envs:
+      - BUILD_TYPE: 'Release'
+      - YARN_COMMAND: 'build:ios:main:test'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
   build_ios_main_e2e:
     envs:
       - BUILD_TYPE: 'Release'
