@@ -2072,7 +2072,8 @@
       "1m": "Past month",
       "3m": "Past 3 months",
       "1y": "Past year",
-      "3y": "Past 3 years"
+      "3y": "Past 3 years",
+      "all": "All"
     },
     "chart_time_period_navigation": {
       "1d": "1D",
