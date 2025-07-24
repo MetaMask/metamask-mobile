@@ -63,12 +63,13 @@ import { selectMultichainTokenListForAccountId } from '../../../selectors/multic
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
-import { isSendRedesignEnabled } from '../confirmations/utils/send';
+import { handleSendPageNavigation } from '../confirmations/utils/send';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation();
+  const navigation = useNavigation();
+  const { navigate } = navigation;
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
@@ -297,27 +298,22 @@ const WalletActions = () => {
       );
     }
 
-    if (isSendRedesignEnabled()) {
-      closeBottomSheetAndNavigate(() => {
-        navigate(Routes.SEND.DEFAULT, {
-          screen: Routes.SEND.ROOT,
-        });
-      });
-      return;
-    }
-
     closeBottomSheetAndNavigate(() => {
+      let asset = assetToSend;
       if (
         !assetToSend ||
         assetToSend.isETH ||
         assetToSend.isNative ||
         Object.keys(assetToSend).length === 0
       ) {
-        ticker && dispatch(newAssetTransaction(getEther(ticker)));
+        if (ticker) {
+          asset = getEther(ticker);
+          dispatch(newAssetTransaction(asset));
+        }
       } else {
         dispatch(newAssetTransaction(assetToSend));
       }
-      navigate('SendFlowView', {});
+      handleSendPageNavigation(navigation, asset);
     });
   }, [
     closeBottomSheetAndNavigate,

@@ -29,7 +29,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
+import { handleSendPageNavigation } from '../../Views/confirmations/utils/send';
 
 const CollectibleModal = () => {
   const navigation = useNavigation();
@@ -81,18 +81,7 @@ const CollectibleModal = () => {
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
-    if (isSendRedesignEnabled()) {
-      //@ts-expect-error replace do not exist on ParamListBase
-      navigation.replace(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ROOT,
-        params: {
-          asset: collectible,
-        },
-      });
-    } else {
-      //@ts-expect-error replace do not exist on ParamListBase
-      navigation.replace('SendFlowView', {});
-    }
+    handleSendPageNavigation(navigation, collectible);
   }, [contractName, collectible, navigation, dispatch]);
 
   const isTradable = useCallback(
