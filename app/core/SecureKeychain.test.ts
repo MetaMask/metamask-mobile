@@ -11,6 +11,7 @@ import {
 } from '../constants/storage';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
+import QuickCrypto from 'react-native-quick-crypto';
 
 jest.mock('../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -208,7 +209,7 @@ describe('SecureKeychain - Consumer Methods', () => {
   });
 
   describe('setConsumerGenericPassword', () => {
-    it('encrypts password before storing', async () => {
+    it('encrypts password and stores parameters correctly', async () => {
       const username = 'test-username';
       const password = 'plain-text-password';
       const consumerOptions = {
@@ -216,79 +217,69 @@ describe('SecureKeychain - Consumer Methods', () => {
         accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       };
 
-      (Keychain.setGenericPassword as jest.Mock).mockResolvedValue(true);
-
       await SecureKeychain.setConsumerGenericPassword(
         username,
         password,
         consumerOptions,
       );
 
+      const storedUsername = (Keychain.setGenericPassword as jest.Mock).mock
+        .calls[0][0];
       const storedPassword = (Keychain.setGenericPassword as jest.Mock).mock
         .calls[0][1];
-      expect(storedPassword).not.toBe(password);
+      const storedConsumerOptions = (Keychain.setGenericPassword as jest.Mock)
+        .mock.calls[0][2];
+
+      expect(storedUsername).toBe(username);
+
       expect(typeof storedPassword).toBe('string');
-    });
+      expect(storedPassword).toMatch(/^{"cipher":/);
 
-    it('passes correct parameters to keychain', async () => {
-      const username = 'test-username';
-      const password = 'test-password';
-      const consumerOptions = {
-        service: 'com.metamask.test-service',
-        accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-      };
-
-      (Keychain.setGenericPassword as jest.Mock).mockResolvedValue(true);
-
-      const result = await SecureKeychain.setConsumerGenericPassword(
-        username,
-        password,
-        consumerOptions,
-      );
-
-      expect(Keychain.setGenericPassword).toHaveBeenCalledWith(
-        username,
-        expect.any(String),
-        consumerOptions,
-      );
-      expect(result).toBe(true);
+      expect(storedConsumerOptions).toEqual(consumerOptions);
     });
   });
 
   describe('getConsumerGenericPassword', () => {
     it('retrieves and decrypts password successfully', async () => {
+      const username = 'test-username';
+      const originalPassword = 'plain-text-password';
       const consumerOptions = {
         service: 'com.metamask.test-service',
         accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       };
-      const originalPassword = 'test-password';
-      const mockEncryptedPassword = 'mock-encrypted-password';
 
-      const instance = SecureKeychain.getInstance();
+      jest.spyOn(QuickCrypto.subtle, 'decrypt').mockImplementation(() => {
+        const jsonString = JSON.stringify({ password: originalPassword });
+        const encoder = new TextEncoder();
+        return Promise.resolve(encoder.encode(jsonString));
+      });
 
-      jest
-        .spyOn(instance, 'encryptPassword')
-        .mockResolvedValue(mockEncryptedPassword);
-      jest
-        .spyOn(instance, 'decryptPassword')
-        .mockResolvedValue({ password: originalPassword });
+      await SecureKeychain.setConsumerGenericPassword(
+        username,
+        originalPassword,
+        consumerOptions,
+      );
+
+      const storedEncryptedPassword = (Keychain.setGenericPassword as jest.Mock)
+        .mock.calls[0][1];
 
       (Keychain.getGenericPassword as jest.Mock).mockResolvedValue({
-        username: 'test-user',
-        password: mockEncryptedPassword,
+        username,
+        password: storedEncryptedPassword,
+        service: consumerOptions.service,
       });
 
       const result = await SecureKeychain.getConsumerGenericPassword(
         consumerOptions,
       );
 
+      expect(result).toEqual({
+        username,
+        password: originalPassword,
+        service: consumerOptions.service,
+      });
+
       expect(Keychain.getGenericPassword).toHaveBeenCalledWith(consumerOptions);
-      expect(instance.decryptPassword).toHaveBeenCalledWith(
-        mockEncryptedPassword,
-      );
-      expect(result).toBeTruthy();
-      expect(result?.username).toBe('test-user');
-      expect(result?.password).toBe(originalPassword);
     });
 
     it('returns null when no credentials are found', async () => {
