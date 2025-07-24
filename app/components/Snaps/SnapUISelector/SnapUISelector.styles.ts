@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
+import { ViewStyle } from 'react-native';
 
 /**
  *
@@ -11,7 +12,12 @@ import { colors as importedColors } from '../../../styles/common';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: { selected?: boolean; compact?: boolean };
+  vars: {
+    selected?: boolean;
+    compact?: boolean;
+    selectorStyle?: ViewStyle;
+    itemStyle?: ViewStyle;
+  };
 }) => {
   const { theme, vars } = params;
   const { colors } = theme;
@@ -29,32 +35,38 @@ const styleSheet = (params: {
       paddingLeft: 16,
       paddingRight: 16,
     },
-    button: {
-      backgroundColor: colors.background.default,
-      height: 'auto',
-      minHeight: 48,
-      maxHeight: 58,
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      borderRadius: 8,
-      paddingTop: 8,
-      paddingBottom: 8,
-      paddingRight: vars.compact ? 8 : 16,
-      paddingLeft: vars.compact ? 8 : 16,
-    },
-    modalButton: {
-      backgroundColor: vars.selected
-        ? colors.primary.muted
-        : importedColors.transparent,
-      height: 'auto',
-      minHeight: 48,
-      maxHeight: 58,
-      borderRadius: 8,
-      paddingTop: 8,
-      paddingBottom: 8,
-      paddingRight: 16,
-      paddingLeft: 16,
-    },
+    button: Object.assign(
+      {
+        backgroundColor: colors.background.default,
+        height: 'auto',
+        minHeight: 48,
+        maxHeight: 58,
+        borderColor: colors.border.muted,
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingRight: vars.compact ? 8 : 16,
+        paddingLeft: vars.compact ? 8 : 16,
+      },
+      vars.selectorStyle,
+    ),
+    modalButton: Object.assign(
+      {
+        backgroundColor: vars.selected
+          ? colors.primary.muted
+          : importedColors.transparent,
+        height: 'auto',
+        minHeight: 48,
+        maxHeight: 58,
+        borderRadius: 8,
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingRight: 16,
+        paddingLeft: 16,
+      },
+      vars.itemStyle,
+    ),
     selectedPill: {
       position: 'absolute',
       height: 'auto',

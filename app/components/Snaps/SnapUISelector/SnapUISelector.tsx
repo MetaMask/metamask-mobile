@@ -48,8 +48,9 @@ const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
   onSelect,
   disabled,
   selected,
+  style,
 }) => {
-  const { styles } = useStyles(stylesheet, { selected });
+  const { styles } = useStyles(stylesheet, { selected, itemStyle: style });
 
   const handlePress = () => {
     onSelect(value);
@@ -88,7 +89,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   itemStyle,
   compact = false,
 }) => {
-  const { styles } = useStyles(stylesheet, { compact });
+  const { styles } = useStyles(stylesheet, { compact, selectorStyle: style });
   const { handleInputChange, getValue } = useSnapInterfaceContext();
 
   const initialValue = getValue(name, form);
