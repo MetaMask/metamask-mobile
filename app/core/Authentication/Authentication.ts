@@ -54,7 +54,10 @@ import {
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { SolScope } from '@metamask/keyring-api';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
-import { SeedlessOnboardingControllerError } from '../Engine/controllers/seedless-onboarding-controller/error';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../Engine/controllers/seedless-onboarding-controller/error';
 
 // to replace with SecretMetadata type from seedless-onboarding-controller when it is exported
 interface SecretMetadata {
@@ -487,7 +490,7 @@ class AuthenticationService {
         await this.rehydrateSeedPhrase(password, authData);
       } else if (await this.checkIsSeedlessPasswordOutdated()) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-        await this.syncPasswordAndUnlockWallet(password);
+        await this.syncPasswordAndUnlockWallet(password, authData);
       } else {
         // else srp flow
         await this.loginVaultCreation(password);
@@ -779,16 +782,10 @@ class AuthenticationService {
   ): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
 
-    const { success: isKeyringPasswordValid, error: keyringError } =
+    const { success: isKeyringPasswordValid } =
       await KeyringController.verifyPassword(globalPassword)
         .then(() => ({ success: true, error: null }))
         .catch((err) => ({ success: false, error: err }));
-
-    // throw if not valid password and not incorrect password error
-    if (!isKeyringPasswordValid) {
-      if (!(keyringError as Error).message.includes('Incorrect password'))
-        throw keyringError;
-    }
 
     // recover the current keyring encryption key
     // here e could be invalid password or outdated password error, which can result in following cases:
@@ -829,8 +826,8 @@ class AuthenticationService {
       ) {
         // Case 2: Keyring controller password verification succeeds and seedless controller failed.
         if (isKeyringPasswordValid) {
-          throw new Error(
-            SeedlessOnboardingControllerErrorMessage.OutdatedPassword,
+          throw new SeedlessOnboardingControllerError(
+            SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
           );
         } else {
           throw seedlessSyncError;
