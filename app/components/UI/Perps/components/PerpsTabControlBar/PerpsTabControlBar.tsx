@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { TouchableOpacity, View, Animated } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,
@@ -44,6 +45,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   const { compareAndUpdateBalance } = useBalanceComparison();
 
   const getAccountBalance = useCallback(async () => {
+    DevLogger.log('PerpsTabControlBar: Getting account balance');
     try {
       const accountState = await getAccountState();
 

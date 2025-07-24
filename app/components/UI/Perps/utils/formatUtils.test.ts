@@ -33,57 +33,14 @@ describe('formatUtils', () => {
       expect(formatPerpsFiat(100)).toBe('$100.00');
     });
 
-    it('should respect minDecimals parameter for minimum decimal places', () => {
-      expect(formatPerpsFiat(100, 0)).toBe('$100');
-      expect(formatPerpsFiat(100.5, 1)).toBe('$100.50'); // Currency standard: at least 2 decimals
-      expect(formatPerpsFiat(100, 3)).toBe('$100.000');
-      expect(formatPerpsFiat(100.5, 4)).toBe('$100.5000');
+    it('should handle large numbers', () => {
+      expect(formatPerpsFiat(1000000)).toBe('$1,000,000.00');
+      expect(formatPerpsFiat(999999.99)).toBe('$999,999.99');
+      expect(formatPerpsFiat('123456.789')).toBe('$123,456.79');
     });
 
-    it('should handle minDecimals parameter correctly for currency formatting', () => {
-      expect(formatPerpsFiat(100.123456, 0)).toBe('$100'); // No decimals when minDecimals = 0
-      expect(formatPerpsFiat(100.123456, 3)).toBe('$100.123456');
-    });
-
-    it('should handle zero values with minDecimals parameter', () => {
-      expect(formatPerpsFiat(0, 0)).toBe('$0');
-      expect(formatPerpsFiat(0, 2)).toBe('$0.00');
-      expect(formatPerpsFiat(0, 4)).toBe('$0.0000');
-      expect(formatPerpsFiat('0', 3)).toBe('$0.000');
-    });
-
-    it('should handle negative values with minDecimals parameter', () => {
-      expect(formatPerpsFiat(-100, 0)).toBe('-$100');
-      expect(formatPerpsFiat(-100.5, 1)).toBe('-$100.50'); // Currency standard: at least 2 decimals
-      expect(formatPerpsFiat('-50.25', 2)).toBe('-$50.25');
-      expect(formatPerpsFiat(-25, 3)).toBe('-$25.000');
-    });
-
-    it('should handle invalid inputs with minDecimals fallback', () => {
-      expect(formatPerpsFiat('invalid', 0)).toBe('$0');
-      expect(formatPerpsFiat('invalid', 2)).toBe('$0.00');
-      expect(formatPerpsFiat('invalid', 3)).toBe('$0.00'); // Should use default fallback format
-      expect(formatPerpsFiat(NaN, 0)).toBe('$0');
-      expect(formatPerpsFiat(NaN, 2)).toBe('$0.00');
-      expect(formatPerpsFiat('', 1)).toBe('$0.00');
-    });
-
-    it('should handle string and number inputs consistently', () => {
-      expect(formatPerpsFiat(123.45, 2)).toBe(formatPerpsFiat('123.45', 2));
-      expect(formatPerpsFiat(0, 0)).toBe(formatPerpsFiat('0', 0));
-      expect(formatPerpsFiat(-50.5, 3)).toBe(formatPerpsFiat('-50.5', 3));
-    });
-
-    it('should handle large numbers with minDecimals parameter', () => {
-      expect(formatPerpsFiat(1000000, 0)).toBe('$1,000,000');
-      expect(formatPerpsFiat(999999.99, 2)).toBe('$999,999.99');
-      expect(formatPerpsFiat('123456.789', 3)).toBe('$123,456.789');
-    });
-
-    it('should handle small decimal values with minDecimals parameter', () => {
-      expect(formatPerpsFiat(0.1, 1)).toBe('$0.10'); // Currency standard: at least 2 decimals
-      expect(formatPerpsFiat(0.001, 3)).toBe('$0.001');
-      expect(formatPerpsFiat('0.00001', 5)).toBe('$0.00001');
+    it('should handle small decimal values', () => {
+      expect(formatPerpsFiat(0.1)).toBe('$0.10'); // Currency standard: at least 2 decimals
     });
   });
 

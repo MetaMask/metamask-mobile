@@ -9,28 +9,16 @@ import { formatWithThreshold } from '../../../../util/assets';
  * @param balance - The balance value to format (string or number)
  * @returns Formatted balance string with currency symbol (e.g., "$1,234.56")
  */
-export const formatPerpsFiat = (
-  balance: string | number,
-  minDecimals = 2,
-): string => {
+export const formatPerpsFiat = (balance: string | number): string => {
   const num = typeof balance === 'string' ? parseFloat(balance) : balance;
 
   if (isNaN(num)) {
-    return minDecimals === 0 ? '$0' : '$0.00';
+    return '$0.00';
   }
-
-  // For currency formatting, use appropriate decimal places:
-  // - minDecimals = 0: use 0 decimals
-  // - minDecimals = 1: use 2 decimals (currency standard)
-  // - minDecimals >= 2: use minDecimals
-  const effectiveMinDecimals = minDecimals === 0 ? 0 : Math.max(minDecimals, 2);
-  const effectiveMaxDecimals = minDecimals === 0 ? 0 : Math.max(minDecimals, 6); // Allow more precision
 
   return formatWithThreshold(num, 0.01, 'en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: effectiveMinDecimals,
-    maximumFractionDigits: effectiveMaxDecimals,
   });
 };
 
