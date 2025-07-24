@@ -1,9 +1,11 @@
 import React from 'react';
+import { NavigationProp } from '@react-navigation/native';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import PerpsTabView from './PerpsTabView';
+import type { PerpsNavigationParamList } from '../../controllers/types';
 
 interface PerpsTabViewWithProviderProps {
-  navigation?: any;
+  navigation?: NavigationProp<PerpsNavigationParamList>;
   tabLabel?: string;
 }
 
