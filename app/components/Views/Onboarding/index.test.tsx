@@ -22,6 +22,7 @@ import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
+import Logger from '../../../util/Logger';
 
 const mockInitialState = {
   engine: {
@@ -110,6 +111,9 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
     return mockSeedlessOnboardingEnabled();
   },
 }));
+
+const mockMetricsIsEnabled = jest.fn().mockReturnValue(false);
+const mockTrackEvent = jest.fn();
 
 jest.mock('react-native', () => {
   const actualRN = jest.requireActual('react-native');
