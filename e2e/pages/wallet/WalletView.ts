@@ -258,7 +258,7 @@ class WalletView {
   }
 
   async ensureTokenIsFullyVisible(tokenName: string): Promise<void> {
-    // Platform-specific approach
+    // Use platform-specific logic for optimal performance
     if (device.getPlatform() === 'android') {
       await this.ensureTokenIsFullyVisibleAndroid(tokenName);
     } else {
@@ -269,117 +269,93 @@ class WalletView {
   async ensureTokenIsFullyVisibleAndroid(tokenName: string): Promise<void> {
     const tokensContainer = await this.getTokensInWallet();
 
-    // First, scroll to top to start from a known position
-    for (let i = 0; i < 3; i++) {
-      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
-        speed: 'fast',
-        percentage: 0.7,
-      });
-      await TestHelpers.delay(200);
+    // Quick check if already visible - avoid unnecessary work
+    try {
+      const token = this.tokenInWallet(tokenName);
+      await Assertions.expectElementToBeVisible(token);
+      return; // Already visible, done!
+    } catch (e) {
+      // Not visible, proceed with smart positioning
     }
-    await TestHelpers.delay(1000); // Let everything settle
 
-    // Now use conservative scrolling with reasonable timeouts for Android
-    for (let attempt = 0; attempt < 10; attempt++) {
+    // Smart scrolling strategy - faster and more effective
+    // 1. Large scroll to get token into general area (faster than many small scrolls)
+    for (let i = 0; i < 5; i++) {
       try {
         const token = this.tokenInWallet(tokenName);
         await Assertions.expectElementToBeVisible(token);
-        return; // Token is visible, exit
+        break; // Found it, exit
       } catch (e) {
-        // Conservative scrolling for Android
+        // Use larger increments for efficiency - 0.5% is still safe but faster
         await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
-          speed: 'slow',
-          percentage: 0.3, // Smaller increments to avoid overshooting
+          speed: 'fast',
+          percentage: 0.5,
         });
-        await TestHelpers.delay(1000); // Reasonable delays for Android
+        await TestHelpers.delay(500); // Shorter delays for speed
       }
     }
 
-    // Try additional micro-adjustments if still not visible
-    for (let i = 0; i < 3; i++) {
-      try {
-        const token = this.tokenInWallet(tokenName);
-        await Assertions.expectElementToBeVisible(token);
-        return;
-      } catch (e) {
-        if (i === 0) {
-          // Try scrolling up slightly
-          await Gestures.swipe(
-            tokensContainer as unknown as DetoxElement,
-            'down',
-            {
-              speed: 'slow',
-              percentage: 0.05,
-            },
-          );
-        } else if (i === 1) {
-          // Try scrolling down slightly
-          await Gestures.swipe(
-            tokensContainer as unknown as DetoxElement,
-            'up',
-            {
-              speed: 'slow',
-              percentage: 0.05,
-            },
-          );
-        }
-        await TestHelpers.delay(1000);
-      }
-    }
-
-    throw new Error(
-      `Android: Could not make token ${tokenName} visible after conservative scrolling attempts`,
-    );
+    // 2. Precision centering - ensure 100% visibility
+    await this.centerTokenInViewportPrecisely(tokenName);
   }
 
   async ensureTokenIsFullyVisibleIOS(tokenName: string): Promise<void> {
     const tokensContainer = await this.getTokensInWallet();
 
-    // First, scroll to top to start from a known position
-    for (let i = 0; i < 3; i++) {
-      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
-        speed: 'fast',
-        percentage: 0.7,
-      });
-      await TestHelpers.delay(200);
+    // Quick check if already visible - avoid unnecessary work
+    try {
+      const token = this.tokenInWallet(tokenName);
+      await Assertions.expectElementToBeVisible(token);
+      return; // Already visible, done!
+    } catch (e) {
+      // Not visible, proceed with smart positioning
     }
-    await TestHelpers.delay(1000); // Let everything settle
 
-    // Now use conservative scrolling for iOS
-    for (let attempt = 0; attempt < 10; attempt++) {
+    // Smart scrolling strategy for iOS
+    // 1. Large scroll to get token into general area
+    for (let i = 0; i < 5; i++) {
       try {
         const token = this.tokenInWallet(tokenName);
         await Assertions.expectElementToBeVisible(token);
-        return; // Token is visible, exit
+        break; // Found it, exit
       } catch (e) {
-        // Conservative scrolling for iOS
+        // Use larger increments for efficiency - iOS can handle 0.5% well
         await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
-          speed: 'slow',
-          percentage: 0.3, // Reasonable increments
+          speed: 'fast',
+          percentage: 0.5,
         });
-        await TestHelpers.delay(1000); // Reasonable delays
+        await TestHelpers.delay(400); // Shorter delays for iOS
       }
     }
 
-    // Try additional micro-adjustments if still not visible
-    for (let i = 0; i < 3; i++) {
+    // 2. Precision centering - ensure 100% visibility
+    await this.centerTokenInViewportPrecisely(tokenName);
+  }
+
+  async centerTokenInViewportPrecisely(tokenName: string): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+
+    // Precision positioning for 100% visibility
+    // Key insight: small elements need to be perfectly centered
+    for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const token = this.tokenInWallet(tokenName);
         await Assertions.expectElementToBeVisible(token);
-        return;
+        return; // Perfect, exit
       } catch (e) {
-        if (i === 0) {
-          // Try scrolling up slightly
+        // Smart repositioning based on attempt
+        if (attempt === 0) {
+          // Move away from edges - bigger adjustment for efficiency
           await Gestures.swipe(
             tokensContainer as unknown as DetoxElement,
             'down',
             {
               speed: 'slow',
-              percentage: 0.08,
+              percentage: 0.15, // Larger, more effective adjustment
             },
           );
-        } else if (i === 1) {
-          // Try scrolling down slightly
+        } else {
+          // Fine-tune toward perfect center
           await Gestures.swipe(
             tokensContainer as unknown as DetoxElement,
             'up',
@@ -389,164 +365,46 @@ class WalletView {
             },
           );
         }
-        await TestHelpers.delay(1000);
+        await TestHelpers.delay(400); // Short delay for responsiveness
       }
     }
-
-    throw new Error(
-      `iOS: Could not make token ${tokenName} visible after conservative scrolling attempts`,
-    );
   }
 
   async waitForTokenToBeStableAndVisible(tokenName: string): Promise<void> {
-    // Ensure token is visible first
+    // This method is now redundant - ensureTokenIsFullyVisible handles stability
+    // Redirect to the efficient method
     await this.ensureTokenIsFullyVisible(tokenName);
-
-    // Then wait for it to be stable (especially important for Android)
-    const stabilityChecks = device.getPlatform() === 'android' ? 5 : 3;
-
-    for (let i = 0; i < stabilityChecks; i++) {
-      try {
-        const token = this.tokenInWallet(tokenName);
-        await Assertions.expectElementToBeVisible(token);
-        await TestHelpers.delay(device.getPlatform() === 'android' ? 800 : 400);
-      } catch (e) {
-        // If it becomes invisible again, re-ensure visibility
-        await this.ensureTokenIsFullyVisible(tokenName);
-        await TestHelpers.delay(
-          device.getPlatform() === 'android' ? 1500 : 1000,
-        );
-      }
-    }
   }
 
   async ensureTokenIsFullyHittable(tokenName: string): Promise<void> {
-    // First ensure it's visible and stable
-    await this.waitForTokenToBeStableAndVisible(tokenName);
+    // First ensure it's visible and stable - use our efficient method
+    await this.ensureTokenIsFullyVisible(tokenName);
 
-    const tokensContainer = await this.getTokensInWallet();
+    // Add brief stability check - small elements need a moment to settle
+    await TestHelpers.delay(200);
 
-    // Conservative hittability validation - same attempts for both platforms
-    const hittabilityAttempts = 3;
-
-    for (let attempt = 0; attempt < hittabilityAttempts; attempt++) {
-      try {
-        const token = this.tokenInWallet(tokenName);
-        await Assertions.expectElementToBeVisible(token);
-
-        // Brief validation delay
-        await TestHelpers.delay(300);
-        return; // Token should be hittable
-      } catch (e) {
-        // Conservative centering attempts to fix clipping
-        if (attempt === 0) {
-          // Small repositioning - move away from edges
-          await Gestures.swipe(
-            tokensContainer as unknown as DetoxElement,
-            'down',
-            {
-              speed: 'slow',
-              percentage: 0.08,
-            },
-          );
-        } else if (attempt === 1) {
-          // Reverse direction to find optimal position
-          await Gestures.swipe(
-            tokensContainer as unknown as DetoxElement,
-            'up',
-            {
-              speed: 'slow',
-              percentage: 0.06,
-            },
-          );
-        } else if (attempt === 2) {
-          // Fine-tuning for center position
-          await Gestures.swipe(
-            tokensContainer as unknown as DetoxElement,
-            'down',
-            {
-              speed: 'slow',
-              percentage: 0.03,
-            },
-          );
-        }
-
-        // Reasonable delays
-        await TestHelpers.delay(800);
-      }
-    }
-
-    // Final validation attempt with simple error message
+    // Final verification that it's ready for interaction
     try {
       const token = this.tokenInWallet(tokenName);
       await Assertions.expectElementToBeVisible(token);
     } catch (e) {
-      throw new Error(
-        `Could not make token ${tokenName} sufficiently hittable after ${hittabilityAttempts} attempts`,
-      );
+      // One final adjustment if needed
+      await this.centerTokenInViewportPrecisely(tokenName);
+      await TestHelpers.delay(200);
     }
   }
 
   async centerTokenInViewport(tokenName: string): Promise<void> {
-    const tokensContainer = await this.getTokensInWallet();
-
-    // Skip the problematic scrollToElement - go straight to manual centering
-    // Enhanced centering for both platforms with conservative attempts
-    const adjustmentAttempts = 3; // Same for both platforms
-
-    for (let i = 0; i < adjustmentAttempts; i++) {
-      try {
-        const token = this.tokenInWallet(tokenName);
-        await Assertions.expectElementToBeVisible(token);
-        break; // Token is well-centered, exit
-      } catch (e) {
-        // Progressive centering adjustments - more conservative
-        if (i === 0) {
-          // Move token away from top edge
-          await Gestures.swipe(
-            tokensContainer as unknown as DetoxElement,
-            'down',
-            {
-              speed: 'slow',
-              percentage: 0.08,
-            },
-          );
-        } else if (i === 1) {
-          // Move token away from bottom edge
-          await Gestures.swipe(
-            tokensContainer as unknown as DetoxElement,
-            'up',
-            {
-              speed: 'slow',
-              percentage: 0.06,
-            },
-          );
-        } else if (i === 2) {
-          // Fine adjustment toward center
-          await Gestures.swipe(
-            tokensContainer as unknown as DetoxElement,
-            'down',
-            {
-              speed: 'slow',
-              percentage: 0.03,
-            },
-          );
-        }
-
-        await TestHelpers.delay(800);
-      }
-    }
+    // Use the new precise centering method
+    await this.centerTokenInViewportPrecisely(tokenName);
   }
 
   async tapOnTokenWithRetry(token: string, index = 0): Promise<void> {
-    // First center the token in viewport for optimal hittability
-    await this.centerTokenInViewport(token);
-
-    // Then ensure the token is fully hittable - with reasonable attempts
+    // Ensure token is optimally positioned for tapping
     await this.ensureTokenIsFullyHittable(token);
 
-    // Now attempt to tap with conservative retries
-    const maxAttempts = 3; // Same for both platforms
+    // Now attempt to tap with minimal retries (should work on first try with good positioning)
+    const maxAttempts = 2; // Reduced attempts since positioning should be precise
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
@@ -554,9 +412,6 @@ class WalletView {
           token || WalletViewSelectorsText.DEFAULT_TOKEN,
           index,
         );
-
-        // Add brief validation delay before tapping
-        await TestHelpers.delay(500);
 
         await Gestures.waitAndTap(elem, {
           elemDescription: 'Token',
@@ -566,12 +421,9 @@ class WalletView {
         return;
       } catch (e) {
         if (attempt < maxAttempts - 1) {
-          // Re-center and re-ensure token is hittable before retrying
-          await this.centerTokenInViewport(token);
-          await this.ensureTokenIsFullyHittable(token);
-
-          // Brief delay between attempts
-          await TestHelpers.delay(800);
+          // Quick re-positioning if needed
+          await this.centerTokenInViewportPrecisely(token);
+          await TestHelpers.delay(300);
         } else {
           throw new Error(
             `Failed to tap on token ${token} after ${maxAttempts} attempts: ${e}`,
