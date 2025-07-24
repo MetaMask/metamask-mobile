@@ -30,6 +30,7 @@ export default class Gestures {
       checkEnabled?: boolean;
       elemDescription?: string;
       delay?: number;
+      waitForElementToDisappear?: boolean;
     },
     point?: { x: number; y: number },
   ) => {
@@ -61,6 +62,11 @@ export default class Gestures {
       );
     }
     await el.tap(point);
+
+    if (options.waitForElementToDisappear) {
+      await Utilities.waitForElementToDisappear(elem);
+    }
+
     const successMessage = elemDescription
       ? `✅ Successfully tapped element: ${elemDescription}`
       : `✅ Successfully tapped element`;
@@ -82,6 +88,7 @@ export default class Gestures {
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
+      waitForElementToDisappear = false,
     } = options;
 
     const fn = () =>
@@ -90,6 +97,7 @@ export default class Gestures {
         checkVisibility,
         checkEnabled,
         elemDescription,
+        waitForElementToDisappear,
       });
     return Utilities.executeWithRetry(fn, {
       timeout,
@@ -116,6 +124,7 @@ export default class Gestures {
       checkEnabled = true,
       elemDescription,
       delay = 500,
+      waitForElementToDisappear = false,
     } = options;
 
     const fn = async () =>
@@ -125,6 +134,7 @@ export default class Gestures {
         checkEnabled,
         elemDescription,
         delay,
+        waitForElementToDisappear,
       });
 
     return Utilities.executeWithRetry(fn, {
@@ -133,6 +143,7 @@ export default class Gestures {
       elemDescription,
     });
   }
+
 
   /**
    * Tap element at a specific index
