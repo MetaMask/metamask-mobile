@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useMemo } from 'react';
+import React, { FunctionComponent, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 
@@ -186,13 +186,16 @@ export const SnapUIAccountSelector: FunctionComponent<
     />
   ));
 
-  const handleSelect = (value: State) => {
-    if (switchGlobalAccount) {
-      Engine.context.AccountsController.setSelectedAccount(
-        (value as AccountSelectorState).accountId,
-      );
-    }
-  };
+  const handleSelect = useCallback(
+    (value: State) => {
+      if (switchGlobalAccount) {
+        Engine.context.AccountsController.setSelectedAccount(
+          (value as AccountSelectorState).accountId,
+        );
+      }
+    },
+    [switchGlobalAccount],
+  );
 
   return (
     <SnapUISelector
