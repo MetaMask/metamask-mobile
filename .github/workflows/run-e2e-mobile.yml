@@ -1,4 +1,4 @@
-# This workflow runs mobile E2E tests for a specific smoke test category.
+# This workflow runs mobile E2E tests for a specific test category.
 # It passes matrix sharding info to the test framework via environment variables.
 
 name: Test Mobile E2E Category
@@ -6,39 +6,29 @@ name: Test Mobile E2E Category
 on:
   workflow_call:
     inputs:
-      test-suite-name:
-        description: 'Name of the test suite'
-        required: true
-        type: string
-      smoke-category:
-        description: 'Smoke test category (confirmations, trade, wallet-platform, etc.)'
-        required: true
-        type: string
       platform:
         description: 'Platform to test (ios or android)'
         required: true
         type: string
       test_suite_tag:
         description: 'The Cucumber tag expression to use for filtering tests'
-        required: false
+        required: true
         type: string
-
       use_prebuilt_apps:
         description: 'Use pre-built apps from GitHub release instead of building'
         required: false
         type: boolean
-        default: false
+        default: true
 
 jobs:
   test-e2e-mobile:
-    name: ${{ inputs.test-suite-name }}
+    name: ${{ inputs.platform }}-${{ inputs.test_suite_tag }}
     runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'large-mm-test' }}
     #runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
 
     env:
       METAMASK_ENVIRONMENT: 'local'
       METAMASK_BUILD_TYPE: 'main'
-      SMOKE_CATEGORY: ${{ inputs.smoke-category }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -209,7 +199,7 @@ jobs:
           platform="${{ inputs.platform }}"
           test_suite_tag="${{ inputs.test_suite_tag }}"
 
-          echo "🚀 Running ${{ inputs.smoke-category }} tests on $platform"
+          echo "🚀 Running ${{ inputs.platform }} tests on $platform"
 
           # Validate required test suite tag
           if [[ -z "$test_suite_tag" ]]; then
@@ -255,7 +245,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}
+          name: ${{ inputs.platform }}-${{ inputs.test_suite_tag }}
           path: e2e/reports/
           retention-days: 7
       
@@ -263,30 +253,6 @@ jobs:
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-screenshots
+          name: ${{ inputs.platform }}-${{ inputs.test_suite_tag }}-screenshots
           path: artifacts/
           retention-days: 7
-
-smoke-performance-ios:
-  name: "Performance Smoke (iOS)"
-  if: github.event.label.name == 'Run E2E Smoke Test'
-  uses: ./.github/workflows/run-e2e-mobile.yml
-  with:
-    test-suite-name: smoke-performance-ios
-    platform: ios
-    test_suite_tag: ".*Performance.*"
-    smoke-category: performance
-    use_prebuilt_apps: true
-  secrets: inherit
-
-smoke-performance-android:
-  name: "Performance Smoke (Android)" 
-  if: github.event.label.name == 'Run E2E Smoke Test'
-  uses: ./.github/workflows/run-e2e-mobile.yml
-  with:
-    test-suite-name: smoke-performance-android
-    platform: android
-    test_suite_tag: ".*Performance.*"
-    smoke-category: performance
-    use_prebuilt_apps: true
-  secrets: inherit

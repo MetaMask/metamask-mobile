@@ -15,11 +15,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-confirmations-ios
       platform: ios
       test_suite_tag: "SmokeConfirmations "
-      smoke-category: confirmations
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-confirmations-android:
@@ -27,11 +24,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-confirmations-android
       platform: android
       test_suite_tag: "SmokeConfirmations "
-      smoke-category: confirmations
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-confirmations-redesigned-ios:
@@ -39,11 +33,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-confirmations-redesigned-ios
       platform: ios
       test_suite_tag: "SmokeConfirmationsRedesigned"
-      smoke-category: confirmations-redesigned
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-trade-ios:
@@ -51,11 +42,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-trade-ios
       platform: ios
       test_suite_tag: ".*SmokeTrade.*"
-      smoke-category: trade
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-trade-android:
@@ -63,11 +51,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-trade-android
       platform: android
       test_suite_tag: ".*SmokeTrade.*"
-      smoke-category: trade
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-wallet-platform-ios:
@@ -75,11 +60,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-wallet-platform-ios
       platform: ios
       test_suite_tag: ".*SmokeWalletPlatform.*"
-      smoke-category: wallet-platform
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-wallet-platform-android:
@@ -87,11 +69,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-wallet-platform-android
       platform: android
       test_suite_tag: ".*SmokeWalletPlatform.*"
-      smoke-category: wallet-platform
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-identity-ios:
@@ -99,11 +78,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-identity-ios
       platform: ios
       test_suite_tag: ".*SmokeIdentity.*"
-      smoke-category: identity
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-identity-android:
@@ -111,11 +87,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-identity-android
       platform: android
       test_suite_tag: ".*SmokeIdentity.*"
-      smoke-category: identity
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-accounts-ios:
@@ -123,11 +96,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-accounts-ios
       platform: ios
       test_suite_tag: ".*SmokeAccounts.*"
-      smoke-category: accounts
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-accounts-android:
@@ -135,11 +105,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-accounts-android
       platform: android
       test_suite_tag: ".*SmokeAccounts.*"
-      smoke-category: accounts
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-network-abstraction-ios:
@@ -147,11 +114,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-network-abstraction-ios
       platform: ios
       test_suite_tag: ".*SmokeNetworkAbstraction.*"
-      smoke-category: network-abstraction
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-network-abstraction-android:
@@ -159,11 +123,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-network-abstraction-android
       platform: android
       test_suite_tag: ".*SmokeNetworkAbstraction.*"
-      smoke-category: network-abstraction
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-network-expansion-ios:
@@ -171,11 +132,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-network-expansion-ios
       platform: ios
       test_suite_tag: ".*NetworkExpansion.*"
-      smoke-category: network-expansion
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-network-expansion-android:
@@ -183,11 +141,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-network-expansion-android
       platform: android
       test_suite_tag: ".*NetworkExpansion.*"
-      smoke-category: network-expansion
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-performance-ios:
@@ -195,11 +150,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-performance-ios
       platform: ios
       test_suite_tag: ".*Performance.*"
-      smoke-category: performance
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-performance-android:
@@ -207,11 +159,8 @@ jobs:
     if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
-      test-suite-name: smoke-performance-android
       platform: android
       test_suite_tag: ".*Performance.*"
-      smoke-category: performance
-      use_prebuilt_apps: true
     secrets: inherit
 
   smoke-api-specs:
