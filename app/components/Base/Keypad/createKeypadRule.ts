@@ -1,5 +1,5 @@
 import { regex, hasDecimals } from '../../../../app/util/regex';
-import { KEYS } from './constants';
+import { Keys } from './constants';
 
 interface KeypadRuleConfig {
   decimalSeparator?: string | null;
@@ -16,7 +16,7 @@ export default function createKeypadRule({
     }
 
     switch (inputKey) {
-      case KEYS.PERIOD: {
+      case Keys.Period: {
         if (!decimalSeparator || decimals === 0) {
           return currentAmount;
         }
@@ -27,7 +27,7 @@ export default function createKeypadRule({
 
         return `${currentAmount}${decimalSeparator}`;
       }
-      case KEYS.BACK: {
+      case Keys.Back: {
         if (currentAmount === '0') {
           return currentAmount;
         }
@@ -37,19 +37,19 @@ export default function createKeypadRule({
 
         return currentAmount.slice(0, -1);
       }
-      case KEYS.INITIAL: {
+      case Keys.Initial: {
         return '0';
       }
-      case KEYS.DIGIT_0:
-      case KEYS.DIGIT_1:
-      case KEYS.DIGIT_2:
-      case KEYS.DIGIT_3:
-      case KEYS.DIGIT_4:
-      case KEYS.DIGIT_5:
-      case KEYS.DIGIT_6:
-      case KEYS.DIGIT_7:
-      case KEYS.DIGIT_8:
-      case KEYS.DIGIT_9: {
+      case Keys.Digit0:
+      case Keys.Digit1:
+      case Keys.Digit2:
+      case Keys.Digit3:
+      case Keys.Digit4:
+      case Keys.Digit5:
+      case Keys.Digit6:
+      case Keys.Digit7:
+      case Keys.Digit8:
+      case Keys.Digit9: {
         if (currentAmount === '0') {
           return inputKey;
         }
