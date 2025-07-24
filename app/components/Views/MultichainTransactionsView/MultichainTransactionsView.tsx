@@ -24,7 +24,9 @@ import MultichainTransactionsFooter from './MultichainTransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
+import MultichainBridgeTransactionListItem from '../../../components/UI/MultichainBridgeTransactionListItem';
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -46,7 +48,7 @@ interface MultichainTransactionsViewProps {
   /**
    * Chain ID for block explorer links
    */
-  chainId: string;
+  chainId: SupportedCaipChainId;
   /**
    * Enable refresh functionality
    */
@@ -147,13 +149,19 @@ const MultichainTransactionsView = ({
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
-    return (
-      <MultichainTransactionListItem
+    return bridgeHistoryItem ? (
+      <MultichainBridgeTransactionListItem
         transaction={item}
         bridgeHistoryItem={bridgeHistoryItem}
-        selectedAddress={address ?? ''}
         navigation={nav}
         index={index}
+      />
+    ) : (
+      <MultichainTransactionListItem
+        transaction={item}
+        navigation={nav}
+        index={index}
+        chainId={chainId}
       />
     );
   };

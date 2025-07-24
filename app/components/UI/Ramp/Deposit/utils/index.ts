@@ -21,7 +21,14 @@ import { renderNumber } from '../../../../../util/number';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { AppThemeKey, Colors } from '../../../../../util/theme/models';
-import { CaipAssetReference } from '@metamask/utils';
+import { CaipAssetReference, CaipChainId } from '@metamask/utils';
+import {
+  BASE_MAINNET,
+  BSC_MAINNET,
+  ETHEREUM_MAINNET,
+  LINEA_MAINNET,
+  SOLANA_MAINNET,
+} from '../constants/networks';
 
 const emailRegex =
   /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
@@ -49,12 +56,12 @@ const TRANSAK_FIAT_IDS: Record<string, string> = {
   EUR: 'EUR',
 };
 
-const TRANSAK_CHAIN_IDS: Record<string, string> = {
-  'eip155:1': 'ethereum',
-  'eip155:59144': 'linea',
-  'eip155:8453': 'base',
-  'eip155:56': 'bsc',
-  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': 'solana',
+const TRANSAK_CHAIN_IDS: Record<CaipChainId, string> = {
+  [ETHEREUM_MAINNET.chainId]: 'ethereum',
+  [LINEA_MAINNET.chainId]: 'linea',
+  [BASE_MAINNET.chainId]: 'base',
+  [BSC_MAINNET.chainId]: 'bsc',
+  [SOLANA_MAINNET.chainId]: 'solana',
 };
 
 const TRANSAK_PAYMENT_METHOD_IDS: Record<string, string> = {
@@ -99,7 +106,7 @@ export function getTransakFiatCurrencyId(
  * @param chainId - The chain ID
  * @returns The Transak chain ID
  */
-export function getTransakChainId(chainId: string): string {
+export function getTransakChainId(chainId: CaipChainId): string {
   const transakId = TRANSAK_CHAIN_IDS[chainId];
   if (!transakId) {
     throw new Error(`Unsupported chain: ${chainId}`);
