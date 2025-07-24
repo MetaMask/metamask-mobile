@@ -239,37 +239,6 @@ export interface WithdrawResult {
   estimatedArrivalTime?: number; // Provider-specific arrival time
 }
 
-// Provider-agnostic withdrawal tracking type
-// All types are JSON-serializable (CaipAssetId, CaipChainId, and Hex are string aliases)
-export type PendingWithdrawal = {
-  // Core fields (required for all providers)
-  withdrawalId: string; // Unique withdrawal identifier
-  provider: string; // Provider name (e.g., 'hyperliquid', 'gmx', etc.)
-  amount: string; // Amount being withdrawn
-  asset: string; // Asset symbol (e.g., 'USDC')
-  assetId: CaipAssetId; // CAIP asset identifier (string type alias)
-  sourceChainId: CaipChainId; // Source chain (provider's chain) - string type alias
-  destinationChainId: CaipChainId; // Destination chain - string type alias
-  destinationAddress: Hex; // Recipient address - string type alias
-  initiatedAt: number; // Timestamp when withdrawal was initiated
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-
-  // Provider-specific transaction tracking
-  providerTxHash?: string; // Transaction hash on provider's system
-  destinationTxHash?: string; // Transaction hash on destination chain
-
-  // Time estimates
-  estimatedArrivalTime?: number; // When funds should arrive
-  completedAt?: number; // When withdrawal was completed
-
-  // Error handling
-  error?: string; // Error message if failed
-  retryCount?: number; // Number of retry attempts
-
-  // Optional metadata - must be JSON-serializable
-  metadata?: Record<string, string | number | boolean | null>; // Provider-specific data
-};
-
 export interface LiveDataConfig {
   priceThrottleMs?: number; // ms between price updates (default: 2000)
   positionThrottleMs?: number; // ms between position updates (default: 5000)
