@@ -216,34 +216,74 @@ describe('PerpsPositionCard', () => {
       expect(mockOnClose).toHaveBeenCalledWith(mockPosition);
     });
 
-    it('navigates to position details with close action when no onClose prop', () => {
+    it('navigates to position details with close action when no onClose prop (within Perps nav context)', () => {
       // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      render(<PerpsPositionCard position={mockPosition} isInPerpsNavContext />);
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
       );
 
-      // Assert
+      // Assert - Direct navigation when within Perps navigation context
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.PERPS.POSITION_DETAILS,
         { position: mockPosition, action: 'close' },
       );
     });
 
-    it('navigates to position details with edit_tpsl action when edit is pressed without onEdit prop', () => {
+    it('navigates to position details with close action when no onClose prop (outside Perps nav context)', () => {
       // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      render(
+        <PerpsPositionCard
+          position={mockPosition}
+          isInPerpsNavContext={false}
+        />,
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      // Assert - Nested navigation when outside Perps navigation context
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.POSITION_DETAILS,
+        params: { position: mockPosition, action: 'close' },
+      });
+    });
+
+    it('navigates to position details with edit_tpsl action when edit is pressed without onEdit prop (within Perps nav context)', () => {
+      // Act
+      render(<PerpsPositionCard position={mockPosition} isInPerpsNavContext />);
 
       // Press edit button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
       );
 
-      // Assert - Should navigate to position details with edit_tpsl action
+      // Assert - Direct navigation when within Perps navigation context
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.PERPS.POSITION_DETAILS,
         { position: mockPosition, action: 'edit_tpsl' },
       );
+    });
+
+    it('navigates to position details with edit_tpsl action when edit is pressed without onEdit prop (outside Perps nav context)', () => {
+      // Act
+      render(
+        <PerpsPositionCard
+          position={mockPosition}
+          isInPerpsNavContext={false}
+        />,
+      );
+
+      // Press edit button
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Assert - Nested navigation when outside Perps navigation context
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.POSITION_DETAILS,
+        params: { position: mockPosition, action: 'edit_tpsl' },
+      });
     });
   });
 

@@ -90,9 +90,19 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       onClose(position);
     } else {
       // Navigate to position details with close action
-      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
-        position,
-        action: 'close',
+      if (isInPerpsNavContext) {
+        // Direct navigation when already in Perps stack
+        navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
+          position,
+          action: 'close',
+        });
+      }
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.POSITION_DETAILS,
+        params: {
+          position,
+          action: 'close',
+        },
       });
     }
   };
@@ -110,10 +120,22 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     } else {
       DevLogger.log('PerpsPositionCard: navigating to position details');
       // Navigate to position details with edit action
-      navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
-        position,
-        action: 'edit_tpsl',
-      });
+      if (isInPerpsNavContext) {
+        // Direct navigation when already in Perps stack
+        navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
+          position,
+          action: 'edit_tpsl',
+        });
+      } else {
+        // Navigate to nested Perps screen when in main navigation context
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.POSITION_DETAILS,
+          params: {
+            position,
+            action: 'edit_tpsl',
+          },
+        });
+      }
     }
   };
 
