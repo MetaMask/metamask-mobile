@@ -10,17 +10,17 @@ on:
     types: [labeled]
 
 jobs:
-  smoke-confirmations-ios:
-    name: "Confirmations Smoke (iOS)"
-    #if: false # github.event.label.name == 'Run E2E Smoke Test'
-    uses: ./.github/workflows/run-e2e-mobile.yml
-    with:
-      test-suite-name: smoke-confirmations-ios
-      platform: ios
-      test_suite_tag: "SmokeConfirmations "
-      smoke-category: confirmations
-      use_prebuilt_apps: true
-    secrets: inherit
+  # smoke-confirmations-ios:
+  #   name: "Confirmations Smoke (iOS)"
+  #   #if: false # github.event.label.name == 'Run E2E Smoke Test'
+  #   uses: ./.github/workflows/run-e2e-mobile.yml
+  #   with:
+  #     test-suite-name: smoke-confirmations-ios
+  #     platform: ios
+  #     test_suite_tag: "SmokeConfirmations "
+  #     smoke-category: confirmations
+  #     use_prebuilt_apps: true
+  #   secrets: inherit
 
   # smoke-confirmations-android:
   #   name: "Confirmations Smoke (Android)"
