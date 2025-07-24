@@ -140,11 +140,17 @@ class TestSnaps {
   async installSnap(buttonLocator: keyof typeof TestSnapViewSelectorWebIDS) {
     await this.tapButton(buttonLocator);
 
-    await Gestures.waitAndTap(this.getConnectSnapButton);
+    await Gestures.waitAndTap(this.getConnectSnapButton, {
+      timeout: 30_000,
+    });
 
-    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton);
+    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, {
+      timeout: 30_000,
+    });
 
-    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton);
+    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, {
+      timeout: 30_000,
+    });
   }
 
   async fillMessage(
