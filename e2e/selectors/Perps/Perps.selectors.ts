@@ -99,6 +99,34 @@ export const getPerpsPayWithRowSelector = {
 };
 
 // ========================================
+// PERPS ORDER HEADER SELECTORS
+// ========================================
+
+export const PerpsOrderHeaderSelectorsIDs = {
+  HEADER: 'perps-order-header',
+  ASSET_TITLE: 'perps-order-header-asset-title',
+};
+
+// ========================================
+// PERPS TOKEN SELECTOR SELECTORS
+// ========================================
+
+export const PerpsTokenSelectorSelectorsIDs = {
+  CONTAINER: 'token-selector',
+  MODAL: 'perps-token-selector-modal',
+  TITLE: 'token-selector-title',
+  CLOSE_BUTTON: 'close-token-selector',
+};
+
+// ========================================
+// PERPS AMOUNT DISPLAY SELECTORS
+// ========================================
+
+export const PerpsAmountDisplaySelectorsIDs = {
+  CONTAINER: 'perps-amount-display',
+};
+
+// ========================================
 // PERPS VIEWS SELECTORS
 // ========================================
 

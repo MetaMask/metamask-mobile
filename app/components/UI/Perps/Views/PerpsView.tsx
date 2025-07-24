@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity, type DimensionValue } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -23,9 +23,8 @@ import {
   usePerpsNetwork,
   usePerpsNetworkConfig,
   usePerpsTrading,
+  usePerpsPrices,
 } from '../hooks';
-
-// Preview market data component removed for minimal PR
 
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
@@ -50,10 +49,72 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 32,
     },
     buttonContainer: {
-      marginBottom: 24,
+      gap: 10,
     },
     button: {
       marginBottom: 16,
+    },
+    tradingButtonsContainer: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      marginTop: 16,
+    },
+    tradingButton: {
+      flex: 1,
+      marginHorizontal: 8,
+    },
+    marketGridContainer: {
+      marginTop: 24,
+    },
+    marketGrid: {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      marginHorizontal: -4,
+    },
+    marketCard: {
+      width: '48%' as DimensionValue,
+      marginHorizontal: '1%' as DimensionValue,
+      marginBottom: 12,
+      padding: 12,
+      borderRadius: 8,
+      backgroundColor: colors.background.alternative,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+    },
+    marketCardContent: {
+      alignItems: 'center' as const,
+    },
+    marketAsset: {
+      fontSize: 16,
+      fontWeight: '600' as const,
+      marginBottom: 4,
+    },
+    marketPrice: {
+      fontSize: 14,
+      marginBottom: 8,
+    },
+    marketButtons: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      width: '100%' as DimensionValue,
+    },
+    marketButton: {
+      flex: 1,
+      marginHorizontal: 2,
+      paddingVertical: 6,
+      paddingHorizontal: 8,
+      borderRadius: 4,
+      alignItems: 'center' as const,
+    },
+    longButton: {
+      backgroundColor: colors.success.muted,
+    },
+    shortButton: {
+      backgroundColor: colors.error.muted,
+    },
+    marketButtonText: {
+      fontSize: 12,
+      fontWeight: '500' as const,
     },
     resultContainer: {
       padding: 16,
@@ -76,6 +137,10 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   const [isToggling, setIsToggling] = useState(false);
   const [result, setResult] = useState<string>('');
 
+  // Popular trading pairs
+  // TODO: remove once we integrate real design (was meant for quick access to order page)
+  const POPULAR_ASSETS = ['BTC', 'ETH', 'SOL', 'ARB'];
+
   // Use state hooks
   const cachedAccountState = usePerpsAccount();
   const { getAccountState } = usePerpsTrading();
@@ -91,6 +156,9 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     connect: reconnect,
     resetError,
   } = usePerpsConnection();
+
+  // Get real-time prices for popular assets
+  const priceData = usePerpsPrices(POPULAR_ASSETS);
 
   const getAccountBalance = useCallback(async () => {
     setIsLoading(true);
@@ -226,9 +294,17 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             Network: {currentNetwork.toUpperCase()}
           </Text>
           {cachedAccountState ? (
-            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
-              Cached Balance: ${cachedAccountState.totalBalance}
-            </Text>
+            <>
+              <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+                Balance: ${cachedAccountState.totalBalance}
+              </Text>
+              {parseFloat(cachedAccountState.totalBalance) === 0 && (
+                <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
+                  No funds deposited. Use &apos;Deposit Funds&apos; to get
+                  started.
+                </Text>
+              )}
+            </>
           ) : isLoading ? (
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               Loading balance...
@@ -292,6 +368,102 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             loading={isLoading}
             style={styles.button}
           />
+        </View>
+
+        {/* Market Grid */}
+        <View style={styles.marketGridContainer}>
+          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+            Popular Markets
+          </Text>
+          <View style={styles.marketGrid}>
+            {POPULAR_ASSETS.map((asset) => {
+              const price = priceData[asset]?.price || '---';
+              const change = priceData[asset]?.percentChange24h || '0';
+              const priceNum = parseFloat(price);
+              const changeNum = parseFloat(change);
+
+              return (
+                <View key={asset} style={styles.marketCard}>
+                  <View style={styles.marketCardContent}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      style={styles.marketAsset}
+                    >
+                      {asset}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                      style={styles.marketPrice}
+                    >
+                      ${priceNum > 0 ? priceNum.toLocaleString() : '---'}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={
+                        changeNum >= 0 ? TextColor.Success : TextColor.Error
+                      }
+                    >
+                      {changeNum >= 0 ? '+' : ''}
+                      {changeNum.toFixed(2)}%
+                    </Text>
+                    <View style={styles.marketButtons}>
+                      <TouchableOpacity
+                        style={[styles.marketButton, styles.longButton]}
+                        onPress={() =>
+                          navigation.navigate(Routes.PERPS.ORDER, {
+                            direction: 'long',
+                            asset,
+                          })
+                        }
+                      >
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Success}
+                          style={styles.marketButtonText}
+                        >
+                          Long
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.marketButton, styles.shortButton]}
+                        onPress={() =>
+                          navigation.navigate(Routes.PERPS.ORDER, {
+                            direction: 'short',
+                            asset,
+                          })
+                        }
+                      >
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Error}
+                          style={styles.marketButtonText}
+                        >
+                          Short
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Custom asset input */}
+          <View style={styles.tradingButtonsContainer}>
+            <Button
+              variant={ButtonVariants.Link}
+              size={ButtonSize.Md}
+              width={ButtonWidthTypes.Full}
+              label="Trade INVALID asset →"
+              onPress={() =>
+                navigation.navigate(Routes.PERPS.ORDER, {
+                  direction: 'long',
+                  asset: 'WRONGNAME', // This will demonstrate the invalid asset handling
+                })
+              }
+            />
+          </View>
         </View>
 
         {result ? (
