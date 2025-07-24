@@ -1,33 +1,39 @@
-import React, { useCallback, useEffect, useState, useContext } from 'react';
+/**
+ * PerpsView - Debug/Development View for Perps Trading
+ * 
+ * This is a development and testing view that provides direct access to 
+ * controller functionality and debug information. This view is NOT intended 
+ * for production use and should not be visible to end users in the final app.
+ * 
+ * Features:
+ * - Account balance monitoring
+ * - Network switching (testnet/mainnet)
+ * - Direct access to deposit/withdraw flows
+ * - Market grid for quick trading access
+ * - Withdrawal status monitoring
+ * - Debug output for testing controller methods
+ */
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
   TouchableOpacity,
+  View,
   type DimensionValue,
-  Linking,
 } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
+import Routes from '../../../../constants/navigation/Routes';
 import type { Theme } from '../../../../util/theme/models';
 import ScreenView from '../../../Base/ScreenView';
-import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import { ToastContext } from '../../../../component-library/components/Toast';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { useSelector } from 'react-redux';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
-import { renderFromTokenMinimalUnit } from '../../../../util/number';
-import { type Hex } from '@metamask/utils';
 
 // Import PerpsController hooks
 import {
@@ -35,18 +41,17 @@ import {
   usePerpsConnection,
   usePerpsNetwork,
   usePerpsNetworkConfig,
-  usePerpsTrading,
   usePerpsPrices,
-  usePerpsPendingWithdrawals,
+  usePerpsTrading,
 } from '../hooks';
 
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import PerpsLoader from '../components/PerpsLoader';
+import PerpsWithdrawalMonitor from '../components/PerpsWithdrawalMonitor';
 import { PerpsNavigationParamList } from '../types/navigation';
-import Engine from '../../../../core/Engine';
 
-interface PerpsViewProps {}
+interface PerpsViewProps { }
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -141,26 +146,12 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 8,
       lineHeight: 20,
     },
-    pendingWithdrawalBanner: {
-      backgroundColor: colors.warning.muted,
-      padding: 12,
-      marginBottom: 16,
-      borderRadius: 8,
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-      justifyContent: 'space-between' as const,
-    },
-    pendingWithdrawalText: {
-      flex: 1,
-      marginRight: 8,
-    },
   };
 };
 
 const PerpsView: React.FC<PerpsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { toastRef } = useContext(ToastContext);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
@@ -188,20 +179,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
   // Get real-time prices for popular assets
   const priceData = usePerpsPrices(POPULAR_ASSETS);
-
-  // Get pending withdrawals
-  const pendingWithdrawals = usePerpsPendingWithdrawals();
-
-  // Get USDC balance on Arbitrum
-  const contractBalances = useSelector(selectContractBalances);
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-
-  // USDC on Arbitrum
-  const USDC_ADDRESS = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
-  const usdcBalanceHex = contractBalances?.[USDC_ADDRESS];
-  const usdcBalance = usdcBalanceHex
-    ? renderFromTokenMinimalUnit(usdcBalanceHex, 6) // USDC has 6 decimals
-    : '0';
 
   const getAccountBalance = useCallback(async () => {
     setIsLoading(true);
@@ -245,20 +222,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       getAccountState();
     }
   }, [getAccountState, currentNetwork, isConnected, isInitialized]);
-
-  // Start monitoring withdrawals when component is mounted and active
-  useEffect(() => {
-    if (isConnected && isInitialized && pendingWithdrawals.length > 0) {
-      // Get the PerpsController to start monitoring
-      const { PerpsController } = Engine.context;
-      PerpsController.startWithdrawalMonitoring();
-
-      // Stop monitoring when component unmounts
-      return () => {
-        PerpsController.stopWithdrawalMonitoring();
-      };
-    }
-  }, [isConnected, isInitialized, pendingWithdrawals.length]);
 
   const handleToggleTestnet = async () => {
     setIsToggling(true);
@@ -373,99 +336,11 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
           )}
         </View>
 
-        {/* Pending Withdrawals Banner */}
-        {pendingWithdrawals.length > 0 && (
-          <View style={styles.pendingWithdrawalBanner}>
-            <View style={{ flex: 1 }}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Warning}
-                style={styles.pendingWithdrawalText}
-              >
-                {pendingWithdrawals.length === 1
-                  ? `Withdrawal of ${pendingWithdrawals[0].amount} USDC ${
-                      pendingWithdrawals[0].status === 'processing'
-                        ? 'processing'
-                        : 'pending'
-                    }...`
-                  : `${pendingWithdrawals.length} withdrawals in progress...`}
-              </Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {pendingWithdrawals[0].status === 'processing'
-                  ? 'Finalizing on Arbitrum...'
-                  : 'HyperLiquid validators signing...'}
-              </Text>
-              {/* Debug: Show current USDC balance */}
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Muted}
-                style={{ marginTop: 4 }}
-              >
-                Current USDC: {usdcBalance} | Address:{' '}
-                {selectedAddress?.slice(0, 6)}...
-              </Text>
-              {/* Debug: Link to Arbiscan */}
-              <TouchableOpacity
-                onPress={() => {
-                  const arbiscanUrl = `https://arbiscan.io/token/${USDC_ADDRESS}?a=${selectedAddress}`;
-                  Linking.openURL(arbiscanUrl);
-                }}
-                style={{ marginTop: 4 }}
-              >
-                <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
-                  🔗 View on Arbiscan
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Sm}
-              onPress={async () => {
-                // Force check withdrawal status
-                const { PerpsController } = Engine.context;
-
-                // Store current status to detect changes
-                const currentStatuses = pendingWithdrawals.map((w) => ({
-                  id: w.withdrawalId,
-                  status: w.status,
-                }));
-
-                await PerpsController.monitorPendingWithdrawals();
-
-                // Check if any withdrawals completed
-                const { pendingWithdrawals: updatedWithdrawals } =
-                  PerpsController.state;
-                const completedCount = currentStatuses.filter((current) => {
-                  const updated = updatedWithdrawals.find(
-                    (w) => w.withdrawalId === current.id,
-                  );
-                  return (
-                    current.status !== 'completed' &&
-                    updated?.status === 'completed'
-                  );
-                }).length;
-
-                if (completedCount > 0) {
-                  toastRef?.current?.showToast({
-                    variant: ToastVariants.Icon,
-                    iconName: IconName.Confirmation,
-                    hasNoTimeout: false,
-                    labelOptions: [
-                      {
-                        label: strings('perps.withdrawal.completed'),
-                        isBold: true,
-                      },
-                      {
-                        label: 'USDC has arrived in your wallet',
-                      },
-                    ],
-                  });
-                }
-              }}
-              label="Check"
-            />
-          </View>
-        )}
+        {/* Withdrawal Monitoring */}
+        <PerpsWithdrawalMonitor
+          isConnected={isConnected}
+          isInitialized={isInitialized}
+        />
 
         <View style={styles.buttonContainer}>
           {/* Core functionality buttons */}
