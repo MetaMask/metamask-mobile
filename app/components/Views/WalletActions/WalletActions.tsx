@@ -465,7 +465,7 @@ const WalletActions = () => {
             iconName={IconName.Arrow2Right}
             onPress={onPerpsSandbox}
             iconStyle={sendIconStyle}
-            actionID={WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON}
+            actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_SANDBOX_BUTTON}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
           />
