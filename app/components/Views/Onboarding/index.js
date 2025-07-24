@@ -529,7 +529,6 @@ class Onboarding extends PureComponent {
     this.onPressContinueWithSocialLogin(createWallet, 'google');
 
   handleLoginError = (error, socialConnectionType) => {
-    let errorMessage = 'oauth_error';
     if (error instanceof OAuthError) {
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
       if (
@@ -540,9 +539,12 @@ class Onboarding extends PureComponent {
         return;
       }
       if (error.code === OAuthErrorType.UserCancelled) {
-        errorMessage = 'user_cancelled';
+        // QA: do not show error sheet if user cancelled
+        return;
       }
     }
+
+    const errorMessage = 'oauth_error';
 
     trace({
       name: TraceName.OnboardingSocialLoginError,
@@ -692,7 +694,7 @@ class Onboarding extends PureComponent {
           <Button
             variant={ButtonVariants.Secondary}
             onPress={() => this.handleCtaActions('existing')}
-            testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+            testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
             width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             label={
