@@ -117,7 +117,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'assetId is required for withdrawals. Please provide an asset ID in CAIP format (e.g., eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831)',
+        error:
+          'assetId is required for withdrawals. Please provide an asset ID in CAIP format (e.g., eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831)',
       });
     });
 
@@ -132,7 +133,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Amount must be a positive number. Amount must be a positive number (received: 0)',
+        error:
+          'Amount must be a positive number. Amount must be a positive number (received: 0)',
       });
     });
 
@@ -148,7 +150,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Invalid destination address format: invalid-address. Address must be a valid Ethereum address starting with 0x',
+        error:
+          'Invalid destination address format: invalid-address. Address must be a valid Ethereum address starting with 0x',
       });
     });
 
@@ -162,7 +165,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'amount is required for withdrawals. Please specify the amount to withdraw',
+        error:
+          'amount is required for withdrawals. Please specify the amount to withdraw',
       });
     });
 
@@ -177,7 +181,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Amount must be a positive number. Amount must be a positive number (received: -10)',
+        error:
+          'Amount must be a positive number. Amount must be a positive number (received: -10)',
       });
     });
 
@@ -258,7 +263,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Insufficient balance. Available: 100, Requested: 150. You need 50.000000 more to complete this withdrawal',
+        error:
+          'Insufficient balance. Available: 100, Requested: 150. You need 50.000000 more to complete this withdrawal',
       });
     });
 
@@ -273,7 +279,8 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         isValid: false,
-        error: 'Insufficient balance. Available: 0, Requested: 10. You need 10.000000 more to complete this withdrawal',
+        error:
+          'Insufficient balance. Available: 0, Requested: 10. You need 10.000000 more to complete this withdrawal',
       });
     });
   });

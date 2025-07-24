@@ -232,6 +232,7 @@ export class PerpsController extends BaseController<
   private providers: Map<string, IPerpsProvider>;
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
+  private withdrawalMonitoringInterval: NodeJS.Timeout | null = null;
 
   constructor({ messenger, state = {} }: PerpsControllerOptions) {
     super({
@@ -647,6 +648,16 @@ export class PerpsController extends BaseController<
 
   /**
    * Withdraw funds from trading account
+   *
+   * The withdrawal process varies by provider and may involve:
+   * - Direct on-chain transfers
+   * - Bridge operations
+   * - Multi-step validation processes
+   *
+   * Check the specific provider documentation for detailed withdrawal flows.
+   *
+   * @param params Withdrawal parameters
+   * @returns WithdrawResult with withdrawal ID and tracking info
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
     try {
@@ -750,7 +761,7 @@ export class PerpsController extends BaseController<
           destinationAddress,
           initiatedAt: now,
           status: 'pending',
-          providerTxHash: result.txHash,
+          providerTxHash: result.txHash, // Optional - HyperLiquid doesn't provide immediate tx hash
           estimatedArrivalTime:
             result.estimatedArrivalTime || now + 5 * 60 * 1000, // Default 5 minutes
           metadata: {
@@ -1339,6 +1350,62 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Start monitoring pending withdrawals
+   * Call this when the perps UI is active
+   */
+  startWithdrawalMonitoring(): void {
+    // Clear any existing interval
+    this.stopWithdrawalMonitoring();
+
+    // Check if there are any pending withdrawals
+    const hasPending = this.state.pendingWithdrawals.some(
+      (w) => w.status === 'pending' || w.status === 'processing',
+    );
+
+    if (!hasPending) {
+      return;
+    }
+
+    DevLogger.log('🔍 PerpsController: Starting withdrawal monitoring', {
+      pendingCount: this.state.pendingWithdrawals.filter(
+        (w) => w.status === 'pending' || w.status === 'processing',
+      ).length,
+    });
+
+    // Run immediately
+    this.monitorPendingWithdrawals();
+
+    // Then run every 30 seconds
+    const intervalSeconds = 30;
+    DevLogger.log('⏰ PerpsController: Setting up monitoring interval', {
+      intervalSeconds,
+      checkEvery: `${intervalSeconds} seconds`,
+    });
+
+    this.withdrawalMonitoringInterval = setInterval(() => {
+      DevLogger.log('🔄 PerpsController: Monitoring cycle triggered', {
+        timestamp: new Date().toISOString(),
+        pendingCount: this.state.pendingWithdrawals.filter(
+          (w) => w.status === 'pending' || w.status === 'processing',
+        ).length,
+      });
+      this.monitorPendingWithdrawals();
+    }, intervalSeconds * 1000);
+  }
+
+  /**
+   * Stop monitoring pending withdrawals
+   * Call this when navigating away from perps UI
+   */
+  stopWithdrawalMonitoring(): void {
+    if (this.withdrawalMonitoringInterval) {
+      DevLogger.log('🛑 PerpsController: Stopping withdrawal monitoring');
+      clearInterval(this.withdrawalMonitoringInterval);
+      this.withdrawalMonitoringInterval = null;
+    }
+  }
+
+  /**
    * Disconnect provider and cleanup subscriptions
    * Call this when navigating away from Perps screens to prevent battery drain
    */
@@ -1350,12 +1417,93 @@ export class PerpsController extends BaseController<
       },
     );
 
+    // Stop withdrawal monitoring
+    this.stopWithdrawalMonitoring();
+
     const provider = this.getActiveProvider();
     await provider.disconnect();
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
     this.initializationPromise = null;
+  }
+
+  /**
+   * Monitor pending withdrawals for completion
+   * Delegates to provider-specific monitoring logic
+   */
+  async monitorPendingWithdrawals(): Promise<void> {
+    const pendingWithdrawals = this.state.pendingWithdrawals.filter(
+      (w) => w.status === 'pending' || w.status === 'processing',
+    );
+
+    if (pendingWithdrawals.length === 0) {
+      return;
+    }
+
+    DevLogger.log('🔍 PerpsController: Monitoring pending withdrawals', {
+      count: pendingWithdrawals.length,
+      withdrawals: pendingWithdrawals.map((w) => ({
+        withdrawalId: w.withdrawalId,
+        amount: w.amount,
+        provider: w.provider,
+      })),
+    });
+
+    const provider = this.getActiveProvider();
+
+    // Check each pending withdrawal
+    for (const withdrawal of pendingWithdrawals) {
+      try {
+        // Delegate to provider-specific monitoring
+        const result = await provider.checkWithdrawalStatus(withdrawal);
+
+        // Update state based on provider result
+        if (result.status !== withdrawal.status || result.metadata) {
+          DevLogger.log('📝 PerpsController: Withdrawal status changed', {
+            withdrawalId: withdrawal.withdrawalId,
+            oldStatus: withdrawal.status,
+            newStatus: result.status,
+            hasMetadata: !!result.metadata,
+            hasError: !!result.error,
+          });
+
+          this.update((state) => {
+            const index = state.pendingWithdrawals.findIndex(
+              (w) => w.withdrawalId === withdrawal.withdrawalId,
+            );
+            if (index >= 0) {
+              state.pendingWithdrawals[index].status = result.status;
+              if (result.error) {
+                state.pendingWithdrawals[index].error = result.error;
+              }
+              if (result.metadata) {
+                state.pendingWithdrawals[index].metadata = {
+                  ...state.pendingWithdrawals[index].metadata,
+                  ...result.metadata,
+                };
+              }
+              if (result.status === 'completed') {
+                state.pendingWithdrawals[index].completedAt = Date.now();
+                DevLogger.log('✅ PerpsController: Withdrawal completed!', {
+                  withdrawalId: withdrawal.withdrawalId,
+                  amount: withdrawal.amount,
+                  totalTimeMinutes: (
+                    (Date.now() - withdrawal.initiatedAt) /
+                    (60 * 1000)
+                  ).toFixed(2),
+                });
+              }
+            }
+          });
+        }
+      } catch (error) {
+        DevLogger.log('❌ PerpsController: Error monitoring withdrawal', {
+          withdrawalId: withdrawal.withdrawalId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
   }
 
   /**

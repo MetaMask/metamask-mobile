@@ -31,7 +31,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import Routes from '../../../../../constants/navigation/Routes';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../../UI/Box/Box';
@@ -284,13 +283,12 @@ const PerpsWithdrawView: React.FC = () => {
             {
               label: strings('perps.withdrawal.arrival_time'),
               isBold: false,
-              isSmall: true,
             },
           ],
         });
-        
-        // Navigate to the main perps screen
-        navigation.navigate(Routes.PERPS.VIEW);
+
+        // Go back to the previous screen
+        navigation.goBack();
       } else {
         // Show error toast
         toastRef?.current?.showToast({

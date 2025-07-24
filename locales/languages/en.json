@@ -838,8 +838,10 @@
       "error": "Withdrawal failed",
       "success_toast": "{{amount}} {{symbol}} withdrawal initiated",
       "arrival_time": "Funds will arrive within 5 minutes",
+      "bridge_info": "HyperLiquid validators are processing your withdrawal",
       "error_generic": "An error occurred during withdrawal",
-      "invalid_amount": "Please enter a valid amount"
+      "invalid_amount": "Please enter a valid amount",
+      "completed": "Withdrawal Complete"
     },
     "order": {
       "title": "New Order",
