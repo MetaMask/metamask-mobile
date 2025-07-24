@@ -22,6 +22,7 @@ module.exports = {
   maxWorkers: workers,
   setupFilesAfterEnv: ['<rootDir>/e2e/init.js'],
   globalSetup: 'detox/runners/jest/globalSetup',
+  globalTeardown: 'detox/runners/jest/globalTeardown',
   reporters: [
     'detox/runners/jest/reporter',
     [
