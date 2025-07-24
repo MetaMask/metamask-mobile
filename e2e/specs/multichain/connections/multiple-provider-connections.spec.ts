@@ -178,7 +178,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
         assert: async () => {
           const promptedAccounts =
             await ConnectedAccountsModal.getDisplayedAccountNames();
-          console.log('promptedAccounts', promptedAccounts);
           await Assertions.checkIfArrayHasLength(promptedAccounts, 2);
           await Assertions.checkIfObjectsMatch(promptedAccounts, [
             'Account 1',
