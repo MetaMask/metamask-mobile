@@ -42,11 +42,18 @@ import {
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import {
+  convertEnglishWordlistIndicesToCodepoints,
+  convertMnemonicToWordlistIndices,
+  uint8ArrayToMnemonic,
+} from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import {
+  AccountImportStrategy,
+  KeyringTypes,
+} from '@metamask/keyring-controller';
 import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
@@ -58,12 +65,9 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
-
-// to replace with SecretMetadata type from seedless-onboarding-controller when it is exported
-interface SecretMetadata {
-  data: Uint8Array;
-  type: SecretType;
-}
+import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
+import { getTraceTags } from '../../util/sentry/tags';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -683,20 +687,231 @@ class AuthenticationService {
     }
   };
 
+  syncSeedPhrases = async (): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return;
+    }
+
+    // 1. fetch all seed phrases
+    const [rootSecret, ...otherSecrets] =
+      await SeedlessOnboardingController.fetchAllSecretData();
+    if (!rootSecret) {
+      throw new Error('No root SRP found');
+    }
+
+    for (const secret of otherSecrets) {
+      // import SRP secret
+      // Get the SRP hash, and find the hash in the local state
+      const secretDataHash =
+        SeedlessOnboardingController.getSecretDataBackupState(
+          secret.data,
+          secret.type,
+        );
+
+      if (!secretDataHash) {
+        // If SRP is not in the local state, import it to the vault
+
+        // import private key secret
+        if (secret.type === SecretType.PrivateKey) {
+          await this.importAccountFromPrivateKey(bytesToHex(secret.data), {
+            shouldCreateSocialBackup: false,
+            shouldSelectAccount: false,
+          });
+          continue;
+        } else if (secret.type === SecretType.Mnemonic) {
+          // convert the seed phrase to a mnemonic (string)
+          const encodedSrp = convertEnglishWordlistIndicesToCodepoints(
+            secret.data,
+            wordlist,
+          );
+          const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
+
+          // import the new mnemonic to the current vault
+          await this.importMnemonicToVault(mnemonicToRestore, {
+            shouldCreateSocialBackup: false,
+            shouldSelectAccount: false,
+            shouldImportSolanaAccount: true,
+          });
+        } else {
+          Logger.error(new Error('Unknown secret type'), secret.type);
+        }
+      }
+    }
+  };
+
+  importMnemonicToVault = async (
+    mnemonic: string,
+    options: {
+      shouldCreateSocialBackup: boolean;
+      shouldSelectAccount: boolean;
+      shouldImportSolanaAccount: boolean;
+    },
+  ): Promise<{
+    newAccountAddress: string;
+    discoveredAccountsCount: number;
+  }> => {
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+
+    const { id } = await KeyringController.addNewKeyring(KeyringTypes.hd, {
+      mnemonic,
+      numberOfAccounts: 1,
+    });
+
+    const [newAccountAddress] = await KeyringController.withKeyring(
+      { id },
+      async ({ keyring }) => keyring.getAccounts(),
+    );
+
+    const isSeedlessOnboardingFlow = selectSeedlessOnboardingLoginFlow(
+      ReduxService.store.getState(),
+    );
+    if (isSeedlessOnboardingFlow) {
+      // if social backup is requested, add the seed phrase backup
+      const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
+      const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
+        seedPhraseAsBuffer,
+        wordlist,
+      );
+
+      try {
+        if (options.shouldCreateSocialBackup) {
+          await SeedlessOnboardingController.addNewSecretData(
+            seedPhraseAsUint8Array,
+            SecretType.Mnemonic,
+            {
+              keyringId: id,
+            },
+          );
+        } else {
+          SeedlessOnboardingController.updateBackupMetadataState({
+            keyringId: id,
+            data: seedPhraseAsUint8Array,
+            type: SecretType.Mnemonic,
+          });
+        }
+      } catch (error) {
+        // handle seedless controller import error by reverting keyring controller mnemonic import
+        // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+        await KeyringController.removeAccount(newAccountAddress);
+        throw error;
+      }
+    }
+
+    if (options.shouldSelectAccount) {
+      Engine.setSelectedAddress(newAccountAddress);
+    }
+
+    let discoveredAccountsCount = 0;
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    if (options.shouldImportSolanaAccount) {
+      const multichainClient = MultichainWalletSnapFactory.createClient(
+        WalletClientType.Solana,
+      );
+
+      discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
+        id,
+        SolScope.Mainnet,
+      );
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    return {
+      newAccountAddress,
+      discoveredAccountsCount,
+    };
+  };
+
+  addNewPrivateKeyBackup = async (
+    privateKey: string,
+    keyringId: string,
+    syncWithSocial = true,
+  ): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    const bufferedPrivateKey = hexToBytes(add0x(privateKey));
+
+    if (syncWithSocial) {
+      await SeedlessOnboardingController.addNewSecretData(
+        bufferedPrivateKey,
+        SecretType.PrivateKey,
+        {
+          keyringId,
+        },
+      );
+    } else {
+      // Do not sync the key to the server, only update the local state
+      SeedlessOnboardingController.updateBackupMetadataState({
+        keyringId,
+        data: bufferedPrivateKey,
+        type: SecretType.PrivateKey,
+      });
+    }
+  };
+
+  importAccountFromPrivateKey = async (
+    privateKey: string,
+    options = {
+      shouldCreateSocialBackup: true,
+      shouldSelectAccount: true,
+    },
+  ): Promise<void> => {
+    trace({
+      name: TraceName.ImportEvmAccount,
+      op: TraceOperation.ImportAccount,
+      tags: getTraceTags(ReduxService.store.getState()),
+    });
+
+    const { KeyringController } = Engine.context;
+    const importedAccountAddress =
+      await KeyringController.importAccountWithStrategy(
+        AccountImportStrategy.privateKey,
+        [remove0x(privateKey)],
+      );
+
+    const isSocialLoginFlow = selectSeedlessOnboardingLoginFlow(
+      ReduxService.store.getState(),
+    );
+    if (isSocialLoginFlow) {
+      try {
+        await this.addNewPrivateKeyBackup(
+          privateKey,
+          importedAccountAddress,
+          options.shouldCreateSocialBackup,
+        );
+      } catch (error) {
+        // handle seedless controller import error by reverting keyring controller mnemonic import
+        // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+        await KeyringController.removeAccount(importedAccountAddress);
+        throw error;
+      }
+    }
+
+    if (options.shouldSelectAccount) {
+      const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
+      Engine.setSelectedAddress(checksummedAddress);
+    }
+
+    endTrace({
+      name: TraceName.ImportEvmAccount,
+    });
+  };
+
   rehydrateSeedPhrase = async (
     password: string,
     authData: AuthData,
   ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
-      let result: SecretMetadata[] | null = null;
+      let allSRPs: Awaited<
+        ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+      > | null = null;
       let fetchSrpsSuccess = false;
       try {
         trace({
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
         });
-        result = await SeedlessOnboardingController.fetchAllSecretData(
+        allSRPs = await SeedlessOnboardingController.fetchAllSecretData(
           password,
         );
         fetchSrpsSuccess = true;
@@ -720,37 +935,35 @@ class AuthenticationService {
           data: { success: fetchSrpsSuccess },
         });
       }
-      const allSRPs = result
-        .filter((item) => item.type === SecretType.Mnemonic)
-        .map((item) => item.data);
 
       if (allSRPs.length > 0) {
-        const { KeyringController } = Engine.context;
-
         const [firstSeedPhrase, ...restOfSeedPhrases] = allSRPs;
-        if (!firstSeedPhrase) {
+        if (!firstSeedPhrase?.data) {
           throw new Error('No seed phrase found');
         }
 
-        const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase, wordlist);
+        const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase.data, wordlist);
         await this.newWalletAndRestore(password, authData, seedPhrase, false);
         // add in more srps
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
-            // vault add new seedphrase
             try {
-              const keyringMetadata = await KeyringController.addNewKeyring(
-                KeyringTypes.hd,
-                {
-                  mnemonic: uint8ArrayToMnemonic(item, wordlist),
-                  numberOfAccounts: 1,
-                },
-              );
-              SeedlessOnboardingController.updateBackupMetadataState({
-                keyringId: keyringMetadata.id,
-                data: item,
-                type: SecretType.Mnemonic,
-              });
+              // add new private key
+              if (item.type === SecretType.PrivateKey) {
+                await this.importAccountFromPrivateKey(bytesToHex(item.data), {
+                  shouldCreateSocialBackup: false,
+                  shouldSelectAccount: false,
+                });
+              } else if (item.type === SecretType.Mnemonic) {
+                const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
+                await this.importMnemonicToVault(mnemonic, {
+                  shouldCreateSocialBackup: false,
+                  shouldSelectAccount: false,
+                  shouldImportSolanaAccount: true,
+                });
+              } else {
+                Logger.error(new Error('Unknown secret type'), item.type);
+              }
             } catch (error) {
               // catch error to prevent unable to login
               Logger.error(error as Error);

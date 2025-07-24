@@ -280,20 +280,21 @@ const BridgeView = () => {
           const validationResult = await validateBridgeTx({
             quoteResponse: activeQuote,
           });
-          if (
-            validationResult.error ||
-            validationResult.result.validation.reason
-          ) {
+          if (validationResult.status === 'ERROR') {
             displayValidationError = true;
             const isValidationError =
               !!validationResult.result.validation.reason;
+            const { error_details } = validationResult;
+            const fallbackErrorMessage = isValidationError
+              ? validationResult.result.validation.reason
+              : validationResult.error;
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
               params: {
                 errorType: isValidationError ? 'validation' : 'simulation',
-                errorMessage: isValidationError
-                  ? validationResult.result.validation.reason
-                  : validationResult.error,
+                errorMessage: error_details?.message
+                  ? `The ${error_details.message}.`
+                  : fallbackErrorMessage,
               },
             });
             return;
