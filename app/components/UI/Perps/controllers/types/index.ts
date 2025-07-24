@@ -237,7 +237,6 @@ export interface WithdrawResult {
   error?: string;
   withdrawalId?: string; // Unique ID for tracking
   estimatedArrivalTime?: number; // Provider-specific arrival time
-  pendingWithdrawal?: PendingWithdrawal; // Complete tracking object from provider
 }
 
 // Provider-agnostic withdrawal tracking type
@@ -376,12 +375,6 @@ export interface IPerpsProvider {
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
   validateDeposit(params: DepositParams): { isValid: boolean; error?: string }; // Protocol-specific deposit validation
-  // Monitor withdrawal status - provider-specific implementation
-  checkWithdrawalStatus(withdrawal: PendingWithdrawal): Promise<{
-    status: 'pending' | 'processing' | 'completed' | 'failed';
-    error?: string;
-    metadata?: Record<string, string | number | boolean | null>;
-  }>;
 
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;

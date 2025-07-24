@@ -1,15 +1,9 @@
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
-import { parseCaipAssetId, type Hex } from '@metamask/utils';
+import { type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
-import Engine from '../../../../../core/Engine';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import {
-  getBridgeInfo,
-  getChainId,
-  HYPERLIQUID_MAINNET_CAIP_CHAIN_ID,
-  HYPERLIQUID_TESTNET_CAIP_CHAIN_ID,
-} from '../../constants/hyperLiquidConfig';
+import { getBridgeInfo, getChainId } from '../../constants/hyperLiquidConfig';
 import {
   PERPS_CONSTANTS,
   WITHDRAWAL_CONSTANTS,
@@ -55,7 +49,6 @@ import type {
   MaintenanceMarginParams,
   MarketInfo,
   OrderResult,
-  PendingWithdrawal,
   PerpsMarketData,
   OrderParams as PerpsOrderParams,
   Position,
@@ -1187,54 +1180,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
           },
         );
 
-        // Create PendingWithdrawal object for tracking
         const now = Date.now();
         const withdrawalId = `hl_${uuidv4()}`;
-
-        // Get destination address (defaults to current account)
-        const { AccountsController } = Engine.context;
-        const selectedAccount = AccountsController.getSelectedAccount();
-        const destinationAddress =
-          params.destination || (selectedAccount.address as Hex);
-
-        // Parse asset information to get destination chain
-        // assetId is guaranteed to exist from earlier validation
-        if (!params.assetId) {
-          // This should never happen due to earlier validation, but TypeScript needs the check
-          throw new Error('Asset ID is required for withdrawal');
-        }
-        const { chainId: destChainId } = parseCaipAssetId(params.assetId);
-
-        // Get source chain from withdrawal route
-        const sourceChainId =
-          supportedRoutes.find((r) => r.assetId === params.assetId)?.chainId ||
-          (this.clientService.isTestnetMode()
-            ? HYPERLIQUID_TESTNET_CAIP_CHAIN_ID
-            : HYPERLIQUID_MAINNET_CAIP_CHAIN_ID);
-
-        const pendingWithdrawal: PendingWithdrawal = {
-          withdrawalId,
-          provider: 'hyperliquid',
-          amount: params.amount,
-          asset: 'USDC', // Currently only USDC is supported
-          assetId: params.assetId,
-          sourceChainId,
-          destinationChainId: destChainId,
-          destinationAddress,
-          initiatedAt: now,
-          status: 'pending',
-          providerTxHash: undefined, // HyperLiquid doesn't provide immediate tx hash
-          estimatedArrivalTime: now + 5 * 60 * 1000, // HyperLiquid typically takes ~5 minutes
-          metadata: {
-            isTestnet: this.clientService.isTestnetMode(),
-          },
-        };
 
         return {
           success: true,
           withdrawalId,
-          estimatedArrivalTime: pendingWithdrawal.estimatedArrivalTime,
-          pendingWithdrawal,
+          estimatedArrivalTime: now + 5 * 60 * 1000, // HyperLiquid typically takes ~5 minutes
           // Don't set txHash if we don't have a real transaction hash
           // HyperLiquid's withdraw3 API doesn't return a transaction hash immediately
         };
@@ -1480,236 +1432,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     return assetInfo.maxLeverage;
-  }
-
-  /**
-   * Check withdrawal status using HyperLiquid-specific logic
-   */
-  async checkWithdrawalStatus(withdrawal: PendingWithdrawal): Promise<{
-    status: 'pending' | 'processing' | 'completed' | 'failed';
-    error?: string;
-    metadata?: Record<string, string | number | boolean | null>;
-  }> {
-    const now = Date.now();
-    const estimatedTime =
-      withdrawal.estimatedArrivalTime || withdrawal.initiatedAt + 5 * 60 * 1000;
-    const maxWaitTime = estimatedTime + 10 * 60 * 1000; // 15 minutes total
-
-    DevLogger.log('🔍 HyperLiquid: Checking withdrawal status', {
-      withdrawalId: withdrawal.withdrawalId,
-      amount: withdrawal.amount,
-      currentStatus: withdrawal.status,
-      initiatedAt: new Date(withdrawal.initiatedAt).toISOString(),
-      now: new Date(now).toISOString(),
-      elapsedSeconds: Math.floor((now - withdrawal.initiatedAt) / 1000),
-    });
-
-    // Check if withdrawal has exceeded maximum wait time
-    if (now > maxWaitTime) {
-      DevLogger.log('⏱️ HyperLiquid: Withdrawal timeout exceeded', {
-        withdrawalId: withdrawal.withdrawalId,
-        maxWaitMinutes: 15,
-        actualMinutes: Math.floor((now - withdrawal.initiatedAt) / (60 * 1000)),
-      });
-      return {
-        status: 'failed',
-        error: 'Withdrawal timeout - please check manually',
-      };
-    }
-
-    // HyperLiquid-specific timing logic
-    const elapsedMinutes = (now - withdrawal.initiatedAt) / (60 * 1000);
-
-    // Update status based on HyperLiquid's process:
-    // 0-3 minutes: validators signing
-    // 3-5 minutes: bridge finalization
-    // 5+ minutes: should be complete
-    DevLogger.log('📊 HyperLiquid: Withdrawal phase check', {
-      elapsedMinutes: elapsedMinutes.toFixed(2),
-      phase:
-        elapsedMinutes < 3
-          ? 'validator-signing'
-          : elapsedMinutes < 5
-          ? 'bridge-finalizing'
-          : 'should-be-complete',
-    });
-
-    if (elapsedMinutes >= 5) {
-      DevLogger.log(
-        '💰 HyperLiquid: Withdrawal should be complete, checking balance',
-        {
-          withdrawalId: withdrawal.withdrawalId,
-          elapsedMinutes: elapsedMinutes.toFixed(2),
-        },
-      );
-
-      // Check if we have balance monitoring data
-      const { TokenBalancesController } = Engine.context;
-
-      // Force a balance refresh before checking
-      try {
-        DevLogger.log('🔄 HyperLiquid: Refreshing token balances', {
-          chainId: withdrawal.destinationChainId,
-        });
-        await TokenBalancesController.updateBalances({
-          chainIds: [withdrawal.destinationChainId.split(':')[1]] as Hex[],
-        });
-        DevLogger.log('✅ HyperLiquid: Token balances refreshed');
-      } catch (error) {
-        DevLogger.log('⚠️ HyperLiquid: Failed to refresh balances', { error });
-      }
-
-      // Get USDC address from the withdrawal asset ID
-      const arbitrumChainId = withdrawal.destinationChainId.split(':')[1];
-      const parsedAsset = parseCaipAssetId(withdrawal.assetId);
-      const usdcAddress = parsedAsset.assetReference.startsWith('0x')
-        ? parsedAsset.assetReference
-        : `0x${parsedAsset.assetReference}`;
-
-      // Check current balance
-      const tokenBalancesState = TokenBalancesController.state;
-      const accountAddress = withdrawal.destinationAddress; // Don't lowercase - use as-is
-      const hexChainId = `0x${parseInt(arbitrumChainId, 10).toString(
-        16,
-      )}` as Hex; // Convert to hex
-      let currentUsdcBalance: string | undefined;
-
-      DevLogger.log('🔍 HyperLiquid: Checking withdrawal balance', {
-        elapsedMinutes,
-        accountAddress,
-        arbitrumChainId,
-        hexChainId,
-        usdcAddress,
-        hasTokenBalances: !!tokenBalancesState.tokenBalances,
-      });
-
-      if (tokenBalancesState.tokenBalances) {
-        // Access nested structure: tokenBalances[account][chainId][tokenAddress]
-        const accountBalances =
-          tokenBalancesState.tokenBalances[accountAddress];
-        // Cast to proper template literal type for strict typing
-        const chainBalances = accountBalances?.[hexChainId as Hex];
-        currentUsdcBalance = chainBalances?.[usdcAddress as Hex];
-
-        DevLogger.log('🔍 HyperLiquid: Balance check result', {
-          accountAddress,
-          hexChainId,
-          usdcAddress,
-          hasAccountBalances: !!accountBalances,
-          hasChainBalances: !!chainBalances,
-          currentUsdcBalance,
-          // Log structure for debugging
-          availableAccounts: Object.keys(
-            tokenBalancesState.tokenBalances || {},
-          ),
-          availableChains: accountBalances ? Object.keys(accountBalances) : [],
-          availableTokens: chainBalances ? Object.keys(chainBalances) : [],
-        });
-      }
-
-      // Check if balance increased
-      const baselineBalanceStr = withdrawal.metadata?.baselineBalance;
-      if (
-        baselineBalanceStr !== undefined &&
-        baselineBalanceStr !== null &&
-        currentUsdcBalance
-      ) {
-        // Convert hex balance to decimal with USDC's 6 decimals
-        const currentBalanceWei = BigInt(currentUsdcBalance);
-        const currentBalanceDecimal = Number(currentBalanceWei) / 1e6; // USDC has 6 decimals
-
-        const baselineBalance = parseFloat(String(baselineBalanceStr));
-        const expectedAmount = parseFloat(withdrawal.amount);
-        const balanceIncrease = currentBalanceDecimal - baselineBalance;
-        const minExpectedIncrease = expectedAmount * 0.9; // Allow 10% for fees
-
-        DevLogger.log('🔍 HyperLiquid: Comparing balances', {
-          baselineBalance,
-          currentBalanceHex: currentUsdcBalance,
-          currentBalanceDecimal,
-          expectedAmount,
-          balanceIncrease,
-          minExpectedIncrease,
-          isComplete: balanceIncrease >= minExpectedIncrease,
-        });
-
-        if (balanceIncrease >= minExpectedIncrease) {
-          DevLogger.log('🎉 HyperLiquid: Withdrawal COMPLETED!', {
-            withdrawalId: withdrawal.withdrawalId,
-            amount: withdrawal.amount,
-            balanceIncrease: balanceIncrease.toFixed(2),
-            finalBalance: currentBalanceDecimal.toFixed(2),
-            elapsedMinutes: elapsedMinutes.toFixed(2),
-          });
-          return {
-            status: 'completed',
-            metadata: {
-              finalBalance: currentBalanceDecimal.toString(),
-              balanceIncrease: balanceIncrease.toString(),
-            },
-          };
-        }
-
-        DevLogger.log(
-          '🔍 HyperLiquid: Balance checked but no increase detected yet',
-          {
-            withdrawalId: withdrawal.withdrawalId,
-            expectedIncrease: minExpectedIncrease.toFixed(2),
-            actualIncrease: balanceIncrease.toFixed(2),
-            currentBalance: currentBalanceDecimal.toFixed(2),
-            baselineBalance: baselineBalance.toFixed(2),
-          },
-        );
-      } else if (!baselineBalanceStr && currentUsdcBalance !== undefined) {
-        // Store baseline for future comparisons - convert hex to decimal
-        const baselineWei = BigInt(currentUsdcBalance);
-        const baselineDecimal = Number(baselineWei) / 1e6; // USDC has 6 decimals
-
-        DevLogger.log('📊 HyperLiquid: Storing baseline balance', {
-          withdrawalId: withdrawal.withdrawalId,
-          baselineHex: currentUsdcBalance,
-          baselineDecimal,
-        });
-
-        return {
-          status: withdrawal.status,
-          metadata: {
-            baselineBalance: baselineDecimal.toString(),
-            baselineTimestamp: now,
-          },
-        };
-      }
-
-      // After 5 minutes, consider it processing if not completed
-      DevLogger.log(
-        '⏳ HyperLiquid: Withdrawal still processing after 5 minutes',
-        {
-          withdrawalId: withdrawal.withdrawalId,
-          suggestion: 'Balance may not have updated yet, will check again',
-        },
-      );
-      return { status: 'processing' };
-    } else if (elapsedMinutes >= 3) {
-      // Validators finalizing
-      DevLogger.log('🌉 HyperLiquid: Bridge finalization phase', {
-        withdrawalId: withdrawal.withdrawalId,
-        elapsedMinutes: elapsedMinutes.toFixed(2),
-        expectedCompletion: `${(5 - elapsedMinutes).toFixed(
-          1,
-        )} minutes remaining`,
-      });
-      return { status: 'processing' };
-    }
-
-    // Still in initial phase
-    DevLogger.log('✍️ HyperLiquid: Validator signing phase', {
-      withdrawalId: withdrawal.withdrawalId,
-      elapsedMinutes: elapsedMinutes.toFixed(2),
-      nextPhase: `Bridge finalization in ${(3 - elapsedMinutes).toFixed(
-        1,
-      )} minutes`,
-    });
-    return { status: 'pending' };
   }
 
   /**

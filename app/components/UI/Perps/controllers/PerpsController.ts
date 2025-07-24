@@ -16,7 +16,6 @@ import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { generateTransferData } from '../../../../util/transactions';
 import type { CandleData } from '../types';
-import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -35,7 +34,6 @@ import type {
   MarketInfo,
   OrderParams,
   OrderResult,
-  PendingWithdrawal,
   Position,
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
@@ -73,9 +71,6 @@ export type PerpsControllerState = {
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
-
-  // Withdrawal monitoring (for future use)
-  pendingWithdrawals: PendingWithdrawal[];
 };
 
 /**
@@ -95,7 +90,6 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeDepositTransactions: {},
   lastError: null,
   lastUpdateTimestamp: 0,
-  pendingWithdrawals: [],
 });
 
 /**
@@ -115,7 +109,6 @@ const metadata = {
   activeDepositTransactions: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
-  pendingWithdrawals: { persist: true, anonymous: false },
 };
 
 /**
@@ -233,7 +226,6 @@ export class PerpsController extends BaseController<
   private providers: Map<string, IPerpsProvider>;
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
-  private withdrawalMonitoringInterval: NodeJS.Timeout | null = null;
 
   constructor({ messenger, state = {} }: PerpsControllerOptions) {
     super({
@@ -722,14 +714,10 @@ export class PerpsController extends BaseController<
       });
 
       // Update state based on result
-      if (result.success && result.pendingWithdrawal) {
-        // Provider has created the tracking object
-        const pendingWithdrawal = result.pendingWithdrawal;
+      if (result.success) {
         this.update((state) => {
           state.lastError = null;
           state.lastUpdateTimestamp = Date.now();
-          // Add to pending withdrawals for monitoring
-          state.pendingWithdrawals.push(pendingWithdrawal);
         });
 
         DevLogger.log('✅ PerpsController: WITHDRAWAL SUCCESSFUL', {
@@ -737,7 +725,6 @@ export class PerpsController extends BaseController<
           amount: params.amount,
           assetId: params.assetId,
           withdrawalId: result.withdrawalId,
-          pendingWithdrawal: result.pendingWithdrawal,
         });
 
         return result;
@@ -1305,65 +1292,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Start monitoring pending withdrawals
-   * Call this when the perps UI is active
-   */
-  startWithdrawalMonitoring(): void {
-    // Clear any existing interval
-    this.stopWithdrawalMonitoring();
-
-    // Clean up old completed withdrawals first
-    this.cleanupCompletedWithdrawals();
-
-    // Check if there are any pending withdrawals
-    const hasPending = this.state.pendingWithdrawals.some(
-      (w) => w.status === 'pending' || w.status === 'processing',
-    );
-
-    if (!hasPending) {
-      return;
-    }
-
-    DevLogger.log('🔍 PerpsController: Starting withdrawal monitoring', {
-      pendingCount: this.state.pendingWithdrawals.filter(
-        (w) => w.status === 'pending' || w.status === 'processing',
-      ).length,
-    });
-
-    // Run immediately
-    this.monitorPendingWithdrawals();
-
-    // Then run every 30 seconds
-    const intervalSeconds = 30;
-    DevLogger.log('⏰ PerpsController: Setting up monitoring interval', {
-      intervalSeconds,
-      checkEvery: `${intervalSeconds} seconds`,
-    });
-
-    this.withdrawalMonitoringInterval = setInterval(() => {
-      DevLogger.log('🔄 PerpsController: Monitoring cycle triggered', {
-        timestamp: new Date().toISOString(),
-        pendingCount: this.state.pendingWithdrawals.filter(
-          (w) => w.status === 'pending' || w.status === 'processing',
-        ).length,
-      });
-      this.monitorPendingWithdrawals();
-    }, intervalSeconds * 1000);
-  }
-
-  /**
-   * Stop monitoring pending withdrawals
-   * Call this when navigating away from perps UI
-   */
-  stopWithdrawalMonitoring(): void {
-    if (this.withdrawalMonitoringInterval) {
-      DevLogger.log('🛑 PerpsController: Stopping withdrawal monitoring');
-      clearInterval(this.withdrawalMonitoringInterval);
-      this.withdrawalMonitoringInterval = null;
-    }
-  }
-
-  /**
    * Disconnect provider and cleanup subscriptions
    * Call this when navigating away from Perps screens to prevent battery drain
    */
@@ -1375,185 +1303,11 @@ export class PerpsController extends BaseController<
       },
     );
 
-    // Stop withdrawal monitoring
-    this.stopWithdrawalMonitoring();
-
     const provider = this.getActiveProvider();
     await provider.disconnect();
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
     this.initializationPromise = null;
-  }
-
-  /**
-   * Monitor pending withdrawals for completion
-   * Delegates to provider-specific monitoring logic
-   */
-  async monitorPendingWithdrawals(): Promise<void> {
-    const pendingWithdrawals = this.state.pendingWithdrawals.filter(
-      (w) => w.status === 'pending' || w.status === 'processing',
-    );
-
-    if (pendingWithdrawals.length === 0) {
-      return;
-    }
-
-    DevLogger.log('🔍 PerpsController: Monitoring pending withdrawals', {
-      count: pendingWithdrawals.length,
-      withdrawals: pendingWithdrawals.map((w) => ({
-        withdrawalId: w.withdrawalId,
-        amount: w.amount,
-        provider: w.provider,
-      })),
-    });
-
-    const provider = this.getActiveProvider();
-
-    // Check each pending withdrawal
-    for (const withdrawal of pendingWithdrawals) {
-      try {
-        // Delegate to provider-specific monitoring
-        const result = await provider.checkWithdrawalStatus(withdrawal);
-
-        // Update state based on provider result
-        if (result.status !== withdrawal.status || result.metadata) {
-          DevLogger.log('📝 PerpsController: Withdrawal status changed', {
-            withdrawalId: withdrawal.withdrawalId,
-            oldStatus: withdrawal.status,
-            newStatus: result.status,
-            hasMetadata: !!result.metadata,
-            hasError: !!result.error,
-          });
-
-          this.update((state) => {
-            const index = state.pendingWithdrawals.findIndex(
-              (w) => w.withdrawalId === withdrawal.withdrawalId,
-            );
-            if (index >= 0) {
-              state.pendingWithdrawals[index].status = result.status;
-              if (result.error) {
-                state.pendingWithdrawals[index].error = result.error;
-              }
-              if (result.metadata) {
-                state.pendingWithdrawals[index].metadata = {
-                  ...state.pendingWithdrawals[index].metadata,
-                  ...result.metadata,
-                };
-              }
-              if (result.status === 'completed') {
-                state.pendingWithdrawals[index].completedAt = Date.now();
-                DevLogger.log('✅ PerpsController: Withdrawal completed!', {
-                  withdrawalId: withdrawal.withdrawalId,
-                  amount: withdrawal.amount,
-                  totalTimeMinutes: (
-                    (Date.now() - withdrawal.initiatedAt) /
-                    (60 * 1000)
-                  ).toFixed(2),
-                });
-              }
-            }
-          });
-        }
-      } catch (error) {
-        DevLogger.log('❌ PerpsController: Error monitoring withdrawal', {
-          withdrawalId: withdrawal.withdrawalId,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      }
-    }
-
-    // Clean up old completed withdrawals after monitoring
-    this.cleanupCompletedWithdrawals();
-  }
-
-  /**
-   * Clean up old completed withdrawals from persistence
-   * Removes withdrawals that have been completed for more than the retention period
-   */
-  private cleanupCompletedWithdrawals(): void {
-    const retentionPeriodMs =
-      WITHDRAWAL_CONSTANTS.COMPLETED_RETENTION_DAYS * 24 * 60 * 60 * 1000;
-    const cutoffTime = Date.now() - retentionPeriodMs;
-
-    this.update((state) => {
-      const initialCount = state.pendingWithdrawals.length;
-
-      // Filter out old completed withdrawals
-      state.pendingWithdrawals = state.pendingWithdrawals.filter(
-        (withdrawal) => {
-          // Keep non-completed withdrawals
-          if (withdrawal.status !== 'completed') {
-            return true;
-          }
-
-          // Keep recently completed withdrawals
-          const completedAt =
-            withdrawal.completedAt || withdrawal.metadata?.completedAt;
-          if (!completedAt) {
-            // If no completion time recorded, keep it (shouldn't happen)
-            return true;
-          }
-
-          return Number(completedAt) > cutoffTime;
-        },
-      );
-
-      const removedCount = initialCount - state.pendingWithdrawals.length;
-      if (removedCount > 0) {
-        DevLogger.log(
-          '🧹 PerpsController: Cleaned up old completed withdrawals',
-          {
-            removedCount,
-            remainingCount: state.pendingWithdrawals.length,
-          },
-        );
-      }
-    });
-  }
-
-  /**
-   * Submit transaction with proper gas estimation and nonce management
-   */
-  private async submitTransactionDirectly(
-    transaction: TransactionParams,
-    networkClientId: string,
-    depositAmount?: string,
-  ): Promise<{ success: boolean; txHash?: string; error?: string }> {
-    try {
-      const { TransactionController } = Engine.context;
-
-      const result = await TransactionController.addTransaction(transaction, {
-        origin: 'metamask',
-        requireApproval: false,
-        networkClientId,
-      });
-
-      // Track this deposit transaction
-      const txMeta = result.transactionMeta;
-      if (txMeta && depositAmount) {
-        this.update((state) => {
-          state.activeDepositTransactions[txMeta.id] = {
-            amount: depositAmount,
-            token: 'USDC', // For now, we only support USDC
-          };
-        });
-      }
-
-      const txHash = await result.result;
-
-      return {
-        success: true,
-        txHash,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Transaction submission failed',
-      };
-    }
   }
 }

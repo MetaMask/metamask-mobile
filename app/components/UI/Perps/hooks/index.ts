@@ -12,10 +12,6 @@ export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 
 // State hooks (Redux selectors)
 export { usePerpsAccount } from './usePerpsAccount';
-export {
-  usePerpsPendingWithdrawals,
-  useHasPendingWithdrawals,
-} from './usePerpsPendingWithdrawals';
 
 // Live data hooks (WebSocket subscriptions)
 export { usePerpsPositionData } from './usePerpsPositionData';

@@ -31,7 +31,6 @@ jest.mock('../hooks', () => ({
     BTC: { price: '50000', percentChange24h: '2.5' },
     ETH: { price: '3000', percentChange24h: '-1.2' },
   })),
-  usePerpsPendingWithdrawals: jest.fn(() => []),
 }));
 
 jest.mock('../../../Base/ScreenView', () => 'MockedScreenView');
@@ -41,7 +40,5 @@ describe('PerpsView', () => {
     // Verify mocks are set up correctly
     const hooks = require('../hooks');
     expect(hooks.usePerpsAccount).toBeDefined();
-    expect(hooks.usePerpsPendingWithdrawals).toBeDefined();
-    expect(hooks.usePerpsPendingWithdrawals()).toEqual([]);
   });
 });

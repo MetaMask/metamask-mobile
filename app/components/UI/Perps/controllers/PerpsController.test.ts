@@ -107,7 +107,6 @@ describe('PerpsController', () => {
       calculateLiquidationPrice: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
-      checkWithdrawalStatus: jest.fn(),
       getMarketDataWithPrices: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
@@ -838,12 +837,6 @@ describe('PerpsController', () => {
         // Verify result returned from provider
         expect(result).toEqual(mockWithdrawResult);
 
-        // Verify withdrawal was added to state
-        expect(controller.state.pendingWithdrawals).toHaveLength(1);
-        expect(controller.state.pendingWithdrawals[0]).toEqual(
-          mockPendingWithdrawal,
-        );
-
         expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
           withdrawParams,
         );
@@ -891,8 +884,10 @@ describe('PerpsController', () => {
         // Verify result returned from provider
         expect(result).toEqual(mockWithdrawResult);
 
-        // Verify no withdrawal was added to state since provider didn't return one
-        expect(controller.state.pendingWithdrawals).toHaveLength(0);
+        // Verify provider was called correctly
+        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
+          withdrawParams,
+        );
       });
     });
   });
@@ -1884,229 +1879,6 @@ describe('PerpsController', () => {
 
           // Act & Assert
           await expect(controller.updatePositionTPSL(params)).rejects.toThrow();
-        });
-      });
-    });
-
-    describe('withdrawal cleanup', () => {
-      it('should clean up old completed withdrawals when starting monitoring', async () => {
-        await withController(async ({ controller }) => {
-          // Arrange - Set up withdrawals with different statuses and completion times
-          const now = Date.now();
-          const oneDayMs = 24 * 60 * 60 * 1000;
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.pendingWithdrawals = [
-              // Old completed withdrawal (should be removed)
-              {
-                withdrawalId: 'old-completed',
-                amount: '100',
-                asset: 'USDC',
-                assetId:
-                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
-                sourceChainId: 'eip155:999' as CaipChainId,
-                status: 'completed',
-                completedAt: now - 8 * oneDayMs, // 8 days ago
-                initiatedAt: now - 9 * oneDayMs,
-                provider: 'hyperliquid',
-                destinationChainId: 'eip155:42161' as CaipChainId,
-                destinationAddress: '0x123' as Hex,
-              },
-              // Recent completed withdrawal (should be kept)
-              {
-                withdrawalId: 'recent-completed',
-                amount: '200',
-                asset: 'USDC',
-                assetId:
-                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
-                sourceChainId: 'eip155:999' as CaipChainId,
-                status: 'completed',
-                completedAt: now - 2 * oneDayMs, // 2 days ago
-                initiatedAt: now - 3 * oneDayMs,
-                provider: 'hyperliquid',
-                destinationChainId: 'eip155:42161' as CaipChainId,
-                destinationAddress: '0x123' as Hex,
-              },
-              // Pending withdrawal (should be kept)
-              {
-                withdrawalId: 'pending',
-                amount: '300',
-                asset: 'USDC',
-                assetId:
-                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
-                sourceChainId: 'eip155:999' as CaipChainId,
-                status: 'pending',
-                initiatedAt: now - 1 * oneDayMs,
-                provider: 'hyperliquid',
-                destinationChainId: 'eip155:42161' as CaipChainId,
-                destinationAddress: '0x123' as Hex,
-              },
-              // Processing withdrawal (should be kept)
-              {
-                withdrawalId: 'processing',
-                amount: '400',
-                asset: 'USDC',
-                assetId:
-                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
-                sourceChainId: 'eip155:999' as CaipChainId,
-                status: 'processing',
-                initiatedAt: now - 0.5 * oneDayMs,
-                provider: 'hyperliquid',
-                destinationChainId: 'eip155:42161' as CaipChainId,
-                destinationAddress: '0x123' as Hex,
-              },
-            ];
-          });
-
-          // Act - Start monitoring (which triggers cleanup)
-          controller.startWithdrawalMonitoring();
-
-          // Assert - Old completed withdrawal should be removed
-          expect(controller.state.pendingWithdrawals).toHaveLength(3);
-          expect(
-            controller.state.pendingWithdrawals.map((w) => w.withdrawalId),
-          ).toEqual(['recent-completed', 'pending', 'processing']);
-        });
-      });
-
-      it('should clean up withdrawals after monitoring completes', async () => {
-        // Arrange
-        mockHyperLiquidProvider.checkWithdrawalStatus.mockResolvedValue({
-          status: 'completed',
-          metadata: { completedAt: Date.now() },
-        });
-
-        await withController(async ({ controller }) => {
-          const now = Date.now();
-          const oneDayMs = 24 * 60 * 60 * 1000;
-
-          // Set up an old completed withdrawal and a pending one
-          // @ts-ignore
-          controller.update((state) => {
-            state.pendingWithdrawals = [
-              {
-                withdrawalId: 'old-completed',
-                amount: '100',
-                asset: 'USDC',
-                assetId:
-                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
-                sourceChainId: 'eip155:999' as CaipChainId,
-                status: 'completed',
-                completedAt: now - 10 * oneDayMs, // 10 days ago
-                initiatedAt: now - 11 * oneDayMs,
-                provider: 'hyperliquid',
-                destinationChainId: 'eip155:42161' as CaipChainId,
-                destinationAddress: '0x123' as Hex,
-              },
-              {
-                withdrawalId: 'pending-to-complete',
-                amount: '200',
-                asset: 'USDC',
-                assetId:
-                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
-                sourceChainId: 'eip155:999' as CaipChainId,
-                status: 'pending',
-                initiatedAt: now,
-                provider: 'hyperliquid',
-                destinationChainId: 'eip155:42161' as CaipChainId,
-                destinationAddress: '0x123' as Hex,
-              },
-            ];
-          });
-
-          // Act - Monitor withdrawals (which will complete the pending one and cleanup)
-          await controller.monitorPendingWithdrawals();
-
-          // Assert - Old withdrawal removed, new completion kept
-          expect(controller.state.pendingWithdrawals).toHaveLength(1);
-          expect(controller.state.pendingWithdrawals[0].withdrawalId).toBe(
-            'pending-to-complete',
-          );
-          expect(controller.state.pendingWithdrawals[0].status).toBe(
-            'completed',
-          );
-        });
-      });
-
-      it('should handle withdrawals without completedAt timestamps', async () => {
-        await withController(async ({ controller }) => {
-          // Arrange - Completed withdrawal without completedAt (edge case)
-          // @ts-ignore
-          controller.update((state) => {
-            state.pendingWithdrawals = [
-              {
-                withdrawalId: 'completed-no-timestamp',
-                amount: '100',
-                asset: 'USDC',
-                assetId:
-                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
-                sourceChainId: 'eip155:999' as CaipChainId,
-                status: 'completed',
-                // No completedAt field
-                initiatedAt: Date.now() - 30 * 24 * 60 * 60 * 1000, // 30 days ago
-                provider: 'hyperliquid',
-                destinationChainId: 'eip155:42161' as CaipChainId,
-                destinationAddress: '0x123' as Hex,
-              },
-            ];
-          });
-
-          // Act - Start monitoring (triggers cleanup)
-          controller.startWithdrawalMonitoring();
-
-          // Assert - Withdrawal without completedAt is kept (conservative approach)
-          expect(controller.state.pendingWithdrawals).toHaveLength(1);
-        });
-      });
-
-      it('should not run monitoring interval if no pending/processing withdrawals after cleanup', async () => {
-        await withController(async ({ controller }) => {
-          // Arrange - Only old completed withdrawals
-          const now = Date.now();
-          const oneDayMs = 24 * 60 * 60 * 1000;
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.pendingWithdrawals = [
-              {
-                withdrawalId: 'old-completed-1',
-                amount: '100',
-                asset: 'USDC',
-                assetId:
-                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
-                sourceChainId: 'eip155:999' as CaipChainId,
-                status: 'completed',
-                completedAt: now - 10 * oneDayMs,
-                initiatedAt: now - 11 * oneDayMs,
-                provider: 'hyperliquid',
-                destinationChainId: 'eip155:42161' as CaipChainId,
-                destinationAddress: '0x123' as Hex,
-              },
-              {
-                withdrawalId: 'old-completed-2',
-                amount: '200',
-                asset: 'USDC',
-                assetId:
-                  'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
-                sourceChainId: 'eip155:999' as CaipChainId,
-                status: 'completed',
-                completedAt: now - 15 * oneDayMs,
-                initiatedAt: now - 16 * oneDayMs,
-                provider: 'hyperliquid',
-                destinationChainId: 'eip155:42161' as CaipChainId,
-                destinationAddress: '0x123' as Hex,
-              },
-            ];
-          });
-
-          // Act - Start monitoring
-          controller.startWithdrawalMonitoring();
-
-          // Assert - All withdrawals cleaned up, no monitoring started
-          expect(controller.state.pendingWithdrawals).toHaveLength(0);
-          // @ts-ignore - Accessing private property for testing
-          expect(controller.withdrawalMonitoringInterval).toBeNull();
         });
       });
     });

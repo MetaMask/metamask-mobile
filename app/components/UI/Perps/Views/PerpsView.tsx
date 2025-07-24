@@ -44,7 +44,6 @@ import {
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import PerpsLoader from '../components/PerpsLoader';
-import PerpsWithdrawalMonitor from '../components/PerpsWithdrawalMonitor';
 import { PerpsNavigationParamList } from '../types/navigation';
 
 interface PerpsViewProps {}
@@ -331,12 +330,6 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             </Text>
           )}
         </View>
-
-        {/* Withdrawal Monitoring */}
-        <PerpsWithdrawalMonitor
-          isConnected={isConnected}
-          isInitialized={isInitialized}
-        />
 
         <View style={styles.buttonContainer}>
           {/* Core functionality buttons */}
