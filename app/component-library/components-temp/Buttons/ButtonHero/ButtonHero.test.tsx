@@ -7,10 +7,7 @@ import { IconName } from '../../../components/Icons/Icon';
 
 // Internal dependencies.
 import ButtonHero from './ButtonHero';
-import {
-  BUTTONHERO_TESTID,
-  SAMPLE_BUTTONHERO_PROPS,
-} from './ButtonHero.constants';
+import { BUTTONHERO_TESTID } from './ButtonHero.constants';
 
 describe('ButtonHero', () => {
   const mockOnPress = jest.fn();
@@ -21,38 +18,42 @@ describe('ButtonHero', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
+  it('renders correctly with label', () => {
+    // Arrange & Act
     const { getByTestId, getByText } = render(
       <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
         label="Hero Button"
         onPress={mockOnPress}
         testID={BUTTONHERO_TESTID}
       />,
     );
 
+    // Assert
     expect(getByTestId(BUTTONHERO_TESTID)).toBeOnTheScreen();
     expect(getByText('Hero Button')).toBeOnTheScreen();
   });
 
-  it('should call onPress when pressed', () => {
+  it('calls onPress when pressed', () => {
+    // Arrange
     const { getByTestId } = render(
       <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
         label="Press Me"
         onPress={mockOnPress}
         testID={BUTTONHERO_TESTID}
       />,
     );
 
+    // Act
     fireEvent.press(getByTestId(BUTTONHERO_TESTID));
+
+    // Assert
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('should handle press in and press out events', () => {
+  it('handles press in and press out events', () => {
+    // Arrange
     const { getByTestId } = render(
       <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
         label="Interactive Button"
         onPress={mockOnPress}
         onPressIn={mockOnPressIn}
@@ -61,17 +62,19 @@ describe('ButtonHero', () => {
       />,
     );
 
+    // Act
     fireEvent(getByTestId(BUTTONHERO_TESTID), 'onPressIn', {});
-    expect(mockOnPressIn).toHaveBeenCalledTimes(1);
-
     fireEvent(getByTestId(BUTTONHERO_TESTID), 'onPressOut', {});
+
+    // Assert
+    expect(mockOnPressIn).toHaveBeenCalledTimes(1);
     expect(mockOnPressOut).toHaveBeenCalledTimes(1);
   });
 
-  it('should be disabled when isDisabled is true', () => {
+  it('is disabled when isDisabled is true', () => {
+    // Arrange & Act
     const { getByTestId } = render(
       <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
         label="Disabled Button"
         isDisabled
         onPress={mockOnPress}
@@ -79,14 +82,15 @@ describe('ButtonHero', () => {
       />,
     );
 
+    // Assert
     const buttonElement = getByTestId(BUTTONHERO_TESTID);
     expect(buttonElement).toHaveProp('accessibilityState', { disabled: true });
   });
 
-  it('should not call onPress when disabled', () => {
+  it('does not call onPress when disabled', () => {
+    // Arrange
     const { getByTestId } = render(
       <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
         label="Disabled Button"
         isDisabled
         onPress={mockOnPress}
@@ -94,14 +98,17 @@ describe('ButtonHero', () => {
       />,
     );
 
+    // Act
     fireEvent.press(getByTestId(BUTTONHERO_TESTID));
+
+    // Assert
     expect(mockOnPress).not.toHaveBeenCalled();
   });
 
-  it('should render loading state', () => {
+  it('displays loading state when loading is true', () => {
+    // Arrange & Act
     const { getByTestId, queryByText } = render(
       <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
         label="Loading Button"
         loading
         onPress={mockOnPress}
@@ -109,29 +116,33 @@ describe('ButtonHero', () => {
       />,
     );
 
+    // Assert
     expect(getByTestId(BUTTONHERO_TESTID)).toBeOnTheScreen();
     // Text should not be visible when loading
     expect(queryByText('Loading Button')).not.toBeOnTheScreen();
   });
 
-  it('should render with custom React node label', () => {
+  it('renders with custom React node label', () => {
+    // Arrange
     const customLabel = <div>Custom Label</div>;
+
+    // Act
     const { getByTestId } = render(
       <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
         label={customLabel}
         onPress={mockOnPress}
         testID={BUTTONHERO_TESTID}
       />,
     );
 
+    // Assert
     expect(getByTestId(BUTTONHERO_TESTID)).toBeOnTheScreen();
   });
 
-  it('should render with start and end icons', () => {
+  it('renders with start and end icons', () => {
+    // Arrange & Act
     const { getByTestId } = render(
       <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
         label="Icon Button"
         startIconName={IconName.Add}
         endIconName={IconName.ArrowRight}
@@ -140,6 +151,7 @@ describe('ButtonHero', () => {
       />,
     );
 
+    // Assert
     expect(getByTestId(BUTTONHERO_TESTID)).toBeOnTheScreen();
   });
 });

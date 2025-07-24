@@ -2,7 +2,7 @@
 import { PressableProps } from 'react-native';
 
 // External dependencies.
-import { IconProps } from '../../../components/Icons/Icon';
+import { IconName } from '../../../components/Icons/Icon';
 
 /**
  * ButtonHero component props.
@@ -15,11 +15,11 @@ export interface ButtonHeroProps extends PressableProps {
   /**
    * Optional prop for the icon name of the icon that will be displayed before the label.
    */
-  startIconName?: IconProps['name'];
+  startIconName?: IconName;
   /**
    * Optional prop for the icon name of the icon that will be displayed after the label.
    */
-  endIconName?: IconProps['name'];
+  endIconName?: IconName;
   /**
    * Function to trigger when pressing the button.
    */

@@ -12,13 +12,12 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
 import Text from '../../../components/Texts/Text';
-import { TextColor } from '../../../components/Texts/Text';
+import { TextColor, TextVariant } from '../../../components/Texts/Text';
 import Icon from '../../../components/Icons/Icon';
 import { IconColor } from '../../../components/Icons/Icon';
 
 // Internal dependencies.
 import { ButtonHeroProps } from './ButtonHero.types';
-import { DEFAULT_BUTTONHERO_LABEL_TEXTVARIANT } from './ButtonHero.constants';
 
 const ButtonHero = ({
   onPressIn,
@@ -53,10 +52,7 @@ const ButtonHero = ({
 
   const renderLabel = () =>
     typeof label === 'string' ? (
-      <Text
-        variant={DEFAULT_BUTTONHERO_LABEL_TEXTVARIANT}
-        color={TextColor.Inverse}
-      >
+      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Inverse}>
         {label}
       </Text>
     ) : (

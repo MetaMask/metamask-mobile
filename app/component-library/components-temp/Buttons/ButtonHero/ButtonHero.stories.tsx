@@ -6,7 +6,6 @@ import { IconName } from '../../../components/Icons/Icon';
 
 // Internal dependencies.
 import ButtonHero from './ButtonHero';
-import { SAMPLE_BUTTONHERO_PROPS } from './ButtonHero.constants';
 
 const ButtonHeroMeta = {
   title: 'Components-Temp / Buttons',
@@ -34,78 +33,34 @@ const ButtonHeroMeta = {
 
 export default ButtonHeroMeta;
 
-const handlePress = () => {
-  console.log('ButtonHero pressed!');
-};
-
-// Default story
 export const Default = {
   args: {
-    ...SAMPLE_BUTTONHERO_PROPS,
     label: 'Hero Button',
-    onPress: handlePress,
+    onPress: () => console.log('Hero Button pressed'),
   },
 };
 
-// Loading state
-export const Loading = {
-  args: {
-    ...SAMPLE_BUTTONHERO_PROPS,
-    label: 'Loading Button',
-    loading: true,
-    onPress: handlePress,
-  },
-};
-
-// Disabled state
-export const Disabled = {
-  args: {
-    ...SAMPLE_BUTTONHERO_PROPS,
-    label: 'Disabled Button',
-    isDisabled: true,
-    onPress: handlePress,
-  },
-};
-
-// With icons
 export const WithIcons = {
   args: {
-    ...SAMPLE_BUTTONHERO_PROPS,
-    label: 'Get Started',
+    label: 'With Icons',
     startIconName: IconName.Add,
     endIconName: IconName.ArrowRight,
-    onPress: handlePress,
+    onPress: () => console.log('With Icons pressed'),
   },
 };
 
-// All states demonstration
-export const AllStates = {
-  render: () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
-        label="Default Hero"
-        onPress={handlePress}
-      />
-      <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
-        label="With Icons"
-        startIconName={IconName.Bank}
-        endIconName={IconName.ArrowRight}
-        onPress={handlePress}
-      />
-      <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
-        label="Loading Hero"
-        loading
-        onPress={handlePress}
-      />
-      <ButtonHero
-        {...SAMPLE_BUTTONHERO_PROPS}
-        label="Disabled Hero"
-        isDisabled
-        onPress={handlePress}
-      />
-    </div>
-  ),
+export const Loading = {
+  args: {
+    label: 'Loading Button',
+    loading: true,
+    onPress: () => console.log('Loading button pressed'),
+  },
+};
+
+export const Disabled = {
+  args: {
+    label: 'Disabled Button',
+    isDisabled: true,
+    onPress: () => console.log('Disabled button pressed'),
+  },
 };
