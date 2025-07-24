@@ -836,6 +836,8 @@
       "initiated": "Withdrawal initiated",
       "wait_time_message": "Your funds should arrive within 5 minutes",
       "error": "Withdrawal failed",
+      "success_toast": "{{amount}} {{symbol}} withdrawal initiated",
+      "arrival_time": "Funds will arrive within 5 minutes",
       "error_generic": "An error occurred during withdrawal",
       "invalid_amount": "Please enter a valid amount"
     },

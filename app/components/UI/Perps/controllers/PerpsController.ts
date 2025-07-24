@@ -34,6 +34,7 @@ import type {
   MarketInfo,
   OrderParams,
   OrderResult,
+  PendingWithdrawal,
   Position,
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
@@ -71,6 +72,9 @@ export type PerpsControllerState = {
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
+
+  // Withdrawal monitoring (for future use)
+  pendingWithdrawals: PendingWithdrawal[];
 };
 
 /**
@@ -90,6 +94,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeDepositTransactions: {},
   lastError: null,
   lastUpdateTimestamp: 0,
+  pendingWithdrawals: [],
 });
 
 /**
@@ -109,6 +114,7 @@ const metadata = {
   activeDepositTransactions: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
+  pendingWithdrawals: { persist: true, anonymous: false },
 };
 
 /**
@@ -705,15 +711,70 @@ export class PerpsController extends BaseController<
 
       // Update state based on result
       if (result.success) {
+        // Create a pending withdrawal entry for monitoring
+        const now = Date.now();
+        const withdrawalId =
+          result.withdrawalId ||
+          `withdrawal_${now}_${Math.random().toString(36).substring(2, 9)}`;
+
+        // Get the withdrawal route for this asset to determine source chain
+        const withdrawalRoutes = this.getWithdrawalRoutes();
+        const route = withdrawalRoutes.find(
+          (r) => r.assetId === params.assetId,
+        );
+
+        if (!route) {
+          // This should not happen as withdrawal validation already checks this
+          throw new Error('Withdrawal route not found for asset');
+        }
+
+        // Parse asset information (assetId is guaranteed to exist from validation)
+        const { chainId: destChainId } = parseCaipAssetId(params.assetId);
+        const sourceChainId = route.chainId; // Provider's chain from route
+
+        // Get destination address (defaults to current account)
+        const { AccountsController } = Engine.context;
+        const selectedAccount = AccountsController.getSelectedAccount();
+        const destinationAddress =
+          params.destination || (selectedAccount.address as Hex);
+
+        // Create pending withdrawal entry
+        const pendingWithdrawal: PendingWithdrawal = {
+          withdrawalId,
+          provider: this.state.activeProvider,
+          amount: params.amount,
+          asset: 'USDC', // Currently only USDC is supported
+          assetId: params.assetId,
+          sourceChainId,
+          destinationChainId: destChainId,
+          destinationAddress,
+          initiatedAt: now,
+          status: 'pending',
+          providerTxHash: result.txHash,
+          estimatedArrivalTime:
+            result.estimatedArrivalTime || now + 5 * 60 * 1000, // Default 5 minutes
+          metadata: {
+            isTestnet: this.state.isTestnet,
+          },
+        };
+
         this.update((state) => {
           state.lastError = null;
           state.lastUpdateTimestamp = Date.now();
+          // Add to pending withdrawals for monitoring
+          state.pendingWithdrawals.push(pendingWithdrawal);
         });
+
         DevLogger.log('✅ PerpsController: WITHDRAWAL SUCCESSFUL', {
           txHash: result.txHash,
           amount: params.amount,
           assetId: params.assetId,
+          withdrawalId,
+          pendingWithdrawal,
         });
+
+        // Return result with withdrawal ID
+        return { ...result, withdrawalId };
       } else {
         this.update((state) => {
           state.lastError =

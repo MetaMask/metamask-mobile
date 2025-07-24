@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState, useContext } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  useContext,
+} from 'react';
 import { ScrollView, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { type Hex } from '@metamask/utils';
@@ -6,7 +12,10 @@ import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
-import { ToastContext, ToastVariants } from '../../../../../component-library/components/Toast';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -118,11 +127,7 @@ const PerpsWithdrawView: React.FC = () => {
   // Destination token (Arbitrum USDC)
   const destToken = useMemo<PerpsToken>(() => {
     const arbitrumChainId = toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex;
-    console.log('Arbitrum chain ID for network image:', {
-      original: ARBITRUM_MAINNET_CHAIN_ID,
-      hex: arbitrumChainId,
-    });
-    
+
     const baseToken: PerpsToken = {
       symbol: USDC_SYMBOL,
       address: ZERO_ADDRESS, // Will be actual USDC address on Arbitrum
@@ -257,18 +262,35 @@ const PerpsWithdrawView: React.FC = () => {
       });
 
       // Initiate withdrawal with required assetId
-      const result = await withdraw({ 
+      const result = await withdraw({
         amount: withdrawAmount,
         assetId: usdcAssetId,
       });
 
       if (result.success) {
-        // Navigate directly to processing view
-        navigation.navigate(Routes.PERPS.WITHDRAW_PROCESSING, {
-          amount: withdrawAmount,
-          receivingAmount: formattedQuoteData.receivingAmount,
-          transactionHash: result.txHash || '',
+        // Show success toast - funds will arrive within 5 minutes
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.ArrowUp,
+          hasNoTimeout: false,
+          labelOptions: [
+            {
+              label: strings('perps.withdrawal.success_toast', {
+                amount: withdrawAmount,
+                symbol: 'USDC',
+              }),
+              isBold: false,
+            },
+            {
+              label: strings('perps.withdrawal.arrival_time'),
+              isBold: false,
+              isSmall: true,
+            },
+          ],
         });
+        
+        // Navigate to the main perps screen
+        navigation.navigate(Routes.PERPS.VIEW);
       } else {
         // Show error toast
         toastRef?.current?.showToast({
@@ -298,14 +320,24 @@ const PerpsWithdrawView: React.FC = () => {
             isBold: true,
           },
           {
-            label: error instanceof Error ? error.message : strings('perps.withdrawal.error_generic'),
+            label:
+              error instanceof Error
+                ? error.message
+                : strings('perps.withdrawal.error_generic'),
           },
         ],
       });
     } finally {
       setIsSubmittingTx(false);
     }
-  }, [withdrawAmount, hasValidQuote, formattedQuoteData, navigation, withdraw, toastRef]);
+  }, [
+    withdrawAmount,
+    hasValidQuote,
+    formattedQuoteData,
+    navigation,
+    withdraw,
+    toastRef,
+  ]);
 
   // Button state
   const hasAmount = withdrawAmount && parseFloat(withdrawAmount) > 0;
@@ -335,13 +367,9 @@ const PerpsWithdrawView: React.FC = () => {
     return '0';
   }, [formattedQuoteData.receivingAmount]);
 
-  // Debug network images
+  // Get network image for destination chain
   const destNetworkImage = getNetworkImageSource({
     chainId: destToken.chainId,
-  });
-  console.log('Destination network image:', {
-    chainId: destToken.chainId,
-    networkImage: destNetworkImage,
   });
 
   return (
