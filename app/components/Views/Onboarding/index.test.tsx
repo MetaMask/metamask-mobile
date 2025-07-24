@@ -903,7 +903,7 @@ describe('Onboarding', () => {
       );
 
       const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
       await act(async () => {
         fireEvent.press(importSeedButton);
@@ -953,7 +953,7 @@ describe('Onboarding', () => {
       );
 
       const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
       await act(async () => {
         fireEvent.press(importSeedButton);
