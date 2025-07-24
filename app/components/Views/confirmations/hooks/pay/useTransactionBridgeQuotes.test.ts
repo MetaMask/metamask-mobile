@@ -1,5 +1,4 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
@@ -10,11 +9,12 @@ import { QuoteResponse } from '@metamask/bridge-controller';
 import { act } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
 import * as confirmationReducer from '../../../../../core/redux/slices/confirmationMetrics';
+import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 
 jest.mock('./useTransactionRequiredTokens');
 jest.mock('./useTransactionPayToken');
 jest.mock('./useTransactionPayTokenAmounts');
-jest.mock('./useTransactionMetadataRequest');
+jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../utils/bridge');
 
 const TRANSACTION_ID_MOCK = '1234-5678';
@@ -49,7 +49,7 @@ describe('useTransactionBridgeQuotes', () => {
   );
 
   const useTransactionMetadataRequestMock = jest.mocked(
-    useTransactionMetadataRequest,
+    useTransactionMetadataOrThrow,
   );
 
   beforeEach(() => {
