@@ -1,4 +1,3 @@
-'use strict';
 import { SmokeNetworkExpansion } from '../../../tags';
 import Assertions from '../../../framework/Assertions';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';

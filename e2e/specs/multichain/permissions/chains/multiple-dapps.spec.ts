@@ -35,8 +35,8 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withPermissionControllerConnectedToMultipleTestDapps([{}, {}])
-          .withChainPermission()
+        .withPermissionControllerConnectedToTestDapp({}, true)
+        .withChainPermission()
           .withMultipleDappTabs(2)
           .build(),
         dapps: [

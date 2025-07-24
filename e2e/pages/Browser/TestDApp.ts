@@ -1,8 +1,7 @@
 import enContent from '../../../locales/languages/en.json';
 
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
-import TestHelpers from '../../helpers';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import { getLocalTestDappUrl } from '../../fixtures/utils';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
@@ -335,7 +334,7 @@ class TestDApp {
 
   async tapButton(elementId: WebElement): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);
-    await Gestures.tapWebElement(elementId);
+    await Gestures.tap(elementId);
   }
 
   async navigateToTestDappWithContract({
@@ -345,7 +344,6 @@ class TestDApp {
     await Browser.navigateToURL(
       `${getLocalTestDappUrl()}?scrollTo=''&contract=${contractAddress}`,
     );
-    await TestHelpers.delay(3000); // should have a better assertion that waits until the webpage loads
   }
 
   async switchChainFromTestDapp(): Promise<void> {

@@ -6,6 +6,7 @@ import {
   Caip25CaveatType,
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,
+  getEthAccounts,
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
@@ -15,7 +16,6 @@ import {
   PopularNetworksList,
 } from '../../resources/networks.e2e';
 import { BackupAndSyncSettings } from '../types';
-import { logger } from '../logger';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -795,6 +795,22 @@ class FixtureBuilder {
         isMultichainOrigin: false,
       } as Caip25CaveatValue);
 
+    const incomingEthAccounts = getEthAccounts(caip25CaveatValue);
+    const permittedEthAccounts =
+      incomingEthAccounts.length > 0
+        ? incomingEthAccounts
+        : [DEFAULT_FIXTURE_ACCOUNT];
+
+    // Cast addresses to the required 0x${string} format
+    const typedAddresses = permittedEthAccounts.map(
+      (addr) => addr as `0x${string}`,
+    );
+
+    const basePermissionCaveatValue = setEthAccounts(
+      caip25CaveatValue,
+      typedAddresses,
+    );
+
     const basePermissions = {
       [Caip25EndowmentPermissionName]: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
@@ -803,7 +819,7 @@ class FixtureBuilder {
         caveats: [
           {
             type: Caip25CaveatType,
-            value: setEthAccounts(caip25CaveatValue, [DEFAULT_FIXTURE_ACCOUNT]),
+            value: basePermissionCaveatValue,
           },
         ],
         date: 1664388714636,
@@ -820,46 +836,28 @@ class FixtureBuilder {
     };
   }
 
-  withPermissionControllerConnectedToTestDapp() {
-    return this.withPermissionControllerConnectedToMultipleTestDapps();
-  }
-
   /**
    * Connects the PermissionController to a test dapp with specific accounts permissions and origins.
-   * For the time being, you're only able to connect 2 dapps because one will have the origin as
-   * localhost and the other dapp will have the specific device equivalent localhost.
-   * We could hardcoded the state but then Wallet behavior would be incorrectly checked.
-   * @param {Object[]} additionalPermissions - Additional permissions to merge for each test dapp instance. They should be passed in the correct order
+   * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToMultipleTestDapps(
-    additionalPermissions: Record<string, unknown>[] = [{}],
+  withPermissionControllerConnectedToTestDapp(
+    additionalPermissions = {},
+    connectSecondDapp = false,
   ) {
-    if (additionalPermissions.length > 2) {
-      logger.error(
-        'You can only connect 2 dapps at a time since permissions are given based on the origin.',
-      );
-      throw new Error(
-        'You can only connect 2 dapps at a time since permissions are given based on the origin.',
+    const testDappPermissions = this.createPermissionControllerConfig(
+      additionalPermissions,
+    );
+    let secondDappPermissions = {};
+    if (connectSecondDapp) {
+      secondDappPermissions = this.createPermissionControllerConfig(
+        additionalPermissions,
+        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
       );
     }
-    let allPermissions = {};
-    for (let i = 0; i < additionalPermissions.length; i++) {
-      // This needs to be escalated as permissions are given based on the origin and it's impossible to have distinct
-      // permissions for the same origin.
-      if (i === 0) {
-        additionalPermissions[i].origin = DAPP_URL;
-      } else {
-        additionalPermissions[i].origin =
-          device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
-      }
-      const testDappPermissions = this.createPermissionControllerConfig(
-        additionalPermissions[i],
-        additionalPermissions[i].origin as string,
-      );
-      allPermissions = merge(allPermissions, testDappPermissions);
-    }
-    this.withPermissionController(allPermissions);
+    this.withPermissionController(
+      merge(testDappPermissions, secondDappPermissions),
+    );
 
     // Ensure Solana feature modal is suppressed
     return this.ensureSolanaModalSuppressed();

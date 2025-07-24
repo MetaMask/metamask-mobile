@@ -1,4 +1,3 @@
-'use strict';
 import { SmokeNetworkExpansion } from '../../../tags';
 import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
@@ -7,10 +6,7 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
 } from '../../../fixtures/fixture-builder';
-import {
-  DEFAULT_TEST_DAPP_PATH,
-  withFixtures,
-} from '../../../fixtures/fixture-helper';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import Browser from '../../../pages/Browser/BrowserView';
@@ -28,7 +24,13 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import Matchers from '../../../utils/Matchers';
+import Matchers from '../../../framework/Matchers';
+import { DappVariants } from '../../../framework/Constants';
+import { createLogger } from '../../../framework/logger';
+
+const logger = createLogger({
+  name: 'multiple-provider-connections.spec.ts',
+});
 
 async function requestPermissions({
   accounts,
@@ -37,8 +39,7 @@ async function requestPermissions({
   accounts?: string[];
   params?: unknown[];
 } = {}) {
-  await TestHelpers.delay(7000);
-
+  logger.debug('Starting requestPermissions');
   const nativeWebView = Matchers.getWebViewByID(
     BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
   );
@@ -59,6 +60,7 @@ async function requestPermissions({
   await bodyElement.runScript(
     `(el) => { window.ethereum.request(${requestPermissionsRequest}); }`,
   );
+  logger.debug('Done requestPermissions');
 }
 
 describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
@@ -69,7 +71,12 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   it('should default account selection to already permitted account when "wallet_requestPermissions" is called with no accounts specified', async () => {
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
+        // @ts-expect-error - FixtureBuilder is not typed correctly
         fixture: new FixtureBuilder()
           .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
           .withPermissionControllerConnectedToTestDapp({
@@ -97,13 +104,14 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
         restartDevice: true,
       },
       async () => {
-        await TestHelpers.reverseServerPort();
         await loginToApp();
 
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
+        logger.debug('requesting permissions');
         await requestPermissions();
+        logger.debug('permissions requested');
 
         // Validate that the prompted account is the one that is already permitted
         const promptedAccounts =
@@ -127,7 +135,12 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   it('should default account selection to both accounts when "wallet_requestPermissions" is called with specific account while another is already connected', async () => {
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
+        // @ts-expect-error - FixtureBuilder is not typed correctly
         fixture: new FixtureBuilder()
           .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
           .withPermissionControllerConnectedToTestDapp()
@@ -212,7 +225,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   it('should retain Solana permissions when connecting through the EVM provider', async () => {
     await withSolanaAccountEnabled(
       {
-        dappPath: DEFAULT_TEST_DAPP_PATH,
         solanaAccountPermitted: true,
       },
       async () => {
@@ -262,7 +274,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   it('should default account selection to already permitted Solana account and requested Ethereum account when "wallet_requestPermissions" is called with specific Ethereum account', async () => {
     await withSolanaAccountEnabled(
       {
-        dappPath: DEFAULT_TEST_DAPP_PATH,
         solanaAccountPermitted: true,
       },
       async () => {
@@ -301,7 +312,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
     await withSolanaAccountEnabled(
       {
         solanaAccountPermitted: true,
-        dappPath: DEFAULT_TEST_DAPP_PATH,
       },
       async () => {
         await TabBarComponent.tapBrowser();
