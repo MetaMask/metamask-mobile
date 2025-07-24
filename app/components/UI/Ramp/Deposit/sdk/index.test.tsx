@@ -81,6 +81,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       isKycApproved: jest.fn().mockReturnValue(true),
     }),
     setAccessToken: jest.fn(),
+    getGeolocation: jest.fn().mockResolvedValue({ ipCountryCode: 'US' }),
   })),
 }));
 
@@ -216,7 +217,6 @@ describe('Deposit SDK Context', () => {
         },
       );
 
-      // Manually trigger the onPress event
       const button = getByTestId('sdk-test');
       button.props.onPress();
 
@@ -314,7 +314,7 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.selectedRegion).toEqual(testRegion);
     });
 
-    it('initializes with US region as default when Redux state is null', () => {
+    it('initializes with null region when Redux state is null and geolocation is not called yet', () => {
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
       const TestComponent = () => {
         contextValue = useDepositSDK();
@@ -328,10 +328,7 @@ describe('Deposit SDK Context', () => {
         { state: mockedState },
       );
 
-      const usRegion = DEPOSIT_REGIONS.find(
-        (region) => region.isoCode === 'US',
-      );
-      expect(contextValue?.selectedRegion).toEqual(usRegion);
+      expect(contextValue?.selectedRegion).toBeNull();
     });
 
     it('updates region and dispatches to Redux when setSelectedRegion is called', () => {
