@@ -246,7 +246,7 @@ jobs:
       - name: Download test results
         uses: actions/download-artifact@v4
         with:
-          path: .
+          path: e2e/reports
           pattern: smoke-*
           merge-multiple: true
 
