@@ -5,6 +5,8 @@ import {
   SafeAreaView,
   Animated,
   TextInput,
+  ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
@@ -126,8 +128,10 @@ const PerpsMarketListView = ({
   };
 
   const handleRefresh = () => {
-    if (!isRefreshingMarkets && activeTab === 'markets') {
+    if (activeTab === 'markets' && !isRefreshingMarkets) {
       refreshMarkets();
+    } else if (activeTab === 'positions' && !isRefreshingPositions) {
+      loadPositions();
     }
   };
 
@@ -219,7 +223,11 @@ const PerpsMarketListView = ({
             keyExtractor={(item: PerpsMarketData) => item.symbol}
             contentContainerStyle={styles.flashListContent}
             estimatedItemSize={80}
-            refreshing={isRefreshingMarkets}
+            refreshing={
+              activeTab === 'markets'
+                ? isRefreshingMarkets
+                : isRefreshingPositions
+            }
             onRefresh={handleRefresh}
           />
         </Animated.View>
@@ -262,7 +270,15 @@ const PerpsMarketListView = ({
 
     // Positions list
     return (
-      <View style={styles.animatedListContainer}>
+      <ScrollView
+        style={styles.animatedListContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshingPositions}
+            onRefresh={handleRefresh}
+          />
+        }
+      >
         {positions.map((position, index) => (
           <PerpsPositionCard
             key={`${position.coin}-${index}`}
@@ -271,7 +287,7 @@ const PerpsMarketListView = ({
             showIcon
           />
         ))}
-      </View>
+      </ScrollView>
     );
   };
 

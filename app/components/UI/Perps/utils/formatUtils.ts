@@ -19,11 +19,18 @@ export const formatPerpsFiat = (
     return minDecimals === 0 ? '$0' : '$0.00';
   }
 
-  return formatWithThreshold(num, 0.0001, 'en-US', {
+  // For currency formatting, use appropriate decimal places:
+  // - minDecimals = 0: use 0 decimals
+  // - minDecimals = 1: use 2 decimals (currency standard)
+  // - minDecimals >= 2: use minDecimals
+  const effectiveMinDecimals = minDecimals === 0 ? 0 : Math.max(minDecimals, 2);
+  const effectiveMaxDecimals = minDecimals === 0 ? 0 : Math.max(minDecimals, 6); // Allow more precision
+
+  return formatWithThreshold(num, 0.01, 'en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: effectiveMinDecimals,
+    maximumFractionDigits: effectiveMaxDecimals,
   });
 };
 
