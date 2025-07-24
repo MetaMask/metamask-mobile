@@ -44,6 +44,8 @@ const Routes = {
       STATE_SELECTOR: 'DepositStateSelectorModal',
       WEBVIEW: 'DepositWebviewModal',
       KYC_WEBVIEW: 'DepositKycWebviewModal',
+      INCOMPATIBLE_ACCOUNT_TOKEN: 'IncompatibleAccountTokenModal',
+      CONFIGURATION: 'DepositConfigurationModal',
     },
   },
   HW: {
@@ -205,7 +207,6 @@ const Routes = {
     ROOT: 'Perps',
     TRADING_VIEW: 'PerpsTradingView',
     ORDER: 'PerpsOrder',
-    ORDER_SUCCESS: 'PerpsOrderSuccess',
     DEPOSIT: 'PerpsDeposit',
     DEPOSIT_PREVIEW: 'PerpsDepositPreview',
     DEPOSIT_PROCESSING: 'PerpsDepositProcessing',
@@ -216,7 +217,6 @@ const Routes = {
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
-      SLIPPAGE_MODAL: 'PerpsSlippageModal',
     },
     ORDER_HISTORY: 'PerpsOrderHistory',
     ORDER_DETAILS: 'PerpsOrderDetails',
@@ -288,7 +288,8 @@ const Routes = {
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
   SEND: {
-    ROOT: 'Send',
+    DEFAULT: 'Send',
+    ROOT: 'Root',
   },
 };
 
