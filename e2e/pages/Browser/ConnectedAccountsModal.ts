@@ -3,12 +3,18 @@ import {
   ConnectedAccountsSelectorsIDs,
 } from '../../selectors/Browser/ConnectedAccountModal.selectors';
 import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
 import TestHelpers from '../../helpers';
-import type { IndexableNativeElement, NativeElement, IndexableSystemElement } from 'detox/detox';
-type DetoxElement = Promise<IndexableNativeElement | NativeElement | IndexableSystemElement>;
-
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { waitFor } from 'detox';
+import type {
+  IndexableNativeElement,
+  NativeElement,
+  IndexableSystemElement,
+} from 'detox/detox';
+type DetoxElement = Promise<
+  IndexableNativeElement | NativeElement | IndexableSystemElement
+>;
 
 class ConnectedAccountsModal {
   get container(): DetoxElement {
@@ -160,7 +166,7 @@ class ConnectedAccountsModal {
   }
 
   async scrollToBottomOfModal(): Promise<void> {
-    await Gestures.swipe(this.title as Promise<IndexableNativeElement>, 'down', 'fast');
+    await Gestures.swipe(this.title as Promise<IndexableNativeElement>, 'down', { speed: 'fast' });
   }
 
   async tapConnectMoreAccountsButton(): Promise<void> {
@@ -173,6 +179,32 @@ class ConnectedAccountsModal {
     // Type assertion to access label property which exists on Detox elements
     const attributes = await (elem as IndexableNativeElement).getAttributes();
     return (attributes as { label: string }).label;
+  }
+
+  async getDisplayedAccountNames(): Promise<string[]> {
+    const possibleAccountNames = [
+      'Account 1',
+      'Account 2',
+      'Account 3',
+      'Account 4',
+      'Account 5',
+      'Solana Account 1',
+      'Solana Account 2',
+      'Solana Account 3',
+    ];
+    const displayedAccounts: string[] = [];
+
+    for (const accountName of possibleAccountNames) {
+      try {
+        const textElement = await Matchers.getElementByText(accountName);
+        await waitFor(textElement).toBeVisible().withTimeout(1000);
+        displayedAccounts.push(accountName);
+      } catch (e) {
+        // Account not displayed, continue
+      }
+    }
+
+    return displayedAccounts;
   }
 }
 
