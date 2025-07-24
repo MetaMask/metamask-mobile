@@ -1,11 +1,7 @@
 /* eslint-disable no-undef */
 import { device } from 'detox';
 import { encryptVault } from './fixture-helper';
-import {
-  getGanachePort,
-  getSecondTestDappLocalUrl,
-  TEST_DAPP_LOCAL_URL,
-} from './utils';
+import { getGanachePort, getSecondTestDappLocalUrl } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -24,6 +20,7 @@ import {
   POWER_USER_STATE,
   CASUAL_USER_STATE,
 } from './constants';
+import { TEST_DAPP_LOCAL_URL } from '../framework/fixtures/FixtureUtils';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
