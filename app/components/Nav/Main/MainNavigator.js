@@ -558,9 +558,7 @@ const HomeTabs = () => {
       tabBarIconKey: TabBarIconKey.Activity,
       callback: () => {
         trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-          ).build(),
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
         );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,

@@ -60,7 +60,7 @@ const RewardsView: React.FC = () => {
         setHasSeenTerms(null);
       }
     };
-    
+
     fetchHasSeenTerms();
   }, [address]);
 
