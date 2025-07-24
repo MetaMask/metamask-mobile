@@ -29,7 +29,7 @@ import {
   fiatOrdersRegionSelectorDeposit,
   setFiatOrdersRegionDeposit,
 } from '../../../../../reducers/fiatOrders';
-import { DepositRegion, DEPOSIT_REGIONS } from '../constants';
+import { DepositRegion, DEPOSIT_REGIONS, DEFAULT_REGION } from '../constants';
 import Logger from '../../../../../util/Logger';
 
 export interface DepositSDK {
@@ -88,11 +88,8 @@ export const DepositSDKProvider = ({
   );
   const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
 
-  const defaultRegion =
-    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null;
-
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    INITIAL_SELECTED_REGION || defaultRegion,
+    INITIAL_SELECTED_REGION,
   );
 
   const setGetStartedCallback = useCallback(
@@ -113,32 +110,25 @@ export const DepositSDKProvider = ({
 
   useEffect(() => {
     async function setRegionByGeolocation() {
-      if (INITIAL_SELECTED_REGION === null) {
+      if (selectedRegion === null) {
         try {
           const geo = await DepositSDKNoAuth.getGeolocation();
           const region = DEPOSIT_REGIONS.find(
-            (r) => r.isoCode === geo?.ipCountryCode && r.supported,
+            (r) => r.isoCode === geo?.ipCountryCode,
           );
           if (region) {
             setSelectedRegionCallback(region);
-          } else if (defaultRegion) {
-            setSelectedRegionCallback(defaultRegion);
+          } else {
+            setSelectedRegionCallback(DEFAULT_REGION);
           }
         } catch (error) {
           Logger.error(error as Error, 'Error setting region by geolocation:');
-          if (defaultRegion) {
-            setSelectedRegionCallback(defaultRegion);
-          }
+          setSelectedRegionCallback(DEFAULT_REGION);
         }
       }
     }
     setRegionByGeolocation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    setSelectedRegion(INITIAL_SELECTED_REGION || defaultRegion);
-  }, [INITIAL_SELECTED_REGION, defaultRegion]);
+  }, [selectedRegion, setSelectedRegionCallback]);
 
   useEffect(() => {
     try {
