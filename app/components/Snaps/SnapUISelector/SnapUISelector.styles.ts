@@ -1,8 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
-import { ViewStyle } from 'react-native';
 
 /**
  *
