@@ -29,7 +29,7 @@ function runHook() {
     simpleSendTransactionControllerMock,
     transactionApprovalControllerMock,
     tokensControllerMock,
-    accountsControllerMock
+    accountsControllerMock,
   );
 
   return renderHookWithProvider(useTransactionRequiredFiat, { state }).result
