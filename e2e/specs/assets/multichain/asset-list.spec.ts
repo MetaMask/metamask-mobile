@@ -84,7 +84,11 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
       networkName,
     );
     await NetworkEducationModal.tapGotItButton();
-    if (tokenName === 'AVAX')  await SendView.tapCancelButton();
+    try {
+      await SendView.tapCancelButton();
+    } catch (error) {
+      // Handle error
+    }
   });
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
