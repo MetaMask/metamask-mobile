@@ -11,6 +11,7 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Browser]: IconName.Explore,
   [TabBarIconKey.Actions]: IconName.SwapVertical,
   [TabBarIconKey.Activity]: IconName.Activity,
+  [TabBarIconKey.Rewards]: IconName.Star,
   [TabBarIconKey.Setting]: IconName.Setting,
 };
 

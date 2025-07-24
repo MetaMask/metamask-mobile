@@ -100,7 +100,7 @@ export interface JsonMap {
 export const isTrackingEvent = (
   event: IMetaMetricsEvent | ITrackingEvent,
 ): event is ITrackingEvent =>
-  (event as ITrackingEvent).saveDataRecording !== undefined;
+  event != null && (event as ITrackingEvent).saveDataRecording !== undefined;
 
 /*
  * new event properties structure with two distinct properties lists

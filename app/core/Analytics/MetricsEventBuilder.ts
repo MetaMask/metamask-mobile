@@ -15,6 +15,9 @@ class TrackingEvent implements ITrackingEvent {
   saveDataRecording: boolean;
 
   constructor(event: IMetaMetricsEvent) {
+    if (!event) {
+      throw new Error('MetaMetrics event cannot be null or undefined');
+    }
     this.name = event.category;
     this.properties = event.properties || {};
     this.sensitiveProperties = {};
@@ -55,6 +58,10 @@ class MetricsEventBuilder {
   readonly #trackingEvent: ITrackingEvent;
 
   protected constructor(event: IMetaMetricsEvent | ITrackingEvent) {
+    if (!event) {
+      throw new Error('MetricsEventBuilder constructor: event parameter is null or undefined');
+    }
+    
     if (isTrackingEvent(event)) {
       // Be careful that in case the event is already a ITrackingEvent
       // we don't want to create a new one so this passes the reference.
@@ -73,6 +80,9 @@ class MetricsEventBuilder {
    * @param event the event for the builder to build
    */
   static createEventBuilder(event: IMetaMetricsEvent | ITrackingEvent) {
+    if (!event) {
+      throw new Error('Cannot create MetricsEventBuilder: event parameter is null or undefined');
+    }
     return new MetricsEventBuilder(event);
   }
 
