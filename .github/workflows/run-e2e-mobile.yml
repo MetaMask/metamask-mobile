@@ -27,7 +27,7 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'large-mm-test' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'xlarge-mm-test' }}
     #runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
 
     env:
