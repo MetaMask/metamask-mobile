@@ -14,8 +14,17 @@ import {
 } from './shared/utils';
 import type { Endpoints } from '@octokit/types';
 
-type Job =
-  Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs']['response']['data']['jobs'][number];
+// Extended Job type to handle additional status values from GitHub API
+type Job = {
+  id: number;
+  name: string;
+  status: string; // More flexible than the strict enum from octokit types
+  conclusion: string | null;
+  started_at: string;
+  completed_at: string | null;
+  run_id: number;
+  html_url: string | null;
+};
 
 async function main() {
   const { Octokit } = await import('octokit');
@@ -168,20 +177,22 @@ async function main() {
           testSuites: [testSuite],
         };
 
-        const testRun: TestRun = {
-          // Clean up mobile job names (remove smoke- prefix and platform suffixes)
-          name: testSuite.job.name
-            .replace(/^smoke-/, '')
-            .replace(/-ios$/, '')
-            .replace(/-android$/, '')
-            .replace(/\s+\(\d+\)$/, ''), // Remove shard numbers if any
-        };
-
+        // Clean up mobile job names (remove smoke- prefix and platform suffixes)
+        let cleanName = testSuite.job.name
+          .replace(/^smoke-/, '')
+          .replace(/-ios$/, '')
+          .replace(/-android$/, '')
+          .replace(/\s+\(\d+\)$/, ''); // Remove shard numbers if any
+        
         // Add platform info to the test run name
         const platform = testSuite.job.name.includes('-ios') ? 'iOS' : 
                         testSuite.job.name.includes('-android') ? 'Android' : 'Unknown';
-        testRun.name = `${testRun.name} (${platform})`;
-        testRun.testFiles = [testFile];
+        cleanName = `${cleanName} (${platform})`;
+
+        const testRun: TestRun = {
+          name: cleanName,
+          testFiles: [testFile],
+        };
 
         const existingRun = testRuns.find((run) => run.name === testRun.name);
         if (existingRun) {
