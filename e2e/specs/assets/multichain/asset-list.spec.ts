@@ -42,44 +42,22 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     // Wait for network filter to apply and layout to stabilize - longer delay for Android
-    const platformDelay = device.getPlatform() === 'android' ? 4000 : 2000;
+    const platformDelay = device.getPlatform() === 'android' ? 6000 : 2000;
     await TestHelpers.delay(platformDelay);
 
     const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
     await Assertions.expectElementToBeVisible(eth);
 
-    // AVAX may need scrolling to become visible due to AssetDetailsActions component
-    try {
-      const avax = WalletView.tokenInWallet(AVAX_NAME);
-      await Assertions.expectElementToBeVisible(avax);
-    } catch (e) {
-      // If AVAX is not immediately visible, scroll to it
-      await WalletView.scrollToToken(AVAX_NAME);
-      await TestHelpers.delay(2000);
-      const avax = WalletView.tokenInWallet(AVAX_NAME);
-      await Assertions.expectElementToBeVisible(avax);
+    // Use new gradual scrolling method for AVAX with extra Android delays
+    await WalletView.ensureTokenIsFullyVisible(AVAX_NAME);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.delay(2000); // Extra settling time for Android
     }
 
-    // BNB is likely at the bottom and needs aggressive scrolling
-    try {
-      const bnb = WalletView.tokenInWallet(BNB_NAME);
-      await Assertions.expectElementToBeVisible(bnb);
-    } catch (e) {
-      // Use aggressive scrolling for BNB since it's at the bottom
-      if (device.getPlatform() === 'android') {
-        // Android needs more aggressive scrolling
-        await WalletView.scrollToBottomOfTokensListAndroid();
-        await TestHelpers.delay(3000);
-        // Try scroll back slightly if still not visible
-        await WalletView.scrollUpOnTokensTabSlightly();
-        await TestHelpers.delay(2000);
-      } else {
-        // iOS scrolling
-        await WalletView.scrollToToken(BNB_NAME);
-        await TestHelpers.delay(1500);
-      }
-      const bnb = WalletView.tokenInWallet(BNB_NAME);
-      await Assertions.expectElementToBeVisible(bnb);
+    // Use new gradual scrolling method for BNB with extra Android delays
+    await WalletView.ensureTokenIsFullyVisible(BNB_NAME);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.delay(2000); // Extra settling time for Android
     }
   });
 
@@ -104,37 +82,11 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     // Wait for network filter to apply and layout to stabilize - longer for Android
-    const platformDelay = device.getPlatform() === 'android' ? 4000 : 2000;
+    const platformDelay = device.getPlatform() === 'android' ? 6000 : 2000;
     await TestHelpers.delay(platformDelay);
 
-    // Scroll to top first to ensure consistent starting position
-    await WalletView.scrollDownOnTokensTab();
-    await TestHelpers.delay(1000);
-
-    // Use platform-specific scrolling for AVAX
-    if (device.getPlatform() === 'android') {
-      // Android - try scrollToToken first, then more aggressive if needed
-      try {
-        await WalletView.scrollToToken('AVAX');
-        await TestHelpers.delay(2000);
-      } catch (e) {
-        await WalletView.scrollToBottomOfTokensListAndroid();
-        await TestHelpers.delay(3000);
-        // Additional scroll adjustment for Android
-        await WalletView.scrollUpOnTokensTabSlightly();
-        await TestHelpers.delay(2000);
-      }
-    } else {
-      // iOS logic - first try scrollToToken, then aggressive scrolling
-      try {
-        await WalletView.scrollToToken('AVAX');
-        await TestHelpers.delay(1500);
-      } catch (e) {
-        // If scrollToToken fails, use aggressive scrolling approach
-        await WalletView.scrollToBottomOfTokensList();
-        await TestHelpers.delay(2000);
-      }
-    }
+    // Use stability method to ensure AVAX is ready for interaction
+    await WalletView.waitForTokenToBeStableAndVisible('AVAX');
 
     const avax = WalletView.tokenInWallet('AVAX');
     await Assertions.expectElementToBeVisible(avax);
@@ -164,50 +116,11 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     // Wait for network filter to apply and layout to stabilize - longer for Android
-    const platformDelay = device.getPlatform() === 'android' ? 4000 : 2000;
+    const platformDelay = device.getPlatform() === 'android' ? 6000 : 2000;
     await TestHelpers.delay(platformDelay);
 
-    // Scroll to top first to ensure consistent starting position
-    await WalletView.scrollDownOnTokensTab();
-    await TestHelpers.delay(1000);
-
-    // BNB is at the very bottom - use platform-specific aggressive scrolling
-    if (device.getPlatform() === 'android') {
-      // Android needs extra aggressive scrolling and longer delays
-      await WalletView.scrollToBottomOfTokensListAndroid();
-      await TestHelpers.delay(4000); // Longer delay for Android animation
-
-      // Try multiple scroll adjustments for Android visibility
-      for (let i = 0; i < 3; i++) {
-        try {
-          const bnb = WalletView.tokenInWallet('BNB');
-          await Assertions.expectElementToBeVisible(bnb);
-          break; // If visible, break out of loop
-        } catch (e) {
-          // Try slight scroll adjustments
-          if (i === 0) {
-            await WalletView.scrollUpOnTokensTabSlightly();
-          } else if (i === 1) {
-            await WalletView.scrollDownOnTokensTabAggressive();
-          }
-          await TestHelpers.delay(2000);
-        }
-      }
-    } else {
-      // iOS scrolling logic
-      await WalletView.scrollToBottomOfTokensList();
-      await TestHelpers.delay(3000);
-
-      // Check if BNB is visible, if not, try scrolling back up slightly to make it fully visible
-      try {
-        const bnb = WalletView.tokenInWallet('BNB');
-        await Assertions.expectElementToBeVisible(bnb);
-      } catch (e) {
-        // If BNB is still not visible, scroll back up slightly to unclip it
-        await WalletView.scrollUpOnTokensTabSlightly();
-        await TestHelpers.delay(1500);
-      }
-    }
+    // Use stability method to ensure BNB is ready for interaction
+    await WalletView.waitForTokenToBeStableAndVisible('BNB');
 
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.expectElementToBeVisible(bnb);

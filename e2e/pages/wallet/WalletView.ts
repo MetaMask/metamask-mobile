@@ -246,6 +246,198 @@ class WalletView {
     }
   }
 
+  async scrollToTokenWithRetry(
+    tokenName: string,
+    maxAttempts: number = 8,
+  ): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        // Check if token is already visible
+        const token = this.tokenInWallet(tokenName);
+        await Assertions.expectElementToBeVisible(token);
+        return; // Token is visible, exit
+      } catch (e) {
+        // Token not visible, continue scrolling
+        await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
+          speed: 'slow',
+          percentage: 0.5, // Moderate scrolling to avoid overshooting
+        });
+        await TestHelpers.delay(800); // Wait for scroll to settle
+      }
+    }
+
+    // Final attempt - try to center the token
+    try {
+      await Gestures.scrollToElement(
+        this.tokenInWallet(tokenName) as unknown as DetoxElement,
+        Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+        {
+          direction: 'down',
+        },
+      );
+      await TestHelpers.delay(1500);
+    } catch (e) {
+      // If still not found, throw error
+      throw new Error(
+        `Could not find and make visible token: ${tokenName} after ${maxAttempts} attempts`,
+      );
+    }
+  }
+
+  async ensureTokenIsFullyVisible(tokenName: string): Promise<void> {
+    // Platform-specific approach
+    if (device.getPlatform() === 'android') {
+      await this.ensureTokenIsFullyVisibleAndroid(tokenName);
+    } else {
+      await this.ensureTokenIsFullyVisibleIOS(tokenName);
+    }
+  }
+
+  async ensureTokenIsFullyVisibleAndroid(tokenName: string): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+
+    // First, scroll to top to start from a known position
+    for (let i = 0; i < 5; i++) {
+      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
+        speed: 'fast',
+        percentage: 0.9,
+      });
+      await TestHelpers.delay(300);
+    }
+    await TestHelpers.delay(2000); // Let everything settle
+
+    // Now use aggressive scrolling with longer timeouts for Android
+    for (let attempt = 0; attempt < 15; attempt++) {
+      try {
+        const token = this.tokenInWallet(tokenName);
+        await Assertions.expectElementToBeVisible(token);
+
+        // Extra validation - try to tap to ensure it's really visible
+        await TestHelpers.delay(500);
+        return; // Token is visible, exit
+      } catch (e) {
+        // More aggressive scrolling for Android
+        await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
+          speed: 'slow',
+          percentage: 0.4, // Smaller increments to avoid overshooting
+        });
+        await TestHelpers.delay(1200); // Longer delays for Android
+      }
+    }
+
+    // Final desperate attempt - try to use scrollToElement
+    try {
+      await Gestures.scrollToElement(
+        this.tokenInWallet(tokenName) as unknown as DetoxElement,
+        Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+        {
+          direction: 'down',
+        },
+      );
+      await TestHelpers.delay(3000); // Extra long delay for Android
+
+      // Now try multiple micro-adjustments to get 75%+ visibility
+      for (let i = 0; i < 5; i++) {
+        try {
+          const token = this.tokenInWallet(tokenName);
+          await Assertions.expectElementToBeVisible(token);
+          return;
+        } catch (e) {
+          if (i < 2) {
+            // Try scrolling up slightly
+            await Gestures.swipe(
+              tokensContainer as unknown as DetoxElement,
+              'down',
+              {
+                speed: 'slow',
+                percentage: 0.05,
+              },
+            );
+          } else {
+            // Try scrolling down slightly
+            await Gestures.swipe(
+              tokensContainer as unknown as DetoxElement,
+              'up',
+              {
+                speed: 'slow',
+                percentage: 0.05,
+              },
+            );
+          }
+          await TestHelpers.delay(1500);
+        }
+      }
+    } catch (e) {
+      throw new Error(
+        `Android: Could not make token ${tokenName} sufficiently visible after all attempts`,
+      );
+    }
+  }
+
+  async ensureTokenIsFullyVisibleIOS(tokenName: string): Promise<void> {
+    // First try to make token visible with gradual scrolling
+    await this.scrollToTokenWithRetry(tokenName);
+
+    // Then try to center it better by making small adjustments
+    const tokensContainer = await this.getTokensInWallet();
+
+    for (let i = 0; i < 3; i++) {
+      try {
+        const token = this.tokenInWallet(tokenName);
+        await Assertions.expectElementToBeVisible(token);
+        return; // Token is properly visible
+      } catch (e) {
+        // Try small adjustments
+        if (i === 0) {
+          // Small scroll up to unclip from bottom
+          await Gestures.swipe(
+            tokensContainer as unknown as DetoxElement,
+            'down',
+            {
+              speed: 'slow',
+              percentage: 0.1,
+            },
+          );
+        } else if (i === 1) {
+          // Small scroll down to unclip from top
+          await Gestures.swipe(
+            tokensContainer as unknown as DetoxElement,
+            'up',
+            {
+              speed: 'slow',
+              percentage: 0.1,
+            },
+          );
+        }
+        await TestHelpers.delay(1000);
+      }
+    }
+  }
+
+  async waitForTokenToBeStableAndVisible(tokenName: string): Promise<void> {
+    // Ensure token is visible first
+    await this.ensureTokenIsFullyVisible(tokenName);
+
+    // Then wait for it to be stable (especially important for Android)
+    const stabilityChecks = device.getPlatform() === 'android' ? 5 : 3;
+
+    for (let i = 0; i < stabilityChecks; i++) {
+      try {
+        const token = this.tokenInWallet(tokenName);
+        await Assertions.expectElementToBeVisible(token);
+        await TestHelpers.delay(device.getPlatform() === 'android' ? 800 : 400);
+      } catch (e) {
+        // If it becomes invisible again, re-ensure visibility
+        await this.ensureTokenIsFullyVisible(tokenName);
+        await TestHelpers.delay(
+          device.getPlatform() === 'android' ? 1500 : 1000,
+        );
+      }
+    }
+  }
+
   async scrollToToken(
     tokenName: string,
     direction: 'up' | 'down' = 'down',
