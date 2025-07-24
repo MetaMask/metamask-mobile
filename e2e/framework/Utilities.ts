@@ -314,10 +314,10 @@ export default class Utilities {
     timeout: number = 2000,
   ): Promise<void> {
     const el = (await detoxElement) as Detox.IndexableNativeElement;
-    const isWebElement = this.isWebElement(el); 
+    const isWebElement = this.isWebElement(el);
     if (isWebElement) {
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      await (expect(el) as any).toNotExist();
+      await (expect(el) as any).not.toExist();
     } else if (device.getPlatform() === 'ios') {
       await waitFor(el).not.toExist().withTimeout(timeout);
     } else {
