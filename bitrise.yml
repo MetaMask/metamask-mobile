@@ -2460,6 +2460,14 @@ workflows:
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
                 fi
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: |-
+                ios/build/Build/Products/{{ getenv "BUILD_TYPE" }}-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
+                ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
+          title: Share Detox files between pipelines
       - script@1:
           title: Rename iOS artifact files
           inputs:
@@ -2502,14 +2510,6 @@ workflows:
                 # Export new names as environment variables
                 envman add --key RENAMED_ARCHIVE_FILE --value "$NEW_BASE_NAME.xcarchive"
                 envman add --key BINARY_DEPLOY_PATH --value "$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: |-
-                ios/build/Build/Products/{{ getenv "BUILD_TYPE" }}-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
-                ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
-          title: Share Detox files between pipelines
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
