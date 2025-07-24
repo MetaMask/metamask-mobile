@@ -1,6 +1,6 @@
 'use strict';
-import { loginToApp } from '../../viewHelper.js';
-import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
+import { loginToApp } from '../../viewHelper';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import {
   loadFixture,
   startFixtureServer,
@@ -9,22 +9,25 @@ import {
 import QuoteView from '../../pages/Bridge/QuoteView.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import FixtureServer from '../../fixtures/fixture-server.js';
-import WalletView from '../../pages/wallet/WalletView.js';
+import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers.js';
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../utils/Assertions.js';
 import Ganache from '../../../app/util/test/ganache.js';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView.js';
-import SettingsView from '../../pages/Settings/SettingsView.js';
+import SettingsView from '../../pages/Settings/SettingsView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
-import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent.js';
+import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js';
-import NetworkListModal from '../../pages/Network/NetworkListModal.js';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../fixtures/utils.js';
 import { startMockServer } from '../bridge/bridge-mocks.js';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { localNodeOptions, testSpecificMock } from '../bridge/constants.js';
@@ -334,7 +337,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
           },
         );
       }, 'Unified SwapBridge Completed: Should have the correct properties');
-
 
     await Promise.all([
       checkEventCount,

@@ -481,7 +481,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#9ca1af",
+                                      "color": "#b7bbc8",
                                       "fontFamily": "Geist Bold",
                                       "fontSize": 32,
                                       "letterSpacing": 0,
@@ -607,7 +607,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       onPress={[Function]}
                                     >
                                       <SvgMock
-                                        color="#9ca1af"
+                                        color="#b7bbc8"
                                         fill="currentColor"
                                         height={16}
                                         name="Question"
@@ -632,7 +632,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#1c7e33",
+                                          "color": "#457a39",
                                           "fontFamily": "Geist Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -2180,7 +2180,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#9ca1af",
+                                      "color": "#b7bbc8",
                                       "fontFamily": "Geist Bold",
                                       "fontSize": 32,
                                       "letterSpacing": 0,
@@ -2306,7 +2306,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       onPress={[Function]}
                                     >
                                       <SvgMock
-                                        color="#9ca1af"
+                                        color="#b7bbc8"
                                         fill="currentColor"
                                         height={16}
                                         name="Question"
@@ -2331,7 +2331,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#1c7e33",
+                                          "color": "#457a39",
                                           "fontFamily": "Geist Medium",
                                           "fontSize": 16,
                                           "letterSpacing": 0,

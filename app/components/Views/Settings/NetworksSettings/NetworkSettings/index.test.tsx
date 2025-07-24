@@ -1915,3 +1915,50 @@ describe('NetworkSettings', () => {
     });
   });
 });
+
+describe('NetworkSettings - showNetworkModal', () => {
+  it('should not crash', () => {
+    const networkConfiguration = {
+      blockExplorerUrls: ['https://etherscan.io'],
+      defaultBlockExplorerUrlIndex: 0,
+      defaultRpcEndpointIndex: 0,
+      chainId: '0x1',
+      rpcEndpoints: [
+        {
+          networkClientId: 'mainnet',
+          type: 'Infura',
+          url: 'https://mainnet.infura.io/v3/',
+        },
+      ],
+      name: 'Ethereum Main Network',
+      nativeCurrency: 'ETH',
+    };
+    const props = {
+      route: {
+        params: {
+          network: 'mainnet',
+        },
+      },
+      navigation: {
+        setOptions: jest.fn(),
+        navigate: jest.fn(),
+        goBack: jest.fn(),
+      },
+      networkConfigurations: {
+        '0x1': networkConfiguration,
+      },
+    };
+
+    const wrapper = shallow(
+      <Provider store={store}>
+        <NetworkSettings {...props} />
+      </Provider>,
+    )
+      .find(NetworkSettings)
+      .dive();
+
+    const instance = wrapper.instance() as NetworkSettings;
+
+    expect(() => instance.showNetworkModal(networkConfiguration)).not.toThrow();
+  });
+});

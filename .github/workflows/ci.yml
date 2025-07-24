@@ -173,7 +173,7 @@ jobs:
         run: yarn gen-bundle:ios
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 41
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 45
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4

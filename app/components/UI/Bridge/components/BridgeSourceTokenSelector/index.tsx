@@ -27,7 +27,10 @@ import {
   BridgeSourceNetworksBar,
   MAX_NETWORK_ICONS,
 } from '../BridgeSourceNetworksBar';
-import { BridgeTokenSelectorBase, SkeletonItem } from '../BridgeTokenSelectorBase';
+import {
+  BridgeTokenSelectorBase,
+  SkeletonItem,
+} from '../BridgeTokenSelectorBase';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
@@ -66,12 +69,16 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   });
 
   let balanceChainIds;
-  const isBridgeOrUnified = bridgeViewMode === BridgeViewMode.Bridge || bridgeViewMode === BridgeViewMode.Unified;
+  const isBridgeOrUnified =
+    bridgeViewMode === BridgeViewMode.Bridge ||
+    bridgeViewMode === BridgeViewMode.Unified;
   if (isBridgeOrUnified) {
     balanceChainIds = selectedSourceChainIds;
   } else {
     // Really only for Solana Swap
-    balanceChainIds = selectedSourceToken?.chainId ? [selectedSourceToken?.chainId] : undefined;
+    balanceChainIds = selectedSourceToken?.chainId
+      ? [selectedSourceToken?.chainId]
+      : undefined;
   }
 
   const { tokens: tokensList, pending } = useTokens({

@@ -6,6 +6,8 @@ import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
+const mockTrackEvent = jest.fn();
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
@@ -42,23 +44,20 @@ const mockUseDepositSdkMethodInitialState = {
 };
 
 let mockKycFunction = jest.fn().mockResolvedValue(undefined);
-let mockPurposeFunction = jest.fn().mockResolvedValue(undefined);
+
 let mockSsnFunction = jest.fn().mockResolvedValue(undefined);
 let mockKycValues = [mockUseDepositSdkMethodInitialState, mockKycFunction];
-let mockPurposeValues = [
-  mockUseDepositSdkMethodInitialState,
-  mockPurposeFunction,
-];
+
 let mockSsnValues = [
   { ...mockUseDepositSdkMethodInitialState },
   mockSsnFunction,
 ];
 
-const mockNavigateToKycWebview = jest.fn();
+const mockRouteAfterAuthentication = jest.fn();
 
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
-    navigateToKycWebview: mockNavigateToKycWebview,
+    routeAfterAuthentication: mockRouteAfterAuthentication,
   })),
 }));
 
@@ -66,9 +65,6 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
     if (config?.method === 'patchUser') {
       return mockKycValues;
-    }
-    if (config?.method === 'submitPurposeOfUsageForm') {
-      return mockPurposeValues;
     }
     if (config?.method === 'submitSsnDetails') {
       return mockSsnValues;
@@ -100,6 +96,8 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParamsReturnValue,
 }));
+
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_ADDRESS);
@@ -144,21 +142,17 @@ describe('EnterAddress Component', () => {
       selectedRegion: { isoCode: 'US', name: 'United States', flag: '🇺🇸' },
     };
     mockKycFunction = jest.fn().mockResolvedValue(undefined);
-    mockPurposeFunction = jest.fn().mockResolvedValue(undefined);
     mockSsnFunction = jest.fn().mockResolvedValue(undefined);
     mockKycValues = [
       { ...mockUseDepositSdkMethodInitialState },
       mockKycFunction,
     ];
-    mockPurposeValues = [
-      { ...mockUseDepositSdkMethodInitialState },
-      mockPurposeFunction,
-    ];
     mockSsnValues = [
       { ...mockUseDepositSdkMethodInitialState },
       mockSsnFunction,
     ];
-    mockNavigateToKycWebview.mockClear();
+    mockRouteAfterAuthentication.mockClear();
+    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -170,10 +164,7 @@ describe('EnterAddress Component', () => {
     render(EnterAddress);
     fireEvent.press(screen.getByTestId('address-continue-button'));
     expect(screen.toJSON()).toMatchSnapshot();
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.DEPOSIT.KYC_PROCESSING,
-      expect.any(Object),
-    );
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
   it('submits form data and navigates to next page when form is valid and continue is pressed', async () => {
@@ -182,13 +173,11 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit();
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.KYC_PROCESSING, {
-        quote: mockQuote,
-      });
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
 
-  it('navigates to KYC webview when kycUrl is provided', async () => {
+  it('submits form data and calls routeAfterAuthentication when kycUrl is provided', async () => {
     const kycUrl = 'https://example.com/kyc';
 
     mockUseParamsReturnValue = {
@@ -210,14 +199,7 @@ describe('EnterAddress Component', () => {
     });
 
     await waitFor(() => {
-      expect(mockPurposeFunction).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(mockNavigateToKycWebview).toHaveBeenCalledWith({
-        quote: mockQuote,
-        kycUrl,
-      });
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
 
@@ -231,10 +213,7 @@ describe('EnterAddress Component', () => {
     expect(mockKycFunction).toHaveBeenCalled();
 
     await waitFor(() => {
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.DEPOSIT.KYC_PROCESSING,
-        expect.any(Object),
-      );
+      expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
     });
   });
 
@@ -242,7 +221,7 @@ describe('EnterAddress Component', () => {
     render(EnterAddress);
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Enter your address',
+        title: 'Verify your identity',
       }),
     );
   });
@@ -252,9 +231,7 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit();
     await waitFor(() => {
       expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.KYC_PROCESSING, {
-        quote: mockQuote,
-      });
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
 
@@ -277,9 +254,7 @@ describe('EnterAddress Component', () => {
 
     await waitFor(() => {
       expect(mockSsnFunction).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.KYC_PROCESSING, {
-        quote: mockQuote,
-      });
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
 
@@ -292,10 +267,7 @@ describe('EnterAddress Component', () => {
 
     await waitFor(() => {
       expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.DEPOSIT.KYC_PROCESSING,
-        expect.any(Object),
-      );
+      expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
     });
   });
 
@@ -334,10 +306,7 @@ describe('EnterAddress Component', () => {
     fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('Please enter a valid address')).toBeOnTheScreen();
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.DEPOSIT.KYC_PROCESSING,
-      expect.any(Object),
-    );
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
   it('accepts valid address line 2', async () => {
@@ -346,9 +315,7 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit({ addressLine2: 'Apt 4B' });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.KYC_PROCESSING, {
-        quote: mockQuote,
-      });
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
 
@@ -365,10 +332,7 @@ describe('EnterAddress Component', () => {
     fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('State/Region is required')).toBeOnTheScreen();
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.DEPOSIT.KYC_PROCESSING,
-      expect.any(Object),
-    );
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
   it('displays selected region in disabled country field', () => {
@@ -394,7 +358,6 @@ describe('EnterAddress Component', () => {
         countryCode: 'US',
       });
       expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      expect(mockPurposeFunction).toHaveBeenCalled();
     });
   });
 
@@ -426,7 +389,22 @@ describe('EnterAddress Component', () => {
         countryCode: 'US',
       });
       expect(mockSsnFunction).not.toHaveBeenCalled();
-      expect(mockPurposeFunction).toHaveBeenCalled();
+    });
+  });
+
+  it('tracks analytics event when continue button is pressed with valid form data', async () => {
+    render(EnterAddress);
+
+    fillFormAndSubmit();
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ADDRESS_ENTERED', {
+      region: 'US',
+      ramp_type: 'DEPOSIT',
+      kyc_type: 'SIMPLE',
+    });
+
+    await waitFor(() => {
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
 });

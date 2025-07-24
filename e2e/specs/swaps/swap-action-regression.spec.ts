@@ -3,7 +3,6 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -13,16 +12,19 @@ import {
 import { Mockttp } from 'mockttp';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils.js';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../fixtures/utils.js';
 import { Regression } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import Ganache from '../../../app/util/test/ganache';
-import { localNodeOptions, testSpecificMock } from './helpers/constants';
+import { testSpecificMock } from './helpers/constants';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { startMockServer } from './helpers/swap-mocks';
+import { defaultGanacheOptions } from '../../framework/Constants';
 
 const fixtureServer = new FixtureServer();
 
@@ -37,7 +39,7 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     jest.setTimeout(2500000);
 
     localNode = new Ganache();
-    await localNode.start(localNodeOptions);
+    await localNode.start({ ...defaultGanacheOptions, chainId: 1 });
 
     const mockServerPort = getMockServerPort();
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
@@ -45,6 +47,7 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withGanacheNetwork('0x1')
+      .withDisabledSmartTransactions()
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -62,13 +65,6 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     await stopFixtureServer(fixtureServer);
     if (mockServer) await stopMockServer(mockServer);
     if (localNode) await localNode.quit();
-  });
-
-  it('should turn off stx', async () => {
-    await TabBarComponent.tapSettings();
-    await SettingsView.tapAdvancedTitle();
-    await AdvancedSettingsView.tapSmartTransactionSwitch();
-    await TabBarComponent.tapWallet();
   });
 
   it.each`
@@ -116,4 +112,3 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     },
   );
 });
-

@@ -4,23 +4,32 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../../core/SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
 import {
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  SolScope,
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BtcScope,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
+import {
   endPerformanceTrace,
   startPerformanceTrace,
 } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { store } from '../../store';
-import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
 
 import ReduxService from '../../core/redux';
+import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { SecretType } from '@metamask/seedless-onboarding-controller';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -77,26 +86,64 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly
     // user can try manual sync again (phase 2)
     const seed = new Uint8Array(inputCodePoints.buffer);
+    let addSeedPhraseSuccess = false;
     try {
-      await SeedlessOnboardingController.addNewSeedPhraseBackup(
+      trace({
+        name: TraceName.OnboardingAddSrp,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      await SeedlessOnboardingController.addNewSecretData(
         seed,
-        newKeyring.id,
+        SecretType.Mnemonic,
+        {
+          keyringId: newKeyring.id,
+        },
       );
+      addSeedPhraseSuccess = true;
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       // Log the error but don't let it crash the import process
-      console.error('Failed to backup seed phrase:', error);
+      console.error('Failed to backup seed phrase:', errorMessage);
+
+      trace({
+        name: TraceName.OnboardingAddSrpError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+      });
+      endTrace({
+        name: TraceName.OnboardingAddSrpError,
+      });
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingAddSrp,
+        data: { success: addSeedPhraseSuccess },
+      });
     }
   }
 
   let discoveredAccountsCount = 0;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const bitcoinMultichainClient = MultichainWalletSnapFactory.createClient(
+    WalletClientType.Bitcoin,
+  );
+  discoveredAccountsCount +=
+    await bitcoinMultichainClient.addDiscoveredAccounts(
+      newKeyring.id,
+      BtcScope.Mainnet,
+    );
+  ///: END:ONLY_INCLUDE_IF
+
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  const multichainClient = MultichainWalletSnapFactory.createClient(
+  const solanaMultichainClient = MultichainWalletSnapFactory.createClient(
     WalletClientType.Solana,
   );
-
-  discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
+  discoveredAccountsCount += await solanaMultichainClient.addDiscoveredAccounts(
     newKeyring.id,
+    SolScope.Mainnet,
   );
   ///: END:ONLY_INCLUDE_IF
 

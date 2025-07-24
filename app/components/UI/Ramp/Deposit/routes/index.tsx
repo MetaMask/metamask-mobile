@@ -17,6 +17,7 @@ import EnterAddress from '../Views/EnterAddress';
 import KycProcessing from '../Views/KycProcessing';
 import OrderProcessing from '../Views/OrderProcessing';
 import BankDetails from '../Views/BankDetails';
+import AdditionalVerification from '../Views/AdditionalVerification';
 
 import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
 import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
@@ -24,6 +25,7 @@ import PaymentMethodSelectorModal from '../Views/Modals/PaymentMethodSelectorMod
 import UnsupportedRegionModal from '../Views/Modals/UnsupportedRegionModal';
 import StateSelectorModal from '../Views/Modals/StateSelectorModal';
 import WebviewModal, { KycWebviewModal } from '../Views/Modals/WebviewModal';
+import ConfigurationModal from '../Views/Modals/ConfigurationModal';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -108,6 +110,11 @@ const MainRoutes = () => (
       component={BankDetails}
       options={getAnimationOptions}
     />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ADDITIONAL_VERIFICATION}
+      component={AdditionalVerification}
+      options={getAnimationOptions}
+    />
   </Stack.Navigator>
 );
 
@@ -143,6 +150,10 @@ const DepositModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.DEPOSIT.MODALS.KYC_WEBVIEW}
       component={KycWebviewModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.DEPOSIT.MODALS.CONFIGURATION}
+      component={ConfigurationModal}
     />
   </ModalsStack.Navigator>
 );

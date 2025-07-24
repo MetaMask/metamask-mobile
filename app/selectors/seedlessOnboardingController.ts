@@ -28,3 +28,10 @@ export const selectSeedlessOnboardingLoginFlow = createSelector(
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
     seedlessOnboardingControllerState?.vault !== undefined,
 );
+
+export const selectIsSeedlessPasswordOutdated = createSelector(
+  selectSeedlessOnboardingControllerState,
+  (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
+    seedlessOnboardingControllerState?.passwordOutdatedCache?.isExpiredPwd ===
+    true,
+);

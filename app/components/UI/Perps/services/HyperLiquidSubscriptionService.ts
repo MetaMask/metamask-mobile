@@ -6,6 +6,7 @@ import {
   type WsActiveAssetCtx,
   type WsActiveSpotAssetCtx,
   type PerpsAssetCtx,
+  type Book,
 } from '@deeeed/hyperliquid-node20';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
@@ -19,6 +20,7 @@ import type {
 import { adaptPositionFromSDK } from '../utils/hyperLiquidAdapter';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
+import { strings } from '../../../../../locales/i18n';
 
 /**
  * Service for managing HyperLiquid WebSocket subscriptions
@@ -40,10 +42,22 @@ export class HyperLiquidSubscriptionService {
   // Global singleton subscriptions
   private globalAllMidsSubscription?: Subscription;
   private globalActiveAssetSubscriptions = new Map<string, Subscription>();
+  private globalL2BookSubscriptions = new Map<string, Subscription>();
   private symbolSubscriberCounts = new Map<string, number>();
 
   // Global price data cache
   private cachedPriceData = new Map<string, PriceUpdate>();
+
+  // Order book data cache
+  private orderBookCache = new Map<
+    string,
+    {
+      bestBid?: string;
+      bestAsk?: string;
+      spread?: string;
+      lastUpdated: number;
+    }
+  >();
 
   // Market data caching for multi-channel consolidation
   private marketDataCache = new Map<
@@ -71,7 +85,7 @@ export class HyperLiquidSubscriptionService {
    * Uses allMids for fast price updates and activeAssetCtx for market data
    */
   public subscribeToPrices(params: SubscribePricesParams): () => void {
-    const { symbols, callback } = params;
+    const { symbols, callback, includeOrderBook = false } = params;
     const unsubscribers: (() => void)[] = [];
 
     symbols.forEach((symbol) => {
@@ -94,6 +108,9 @@ export class HyperLiquidSubscriptionService {
     this.ensureGlobalAllMidsSubscription();
     symbols.forEach((symbol) => {
       this.ensureActiveAssetSubscription(symbol);
+      if (includeOrderBook) {
+        this.ensureL2BookSubscription(symbol);
+      }
     });
 
     // Send cached data immediately if available
@@ -110,6 +127,9 @@ export class HyperLiquidSubscriptionService {
       // Cleanup active asset subscriptions with reference counting
       symbols.forEach((symbol) => {
         this.cleanupActiveAssetSubscription(symbol);
+        if (includeOrderBook) {
+          this.cleanupL2BookSubscription(symbol);
+        }
       });
     };
   }
@@ -136,7 +156,9 @@ export class HyperLiquidSubscriptionService {
         .getUserAddressWithDefault(accountId)
         .then((userAddress) => {
           if (!subscriptionClient) {
-            throw new Error('SubscriptionClient is not initialized');
+            throw new Error(
+              strings('perps.errors.subscriptionClientNotInitialized'),
+            );
           }
 
           return subscriptionClient.webData2(
@@ -157,7 +179,10 @@ export class HyperLiquidSubscriptionService {
           subscription = sub;
         })
         .catch((error) => {
-          DevLogger.log('Failed to subscribe to position updates:', error);
+          DevLogger.log(
+            strings('perps.errors.failedToSubscribePosition'),
+            error,
+          );
         });
     }
 
@@ -166,7 +191,10 @@ export class HyperLiquidSubscriptionService {
 
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
-          DevLogger.log('Failed to unsubscribe from position updates:', error);
+          DevLogger.log(
+            strings('perps.errors.failedToUnsubscribePosition'),
+            error,
+          );
         });
       }
     };
@@ -194,7 +222,9 @@ export class HyperLiquidSubscriptionService {
         .getUserAddressWithDefault(accountId)
         .then((userAddress) => {
           if (!subscriptionClient) {
-            throw new Error('SubscriptionClient is not initialized');
+            throw new Error(
+              strings('perps.errors.subscriptionClientNotInitialized'),
+            );
           }
 
           return subscriptionClient.userFills(
@@ -218,7 +248,10 @@ export class HyperLiquidSubscriptionService {
           subscription = sub;
         })
         .catch((error) => {
-          DevLogger.log('Failed to subscribe to order fill updates:', error);
+          DevLogger.log(
+            strings('perps.errors.failedToSubscribeOrderFill'),
+            error,
+          );
         });
     }
 
@@ -228,7 +261,7 @@ export class HyperLiquidSubscriptionService {
       if (subscription) {
         subscription.unsubscribe().catch((error: Error) => {
           DevLogger.log(
-            'Failed to unsubscribe from order fill updates:',
+            strings('perps.errors.failedToUnsubscribeOrderFill'),
             error,
           );
         });
@@ -267,6 +300,7 @@ export class HyperLiquidSubscriptionService {
    */
   private createPriceUpdate(symbol: string, price: string): PriceUpdate {
     const marketData = this.marketDataCache.get(symbol);
+    const orderBookData = this.orderBookCache.get(symbol);
     const currentPrice = parseFloat(price);
 
     let percentChange24h: string | undefined;
@@ -278,9 +312,17 @@ export class HyperLiquidSubscriptionService {
 
     return {
       coin: symbol,
-      price,
+      price, // This is the mid price from allMids
       timestamp: Date.now(),
       percentChange24h,
+      // Add mark price from activeAssetCtx
+      markPrice: marketData?.oraclePrice
+        ? marketData.oraclePrice.toString()
+        : undefined,
+      // Add order book data if available
+      bestBid: orderBookData?.bestBid,
+      bestAsk: orderBookData?.bestAsk,
+      spread: orderBookData?.spread,
     };
   }
 
@@ -313,10 +355,7 @@ export class HyperLiquidSubscriptionService {
         DevLogger.log('HyperLiquid: Global allMids subscription established');
       })
       .catch((error) => {
-        DevLogger.log(
-          'HyperLiquid: Failed to establish global allMids subscription:',
-          error,
-        );
+        DevLogger.log(strings('perps.errors.failedToEstablishAllMids'), error);
       });
   }
 
@@ -392,7 +431,7 @@ export class HyperLiquidSubscriptionService {
       })
       .catch((error) => {
         DevLogger.log(
-          `HyperLiquid: Failed to establish market data subscription for ${symbol}:`,
+          strings('perps.errors.failedToEstablishMarketData', { symbol }),
           error,
         );
       });
@@ -417,6 +456,85 @@ export class HyperLiquidSubscriptionService {
     } else {
       // Still has subscribers, just decrement count
       this.symbolSubscriberCounts.set(symbol, currentCount - 1);
+    }
+  }
+
+  /**
+   * Ensure L2 book subscription for specific symbol (with reference counting)
+   */
+  private ensureL2BookSubscription(symbol: string): void {
+    // If subscription already exists, just return
+    if (this.globalL2BookSubscriptions.has(symbol)) {
+      return;
+    }
+
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+    if (!subscriptionClient) {
+      return;
+    }
+
+    subscriptionClient
+      .l2Book({ coin: symbol, nSigFigs: 5 }, (data: Book) => {
+        if (data.coin === symbol && data.levels) {
+          // Extract best bid and ask from order book
+          const bestBid = data.levels[0]?.[0]; // First bid level
+          const bestAsk = data.levels[1]?.[0]; // First ask level
+
+          if (bestBid || bestAsk) {
+            const bidPrice = bestBid ? parseFloat(bestBid.px) : 0;
+            const askPrice = bestAsk ? parseFloat(bestAsk.px) : 0;
+            const spread =
+              bidPrice > 0 && askPrice > 0
+                ? (askPrice - bidPrice).toFixed(5)
+                : undefined;
+
+            // Update order book cache
+            this.orderBookCache.set(symbol, {
+              bestBid: bestBid?.px,
+              bestAsk: bestAsk?.px,
+              spread,
+              lastUpdated: Date.now(),
+            });
+
+            // Update cached price data with new order book data
+            const currentCachedPrice = this.cachedPriceData.get(symbol);
+            if (currentCachedPrice) {
+              const updatedPrice = this.createPriceUpdate(
+                symbol,
+                currentCachedPrice.price,
+              );
+              this.cachedPriceData.set(symbol, updatedPrice);
+              this.notifyAllPriceSubscribers();
+            }
+          }
+        }
+      })
+      .then((sub) => {
+        this.globalL2BookSubscriptions.set(symbol, sub);
+        DevLogger.log(
+          `HyperLiquid: L2 book subscription established for ${symbol}`,
+        );
+      })
+      .catch((error) => {
+        DevLogger.log(
+          `HyperLiquid: Failed to establish L2 book subscription for ${symbol}`,
+          error,
+        );
+      });
+  }
+
+  /**
+   * Cleanup L2 book subscription when no longer needed
+   */
+  private cleanupL2BookSubscription(symbol: string): void {
+    const subscription = this.globalL2BookSubscriptions.get(symbol);
+    if (subscription) {
+      subscription.unsubscribe().catch(console.error);
+      this.globalL2BookSubscriptions.delete(symbol);
+      this.orderBookCache.delete(symbol);
+      DevLogger.log(
+        `HyperLiquid: Cleaned up L2 book subscription for ${symbol}`,
+      );
     }
   }
 
@@ -446,11 +564,13 @@ export class HyperLiquidSubscriptionService {
     // Clear cached data
     this.cachedPriceData.clear();
     this.marketDataCache.clear();
+    this.orderBookCache.clear();
     this.symbolSubscriberCounts.clear();
 
     // Clear subscription references (actual cleanup handled by client service)
     this.globalAllMidsSubscription = undefined;
     this.globalActiveAssetSubscriptions.clear();
+    this.globalL2BookSubscriptions.clear();
 
     DevLogger.log('HyperLiquid: Subscription service cleared', {
       timestamp: new Date().toISOString(),

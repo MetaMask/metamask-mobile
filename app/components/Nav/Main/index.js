@@ -66,10 +66,7 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
-import {
-  selectShowIncomingTransactionNetworks,
-  selectTokenNetworkFilter,
-} from '../../../selectors/preferencesController';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 import useNotificationHandler from '../../../util/notifications/hooks';
 import {
@@ -91,6 +88,9 @@ import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import { Authentication } from '../../../core';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
@@ -119,6 +119,47 @@ const Main = (props) => {
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+
+  useEffect(() => {
+    const checkIsSeedlessPasswordOutdated = async () => {
+      if (isSeedlessPasswordOutdated) {
+        // Check for latest seedless password outdated state
+        // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
+        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
+          false,
+        );
+        if (!isOutdated) {
+          return;
+        }
+
+        // show seedless password outdated modal and force user to lock app
+        props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings('login.seedless_password_outdated_modal_title'),
+            description: strings(
+              'login.seedless_password_outdated_modal_content',
+            ),
+            primaryButtonLabel: strings(
+              'login.seedless_password_outdated_modal_confirm',
+            ),
+            type: 'error',
+            icon: IconName.Danger,
+            isInteractable: false,
+            onPrimaryButtonPress: async () => {
+              await Authentication.lockApp({ locked: true });
+            },
+            closeOnPrimaryButtonPress: true,
+          },
+        });
+      }
+    };
+    checkIsSeedlessPasswordOutdated();
+  }, [isSeedlessPasswordOutdated, props.navigation]);
+
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
@@ -127,7 +168,7 @@ const Main = (props) => {
   useIdentityEffects();
   useMinimumVersions();
 
-  const { chainId, networkClientId, showIncomingTransactionsNetworks } = props;
+  const { chainId, networkClientId } = props;
 
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
@@ -140,12 +181,7 @@ const Main = (props) => {
   useEffect(() => {
     stopIncomingTransactionPolling();
     startIncomingTransactionPolling();
-  }, [
-    chainId,
-    networkClientId,
-    showIncomingTransactionsNetworks,
-    props.networkConfigurations,
-  ]);
+  }, [chainId, networkClientId, props.networkConfigurations]);
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
@@ -472,10 +508,6 @@ Main.propTypes = {
   hideCurrentNotification: PropTypes.func,
   removeNotificationById: PropTypes.func,
   /**
-   * Indicates whether networks allows incoming transactions
-   */
-  showIncomingTransactionsNetworks: PropTypes.object,
-  /**
    * Network provider type
    */
   providerType: PropTypes.string,
@@ -510,8 +542,6 @@ Main.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  showIncomingTransactionsNetworks:
-    selectShowIncomingTransactionNetworks(state),
   providerType: selectProviderType(state),
   chainId: selectChainId(state),
   networkClientId: selectNetworkClientId(state),
