@@ -41,10 +41,16 @@
 	<false/>
 	<key>EXUpdatesEnabled</key>
 	<true/>
+	<key>EXUpdatesCheckOnLaunch</key>
+	<string>ALWAYS</string>
+	<key>EXUpdatesLaunchWaitMs</key>
+	<integer>0</integer>
 	<key>EXUpdatesURL</key>
 	<string>https://u.expo.dev/f6be4653-8750-4688-8a44-c809d13b40ef</string>
 	<key>EXUpdatesRuntimeVersion</key>
 	<string>1.0.0</string>
+	<key>EXUpdatesChannel</key>
+	<string>preview</string>
 	<key>EXUpdatesRequestHeaders</key>
 	<dict>
 		<key>expo-channel-name</key>
