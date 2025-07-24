@@ -978,10 +978,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           webview: webviewRef,
           url: urlBridge,
           getRpcMethodMiddleware: ({
-            hostname,
             getProviderState,
           }: {
-            hostname: string;
             getProviderState: () => void;
           }) =>
             getRpcMethodMiddleware({
