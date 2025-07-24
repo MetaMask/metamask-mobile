@@ -218,6 +218,14 @@ stages:
     workflows:
       - build_android_qa: {}
       - build_ios_qa: {}
+  create_prod_builds:
+    workflows:
+      - build_ios_main_prod: {}
+      - build_android_main_prod: {}
+      - build_ios_qa_prod: {}
+      - build_android_qa_prod: {}
+      - build_ios_flask_prod: {}
+      - build_android_flask_prod: {}
   create_build_qa_android:
     workflows:
       - build_android_qa: {}
