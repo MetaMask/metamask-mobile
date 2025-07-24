@@ -15,21 +15,34 @@ import Assertions from './utils/Assertions';
 export async function withSolanaAccountEnabled(
   {
     numberOfAccounts = 1,
+    dappPath,
+    solanaAccountPermitted,
+    evmAccountPermitted,
   }: {
     numberOfAccounts?: number;
+    dappPath?: string;
+    solanaAccountPermitted?: boolean;
+    evmAccountPermitted?: boolean;
   },
   test: () => Promise<void>,
 ) {
-  const fixtures = new FixtureBuilder()
+  let fixtureBuilder = new FixtureBuilder()
     .withSolanaFixture()
-    .withSolanaFeatureSheetDisplayed()
-    .build();
+    .withSolanaFeatureSheetDisplayed();
+
+  if (solanaAccountPermitted) {
+    fixtureBuilder = fixtureBuilder.withSolanaAccountPermission();
+  }
+  if (evmAccountPermitted) {
+    fixtureBuilder = fixtureBuilder.withChainPermission(['0x1']);
+  }
+  const fixtures = fixtureBuilder.build();
 
   await withFixtures(
     {
       fixture: fixtures,
       dapp: true,
-      dappPath: DEFAULT_SOLANA_TEST_DAPP_PATH,
+      dappPath: dappPath ?? DEFAULT_SOLANA_TEST_DAPP_PATH,
       restartDevice: true,
     },
     async () => {

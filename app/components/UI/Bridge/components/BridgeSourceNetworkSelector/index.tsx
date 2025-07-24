@@ -51,7 +51,13 @@ const createStyles = () =>
     },
   });
 
-export const BridgeSourceNetworkSelector: React.FC = () => {
+export interface BridgeSourceNetworkSelectorProps {
+  onApply?: (selectedChainIds: Hex[]) => void;
+}
+
+export const BridgeSourceNetworkSelector: React.FC<
+  BridgeSourceNetworkSelectorProps
+> = ({ onApply }) => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -89,6 +95,11 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
   });
 
   const handleApply = useCallback(async () => {
+    if (onApply) {
+      onApply(candidateSourceChainIds as Hex[]);
+      return;
+    }
+
     // Update the Redux state with the candidate selections
     dispatch(
       setSelectedSourceChainIds(
@@ -125,6 +136,7 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     onNonEvmNetworkChange,
     ///: END:ONLY_INCLUDE_IF
+    onApply,
   ]);
 
   // Toggle chain selection

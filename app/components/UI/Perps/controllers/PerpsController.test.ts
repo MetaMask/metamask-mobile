@@ -93,6 +93,7 @@ describe('PerpsController', () => {
       subscribeToOrderFills: jest.fn(),
       setLiveDataConfig: jest.fn(),
       disconnect: jest.fn(),
+      updatePositionTPSL: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -458,7 +459,8 @@ describe('PerpsController', () => {
       withController(({ controller }) => {
         // Reset the initialization state by setting isInitialized to false
         // This simulates the case where initializeProviders() hasn't been called yet
-        (controller as any).isInitialized = false;
+        // @ts-ignore - Accessing private property for testing
+        controller.isInitialized = false;
         expect(() => controller.getActiveProvider()).toThrow(
           'HyperLiquid SDK clients not properly initialized',
         );
@@ -942,7 +944,8 @@ describe('PerpsController', () => {
     it('should throw error when controller not initialized', async () => {
       withController(async ({ controller }) => {
         // Arrange - don't initialize the controller
-        (controller as any).isInitialized = false;
+        // @ts-ignore - Accessing private property for testing
+        controller.isInitialized = false;
 
         // Act & Assert
         await expect(
@@ -1700,6 +1703,77 @@ describe('PerpsController', () => {
           expect(controller.state.depositStatus).toBe('idle');
           expect(controller.state.currentDepositTxHash).toBe(null);
           expect(controller.state.activeDepositTransactions).toEqual({});
+        });
+      });
+    });
+
+    describe('updatePositionTPSL', () => {
+      it('should update position TP/SL successfully', async () => {
+        // Arrange
+        mockHyperLiquidProvider.updatePositionTPSL.mockResolvedValue({
+          success: true,
+          orderId: 'tp:123,sl:456',
+        });
+
+        const params = {
+          coin: 'ETH',
+          takeProfitPrice: '3500',
+          stopLossPrice: '2500',
+        };
+
+        await withController(async ({ controller }) => {
+          // Act
+          const result = await controller.updatePositionTPSL(params);
+
+          // Assert
+          expect(result).toEqual({
+            success: true,
+            orderId: 'tp:123,sl:456',
+          });
+          expect(
+            mockHyperLiquidProvider.updatePositionTPSL,
+          ).toHaveBeenCalledWith(params);
+        });
+      });
+
+      it('should handle TP/SL update errors', async () => {
+        // Arrange
+        mockHyperLiquidProvider.updatePositionTPSL.mockResolvedValue({
+          success: false,
+          error: 'No position found',
+        });
+
+        const params = {
+          coin: 'BTC',
+          takeProfitPrice: '70000',
+        };
+
+        await withController(async ({ controller }) => {
+          // Act
+          const result = await controller.updatePositionTPSL(params);
+
+          // Assert
+          expect(result).toEqual({
+            success: false,
+            error: 'No position found',
+          });
+        });
+      });
+
+      it('should throw error when provider is not initialized', async () => {
+        // Arrange
+        const params = {
+          coin: 'ETH',
+          stopLossPrice: '2000',
+        };
+
+        await withController(async ({ controller }) => {
+          // Force controller to be uninitialized
+          // @ts-ignore - Accessing private property for testing
+          controller.isInitialized = false;
+
+          // Act & Assert
+          await expect(controller.updatePositionTPSL(params)).rejects.toThrow();
         });
       });
     });
