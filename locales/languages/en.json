@@ -756,6 +756,7 @@
     "add_funds": "Add funds",
     "perpetuals": "Perpetuals",
     "your_positions": "Your positions",
+    "loading_positions": "Loading positions...",
     "refreshing_positions": "Refreshing positions...",
     "search": "Search",
     "deposit": {
