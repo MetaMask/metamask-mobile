@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import {
   useSharedValue,
   useAnimatedStyle,
@@ -6,7 +6,6 @@ import {
   withSequence,
   cancelAnimation,
   interpolateColor,
-  runOnJS,
 } from 'react-native-reanimated';
 import { useStyles } from '../../../../component-library/hooks';
 
@@ -103,7 +102,14 @@ export const useColorPulseAnimation = (
         withTiming(0, { duration: colorDuration * 2 }), // Longer fade out
       );
     },
-    [pulseAnim, colorAnim, pulseDuration, colorDuration, minOpacity],
+    [
+      pulseAnim,
+      colorAnim,
+      pulseDuration,
+      colorDuration,
+      minOpacity,
+      isAnimating,
+    ],
   );
 
   const getAnimatedStyle = useAnimatedStyle(
