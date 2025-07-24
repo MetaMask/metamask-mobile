@@ -29,7 +29,8 @@ import {
   fiatOrdersRegionSelectorDeposit,
   setFiatOrdersRegionDeposit,
 } from '../../../../../reducers/fiatOrders';
-import { DepositRegion, DEPOSIT_REGIONS } from '../constants';
+import { DepositRegion, DEPOSIT_REGIONS, DEFAULT_REGION } from '../constants';
+import Logger from '../../../../../util/Logger';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -60,7 +61,7 @@ if (isDevelopmentOrInternalBuild) {
 }
 
 export const DEPOSIT_ENVIRONMENT = environment;
-export const DepositSDKOrders = new NativeRampsSdk({}, environment);
+export const DepositSDKNoAuth = new NativeRampsSdk({}, environment);
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
   undefined,
@@ -87,11 +88,8 @@ export const DepositSDKProvider = ({
   );
   const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
 
-  const defaultRegion =
-    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null;
-
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    INITIAL_SELECTED_REGION || defaultRegion,
+    INITIAL_SELECTED_REGION,
   );
 
   const setGetStartedCallback = useCallback(
@@ -111,15 +109,26 @@ export const DepositSDKProvider = ({
   );
 
   useEffect(() => {
-    if (INITIAL_SELECTED_REGION === null && defaultRegion) {
-      dispatch(setFiatOrdersRegionDeposit(defaultRegion));
+    async function setRegionByGeolocation() {
+      if (selectedRegion === null) {
+        try {
+          const geo = await DepositSDKNoAuth.getGeolocation();
+          const region = DEPOSIT_REGIONS.find(
+            (r) => r.isoCode === geo?.ipCountryCode,
+          );
+          if (region) {
+            setSelectedRegionCallback(region);
+          } else {
+            setSelectedRegionCallback(DEFAULT_REGION);
+          }
+        } catch (error) {
+          Logger.error(error as Error, 'Error setting region by geolocation:');
+          setSelectedRegionCallback(DEFAULT_REGION);
+        }
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    setSelectedRegion(INITIAL_SELECTED_REGION || defaultRegion);
-  }, [INITIAL_SELECTED_REGION, defaultRegion]);
+    setRegionByGeolocation();
+  }, [selectedRegion, setSelectedRegionCallback]);
 
   useEffect(() => {
     try {
