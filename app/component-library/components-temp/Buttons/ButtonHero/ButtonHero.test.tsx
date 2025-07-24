@@ -7,7 +7,6 @@ import { IconName } from '../../../components/Icons/Icon';
 
 // Internal dependencies.
 import ButtonHero from './ButtonHero';
-import { BUTTONHERO_TESTID } from './ButtonHero.constants';
 
 describe('ButtonHero', () => {
   const mockOnPress = jest.fn();
@@ -24,12 +23,12 @@ describe('ButtonHero', () => {
       <ButtonHero
         label="Hero Button"
         onPress={mockOnPress}
-        testID={BUTTONHERO_TESTID}
+        testID="button-hero"
       />,
     );
 
     // Assert
-    expect(getByTestId(BUTTONHERO_TESTID)).toBeOnTheScreen();
+    expect(getByTestId('button-hero')).toBeOnTheScreen();
     expect(getByText('Hero Button')).toBeOnTheScreen();
   });
 
@@ -39,12 +38,12 @@ describe('ButtonHero', () => {
       <ButtonHero
         label="Press Me"
         onPress={mockOnPress}
-        testID={BUTTONHERO_TESTID}
+        testID="button-hero"
       />,
     );
 
     // Act
-    fireEvent.press(getByTestId(BUTTONHERO_TESTID));
+    fireEvent.press(getByTestId('button-hero'));
 
     // Assert
     expect(mockOnPress).toHaveBeenCalledTimes(1);
@@ -58,13 +57,13 @@ describe('ButtonHero', () => {
         onPress={mockOnPress}
         onPressIn={mockOnPressIn}
         onPressOut={mockOnPressOut}
-        testID={BUTTONHERO_TESTID}
+        testID="button-hero"
       />,
     );
 
     // Act
-    fireEvent(getByTestId(BUTTONHERO_TESTID), 'onPressIn', {});
-    fireEvent(getByTestId(BUTTONHERO_TESTID), 'onPressOut', {});
+    fireEvent(getByTestId('button-hero'), 'onPressIn', {});
+    fireEvent(getByTestId('button-hero'), 'onPressOut', {});
 
     // Assert
     expect(mockOnPressIn).toHaveBeenCalledTimes(1);
@@ -78,12 +77,12 @@ describe('ButtonHero', () => {
         label="Disabled Button"
         isDisabled
         onPress={mockOnPress}
-        testID={BUTTONHERO_TESTID}
+        testID="button-hero"
       />,
     );
 
     // Assert
-    const buttonElement = getByTestId(BUTTONHERO_TESTID);
+    const buttonElement = getByTestId('button-hero');
     expect(buttonElement).toHaveProp('accessibilityState', { disabled: true });
   });
 
@@ -94,12 +93,12 @@ describe('ButtonHero', () => {
         label="Disabled Button"
         isDisabled
         onPress={mockOnPress}
-        testID={BUTTONHERO_TESTID}
+        testID="button-hero"
       />,
     );
 
     // Act
-    fireEvent.press(getByTestId(BUTTONHERO_TESTID));
+    fireEvent.press(getByTestId('button-hero'));
 
     // Assert
     expect(mockOnPress).not.toHaveBeenCalled();
@@ -112,12 +111,12 @@ describe('ButtonHero', () => {
         label="Loading Button"
         loading
         onPress={mockOnPress}
-        testID={BUTTONHERO_TESTID}
+        testID="button-hero"
       />,
     );
 
     // Assert
-    expect(getByTestId(BUTTONHERO_TESTID)).toBeOnTheScreen();
+    expect(getByTestId('button-hero')).toBeOnTheScreen();
     // Text should not be visible when loading
     expect(queryByText('Loading Button')).not.toBeOnTheScreen();
   });
@@ -131,12 +130,12 @@ describe('ButtonHero', () => {
       <ButtonHero
         label={customLabel}
         onPress={mockOnPress}
-        testID={BUTTONHERO_TESTID}
+        testID="button-hero"
       />,
     );
 
     // Assert
-    expect(getByTestId(BUTTONHERO_TESTID)).toBeOnTheScreen();
+    expect(getByTestId('button-hero')).toBeOnTheScreen();
   });
 
   it('renders with start and end icons', () => {
@@ -147,11 +146,11 @@ describe('ButtonHero', () => {
         startIconName={IconName.Add}
         endIconName={IconName.ArrowRight}
         onPress={mockOnPress}
-        testID={BUTTONHERO_TESTID}
+        testID="button-hero"
       />,
     );
 
     // Assert
-    expect(getByTestId(BUTTONHERO_TESTID)).toBeOnTheScreen();
+    expect(getByTestId('button-hero')).toBeOnTheScreen();
   });
 });

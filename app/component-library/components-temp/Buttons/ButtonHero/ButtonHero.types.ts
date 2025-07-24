@@ -1,42 +1,10 @@
 // Third party dependencies.
-import { PressableProps } from 'react-native';
-
-// External dependencies.
-import { IconName } from '../../../components/Icons/Icon';
+import { ButtonBaseProps } from '../../../components/Buttons/Button/foundation/ButtonBase';
 
 /**
  * ButtonHero component props.
  */
-export interface ButtonHeroProps extends PressableProps {
-  /**
-   * Button text.
-   */
-  label: string | React.ReactNode;
-  /**
-   * Optional prop for the icon name of the icon that will be displayed before the label.
-   */
-  startIconName?: IconName;
-  /**
-   * Optional prop for the icon name of the icon that will be displayed after the label.
-   */
-  endIconName?: IconName;
-  /**
-   * Function to trigger when pressing the button.
-   */
-  onPress: () => void;
-  /**
-   * Optional param to disable the button.
-   */
-  isDisabled?: boolean;
-  /**
-   * An optional loading state of Button.
-   */
-  loading?: boolean;
+export interface ButtonHeroProps extends Omit<ButtonBaseProps, 'labelColor'> {
+  // All props inherited from ButtonBaseProps
+  // labelColor is omitted since we set it internally for the hero styling
 }
-
-/**
- * Style sheet input parameters.
- */
-export type ButtonHeroStyleSheetVars = Pick<ButtonHeroProps, 'style'> & {
-  pressed: boolean;
-};
