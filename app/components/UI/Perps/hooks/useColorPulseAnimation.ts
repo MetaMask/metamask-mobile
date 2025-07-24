@@ -1,5 +1,13 @@
 import { useCallback, useRef } from 'react';
-import { Animated } from 'react-native';
+import {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSequence,
+  cancelAnimation,
+  interpolateColor,
+  runOnJS,
+} from 'react-native-reanimated';
 import { useStyles } from '../../../../component-library/hooks';
 
 export type PulseColor = 'increase' | 'decrease' | 'same';
@@ -16,18 +24,16 @@ interface UseColorPulseAnimationOptions {
 }
 
 interface UseColorPulseAnimationReturn {
-  pulseAnim: Animated.Value;
-  colorAnim: Animated.Value;
-  startPulseAnimation: (pulseColor: PulseColor) => void;
-  getAnimatedStyle: () => {
-    opacity: Animated.Value;
-    backgroundColor: Animated.AnimatedInterpolation<string | number>;
+  getAnimatedStyle: {
+    opacity: number;
+    backgroundColor: string;
   };
+  startPulseAnimation: (pulseColor: PulseColor) => void;
   stopAnimation: () => void;
 }
 
 /**
- * Custom hook for color-coded pulse animations
+ * Custom hook for color-coded pulse animations using React Native Reanimated
  * Provides reusable pulse animation logic with color feedback
  *
  * @param options - Configuration options for the animation
@@ -49,17 +55,25 @@ export const useColorPulseAnimation = (
     },
   } = options;
 
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const colorAnim = useRef(new Animated.Value(0)).current; // 0 = default, 1 = increase, -1 = decrease
-  const currentAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
+  // Shared values for animations
+  const pulseAnim = useSharedValue(1);
+  const colorAnim = useSharedValue(0); // 0 = default, 1 = increase, -1 = decrease
+  const isAnimatingRef = useRef(false);
 
   const startPulseAnimation = useCallback(
     (pulseColor: PulseColor) => {
+      'worklet';
+
       // Stop any existing animation to prevent conflicts
-      if (currentAnimationRef.current) {
-        currentAnimationRef.current.stop();
-        currentAnimationRef.current = null;
+      if (isAnimatingRef.current) {
+        cancelAnimation(pulseAnim);
+        cancelAnimation(colorAnim);
       }
+
+      // Set animation flag
+      runOnJS(() => {
+        isAnimatingRef.current = true;
+      })();
 
       // Determine color animation target based on pulse type
       let colorTarget = 0; // default/same
@@ -69,70 +83,63 @@ export const useColorPulseAnimation = (
         colorTarget = -1; // decrease
       }
 
-      // Create a pulse animation with color change
-      const animation = Animated.parallel([
-        // Opacity pulse
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: minOpacity,
+      // Start opacity pulse animation
+      pulseAnim.value = withSequence(
+        withTiming(minOpacity, { duration: pulseDuration }),
+        withTiming(
+          1,
+          {
             duration: pulseDuration,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: pulseDuration,
-            useNativeDriver: true,
-          }),
-        ]),
-        // Color change
-        Animated.sequence([
-          Animated.timing(colorAnim, {
-            toValue: colorTarget,
-            duration: colorDuration,
-            useNativeDriver: false, // Color interpolation doesn't support native driver
-          }),
-          Animated.timing(colorAnim, {
-            toValue: 0, // Return to default color
-            duration: colorDuration * 2, // Longer fade out
-            useNativeDriver: false,
-          }),
-        ]),
-      ]);
+          },
+          (finished) => {
+            if (finished) {
+              runOnJS(() => {
+                isAnimatingRef.current = false;
+              })();
+            }
+          },
+        ),
+      );
 
-      // Store the animation reference and start it
-      currentAnimationRef.current = animation;
-      animation.start(({ finished }) => {
-        if (finished) {
-          currentAnimationRef.current = null;
-        }
-      });
+      // Start color change animation
+      colorAnim.value = withSequence(
+        withTiming(colorTarget, { duration: colorDuration }),
+        withTiming(0, { duration: colorDuration * 2 }), // Longer fade out
+      );
     },
     [pulseAnim, colorAnim, pulseDuration, colorDuration, minOpacity],
   );
 
-  const getAnimatedStyle = useCallback(
+  const getAnimatedStyle = useAnimatedStyle(
     () => ({
-      opacity: pulseAnim,
-      backgroundColor: colorAnim.interpolate({
-        inputRange: [-1, 0, 1],
-        outputRange: [colors.decrease, colors.same, colors.increase],
-      }),
+      opacity: pulseAnim.value,
+      backgroundColor: interpolateColor(
+        colorAnim.value,
+        [-1, 0, 1],
+        [colors.decrease, colors.same, colors.increase],
+      ),
     }),
-    [pulseAnim, colorAnim, colors],
+    [colors],
   );
 
   const stopAnimation = useCallback(() => {
-    if (currentAnimationRef.current) {
-      currentAnimationRef.current.stop();
-      currentAnimationRef.current = null;
-    }
-  }, []);
+    'worklet';
+
+    cancelAnimation(pulseAnim);
+    cancelAnimation(colorAnim);
+
+    runOnJS(() => {
+      isAnimatingRef.current = false;
+    })();
+
+    // Reset to default values
+    pulseAnim.value = withTiming(1, { duration: 100 });
+    colorAnim.value = withTiming(0, { duration: 100 });
+  }, [pulseAnim, colorAnim]);
 
   return {
-    pulseAnim,
-    colorAnim,
-    startPulseAnimation,
     getAnimatedStyle,
+    startPulseAnimation,
     stopAnimation,
   };
 };

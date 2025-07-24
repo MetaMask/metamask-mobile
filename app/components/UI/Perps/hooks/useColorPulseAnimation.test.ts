@@ -16,42 +16,42 @@ jest.mock('../../../../component-library/hooks', () => ({
   })),
 }));
 
-// Complete React Native mock to prevent animation system from running
-jest.mock('react-native', () => {
-  const mockAnimatedValue = () => ({
-    setValue: jest.fn(),
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    removeAllListeners: jest.fn(),
-    stopAnimation: jest.fn(),
-    interpolate: jest.fn((config) => ({
-      ...config,
-      __interpolated: true,
-    })),
-    _value: 1,
-  });
-
-  const mockAnimation = () => ({
-    start: jest.fn(),
-    stop: jest.fn(),
-    reset: jest.fn(),
-  });
+// Mock React Native Reanimated
+jest.mock('react-native-reanimated', () => {
+  const actualReanimated = jest.requireActual('react-native-reanimated/mock');
 
   return {
-    Animated: {
-      Value: jest.fn(mockAnimatedValue),
-      timing: jest.fn(mockAnimation),
-      parallel: jest.fn(mockAnimation),
-      sequence: jest.fn(mockAnimation),
-      spring: jest.fn(mockAnimation),
-      decay: jest.fn(mockAnimation),
-      loop: jest.fn(mockAnimation),
-      delay: jest.fn(mockAnimation),
+    ...actualReanimated,
+    useSharedValue: jest.fn((initial) => ({ value: initial })),
+    useAnimatedStyle: jest.fn((styleFactory) => {
+      try {
+        return styleFactory();
+      } catch {
+        return {};
+      }
+    }),
+    withTiming: jest.fn((value) => value),
+    withSequence: jest.fn((...values) => values[values.length - 1]),
+    cancelAnimation: jest.fn(),
+    interpolateColor: jest.fn((value, inputRange, outputRange) => {
+      // Simple interpolation mock for testing
+      if (value <= inputRange[0]) return outputRange[0];
+      if (value >= inputRange[inputRange.length - 1])
+        return outputRange[outputRange.length - 1];
+
+      // Find the appropriate range
+      for (let i = 0; i < inputRange.length - 1; i++) {
+        if (value >= inputRange[i] && value <= inputRange[i + 1]) {
+          return outputRange[i];
+        }
+      }
+      return outputRange[0];
+    }),
+    runOnJS: jest.fn((fn) => fn),
+    configureReanimatedLogger: jest.fn(),
+    ReanimatedLogLevel: {
+      warn: 1,
     },
-    // Mock other RN components that might be used
-    View: 'View',
-    Text: 'Text',
-    TouchableOpacity: 'TouchableOpacity',
   };
 });
 
@@ -71,13 +71,11 @@ describe('useColorPulseAnimation', () => {
     it('should return all required properties and methods', () => {
       const { result } = renderHook(() => useColorPulseAnimation());
 
-      expect(result.current).toHaveProperty('pulseAnim');
-      expect(result.current).toHaveProperty('colorAnim');
-      expect(result.current).toHaveProperty('startPulseAnimation');
       expect(result.current).toHaveProperty('getAnimatedStyle');
+      expect(result.current).toHaveProperty('startPulseAnimation');
       expect(result.current).toHaveProperty('stopAnimation');
       expect(typeof result.current.startPulseAnimation).toBe('function');
-      expect(typeof result.current.getAnimatedStyle).toBe('function');
+      expect(typeof result.current.getAnimatedStyle).toBe('object');
       expect(typeof result.current.stopAnimation).toBe('function');
     });
 
