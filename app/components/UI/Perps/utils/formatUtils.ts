@@ -9,7 +9,10 @@ import { formatWithThreshold } from '../../../../util/assets';
  * @param balance - The balance value to format (string or number)
  * @returns Formatted balance string with currency symbol (e.g., "$1,234.56")
  */
-export const formatPerpsFiat = (balance: string | number): string => {
+export const formatPerpsFiat = (
+  balance: string | number,
+  minDecimals = 2,
+): string => {
   const num = typeof balance === 'string' ? parseFloat(balance) : balance;
 
   if (isNaN(num)) {
