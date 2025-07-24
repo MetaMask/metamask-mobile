@@ -3,7 +3,7 @@ import {
   renderScreen,
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
@@ -1018,6 +1018,7 @@ describe('BridgeView', () => {
     it('should navigate to blockaid modal on validation error for Solana swap', async () => {
       // Mock validation result with validation error
       mockValidateBridgeTx.mockResolvedValue({
+        status: 'ERROR',
         result: {
           validation: {
             reason: 'Transaction may result in loss of funds',
@@ -1074,7 +1075,9 @@ describe('BridgeView', () => {
 
       // Find and press the continue button
       const continueButton = getByText(strings('bridge.confirm_swap'));
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockValidateBridgeTx).toHaveBeenCalledWith({
@@ -1096,6 +1099,7 @@ describe('BridgeView', () => {
     it('should navigate to blockaid modal on simulation error for Solana to EVM bridge', async () => {
       // Mock validation result with simulation error
       mockValidateBridgeTx.mockResolvedValue({
+        status: 'ERROR',
         result: {
           validation: {
             reason: null,
@@ -1155,7 +1159,9 @@ describe('BridgeView', () => {
 
       // Find and press the continue button
       const continueButton = getByText(strings('bridge.confirm_bridge'));
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockValidateBridgeTx).toHaveBeenCalledWith({
@@ -1177,6 +1183,7 @@ describe('BridgeView', () => {
     it('should prioritize validation error over simulation error', async () => {
       // Mock validation result with both validation and simulation errors
       mockValidateBridgeTx.mockResolvedValue({
+        status: 'ERROR',
         result: {
           validation: {
             reason: 'Transaction may result in loss of funds',
@@ -1233,7 +1240,9 @@ describe('BridgeView', () => {
 
       // Find and press the continue button
       const continueButton = getByText(strings('bridge.confirm_swap'));
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
@@ -1249,6 +1258,7 @@ describe('BridgeView', () => {
     it('should proceed with transaction when no validation errors', async () => {
       // Mock validation result with no errors
       mockValidateBridgeTx.mockResolvedValue({
+        status: 'SUCCESS',
         result: {
           validation: {
             reason: null,
@@ -1305,7 +1315,9 @@ describe('BridgeView', () => {
 
       // Find and press the continue button
       const continueButton = getByText(strings('bridge.confirm_swap'));
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockValidateBridgeTx).toHaveBeenCalledWith({
@@ -1373,7 +1385,9 @@ describe('BridgeView', () => {
 
       // Find and press the continue button
       const continueButton = getByText(strings('bridge.confirm_bridge'));
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
