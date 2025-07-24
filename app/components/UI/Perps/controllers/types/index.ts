@@ -157,7 +157,11 @@ export interface AssetRoute {
     minAmount?: string; // Minimum deposit/withdrawal amount
     maxAmount?: string; // Maximum deposit/withdrawal amount
     estimatedTime?: string; // Estimated processing time
-    fees?: string; // Associated fees
+    fees?: {
+      fixed?: number; // Fixed fee amount (e.g., 1 for 1 token)
+      percentage?: number; // Percentage fee (e.g., 0.05 for 0.05%)
+      token?: string; // Fee token symbol (e.g., 'USDC', 'ETH')
+    };
   };
 }
 

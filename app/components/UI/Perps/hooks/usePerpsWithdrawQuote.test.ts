@@ -21,6 +21,33 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
+// Mock Engine
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      getWithdrawalRoutes: jest.fn().mockReturnValue([
+        {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          chainId: 'eip155:42161',
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+          constraints: {
+            minAmount: '1.01',
+            estimatedTime: '5 minutes',
+            fees: {
+              fixed: 1,
+              token: 'USDC',
+            },
+          },
+        },
+      ]),
+      state: {
+        isTestnet: false,
+      },
+    },
+  },
+}));
+
 describe('usePerpsWithdrawQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -86,9 +113,7 @@ describe('usePerpsWithdrawQuote', () => {
       );
       expect(result.current.hasValidQuote).toBe(false);
       expect(result.current.error).toBe(
-        `Amount must be greater than $${
-          HYPERLIQUID_WITHDRAWAL_FEE + 0.01
-        } to cover fees`,
+        `Amount must be greater than $1.01 to cover fees`,
       );
     });
 
@@ -104,10 +129,22 @@ describe('usePerpsWithdrawQuote', () => {
       );
       expect(result.current.hasValidQuote).toBe(false);
       expect(result.current.error).toBe(
-        `Amount must be greater than $${
-          HYPERLIQUID_WITHDRAWAL_FEE + 0.01
-        } to cover fees`,
+        `Amount must be greater than $1.01 to cover fees`,
       );
+    });
+
+    it('should handle amount just above minimum', () => {
+      const amount = '1.01';
+      const { result } = renderHookWithProvider(
+        () => usePerpsWithdrawQuote({ amount }),
+        { state: {} as DeepPartial<RootState> },
+      );
+
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '0.01 USDC',
+      );
+      expect(result.current.hasValidQuote).toBe(true);
+      expect(result.current.error).toBeNull();
     });
 
     it('should handle decimal amounts correctly', () => {
@@ -184,6 +221,23 @@ describe('usePerpsWithdrawQuote', () => {
           } to cover fees`,
         );
       });
+    });
+  });
+
+  describe('dynamic fees', () => {
+    it('should use fees from provider', () => {
+      const amount = '100';
+      const { result } = renderHookWithProvider(
+        () => usePerpsWithdrawQuote({ amount }),
+        { state: {} as DeepPartial<RootState> },
+      );
+
+      // Check that it uses the provider fee of $1.00
+      expect(result.current.formattedQuoteData.networkFee).toBe('$1.00');
+      expect(result.current.formattedQuoteData.totalFees).toBe('$1.00');
+      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+        '99.00 USDC',
+      );
     });
   });
 

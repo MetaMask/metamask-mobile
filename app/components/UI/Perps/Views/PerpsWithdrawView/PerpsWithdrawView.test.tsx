@@ -18,6 +18,7 @@ import {
   USDC_DECIMALS,
   ZERO_ADDRESS,
 } from '../../constants/hyperLiquidConfig';
+import { WITHDRAWAL_CONSTANTS } from '../../constants/perpsConfig';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 
 // Mock react-native at the top
@@ -50,9 +51,25 @@ jest.mock('../../../../../core/Engine', () => ({
           },
           selectedNetwork: 'mainnet',
         },
+        isTestnet: false,
       },
       withdraw: jest.fn(),
-      isTestnet: false,
+      getWithdrawalRoutes: jest.fn().mockReturnValue([
+        {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          chainId: 'eip155:42161',
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+          constraints: {
+            minAmount: '1.01',
+            estimatedTime: '5 minutes',
+            fees: {
+              fixed: 1,
+              token: 'USDC',
+            },
+          },
+        },
+      ]),
     },
   },
 }));
@@ -211,13 +228,13 @@ jest.mock('../../hooks', () => ({
   usePerpsNetwork: jest.fn(() => 'mainnet'),
   usePerpsWithdrawQuote: jest.fn((params) => {
     const amount = parseFloat(params.amount || '0');
-    const WITHDRAWAL_FEE = 1; // Hardcoded value for HYPERLIQUID_WITHDRAWAL_FEE
+    const WITHDRAWAL_FEE = 1;
     const hasValidQuote = amount > 0 && amount > WITHDRAWAL_FEE;
 
     return {
       formattedQuoteData: {
         networkFee: `$${WITHDRAWAL_FEE.toFixed(2)}`,
-        estimatedTime: '~5 minutes',
+        estimatedTime: '5 minutes',
         receivingAmount:
           amount > WITHDRAWAL_FEE
             ? `${(amount - WITHDRAWAL_FEE).toFixed(2)} USDC`
@@ -232,6 +249,34 @@ jest.mock('../../hooks', () => ({
       success: true,
       txHash: '0x123456789',
     }),
+  })),
+  useWithdrawTokens: jest.fn(() => ({
+    sourceToken: {
+      symbol: 'USDC',
+      address: '0x0000000000000000000000000000000000000000',
+      decimals: 6,
+      name: 'USD Coin',
+      chainId: '0x998',
+      currencyExchangeRate: 1,
+      image: 'https://test.com/usdc.png',
+    },
+    destToken: {
+      symbol: 'USDC',
+      address: '0x0000000000000000000000000000000000000000',
+      decimals: 6,
+      name: 'USD Coin',
+      chainId: '0xa4b1',
+      currencyExchangeRate: 1,
+      image: 'https://test.com/usdc.png',
+    },
+  })),
+  useWithdrawValidation: jest.fn(({ withdrawAmount }) => ({
+    availableBalance: '1000.00',
+    hasInsufficientBalance: false,
+    isBelowMinimum: parseFloat(withdrawAmount || '0') < 1.01,
+    hasAmount: !!withdrawAmount && parseFloat(withdrawAmount) > 0,
+    getButtonLabel: jest.fn(() => 'Withdraw USDC'),
+    getMinimumAmount: jest.fn(() => 1.01),
   })),
 }));
 

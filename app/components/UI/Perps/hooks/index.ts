@@ -34,6 +34,11 @@ export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 // UI utility hooks
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsPositions } from './usePerpsPositions';
+
+// Withdrawal specific hooks
+export { useWithdrawTokens } from './useWithdrawTokens';
+export { useWithdrawValidation } from './useWithdrawValidation';
+
 // - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)

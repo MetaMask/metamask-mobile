@@ -104,6 +104,11 @@ describe('PerpsController', () => {
       setLiveDataConfig: jest.fn(),
       disconnect: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      calculateLiquidationPrice: jest.fn(),
+      calculateMaintenanceMargin: jest.fn(),
+      getMaxLeverage: jest.fn(),
+      checkWithdrawalStatus: jest.fn(),
+      getMarketDataWithPrices: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -795,6 +800,14 @@ describe('PerpsController', () => {
             chainId: 'eip155:42161' as CaipChainId,
             contractAddress:
               '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+            constraints: {
+              minAmount: '1.01',
+              estimatedTime: '5 minutes',
+              fees: {
+                fixed: 1,
+                token: 'USDC',
+              },
+            },
           },
         ]);
 

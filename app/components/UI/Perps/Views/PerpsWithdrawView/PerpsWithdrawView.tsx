@@ -1,5 +1,3 @@
-import { toHex } from '@metamask/controller-utils';
-import { type Hex } from '@metamask/utils';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, {
   useCallback,
@@ -9,7 +7,6 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -32,8 +29,6 @@ import {
 } from '../../../../../component-library/components/Toast';
 import { useStyles } from '../../../../../component-library/hooks';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
-import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../../UI/Box/Box';
@@ -45,26 +40,20 @@ import {
 } from '../../../../UI/Bridge/components/TokenInputArea';
 import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
-import type { PerpsToken } from '../../components/PerpsTokenSelector';
 import {
-  ARBITRUM_MAINNET_CHAIN_ID,
   HYPERLIQUID_ASSET_CONFIGS,
-  HYPERLIQUID_MAINNET_CHAIN_ID,
-  HYPERLIQUID_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
   USDC_DECIMALS,
-  USDC_NAME,
   USDC_SYMBOL,
-  ZERO_ADDRESS,
 } from '../../constants/hyperLiquidConfig';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
-  usePerpsAccount,
   usePerpsNetwork,
   usePerpsTrading,
   usePerpsWithdrawQuote,
+  useWithdrawTokens,
+  useWithdrawValidation,
 } from '../../hooks';
-import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsWithdrawView.styles';
 
 const PerpsWithdrawView: React.FC = () => {
@@ -81,74 +70,23 @@ const PerpsWithdrawView: React.FC = () => {
   const inputRef = useRef<TokenInputAreaRef>(null);
 
   // Hooks
-  const cachedAccountState = usePerpsAccount();
-  const perpsNetwork = usePerpsNetwork();
-  const isTestnet = perpsNetwork === 'testnet';
   const { toastRef } = useContext(ToastContext);
   const { withdraw } = usePerpsTrading();
+  const perpsNetwork = usePerpsNetwork();
+  const isTestnet = perpsNetwork === 'testnet';
 
-  // Selectors
-  const tokenList = useSelector(selectTokenList);
-  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  // Custom hooks for business logic
+  const { sourceToken, destToken } = useWithdrawTokens();
 
-  // Available balance from perps account
-  const availableBalance = useMemo(() => {
-    const balance = cachedAccountState?.availableBalance || '0';
-    // Remove $ and parse
-    return balance.replace('$', '').replace(',', '');
-  }, [cachedAccountState]);
+  const {
+    availableBalance,
+    hasInsufficientBalance,
+    isBelowMinimum,
+    hasAmount,
+    getButtonLabel,
+    getMinimumAmount,
+  } = useWithdrawValidation({ withdrawAmount });
 
-  // Source token (Hyperliquid USDC)
-  const sourceToken = useMemo<PerpsToken>(() => {
-    // Always use mainnet chain ID for network image (like in deposit/order views)
-    const hyperliquidChainId = HYPERLIQUID_MAINNET_CHAIN_ID;
-    const baseToken: PerpsToken = {
-      symbol: USDC_SYMBOL,
-      address: ZERO_ADDRESS,
-      decimals: USDC_DECIMALS,
-      name: USDC_NAME,
-      chainId: hyperliquidChainId,
-      currencyExchangeRate: 1,
-    };
-
-    // Enhance with icon from token list
-    if (tokenList) {
-      return enhanceTokenWithIcon({
-        token: baseToken,
-        tokenList,
-        isIpfsGatewayEnabled,
-      });
-    }
-
-    return baseToken;
-  }, [tokenList, isIpfsGatewayEnabled]);
-
-  // Destination token (Arbitrum USDC)
-  const destToken = useMemo<PerpsToken>(() => {
-    const arbitrumChainId = toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex;
-
-    const baseToken: PerpsToken = {
-      symbol: USDC_SYMBOL,
-      address: ZERO_ADDRESS, // Will be actual USDC address on Arbitrum
-      decimals: USDC_DECIMALS,
-      name: USDC_NAME,
-      chainId: arbitrumChainId,
-      currencyExchangeRate: 1,
-    };
-
-    // Enhance with icon from token list
-    if (tokenList) {
-      return enhanceTokenWithIcon({
-        token: baseToken,
-        tokenList,
-        isIpfsGatewayEnabled,
-      });
-    }
-
-    return baseToken;
-  }, [tokenList, isIpfsGatewayEnabled]);
-
-  // Use withdrawal quote hook
   const {
     formattedQuoteData,
     hasValidQuote,
@@ -157,18 +95,7 @@ const PerpsWithdrawView: React.FC = () => {
     amount: withdrawAmount || '',
   });
 
-  // Validation
-  const hasInsufficientBalance = useMemo(() => {
-    if (!withdrawAmount || !availableBalance) return false;
-    return parseFloat(withdrawAmount) > parseFloat(availableBalance);
-  }, [withdrawAmount, availableBalance]);
-
-  const isBelowMinimum = useMemo(() => {
-    if (!withdrawAmount) return false;
-    return parseFloat(withdrawAmount) <= HYPERLIQUID_WITHDRAWAL_FEE;
-  }, [withdrawAmount]);
-
-  // Handlers
+  // UI Handlers (kept in component since they're view-specific)
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -337,24 +264,11 @@ const PerpsWithdrawView: React.FC = () => {
     navigation,
   ]);
 
-  // Button state
-  const hasAmount = withdrawAmount && parseFloat(withdrawAmount) > 0;
+  // UI state calculations
   const hasValidInputs =
     hasAmount && !hasInsufficientBalance && !isBelowMinimum && hasValidQuote;
   const shouldDisplayQuoteDetails = hasAmount && !quoteError;
   const shouldShowPercentageButtons = isInputFocused || !hasAmount;
-
-  const getButtonLabel = () => {
-    if (hasInsufficientBalance)
-      return strings('perps.withdrawal.insufficient_funds');
-    if (isBelowMinimum)
-      return strings('perps.withdrawal.minimum_amount_error', {
-        amount: HYPERLIQUID_WITHDRAWAL_FEE + 0.01,
-      });
-    if (!withdrawAmount || parseFloat(withdrawAmount) === 0)
-      return strings('perps.withdrawal.enter_amount');
-    return strings('perps.withdrawal.withdraw_usdc');
-  };
 
   // Extract numeric value from formatted receiving amount
   const destAmount = useMemo(() => {
@@ -508,7 +422,7 @@ const PerpsWithdrawView: React.FC = () => {
               <Text style={styles.errorText} color={TextColor.Error}>
                 {quoteError ||
                   strings('perps.withdrawal.minimum_amount_error', {
-                    amount: HYPERLIQUID_WITHDRAWAL_FEE + 0.01,
+                    amount: getMinimumAmount(),
                   })}
               </Text>
             )}

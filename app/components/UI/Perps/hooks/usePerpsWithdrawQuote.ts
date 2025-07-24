@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
 import {
-  HYPERLIQUID_WITHDRAWAL_FEE,
+  HYPERLIQUID_ASSET_CONFIGS,
   METAMASK_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
   WITHDRAWAL_ESTIMATED_TIME,
 } from '../constants/hyperLiquidConfig';
+import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
 
 interface PerpsWithdrawQuoteParams {
   amount: string;
@@ -24,42 +26,79 @@ interface FormattedQuoteData {
  * Simple calculation since withdrawals have fixed fees and no bridging
  */
 export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
+  // Get withdrawal route to access fee constraints
+  const withdrawalRoute = useMemo(() => {
+    const controller = Engine.context.PerpsController;
+    const routes = controller.getWithdrawalRoutes();
+    const isTestnet = controller.state.isTestnet;
+
+    // Find USDC route
+    const usdcAssetId = isTestnet
+      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+
+    return routes.find((route) => route.assetId === usdcAssetId);
+  }, []);
+
   const formattedQuoteData = useMemo<FormattedQuoteData>(() => {
     // Parse amount
     const amountNum = parseFloat(amount || '0');
 
-    // Calculate fees
-    const networkFee = HYPERLIQUID_WITHDRAWAL_FEE; // $1
+    // Get fees from route constraints or use defaults
+    const networkFee =
+      withdrawalRoute?.constraints?.fees?.fixed ??
+      WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT;
     const metamaskFee = METAMASK_WITHDRAWAL_FEE; // $0 currently
     const totalFees = networkFee + metamaskFee;
 
     // Calculate receiving amount
     const receivingAmount = Math.max(0, amountNum - totalFees);
 
+    // Format fees with token symbol if available
+    const feeToken = withdrawalRoute?.constraints?.fees?.token || 'USDC';
+    const networkFeeDisplay =
+      feeToken === 'USDC'
+        ? `$${networkFee.toFixed(2)}`
+        : `${networkFee} ${feeToken}`;
+    const totalFeesDisplay =
+      feeToken === 'USDC'
+        ? `$${totalFees.toFixed(2)}`
+        : `${totalFees} ${feeToken}`;
+
     return {
-      networkFee: `$${networkFee.toFixed(2)}`,
+      networkFee: networkFeeDisplay,
       metamaskFee: METAMASK_WITHDRAWAL_FEE_PLACEHOLDER, // "$0.00"
-      totalFees: `$${totalFees.toFixed(2)}`,
-      estimatedTime: WITHDRAWAL_ESTIMATED_TIME,
+      totalFees: totalFeesDisplay,
+      estimatedTime:
+        withdrawalRoute?.constraints?.estimatedTime ||
+        WITHDRAWAL_ESTIMATED_TIME,
       receivingAmount: `${receivingAmount.toFixed(2)} USDC`,
     };
-  }, [amount]);
+  }, [amount, withdrawalRoute]);
 
   // Simple validation
   const hasValidQuote = useMemo(() => {
     const amountNum = parseFloat(amount || '0');
-    return amountNum > HYPERLIQUID_WITHDRAWAL_FEE; // Must be greater than $1 fee
-  }, [amount]);
+    const minAmount = parseFloat(
+      withdrawalRoute?.constraints?.minAmount ||
+        WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+    );
+    return amountNum >= minAmount;
+  }, [amount, withdrawalRoute]);
 
   const error = useMemo(() => {
     const amountNum = parseFloat(amount || '0');
-    if (amountNum > 0 && amountNum <= HYPERLIQUID_WITHDRAWAL_FEE) {
+    const minAmount = parseFloat(
+      withdrawalRoute?.constraints?.minAmount ||
+        WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+    );
+    if (amountNum > 0 && amountNum < minAmount) {
       return strings('perps.withdrawal.amount_too_low', {
-        minAmount: HYPERLIQUID_WITHDRAWAL_FEE + 0.01,
+        minAmount,
       });
     }
     return null;
-  }, [amount]);
+  }, [amount, withdrawalRoute]);
 
   return {
     formattedQuoteData,

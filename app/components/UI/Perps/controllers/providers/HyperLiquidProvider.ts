@@ -3,6 +3,7 @@ import { parseCaipAssetId, type Hex } from '@metamask/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { getBridgeInfo, getChainId } from '../../constants/hyperLiquidConfig';
+import { WITHDRAWAL_CONSTANTS } from '../../constants/perpsConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -140,6 +141,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
       assetId,
       chainId: bridgeInfo.chainId,
       contractAddress: bridgeInfo.contractAddress,
+      constraints: {
+        minAmount: WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+        estimatedTime: WITHDRAWAL_CONSTANTS.DEFAULT_ESTIMATED_TIME,
+        fees: {
+          fixed: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT,
+          token: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_TOKEN,
+        },
+      },
     }));
   }
 
