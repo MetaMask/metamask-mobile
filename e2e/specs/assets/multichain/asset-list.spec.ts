@@ -42,7 +42,6 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-
   it('should display tokens across networks when all networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
@@ -70,26 +69,31 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
 
   it.each([
     { tokenName: 'AVAX', networkName: 'Avalanche C-Chain' },
-    { tokenName: 'BNB', networkName: 'BNB Smart Chain' }
-  ])('should switch networks when clicking on send if an asset on a different network is selected - %s', async ({ tokenName, networkName }) => {
-    await WalletView.tapTokenNetworkFilter();
-    await WalletView.tapTokenNetworkFilterAll();
-    await WalletView.scrollToToken(tokenName);
-    await WalletView.tapOnToken(tokenName);
-    await Assertions.expectElementToBeVisible(TokenOverview.sendButton);
-    await TokenOverview.tapSendButton();
-    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
-    await Assertions.expectElementToHaveText(
-      NetworkEducationModal.networkName,
-      networkName,
-    );
-    await NetworkEducationModal.tapGotItButton();
-    try {
-      await SendView.tapCancelButton();
-    } catch (error) {
-      // Handle error
-    }
-  });
+    { tokenName: 'BNB', networkName: 'BNB Smart Chain' },
+  ])(
+    'should switch networks when clicking on send if an asset on a different network is selected - %s',
+    async ({ tokenName, networkName }) => {
+      await WalletView.tapTokenNetworkFilter();
+      await WalletView.tapTokenNetworkFilterAll();
+      await WalletView.scrollToToken(tokenName);
+      await WalletView.tapOnToken(tokenName);
+      await Assertions.expectElementToBeVisible(TokenOverview.sendButton);
+      await TokenOverview.tapSendButton();
+      await Assertions.expectElementToBeVisible(
+        NetworkEducationModal.container,
+      );
+      await Assertions.expectElementToHaveText(
+        NetworkEducationModal.networkName,
+        networkName,
+      );
+      await NetworkEducationModal.tapGotItButton();
+      try {
+        await SendView.tapCancelButton();
+      } catch (error) {
+        // Handle error
+      }
+    },
+  );
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
     await WalletView.tapTokenNetworkFilter();

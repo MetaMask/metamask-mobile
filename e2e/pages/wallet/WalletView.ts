@@ -198,8 +198,6 @@ class WalletView {
     });
   }
 
-
-
   async scrollToBottomOfTokensList(): Promise<void> {
     const tokensContainer = await this.getTokensInWallet();
     for (let i = 0; i < 8; i++) {
@@ -213,12 +211,12 @@ class WalletView {
   async scrollToTopOfTokensList(): Promise<void> {
     const tokensContainer = await this.getTokensInWallet();
     await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
-        speed: 'fast',
-        percentage: 0.7,
+      speed: 'fast',
+      percentage: 0.7,
     });
   }
 
- async scrollToToken(
+  async scrollToToken(
     tokenName: string,
     direction: 'up' | 'down' = 'down',
   ): Promise<void> {
@@ -227,7 +225,7 @@ class WalletView {
       Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
       {
         direction,
-        scrollAmount: 50
+        scrollAmount: 50,
       },
     );
   }
