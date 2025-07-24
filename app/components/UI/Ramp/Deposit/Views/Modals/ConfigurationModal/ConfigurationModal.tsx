@@ -1,0 +1,133 @@
+import React, { useCallback, useRef, useContext } from 'react';
+import { Linking, View } from 'react-native';
+import Text, {
+  TextVariant,
+} from '../../../../../../../component-library/components/Texts/Text';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
+import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../../../component-library/components/List/ListItemColumn';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../../../component-library/components/Icons/Icon';
+
+import { useStyles } from '../../../../../../hooks/useStyles';
+import styleSheet from './ConfigurationModal.styles';
+
+import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../../../locales/i18n';
+import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
+import { useDepositSDK } from '../../../sdk';
+import { useNavigation } from '@react-navigation/native';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../../../component-library/components/Toast';
+
+export const createConfigurationModalNavigationDetails =
+  createNavigationDetails(
+    Routes.DEPOSIT.MODALS.ID,
+    Routes.DEPOSIT.MODALS.CONFIGURATION,
+  );
+
+interface MenuItemProps {
+  iconName: IconName;
+  title: string;
+  onPress: () => void;
+}
+
+function MenuItem({ iconName, title, onPress }: MenuItemProps) {
+  const { theme } = useStyles(styleSheet, {});
+
+  return (
+    <ListItemSelect
+      isSelected={false}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessible
+    >
+      <ListItemColumn widthType={WidthType.Auto}>
+        <Icon
+          name={iconName}
+          size={IconSize.Md}
+          color={theme.colors.icon.default}
+        />
+      </ListItemColumn>
+      <ListItemColumn widthType={WidthType.Fill}>
+        <Text variant={TextVariant.BodyLGMedium}>{title}</Text>
+      </ListItemColumn>
+    </ListItemSelect>
+  );
+}
+
+function ConfigurationModal() {
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
+  const { toastRef } = useContext(ToastContext);
+
+  const { clearAuthToken, isAuthenticated } = useDepositSDK();
+
+  const navigateToOrderHistory = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: {
+        redirectToOrders: true,
+      },
+    });
+  }, [navigation]);
+
+  const handleContactSupport = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+    Linking.openURL(TRANSAK_SUPPORT_URL);
+  }, []);
+
+  const handleLogOut = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+    clearAuthToken();
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        { label: strings('deposit.configuration_modal.logged_out_success') },
+      ],
+      iconName: IconName.CheckBold,
+      iconColor: IconColor.Success,
+      hasNoTimeout: false,
+    });
+  }, [clearAuthToken, toastRef]);
+
+  return (
+    <BottomSheet ref={sheetRef} shouldNavigateBack>
+      <View style={styles.container}>
+        <MenuItem
+          iconName={IconName.Clock}
+          title={strings('deposit.configuration_modal.view_order_history')}
+          onPress={navigateToOrderHistory}
+        />
+
+        <MenuItem
+          iconName={IconName.Messages}
+          title={strings('deposit.configuration_modal.contact_support')}
+          onPress={handleContactSupport}
+        />
+
+        {isAuthenticated && (
+          <MenuItem
+            iconName={IconName.Logout}
+            title={strings('deposit.configuration_modal.log_out')}
+            onPress={handleLogOut}
+          />
+        )}
+      </View>
+    </BottomSheet>
+  );
+}
+
+export default ConfigurationModal;
