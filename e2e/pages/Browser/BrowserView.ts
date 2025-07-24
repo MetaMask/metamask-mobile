@@ -126,19 +126,27 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await Gestures.waitAndTap(this.urlInputBoxID);
+    await Gestures.waitAndTap(this.urlInputBoxID, {
+      elemDescription: 'URL input box',
+    });
   }
 
   async tapLocalHostDefaultAvatar(): Promise<void> {
-    await Gestures.waitAndTap(this.DefaultAvatarImageForLocalHost);
+    await Gestures.waitAndTap(this.DefaultAvatarImageForLocalHost, {
+      elemDescription: 'Local host default avatar',
+    });
   }
 
   async tapBottomSearchBar(): Promise<void> {
-    await Gestures.waitAndTap(this.searchButton);
+    await Gestures.waitAndTap(this.searchButton, {
+      elemDescription: 'Bottom search bar',
+    });
   }
 
   async tapOptionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.optionsButton);
+    await Gestures.waitAndTap(this.optionsButton, {
+      elemDescription: 'Options button',
+    });
   }
 
   async tapOpenAllTabsButton(): Promise<void> {
@@ -239,14 +247,10 @@ class Browser {
 
   async navigateToURL(url: string): Promise<void> {
     await device.disableSynchronization(); // because animations makes typing into the browser slow
-    await Gestures.typeText(
-      this.urlInputBoxID as Promise<IndexableNativeElement>,
-      url,
-      {
-        hideKeyboard: true,
-        elemDescription: 'URL input box',
-      },
-    );
+    await Gestures.typeText(this.urlInputBoxID, url, {
+      hideKeyboard: true,
+      elemDescription: 'URL input box',
+    });
     await device.enableSynchronization(); // re-enabling synchronization
   }
 
