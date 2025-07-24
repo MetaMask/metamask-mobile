@@ -59,9 +59,7 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
                   {
                     "flexDirection": "column",
                   },
-                  {
-                    "maxHeight": 89,
-                  },
+                  undefined,
                 ]
               }
             >
@@ -182,9 +180,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                   {
                     "flexDirection": "column",
                   },
-                  {
-                    "maxHeight": 89,
-                  },
+                  undefined,
                 ]
               }
             >
