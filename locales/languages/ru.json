@@ -1101,7 +1101,6 @@
   },
   "defi_positions": {
     "loading_positions": "Загрузка позиций DeFi...",
-    "no_positions": "Пока нет позиций",
     "error_cannot_load_page": "Мы не смогли загрузить эту страницу.",
     "error_visit_again": "Попробуйте зайти еще раз позже.",
     "single_token": "Только {{symbol}}",
