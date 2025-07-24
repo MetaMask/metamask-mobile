@@ -47,6 +47,7 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
+import RewardsView from '../../Views/RewardsView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -234,6 +235,16 @@ const TransactionsHome = () => (
     <Stack.Screen
       name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
       component={BridgeTransactionDetails}
+    />
+  </Stack.Navigator>
+);
+
+const RewardsHome = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.REWARDS_VIEW}
+      component={RewardsView}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -512,16 +523,14 @@ const HomeTabs = () => {
       rootScreenName: Routes.BROWSER_VIEW,
       unmountOnBlur: true,
     },
-    activity: {
-      tabBarIconKey: TabBarIconKey.Activity,
+    rewards: {
+      tabBarIconKey: TabBarIconKey.Rewards,
       callback: () => {
         trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-          ).build(),
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
         );
       },
-      rootScreenName: Routes.TRANSACTIONS_VIEW,
+      rootScreenName: Routes.REWARDS_VIEW,
       unmountOnBlur: true,
     },
     settings: {
@@ -593,7 +602,6 @@ const HomeTabs = () => {
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-
       <Tab.Screen
         name={Routes.SETTINGS_VIEW}
         options={options.settings}
