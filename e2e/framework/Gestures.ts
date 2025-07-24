@@ -45,6 +45,9 @@ export default class Gestures {
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
       await (expect(await elem) as any).toExist();
       await (await elem).tap();
+      if (options.waitForElementToDisappear) {
+        await Utilities.waitForElementToDisappear(elem);
+      }
       return;
     }
 
@@ -143,7 +146,6 @@ export default class Gestures {
       elemDescription,
     });
   }
-
 
   /**
    * Tap element at a specific index

@@ -18,11 +18,9 @@ class OnboardingView {
   }
 
   async tapCreateWallet(): Promise<void> {
-    await Gestures.waitAndTap(this.newWalletButton,
-      {
-        elemDescription: 'Onboarding  - Create New Wallet Button',
-      }
-    );
+    await Gestures.waitAndTap(this.newWalletButton, {
+      elemDescription: 'Onboarding  - Create New Wallet Button',
+    });
   }
 
   async tapHaveAnExistingWallet() {
