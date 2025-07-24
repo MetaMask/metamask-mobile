@@ -58,6 +58,7 @@ jobs:
       use_prebuilt_apps: true
     secrets: inherit
 
+    
   # smoke-trade-android:
   #   name: "Trade Smoke (Android)"
   #   if: false # github.event.label.name == 'Run E2E Smoke Test'
