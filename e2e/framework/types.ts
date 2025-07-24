@@ -18,6 +18,7 @@ export interface GestureOptions {
 
 export interface TapOptions extends GestureOptions {
   delay?: number; // Delay before the tap action
+  waitForElementToDisappear?: boolean; // If true, waits for the element to disappear after tapping
 }
 
 export interface TypeTextOptions extends GestureOptions {

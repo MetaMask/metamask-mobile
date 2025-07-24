@@ -1101,7 +1101,6 @@
   },
   "defi_positions": {
     "loading_positions": "Φόρτωση θέσεων στο DeFi...",
-    "no_positions": "Δεν υπάρχουν θέσεις ακόμα",
     "error_cannot_load_page": "Δεν ήταν δυνατή η φόρτωση αυτής της σελίδας.",
     "error_visit_again": "Προσπαθήστε ξανά αργότερα.",
     "single_token": "{{symbol}} μόνο",
