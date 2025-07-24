@@ -1101,7 +1101,6 @@
   },
   "defi_positions": {
     "loading_positions": "Inilo-load ang mga posisyon sa DeFi...",
-    "no_positions": "Wala pang mga posisyon",
     "error_cannot_load_page": "Hindi namin ma-load ang page na ito.",
     "error_visit_again": "Subukang bisitahin muli mamaya.",
     "single_token": "{{symbol}} lang",
