@@ -53,6 +53,28 @@ export interface PerpsNavigationParamList extends ParamListBase {
     finalBalance?: string;
   };
 
+  // Withdrawal flow routes
+  PerpsWithdraw: undefined;
+
+  PerpsWithdrawPreview: {
+    amount: string;
+    networkFee: string;
+    metamaskFee: string;
+    totalFees: string;
+    receivingAmount: string;
+    estimatedTime: string;
+  };
+
+  PerpsWithdrawProcessing: {
+    amount: string;
+    transactionHash?: string;
+  };
+
+  PerpsWithdrawSuccess: {
+    amount: string;
+    transactionHash: string;
+  };
+
   // Market and position management routes
   PerpsMarketList: undefined;
 

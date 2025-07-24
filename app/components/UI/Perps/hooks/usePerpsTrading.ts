@@ -16,6 +16,8 @@ import type {
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
   SubscribePricesParams,
+  WithdrawParams,
+  WithdrawResult,
 } from '../controllers/types';
 
 /**
@@ -110,6 +112,14 @@ export function usePerpsTrading() {
     controller.resetDepositState();
   }, []);
 
+  const withdraw = useCallback(
+    async (params: WithdrawParams): Promise<WithdrawResult> => {
+      const controller = Engine.context.PerpsController;
+      return controller.withdraw(params);
+    },
+    [],
+  );
+
   return {
     placeOrder,
     cancelOrder,
@@ -123,5 +133,6 @@ export function usePerpsTrading() {
     deposit,
     getDepositRoutes,
     resetDepositState,
+    withdraw,
   };
 }

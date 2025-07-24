@@ -210,6 +210,10 @@ const Routes = {
     DEPOSIT_PREVIEW: 'PerpsDepositPreview',
     DEPOSIT_PROCESSING: 'PerpsDepositProcessing',
     DEPOSIT_SUCCESS: 'PerpsDepositSuccess',
+    WITHDRAW: 'PerpsWithdraw',
+    WITHDRAW_PREVIEW: 'PerpsWithdrawPreview',
+    WITHDRAW_PROCESSING: 'PerpsWithdrawProcessing',
+    WITHDRAW_SUCCESS: 'PerpsWithdrawSuccess',
     POSITIONS: 'PerpsPositions',
     POSITION_DETAILS: 'PerpsPositionDetails',
     MODALS: {

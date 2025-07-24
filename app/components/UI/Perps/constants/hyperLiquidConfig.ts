@@ -100,6 +100,14 @@ export const FEE_RATES: FeeRatesConfig = {
 // MetaMask fee for deposits (temporary placeholder)
 export const METAMASK_DEPOSIT_FEE = '$0.00';
 
+// Withdrawal fees
+export const HYPERLIQUID_WITHDRAWAL_FEE = 1; // $1 USD fixed fee
+export const METAMASK_WITHDRAWAL_FEE = 0; // $0 - no MM fee for withdrawals
+export const METAMASK_WITHDRAWAL_FEE_PLACEHOLDER = '$0.00'; // Display format
+
+// Withdrawal timing
+export const WITHDRAWAL_ESTIMATED_TIME = '5 minutes';
+
 // Risk management constants
 export const RISK_MANAGEMENT: RiskManagementConfig = {
   maintenanceMargin: 0.05, // 5% maintenance margin for liquidation

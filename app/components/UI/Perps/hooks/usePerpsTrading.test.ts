@@ -17,6 +17,8 @@ import type {
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
   SubscribePricesParams,
+  WithdrawParams,
+  WithdrawResult,
 } from '../controllers/types';
 
 // Mock Engine
@@ -35,6 +37,7 @@ jest.mock('../../../../core/Engine', () => ({
       deposit: jest.fn(),
       getDepositRoutes: jest.fn(),
       resetDepositState: jest.fn(),
+      withdraw: jest.fn(),
     },
   },
 }));
@@ -457,6 +460,96 @@ describe('usePerpsTrading', () => {
     });
   });
 
+  describe('withdraw methods', () => {
+    it('should call PerpsController.withdraw with correct parameters', async () => {
+      const mockWithdrawResult: WithdrawResult = {
+        success: true,
+        txHash: '0xdef456',
+        amount: '1000',
+      };
+
+      (Engine.context.PerpsController.withdraw as jest.Mock).mockResolvedValue(
+        mockWithdrawResult,
+      );
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '1000',
+        destinationAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f89591',
+      };
+
+      const response = await result.current.withdraw(withdrawParams);
+
+      expect(Engine.context.PerpsController.withdraw).toHaveBeenCalledWith(
+        withdrawParams,
+      );
+      expect(response).toEqual(mockWithdrawResult);
+    });
+
+    it('should handle withdraw without destination address', async () => {
+      const mockWithdrawResult: WithdrawResult = {
+        success: true,
+        txHash: '0xghi789',
+        amount: '500',
+      };
+
+      (Engine.context.PerpsController.withdraw as jest.Mock).mockResolvedValue(
+        mockWithdrawResult,
+      );
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '500',
+        // No destinationAddress - should default to user's address
+      };
+
+      const response = await result.current.withdraw(withdrawParams);
+
+      expect(Engine.context.PerpsController.withdraw).toHaveBeenCalledWith(
+        withdrawParams,
+      );
+      expect(response).toEqual(mockWithdrawResult);
+    });
+
+    it('should handle withdraw errors', async () => {
+      const mockError = new Error('Insufficient balance');
+      (Engine.context.PerpsController.withdraw as jest.Mock).mockRejectedValue(
+        mockError,
+      );
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '10000',
+      };
+
+      await expect(result.current.withdraw(withdrawParams)).rejects.toThrow(
+        'Insufficient balance',
+      );
+    });
+
+    it('should handle withdrawal with minimum amount validation', async () => {
+      const mockError = new Error(
+        'Amount must be greater than $1.01 to cover fees',
+      );
+      (Engine.context.PerpsController.withdraw as jest.Mock).mockRejectedValue(
+        mockError,
+      );
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '0.5', // Less than the $1 fee
+      };
+
+      await expect(result.current.withdraw(withdrawParams)).rejects.toThrow(
+        'Amount must be greater than $1.01 to cover fees',
+      );
+    });
+  });
+
   describe('hook stability', () => {
     it('should return stable function references', () => {
       const { result, rerender } = renderHook(() => usePerpsTrading());
@@ -494,6 +587,7 @@ describe('usePerpsTrading', () => {
       expect(initialFunctions.resetDepositState).toBe(
         updatedFunctions.resetDepositState,
       );
+      expect(initialFunctions.withdraw).toBe(updatedFunctions.withdraw);
     });
   });
 });

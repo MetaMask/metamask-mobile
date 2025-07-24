@@ -4,6 +4,7 @@ export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsDeposit } from './usePerpsDeposit';
 export { usePerpsDepositQuote } from './usePerpsDepositQuote';
+export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 
 // Connection management hooks
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';

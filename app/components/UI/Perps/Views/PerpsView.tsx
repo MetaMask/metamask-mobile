@@ -257,6 +257,23 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             style={styles.button}
           />
 
+          {/* Show withdraw button only if there's available balance */}
+          {cachedAccountState?.availableBalance &&
+            parseFloat(
+              cachedAccountState.availableBalance
+                .replace('$', '')
+                .replace(',', ''),
+            ) > 0 && (
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.withdrawal.title')}
+                onPress={() => navigation.navigate(Routes.PERPS.WITHDRAW)}
+                style={styles.button}
+              />
+            )}
+
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
