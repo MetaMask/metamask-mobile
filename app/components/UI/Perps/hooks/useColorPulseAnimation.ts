@@ -58,22 +58,20 @@ export const useColorPulseAnimation = (
   // Shared values for animations
   const pulseAnim = useSharedValue(1);
   const colorAnim = useSharedValue(0); // 0 = default, 1 = increase, -1 = decrease
-  const isAnimatingRef = useRef(false);
+  const isAnimating = useSharedValue(false);
 
   const startPulseAnimation = useCallback(
     (pulseColor: PulseColor) => {
       'worklet';
 
       // Stop any existing animation to prevent conflicts
-      if (isAnimatingRef.current) {
+      if (isAnimating.value) {
         cancelAnimation(pulseAnim);
         cancelAnimation(colorAnim);
       }
 
       // Set animation flag
-      runOnJS(() => {
-        isAnimatingRef.current = true;
-      })();
+      isAnimating.value = true;
 
       // Determine color animation target based on pulse type
       let colorTarget = 0; // default/same
@@ -93,9 +91,7 @@ export const useColorPulseAnimation = (
           },
           (finished) => {
             if (finished) {
-              runOnJS(() => {
-                isAnimatingRef.current = false;
-              })();
+              isAnimating.value = false;
             }
           },
         ),
@@ -128,14 +124,12 @@ export const useColorPulseAnimation = (
     cancelAnimation(pulseAnim);
     cancelAnimation(colorAnim);
 
-    runOnJS(() => {
-      isAnimatingRef.current = false;
-    })();
+    isAnimating.value = false;
 
     // Reset to default values
     pulseAnim.value = withTiming(1, { duration: 100 });
     colorAnim.value = withTiming(0, { duration: 100 });
-  }, [pulseAnim, colorAnim]);
+  }, [pulseAnim, colorAnim, isAnimating]);
 
   return {
     getAnimatedStyle,
