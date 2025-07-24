@@ -1,11 +1,10 @@
 import React from 'react';
-import { NavigationProp } from '@react-navigation/native';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import PerpsTabView from './PerpsTabView';
-import type { PerpsNavigationParamList } from '../../controllers/types';
 
 interface PerpsTabViewWithProviderProps {
-  navigation?: NavigationProp<PerpsNavigationParamList>;
+  navigation?: NavigationProp<ParamListBase>;
   tabLabel?: string;
 }
 
