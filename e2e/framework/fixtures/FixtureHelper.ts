@@ -28,7 +28,7 @@ import {
   AnvilNodeOptions,
   GanacheNodeOptions,
 } from '../types';
-import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
+import { TestDapps, defaultGanacheOptions } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
@@ -57,6 +57,83 @@ const isFixtureServerStarted = async () => {
 };
 
 /**
+ * Gets the dapp server path based on the dapp variant
+ * @param dapp - The dapp options
+ * @returns The path to the dapp server
+ */
+function getDappServerPath(dapp: DappOptions): string {
+  if (dapp.dappPath) {
+    return dapp.dappPath;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(TestDapps, dapp.dappVariant)) {
+    return (TestDapps as Record<string, { dappPath: string }>)[dapp.dappVariant].dappPath;
+  }
+
+  throw new Error(`Unsupported dapp variant: '${dapp.dappVariant}'. Cannot start the server.`);
+}
+
+/**
+ * Attempts to start a server on a specific port
+ * @param server - The server to start
+ * @param port - The port to use
+ * @param serverIndex - The index of the server for logging
+ * @returns A promise that resolves to true if the server started successfully
+ */
+async function tryStartServer(
+  server: http.Server,
+  port: number,
+  serverIndex: number
+): Promise<boolean> {
+  return new Promise<boolean>((resolve, reject) => {
+    // Set a timeout to avoid hanging
+    const timeoutId = setTimeout(() => {
+      server.removeAllListeners('listening');
+      server.removeAllListeners('error');
+      reject(new Error(`Timeout waiting for server ${serverIndex} to start on port ${port}`));
+    }, 5000);
+
+    // Set up success listener
+    server.once('listening', () => {
+      clearTimeout(timeoutId);
+      logger.debug(`Dapp server ${serverIndex} successfully listening on port ${port}`);
+      resolve(true);
+    });
+
+    // Set up error listener
+    server.once('error', (error: NodeJS.ErrnoException) => {
+      clearTimeout(timeoutId);
+      if (error.code === 'EADDRINUSE') {
+        logger.warn(`Port ${port} is already in use. Will try another port.`);
+        resolve(false); // Not successful, but don't throw an error
+      } else {
+        reject(error);
+      }
+    });
+
+    // Try to listen on the port
+    server.listen(port);
+  });
+}
+
+/**
+ * Safely closes a server
+ * @param server - The server to close
+ * @returns A promise that resolves when the server is closed
+ */
+async function safeCloseServer(server: http.Server): Promise<void> {
+  if (!server || typeof server.close !== 'function') {
+    return;
+  }
+
+  return new Promise<void>((resolve) => {
+    server.close(() => resolve());
+    // If close hangs, resolve anyway after a timeout
+    setTimeout(resolve, 1000);
+  });
+}
+
+/**
  * Handles the dapps by starting the servers and listening to the ports.
  * @param dapps - The dapps to start.
  * @param dappServer - The dapp server to start.
@@ -69,44 +146,46 @@ async function handleDapps(
     `Starting dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`,
   );
   const dappBasePort = getLocalTestDappPort();
+
   for (let i = 0; i < dapps.length; i++) {
     const dapp = dapps[i];
-    switch (dapp.dappVariant) {
-      case DappVariants.TEST_DAPP:
-        dappServer.push(
-          createStaticServer(
-            dapp.dappPath || TestDapps[DappVariants.TEST_DAPP].dappPath,
-          ),
-        );
-        break;
-      case DappVariants.MULTICHAIN_TEST_DAPP:
-        dappServer.push(
-          createStaticServer(
-            dapp.dappPath ||
-              TestDapps[DappVariants.MULTICHAIN_TEST_DAPP].dappPath,
-          ),
-        );
-        break;
-      case DappVariants.SOLANA_TEST_DAPP:
-        dappServer.push(
-          createStaticServer(
-            dapp.dappPath || TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
-          ),
-        );
-        break;
-      default:
-        throw new Error(
-          `Unsupported dapp variant: '${dapp.dappVariant}'. Cannot start the server.`,
-        );
+
+    // Get server path and create the static server
+    const serverPath = getDappServerPath(dapp);
+    dappServer.push(createStaticServer(serverPath));
+
+    // Try to start the server with multiple attempts
+    const maxAttempts = 5;
+    let isServerStarted = false;
+    let lastError;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const portOffset = attempt * 10; // Try ports further apart on each attempt
+      const port = dappBasePort + i + portOffset;
+
+      try {
+        logger.debug(`Attempt ${attempt + 1}/${maxAttempts}: Starting dapp server ${i} on port ${port}`);
+
+        // Try to start the server
+        isServerStarted = await tryStartServer(dappServer[i], port, i);
+
+        if (isServerStarted) {
+          break; // Server started successfully
+        }
+      } catch (error) {
+        logger.error(`Error starting server on attempt ${attempt + 1}: ${error}`);
+        lastError = error;
+
+        // Close and recreate the server
+        await safeCloseServer(dappServer[i]);
+        dappServer[i] = createStaticServer(serverPath);
+      }
     }
-    dappServer[i].listen(`${dappBasePort + i}`);
-    await new Promise((resolve, reject) => {
-      dappServer[i].on('listening', () => {
-        logger.debug(`Dapp server listening on port ${dappBasePort + i}`);
-        resolve(undefined);
-      });
-      dappServer[i].on('error', reject);
-    });
+
+    // If server didn't start after all attempts, throw an error
+    if (!isServerStarted) {
+      throw new Error(`Failed to start dapp server ${i} after ${maxAttempts} attempts. Last error: ${lastError}`);
+    }
   }
 }
 
