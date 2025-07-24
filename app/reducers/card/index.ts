@@ -1,4 +1,4 @@
-import { CardActions, CardActionType } from '../../actions/card';
+import { CardActionType, CardAction } from '../../actions/card/types';
 
 export interface CardState {
   cardholderAccounts: string[];
@@ -22,7 +22,7 @@ const initialState: CardState = {
 /**
  * Card reducer - manages card-related state
  */
-const cardReducer = (state = initialState, action?: CardActions): CardState => {
+const cardReducer = (state = initialState, action?: CardAction): CardState => {
   switch (action?.type) {
     case CardActionType.LOAD_CARDHOLDER_ACCOUNTS_REQUEST:
       return {

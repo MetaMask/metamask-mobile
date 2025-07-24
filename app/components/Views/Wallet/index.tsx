@@ -116,6 +116,7 @@ import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { selectHasCardholderAccounts } from '../../../selectors/card';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -242,6 +243,8 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+
+  const isCardholder = useSelector(selectHasCardholderAccounts);
 
   /**
    * Object containing the balance of the current selected account
@@ -530,6 +533,7 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
+        isCardholder,
       ),
     );
   }, [
@@ -545,6 +549,7 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
+    isCardholder,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(

@@ -955,6 +955,7 @@ export function getWalletNavbarOptions(
   isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
+  isCardholderEnabled = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1137,6 +1138,16 @@ export function getWalletNavbarOptions(
               />
             )}
           </View>
+        )}
+
+        {isCardholderEnabled && (
+          <ButtonIcon
+            iconColor={IconColor.Default}
+            onPress={openQRScanner}
+            iconName={IconName.Card}
+            size={IconSize.Xl}
+            testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+          />
         )}
 
         <ButtonIcon

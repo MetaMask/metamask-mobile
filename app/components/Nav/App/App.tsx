@@ -138,7 +138,7 @@ import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPh
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
 import AccountStatus from '../../Views/AccountStatus';
-import { useCardholderCheck } from '../../../hooks/useCardholderCheck';
+import { useCardholderCheck } from '../../UI/Card/hooks/useCardholderCheck';
 import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
