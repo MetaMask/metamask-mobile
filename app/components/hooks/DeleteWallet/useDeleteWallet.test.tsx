@@ -42,6 +42,10 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+jest.mock('../../UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
+  resetProviderToken: jest.fn(),
+}));
+
 describe('useDeleteWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
