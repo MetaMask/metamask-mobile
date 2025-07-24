@@ -1,9 +1,12 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useContext } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { type Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
+import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
+import { ToastContext, ToastVariants } from '../../../../../component-library/components/Toast';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -32,6 +35,9 @@ import {
 import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import type { PerpsToken } from '../../components/PerpsTokenSelector';
+import { selectTokenList } from '../../../../../selectors/tokenListController';
+import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
+import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
@@ -42,12 +48,14 @@ import {
   USDC_SYMBOL,
   ZERO_ADDRESS,
   ARBITRUM_MAINNET_CHAIN_ID,
+  HYPERLIQUID_ASSET_CONFIGS,
 } from '../../constants/hyperLiquidConfig';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   usePerpsAccount,
   usePerpsNetwork,
   usePerpsWithdrawQuote,
+  usePerpsTrading,
 } from '../../hooks';
 import createStyles from './PerpsWithdrawView.styles';
 
@@ -59,6 +67,7 @@ const PerpsWithdrawView: React.FC = () => {
   const [withdrawAmount, setWithdrawAmount] = useState<string>('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldBlur, setShouldBlur] = useState(false);
+  const [isSubmittingTx, setIsSubmittingTx] = useState(false);
 
   // Refs
   const inputRef = useRef<TokenInputAreaRef>(null);
@@ -67,6 +76,12 @@ const PerpsWithdrawView: React.FC = () => {
   const cachedAccountState = usePerpsAccount();
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
+  const { toastRef } = useContext(ToastContext);
+  const { withdraw } = usePerpsTrading();
+
+  // Selectors
+  const tokenList = useSelector(selectTokenList);
+  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
   // Available balance from perps account
   const availableBalance = useMemo(() => {
@@ -77,10 +92,9 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Source token (Hyperliquid USDC)
   const sourceToken = useMemo<PerpsToken>(() => {
-    const hyperliquidChainId = isTestnet
-      ? HYPERLIQUID_TESTNET_CHAIN_ID
-      : HYPERLIQUID_MAINNET_CHAIN_ID;
-    return {
+    // Always use mainnet chain ID for network image (like in deposit/order views)
+    const hyperliquidChainId = HYPERLIQUID_MAINNET_CHAIN_ID;
+    const baseToken: PerpsToken = {
       symbol: USDC_SYMBOL,
       address: ZERO_ADDRESS,
       decimals: USDC_DECIMALS,
@@ -88,20 +102,47 @@ const PerpsWithdrawView: React.FC = () => {
       chainId: hyperliquidChainId,
       currencyExchangeRate: 1,
     };
-  }, [isTestnet]);
+
+    // Enhance with icon from token list
+    if (tokenList) {
+      return enhanceTokenWithIcon({
+        token: baseToken,
+        tokenList,
+        isIpfsGatewayEnabled,
+      });
+    }
+
+    return baseToken;
+  }, [tokenList, isIpfsGatewayEnabled]);
 
   // Destination token (Arbitrum USDC)
-  const destToken = useMemo<PerpsToken>(
-    () => ({
+  const destToken = useMemo<PerpsToken>(() => {
+    const arbitrumChainId = toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex;
+    console.log('Arbitrum chain ID for network image:', {
+      original: ARBITRUM_MAINNET_CHAIN_ID,
+      hex: arbitrumChainId,
+    });
+    
+    const baseToken: PerpsToken = {
       symbol: USDC_SYMBOL,
       address: ZERO_ADDRESS, // Will be actual USDC address on Arbitrum
       decimals: USDC_DECIMALS,
       name: USDC_NAME,
-      chainId: ARBITRUM_MAINNET_CHAIN_ID as Hex,
+      chainId: arbitrumChainId,
       currencyExchangeRate: 1,
-    }),
-    [],
-  );
+    };
+
+    // Enhance with icon from token list
+    if (tokenList) {
+      return enhanceTokenWithIcon({
+        token: baseToken,
+        tokenList,
+        isIpfsGatewayEnabled,
+      });
+    }
+
+    return baseToken;
+  }, [tokenList, isIpfsGatewayEnabled]);
 
   // Use withdrawal quote hook
   const {
@@ -163,18 +204,108 @@ const PerpsWithdrawView: React.FC = () => {
     setTimeout(() => setShouldBlur(false), 100);
   }, []);
 
-  const handleContinue = useCallback(() => {
+  const handleContinue = useCallback(async () => {
     if (!withdrawAmount || !hasValidQuote) return;
 
-    navigation.navigate(Routes.PERPS.WITHDRAW_PREVIEW, {
-      amount: withdrawAmount,
-      networkFee: formattedQuoteData.networkFee,
-      metamaskFee: formattedQuoteData.metamaskFee,
-      totalFees: formattedQuoteData.totalFees,
-      receivingAmount: formattedQuoteData.receivingAmount,
-      estimatedTime: formattedQuoteData.estimatedTime,
-    });
-  }, [withdrawAmount, hasValidQuote, formattedQuoteData, navigation]);
+    // Additional validation
+    const withdrawAmountNum = parseFloat(withdrawAmount);
+    if (isNaN(withdrawAmountNum) || withdrawAmountNum <= 0) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Danger,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: strings('perps.withdrawal.error'),
+            isBold: true,
+          },
+          {
+            label: strings('perps.withdrawal.invalid_amount'),
+          },
+        ],
+      });
+      return;
+    }
+
+    try {
+      setIsSubmittingTx(true);
+
+      // Show toast about withdrawal initiation
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: strings('perps.withdrawal.initiated'),
+            isBold: true,
+          },
+          {
+            label: strings('perps.withdrawal.wait_time_message'),
+          },
+        ],
+      });
+
+      // Get the correct assetId for USDC on Arbitrum
+      const usdcAssetId = isTestnet
+        ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
+        : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+
+      console.log('Withdrawal params:', {
+        amount: withdrawAmount,
+        assetId: usdcAssetId,
+        isTestnet,
+      });
+
+      // Initiate withdrawal with required assetId
+      const result = await withdraw({ 
+        amount: withdrawAmount,
+        assetId: usdcAssetId,
+      });
+
+      if (result.success) {
+        // Navigate directly to processing view
+        navigation.navigate(Routes.PERPS.WITHDRAW_PROCESSING, {
+          amount: withdrawAmount,
+          receivingAmount: formattedQuoteData.receivingAmount,
+          transactionHash: result.txHash || '',
+        });
+      } else {
+        // Show error toast
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Danger,
+          hasNoTimeout: false,
+          labelOptions: [
+            {
+              label: strings('perps.withdrawal.error'),
+              isBold: true,
+            },
+            {
+              label: result.error || strings('perps.withdrawal.error_generic'),
+            },
+          ],
+        });
+      }
+    } catch (error) {
+      // Show error toast
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Danger,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: strings('perps.withdrawal.error'),
+            isBold: true,
+          },
+          {
+            label: error instanceof Error ? error.message : strings('perps.withdrawal.error_generic'),
+          },
+        ],
+      });
+    } finally {
+      setIsSubmittingTx(false);
+    }
+  }, [withdrawAmount, hasValidQuote, formattedQuoteData, navigation, withdraw, toastRef]);
 
   // Button state
   const hasAmount = withdrawAmount && parseFloat(withdrawAmount) > 0;
@@ -192,7 +323,7 @@ const PerpsWithdrawView: React.FC = () => {
       });
     if (!withdrawAmount || parseFloat(withdrawAmount) === 0)
       return strings('perps.withdrawal.enter_amount');
-    return strings('perps.withdrawal.review');
+    return strings('perps.withdrawal.withdraw_usdc');
   };
 
   // Extract numeric value from formatted receiving amount
@@ -203,6 +334,15 @@ const PerpsWithdrawView: React.FC = () => {
     }
     return '0';
   }, [formattedQuoteData.receivingAmount]);
+
+  // Debug network images
+  const destNetworkImage = getNetworkImageSource({
+    chainId: destToken.chainId,
+  });
+  console.log('Destination network image:', {
+    chainId: destToken.chainId,
+    networkImage: destNetworkImage,
+  });
 
   return (
     // @ts-expect-error The type is incorrect, this will work
@@ -255,16 +395,14 @@ const PerpsWithdrawView: React.FC = () => {
 
             <Box style={styles.arrowContainer}>
               <Box style={styles.arrowCircle}>
-                <Icon name={IconName.Arrow2Down} size={IconSize.Md} />
+                <Icon name={IconName.Arrow2Down} size={IconSize.Xl} />
               </Box>
             </Box>
 
             <TokenInputArea
               amount={destAmount}
               token={destToken}
-              networkImageSource={getNetworkImageSource({
-                chainId: destToken.chainId,
-              })}
+              networkImageSource={destNetworkImage}
               networkName="Arbitrum"
               testID="dest-token-area"
               tokenType={TokenInputAreaType.Destination}
@@ -290,7 +428,8 @@ const PerpsWithdrawView: React.FC = () => {
               label={getButtonLabel()}
               onPress={handleContinue}
               style={styles.actionButton}
-              disabled={!hasValidInputs}
+              disabled={!hasValidInputs || isSubmittingTx}
+              loading={isSubmittingTx}
               testID="continue-button"
             />
 
@@ -352,7 +491,8 @@ const PerpsWithdrawView: React.FC = () => {
               label={getButtonLabel()}
               onPress={handleContinue}
               style={styles.actionButton}
-              disabled={!hasValidInputs}
+              disabled={!hasValidInputs || isSubmittingTx}
+              loading={isSubmittingTx}
               testID="continue-button"
             />
           </View>

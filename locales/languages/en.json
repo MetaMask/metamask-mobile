@@ -818,6 +818,8 @@
       "insufficient_funds": "Insufficient funds",
       "enter_amount": "Enter amount",
       "review": "Review withdrawal",
+      "withdraw": "Withdraw",
+      "withdraw_usdc": "Withdraw USDC",
       "minimum_amount_error": "Minimum withdrawal amount is ${{amount}}",
       "amount_too_low": "Amount must be greater than ${{minAmount}} to cover fees",
       "confirm": "Confirm withdrawal",
@@ -830,7 +832,12 @@
       "total_fees": "Total fees",
       "receiving_amount": "You will receive",
       "estimated_time": "Estimated time",
-      "done": "Done"
+      "done": "Done",
+      "initiated": "Withdrawal initiated",
+      "wait_time_message": "Your funds should arrive within 5 minutes",
+      "error": "Withdrawal failed",
+      "error_generic": "An error occurred during withdrawal",
+      "invalid_amount": "Please enter a valid amount"
     },
     "order": {
       "title": "New Order",

@@ -643,9 +643,112 @@ export class PerpsController extends BaseController<
    * Withdraw funds from trading account
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
-    // TODO: not validated yet
-    const provider = this.getActiveProvider();
-    return provider.withdraw(params);
+    try {
+      DevLogger.log('🚀 PerpsController: STARTING WITHDRAWAL', {
+        params,
+        timestamp: new Date().toISOString(),
+        assetId: params.assetId,
+        amount: params.amount,
+        destination: params.destination,
+        activeProvider: this.state.activeProvider,
+        isTestnet: this.state.isTestnet,
+      });
+
+      // Validate required parameters
+      if (!params.assetId) {
+        const error = strings(
+          'perps.errors.withdrawValidation.assetIdRequired',
+        );
+        DevLogger.log('❌ PerpsController: WITHDRAWAL VALIDATION FAILED', {
+          error,
+          reason: 'Missing assetId',
+          params,
+        });
+        this.update((state) => {
+          state.lastError = error;
+          state.lastUpdateTimestamp = Date.now();
+        });
+        return { success: false, error };
+      }
+
+      if (!params.amount || parseFloat(params.amount) <= 0) {
+        const error = strings('perps.errors.withdrawValidation.amountPositive');
+        DevLogger.log('❌ PerpsController: WITHDRAWAL VALIDATION FAILED', {
+          error,
+          reason: 'Invalid amount',
+          amount: params.amount,
+          params,
+        });
+        this.update((state) => {
+          state.lastError = error;
+          state.lastUpdateTimestamp = Date.now();
+        });
+        return { success: false, error };
+      }
+
+      // Get provider
+      const provider = this.getActiveProvider();
+      DevLogger.log('📡 PerpsController: DELEGATING TO PROVIDER', {
+        provider: this.state.activeProvider,
+        providerReady: !!provider,
+      });
+
+      // Execute withdrawal through provider
+      const result = await provider.withdraw(params);
+
+      DevLogger.log('📊 PerpsController: WITHDRAWAL RESULT', {
+        success: result.success,
+        error: result.error,
+        txHash: result.txHash,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Update state based on result
+      if (result.success) {
+        this.update((state) => {
+          state.lastError = null;
+          state.lastUpdateTimestamp = Date.now();
+        });
+        DevLogger.log('✅ PerpsController: WITHDRAWAL SUCCESSFUL', {
+          txHash: result.txHash,
+          amount: params.amount,
+          assetId: params.assetId,
+        });
+      } else {
+        this.update((state) => {
+          state.lastError =
+            result.error || strings('perps.errors.withdrawFailed');
+          state.lastUpdateTimestamp = Date.now();
+        });
+        DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
+          error: result.error,
+          params,
+        });
+      }
+
+      return result;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : strings('perps.errors.withdrawFailed');
+
+      DevLogger.log('💥 PerpsController: WITHDRAWAL EXCEPTION', {
+        error: errorMessage,
+        errorType:
+          error instanceof Error ? error.constructor.name : typeof error,
+        stack: error instanceof Error ? error.stack : undefined,
+        params,
+        timestamp: new Date().toISOString(),
+      });
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      return { success: false, error: errorMessage };
+    }
   }
 
   /**

@@ -45,15 +45,21 @@ const createStyles = ({ theme }: { theme: Theme }) => {
     },
     arrowContainer: {
       alignItems: 'center',
+      justifyContent: 'center',
+      height: 1,
+      backgroundColor: theme.colors.border.muted,
       marginVertical: 16,
+      zIndex: 1,
     },
     arrowCircle: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.background.alternative,
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: colors.background.default,
+      borderRadius: 32,
+      borderWidth: 1,
+      paddingLeft: 16,
+      paddingTop: 16,
+      width: 64,
+      height: 64,
+      borderColor: colors.border.default,
     },
     quoteContainer: {
       marginTop: 24,
@@ -67,6 +73,7 @@ const createStyles = ({ theme }: { theme: Theme }) => {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
       paddingTop: 16,
+      paddingHorizontal: 16,
     },
     fixedBottomContainer: {
       paddingHorizontal: 16,
@@ -78,6 +85,7 @@ const createStyles = ({ theme }: { theme: Theme }) => {
     },
     actionButton: {
       marginBottom: 16,
+      width: '100%',
     },
     percentageButtonsRow: {
       flexDirection: 'row',
