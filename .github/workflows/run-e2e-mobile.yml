@@ -22,7 +22,7 @@ on:
 
 jobs:
   test-e2e-mobile:
-    name: ${{ inputs.platform }}-${{ inputs.test_suite_tag }}
+    name: ${{ inputs.platform }} tests
     runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'large-mm-test' }}
     #runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
 
@@ -245,7 +245,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.platform }}-${{ inputs.test_suite_tag }}
+          name: ${{ github.job }}-test-results
           path: e2e/reports/
           retention-days: 7
       
@@ -253,6 +253,6 @@ jobs:
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.platform }}-${{ inputs.test_suite_tag }}-screenshots
+          name: ${{ github.job }}-screenshots
           path: artifacts/
           retention-days: 7
