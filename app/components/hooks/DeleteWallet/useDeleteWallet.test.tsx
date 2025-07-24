@@ -4,7 +4,7 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { Authentication } from '../../../core';
-import { resetProviderToken as depositConsumerResetProviderToken } from '../../UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { resetProviderToken as depositResetProviderToken } from '../../UI/Ramp/Deposit/utils/ProviderTokenVault';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -71,9 +71,7 @@ describe('useDeleteWallet', () => {
       'clearState',
     );
     const loggerSpy = jest.spyOn(Logger, 'log');
-    const resetProviderTokenSpy = jest.mocked(
-      depositConsumerResetProviderToken,
-    );
+    const resetProviderTokenSpy = jest.mocked(depositResetProviderToken);
 
     await resetWalletState();
 
