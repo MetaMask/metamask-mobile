@@ -15,6 +15,7 @@ export class ExtendedControllerMessenger<
     criteria: (
       ...args: Parameters<ExtractEventHandler<Event, EventType>>
     ) => boolean,
+    { onTimeout, timeout }: { onTimeout?: () => void; timeout?: number } = {},
   ): typeof handler {
     const internalHandler = ((...data: Parameters<typeof handler>) => {
       if (!criteria || criteria(...data)) {
@@ -24,6 +25,13 @@ export class ExtendedControllerMessenger<
     }) as typeof handler;
 
     this.subscribe(eventType, internalHandler);
+
+    if (timeout) {
+      setTimeout(() => {
+        this.tryUnsubscribe(eventType, internalHandler);
+        onTimeout?.();
+      }, timeout);
+    }
 
     return internalHandler;
   }
