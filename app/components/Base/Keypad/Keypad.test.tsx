@@ -1,34 +1,101 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import Keypad from './components';
+import KeypadComponents from './components';
+import Keypad from '.';
+import { act, fireEvent, render } from '@testing-library/react-native';
 
-describe('Keypad component', () => {
-  test('components should render correctly', () => {
-    const dummyHandler = jest.fn();
-    const wrapper = shallow(
-      <Keypad>
-        <Keypad.Row>
-          <Keypad.Button onPress={dummyHandler}>1</Keypad.Button>
-          <Keypad.Button onPress={dummyHandler}>2</Keypad.Button>
-          <Keypad.Button onPress={dummyHandler}>3</Keypad.Button>
-        </Keypad.Row>
-        <Keypad.Row>
-          <Keypad.Button onPress={dummyHandler}>4</Keypad.Button>
-          <Keypad.Button onPress={dummyHandler}>5</Keypad.Button>
-          <Keypad.Button onPress={dummyHandler}>6</Keypad.Button>
-        </Keypad.Row>
-        <Keypad.Row>
-          <Keypad.Button onPress={dummyHandler}>7</Keypad.Button>
-          <Keypad.Button onPress={dummyHandler}>8</Keypad.Button>
-          <Keypad.Button onPress={dummyHandler}>9</Keypad.Button>
-        </Keypad.Row>
-        <Keypad.Row>
-          <Keypad.Button onPress={dummyHandler}>.</Keypad.Button>
-          <Keypad.Button onPress={dummyHandler}>0</Keypad.Button>
-          <Keypad.DeleteButton onPress={dummyHandler} />
-        </Keypad.Row>
-      </Keypad>,
+describe('Keypad', () => {
+  it('should render correctly and match snapshot', () => {
+    const mockOnChange = jest.fn();
+    const { toJSON } = render(
+      <Keypad currency="native" value="0" onChange={mockOnChange} />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('calls the onChange handler with correct data when a key is pressed', () => {
+    const mockOnChange = jest.fn();
+    const { getByText } = render(
+      <Keypad currency="native" value="0" onChange={mockOnChange} />,
+    );
+
+    const button1 = getByText('1');
+    act(() => {
+      fireEvent.press(button1);
+    });
+    expect(mockOnChange).toHaveBeenCalledWith({
+      value: '1',
+      valueAsNumber: 1,
+      pressedKey: '1',
+    });
+  });
+});
+
+describe('Keypad components', () => {
+  it('components should render correctly and match snapshot', () => {
+    const dummyHandler = jest.fn();
+    const { toJSON } = render(
+      <KeypadComponents>
+        <KeypadComponents.Row>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            1
+          </KeypadComponents.Button>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            2
+          </KeypadComponents.Button>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            3
+          </KeypadComponents.Button>
+        </KeypadComponents.Row>
+        <KeypadComponents.Row>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            4
+          </KeypadComponents.Button>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            5
+          </KeypadComponents.Button>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            6
+          </KeypadComponents.Button>
+        </KeypadComponents.Row>
+        <KeypadComponents.Row>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            7
+          </KeypadComponents.Button>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            8
+          </KeypadComponents.Button>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            9
+          </KeypadComponents.Button>
+        </KeypadComponents.Row>
+        <KeypadComponents.Row>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            .
+          </KeypadComponents.Button>
+          <KeypadComponents.Button onPress={dummyHandler}>
+            0
+          </KeypadComponents.Button>
+          <KeypadComponents.DeleteButton onPress={dummyHandler} />
+        </KeypadComponents.Row>
+      </KeypadComponents>,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('calls the onPress handler when a button is pressed', () => {
+    const dummyHandler = jest.fn();
+    const { getByText } = render(
+      <KeypadComponents>
+        <KeypadComponents.Button onPress={dummyHandler}>
+          1
+        </KeypadComponents.Button>
+      </KeypadComponents>,
+    );
+
+    const button1 = getByText('1');
+    act(() => {
+      fireEvent.press(button1);
+    });
+    expect(dummyHandler).toHaveBeenCalled();
   });
 });

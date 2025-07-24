@@ -1,13 +1,13 @@
 import React, { useCallback } from 'react';
 import { ViewStyle, TextStyle } from 'react-native';
 import Keypad from './components';
-import { KEYS, KeyType } from './constants';
+import { KEYS } from './constants';
 import useCurrency from './useCurrency';
 
 interface KeypadChangeData {
   value: string;
   valueAsNumber: number;
-  pressedKey: string;
+  pressedKey: KEYS;
 }
 
 interface KeypadComponentProps {
@@ -74,7 +74,7 @@ function KeypadComponent({
   const { handler, decimalSeparator } = useCurrency(currency, decimals);
 
   const handleKeypadPress = useCallback(
-    (pressedKey: string) => {
+    (pressedKey: KEYS) => {
       const newValue = handler(value, pressedKey);
       let valueAsNumber = 0;
       try {
@@ -262,5 +262,5 @@ function KeypadComponent({
 }
 
 export { KEYS };
-export type { KeypadChangeData, KeypadComponentProps, KeyType };
+export type { KeypadChangeData, KeypadComponentProps };
 export default KeypadComponent;
