@@ -184,12 +184,12 @@ export const DepositSDKProvider = ({
   );
 
   const logoutFromProvider = useCallback(async () => {
+    if (sdk) {
+      await sdk.logout();
+    }
     await resetProviderToken();
     setAuthToken(undefined);
     setIsAuthenticated(false);
-    if (sdk) {
-      sdk.logout();
-    }
   }, [sdk]);
 
   const contextValue = useMemo(
