@@ -8,16 +8,20 @@ import { toHex } from '@metamask/controller-utils';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { BigNumber } from 'bignumber.js';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 
 export interface TransactionToken {
   address: Hex;
   amount: Hex;
 }
 
+/**
+ * Determine what tokens are required by the transaction.
+ * Necessary for MetaMask Pay to generate suitable bridge or swap transactions.
+ */
 export function useTransactionRequiredTokens() {
-  const transactionMeta = useTransactionMetadataRequest();
-  const chainId = transactionMeta?.chainId as Hex;
+  const transactionMeta = useTransactionMetadataOrThrow();
+  const { chainId } = transactionMeta;
 
   const balanceTokens = useTokensWithBalance({
     chainIds: [chainId],
@@ -37,9 +41,9 @@ export function useTransactionRequiredTokens() {
 }
 
 function useTokenTransferToken(): TransactionToken | undefined {
-  const transactionMetadata = useTransactionMetadataRequest();
-  const { txParams } = transactionMetadata || {};
-  const { data, to } = txParams || {};
+  const transactionMetadata = useTransactionMetadataOrThrow();
+  const { txParams } = transactionMetadata;
+  const { data, to } = txParams;
 
   let transferAmount: Hex | undefined;
 
@@ -67,9 +71,9 @@ function useTokenTransferToken(): TransactionToken | undefined {
 }
 
 function useValueToken(): TransactionToken | undefined {
-  const transactionMetadata = useTransactionMetadataRequest();
-  const { txParams } = transactionMetadata || {};
-  const { value } = txParams || {};
+  const transactionMetadata = useTransactionMetadataOrThrow();
+  const { txParams } = transactionMetadata;
+  const { value } = txParams;
 
   return useMemo(() => {
     if (!value) {

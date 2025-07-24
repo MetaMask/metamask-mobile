@@ -1,5 +1,5 @@
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { TokenFiatRateRequest, useTokenFiatRates } from './useTokenFiatRates';
 
 const CHAIN_ID_1_MOCK = '0x123';

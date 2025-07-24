@@ -1,14 +1,14 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
-import { useTokenFiatRates } from '../useTokenFiatRates';
-import { usePayAsset } from './usePayAsset';
-import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
-import { useTransactionRequiredFiat } from '../pay/useTransactionRequiredFiat';
+import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
+import { useTransactionPayToken } from './useTransactionPayToken';
+import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
+import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 
 jest.mock('./useTransactionRequiredFiat');
-jest.mock('../useTokenFiatRates');
+jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
-jest.mock('./usePayAsset');
+jest.mock('./useTransactionPayToken');
 
 const TOKEN_ADDRESS_MOCK = '0x123';
 const CHAIN_ID_MOCK = '0x1';
@@ -23,7 +23,7 @@ describe('useTransactionPayTokenAmounts', () => {
   const useTransactionRequiredFiatMock = jest.mocked(
     useTransactionRequiredFiat,
   );
-  const usePayAssetMock = jest.mocked(usePayAsset);
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -44,12 +44,12 @@ describe('useTransactionPayTokenAmounts', () => {
 
     useTokenFiatRatesMock.mockReturnValue([4]);
 
-    usePayAssetMock.mockReturnValue({
-      payAsset: {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
         address: TOKEN_ADDRESS_MOCK,
         chainId: CHAIN_ID_MOCK,
       },
-      setPayAsset: jest.fn(),
+      setPayToken: jest.fn(),
     });
   });
 

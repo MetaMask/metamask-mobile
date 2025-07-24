@@ -2,7 +2,7 @@ import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
-import { useTokenFiatRates } from '../useTokenFiatRates';
+import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -10,7 +10,7 @@ import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithB
 import { toHex } from '@metamask/controller-utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 
-jest.mock('../useTokenFiatRates');
+jest.mock('../tokens/useTokenFiatRates');
 jest.mock('./useTransactionRequiredTokens');
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
 
@@ -22,9 +22,12 @@ function runHook() {
   const state = merge(
     simpleSendTransactionControllerMock,
     transactionApprovalControllerMock,
+    {
+      engine: {
+        backgroundState,
+      },
+    },
   );
-
-  state.engine.backgroundState = backgroundState as never;
 
   return renderHookWithProvider(useTransactionRequiredFiat, { state }).result
     .current;

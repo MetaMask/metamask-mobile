@@ -1,18 +1,22 @@
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import { useMemo } from 'react';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
-import { useTokenFiatRates } from '../useTokenFiatRates';
+import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 
 export const PAY_BRIDGE_SLIPPAGE = 0.02;
 export const PAY_BRIDGE_FEE = 0.005;
 
+/**
+ * Calculate the fiat value of any tokens required by the transaction.
+ * Necessary for MetaMask Pay to calculate the how much of the selected pay token is needed.
+ */
 export function useTransactionRequiredFiat() {
-  const transactionMeta = useTransactionMetadataRequest();
-  const chainId = transactionMeta?.chainId as Hex;
+  const transactionMeta = useTransactionMetadataOrThrow();
+  const { chainId } = transactionMeta;
   const requiredTokens = useTransactionRequiredTokens();
 
   const tokens = useTokensWithBalance({

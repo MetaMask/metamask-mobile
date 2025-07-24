@@ -1,8 +1,8 @@
 import { useSelector } from 'react-redux';
-import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
+import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { Hex } from '@metamask/utils';
-import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useMemo } from 'react';
 
 export interface TokenFiatRateRequest {

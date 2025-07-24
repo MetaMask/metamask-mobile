@@ -3,9 +3,12 @@ import { useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { useTokenFiatRates } from '../useTokenFiatRates';
+import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 
+/**
+ * Calculate the amount of the selected pay token, that is needed for each token required by the transaction.
+ */
 export function useTransactionPayTokenAmounts() {
   const { payToken } = useTransactionPayToken();
   const { address, chainId } = payToken;
