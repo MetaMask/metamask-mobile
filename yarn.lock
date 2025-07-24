@@ -8259,10 +8259,10 @@
   dependencies:
     "@sentry/core" "8.54.0"
 
-"@shopify/flash-list@^1.7.6":
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/@shopify/flash-list/-/flash-list-1.8.0.tgz#d271d3ca49acf9f53812594f0c4d24a994eb95e5"
-  integrity sha512-APZ48kceCCJobUimmI2594io+HujELK60HFKgzIyIdHGX5ySR5YfvsPy3PKtPwHHDtIMFNaq3U/BY3qZocOhCA==
+"@shopify/flash-list@2.0.0-rc.12":
+  version "2.0.0-rc.12"
+  resolved "https://registry.yarnpkg.com/@shopify/flash-list/-/flash-list-2.0.0-rc.12.tgz#cfaad57383acff72ccf5ba0476f9716c1be668c0"
+  integrity sha512-K3zV3W1iwOzMLTHOTNAk3G25bxeMg/u16WhiV02QnLbsQyMlvcRY5s5RZcJaT4zUdVPRN4wu6jowEBh+vnkvLQ==
   dependencies:
     recyclerlistview "4.2.3"
     tslib "2.8.1"
