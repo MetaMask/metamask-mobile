@@ -90,6 +90,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           case Routes.TRANSACTIONS_VIEW:
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
             break;
+          case Routes.REWARDS_VIEW:
+            navigation.navigate(Routes.REWARDS_VIEW);
+            break;
           case Routes.SETTINGS_VIEW:
             navigation.navigate(Routes.SETTINGS_VIEW, {
               screen: 'Settings',
