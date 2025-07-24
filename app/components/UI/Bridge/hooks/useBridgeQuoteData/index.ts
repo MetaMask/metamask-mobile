@@ -34,7 +34,9 @@ interface UseBridgeQuoteDataParams {
 /**
  * Hook for getting bridge quote data without request logic
  */
-export const useBridgeQuoteData = ({ latestSourceAtomicBalance }: UseBridgeQuoteDataParams = {}) => {
+export const useBridgeQuoteData = ({
+  latestSourceAtomicBalance,
+}: UseBridgeQuoteDataParams = {}) => {
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);

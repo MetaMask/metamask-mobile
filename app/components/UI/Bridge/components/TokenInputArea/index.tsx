@@ -14,7 +14,7 @@ import {
 } from '../../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { ethers , BigNumber } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
