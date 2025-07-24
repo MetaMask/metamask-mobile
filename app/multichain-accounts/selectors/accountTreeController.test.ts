@@ -374,7 +374,7 @@ describe('AccountTreeController Selectors', () => {
                 id: WALLET_ID_1,
                 metadata: { name: 'Wallet 1' },
                 groups: {
-                  'entropy:1/1': {
+                  'keyring:1/ethereum': {
                     accounts: [ACCOUNT_ID_1],
                   },
                 },
@@ -410,7 +410,7 @@ describe('AccountTreeController Selectors', () => {
               id: WALLET_ID_1,
               metadata: { name: 'Wallet 1' },
               groups: {
-                'entropy:1/1': {
+                'keyring:1/ethereum': {
                   accounts: [ACCOUNT_ID_1],
                 },
               },
