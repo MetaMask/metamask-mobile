@@ -14,7 +14,7 @@ const styleSheet = () =>
       marginRight: 24,
     },
     addressContainer: {
-      width: 200,
+      width: 250,
     },
   });
 
