@@ -2,14 +2,16 @@ import React from 'react';
 import { View } from 'react-native';
 
 import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useSendContext } from '../../../context/send-context';
 import styleSheet from './amount.styles';
 
 const Amount = () => {
   const { styles } = useStyles(styleSheet, {});
-  const { updateTransactionParams } = useSendContext();
+  const { amountError, updateTransactionParams } = useSendContext();
 
   return (
     <View>
@@ -21,6 +23,7 @@ const Amount = () => {
         }}
         testID="send_amount"
       />
+      <Text color={TextColor.Error}>{amountError}</Text>
     </View>
   );
 };
