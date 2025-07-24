@@ -41,6 +41,7 @@ import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getBridgeControllerMessenger } from './bridge-controller-messenger';
 import { getBridgeStatusControllerMessenger } from './bridge-status-controller-messenger';
 import { getMultichainAccountServiceMessenger } from './multichain-account-service-messenger/multichain-account-service-messenger';
+import { getRewardsControllerMessenger } from './rewards-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -159,6 +160,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   MultichainAccountService: {
     getMessenger: getMultichainAccountServiceMessenger,
+    getInitMessenger: noop,
+  },
+  RewardsController: {
+    getMessenger: getRewardsControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;
