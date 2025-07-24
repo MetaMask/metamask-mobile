@@ -64,7 +64,10 @@ function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
     // Solana account types
     [SolAccountType.DataAccount]: [SolScope.Mainnet],
 
-    // Generic account type -- THIS ACCOUNT TYPE VALID ONLY ON FLASK
+    // Generic account type
+    //
+    // This account type is valid only in Flask and is intended to be used
+    // only during the integration of new blockchains.
     [AnyAccountType.Account]: ['any:scope'],
   };
 
