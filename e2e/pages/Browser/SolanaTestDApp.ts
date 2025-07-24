@@ -1,5 +1,5 @@
 import { dataTestIds } from '@metamask/test-dapp-solana';
-import { getLocalTestDappPort } from '../../fixtures/utils';
+import { getLocalTestDappUrl } from '../../fixtures/utils';
 import Matchers from '../../utils/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import Browser from './BrowserView';
@@ -10,9 +10,6 @@ import {
   SolanaTestDappSelectorsWebIDs,
 } from '../../selectors/Browser/SolanaTestDapp.selectors';
 import TestHelpers from '../../helpers';
-
-// Use the same port as the regular test dapp - the solanaDapp flag controls which dapp is served
-export const SOLANA_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 
 /**
  * Get a test element by data-testid
@@ -78,7 +75,7 @@ class SolanaTestDApp {
   async navigateToSolanaTestDApp(): Promise<void> {
     await Browser.tapUrlInputBox();
 
-    await Browser.navigateToURL(SOLANA_TEST_DAPP_LOCAL_URL);
+    await Browser.navigateToURL(getLocalTestDappUrl());
 
     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
       .toBeVisible()
