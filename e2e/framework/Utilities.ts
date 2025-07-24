@@ -307,6 +307,25 @@ export default class Utilities {
   }
 
   /**
+   * Wait for element to be not visible and throw on failure
+   */
+  static async waitForElementToDisappear(
+    detoxElement: DetoxElement | DetoxMatcher,
+    timeout: number = 2000,
+  ): Promise<void> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
+    const isWebElement = this.isWebElement(el);
+    if (isWebElement) {
+      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+      await (expect(el) as any).not.toExist();
+    } else if (device.getPlatform() === 'ios') {
+      await waitFor(el).not.toExist().withTimeout(timeout);
+    } else {
+      await waitFor(el).not.toBeVisible().withTimeout(timeout);
+    }
+  }
+
+  /**
    * Check if element is currently visible
    * Returns true if element is visible, false if not visible or doesn't exist
    */
