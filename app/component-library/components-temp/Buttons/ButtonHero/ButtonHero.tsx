@@ -2,76 +2,104 @@
 
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, GestureResponderEvent } from 'react-native';
+import {
+  ActivityIndicator,
+  GestureResponderEvent,
+  Pressable,
+} from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../../hooks';
-import Button from '../../../components/Buttons/Button/foundation/ButtonBase';
-import { default as TextComponent } from '../../../components/Texts/Text/Text';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useTheme } from '../../../../util/theme';
+import Text from '../../../components/Texts/Text';
 import { TextColor } from '../../../components/Texts/Text';
+import Icon from '../../../components/Icons/Icon';
+import { IconColor } from '../../../components/Icons/Icon';
 
 // Internal dependencies.
 import { ButtonHeroProps } from './ButtonHero.types';
-import styleSheet from './ButtonHero.styles';
 import { DEFAULT_BUTTONHERO_LABEL_TEXTVARIANT } from './ButtonHero.constants';
 
 const ButtonHero = ({
-  style,
   onPressIn,
   onPressOut,
+  onPress,
   label,
+  startIconName,
+  endIconName,
+  isDisabled,
+  loading,
   ...props
 }: ButtonHeroProps) => {
   const [pressed, setPressed] = useState(false);
-  const { styles, theme } = useStyles(styleSheet, {
-    style,
-    pressed,
-  });
+  const tw = useTailwind();
+  const { colors } = useTheme();
 
   const triggerOnPressedIn = useCallback(
-    (e: GestureResponderEvent) => {
+    (event: GestureResponderEvent) => {
       setPressed(true);
-      onPressIn?.(e);
+      onPressIn?.(event);
     },
     [setPressed, onPressIn],
   );
 
   const triggerOnPressedOut = useCallback(
-    (e: GestureResponderEvent) => {
+    (event: GestureResponderEvent) => {
       setPressed(false);
-      onPressOut?.(e);
+      onPressOut?.(event);
     },
     [setPressed, onPressOut],
   );
 
-  // ButtonHero always uses inverse text color (white text on primary background)
-  const textColor = TextColor.Inverse;
-
   const renderLabel = () =>
     typeof label === 'string' ? (
-      <TextComponent
+      <Text
         variant={DEFAULT_BUTTONHERO_LABEL_TEXTVARIANT}
-        color={textColor}
+        color={TextColor.Inverse}
       >
         {label}
-      </TextComponent>
+      </Text>
     ) : (
       label
     );
 
   const renderLoading = () => (
-    <ActivityIndicator size="small" color={theme.colors.primary.inverse} />
+    <ActivityIndicator size="small" color={colors.primary.inverse} />
   );
 
+  const renderContent = () => {
+    if (loading) {
+      return renderLoading();
+    }
+
+    return (
+      <>
+        {startIconName && (
+          <Icon name={startIconName} color={IconColor.Inverse} />
+        )}
+        {renderLabel()}
+        {endIconName && <Icon name={endIconName} color={IconColor.Inverse} />}
+      </>
+    );
+  };
+
   return (
-    <Button
-      style={styles.base}
-      label={!props.loading ? renderLabel() : renderLoading()}
-      labelColor={textColor}
-      onPressIn={triggerOnPressedIn}
-      onPressOut={triggerOnPressedOut}
+    <Pressable
+      onPress={!isDisabled ? onPress : undefined}
+      onPressIn={!isDisabled ? triggerOnPressedIn : undefined}
+      onPressOut={!isDisabled ? triggerOnPressedOut : undefined}
+      disabled={isDisabled}
+      style={tw.style(
+        'bg-icon-default rounded-xl px-4 py-3 flex-row items-center justify-center gap-2',
+        pressed && 'bg-icon-default-pressed',
+        isDisabled && 'opacity-50',
+      )}
+      accessibilityRole="button"
+      accessible
       {...props}
-    />
+    >
+      {renderContent()}
+    </Pressable>
   );
 };
 

@@ -2,9 +2,15 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 
+// External dependencies.
+import { IconName } from '../../../components/Icons/Icon';
+
 // Internal dependencies.
 import ButtonHero from './ButtonHero';
-import { BUTTONHERO_TESTID, SAMPLE_BUTTONHERO_PROPS } from './ButtonHero.constants';
+import {
+  BUTTONHERO_TESTID,
+  SAMPLE_BUTTONHERO_PROPS,
+} from './ButtonHero.constants';
 
 describe('ButtonHero', () => {
   const mockOnPress = jest.fn();
@@ -74,7 +80,7 @@ describe('ButtonHero', () => {
     );
 
     const buttonElement = getByTestId(BUTTONHERO_TESTID);
-    expect(buttonElement).toHaveProp('disabled', true);
+    expect(buttonElement).toHaveProp('accessibilityState', { disabled: true });
   });
 
   it('should not call onPress when disabled', () => {
@@ -114,6 +120,21 @@ describe('ButtonHero', () => {
       <ButtonHero
         {...SAMPLE_BUTTONHERO_PROPS}
         label={customLabel}
+        onPress={mockOnPress}
+        testID={BUTTONHERO_TESTID}
+      />,
+    );
+
+    expect(getByTestId(BUTTONHERO_TESTID)).toBeOnTheScreen();
+  });
+
+  it('should render with start and end icons', () => {
+    const { getByTestId } = render(
+      <ButtonHero
+        {...SAMPLE_BUTTONHERO_PROPS}
+        label="Icon Button"
+        startIconName={IconName.Add}
+        endIconName={IconName.ArrowRight}
         onPress={mockOnPress}
         testID={BUTTONHERO_TESTID}
       />,

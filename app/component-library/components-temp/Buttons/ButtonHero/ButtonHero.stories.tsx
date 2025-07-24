@@ -1,34 +1,33 @@
 // Third party dependencies.
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+
+// External dependencies.
+import { IconName } from '../../../components/Icons/Icon';
 
 // Internal dependencies.
 import ButtonHero from './ButtonHero';
 import { SAMPLE_BUTTONHERO_PROPS } from './ButtonHero.constants';
 
-const ButtonHeroMeta: Meta<typeof ButtonHero> = {
-  title: 'Component Library / Buttons / ButtonHero',
+const ButtonHeroMeta = {
+  title: 'Components-Temp / Buttons',
   component: ButtonHero,
-  parameters: {
-    docs: {
-      description: {
-        component:
-          'ButtonHero is a hero-style primary button with default and pressed states using primary colors.',
-      },
-    },
-  },
   argTypes: {
     label: {
       control: { type: 'text' },
-      description: 'The text or React node to display on the button',
     },
     loading: {
       control: { type: 'boolean' },
-      description: 'Shows loading spinner when true',
     },
     isDisabled: {
       control: { type: 'boolean' },
-      description: 'Disables the button when true',
+    },
+    startIconName: {
+      control: { type: 'select' },
+      options: Object.values(IconName),
+    },
+    endIconName: {
+      control: { type: 'select' },
+      options: Object.values(IconName),
     },
   },
 };
@@ -39,10 +38,8 @@ const handlePress = () => {
   console.log('ButtonHero pressed!');
 };
 
-type Story = StoryObj<typeof ButtonHeroMeta>;
-
 // Default story
-export const Default: Story = {
+export const Default = {
   args: {
     ...SAMPLE_BUTTONHERO_PROPS,
     label: 'Hero Button',
@@ -51,7 +48,7 @@ export const Default: Story = {
 };
 
 // Loading state
-export const Loading: Story = {
+export const Loading = {
   args: {
     ...SAMPLE_BUTTONHERO_PROPS,
     label: 'Loading Button',
@@ -61,7 +58,7 @@ export const Loading: Story = {
 };
 
 // Disabled state
-export const Disabled: Story = {
+export const Disabled = {
   args: {
     ...SAMPLE_BUTTONHERO_PROPS,
     label: 'Disabled Button',
@@ -71,12 +68,12 @@ export const Disabled: Story = {
 };
 
 // With icons
-export const WithIcons: Story = {
+export const WithIcons = {
   args: {
     ...SAMPLE_BUTTONHERO_PROPS,
     label: 'Get Started',
-    startIconName: 'Add',
-    endIconName: 'ArrowRight',
+    startIconName: IconName.Add,
+    endIconName: IconName.ArrowRight,
     onPress: handlePress,
   },
 };
@@ -88,6 +85,13 @@ export const AllStates = {
       <ButtonHero
         {...SAMPLE_BUTTONHERO_PROPS}
         label="Default Hero"
+        onPress={handlePress}
+      />
+      <ButtonHero
+        {...SAMPLE_BUTTONHERO_PROPS}
+        label="With Icons"
+        startIconName={IconName.Bank}
+        endIconName={IconName.ArrowRight}
         onPress={handlePress}
       />
       <ButtonHero
@@ -104,11 +108,4 @@ export const AllStates = {
       />
     </div>
   ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Shows all three main states of ButtonHero: default, loading, and disabled.',
-      },
-    },
-  },
 };
