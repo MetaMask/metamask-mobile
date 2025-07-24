@@ -233,7 +233,7 @@ describe('usePerpsWithdrawQuote', () => {
       const firstResult = result.current.formattedQuoteData;
 
       // Force re-render with same amount
-      rerender();
+      rerender({ amount: '100' });
 
       const secondResult = result.current.formattedQuoteData;
 
@@ -241,22 +241,23 @@ describe('usePerpsWithdrawQuote', () => {
     });
 
     it('should recalculate for different amounts', () => {
-      let currentAmount = '100';
-
-      const { result, rerender } = renderHookWithProvider(
-        () => usePerpsWithdrawQuote({ amount: currentAmount }),
+      // First render with amount 100
+      const { result: result1 } = renderHookWithProvider(
+        () => usePerpsWithdrawQuote({ amount: '100' }),
         { state: {} as DeepPartial<RootState> },
       );
 
-      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+      expect(result1.current.formattedQuoteData.receivingAmount).toBe(
         '99.00 USDC',
       );
 
-      // Update amount
-      currentAmount = '200';
-      rerender();
+      // Second render with amount 200
+      const { result: result2 } = renderHookWithProvider(
+        () => usePerpsWithdrawQuote({ amount: '200' }),
+        { state: {} as DeepPartial<RootState> },
+      );
 
-      expect(result.current.formattedQuoteData.receivingAmount).toBe(
+      expect(result2.current.formattedQuoteData.receivingAmount).toBe(
         '199.00 USDC',
       );
     });

@@ -1523,8 +1523,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
         // Access nested structure: tokenBalances[account][chainId][tokenAddress]
         const accountBalances =
           tokenBalancesState.tokenBalances[accountAddress];
-        const chainBalances = accountBalances?.[hexChainId as `0x${string}`];
-        currentUsdcBalance = chainBalances?.[usdcAddress];
+        // Cast to proper template literal type for strict typing
+        const chainBalances = accountBalances?.[hexChainId as Hex];
+        currentUsdcBalance = chainBalances?.[usdcAddress as Hex];
 
         DevLogger.log('🔍 HyperLiquid: Balance check result', {
           accountAddress,
@@ -1583,18 +1584,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
               balanceIncrease: balanceIncrease.toString(),
             },
           };
-        } else {
-          DevLogger.log(
-            '🔍 HyperLiquid: Balance checked but no increase detected yet',
-            {
-              withdrawalId: withdrawal.withdrawalId,
-              expectedIncrease: minExpectedIncrease.toFixed(2),
-              actualIncrease: balanceIncrease.toFixed(2),
-              currentBalance: currentBalanceDecimal.toFixed(2),
-              baselineBalance: baselineBalance.toFixed(2),
-            },
-          );
         }
+
+        DevLogger.log(
+          '🔍 HyperLiquid: Balance checked but no increase detected yet',
+          {
+            withdrawalId: withdrawal.withdrawalId,
+            expectedIncrease: minExpectedIncrease.toFixed(2),
+            actualIncrease: balanceIncrease.toFixed(2),
+            currentBalance: currentBalanceDecimal.toFixed(2),
+            baselineBalance: baselineBalance.toFixed(2),
+          },
+        );
       } else if (!baselineBalanceStr && currentUsdcBalance !== undefined) {
         // Store baseline for future comparisons - convert hex to decimal
         const baselineWei = BigInt(currentUsdcBalance);

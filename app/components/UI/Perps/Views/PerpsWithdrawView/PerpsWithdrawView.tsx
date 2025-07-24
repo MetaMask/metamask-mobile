@@ -1,21 +1,17 @@
+import { toHex } from '@metamask/controller-utils';
+import { type Hex } from '@metamask/utils';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, {
   useCallback,
+  useContext,
   useMemo,
   useRef,
   useState,
-  useContext,
 } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import { type Hex } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -30,7 +26,14 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
 import { useStyles } from '../../../../../component-library/hooks';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
+import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../../UI/Box/Box';
@@ -43,28 +46,25 @@ import {
 import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import type { PerpsToken } from '../../components/PerpsTokenSelector';
-import { selectTokenList } from '../../../../../selectors/tokenListController';
-import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
-import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import {
+  ARBITRUM_MAINNET_CHAIN_ID,
+  HYPERLIQUID_ASSET_CONFIGS,
   HYPERLIQUID_MAINNET_CHAIN_ID,
-  HYPERLIQUID_TESTNET_CHAIN_ID,
   HYPERLIQUID_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
   USDC_DECIMALS,
   USDC_NAME,
   USDC_SYMBOL,
-  ZERO_ADDRESS,
-  ARBITRUM_MAINNET_CHAIN_ID,
-  HYPERLIQUID_ASSET_CONFIGS,
+  ZERO_ADDRESS
 } from '../../constants/hyperLiquidConfig';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   usePerpsAccount,
   usePerpsNetwork,
-  usePerpsWithdrawQuote,
   usePerpsTrading,
+  usePerpsWithdrawQuote,
 } from '../../hooks';
+import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsWithdrawView.styles';
 
 const PerpsWithdrawView: React.FC = () => {
@@ -254,7 +254,7 @@ const PerpsWithdrawView: React.FC = () => {
         ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
         : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
 
-      console.log('Withdrawal params:', {
+      DevLogger.log('🔍 PerpsWithdrawView: Withdrawal params', {
         amount: withdrawAmount,
         assetId: usdcAssetId,
         isTestnet,
@@ -328,14 +328,7 @@ const PerpsWithdrawView: React.FC = () => {
     } finally {
       setIsSubmittingTx(false);
     }
-  }, [
-    withdrawAmount,
-    hasValidQuote,
-    formattedQuoteData,
-    navigation,
-    withdraw,
-    toastRef,
-  ]);
+  }, [withdrawAmount, hasValidQuote, toastRef, isTestnet, withdraw, navigation]);
 
   // Button state
   const hasAmount = withdrawAmount && parseFloat(withdrawAmount) > 0;

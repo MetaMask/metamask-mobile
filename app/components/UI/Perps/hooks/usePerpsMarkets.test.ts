@@ -67,6 +67,10 @@ const mockProvider = {
     success: true,
     orderId: '123',
   }),
+  checkWithdrawalStatus: jest.fn().mockResolvedValue({
+    status: 'pending',
+    metadata: {},
+  }),
 } as const;
 
 const mockPerpsController = Engine.context.PerpsController as jest.Mocked<

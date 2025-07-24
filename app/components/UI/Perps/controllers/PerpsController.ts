@@ -786,17 +786,17 @@ export class PerpsController extends BaseController<
 
         // Return result with withdrawal ID
         return { ...result, withdrawalId };
-      } else {
-        this.update((state) => {
-          state.lastError =
-            result.error || strings('perps.errors.withdrawFailed');
-          state.lastUpdateTimestamp = Date.now();
-        });
-        DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
-          error: result.error,
-          params,
-        });
       }
+
+      this.update((state) => {
+        state.lastError =
+          result.error || strings('perps.errors.withdrawFailed');
+        state.lastUpdateTimestamp = Date.now();
+      });
+      DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
+        error: result.error,
+        params,
+      });
 
       return result;
     } catch (error) {

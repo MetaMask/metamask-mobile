@@ -1,6 +1,6 @@
+import { CaipAssetId } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
-import { usePerpsTrading } from './usePerpsTrading';
 import type {
   AccountState,
   AssetRoute,
@@ -19,8 +19,8 @@ import type {
   SubscribePricesParams,
   WithdrawParams,
   WithdrawResult,
-  CaipAssetId,
 } from '../controllers/types';
+import { usePerpsTrading } from './usePerpsTrading';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -476,7 +476,8 @@ describe('usePerpsTrading', () => {
 
       const withdrawParams: WithdrawParams = {
         amount: 'mock-amount',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
       };
 
       const response = await result.current.withdraw(withdrawParams);
@@ -501,7 +502,8 @@ describe('usePerpsTrading', () => {
 
       const withdrawParams: WithdrawParams = {
         amount: 'mock-amount-2',
-        assetId: 'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
       };
 
       const response = await result.current.withdraw(withdrawParams);
