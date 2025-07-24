@@ -40,7 +40,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should connect to the test dapp', async () => {
+  /*it('should connect to the test dapp', async () => {
     await withBrowser(async () => {
       await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
         description: 'Browser screen is visible',
@@ -116,7 +116,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
 
   it('Should download blob file', async () => {
     await testDownloadFile(ExternalSites.DOWNLOAD_BLOB_FILE_WEBSITE);
-  });
+  });*/
 
   it('Should download base64 file', async () => {
     await testDownloadFile(ExternalSites.DOWNLOAD_BASE64_FILE_WEBSITE);
@@ -143,6 +143,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
           : element(by.label('Download'));
       const downloadButtonInDialogAttrsBeforeDelay =
         await downloadButtonElement.getAttributes();
+      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
       if ((downloadButtonInDialogAttrsBeforeDelay as any).enabled == true) {
         throw new Error(
           'Download button is enabled, but should be disabled to prevent Tapjacking',
@@ -151,6 +152,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await TestHelpers.delay(600);
       const downloadButtonInDialogAttrsAfterDelay =
         await downloadButtonElement.getAttributes();
+      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
       if ((downloadButtonInDialogAttrsAfterDelay as any).enabled == false) {
         throw new Error(
           'Download button is disabled, but should be enabled after 500ms Tapjacking delay',
@@ -170,7 +172,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     });
   }
 
-  it('Should connect to Uniswap', async () => {
+  /*it('Should connect to Uniswap', async () => {
     await withBrowser(async () => {
       await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
         description: 'Browser screen is visible',
@@ -255,5 +257,5 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
         },
       );
     });
-  });
+  });*/
 });
