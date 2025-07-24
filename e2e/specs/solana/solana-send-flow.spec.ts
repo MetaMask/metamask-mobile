@@ -1,7 +1,6 @@
-'use strict';
 import { SmokeNetworkExpansion } from '../../tags';
-import { importWalletWithRecoveryPhrase, loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
@@ -31,7 +30,6 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
   it('should import wallet with a Solana account', async () => {
     await importWalletWithRecoveryPhrase({
       seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
-      solanaSheetAction: 'dismiss',
     });
 
     await WalletView.tapCurrentMainWalletAccountActions();
@@ -39,9 +37,7 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
     await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
 
-    await TestHelpers.delay(2000);
-
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
+    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
 
     await WalletView.tapCurrentMainWalletAccountActions();
@@ -52,7 +48,7 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSendButton();
     await SnapSendActionSheet.sendActionInputAddress(INVALID_ADDRESS);
-    await Assertions.checkIfElementToHaveText(
+    await Assertions.expectElementToHaveText(
       SnapSendActionSheet.invalidAddressError,
       INVALID_ADDRESS_ERROR,
     );
@@ -65,19 +61,19 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
     await WalletActionsBottomSheet.tapSendButton();
     await SnapSendActionSheet.sendActionInputAddress(RECIPIENT_ADDRESS);
     await SnapSendActionSheet.sendActionInputAmount(TRANSFER_AMOUNT);
-    await TestHelpers.delay(4000);
+
     await SnapSendActionSheet.tapContinueButton();
     // Snap UI components prove tricky for testID's require more time
+
     await SnapSendActionSheet.tapSendSOLTransactionButton();
     // Assert transaction is sent
-    await Assertions.checkIfTextIsDisplayed(EXPECTED_CONFIRMATION);
+    await Assertions.expectTextDisplayed(EXPECTED_CONFIRMATION);
   });
 
-  it('Should verify that transaction is sent successfully', async () => {
-    await TestHelpers.delay(4000);
+  it('should verify that transaction is sent successfully', async () => {
     await SnapSendActionSheet.tapCloseButton();
     await TabBarComponent.tapActivity();
     await ActivitiesView.tapOnTransactionItem(RECENT_TRANSACTION_INDEX);
-    await Assertions.checkIfTextIsDisplayed(RECIPIENT_SHORT_ADDRESS);
+    await Assertions.expectTextDisplayed(RECIPIENT_SHORT_ADDRESS);
   });
 });

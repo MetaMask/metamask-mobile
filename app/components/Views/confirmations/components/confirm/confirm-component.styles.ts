@@ -25,6 +25,13 @@ const styleSheet = (params: { theme: Theme }) => {
     scrollView: {
       paddingHorizontal: 16,
     },
+    spinnerContainer: {
+      backgroundColor: theme.colors.background.alternative,
+      width: '100%',
+      height: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   });
 };
 

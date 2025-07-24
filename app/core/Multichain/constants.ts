@@ -20,28 +20,6 @@ export const MULTICHAIN_TOKEN_IMAGES = {
   [SolScope.Testnet]: imageIcons.SOLANA,
 } as const;
 
-export interface ProviderConfigWithImageUrl {
-  rpcUrl?: string;
-  type: string;
-  ticker: string;
-  decimal: number;
-  nickname?: string;
-  rpcPrefs?: { blockExplorerUrl?: string };
-  id?: string;
-}
-
-export type MultichainNetworkIds = CaipChainId;
-
-export type MultichainProviderConfig = ProviderConfigWithImageUrl & {
-  nickname: string;
-  chainId: CaipChainId;
-  // Variant of block explorer URLs for non-EVM.
-  blockExplorerFormatUrls?: MultichainBlockExplorerFormatUrls;
-  // NOTE: For now we use a callback to check if the address is compatible with
-  // the given network or not
-  isAddressCompatible: (address: string) => boolean;
-};
-
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
   CaipChainId,
   MultichainBlockExplorerFormatUrls
