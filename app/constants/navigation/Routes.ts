@@ -287,7 +287,8 @@ const Routes = {
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
   SEND: {
-    ROOT: 'Send',
+    DEFAULT: 'Send',
+    ROOT: 'Root',
   },
 };
 
