@@ -29,7 +29,6 @@ export interface SnapUISelectorProps {
   error?: string;
   disabled?: boolean;
   style?: ViewStyle;
-  itemStyle?: ViewStyle;
   compact?: boolean;
 }
 
@@ -39,7 +38,6 @@ interface SelectorItemProps {
   onSelect: (value: State) => void;
   selected?: boolean;
   disabled?: boolean;
-  style?: ViewStyle;
 }
 
 const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
@@ -48,9 +46,8 @@ const SelectorItem: React.FunctionComponent<SelectorItemProps> = ({
   onSelect,
   disabled,
   selected,
-  style,
 }) => {
-  const { styles } = useStyles(stylesheet, { selected, itemStyle: style });
+  const { styles } = useStyles(stylesheet, { selected });
 
   const handlePress = () => {
     onSelect(value);
@@ -86,10 +83,9 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   disabled,
   onSelect,
   style,
-  itemStyle,
   compact = false,
 }) => {
-  const { styles } = useStyles(stylesheet, { compact, selectorStyle: style });
+  const { styles } = useStyles(stylesheet, { compact });
   const { handleInputChange, getValue } = useSnapInterfaceContext();
 
   const initialValue = getValue(name, form);
@@ -179,7 +175,6 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
                   disabled={options[index]?.disabled}
                   onSelect={handleSelect}
                   selected={selectedOptionIndex === index}
-                  style={itemStyle}
                 >
                   {component}
                 </SelectorItem>

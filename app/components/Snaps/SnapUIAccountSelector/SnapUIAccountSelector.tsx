@@ -26,10 +26,7 @@ import SensitiveText, {
 } from '../../../component-library/components/Texts/SensitiveText';
 import AccountNetworkIndicator from '../../UI/AccountNetworkIndicator';
 import { useStyles } from '../../hooks/useStyles';
-import {
-  accountSelectorElementStylesheet,
-  accountSelectorStylesheet,
-} from './SnapUIAccountSelector.styles';
+import { stylesheet } from './SnapUIAccountSelector.styles';
 import { strings } from '../../../../locales/i18n';
 import { selectUseBlockieIcon } from '../../../selectors/settings';
 
@@ -60,7 +57,7 @@ export const SnapUIAccountSelectorElement: FunctionComponent<
 
   const fiatBalance = assets?.fiatBalance.split('\n')[0] || '';
 
-  const { styles } = useStyles(accountSelectorElementStylesheet, {});
+  const { styles } = useStyles(stylesheet, {});
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -143,7 +140,6 @@ export const SnapUIAccountSelector: FunctionComponent<
 }) => {
   const { snapId } = useSnapInterfaceContext();
   const { accounts: internalAccounts, ensByAccountAddress } = useAccounts();
-  const { styles } = useStyles(accountSelectorStylesheet, {});
 
   const useBlockieIcon = useSelector(selectUseBlockieIcon);
   const privacyMode = useSelector(selectPrivacyMode);
@@ -206,8 +202,6 @@ export const SnapUIAccountSelector: FunctionComponent<
       optionComponents={optionComponents}
       onSelect={handleSelect}
       disabled={disabled || accounts.length === 0}
-      style={styles.base}
-      itemStyle={styles.item}
     />
   );
 };
