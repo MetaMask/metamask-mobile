@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { CURRENCIES, CurrencyCode } from './constants';
+import { CURRENCIES, CurrencyCode, Keys } from './constants';
 import createKeypadRule from './createKeypadRule';
 
 interface CurrencyData {
-  handler: (currentAmount: string, inputKey: string) => string;
+  handler: (currentAmount: string, inputKey: Keys) => string;
   symbol: string | null;
   decimalSeparator: string | null;
 }
