@@ -149,18 +149,14 @@ const MultichainTransactionsView = ({
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
-    if (bridgeHistoryItem) {
-      return (
-        <MultichainBridgeTransactionListItem
-          transaction={item}
-          bridgeHistoryItem={bridgeHistoryItem}
-          navigation={nav}
-          index={index}
-        />
-      );
-    }
-
-    return (
+    return bridgeHistoryItem ? (
+      <MultichainBridgeTransactionListItem
+        transaction={item}
+        bridgeHistoryItem={bridgeHistoryItem}
+        navigation={nav}
+        index={index}
+      />
+    ) : (
       <MultichainTransactionListItem
         transaction={item}
         navigation={nav}

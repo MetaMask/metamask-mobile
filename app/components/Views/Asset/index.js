@@ -79,8 +79,7 @@ import { isEvmAccountType, SolScope } from '@metamask/keyring-api';
 import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
-import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
-import { MULTICHAIN_NETWORK_TICKER } from '@metamask/multichain-network-controller';
+import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -701,10 +700,9 @@ const mapStateToProps = (state, { route }) => {
     } else {
       filteredTransactions = txs;
 
-      // Only filter Solana or EVM transactions
-      if (namespace === KnownCaipNamespace.Solana) {
+      if (isNativeAsset) {
         filteredTransactions = txs.filter((tx) => {
-          const txData = tx.from || tx.to || [];
+          const txData = (tx.from || []).concat(tx.to || []);
 
           if (!txData || txData.length === 0) {
             return false;
@@ -721,19 +719,20 @@ const mapStateToProps = (state, { route }) => {
 
           const allParticipantsAreNativeSol = participantsWithAssets.every(
             (participant) => {
-              const assetUnit = participant.asset.unit || '';
-              return MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet] === assetUnit;
+              const assetId = participant.asset.type;
+              return (
+                AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+                  route.params.chainId
+                ]?.nativeCurrency === assetId
+              );
             },
           );
 
           return allParticipantsAreNativeSol;
         });
-      } else if (
-        namespace === KnownCaipNamespace.Eip155 &&
-        (assetAddress || assetSymbol)
-      ) {
+      } else if (assetAddress || assetSymbol) {
         filteredTransactions = txs.filter((tx) => {
-          const txData = tx.from || tx.to || [];
+          const txData = (tx.from || []).concat(tx.to || []);
 
           const involvesToken = txData.some((participant) => {
             if (participant.asset && typeof participant.asset === 'object') {

@@ -52,7 +52,7 @@ const MultichainBridgeTransactionListItem = ({
   const renderTxElementIcon = () => {
     const isFailedTransaction = transaction.status === 'failed';
     const icon = getTransactionIcon(
-      'bridge ',
+      'bridge',
       isFailedTransaction,
       appTheme,
       osColorScheme,

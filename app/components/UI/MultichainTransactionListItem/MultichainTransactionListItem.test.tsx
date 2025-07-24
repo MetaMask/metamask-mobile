@@ -179,6 +179,24 @@ describe('MultichainTransactionListItem', () => {
     expect(getByText('-0.00005 SOL')).toBeTruthy();
   });
 
+  it('renders correctly for an Interaction transaction', () => {
+    const interactionTransaction = {
+      ...mockTransaction,
+      type: TransactionType.Unknown,
+    };
+
+    const { getByText } = renderWithProvider(
+      <MultichainTransactionListItem
+        transaction={interactionTransaction}
+        chainId={SolScope.Mainnet}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+      />,
+    );
+
+    expect(getByText('transactions.interaction')).toBeTruthy();
+    expect(getByText('-0.00001 SOL')).toBeTruthy();
+  });
+
   it('opens transaction details modal when pressed', () => {
     const { UNSAFE_getByType } = renderWithProvider(
       <MultichainTransactionListItem
