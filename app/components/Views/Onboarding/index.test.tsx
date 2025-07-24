@@ -114,6 +114,12 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(false);
 const mockTrackEvent = jest.fn();
+jest.mock('../../../core/Analytics/MetaMetrics', () => ({
+  getInstance: () => ({
+    isEnabled: mockMetricsIsEnabled,
+    trackEvent: mockTrackEvent,
+  }),
+}));
 
 jest.mock('react-native', () => {
   const actualRN = jest.requireActual('react-native');
