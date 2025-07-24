@@ -27,7 +27,7 @@ import Text, {
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import { usePerpsTrading } from '../../hooks';
+import { usePerpsPositions, usePerpsTrading } from '../../hooks';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
@@ -102,13 +102,25 @@ const PerpsMarketListView = ({
   );
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
-  const { markets, isLoading, error, refresh, isRefreshing } = usePerpsMarkets({
+  const {
+    markets,
+    isLoading: isLoadingMarkets,
+    error,
+    refresh: refreshMarkets,
+    isRefreshing: isRefreshingMarkets,
+  } = usePerpsMarkets({
     enablePolling: false,
   });
 
+  const {
+    isRefreshing: isRefreshingPositions,
+    positions,
+    isLoading: isLoadingPositions,
+    isRefreshing: isRefreshingPositions,
+    loadPositions,
+  } = usePerpsPositions();
+
   const { getPositions } = usePerpsTrading();
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [positionsLoading, setPositionsLoading] = useState(false);
 
   useEffect(() => {
     if (markets.length > 0) {
@@ -125,8 +137,8 @@ const PerpsMarketListView = ({
   };
 
   const handleRefresh = () => {
-    if (!isRefreshing) {
-      refresh();
+    if (!isRefreshingMarkets && activeTab === 'markets') {
+      refreshMarkets();
     }
   };
 
@@ -156,32 +168,19 @@ const PerpsMarketListView = ({
     }
   };
 
-  const loadPositions = useCallback(async () => {
-    setPositionsLoading(true);
-    try {
-      const positionsData = await getPositions();
-      setPositions(positionsData || []);
-    } catch (positionsError) {
-      DevLogger.log('Failed to load positions:', positionsError);
-      setPositions([]);
-    } finally {
-      setPositionsLoading(false);
-    }
-  }, [getPositions]);
-
   // Load positions when positions tab is selected
   useEffect(() => {
     if (activeTab === 'positions') {
       loadPositions();
     }
     if (activeTab === 'markets') {
-      setPositions([]);
+      refreshMarkets();
     }
-  }, [activeTab, loadPositions]);
+  }, [activeTab, loadPositions, refreshMarkets]);
 
   const renderMarketList = () => {
     // Skeleton List
-    if (filteredMarkets.length === 0 && isLoading) {
+    if (filteredMarkets.length === 0 && isLoadingMarkets) {
       return (
         <View>
           <PerpsMarketListHeader />
@@ -231,7 +230,7 @@ const PerpsMarketListView = ({
             keyExtractor={(item: PerpsMarketData) => item.symbol}
             contentContainerStyle={styles.flashListContent}
             estimatedItemSize={80}
-            refreshing={isRefreshing}
+            refreshing={isRefreshingMarkets}
             onRefresh={handleRefresh}
           />
         </Animated.View>
@@ -241,11 +240,21 @@ const PerpsMarketListView = ({
 
   const renderPositionsList = () => {
     // Loading state
-    if (positionsLoading) {
+    if (isLoadingPositions) {
       return (
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {strings('perps.loading_positions')}
+          </Text>
+        </View>
+      );
+    }
+
+    if (isRefreshingPositions) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {strings('perps.refreshing_positions')}
           </Text>
         </View>
       );

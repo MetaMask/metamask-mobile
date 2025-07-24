@@ -26,8 +26,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import styleSheet from './PerpsTabView.styles';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
-import { usePerpsConnection, usePerpsTrading } from '../../hooks';
-import type { Position } from '../../controllers/types';
+import {
+  usePerpsConnection,
+  usePerpsPositions,
+  usePerpsTrading,
+} from '../../hooks';
 import { strings } from '../../../../../../locales/i18n';
 
 interface PerpsTabViewProps {}
@@ -35,37 +38,15 @@ interface PerpsTabViewProps {}
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const { getPositions, getAccountState } = usePerpsTrading();
+  const { getAccountState } = usePerpsTrading();
   const { isConnected, isInitialized } = usePerpsConnection();
 
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const loadPositions = useCallback(
-    async (isRefresh = false) => {
-      try {
-        if (isRefresh) {
-          setIsRefreshing(true);
-        } else {
-          setIsLoading(true);
-        }
-
-        const positionsData = await getPositions();
-        setPositions(positionsData || []);
-      } catch (error) {
-        console.error('Failed to load positions:', error);
-        setPositions([]);
-      } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    },
-    [getPositions],
-  );
+  const { positions, isLoading, isRefreshing, loadPositions } =
+    usePerpsPositions();
 
   // Automatically load account state on mount and when network changes
   useEffect(() => {
@@ -77,12 +58,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [getAccountState, isConnected, isInitialized]);
 
-  useEffect(() => {
-    loadPositions();
-  }, [loadPositions]);
-
   const handleRefresh = useCallback(() => {
-    loadPositions(true);
+    loadPositions();
   }, [loadPositions]);
 
   const handleManageBalancePress = useCallback(() => {

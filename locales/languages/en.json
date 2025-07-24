@@ -756,6 +756,7 @@
     "add_funds": "Add funds",
     "perpetuals": "Perpetuals",
     "your_positions": "Your positions",
+    "refreshing_positions": "Refreshing positions...",
     "deposit": {
       "title": "Amount to deposit",
       "pay_with": "Pay with",
