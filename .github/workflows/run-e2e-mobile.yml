@@ -6,6 +6,10 @@ name: Test Mobile E2E Category
 on:
   workflow_call:
     inputs:
+      test-suite-name:
+        description: 'Name of the test suite'
+        required: true
+        type: string
       platform:
         description: 'Platform to test (ios or android)'
         required: true
@@ -22,7 +26,7 @@ on:
 
 jobs:
   test-e2e-mobile:
-    name: ${{ inputs.platform }} tests
+    name: ${{ inputs.test-suite-name }}
     runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'large-mm-test' }}
     #runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
 
@@ -194,7 +198,7 @@ jobs:
           platform="${{ inputs.platform }}"
           test_suite_tag="${{ inputs.test_suite_tag }}"
 
-          echo "🚀 Running ${{ inputs.platform }} tests on $platform"
+          echo "🚀 Running ${{ inputs.test-suite-name }} tests on $platform"
 
           # Validate required test suite tag
           if [[ -z "$test_suite_tag" ]]; then
@@ -241,7 +245,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ inputs.platform }}-${{ github.run_number }}-${{ github.run_attempt }}
+          name: ${{ inputs.test-suite-name }}-test-results
           path: e2e/reports/
           retention-days: 7
       
@@ -249,6 +253,6 @@ jobs:
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: screenshots-${{ inputs.platform }}-${{ github.run_number }}-${{ github.run_attempt }}
+          name: ${{ inputs.test-suite-name }}-screenshots
           path: artifacts/
           retention-days: 7
