@@ -204,7 +204,7 @@ jobs:
   test-e2e-mobile-report:
     name: "📊 E2E Test Results Summary"
     needs: [
-      smoke-confirmations-ios,
+      #smoke-confirmations-ios,
       # smoke-confirmations-android,
       # smoke-confirmations-redesigned-ios,
       # smoke-trade-ios,
