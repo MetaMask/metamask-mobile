@@ -10,6 +10,7 @@ on:
     types: [labeled]
 
 jobs:
+<<<<<<< HEAD
   smoke-confirmations-ios:
     name: "Confirmations Smoke (iOS)"
     if: false # github.event.label.name == 'Run E2E Smoke Test'
@@ -46,6 +47,7 @@ jobs:
       use_prebuilt_apps: true
     secrets: inherit
 
+<<<<<<< HEAD
   smoke-trade-ios:
     name: "Trade Smoke (iOS)"
     if: false # github.event.label.name == 'Run E2E Smoke Test'
