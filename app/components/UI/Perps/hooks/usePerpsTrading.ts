@@ -162,6 +162,21 @@ export function usePerpsTrading() {
     [],
   );
 
+  const getUserFills = useCallback(async (params?: any): Promise<any[]> => {
+    const controller = Engine.context.PerpsController;
+    return controller.getUserFills(params);
+  }, []);
+
+  const getUserOrders = useCallback(async (params?: any): Promise<any[]> => {
+    const controller = Engine.context.PerpsController;
+    return controller.getUserOrders(params);
+  }, []);
+
+  const getUserFunding = useCallback(async (params?: any): Promise<any[]> => {
+    const controller = Engine.context.PerpsController;
+    return controller.getUserFunding(params);
+  }, []);
+
   return {
     placeOrder,
     cancelOrder,
@@ -181,5 +196,8 @@ export function usePerpsTrading() {
     getMaxLeverage,
     updatePositionTPSL,
     calculateFees,
+    getUserFills,
+    getUserOrders,
+    getUserFunding,
   };
 }

@@ -282,6 +282,30 @@ export interface GetAccountStateParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
 
+export interface GetUserFillsParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  offset?: number; // Optional: offset for pagination
+}
+
+export interface GetUserOrdersParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  offset?: number; // Optional: offset for pagination
+}
+
+export interface GetUserFundingParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  offset?: number; // Optional: offset for pagination
+}
+
 export interface GetSupportedPathsParams {
   isTestnet?: boolean; // Optional: override current testnet state
   assetId?: CaipAssetId; // Optional: filter by specific asset
@@ -367,6 +391,11 @@ export interface IPerpsProvider {
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
   validateDeposit(params: DepositParams): { isValid: boolean; error?: string }; // Protocol-specific deposit validation
+
+  // Historical data operations - TODO: Define proper return types
+  getUserFills(params?: GetUserFillsParams): Promise<any[]>; // Historical trade fills
+  getUserOrders(params?: GetUserOrdersParams): Promise<any[]>; // Historical order lifecycle  
+  getUserFunding(params?: GetUserFundingParams): Promise<any[]>; // Historical funding payments
 
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
