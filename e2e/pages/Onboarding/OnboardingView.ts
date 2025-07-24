@@ -7,8 +7,10 @@ class OnboardingView {
     return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
-  get importSeedButton(): DetoxElement {
-    return Matchers.getElementByID(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
+  get existingWalletButton() {
+    return Matchers.getElementByID(
+      OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+    );
   }
 
   get newWalletButton(): DetoxElement {
@@ -19,9 +21,9 @@ class OnboardingView {
     await Gestures.waitAndTap(this.newWalletButton);
   }
 
-  async tapImportWalletFromSeedPhrase(): Promise<void> {
-    await Gestures.waitAndTap(this.importSeedButton, {
-      elemDescription: 'Onboarding Import Seed Phrase Button',
+  async tapHaveAnExistingWallet() {
+    await Gestures.waitAndTap(this.existingWalletButton, {
+      elemDescription: 'Onboarding Have an Existing Wallet Button',
     });
   }
 }

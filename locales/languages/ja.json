@@ -1101,7 +1101,6 @@
   },
   "defi_positions": {
     "loading_positions": "DeFiポジションを読み込んでいます...",
-    "no_positions": "まだポジションがありません",
     "error_cannot_load_page": "このページを読み込めませんでした。",
     "error_visit_again": "後でまたアクセスしてみてください。",
     "single_token": "{{symbol}}のみ",

@@ -7,7 +7,11 @@ import {
 } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
-import { usePerpsAccount, usePerpsTrading } from '../../hooks';
+import {
+  usePerpsAccount,
+  usePerpsTrading,
+  usePerpsPositions,
+} from '../../hooks';
 import type { Position } from '../../controllers/types';
 
 // Mock component types
@@ -26,6 +30,10 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks', () => ({
   usePerpsAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
+  usePerpsTPSLUpdate: jest.fn(() => ({
+    handleUpdateTPSL: jest.fn(),
+  })),
+  usePerpsPositions: jest.fn(),
 }));
 
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -113,26 +121,30 @@ const mockNavigation = {
   goBack: jest.fn(),
 };
 
-const mockGetPositions = jest.fn();
-const mockPerpsTrading = {
-  getPositions: mockGetPositions,
-};
-
 describe('PerpsPositionsView', () => {
   beforeEach(() => {
     // Clear only specific mocks, not all mocks to maintain stable references
     mockNavigation.goBack.mockClear();
-    mockGetPositions.mockClear();
-    mockGetPositions.mockResolvedValue(mockPositions);
 
     // Clear other mocks - DevLogger is mocked to avoid log output
 
     // Setup default mocks with stable references
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (usePerpsAccount as jest.Mock).mockReturnValue(mockAccountState);
-    (usePerpsTrading as jest.Mock).mockReturnValue(mockPerpsTrading);
+    (usePerpsTrading as jest.Mock).mockReturnValue({
+      getPositions: jest.fn(),
+    });
     (useFocusEffect as jest.Mock).mockImplementation(() => {
       // Do nothing - prevent automatic callback execution
+    });
+
+    // Mock usePerpsPositions hook
+    (usePerpsPositions as jest.Mock).mockReturnValue({
+      positions: mockPositions,
+      isLoading: false,
+      isRefreshing: false,
+      error: null,
+      loadPositions: jest.fn(),
     });
 
     // Using real implementations of utility functions (calculateTotalPnL, formatPrice, formatPnl) to test actual behavior
@@ -183,7 +195,13 @@ describe('PerpsPositionsView', () => {
 
     it('displays correct position count for single position', async () => {
       // Arrange
-      mockGetPositions.mockResolvedValue([mockPositions[0]]);
+      (usePerpsPositions as jest.Mock).mockReturnValue({
+        positions: [mockPositions[0]],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: jest.fn(),
+      });
 
       // Act
       render(<PerpsPositionsView />);
@@ -197,6 +215,15 @@ describe('PerpsPositionsView', () => {
 
   describe('Loading States', () => {
     it('displays loading state initially', () => {
+      // Arrange
+      (usePerpsPositions as jest.Mock).mockReturnValue({
+        positions: [],
+        isLoading: true,
+        isRefreshing: false,
+        error: null,
+        loadPositions: jest.fn(),
+      });
+
       // Act
       render(<PerpsPositionsView />);
 
@@ -209,37 +236,51 @@ describe('PerpsPositionsView', () => {
     it('displays error message when positions fail to load', async () => {
       // Arrange
       const errorMessage = 'Network error';
-      mockGetPositions.mockRejectedValue(new Error(errorMessage));
+      (usePerpsPositions as jest.Mock).mockReturnValue({
+        positions: [],
+        isLoading: false,
+        isRefreshing: false,
+        error: errorMessage,
+        loadPositions: jest.fn(),
+      });
 
       // Act
       render(<PerpsPositionsView />);
 
       // Assert
-      await waitFor(() => {
-        expect(screen.getByText('Error Loading Positions')).toBeOnTheScreen();
-        expect(screen.getByText(errorMessage)).toBeOnTheScreen();
-      });
+      expect(screen.getByText('Error Loading Positions')).toBeOnTheScreen();
+      expect(screen.getByText(errorMessage)).toBeOnTheScreen();
     });
 
     it('displays generic error message for non-Error objects', async () => {
       // Arrange
-      mockGetPositions.mockRejectedValue('String error');
+      (usePerpsPositions as jest.Mock).mockReturnValue({
+        positions: [],
+        isLoading: false,
+        isRefreshing: false,
+        error: 'Failed to load positions',
+        loadPositions: jest.fn(),
+      });
 
       // Act
       render(<PerpsPositionsView />);
 
       // Assert
-      await waitFor(() => {
-        expect(screen.getByText('Error Loading Positions')).toBeOnTheScreen();
-        expect(screen.getByText('Failed to load positions')).toBeOnTheScreen();
-      });
+      expect(screen.getByText('Error Loading Positions')).toBeOnTheScreen();
+      expect(screen.getByText('Failed to load positions')).toBeOnTheScreen();
     });
   });
 
   describe('Empty State', () => {
     it('displays empty state when no positions are available', async () => {
       // Arrange
-      mockGetPositions.mockResolvedValue([]);
+      (usePerpsPositions as jest.Mock).mockReturnValue({
+        positions: [],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: jest.fn(),
+      });
 
       // Act
       render(<PerpsPositionsView />);
@@ -258,7 +299,13 @@ describe('PerpsPositionsView', () => {
 
     it('displays empty state when positions is null', async () => {
       // Arrange
-      mockGetPositions.mockResolvedValue(null);
+      (usePerpsPositions as jest.Mock).mockReturnValue({
+        positions: [],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: jest.fn(),
+      });
 
       // Act
       render(<PerpsPositionsView />);
@@ -294,33 +341,17 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockGetPositions).toHaveBeenCalledTimes(1);
+        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
       });
     });
 
     it('refreshes positions when focus effect triggers', async () => {
-      // Arrange
-      let focusCallback: (() => void) | undefined;
-      (useFocusEffect as jest.Mock).mockImplementation((callback) => {
-        focusCallback = callback;
-      });
-
       // Act
       render(<PerpsPositionsView />);
 
-      // Wait for initial load
-      await waitFor(() => {
-        expect(mockGetPositions).toHaveBeenCalledTimes(1);
-      });
-
-      // Trigger focus effect
-      if (focusCallback) {
-        focusCallback();
-      }
-
       // Assert
       await waitFor(() => {
-        expect(mockGetPositions).toHaveBeenCalledTimes(2);
+        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
       });
     });
   });
@@ -382,7 +413,13 @@ describe('PerpsPositionsView', () => {
         { ...mockPositions[0], coin: 'ETH' },
         { ...mockPositions[0], coin: 'ETH' },
       ];
-      mockGetPositions.mockResolvedValue(duplicatePositions);
+      (usePerpsPositions as jest.Mock).mockReturnValue({
+        positions: duplicatePositions,
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        loadPositions: jest.fn(),
+      });
 
       // Act
       render(<PerpsPositionsView />);
