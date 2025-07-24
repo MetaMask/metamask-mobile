@@ -33,7 +33,7 @@ describe('createKeypadRule', () => {
       decimalSeparator: string | undefined;
       decimals: number | undefined;
       currentAmount: string;
-      inputKey: string;
+      inputKey: Keys;
       result: string;
     }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
@@ -80,7 +80,7 @@ describe('createKeypadRule', () => {
       decimalSeparator: string | undefined;
       decimals: number | undefined;
       currentAmount: string;
-      inputKey: string;
+      inputKey: Keys;
       result: string;
     }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
@@ -154,7 +154,7 @@ describe('createKeypadRule', () => {
       decimalSeparator: string;
       decimals: number | undefined;
       currentAmount: string;
-      inputKey: string;
+      inputKey: Keys;
       result: string;
     }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
@@ -228,7 +228,7 @@ describe('createKeypadRule', () => {
       decimalSeparator: string;
       decimals: number;
       currentAmount: string;
-      inputKey: string;
+      inputKey: Keys;
       result: string;
     }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
@@ -301,7 +301,7 @@ describe('createKeypadRule', () => {
       decimalSeparator: string;
       decimals: number | undefined;
       currentAmount: string;
-      inputKey: string;
+      inputKey: Keys;
       result: string;
     }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
@@ -375,7 +375,7 @@ describe('createKeypadRule', () => {
       decimalSeparator: string;
       decimals: number;
       currentAmount: string;
-      inputKey: string;
+      inputKey: Keys;
       result: string;
     }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
@@ -401,7 +401,7 @@ describe('createKeypadRule', () => {
       decimalSeparator: string;
       decimals: number;
       currentAmount: string;
-      inputKey: string;
+      inputKey: Keys;
       result: string;
     }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
@@ -431,7 +431,7 @@ describe('createKeypadRule', () => {
       decimalSeparator: string | null | undefined;
       decimals: number;
       currentAmount: string;
-      inputKey: string;
+      inputKey: Keys;
       result: string;
     }) => {
       const handler = createKeypadRule({ decimalSeparator, decimals });
