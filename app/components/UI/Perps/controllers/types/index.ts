@@ -11,12 +11,15 @@ import type {
 // Export navigation types
 export * from '../../types/navigation';
 
+// Order type enumeration
+export type OrderType = 'market' | 'limit';
+
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
   isBuy: boolean; // true = BUY order, false = SELL order
   size: string; // Order size as string
-  orderType: 'market' | 'limit'; // Order type
+  orderType: OrderType; // Order type
   price?: string; // Limit price (required for limit orders)
   reduceOnly?: boolean; // Reduce-only flag
   timeInForce?: 'GTC' | 'IOC' | 'ALO'; // Time in force
@@ -28,6 +31,7 @@ export type OrderParams = {
   slippage?: number; // Slippage tolerance for market orders (e.g., 0.01 = 1%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
+  leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
 };
 
 export type OrderResult = {
@@ -59,6 +63,8 @@ export type Position = {
     sinceOpen: string; // Funding since position opened
     sinceChange: string; // Funding since last size change
   };
+  takeProfitPrice?: string; // Take profit price (if set)
+  stopLossPrice?: string; // Stop loss price (if set)
 };
 
 export type AccountState = {
@@ -71,7 +77,7 @@ export type AccountState = {
 export type ClosePositionParams = {
   coin: string; // Asset symbol to close
   size?: string; // Size to close (omit for full close)
-  orderType?: 'market' | 'limit'; // Close order type (default: market)
+  orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
 };
 
@@ -235,9 +241,14 @@ export interface LiveDataConfig {
 
 export interface PriceUpdate {
   coin: string; // Asset symbol
-  price: string; // Current price
+  price: string; // Current mid price (average of best bid and ask)
   timestamp: number; // Update timestamp
   percentChange24h?: string; // 24h price change percentage
+  // Order book data (only available when includeOrderBook is true)
+  bestBid?: string; // Best bid price (highest price buyers are willing to pay)
+  bestAsk?: string; // Best ask price (lowest price sellers are willing to accept)
+  spread?: string; // Ask - Bid spread
+  markPrice?: string; // Mark price from oracle (used for liquidations)
 }
 
 export interface OrderFill {
@@ -272,6 +283,7 @@ export interface SubscribePricesParams {
   symbols: string[];
   callback: (prices: PriceUpdate[]) => void;
   throttleMs?: number; // Future: per-subscription throttling
+  includeOrderBook?: boolean; // Optional: include bid/ask data from L2 book
 }
 
 export interface SubscribePositionsParams {
@@ -286,6 +298,26 @@ export interface SubscribeOrderFillsParams {
   since?: number; // Future: only fills after timestamp
 }
 
+export interface LiquidationPriceParams {
+  entryPrice: number;
+  leverage: number;
+  direction: 'long' | 'short';
+  positionSize?: number; // Optional: for more accurate calculations
+  marginType?: 'isolated' | 'cross'; // Optional: defaults to isolated
+  asset?: string; // Optional: for asset-specific maintenance margins
+}
+
+export interface MaintenanceMarginParams {
+  asset: string;
+  positionSize?: number; // Optional: for tiered margin systems
+}
+
+export interface UpdatePositionTPSLParams {
+  coin: string; // Asset symbol
+  takeProfitPrice?: string; // Optional: undefined to remove
+  stopLossPrice?: string; // Optional: undefined to remove
+}
+
 export interface IPerpsProvider {
   readonly protocolId: string;
 
@@ -298,6 +330,7 @@ export interface IPerpsProvider {
   editOrder(params: EditOrderParams): Promise<OrderResult>;
   cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult>;
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
+  updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
   getMarkets(): Promise<MarketInfo[]>;
@@ -305,6 +338,11 @@ export interface IPerpsProvider {
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
   validateDeposit(params: DepositParams): { isValid: boolean; error?: string }; // Protocol-specific deposit validation
+
+  // Protocol-specific calculations
+  calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
+  calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
+  getMaxLeverage(asset: string): Promise<number>;
 
   // Live data subscriptions → Direct UI (NO Redux, maximum speed)
   subscribeToPrices(params: SubscribePricesParams): () => void;
