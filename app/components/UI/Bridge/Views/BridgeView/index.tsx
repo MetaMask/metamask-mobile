@@ -397,7 +397,9 @@ const BridgeView = () => {
           {isHardwareAddress && isSolanaSourced && (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
-              description={strings('bridge.hardware_wallet_not_supported_solana')}
+              description={strings(
+                'bridge.hardware_wallet_not_supported_solana',
+              )}
             />
           )}
           <Button
@@ -406,7 +408,9 @@ const BridgeView = () => {
             onPress={handleContinue}
             style={styles.button}
             isDisabled={
-              hasInsufficientBalance || isSubmittingTx || (isHardwareAddress && isSolanaSourced)
+              hasInsufficientBalance ||
+              isSubmittingTx ||
+              (isHardwareAddress && isSolanaSourced)
             }
           />
           <Button
