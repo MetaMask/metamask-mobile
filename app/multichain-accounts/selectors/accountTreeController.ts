@@ -1,11 +1,9 @@
 import { createDeepEqualSelector } from '../../selectors/util';
 import { RootState } from '../../reducers';
 import { selectMultichainAccountsState1Enabled } from '../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import {
-  AccountWallet,
-  AccountWalletId,
-} from '@metamask/account-tree-controller';
+import { AccountWallet, AccountWalletId } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
+import { AccountWalletObject } from '@metamask/account-tree-controller';
 
 /**
  * Get the AccountTreeController state
@@ -31,7 +29,7 @@ export const selectAccountSections = createDeepEqualSelector(
     }
 
     return Object.values(accountTreeState.accountTree.wallets).map(
-      (wallet: AccountWallet) => ({
+      (wallet: AccountWalletObject) => ({
         title: wallet.metadata.name,
         wallet,
         data: Object.values(wallet.groups).flatMap((group) => group.accounts),
