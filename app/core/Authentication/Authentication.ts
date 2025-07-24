@@ -703,12 +703,13 @@ class AuthenticationService {
     for (const secret of otherSecrets) {
       // import SRP secret
       // Get the SRP hash, and find the hash in the local state
-      const srpHash = SeedlessOnboardingController.getSecretDataBackupState(
-        secret.data,
-        secret.type,
-      );
+      const secretDataHash =
+        SeedlessOnboardingController.getSecretDataBackupState(
+          secret.data,
+          secret.type,
+        );
 
-      if (!srpHash) {
+      if (!secretDataHash) {
         // If SRP is not in the local state, import it to the vault
 
         // import private key secret
@@ -838,7 +839,7 @@ class AuthenticationService {
         },
       );
     } else {
-      // Do not sync the seed phrase to the server, only update the local state
+      // Do not sync the key to the server, only update the local state
       SeedlessOnboardingController.updateBackupMetadataState({
         keyringId,
         data: bufferedPrivateKey,
