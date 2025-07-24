@@ -190,15 +190,8 @@ jobs:
       use_prebuilt_apps: true
     secrets: inherit
 
-  smoke-api-specs-ios:
-    name: "API Specs Smoke (iOS only)"
+  smoke-api-specs:
+    name: "API Specs E2E"
     if: github.event.label.name == 'Run E2E Smoke Test'
-    uses: ./.github/workflows/run-e2e-mobile.yml
-    with:
-      test-suite-name: smoke-api-specs-ios
-      platform: ios
-      is_api_specs: true
-      smoke-category: api-specs
-      use_prebuilt_apps: true
+    uses: ./.github/workflows/run-e2e-api-specs.yml
     secrets: inherit
-    

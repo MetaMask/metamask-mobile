@@ -22,11 +22,7 @@ on:
         description: 'The Cucumber tag expression to use for filtering tests'
         required: false
         type: string
-      is_api_specs:
-        description: 'Whether this is the API specs test (iOS-only, special command)'
-        required: false
-        type: boolean
-        default: false
+
       use_prebuilt_apps:
         description: 'Use pre-built apps from GitHub release instead of building'
         required: false
@@ -81,23 +77,7 @@ jobs:
           yarn detox clean-framework-cache
           yarn detox build-framework-cache
 
-      - name: Additional Detox setup for API specs (iOS)
-        if: ${{ inputs.is_api_specs && inputs.platform == 'ios' }}
-        run: |
-          echo "🔧 Additional Detox setup for API specs..."
-          yarn detox reset-lock-file
-          
-          # Verify framework cache is properly built
-          if [[ ! -d ~/Library/Detox/ios/framework ]]; then
-            echo "⚠️  Detox framework directory not found, rebuilding..."
-            yarn detox clean-framework-cache
-            yarn detox build-framework-cache
-          fi
-          
-          # Clean up any existing lock files that might interfere
-          find . -name "*.lock" -type f -delete 2>/dev/null || true
-          
-          echo "✅ Detox setup complete for API specs"
+
 
       #- name: Build E2E app
       #  if: ${{ !inputs.use_prebuilt_apps }}
@@ -227,21 +207,9 @@ jobs:
       - name: Run E2E tests
         run: |
           platform="${{ inputs.platform }}"
-          is_api_specs="${{ inputs.is_api_specs }}"
           test_suite_tag="${{ inputs.test_suite_tag }}"
 
           echo "🚀 Running ${{ inputs.smoke-category }} tests on $platform"
-
-          # Handle API specs special case (iOS-only)
-          if [[ "$is_api_specs" == "true" ]]; then
-            if [[ "$platform" != "ios" ]]; then
-              echo "ℹ️  API specs are iOS-only, skipping $platform"
-              exit 0
-            fi
-            echo "🧪 Running API specs tests..."
-            yarn test:api-specs --retries 1
-            exit 0
-          fi
 
           # Validate required test suite tag
           if [[ -z "$test_suite_tag" ]]; then
