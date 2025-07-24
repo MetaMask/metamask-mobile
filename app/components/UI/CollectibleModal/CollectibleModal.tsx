@@ -83,7 +83,7 @@ const CollectibleModal = () => {
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
     navigateToSendPage(collectible);
-  }, [contractName, collectible, navigation, dispatch, navigateToSendPage]);
+  }, [contractName, collectible, dispatch, navigateToSendPage]);
 
   const isTradable = useCallback(
     () => collectible.standard === 'ERC721',

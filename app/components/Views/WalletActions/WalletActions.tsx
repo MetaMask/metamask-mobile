@@ -317,7 +317,6 @@ const WalletActions = () => {
     });
   }, [
     closeBottomSheetAndNavigate,
-    navigate,
     ticker,
     dispatch,
     trackEvent,
