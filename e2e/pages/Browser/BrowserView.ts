@@ -9,7 +9,6 @@ import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { waitForTestDappToLoad } from '../../viewHelper';
 import {
   getLocalTestDappUrl,
   getSecondTestDappLocalUrl,
@@ -262,13 +261,11 @@ class Browser {
   async navigateToTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
     await this.navigateToURL(getLocalTestDappUrl());
-    await waitForTestDappToLoad();
   }
 
   async navigateToSecondTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
     await this.navigateToURL(getSecondTestDappLocalUrl());
-    await waitForTestDappToLoad();
   }
 
   async navigateToTestDAppTransaction({

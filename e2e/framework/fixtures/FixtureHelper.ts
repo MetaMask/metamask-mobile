@@ -32,6 +32,7 @@ import { TestDapps, defaultGanacheOptions } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
+import DappPortRegistry from './DappPortRegistry';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -78,12 +79,14 @@ function getDappServerPath(dapp: DappOptions): string {
  * @param server - The server to start
  * @param port - The port to use
  * @param serverIndex - The index of the server for logging
+ * @param dappVariant - The variant of the dapp
  * @returns A promise that resolves to true if the server started successfully
  */
 async function tryStartServer(
   server: http.Server,
   port: number,
-  serverIndex: number
+  serverIndex: number,
+  dappVariant: string
 ): Promise<boolean> {
   return new Promise<boolean>((resolve, reject) => {
     // Set a timeout to avoid hanging
@@ -97,6 +100,11 @@ async function tryStartServer(
     server.once('listening', () => {
       clearTimeout(timeoutId);
       logger.debug(`Dapp server ${serverIndex} successfully listening on port ${port}`);
+
+      // Register the port in our registry
+      DappPortRegistry.getInstance().registerPort(serverIndex, dappVariant, port);
+      logger.debug(`Registered dapp ${dappVariant} (index: ${serverIndex}) on port ${port}`);
+
       resolve(true);
     });
 
@@ -145,6 +153,10 @@ async function handleDapps(
   logger.debug(
     `Starting dapps: ${dapps.map((dapp) => dapp.dappVariant).join(', ')}`,
   );
+
+  // Clear any previously registered ports
+  DappPortRegistry.getInstance().clear();
+
   const dappBasePort = getLocalTestDappPort();
 
   for (let i = 0; i < dapps.length; i++) {
@@ -167,7 +179,7 @@ async function handleDapps(
         logger.debug(`Attempt ${attempt + 1}/${maxAttempts}: Starting dapp server ${i} on port ${port}`);
 
         // Try to start the server
-        isServerStarted = await tryStartServer(dappServer[i], port, i);
+        isServerStarted = await tryStartServer(dappServer[i], port, i, dapp.dappVariant);
 
         if (isServerStarted) {
           break; // Server started successfully
