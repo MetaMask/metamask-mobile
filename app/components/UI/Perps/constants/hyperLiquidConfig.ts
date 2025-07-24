@@ -8,7 +8,6 @@ import type {
   HyperLiquidTransportConfig,
   TradingDefaultsConfig,
   FeeRatesConfig,
-  RiskManagementConfig,
 } from '../types';
 
 // Network constants
@@ -20,6 +19,7 @@ export const ARBITRUM_TESTNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_TESTNET_CHAIN_I
 // Hyperliquid chain constants
 export const HYPERLIQUID_MAINNET_CHAIN_ID = '0x3e7'; // 999 in decimal
 export const HYPERLIQUID_TESTNET_CHAIN_ID = '0x3e6'; // 998 in decimal (assumed)
+export const HYPERLIQUID_NETWORK_NAME = 'Hyperliquid';
 
 // Token constants
 export const USDC_SYMBOL = 'USDC';
@@ -27,6 +27,7 @@ export const USDC_NAME = 'USD Coin';
 export const USDC_DECIMALS = 6;
 export const TOKEN_DECIMALS = 18;
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const ZERO_BALANCE = '0x0';
 
 // Network constants
 export const ARBITRUM_SEPOLIA_CHAIN_ID = '0x66eee'; // 421614 in decimal
@@ -100,11 +101,12 @@ export const FEE_RATES: FeeRatesConfig = {
 // MetaMask fee for deposits (temporary placeholder)
 export const METAMASK_DEPOSIT_FEE = '$0.00';
 
-// Risk management constants
-export const RISK_MANAGEMENT: RiskManagementConfig = {
-  maintenanceMargin: 0.05, // 5% maintenance margin for liquidation
-  fallbackMaxLeverage: 20, // Fallback when market data unavailable
-  fallbackBalancePercent: 0.1, // Default balance percentage if no balance
+// Order book spread constants
+export const ORDER_BOOK_SPREAD = {
+  // Default bid/ask spread when real order book data is not available
+  // This represents a 0.02% spread (2 basis points) which is typical for liquid markets
+  DEFAULT_BID_MULTIPLIER: 0.9999, // Bid price is 0.01% below current price
+  DEFAULT_ASK_MULTIPLIER: 1.0001, // Ask price is 0.01% above current price
 };
 
 // Deposit constants

@@ -5,6 +5,7 @@ import {
 import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { waitFor } from 'detox';
 import type {
   IndexableNativeElement,
   NativeElement,
@@ -212,6 +213,32 @@ class ConnectedAccountsModal {
     // Type assertion to access label property which exists on Detox elements
     const attributes = await (elem as IndexableNativeElement).getAttributes();
     return (attributes as { label: string }).label;
+  }
+
+  async getDisplayedAccountNames(): Promise<string[]> {
+    const possibleAccountNames = [
+      'Account 1',
+      'Account 2',
+      'Account 3',
+      'Account 4',
+      'Account 5',
+      'Solana Account 1',
+      'Solana Account 2',
+      'Solana Account 3',
+    ];
+    const displayedAccounts: string[] = [];
+
+    for (const accountName of possibleAccountNames) {
+      try {
+        const textElement = await Matchers.getElementByText(accountName);
+        await waitFor(textElement).toBeVisible().withTimeout(1000);
+        displayedAccounts.push(accountName);
+      } catch (e) {
+        // Account not displayed, continue
+      }
+    }
+
+    return displayedAccounts;
   }
 }
 
