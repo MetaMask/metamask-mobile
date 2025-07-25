@@ -62,7 +62,7 @@ jobs:
 
       - name: Build Android App
         run: |
-          yarn setup:github-ci  --build-android --no-build-ios
+          yarn setup:github-ci --no-build-ios
           yarn build:android:qa
         shell: bash
         env:
