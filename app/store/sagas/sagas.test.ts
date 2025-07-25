@@ -24,6 +24,8 @@ import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../core/Engine';
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import Logger from '../../util/Logger';
+import SDKConnect from '../../core/SDKConnect/SDKConnect';
+import { WC2Manager } from '../../core/WalletConnect/WalletConnectV2';
 
 const mockBioStateMachineId = '123';
 
@@ -86,47 +88,6 @@ jest.mock('../../core/AppStateEventListener', () => ({
     clearPendingDeeplink: jest.fn(),
   },
 }));
-
-// Mock SDKConnect with proper implementation
-const mockSDKConnect = {
-  init: jest.fn().mockResolvedValue(undefined),
-  getInstance: jest.fn().mockReturnValue({
-    state: {
-      _initialized: false,
-      _initializing: undefined,
-      connections: {},
-    },
-    postInit: jest.fn().mockResolvedValue(undefined),
-  }),
-};
-
-jest.mock('../../core/SDKConnect/SDKConnect', () => ({
-  __esModule: true,
-  default: mockSDKConnect,
-}));
-
-// Mock WalletConnectV2 with proper implementation
-let mockIsWC2Enabled = true;
-const mockWC2Manager = {
-  init: jest.fn().mockResolvedValue(undefined),
-  getInstance: jest.fn().mockReturnValue({
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-    getSessions: jest.fn().mockReturnValue({}),
-  }),
-};
-
-jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
-  __esModule: true,
-  default: mockWC2Manager,
-  WC2Manager: mockWC2Manager,
-  get isWC2Enabled() {
-    return mockIsWC2Enabled;
-  },
-}));
-
-import SDKConnect from '../../core/SDKConnect/SDKConnect';
-import { WC2Manager } from '../../core/WalletConnect/WalletConnectV2';
 
 describe('authStateMachine', () => {
   beforeEach(() => {
@@ -284,25 +245,28 @@ describe('startAppServices', () => {
     });
 
     it('should initialize SDKConnect during app startup', async () => {
+      const sdkInitSpy = jest.spyOn(SDKConnect, 'init');
       await expectSaga(startAppServices)
         .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
         .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
         .run();
 
-      expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+      expect(sdkInitSpy).toHaveBeenCalledWith({ context: 'Nav/App' });
     });
 
     it('should gracefully handle SDK errors during initialization', async () => {
+      const sdkInitSpy = jest.spyOn(SDKConnect, 'init');
+
       const mockError = new Error('SDKConnect initialization failed');
 
-      (SDKConnect.init as jest.Mock).mockRejectedValue(mockError);
+      sdkInitSpy.mockRejectedValue(mockError);
 
       await expectSaga(startAppServices)
         .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
         .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
         .run();
 
-      expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+      expect(sdkInitSpy).toHaveBeenCalledWith({ context: 'Nav/App' });
       expect(loggerSpy).toHaveBeenCalledWith(
         'Cannot initialize SDKConnect.',
         mockError,
@@ -332,23 +296,25 @@ describe('startAppServices', () => {
 
   describe('WalletConnect', () => {
     beforeEach(() => {
-      mockIsWC2Enabled = true;
       jest.clearAllMocks();
     });
 
     it('should initialize WalletConnect during app startup when enabled', async () => {
+      const wcInitSpy = jest.spyOn(WC2Manager, 'init');
+
       await expectSaga(startAppServices)
         .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
         .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
         .run();
 
-      expect(WC2Manager.init).toHaveBeenCalledWith();
+      expect(wcInitSpy).toHaveBeenCalledWith();
     });
 
     it('should gracefully handle WC errors during initialization', async () => {
+      const wcInitSpy = jest.spyOn(WC2Manager, 'init');
       const mockError = new Error('WalletConnect initialization failed');
 
-      (WC2Manager.init as jest.Mock).mockRejectedValue(mockError);
+      wcInitSpy.mockRejectedValue(mockError);
 
       await expectSaga(startAppServices)
         .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
