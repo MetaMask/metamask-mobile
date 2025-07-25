@@ -86,6 +86,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
+      - set_main_target_stage: {}
       - pr_cache_check_stage: {}
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
@@ -93,6 +94,7 @@ pipelines:
 
   flask_smoke_e2e_pipeline:
     stages:
+      - set_flask_target_stage: {}
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android_stage: {}
       - notify: {}
@@ -247,6 +249,14 @@ stages:
     abort_on_fail: true
     workflows:
       - pr_check_build_cache: {}
+  # Sets the METAMASK_BUILD_TYPE variable to the main target
+  set_main_target_stage:
+    workflows:
+      - set_main_target_workflow: {}
+  # Sets the METAMASK_BUILD_TYPE variable to the flask target
+  set_flask_target_stage:
+    workflows:
+      - set_flask_target_workflow: {}
   build_smoke_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
@@ -265,7 +275,6 @@ stages:
   #     - run_tag_multichain_permissions_android: {}
   run_e2e_flask_ios_android_stage:
     workflows:
-      - set_flask_build_type_env_var: {}
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
@@ -288,7 +297,6 @@ stages:
       - run_single_android_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - set_main_build_type_env_var: {}
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
@@ -2914,34 +2922,20 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_flask_apps.json
           title: Bitrise Deploy Browserstack Uploaded Flask Apps
-  set_main_build_type_env_var:
+  set_main_target_workflow:
     steps:
-      - script@1:
-          title: Set METAMASK_BUILD_TYPE to main
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                echo "Setting METAMASK_BUILD_TYPE to main"
-                envman add --key METAMASK_BUILD_TYPE --value "main"
       - share-pipeline-variable@1:
           title: Persist METAMASK_BUILD_TYPE across all stages and workflows
           inputs:
             - variables: |-
-                METAMASK_BUILD_TYPE
-  set_flask_build_type_env_var:
+                METAMASK_BUILD_TYPE=main
+  set_flask_target_workflow:
     steps:
-      - script@1:
-          title: Set METAMASK_BUILD_TYPE to flask
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                echo "Setting METAMASK_BUILD_TYPE to flask"
-                envman add --key METAMASK_BUILD_TYPE --value "flask"
       - share-pipeline-variable@1:
           title: Persist METAMASK_BUILD_TYPE across all stages and workflows
           inputs:
             - variables: |-
-                METAMASK_BUILD_TYPE
+                METAMASK_BUILD_TYPE=flask
 
 app:
   envs:
