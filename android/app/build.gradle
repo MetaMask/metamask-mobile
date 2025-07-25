@@ -268,7 +268,12 @@ android {
           prod {
             dimension "version"
             applicationId "io.metamask"
-            signingConfig signingConfigs.release
+            // Use the appropriate signing config based on environment
+            if (System.getenv("METAMASK_ENVIRONMENT") == 'exp') {
+              signingConfig signingConfigs.qa
+            } else {
+              signingConfig signingConfigs.release
+            }
           }
           flask {
             dimension "version"
