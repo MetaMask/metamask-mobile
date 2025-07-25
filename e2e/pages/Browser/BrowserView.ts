@@ -14,6 +14,7 @@ import {
   getLocalTestDappUrl,
   getSecondTestDappLocalUrl,
 } from '../../fixtures/utils';
+import Assertions from '../../utils/Assertions';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -236,6 +237,10 @@ class Browser {
     await this.tapUrlInputBox();
     await this.navigateToURL(getSecondTestDappLocalUrl());
     await waitForTestDappToLoad();
+  }
+
+  async checkCurrentUrlInInputBox(expectedUrl: string): Promise<void> {
+    await Assertions.checkIfElementToHaveText(this.urlInputBoxID, expectedUrl);
   }
 
   async navigateToTestDAppTransaction({
