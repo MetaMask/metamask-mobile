@@ -1,8 +1,19 @@
 import { Theme } from '../../../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
+import Device from '../../../../../../util/device';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
+
+  const screenWidth = Device.getDeviceWidth();
+  const containerPadding = 15;
+  const gap = 5;
+  const cellCount = 6;
+  const availableWidth = screenWidth - 2 * containerPadding;
+  const boxSize = Math.floor(
+    (availableWidth - (cellCount - 1) * gap) / cellCount,
+  );
+  const finalBoxSize = Math.max(40, Math.min(50, boxSize));
 
   return StyleSheet.create({
     title: {
@@ -17,8 +28,8 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 5,
     },
     cellRoot: {
-      width: 50,
-      height: 50,
+      width: finalBoxSize,
+      height: finalBoxSize,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: theme.colors.background.muted,
