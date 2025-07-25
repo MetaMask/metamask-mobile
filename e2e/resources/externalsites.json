@@ -1,5 +1,5 @@
 {
-  "PHISHING_SITE": "https://test.metamask-phishing.io",
+  "PHISHING_SITE": "https://coin-qr.to",
   "PHISHING_SITE_INSIDE_IFRAME": "https://tyschenko.github.io/embedded_iframe.html",
   "INVALID_URL": "https://quackquakc.easq",
   "TEST_DAPP": "https://metamask.github.io/test-dapp/",

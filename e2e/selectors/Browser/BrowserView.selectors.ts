@@ -3,7 +3,6 @@ import ExternalSites from '../../resources/externalsites.json';
 
 export const BrowserViewSelectorsIDs = {
   BROWSER_WEBVIEW_ID: 'browser-webview',
-  BROWSER_HIDDEN_WEBVIEW_ID: 'browser-hidden-webview',
   TABS_COMPONENT: 'tabs-component',
   AVATAR_IMAGE: 'network-avatar-image',
   URL_INPUT: 'url-input',
