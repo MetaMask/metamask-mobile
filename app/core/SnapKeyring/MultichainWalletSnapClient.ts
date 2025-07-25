@@ -37,18 +37,23 @@ import {
 } from '../../constants/storage';
 
 export const WALLET_SNAP_MAP = {
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   [WalletClientType.Bitcoin]: {
     id: BITCOIN_WALLET_SNAP_ID,
     name: BITCOIN_WALLET_NAME,
     discoveryScope: BtcScope.Mainnet,
     discoveryStorageId: BITCOIN_DISCOVERY_PENDING,
   },
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
   [WalletClientType.Solana]: {
     id: SOLANA_WALLET_SNAP_ID,
     name: SOLANA_WALLET_NAME,
     discoveryScope: SolScope.Mainnet,
     discoveryStorageId: SOLANA_DISCOVERY_PENDING,
   },
+  ///: END:ONLY_INCLUDE_IF
 };
 
 export interface MultichainWalletSnapOptions {
