@@ -240,10 +240,6 @@ describe('startAppServices', () => {
   });
 
   describe('SDKConnect', () => {
-    beforeEach(() => {
-      mockIsWC2Enabled = false;
-    });
-
     it('should initialize SDKConnect during app startup', async () => {
       const sdkInitSpy = jest.spyOn(SDKConnect, 'init');
       await expectSaga(startAppServices)
