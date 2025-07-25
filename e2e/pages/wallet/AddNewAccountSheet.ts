@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { AddNewAccountIds } from '../../selectors/MultiSRP/AddHdAccount.selectors';
 
 class AddNewAccountSheet {
