@@ -22,6 +22,7 @@ import { ScrollView, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { toHex } from '@metamask/controller-utils';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -37,11 +38,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
+import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectSourceToken as selectBridgeSourceToken,
@@ -505,9 +506,11 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     return sourceAmount || '0';
   }, [formattedQuoteData.receivingAmount, sourceAmount]);
 
+  const { top } = useSafeAreaInsets();
+
   return (
     // @ts-expect-error The type is incorrect, this will work
-    <ScreenView contentContainerStyle={styles.screen}>
+    <ScreenView contentContainerStyle={[styles.screen, { paddingTop: top }]}>
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon

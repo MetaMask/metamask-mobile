@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -285,9 +286,11 @@ const PerpsWithdrawView: React.FC = () => {
     chainId: destToken.chainId,
   });
 
+  const { top } = useSafeAreaInsets();
+
   return (
     // @ts-expect-error The type is incorrect, this will work
-    <ScreenView contentContainerStyle={styles.screen}>
+    <ScreenView contentContainerStyle={[styles.screen, { paddingTop: top }]}>
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon
