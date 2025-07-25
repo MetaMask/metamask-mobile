@@ -26,11 +26,10 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
   });
 
   it('should edit priority gas settings and send ETH', async () => {
-
-    const testSpecificMock  = {
+    const testSpecificMock = {
       GET: [
         mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
       ],
     };
     await withFixtures(

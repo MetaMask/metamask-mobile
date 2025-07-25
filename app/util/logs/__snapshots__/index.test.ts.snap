@@ -330,6 +330,27 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "PermissionController": {
         "subjects": {},
       },
+      "PerpsController": {
+        "accountState": null,
+        "activeProvider": "hyperliquid",
+        "connectionStatus": "disconnected",
+        "currentDepositTxHash": null,
+        "depositError": null,
+        "depositFlowType": null,
+        "depositStatus": "idle",
+        "depositSteps": {
+          "currentStep": 0,
+          "stepNames": [],
+          "stepTxHashes": [],
+          "totalSteps": 0,
+        },
+        "isTestnet": false,
+        "lastError": null,
+        "lastUpdateTimestamp": 0,
+        "pendingOrders": [],
+        "positions": [],
+        "requiresModalDismissal": false,
+      },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
         "displayNftMedia": true,

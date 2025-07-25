@@ -57,6 +57,8 @@ import { EarnTokenDetails } from '../../types/lending.types';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { ScrollView } from 'react-native-gesture-handler';
+import { trace, TraceName } from '../../../../../util/trace';
+import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -135,6 +137,8 @@ const EarnWithdrawInputView = () => {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEndTraceOnMount(TraceName.EarnWithdrawScreen);
 
   const [maxRiskAwareWithdrawalAmount, setMaxRiskAwareWithdrawalAmount] =
     useState<string | undefined>(undefined);
@@ -306,6 +310,8 @@ const EarnWithdrawInputView = () => {
   );
 
   const handleLendingWithdrawalFlow = useCallback(async () => {
+    trace({ name: TraceName.EarnWithdrawReviewScreen });
+
     if (shouldLogStablecoinEvent()) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_REVIEW_BUTTON_CLICKED)
@@ -388,6 +394,12 @@ const EarnWithdrawInputView = () => {
     };
 
     if (isStakingDepositRedesignedEnabled) {
+      // start trace between user initiating withdrawal and the redesigned confirmation screen loading
+      trace({
+        name: TraceName.EarnWithdrawConfirmationScreen,
+        data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+      });
+
       // this prevents the user from adding the transaction withdrawal into the
       // controller state multiple times
       setIsSubmittingStakeWithdrawalTransaction(true);

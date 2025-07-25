@@ -1,14 +1,16 @@
 import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class OnboardingView {
   get container() {
     return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
-  get importSeedButton() {
-    return Matchers.getElementByID(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
+  get existingWalletButton() {
+    return Matchers.getElementByID(
+      OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+    );
   }
 
   get newWalletButton() {
@@ -19,8 +21,10 @@ class OnboardingView {
     await Gestures.waitAndTap(this.newWalletButton);
   }
 
-  async tapImportWalletFromSeedPhrase() {
-    await Gestures.waitAndTap(this.importSeedButton);
+  async tapHaveAnExistingWallet() {
+    await Gestures.waitAndTap(this.existingWalletButton, {
+      elemDescription: 'Onboarding Have an Existing Wallet Button',
+    });
   }
 }
 

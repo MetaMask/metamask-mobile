@@ -28,10 +28,10 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
   });
 
   it('send an ERC20 token from a dapp', async () => {
-    const testSpecificMock  = {
+    const testSpecificMock = {
       GET: [
         mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
       ],
     };
 
@@ -40,7 +40,9 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

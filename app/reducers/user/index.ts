@@ -23,6 +23,7 @@ export const userInitialState: UserState = {
   appTheme: AppThemeKey.os,
   ambiguousAddressEntries: {},
   appServicesReady: false,
+  existingUser: false,
 };
 
 /**
@@ -115,6 +116,12 @@ const userReducer = (
         ...state,
         appServicesReady: true,
       };
+    case UserActionType.SET_EXISTING_USER:
+      return {
+        ...state,
+        existingUser: action.payload.existingUser,
+      };
+
     default:
       return state;
   }

@@ -5,14 +5,15 @@ import {
 } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
 
 class AccountListBottomSheet {
   get accountList() {
-    return Matchers.getElementByID(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    );
   }
 
   get accountTypeLabel() {
@@ -67,7 +68,10 @@ class AccountListBottomSheet {
   }
 
   getMultiselectElement(index) {
-    return Matchers.getElementByID(CellComponentSelectorsIDs.MULTISELECT, index);
+    return Matchers.getElementByID(
+      CellComponentSelectorsIDs.MULTISELECT,
+      index,
+    );
   }
 
   /**
@@ -79,14 +83,14 @@ class AccountListBottomSheet {
    * @returns {Detox.IndexableNativeElement} The matcher for the element's title/name.
    */
   getSelectWithMenuElementName(index) {
-    return Matchers.getElementByID(
-      CellComponentSelectorsIDs.BASE_TITLE,
-      index,
-    );
+    return Matchers.getElementByID(CellComponentSelectorsIDs.BASE_TITLE, index);
   }
 
   async tapEditAccountActionsAtIndex(index) {
-    await Gestures.tapAtIndex(Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS), index);
+    await Gestures.tapAtIndex(
+      Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS),
+      index,
+    );
   }
 
   async accountNameInList(accountName) {
@@ -105,7 +109,9 @@ class AccountListBottomSheet {
   }
 
   async tapAddAccountButton() {
-    await Gestures.waitAndTap(this.addAccountButton);
+    await Gestures.waitAndTap(this.addAccountButton, {
+      elemDescription: 'Add Account button',
+    });
   }
 
   async tapAddEthereumAccountButton() {

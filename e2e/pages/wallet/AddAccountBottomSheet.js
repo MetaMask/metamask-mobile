@@ -1,6 +1,6 @@
 import { AddAccountBottomSheetSelectorsIDs } from '../../selectors/wallet/AddAccountBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers.ts';
+import Gestures from '../../framework/Gestures.ts';
 
 class AddAccountBottomSheet {
   get importAccountButton() {
@@ -9,9 +9,9 @@ class AddAccountBottomSheet {
     );
   }
 
-  get createAccountButton() {
+  get createEthereumAccountButton() {
     return Matchers.getElementByID(
-      AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+      AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
     );
   }
 
@@ -31,8 +31,10 @@ class AddAccountBottomSheet {
     await Gestures.waitAndTap(this.importAccountButton);
   }
 
-  async tapCreateAccount() {
-    await Gestures.waitAndTap(this.createAccountButton);
+  async tapCreateEthereumAccount() {
+    await Gestures.waitAndTap(this.createEthereumAccountButton, {
+      elemDescription: 'Create New Ethereum Account button',
+    });
   }
 
   async tapImportSrp() {
@@ -40,7 +42,9 @@ class AddAccountBottomSheet {
   }
 
   async tapAddSolanaAccount() {
-    await Gestures.waitAndTap(this.createSolanaAccountButton);
+    await Gestures.waitAndTap(this.createSolanaAccountButton, {
+      elemDescription: 'Add Solana Account button',
+    });
   }
 }
 

@@ -23,7 +23,7 @@ exports[`AccountConnect renders correctly with base request 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -1331,7 +1331,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -2639,7 +2639,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",

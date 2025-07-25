@@ -38,8 +38,8 @@ export const EditSpendingCapButton = ({
       onPress={openModal}
       testID="edit-spending-cap-button"
     >
-      {/* 
-        react-native-modal is patched right now and it puts an extra <View/> 
+      {/*
+        react-native-modal is patched right now and it puts an extra <View/>
         Keep modal as first child to avoid layout shift caused by "gap" style
       */}
       {isModalVisible && (

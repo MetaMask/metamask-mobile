@@ -8,7 +8,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import MultichainTransactionListItem from '../MultichainTransactionListItem';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
-import { BridgeHistoryItem, FeeType } from '@metamask/bridge-status-controller';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
 
 const mockUseTheme = jest.fn();
@@ -91,7 +91,7 @@ describe('MultichainTransactionListItem', () => {
       srcTokenAmount: '1000000000000000000',
       destTokenAmount: '2000000000000000000',
       feeData: {
-        [FeeType.METABRIDGE]: {
+        metabridge: {
           amount: '1000000000000000',
           asset: {
             chainId: 1,

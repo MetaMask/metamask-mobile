@@ -1,8 +1,4 @@
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-} from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 // Using FlatList from react-native-gesture-handler to fix scroll issues with the bottom sheet
 import { FlatList } from 'react-native-gesture-handler';
@@ -233,7 +229,13 @@ export const BridgeTokenSelectorBase: React.FC<
       ref={modalRef}
       style={[styles.screen, { marginTop: safeAreaInsets.top }]}
     >
-      <Box style={[styles.content,styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
+      <Box
+        style={[
+          styles.content,
+          styles.sheet,
+          { paddingBottom: safeAreaInsets.bottom },
+        ]}
+      >
         <Box style={styles.notch} />
         <Box gap={4}>
           <BottomSheetHeader>

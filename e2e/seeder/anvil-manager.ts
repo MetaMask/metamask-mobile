@@ -104,7 +104,7 @@ class AnvilManager {
       noMining?: boolean;
     } = {},
   ): Promise<void> {
-    const options = { ...defaultOptions, ...opts,port: AnvilPort() };
+    const options = { ...defaultOptions, ...opts, port: AnvilPort() };
     const { port } = options;
 
     try {

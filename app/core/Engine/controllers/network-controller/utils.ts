@@ -58,7 +58,7 @@ export function shouldCreateRpcServiceEvents(
   }
 
   if (
-    ['production', 'pre-release', 'qa', 'beta', 'rc'].includes(
+    ['production', 'pre-release', 'qa', 'beta', 'rc', 'exp'].includes(
       process.env.METAMASK_ENVIRONMENT,
     )
   ) {

@@ -54,8 +54,8 @@ const styleSheet = (params: {
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,
-        ...StyleSheet.flatten(inputStyle),
       },
+      StyleSheet.flatten(inputStyle),
       style,
     ) as TextStyle,
   });

@@ -1,6 +1,8 @@
 // Third party dependencies.
+import { isNumber } from 'lodash';
 import React, { useState } from 'react';
 import { Image, ImageBackground, ImageSourcePropType } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
@@ -53,11 +55,28 @@ const AvatarToken = ({
     ? !isIpfsGatewayEnabled && isIPFSUri(imageUri.uri)
     : false;
 
-  const tokenImage = () => (
-    <AvatarBase size={size} style={styles.base} {...props}>
-      {showFallback || isIpfsDisabledAndUriIsIpfs ? (
-        <Text style={styles.label}>{tokenNameFirstLetter}</Text>
-      ) : (
+  const tokenImage = () => {
+    let innerImage: React.ReactNode;
+    if (showFallback || isIpfsDisabledAndUriIsIpfs) {
+      innerImage = <Text style={styles.label}>{tokenNameFirstLetter}</Text>;
+    } else if (
+      imageSource &&
+      !isNumber(imageSource) &&
+      'uri' in imageSource &&
+      (imageSource.uri?.endsWith('.svg') ||
+        imageSource.uri?.startsWith('data:image/svg+xml'))
+    ) {
+      innerImage = (
+        <SvgUri
+          uri={imageSource.uri}
+          width={size}
+          height={size}
+          onError={onError}
+          testID={AVATARTOKEN_IMAGE_TESTID}
+        />
+      );
+    } else {
+      innerImage = (
         <Image
           source={imageSource as ImageSourcePropType}
           style={styles.image}
@@ -65,9 +84,15 @@ const AvatarToken = ({
           testID={AVATARTOKEN_IMAGE_TESTID}
           resizeMode={'contain'}
         />
-      )}
-    </AvatarBase>
-  );
+      );
+    }
+
+    return (
+      <AvatarBase size={size} style={styles.base} {...props}>
+        {innerImage}
+      </AvatarBase>
+    );
+  };
 
   return !isHaloEnabled || showFallback || isIpfsDisabledAndUriIsIpfs ? (
     tokenImage()

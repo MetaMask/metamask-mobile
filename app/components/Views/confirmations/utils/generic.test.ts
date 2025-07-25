@@ -10,9 +10,15 @@ describe('generic utils', () => {
   });
   describe('isNativeToken', () => {
     it('should return correct value', async () => {
-      expect(isNativeToken({ isNative: true, isETH: false } as TokenI)).toBe(true);
-      expect(isNativeToken({ isNative: false, isETH: true } as TokenI)).toBe(true);
-      expect(isNativeToken({ isNative: false, isETH: false } as TokenI)).toBe(false);
+      expect(isNativeToken({ isNative: true, isETH: false } as TokenI)).toBe(
+        true,
+      );
+      expect(isNativeToken({ isNative: false, isETH: true } as TokenI)).toBe(
+        true,
+      );
+      expect(isNativeToken({ isNative: false, isETH: false } as TokenI)).toBe(
+        false,
+      );
     });
   });
 });

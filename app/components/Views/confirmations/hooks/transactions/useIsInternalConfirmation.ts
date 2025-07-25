@@ -6,7 +6,8 @@ export const useIsInternalConfirmation = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
 
-  const isInternalConfirmation = transactionMetadata?.origin === MMM_ORIGIN ||
+  const isInternalConfirmation =
+    transactionMetadata?.origin === MMM_ORIGIN ||
     transactionBatchesMetadata?.origin === MMM_ORIGIN;
 
   return isInternalConfirmation;

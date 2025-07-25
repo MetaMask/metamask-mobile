@@ -39,6 +39,10 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.REGION_DROPDOWN);
   }
 
+  get accountPicker() {
+    return Matchers.getElementByID(BuildQuoteSelectors.ACCOUNT_PICKER);
+  }
+
   get minLimitErrorMessage() {
     return Matchers.getElementByID(BuildQuoteSelectors.MIN_LIMIT_ERROR);
   }
@@ -48,7 +52,9 @@ class BuildQuoteView {
   }
 
   get insufficientBalanceErrorMessage() {
-    return Matchers.getElementByID(BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR);
+    return Matchers.getElementByID(
+      BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR,
+    );
   }
 
   get keypadDeleteButton() {
@@ -75,6 +81,10 @@ class BuildQuoteView {
     await Gestures.waitAndTap(this.cancelButton);
   }
 
+  async tapAccountPicker() {
+    await Gestures.waitAndTap(this.accountPicker);
+  }
+
   async selectToken(token) {
     const tokenOption = Matchers.getElementByText(token);
     await Gestures.waitAndTap(tokenOption);
@@ -94,12 +104,16 @@ class BuildQuoteView {
   }
 
   async enterAmount(amount) {
-    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT));
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT),
+    );
     for (let digit = 0; digit < amount.length; digit++) {
       const numberButton = Matchers.getElementByText(amount[digit]);
       await Gestures.waitAndTap(numberButton);
     }
-    await Gestures.waitAndTap(Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON));
+    await Gestures.waitAndTap(
+      Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON),
+    );
   }
 
   async tapGetQuotesButton() {
@@ -116,7 +130,9 @@ class BuildQuoteView {
   }
 
   async tapKeypadDeleteButton(times) {
-    await Gestures.waitAndTap(Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT));
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT),
+    );
     for (let i = 0; i < times; i++) {
       await Gestures.waitAndTap(this.keypadDeleteButton);
     }

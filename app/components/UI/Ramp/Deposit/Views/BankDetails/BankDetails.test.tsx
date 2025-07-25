@@ -169,4 +169,12 @@ describe('BankDetails Component', () => {
       }),
     );
   });
+
+  it('displays confirmPaymentError when it has a value', () => {
+    mockUseDepositSdkMethodInitialState.error = 'Payment confirmation failed';
+
+    render(BankDetails);
+
+    expect(screen.getByText('Payment confirmation failed')).toBeTruthy();
+  });
 });

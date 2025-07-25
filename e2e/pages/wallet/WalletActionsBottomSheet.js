@@ -4,7 +4,9 @@ import Gestures from '../../utils/Gestures';
 
 class WalletActionsBottomSheet {
   get sendButton() {
-    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
+    );
   }
 
   get receiveButton() {
@@ -14,19 +16,27 @@ class WalletActionsBottomSheet {
   }
 
   get swapButton() {
-    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
+    );
   }
 
   get bridgeButton() {
-    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON);
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
+    );
   }
 
   get buyButton() {
-    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON);
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
+    );
   }
 
   get sellButton() {
-    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON);
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+    );
   }
 
   async tapSendButton() {
@@ -38,11 +48,15 @@ class WalletActionsBottomSheet {
   }
 
   async tapSwapButton() {
-    await Gestures.waitAndTap(this.swapButton);
+    await Gestures.waitAndTap(this.swapButton, {
+      delayBeforeTap: 1000,
+    });
   }
 
   async tapBridgeButton() {
-    await Gestures.waitAndTap(this.bridgeButton);
+    await Gestures.waitAndTap(this.bridgeButton, {
+      delayBeforeTap: 1000,
+    });
   }
 
   async tapBuyButton() {

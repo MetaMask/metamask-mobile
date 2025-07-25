@@ -24,9 +24,8 @@ export const ActivitiesViewSelectorsText = {
   STAKE_DEPOSIT: enContent.transactions.tx_review_staking_deposit,
   UNSTAKE: enContent.transactions.tx_review_staking_unstake,
   STAKING_CLAIM: enContent.transactions.tx_review_staking_claim,
-
 };
 
 export const sentMessageTokenIDs = {
-  eth: ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(enContent.unit.eth)
+  eth: ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(enContent.unit.eth),
 };

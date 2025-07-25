@@ -1,4 +1,3 @@
-
 // Gestures
 
 export interface GestureOptions {
@@ -10,6 +9,7 @@ export interface GestureOptions {
 }
 
 export interface TapOptions extends GestureOptions {
+  delay?: number; // Delay before the tap action
 }
 
 export interface TypeTextOptions extends GestureOptions {

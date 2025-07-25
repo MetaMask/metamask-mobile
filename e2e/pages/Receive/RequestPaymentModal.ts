@@ -16,4 +16,4 @@ class RequestPaymentModal {
   }
 }
 
-export default new RequestPaymentModal(); 
+export default new RequestPaymentModal();

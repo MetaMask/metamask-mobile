@@ -17,7 +17,10 @@ import {
   AccountId,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
-import { KeyringControllerState, KeyringTypes } from '@metamask/keyring-controller';
+import {
+  KeyringControllerState,
+  KeyringTypes,
+} from '@metamask/keyring-controller';
 import {
   mockQrKeyringAddress,
   mockSecondHDKeyringAddress,
@@ -257,22 +260,16 @@ export const expectedUuid2 = createMockUuidFromAddress(
 );
 
 export const internalAccount1: InternalAccount = {
-  ...createMockInternalAccount(
-    MOCK_ADDRESS_1.toLowerCase(),
-    'Account 1',
-  ),
+  ...createMockInternalAccount(MOCK_ADDRESS_1.toLowerCase(), 'Account 1'),
   options: {
     entropySource: MOCK_ENTROPY_SOURCE,
-  }
+  },
 };
 export const internalAccount2: InternalAccount = {
-  ...createMockInternalAccount(
-    MOCK_ADDRESS_2.toLowerCase(),
-    'Account 2',
-  ),
+  ...createMockInternalAccount(MOCK_ADDRESS_2.toLowerCase(), 'Account 2'),
   options: {
     entropySource: MOCK_ENTROPY_SOURCE,
-  }
+  },
 };
 
 export const internalSolanaAccount1: InternalAccount = {
@@ -296,9 +293,10 @@ export const mockSecondHDKeyringInternalAccount = {
     mockSecondHDKeyringAddress,
     'Second HD Keyring Account',
     KeyringTypes.hd,
-  ), options: {
+  ),
+  options: {
     entropySource: MOCK_ENTROPY_SOURCE_2,
-  }
+  },
 };
 
 // used as a default mock for other tests
@@ -312,26 +310,24 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
   },
 };
 
-export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA: AccountsControllerState = {
-  ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-  internalAccounts: {
-    ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-    accounts: {
-      ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-      [internalSolanaAccount1.id]: internalSolanaAccount1,
+export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA: AccountsControllerState =
+  {
+    ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+    internalAccounts: {
+      ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+      accounts: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+        [internalSolanaAccount1.id]: internalSolanaAccount1,
+      },
     },
-  },
-};
+  };
 
 export const MOCK_KEYRING_CONTROLLER_STATE: KeyringControllerState = {
   isUnlocked: true,
   keyrings: [
     {
       type: 'HD Key Tree',
-      accounts: [
-        internalAccount1.address,
-        internalAccount2.address,
-      ],
+      accounts: [internalAccount1.address, internalAccount2.address],
       metadata: {
         id: MOCK_ENTROPY_SOURCE,
         name: '',
@@ -340,22 +336,21 @@ export const MOCK_KEYRING_CONTROLLER_STATE: KeyringControllerState = {
   ],
 };
 
-export const MOCK_KEYRING_CONTROLLER_STATE_WITH_SOLANA: KeyringControllerState = {
-  ...MOCK_KEYRING_CONTROLLER_STATE,
-  keyrings: [
-    ...MOCK_KEYRING_CONTROLLER_STATE.keyrings,
-    {
-      type: 'Snap keyring',
-      accounts: [
-        internalSolanaAccount1.address,
-      ],
-      metadata: {
-        id: 'mock-snap-keyring-id',
-        name: '',
+export const MOCK_KEYRING_CONTROLLER_STATE_WITH_SOLANA: KeyringControllerState =
+  {
+    ...MOCK_KEYRING_CONTROLLER_STATE,
+    keyrings: [
+      ...MOCK_KEYRING_CONTROLLER_STATE.keyrings,
+      {
+        type: 'Snap keyring',
+        accounts: [internalSolanaAccount1.address],
+        metadata: {
+          id: 'mock-snap-keyring-id',
+          name: '',
+        },
       },
-    },
-  ],
-};
+    ],
+  };
 
 // account IDs for different account types from MOCK_KEYRING_CONTROLLER_STATE
 export const mockQRHardwareAccountId =

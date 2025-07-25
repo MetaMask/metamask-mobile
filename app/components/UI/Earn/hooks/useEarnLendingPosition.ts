@@ -58,6 +58,7 @@ const useEarnLendingPositions = (asset: TokenI) => {
     //   outputToken.experience?.market?.id &&
     //   outputToken.experience?.market?.address
     // ) {
+    //   trace({ name: TraceName.EarnEarnings });
     //   getLendingPositionHistory({
     //     positionId: outputToken.experience?.market?.position?.id,
     //     marketId: outputToken.experience?.market?.id,
@@ -67,6 +68,8 @@ const useEarnLendingPositions = (asset: TokenI) => {
     //     console.error('Failed to fetch lending position history', err);
     //     setError('Failed to fetch lending position history');
     //     setIsLoading(false);
+    //   }).finally(() => {
+    //      endTrace({ name: TraceName.EarnEarnings });
     //   });
     // } else {
     //   setIsLoading(false);

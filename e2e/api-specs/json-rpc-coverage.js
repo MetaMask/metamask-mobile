@@ -11,9 +11,7 @@ import Browser from '../pages/Browser/BrowserView';
 const mockServer = require('@open-rpc/mock-server/build/index').default;
 import TabBarComponent from '../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../fixtures/fixture-builder';
-import {
-  withFixtures,
-} from '../fixtures/fixture-helper';
+import { withFixtures } from '../fixtures/fixture-helper';
 import { loginToApp } from '../viewHelper';
 
 import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';

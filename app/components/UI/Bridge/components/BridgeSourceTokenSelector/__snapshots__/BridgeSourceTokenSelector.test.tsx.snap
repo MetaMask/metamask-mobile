@@ -327,7 +327,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -575,13 +575,14 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "transparent",
+                                  "backgroundColor": "#3c4d9d1a",
                                   "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -705,7 +706,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 </Text>
                               </View>
                               <SvgMock
-                                color="#4459ff"
+                                color="#121314"
                                 fill="currentColor"
                                 height={16}
                                 name="ArrowDown"
@@ -912,7 +913,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-HELLO"
+                                    testID="asset-0x1-HELLO"
                                   >
                                     <View
                                       alignItems="center"
@@ -1170,7 +1171,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-FOO"
+                                    testID="asset-0xa-FOO"
                                   >
                                     <View
                                       alignItems="center"
@@ -1428,7 +1429,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-ETH"
+                                    testID="asset-0xa-ETH"
                                   >
                                     <View
                                       alignItems="center"
@@ -1718,7 +1719,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-TOKEN1"
+                                    testID="asset-0x1-TOKEN1"
                                   >
                                     <View
                                       alignItems="center"
@@ -1976,7 +1977,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "paddingVertical": 10,
                                       }
                                     }
-                                    testID="asset-ETH"
+                                    testID="asset-0x1-ETH"
                                   >
                                     <View
                                       alignItems="center"

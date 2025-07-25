@@ -51,9 +51,12 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import {
+  formatChainIdToCaip,
+  formatChainIdToHex,
+  isSolanaChainId,
+} from '@metamask/bridge-controller';
 import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
-import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
-import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -701,11 +704,6 @@ const mapStateToProps = (state, ownProps) => ({
   swapsTokens: swapsControllerTokens(state),
   ticker: selectTickerByChainId(state, ownProps.txChainId),
   conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
-  contractExchangeRates: selectContractExchangeRatesByChainId(
-    state,
-    ownProps.txChainId,
-  ),
-  tokens: selectTokensByChainIdAndAddress(state, ownProps.txChainId),
 });
 
 TransactionElement.contextType = ThemeContext;

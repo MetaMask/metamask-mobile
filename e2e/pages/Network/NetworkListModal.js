@@ -84,7 +84,6 @@ class NetworkListModal {
 
   async tapTestNetworkSwitch() {
     await Gestures.waitAndTap(this.testNetToggle, { delayBeforeTap: 2500 });
-
   }
 
   async longPressOnNetwork(networkName) {
@@ -104,8 +103,9 @@ class NetworkListModal {
   }
 
   async tapAddNetworkButton() {
-    await Gestures.waitAndTap(this.addPopularNetworkButton, { delayBeforeTap: 2500 });
-
+    await Gestures.waitAndTap(this.addPopularNetworkButton, {
+      delayBeforeTap: 2500,
+    });
   }
   async deleteNetwork() {
     await Gestures.waitAndTap(this.deleteButton);

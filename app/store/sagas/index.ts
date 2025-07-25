@@ -1,4 +1,4 @@
-import { fork, take, cancel, put, call, all } from 'redux-saga/effects';
+import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -8,6 +8,8 @@ import {
   lockApp,
   setAppServicesReady,
   UserActionType,
+  LoginAction,
+  CheckForDeeplinkAction,
 } from '../../actions/user';
 import { NavigationActionType } from '../../actions/navigation';
 import { Task } from 'redux-saga';
@@ -21,6 +23,13 @@ import {
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
+import AppConstants from '../../core/AppConstants';
+import {
+  SET_COMPLETED_ONBOARDING,
+  SetCompletedOnboardingAction,
+} from '../../actions/onboarding';
+import { selectCompletedOnboarding } from '../../selectors/onboarding';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -129,6 +138,46 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+export function* handleDeeplinkSaga() {
+  while (true) {
+    // Handle parsing deeplinks after login or when the lock manager is resolved
+    const value = (yield take([
+      UserActionType.LOGIN,
+      UserActionType.CHECK_FOR_DEEPLINK,
+      SET_COMPLETED_ONBOARDING,
+    ])) as LoginAction | CheckForDeeplinkAction | SetCompletedOnboardingAction;
+
+    let completedOnboarding = false;
+
+    // Check if triggering action is SET_COMPLETED_ONBOARDING
+    if (value.type === SET_COMPLETED_ONBOARDING) {
+      completedOnboarding = value.completedOnboarding;
+    } else {
+      completedOnboarding = yield select(selectCompletedOnboarding);
+    }
+
+    const { KeyringController } = Engine.context;
+    const isUnlocked = KeyringController.isUnlocked();
+
+    // App is locked or onboarding is not yet complete
+    if (!isUnlocked || !completedOnboarding) {
+      continue;
+    }
+
+    const deeplink = AppStateEventProcessor.pendingDeeplink;
+
+    if (deeplink) {
+      // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
+      setTimeout(() => {
+        SharedDeeplinkManager.parse(deeplink, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        });
+      }, 200);
+      AppStateEventProcessor.clearPendingDeeplink();
+    }
+  }
+}
+
 /**
  * Handles initializing app services on start up
  */
@@ -154,4 +203,5 @@ export function* rootSaga() {
   yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(handleDeeplinkSaga);
 }

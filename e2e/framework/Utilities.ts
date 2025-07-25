@@ -31,9 +31,7 @@ export default class Utilities {
   /**
    * Check if element is enabled (non-retry version)
    */
-  static async checkElementEnabled(
-    detoxElement: DetoxElement,
-  ): Promise<void> {
+  static async checkElementEnabled(detoxElement: DetoxElement): Promise<void> {
     const el = (await detoxElement) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || !attributes.enabled) {
@@ -59,14 +57,11 @@ export default class Utilities {
     timeout = 3500,
     interval = 100,
   ): Promise<void> {
-    return this.executeWithRetry(
-      () => this.checkElementEnabled(detoxElement),
-      {
-        timeout,
-        interval,
-        description: 'Element to be enabled',
-      },
-    );
+    return this.executeWithRetry(() => this.checkElementEnabled(detoxElement), {
+      timeout,
+      interval,
+      description: 'Element to be enabled',
+    });
   }
 
   /**
@@ -82,7 +77,9 @@ export default class Utilities {
 
       // Check if element has proper frame/bounds
       if (!('frame' in attributes) || !attributes.frame) {
-        throw new Error('🚫 Element does not have valid frame bounds - may be obscured');
+        throw new Error(
+          '🚫 Element does not have valid frame bounds - may be obscured',
+        );
       }
 
       // Additional Android-specific checks could be added here
@@ -93,16 +90,28 @@ export default class Utilities {
         const centerY = attributes.frame.y + attributes.frame.height / 2;
 
         if (centerX <= 0 || centerY <= 0) {
-          throw new Error('🚫 Element center point is not accessible - may be obscured');
+          throw new Error(
+            '🚫 Element center point is not accessible - may be obscured',
+          );
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        throw new Error(`🚫 Element appears to be obscured or not tappable: ${errorMessage}`);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `🚫 Element appears to be obscured or not tappable: ${errorMessage}`,
+        );
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('window focus') || errorMessage.includes('window-focus') || errorMessage.includes('has-window-focus=false')) {
-        console.warn('⚠️ Skipping obscuration check - window has no focus (common in CI environments)');
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (
+        errorMessage.includes('window focus') ||
+        errorMessage.includes('window-focus') ||
+        errorMessage.includes('has-window-focus=false')
+      ) {
+        console.warn(
+          '⚠️ Skipping obscuration check - window has no focus (common in CI environments)',
+        );
         return;
       }
       throw error;
@@ -232,10 +241,11 @@ export default class Utilities {
       }
     }
 
-    if (checkEnabled) {
+    if (checkEnabled && device.getPlatform() === 'android') {
+      // checkEnabled is only relevant for Android
+      // iOS elements often fail on enabled checks even when they are tappable
       await this.checkElementEnabled(Promise.resolve(el));
     }
-
 
     if (checkStability) {
       const stabilityTimeout = timeout || 2000; // If no timeout is provided, default to 2000ms
@@ -285,12 +295,11 @@ export default class Utilities {
     const webEl = el as any;
     return !!(
       webEl?.webViewElement ||
-      (typeof webEl?.runScript === 'function') ||
-      (webEl?.constructor?.name && (
-        webEl.constructor.name.includes('IndexableWebElement') ||
-        webEl.constructor.name.includes('SecuredWebElementFacade') ||
-        webEl.constructor.name.includes('WebElement')
-      ))
+      typeof webEl?.runScript === 'function' ||
+      (webEl?.constructor?.name &&
+        (webEl.constructor.name.includes('IndexableWebElement') ||
+          webEl.constructor.name.includes('SecuredWebElementFacade') ||
+          webEl.constructor.name.includes('WebElement')))
     );
   }
 

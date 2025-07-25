@@ -26,65 +26,80 @@ interface ModalContentProps {
   btnLabelCta: string;
   isChecked: boolean;
   setIsChecked: (isChecked: boolean) => void;
-  hascheckBox?: boolean | null
+  hascheckBox?: boolean | null;
   handleCta: () => void;
   handleCancel: () => void;
   loading?: boolean;
 }
 
-const ModalContent = ({ title, message, iconName, iconColor, iconSize, checkBoxLabel, btnLabelCancel, btnLabelCta, isChecked, setIsChecked, hascheckBox, handleCancel, handleCta, loading } :ModalContentProps) => {
+const ModalContent = ({
+  title,
+  message,
+  iconName,
+  iconColor,
+  iconSize,
+  checkBoxLabel,
+  btnLabelCancel,
+  btnLabelCta,
+  isChecked,
+  setIsChecked,
+  hascheckBox,
+  handleCancel,
+  handleCta,
+  loading,
+}: ModalContentProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
     <View style={styles.container}>
-    <Icon
-      name={iconName}
-      color={iconColor}
-      size={iconSize}
-      style={styles.icon}
-    />
-    <Text variant={TextVariant.HeadingMD} style={styles.title}>
-      {title}
-    </Text>
-    <Text variant={TextVariant.BodyMD} style={styles.description}>
-      {message}
-    </Text>
-    <View style={styles.bottom}>
-      {hascheckBox && (
-        <Checkbox
-          label={checkBoxLabel}
-          isChecked={isChecked}
-          onPress={() => setIsChecked(!isChecked)}
-        />
-      )}
-      <View style={styles.buttonsContainer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          style={styles.button}
-          accessibilityRole={'button'}
-          accessible
-          label={btnLabelCancel}
-          onPress={handleCancel}
-        />
-        <View style={styles.spacer} />
-        <Button
-          variant={ButtonVariants.Primary}
-          isDisabled={hascheckBox ? !isChecked : false}
-          isDanger={hascheckBox ?? false}
-          size={ButtonSize.Lg}
-          style={styles.button}
-          accessibilityRole={'button'}
-          accessible
-          label={btnLabelCta}
-          onPress={handleCta}
-          loading={loading}
-        />
+      <Icon
+        name={iconName}
+        color={iconColor}
+        size={iconSize}
+        style={styles.icon}
+      />
+      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+        {title}
+      </Text>
+      <Text variant={TextVariant.BodyMD} style={styles.description}>
+        {message}
+      </Text>
+      <View style={styles.bottom}>
+        {hascheckBox && (
+          <Checkbox
+            label={checkBoxLabel}
+            isChecked={isChecked}
+            onPress={() => setIsChecked(!isChecked)}
+          />
+        )}
+        <View style={styles.buttonsContainer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            style={styles.button}
+            accessibilityRole={'button'}
+            accessible
+            label={btnLabelCancel}
+            onPress={handleCancel}
+          />
+          <View style={styles.spacer} />
+          <Button
+            variant={ButtonVariants.Primary}
+            isDisabled={hascheckBox ? !isChecked : false}
+            isDanger={hascheckBox ?? false}
+            size={ButtonSize.Lg}
+            style={styles.button}
+            accessibilityRole={'button'}
+            accessible
+            label={btnLabelCta}
+            onPress={handleCta}
+            loading={loading}
+          />
+        </View>
       </View>
     </View>
-  </View>
-  );};
-
+  );
+};
 
 export default ModalContent;

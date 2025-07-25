@@ -383,6 +383,7 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",
+                            "overflow": "hidden",
                             "paddingHorizontal": 16,
                           }
                         }

@@ -168,13 +168,10 @@ const initialState = {
               },
               groups: {
                 'hd-accounts': {
-                  accounts: [
-                    BUSINESS_ACCOUNT_ID,
-                    PERSONAL_ACCOUNT_ID,
-                  ]
-                }
-              }
-            }
+                  accounts: [BUSINESS_ACCOUNT_ID, PERSONAL_ACCOUNT_ID],
+                },
+              },
+            },
           },
         },
       },
@@ -1318,7 +1315,8 @@ describe('EvmAccountSelectorList', () => {
     fireEvent.press(accountActionsButton);
 
     const expectedAccount =
-      multichainState.engine.backgroundState.AccountsController.internalAccounts.accounts[BUSINESS_ACCOUNT_ID];
+      multichainState.engine.backgroundState.AccountsController.internalAccounts
+        .accounts[BUSINESS_ACCOUNT_ID];
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
       {

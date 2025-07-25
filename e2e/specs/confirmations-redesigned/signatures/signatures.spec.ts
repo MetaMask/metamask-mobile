@@ -4,7 +4,7 @@ import Browser from '../../../pages/Browser/BrowserView';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import TestHelpers from '../../../helpers.js';
 import { loginToApp } from '../../../viewHelper.js';
@@ -28,9 +28,7 @@ const SIGNATURE_LIST = [
     testDappBtn: TestDApp.tapEthereumSignButton.bind(TestDApp),
     requestType: RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
-      await Assertions.checkIfVisible(
-        RowComponents.SiweSigningAccountInfo,
-      );
+      await Assertions.checkIfVisible(RowComponents.SiweSigningAccountInfo);
     },
   },
   {
@@ -60,7 +58,12 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  for (const { specName, testDappBtn, requestType, additionAssertions } of SIGNATURE_LIST) {
+  for (const {
+    specName,
+    testDappBtn,
+    requestType,
+    additionAssertions,
+  } of SIGNATURE_LIST) {
     it(`should sign ${specName} message`, async () => {
       await withFixtures(
         {

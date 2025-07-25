@@ -10,12 +10,18 @@ import Engine from '../../core/Engine';
 
 export class AccountTreeInitService {
   initializeAccountTree = async (): Promise<void> => {
-    const { AccountTreeController, AccountsController, RemoteFeatureFlagController } = Engine.context;
-    const { enableMultichainAccounts } = RemoteFeatureFlagController.state.remoteFeatureFlags;
-    if(!assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)) {
+    const {
+      AccountTreeController,
+      AccountsController,
+      RemoteFeatureFlagController,
+    } = Engine.context;
+    const { enableMultichainAccounts } =
+      RemoteFeatureFlagController.state.remoteFeatureFlags;
+    if (!assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)) {
       return;
     }
-    const isMultichainAccountsEnabled = this.isMultichainAccountsEnabledForState1(enableMultichainAccounts);
+    const isMultichainAccountsEnabled =
+      this.isMultichainAccountsEnabledForState1(enableMultichainAccounts);
 
     if (isMultichainAccountsEnabled) {
       AccountTreeController.init();
@@ -23,11 +29,15 @@ export class AccountTreeInitService {
     }
   };
 
-  private isMultichainAccountsEnabledForState1 = (remoteFeatureFlags: Json & MultichainAccountsFeatureFlag) => (
-    [MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1, MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2].some((featureVersion) =>
-      isMultichainAccountsFeatureEnabled(remoteFeatureFlags, featureVersion)
-    )
-  );
+  private isMultichainAccountsEnabledForState1 = (
+    remoteFeatureFlags: Json & MultichainAccountsFeatureFlag,
+  ) =>
+    [
+      MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1,
+      MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+    ].some((featureVersion) =>
+      isMultichainAccountsFeatureEnabled(remoteFeatureFlags, featureVersion),
+    );
 }
 
 export default new AccountTreeInitService();

@@ -118,10 +118,10 @@ const SwapStatusToColorMap: Record<TransactionStatus, TextColor> = {
 };
 
 const MultichainTxStatusToColorMap: Record<Transaction['status'], TextColor> = {
-  'submitted': TextColor.Warning,
-  'confirmed': TextColor.Success,
-  'unconfirmed': TextColor.Warning,
-  'failed': TextColor.Error,
+  submitted: TextColor.Warning,
+  confirmed: TextColor.Success,
+  unconfirmed: TextColor.Warning,
+  failed: TextColor.Error,
 };
 
 const getStatusColor = ({

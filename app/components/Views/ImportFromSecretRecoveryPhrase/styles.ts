@@ -30,7 +30,7 @@ const createStyles = (colors: any) =>
     },
     seedPhraseContainer: {
       paddingTop: 16,
-      backgroundColor: colors.background.muted,
+      backgroundColor: colors.background.section,
       borderRadius: 10,
       marginTop: 16,
       minHeight: 264,

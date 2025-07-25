@@ -1,31 +1,50 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import OtpCode from './OtpCode';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
-import { useDepositSDK } from '../../sdk';
 import {
   BuyQuote,
-  NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
-import { DepositRegion } from '../../constants';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 const EMAIL = 'test@email.com';
+const PAYMENT_METHOD_ID = 'test-payment-method';
+const CRYPTO_CURRENCY_CHAIN_ID = '1';
 
 const mockQuote = {
   quoteId: 'mock-quote-id',
 } as BuyQuote;
 
+const mockRouteAfterAuthentication = jest.fn();
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../hooks/useDepositRouting', () => ({
+  useDepositRouting: () => ({
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+  }),
+}));
+
+const mockSetAuthToken = jest.fn();
+
 jest.mock('../../sdk', () => ({
-  ...jest.requireActual('../../sdk'),
-  useDepositSDK: jest.fn().mockReturnValue({
-    sdk: {},
-    sdkError: null,
-    providerApiKey: 'mock-api-key',
-    providerFrontendAuth: 'mock-frontend-auth',
-    setAuthToken: jest.fn().mockResolvedValue(undefined),
+  useDepositSDK: () => ({
+    setAuthToken: mockSetAuthToken,
+    selectedWalletAddress: '0x1234567890abcdef',
+    selectedRegion: { isoCode: 'US' },
+  }),
+}));
+
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: () => ({
+    email: EMAIL,
+    quote: mockQuote,
+    paymentMethodId: PAYMENT_METHOD_ID,
+    cryptoCurrencyChainId: CRYPTO_CURRENCY_CHAIN_ID,
   }),
 }));
 
@@ -39,15 +58,17 @@ const mockUseDepositSdkMethodInitialState = {
   isFetching: false,
 };
 
-const mockSdkMethod = jest.fn().mockResolvedValue('Success');
-
-let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'verifyUserOtp'> = [
-  mockUseDepositSdkMethodInitialState,
-  mockSdkMethod,
-];
+const mockVerifyUserOtp = jest.fn().mockResolvedValue('Success');
+const mockSendUserOtp = jest.fn().mockResolvedValue('Success');
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
+  useDepositSdkMethod: jest.fn((config) => {
+    if (config.method === 'verifyUserOtp') {
+      return [mockUseDepositSdkMethodInitialState, mockVerifyUserOtp];
+    } else if (config.method === 'sendUserOtp') {
+      return [mockUseDepositSdkMethodInitialState, mockSendUserOtp];
+    }
+  }),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -61,9 +82,6 @@ jest.mock('@react-navigation/native', () => {
         actualReactNavigation.useNavigation().setOptions,
       ),
     }),
-    useRoute: () => ({
-      params: { email: EMAIL, quote: mockQuote },
-    }),
   };
 });
 
@@ -74,16 +92,27 @@ jest.mock('../../../../Navbar', () => ({
 }));
 
 function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.OTP_CODE);
+  return renderScreen(
+    Component,
+    {
+      name: Routes.DEPOSIT.OTP_CODE,
+    },
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    },
+  );
 }
 
-describe('OtpCode Component', () => {
+describe('OtpCode Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState },
-      mockSdkMethod,
-    ];
+    mockVerifyUserOtp.mockResolvedValue('Success');
+    mockSendUserOtp.mockResolvedValue('Success');
+    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -100,155 +129,106 @@ describe('OtpCode Component', () => {
     );
   });
 
-  it('renders loading state snapshot', async () => {
-    mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState, isFetching: true },
-      mockSdkMethod,
-    ];
-    render(OtpCode);
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('navigates to next screen on submit button press when valid code is entered', async () => {
-    const mockResponse = {
-      id: 'mock-id',
-      ttl: 1000,
-      userId: 'mock-user-id',
-    } as NativeTransakAccessToken;
-
-    const mockSubmitCode = jest.fn().mockResolvedValue(mockResponse);
-    const mockSetAuthToken = jest.fn().mockResolvedValue(undefined);
-
-    mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState, data: null },
-      mockSubmitCode,
-    ];
-
-    jest.mocked(useDepositSDK).mockReturnValue({
-      sdk: {
-        setAccessToken: jest.fn(),
-        getAccessToken: jest.fn(),
-        clearAccessToken: jest.fn(),
-        verifyUserOtp: jest.fn(),
-        sendUserOtp: jest.fn(),
-        getVersion: jest.fn(),
-      } as unknown as NativeRampsSdk,
-      sdkError: undefined,
-      providerApiKey: 'mock-api-key',
-      providerFrontendAuth: 'mock-frontend-auth',
-      setAuthToken: mockSetAuthToken,
-      isAuthenticated: false,
-      checkExistingToken: jest.fn(),
-      clearAuthToken: jest.fn(),
-      getStarted: true,
-      setGetStarted: jest.fn(),
-      setSelectedRegion: jest.fn(),
-      selectedRegion: {
-        isoCode: 'US',
-      } as DepositRegion,
+  it('renders error snapshot when API call fails', async () => {
+    mockVerifyUserOtp.mockImplementation(() => {
+      throw new Error('API call failed');
     });
-
     const { getByTestId } = render(OtpCode);
-
-    const codeInput = getByTestId('otp-code-input');
-    fireEvent.changeText(codeInput, '123456');
-
-    fireEvent.press(
-      screen.getByRole('button', {
-        name: 'Submit',
-      }),
-    );
-
-    expect(mockSubmitCode).toHaveBeenCalled();
-
-    mockUseDepositSdkMethodValues[0] = {
-      ...mockUseDepositSdkMethodValues[0],
-      data: mockResponse,
-    };
-
-    render(OtpCode);
-
-    await waitFor(() => {
-      expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.DEPOSIT.VERIFY_IDENTITY,
-        { quote: mockQuote },
-      );
+    act(() => {
+      const codeInput = getByTestId('otp-code-input');
+      fireEvent.changeText(codeInput, '123456');
     });
-  });
-
-  it('render matches error snapshot when API call fails', async () => {
-    mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState, error: 'Invalid code' },
-      mockSdkMethod,
-    ];
-    render(OtpCode);
     expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('disables submit button and shows loading state when loading', () => {
-    mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState, isFetching: true },
-      mockSdkMethod,
-    ];
-    render(OtpCode);
-    expect(screen.toJSON()).toMatchSnapshot();
-    const loadingButton = screen.getByTestId('otp-code-submit-button');
-    fireEvent.press(loadingButton);
-    expect(mockSdkMethod).not.toHaveBeenCalled();
   });
 
   it('disables submit button when code length is invalid', () => {
-    mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState },
-      mockSdkMethod,
-    ];
     render(OtpCode);
     const submitButton = screen.getByRole('button', { name: 'Submit' });
     fireEvent.press(submitButton);
-    expect(mockSdkMethod).not.toHaveBeenCalled();
+    expect(mockVerifyUserOtp).not.toHaveBeenCalled();
   });
 
   it('calls resendOtp when resend link is clicked and properly handles cooldown timer', async () => {
-    const mockResendFn = jest.fn().mockResolvedValue('success');
-
-    mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState },
-      mockResendFn,
-    ];
-
+    mockSendUserOtp.mockResolvedValue('success');
     render(OtpCode);
     const resendButton = screen.getByText('Resend it');
     fireEvent.press(resendButton);
-    expect(mockResendFn).toHaveBeenCalled();
+    expect(mockSendUserOtp).toHaveBeenCalled();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders cooldown timer snapshot after resending OTP', async () => {
-    const mockResendFn = jest.fn().mockResolvedValue('success');
-    mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState },
-      mockResendFn,
-    ];
-
     render(OtpCode);
     const resendButton = screen.getByText('Resend it');
     fireEvent.press(resendButton);
-
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders resend error snapshot when resend fails', async () => {
-    const mockResendFn = jest
-      .fn()
-      .mockRejectedValue(new Error('Failed to resend'));
-    mockUseDepositSdkMethodValues = [
-      { ...mockUseDepositSdkMethodInitialState },
-      mockResendFn,
-    ];
+    mockSendUserOtp.mockRejectedValue(new Error('Failed to resend'));
     render(OtpCode);
     const resendButton = screen.getByText('Resend it');
     fireEvent.press(resendButton);
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('calls routeAfterAuthentication when valid code is input', async () => {
+    const mockResponse = {
+      id: 'mock-id-123',
+      ttl: 1000,
+      userId: 'mock-user-id',
+    } as NativeTransakAccessToken;
+
+    mockVerifyUserOtp.mockResolvedValue(mockResponse);
+    mockSetAuthToken.mockResolvedValue(undefined);
+    const { getByTestId } = render(OtpCode);
+    act(() => {
+      const codeInput = getByTestId('otp-code-input');
+      fireEvent.changeText(codeInput, '123456');
+    });
+    await waitFor(() => {
+      expect(mockVerifyUserOtp).toHaveBeenCalled();
+      expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
+    });
+  });
+
+  it('tracks analytics event when OTP is successfully confirmed', async () => {
+    const mockResponse = {
+      id: 'mock-id-123',
+      ttl: 1000,
+      userId: 'mock-user-id',
+    } as NativeTransakAccessToken;
+
+    mockVerifyUserOtp.mockResolvedValue(mockResponse);
+    mockSetAuthToken.mockResolvedValue(undefined);
+    const { getByTestId } = render(OtpCode);
+    act(() => {
+      const codeInput = getByTestId('otp-code-input');
+      fireEvent.changeText(codeInput, '123456');
+    });
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_OTP_CONFIRMED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+      });
+    });
+  });
+
+  it('tracks analytics event when OTP submission fails', async () => {
+    mockVerifyUserOtp.mockImplementation(() => {
+      throw new Error('API call failed');
+    });
+    const { getByTestId } = render(OtpCode);
+    act(() => {
+      const codeInput = getByTestId('otp-code-input');
+      fireEvent.changeText(codeInput, '123456');
+    });
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_OTP_FAILED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+      });
+    });
   });
 });

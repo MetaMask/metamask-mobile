@@ -18,7 +18,7 @@ class Gestures {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
-  
+
   /**
    * Tap an element and long press.
    *
@@ -109,16 +109,16 @@ class Gestures {
    */
   static async tapWebElement(element, options = {}) {
     const { timeout = 15000, delayBeforeTap = 0 } = options;
-    
+
     // For web elements, we need to use a different approach to wait
     const start = Date.now();
     while (Date.now() - start < timeout) {
       try {
         await expect(await element).toExist();
-        
+
         // Add delay before tap if specified
         await this.delayBeforeAction(delayBeforeTap);
-        
+
         await (await element).tap();
         return;
       } catch {
@@ -135,12 +135,17 @@ class Gestures {
    */
   static async typeInWebElement(element, text) {
     try {
-      await (await element).runScript((el, value) => {
-        el.focus();
-        el.value = value;
-        el._valueTracker && el._valueTracker.setValue('');
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-      }, [text]);
+      await (
+        await element
+      ).runScript(
+        (el, value) => {
+          el.focus();
+          el.value = value;
+          el._valueTracker && el._valueTracker.setValue('');
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        },
+        [text],
+      );
     } catch {
       await (await element).typeText(text);
     }

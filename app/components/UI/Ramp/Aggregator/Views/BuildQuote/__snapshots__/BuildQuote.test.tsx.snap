@@ -5732,6 +5732,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "flexShrink": 1,
                                     }
                                   }
+                                  testID="ramps-account-picker"
                                 >
                                   <View
                                     style={
@@ -11240,6 +11241,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "flexShrink": 1,
                                     }
                                   }
+                                  testID="ramps-account-picker"
                                 >
                                   <View
                                     style={
@@ -14249,6 +14251,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "flexShrink": 1,
                                     }
                                   }
+                                  testID="ramps-account-picker"
                                 >
                                   <View
                                     style={

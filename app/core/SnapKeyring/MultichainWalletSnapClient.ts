@@ -107,7 +107,7 @@ export abstract class MultichainWalletSnapClient {
       op,
       tags: {
         'snap.id': this.snapId,
-        ...getTraceTags(store.getState())
+        ...getTraceTags(store.getState()),
       },
     });
   }
@@ -145,7 +145,10 @@ export abstract class MultichainWalletSnapClient {
     );
 
     // Same here.
-    this.startTrace(TraceName.CreateSnapAccount, TraceOperation.CreateSnapAccount);
+    this.startTrace(
+      TraceName.CreateSnapAccount,
+      TraceOperation.CreateSnapAccount,
+    );
 
     const accountName =
       options?.accountNameSuggestion ??
@@ -159,7 +162,7 @@ export abstract class MultichainWalletSnapClient {
             ...options,
             accountNameSuggestion: accountName,
           } as unknown as Record<string, Json>,
-          snapKeyringOptions ?? this.snapKeyringOptions
+          snapKeyringOptions ?? this.snapKeyringOptions,
         ),
     );
   }
@@ -264,9 +267,7 @@ export abstract class MultichainWalletSnapClient {
       }
     }
 
-    this.endTrace(
-      TraceName.SnapDiscoverAccounts,
-    );
+    this.endTrace(TraceName.SnapDiscoverAccounts);
 
     return totalDiscoveredAccounts;
   }

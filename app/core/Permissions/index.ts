@@ -189,7 +189,7 @@ export const sortMultichainAccountsByLastSelected = (
 function getDataFromSubject<T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   subject: any,
-  extractor: (caveat: { type: string, value: Caip25CaveatValue }) => T[],
+  extractor: (caveat: { type: string; value: Caip25CaveatValue }) => T[],
 ): T[] {
   const caveats = subject.permissions?.[Caip25EndowmentPermissionName]?.caveats;
   if (!caveats) {
@@ -211,7 +211,7 @@ function getDataFromSubject<T>(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getCaipAccountIdsFromSubject(subject: any): CaipAccountId[] {
   return getDataFromSubject(subject, (caveat) =>
-    getCaipAccountIdsFromCaip25CaveatValue(caveat.value)
+    getCaipAccountIdsFromCaip25CaveatValue(caveat.value),
   );
 }
 
@@ -238,7 +238,7 @@ function getEvmAddessesFromSubject(subject: any): Hex[] {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getPermittedScopesFromSubject(subject: any): CaipChainId[] {
   return getDataFromSubject(subject, (caveat) =>
-    getAllScopesFromCaip25CaveatValue(caveat.value)
+    getAllScopesFromCaip25CaveatValue(caveat.value),
   );
 }
 

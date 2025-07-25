@@ -16,6 +16,10 @@ module.exports = {
   plugins: ['@typescript-eslint', '@metamask/design-tokens', 'react-compiler'],
   overrides: [
     {
+      files: ['e2e/**/*.{js,ts}'],
+      extends: ['./e2e/framework/.eslintrc.js'],
+    },
+    {
       files: ['*.{ts,tsx}'],
       extends: ['@metamask/eslint-config-typescript'],
       rules: {

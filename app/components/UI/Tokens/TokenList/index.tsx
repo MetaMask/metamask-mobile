@@ -8,7 +8,7 @@ import {
   selectPrivacyMode,
 } from '../../../../selectors/preferencesController';
 import createStyles from '../styles';
-import Text, {
+import TextComponent, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../types';
@@ -28,10 +28,8 @@ export interface FlashListAssetKey {
 interface TokenListProps {
   tokenKeys: FlashListAssetKey[];
   refreshing: boolean;
-  isAddTokenEnabled: boolean;
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
-  goToAddToken: () => void;
   showPercentageChange?: boolean;
   setShowScamWarningModal: () => void;
 }
@@ -39,10 +37,8 @@ interface TokenListProps {
 const TokenListComponent = ({
   tokenKeys,
   refreshing,
-  isAddTokenEnabled,
   onRefresh,
   showRemoveMenu,
-  goToAddToken,
   showPercentageChange = true,
   setShowScamWarningModal,
 }: TokenListProps) => {
@@ -112,12 +108,7 @@ const TokenListComponent = ({
         const staked = item.isStaked ? 'staked' : 'unstaked';
         return `${item.address}-${item.chainId}-${staked}`;
       }}
-      ListFooterComponent={
-        <TokenListFooter
-          goToAddToken={goToAddToken}
-          isAddTokenEnabled={isAddTokenEnabled}
-        />
-      }
+      ListFooterComponent={<TokenListFooter />}
       refreshControl={
         <RefreshControl
           colors={[colors.primary.default]}
@@ -131,16 +122,16 @@ const TokenListComponent = ({
   ) : (
     <View style={styles.emptyView}>
       <View style={styles.emptyTokensView}>
-        <Text style={styles.emptyTokensViewText}>
+        <TextComponent style={styles.emptyTokensViewText}>
           {strings('wallet.no_tokens')}
-        </Text>
-        <Text
+        </TextComponent>
+        <TextComponent
           style={styles.emptyTokensViewText}
           color={TextColor.Info}
           onPress={handleLink}
         >
           {strings('wallet.show_tokens_without_balance')}
-        </Text>
+        </TextComponent>
       </View>
     </View>
   );

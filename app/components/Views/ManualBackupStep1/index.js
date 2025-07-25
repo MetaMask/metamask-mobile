@@ -77,6 +77,8 @@ const ManualBackupStep1 = ({
 
   const steps = MANUAL_BACKUP_STEPS;
 
+  const seedPhrase = route?.params?.seedPhrase;
+
   const headerLeft = useCallback(
     () => (
       <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -146,8 +148,13 @@ const ManualBackupStep1 = ({
       }
     };
 
-    getSeedphrase();
-    setWords(route.params?.words ?? []);
+    if (seedPhrase) {
+      setWords(seedPhrase);
+    } else {
+      getSeedphrase();
+      setWords(route.params?.words ?? []);
+    }
+
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -232,9 +239,6 @@ const ManualBackupStep1 = ({
       <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
         <View style={styles.confirmPasswordWrapper}>
           <View style={[styles.content, styles.passwordRequiredContent]}>
-            <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
-              {strings('manual_backup_step_1.confirm_password')}
-            </Text>
             <View style={styles.text}>
               <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('manual_backup_step_1.before_continiuing')}
@@ -359,9 +363,14 @@ const ManualBackupStep1 = ({
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>
       <View style={[styles.container]}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          Step 2 of 3
-        </Text>
+        {seedPhrase && (
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('choose_password.steps', {
+              currentStep: 2,
+              totalSteps: 3,
+            })}
+          </Text>
+        )}
         {view === SEED_PHRASE
           ? renderSeedphraseView()
           : renderConfirmPassword()}

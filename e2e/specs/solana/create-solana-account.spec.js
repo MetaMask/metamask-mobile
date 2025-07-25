@@ -32,10 +32,8 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   beforeAll(async () => {
     jest.setTimeout(10000);
     await TestHelpers.reverseServerPort();
-    await TestHelpers.delay(4000);
 
     await startFixtureServer(fixtureServer);
-    await TestHelpers.delay(4000);
 
     await loadFixture(fixtureServer, {
       fixture: new FixtureBuilder()
@@ -49,7 +47,6 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     });
 
     await loginToApp();
-    await TestHelpers.delay(4000);
   });
 
   afterAll(async () => {
@@ -58,15 +55,13 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
 
   it('should create a Solana account from the bottom sheet', async () => {
     await SolanaNewFeatureSheet.tapNotNowButton();
-  
+
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-  
+
     await AccountListBottomSheet.tapAddAccountButton();
-    await TestHelpers.delay(4000);
     await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
-    await TestHelpers.delay(4000);
     await Assertions.checkIfTextIsDisplayed(ACCOUNT_ONE_TEXT);
   });
 
@@ -75,23 +70,19 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 
     await AccountListBottomSheet.tapAddAccountButton();
-    await TestHelpers.delay(4000);
     await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
-    await TestHelpers.delay(4000);
     await Assertions.checkIfTextIsDisplayed(ACCOUNT_TWO_TEXT);
   });
 
   it('should be able to switch between solana accounts', async () => {
     //Switch back to first solana account
-    await TestHelpers.delay(4000);
     await WalletView.tapIdenticon();
 
     // Select first Solana
     await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
     //Assert solana account 1 on main wallet view
     await Assertions.checkIfTextIsDisplayed(ACCOUNT_ONE_TEXT);
-    // await TestHelpers.delay(4000);
     await WalletView.tapIdenticon();
     await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
     //Assert solana account 2 on main wallet view
@@ -99,13 +90,11 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   });
 
   it('should be able to rename Solana account', async () => {
-    await TestHelpers.delay(4000);
     await WalletView.tapIdenticon();
     await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
     await AccountActionsBottomSheet.tapEditAccount();
     await EditAccountNameView.updateAccountName(NEW_ACCOUNT_NAME);
     await EditAccountNameView.tapSave();
-    await TestHelpers.delay(4000);
     await WalletView.tapIdenticon();
 
     await Assertions.checkIfTextIsDisplayed(NEW_ACCOUNT_NAME);

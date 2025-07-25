@@ -43,6 +43,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { SUPPORTED_PAYMENT_METHODS } from '../../constants';
 import { DepositOrder } from '@consensys/native-ramps-sdk';
+import PrivacySection from '../../components/PrivacySection';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -187,7 +188,7 @@ const BankDetails = () => {
       getDepositNavbarOptions(
         navigation,
         {
-          title: strings('deposit.bank_details.title', {
+          title: strings('deposit.bank_details.navbar_title', {
             paymentMethod: paymentMethodName,
           }),
         },
@@ -360,7 +361,8 @@ const BankDetails = () => {
           <View style={styles.bottomContainer}>
             {confirmPaymentError ? (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                {strings('deposit.bank_details.error_message')}
+                {confirmPaymentError ||
+                  strings('deposit.bank_details.error_message')}
               </Text>
             ) : null}
             {cancelOrderError ? (
@@ -368,22 +370,14 @@ const BankDetails = () => {
                 {strings('deposit.bank_details.cancel_order_error')}
               </Text>
             ) : null}
-            <View style={styles.infoBanner}>
-              <Icon
-                name={IconName.SecurityKey}
-                size={IconSize.Lg}
-                color={theme.colors.icon.alternative}
-              />
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-                style={styles.infoBannerText}
-              >
+
+            <PrivacySection>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
                 {strings('deposit.bank_details.info_banner_text', {
                   accountHolderName: accountName,
                 })}
               </Text>
-            </View>
+            </PrivacySection>
 
             <View style={styles.buttonContainer}>
               <Button

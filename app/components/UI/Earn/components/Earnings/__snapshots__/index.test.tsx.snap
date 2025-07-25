@@ -325,13 +325,14 @@ exports[`Earnings displays lending maintenance banner when feature flag is enabl
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "transparent",
-            "borderColor": "#4459ff",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -341,7 +342,7 @@ exports[`Earnings displays lending maintenance banner when feature flag is enabl
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -682,13 +683,14 @@ exports[`Earnings displays pooled-staking maintenance banner when feature flag i
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "transparent",
-            "borderColor": "#4459ff",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -698,7 +700,7 @@ exports[`Earnings displays pooled-staking maintenance banner when feature flag i
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -980,13 +982,14 @@ exports[`Earnings should render correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "transparent",
-            "borderColor": "#4459ff",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
+            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -996,7 +999,7 @@ exports[`Earnings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,

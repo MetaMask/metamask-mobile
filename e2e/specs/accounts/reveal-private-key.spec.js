@@ -11,7 +11,7 @@ import {
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { loginToApp } from '../../viewHelper.js';
-import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import Assertions from '../../utils/Assertions.js';

@@ -53,7 +53,9 @@ describe(
       // Remove the imported account
       await AccountListBottomSheet.longPressAccountAtIndex(ACCOUNT_INDEX);
       await AccountListBottomSheet.tapYesToRemoveImportedAccountAlertButton();
-      await Assertions.checkIfNotVisible(AccountListBottomSheet.accountTypeLabel);
+      await Assertions.checkIfNotVisible(
+        AccountListBottomSheet.accountTypeLabel,
+      );
 
       // Import account again
       await AccountListBottomSheet.tapAddAccountButton();
