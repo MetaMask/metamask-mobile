@@ -127,7 +127,7 @@ const buildPpomTask = {
         {
           title: 'Clean',
           task: async (_, task) => {
-            if (!GITHUB_CI) {
+            if (GITHUB_CI) {
               return task.skip('Skipping clean in GitHub CI.');
             }
             await $ppom`yarn clean`;
@@ -135,10 +135,7 @@ const buildPpomTask = {
         },
         {
           title: 'Install deps',
-          task: async (_, task) => {
-            if (!GITHUB_CI) {
-              return task.skip('Skipping deps installation in GitHub CI.');
-            }
+          task: async () => {
             await $ppom`yarn`;
           },
         },
