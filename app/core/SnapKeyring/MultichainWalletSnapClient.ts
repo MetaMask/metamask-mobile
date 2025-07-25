@@ -1,6 +1,14 @@
 import { CaipChainId, Json, SnapId } from '@metamask/snaps-sdk';
 import { KeyringClient, Sender } from '@metamask/keyring-snap-client';
-import { BtcScope, EntropySourceId, SolScope } from '@metamask/keyring-api';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BtcScope,
+  ///: END:ONLY_INCLUDE_IF
+  EntropySourceId,
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  SolScope,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
 import {
   BITCOIN_WALLET_SNAP_ID,
@@ -17,6 +25,18 @@ import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { store } from '../../store';
 import { startPerformanceTrace } from '../redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
+import { getMultichainAccountName } from './utils/getMultichainAccountName';
+import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
+import { getTraceTags } from '../../util/sentry/tags';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BITCOIN_DISCOVERY_PENDING,
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  SOLANA_DISCOVERY_PENDING,
+  ///: END:ONLY_INCLUDE_IF
+} from '../../constants/storage';
 
 export enum WalletClientType {
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
@@ -27,14 +47,6 @@ export enum WalletClientType {
   Bitcoin = 'bitcoin',
   ///: END:ONLY_INCLUDE_IF
 }
-
-import { getMultichainAccountName } from './utils/getMultichainAccountName';
-import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
-import { getTraceTags } from '../../util/sentry/tags';
-import {
-  BITCOIN_DISCOVERY_PENDING,
-  SOLANA_DISCOVERY_PENDING,
-} from '../../constants/storage';
 
 export const WALLET_SNAP_MAP = {
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
