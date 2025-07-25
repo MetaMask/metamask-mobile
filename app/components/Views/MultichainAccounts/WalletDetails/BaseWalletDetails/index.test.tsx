@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { AccountWallet } from '@metamask/account-tree-controller';
+import { AccountWalletObject } from '@metamask/account-tree-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { BaseWalletDetails } from './index';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
@@ -71,7 +71,7 @@ const mockWallet = {
   },
   accounts: [mockAccount1, mockAccount2],
   groups: {},
-} as unknown as AccountWallet;
+} as unknown as AccountWalletObject;
 
 const mockInitialState: Partial<RootState> = {
   settings: {

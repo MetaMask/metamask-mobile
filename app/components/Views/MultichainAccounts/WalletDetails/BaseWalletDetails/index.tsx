@@ -23,7 +23,7 @@ import {
 import { Box } from '../../../../UI/Box/Box';
 import { strings } from '../../../../../../locales/i18n';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountWallet } from '@metamask/account-tree-controller';
+import { AccountWalletObject } from '@metamask/account-tree-controller';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 import { useWalletBalances } from '../hooks/useWalletBalances';
 import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
@@ -37,7 +37,7 @@ import AddAccountItem from './components/AddAccountItem';
 import { FlashList } from '@shopify/flash-list';
 
 interface BaseWalletDetailsProps {
-  wallet: AccountWallet;
+  wallet: AccountWalletObject;
   children?: React.ReactNode;
 }
 

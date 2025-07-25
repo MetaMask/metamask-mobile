@@ -4773,14 +4773,23 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/account-tree-controller@0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.1.1.tgz#7562b0b7d2bdbc62228367bd11f68cb0701dea2e"
-  integrity sha512-UgQwEo1n3mYsoYj4r65YTqISyApGk1luHFZRKQxkULf3fWEfpiEZ7T6D6ceMapE/iCWoVsgb0B70spyr6wbIWA==
+"@metamask/account-api@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/account-api/-/account-api-0.3.0.tgz#aa81282b0157a0aad216223a35e60f70031d8534"
+  integrity sha512-RVQeZqqUEvTgzrQTu0EsufbHiKioEeaZvzfRSvZ7ue630zcpITaDZ1ek0t/ECU1GWmuThEFoNRJvew8IcVSV+Q==
+  dependencies:
+    "@metamask/keyring-api" "^19.1.0"
+    "@metamask/keyring-utils" "^3.1.0"
+    "@metamask/superstruct" "^3.1.0"
+
+"@metamask/account-tree-controller@0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.6.0.tgz#4aa201863519a5ef7a4b5776c9b1915952c19e9a"
+  integrity sha512-tXrdFF3MrqwDTwOxm9BRmOXSEb0IfKc8P15hYtL7iH3aXUjR8obqC70Ue/sUcTwd19/t5jNBzngv1uVOHGOB8Q==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/snaps-sdk" "^7.1.0"
-    "@metamask/snaps-utils" "^9.4.0"
+    "@metamask/snaps-sdk" "^9.0.0"
+    "@metamask/snaps-utils" "^11.0.0"
     lodash "^4.17.21"
 
 "@metamask/accounts-controller@^32.0.0":
