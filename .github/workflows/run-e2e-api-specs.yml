@@ -77,7 +77,7 @@ jobs:
           # Verify the framework was built successfully
           if [[ -d ~/Library/Detox/ios/framework ]]; then
             echo "✅ Detox framework cache built successfully"
-            ls -la ~/Library/Detox/ios/framework/
+            find ~/Library/Detox/ios/framework/ -maxdepth 1 -exec ls -la {} \;
           else
             echo "❌ Failed to build Detox framework cache"
             exit 1
@@ -117,11 +117,11 @@ jobs:
           if [[ -f "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/Info.plist" ]]; then
             echo "✅ iOS QA app ready for API specs"
             echo "📋 App bundle contents:"
-            ls -la "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" | head -10
+            find "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" -maxdepth 1 -exec ls -la {} \; | head -10
           else
             echo "❌ iOS QA app setup failed - Info.plist not found"
             echo "📋 Directory contents:"
-            ls -la "ios/build/Build/Products/Release-iphonesimulator/" || true
+            find "ios/build/Build/Products/Release-iphonesimulator/" -maxdepth 1 -exec ls -la {} \; 2>/dev/null || true
             exit 1
           fi
 

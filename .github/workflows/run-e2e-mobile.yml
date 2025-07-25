@@ -132,11 +132,11 @@ jobs:
             if [[ -f "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/Info.plist" ]]; then
               echo "✅ iOS app ready for E2E tests"
               echo "📋 App bundle contents:"
-              ls -la "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" | head -10
+              find "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" -maxdepth 1 -exec ls -la {} \; | head -10
             else
               echo "❌ iOS app setup failed - Info.plist not found"
               echo "📋 Directory contents:"
-              ls -la "ios/build/Build/Products/Release-iphonesimulator/" || true
+              find "ios/build/Build/Products/Release-iphonesimulator/" -maxdepth 1 -exec ls -la {} \; 2>/dev/null || true
               exit 1
             fi
 
