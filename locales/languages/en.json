@@ -2856,7 +2856,7 @@
     "watching": "Make sure no one is watching your screen.",
     "view": "View",
     "confirm_password": "Confirm your password",
-    "before_continiuing": "Before continuing we need you to confirm your password",
+    "before_continiuing": "Enter password to continue",
     "enter_current_password": "Enter your current password",
     "confirm": "Confirm",
     "got_it": "Got it",
