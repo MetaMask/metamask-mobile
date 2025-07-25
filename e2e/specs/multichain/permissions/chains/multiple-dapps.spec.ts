@@ -14,6 +14,7 @@ import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnec
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
+import TestDApp from '../../../../pages/Browser/TestDApp';
 
 /*
 Test Steps:
@@ -102,8 +103,10 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         await Browser.tapOpenNewTabButton();
 
         // In 2nd Dapp, Should verify that we are connected to Eth mainnet
-
         await Browser.navigateToSecondTestDApp();
+
+        // This will wait for the test dapp to actually connect after loading
+        await TestDApp.isConnectedToTestDapp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();

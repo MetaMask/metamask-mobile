@@ -6,10 +6,12 @@ import { getLocalTestDappUrl } from '../../fixtures/utils';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from '../Browser/BrowserView';
+import { Utilities } from '../../framework';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
 const CONNECT_BUTTON_TEXT = 'Connect';
+const DAPP_ACCOUNTS_TEXT = 'Accounts:';
 
 interface ContractNavigationParams {
   contractAddress: string;
@@ -28,6 +30,13 @@ class TestDApp {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.CONNECT_BUTTON,
+    );
+  }
+
+  get connectedAccounts(): WebElement {
+    return Matchers.getElementByXPath(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      `//*[contains(text(),"${DAPP_ACCOUNTS_TEXT}")]`,
     );
   }
 
@@ -237,6 +246,28 @@ class TestDApp {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ERC_1155_REVOKE_APPROVAL_BUTTON_ID,
+    );
+  }
+
+  /**
+   * Checks if the user is connected to the test dapp by checking if there are connected accounts
+   * @returns true if connected, false otherwise
+   */
+  async isConnectedToTestDapp(): Promise<boolean> {
+    return Utilities.executeWithRetry(
+      async () => {
+        const connectedAccounts = await this.connectedAccounts as IndexableWebElement;
+        const text = await connectedAccounts.getText();
+        const accountsText = text.replace(DAPP_ACCOUNTS_TEXT, '').trim();
+        if (accountsText.length > 0) {
+          return true;
+        }
+        throw new Error('Not connected to test dapp');
+      },
+      {
+        timeout: 30000,
+        description: 'Check if connected to test dapp',
+      }
     );
   }
 
