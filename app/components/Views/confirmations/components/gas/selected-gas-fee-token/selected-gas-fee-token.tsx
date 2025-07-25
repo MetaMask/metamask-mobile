@@ -11,7 +11,7 @@ import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { useInsufficientBalanceAlert } from '../../../hooks/alerts/useInsufficientBalanceAlert';
-import { useSelectedGasFeeToken } from '../../../hooks/useGasFeeToken';
+import { useSelectedGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../hooks/gas/useIsGaslessSupported';
 
 export function SelectedGasFeeToken() {
