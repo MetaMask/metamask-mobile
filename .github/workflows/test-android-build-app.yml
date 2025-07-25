@@ -1,4 +1,4 @@
-name: Test Android E2E Setup
+name: Test Android Build QA App
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   id-token: write
 
 jobs:
-  android-e2e:
+  android-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -60,9 +60,9 @@ jobs:
           adb devices || echo "adb devices failed"
         shell: bash
 
-      - name: Build iOS App
+      - name: Build Android App
         run: |
-          yarn setup:github-ci --build-on-github-ci --build-android --no-build-ios
+          yarn setup:github-ci  --build-android --no-build-ios
           yarn build:android:qa
         shell: bash
         env:
