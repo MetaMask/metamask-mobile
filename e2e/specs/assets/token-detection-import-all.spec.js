@@ -9,7 +9,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 
 const ETHEREUM_NAME = 'Ethereum';
-const USDC_NAME = 'USDC';
+const USDC_NAME = 'USDCoin';
 
 describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
   beforeAll(async () => {

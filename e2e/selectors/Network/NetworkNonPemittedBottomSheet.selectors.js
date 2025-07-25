@@ -7,6 +7,8 @@ export const NetworkNonPemittedBottomSheetSelectorsText = {
   ETHEREUM_MAIN_NET_NETWORK_NAME: 'Ethereum Main Network',
   LINEA_SEPOLIA_NETWORK_NAME: 'Linea Sepolia',
   ELYSIUM_TESTNET_NETWORK_NAME: 'Elysium Testnet',
+  SOLANA_NETWORK_NAME: 'Solana',
+  LINEA_MAINNET_NETWORK_NAME: 'Linea Main Network',
 };
 
 export const NetworkNonPemittedBottomSheetSelectorsIDs = {
