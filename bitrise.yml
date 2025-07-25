@@ -1079,8 +1079,7 @@ workflows:
       - notify_failure
     steps:
       - script@1:
-          title: Copy Android build from cache (if build was skipped)
-          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "true"}}'
+          title: LOG METAMASK_BUILD_TYPE
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1506,6 +1505,12 @@ workflows:
     after_run:
       - notify_failure
     steps:
+      - script@1:
+          title: LOG METAMASK_BUILD_TYPE
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "METAMASK_BUILD_TYPE is set to: $METAMASK_BUILD_TYPE"
       - restore-cache@2:
           title: Restore iOS PR Build Cache (if build was skipped)
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
