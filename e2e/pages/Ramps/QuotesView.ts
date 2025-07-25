@@ -1,29 +1,29 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { QuoteSelectors } from '../../selectors/Ramps/Quotes.selectors';
 
 class QuotesView {
-  get selectAQuoteLabel() {
+  get selectAQuoteLabel(): DetoxElement {
     return Matchers.getElementByText(QuoteSelectors.RECOMMENDED_QUOTE);
   }
 
-  get quoteAmountLabel() {
+  get quoteAmountLabel(): DetoxElement {
     return Matchers.getElementByID(QuoteSelectors.QUOTE_AMOUNT_LABEL);
   }
 
-  get quotes() {
+  get quotes(): DetoxElement {
     return Matchers.getElementByID(QuoteSelectors.QUOTES);
   }
 
-  get exploreMoreOptions() {
+  get exploreMoreOptions(): DetoxElement {
     return Matchers.getElementByText(QuoteSelectors.EXPLORE_MORE_OPTIONS);
   }
 
-  get expandedQuotesSection() {
+  get expandedQuotesSection(): DetoxElement {
     return Matchers.getElementByID(QuoteSelectors.EXPANDED_QUOTES_SECTION);
   }
 
-  get continueWithProvider() {
+  get continueWithProvider(): DetoxElement {
     const providerLocator = QuoteSelectors.CONTINUE_WITH_PROVIDER.replace(
       '{{provider}}',
       '.*',
@@ -40,7 +40,11 @@ class QuotesView {
   }
 
   async closeQuotesSection() {
-    await Gestures.swipe(this.selectAQuoteLabel, 'down', 'fast', 1, 0, 0);
+    await Gestures.swipe(this.selectAQuoteLabel, 'down', {
+      elemDescription: 'Close Quotes Section',
+      speed: 'fast',
+      percentage: 0.7,
+    });
   }
 }
 

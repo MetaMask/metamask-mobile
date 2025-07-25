@@ -1,22 +1,24 @@
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../selectors/Onboarding/ExperienceEnhancerModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class ExperienceEnhancerBottomSheet {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET,
     );
   }
 
-  get iAgree() {
+  get iAgree(): DetoxElement {
     return Matchers.getElementByID(
       ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON,
     );
   }
 
-  async tapIAgree() {
-    await Gestures.waitAndTap(this.iAgree);
+  async tapIAgree(): Promise<void> {
+    await Gestures.waitAndTap(this.iAgree, {
+      elemDescription: 'I Agree Button in Experience Enhancer Bottom Sheet',
+    });
   }
 }
 

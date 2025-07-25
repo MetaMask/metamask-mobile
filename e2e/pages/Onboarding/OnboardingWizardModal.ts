@@ -1,63 +1,63 @@
 import { OnboardingWizardModalSelectorsIDs } from '../../selectors/Onboarding/OnboardingWizardModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class OnboardingWizardModal {
-  get stepOneContainer() {
+  get stepOneContainer(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.STEP_ONE_CONTAINER,
     );
   }
 
-  get stepTwoContainer() {
+  get stepTwoContainer(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.STEP_TWO_CONTAINER,
     );
   }
 
-  get stepThreeContainer() {
+  get stepThreeContainer(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.STEP_THREE_CONTAINER,
     );
   }
 
-  get stepFourContainer() {
+  get stepFourContainer(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.STEP_FOUR_CONTAINER,
     );
   }
 
-  get stepFiveContainer() {
+  get stepFiveContainer(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.STEP_FIVE_CONTAINER,
     );
   }
 
-  get stepSixContainer() {
+  get stepSixContainer(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.STEP_SIX_CONTAINER,
     );
   }
 
-  get stepSevenContainer() {
+  get stepSevenContainer(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.STEP_SEVENTH_CONTAINER,
     );
   }
 
-  get noThanksButton() {
+  get noThanksButton(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.NO_THANKS_BUTTON,
     );
   }
 
-  get takeTourButton() {
+  get takeTourButton(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.TAKE_TOUR_BUTTON,
     );
   }
 
-  get gotItButton() {
+  get gotItButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON)
       : Matchers.getElementByLabel(
@@ -65,26 +65,34 @@ class OnboardingWizardModal {
         );
   }
 
-  get backButton() {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingWizardModalSelectorsIDs.BACK_BUTTON,
     );
   }
 
-  async tapNoThanksButton() {
-    await Gestures.waitAndTap(this.noThanksButton);
+  async tapNoThanksButton(): Promise<void> {
+    await Gestures.waitAndTap(this.noThanksButton, {
+      elemDescription: 'No Thanks Button in Onboarding Wizard Modal',
+    });
   }
 
-  async tapTakeTourButton() {
-    await Gestures.waitAndTap(this.takeTourButton);
+  async tapTakeTourButton(): Promise<void> {
+    await Gestures.waitAndTap(this.takeTourButton, {
+      elemDescription: 'Take Tour Button in Onboarding Wizard Modal',
+    });
   }
 
-  async tapGotItButton() {
-    await Gestures.waitAndTap(this.gotItButton);
+  async tapGotItButton(): Promise<void> {
+    await Gestures.waitAndTap(this.gotItButton, {
+      elemDescription: 'Got It Button in Onboarding Wizard Modal',
+    });
   }
 
-  async tapBackButton() {
-    await Gestures.waitAndTap(this.backButton);
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back Button in Onboarding Wizard Modal',
+    });
   }
 }
 

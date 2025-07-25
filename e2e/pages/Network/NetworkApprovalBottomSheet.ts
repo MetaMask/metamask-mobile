@@ -1,36 +1,40 @@
 import { NetworkApprovalBottomSheetSelectorsIDs } from '../../selectors/Network/NetworkApprovalBottomSheet.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class NetworkApprovalBottomSheet {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.CONTAINER,
     );
   }
 
-  get approvedButton() {
+  get approvedButton(): DetoxElement {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
     );
   }
-  get cancelButton() {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
-  get displayName() {
+  get displayName(): DetoxElement {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.DISPLAY_NAME,
     );
   }
 
-  async tapApproveButton() {
-    await Gestures.tap(this.approvedButton);
+  async tapApproveButton(): Promise<void> {
+    await Gestures.tap(this.approvedButton, {
+      elemDescription: 'Approve Button in Network Approval Bottom Sheet',
+    });
   }
-  async tapCancelButton() {
-    await Gestures.tap(this.cancelButton);
+  async tapCancelButton(): Promise<void> {
+    await Gestures.tap(this.cancelButton, {
+      elemDescription: 'Cancel Button in Network Approval Bottom Sheet',
+    });
   }
 }
 

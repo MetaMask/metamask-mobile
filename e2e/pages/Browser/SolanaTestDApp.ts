@@ -1,9 +1,9 @@
 import { dataTestIds } from '@metamask/test-dapp-solana';
 import { getLocalTestDappUrl } from '../../fixtures/utils';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import Browser from './BrowserView';
-import Gestures from '../../utils/Gestures';
+import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import {
   SOLANA_TEST_TIMEOUTS,
@@ -21,7 +21,7 @@ import TestHelpers from '../../helpers';
 function getTestElement(
   dataTestId: string,
   options: { extraXPath?: string; tag?: string } = {},
-): Promise<Detox.IndexableWebElement & Detox.SecuredWebElementFacade> {
+): WebElement {
   const { tag = 'div', extraXPath = '' } = options;
   const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
 
@@ -35,38 +35,38 @@ function getTestElement(
  * Class to interact with the Multichain Test DApp via the WebView
  */
 class SolanaTestDApp {
-  get connectButtonSelector() {
+  get connectButtonSelector(): WebElement {
     return getTestElement(dataTestIds.testPage.header.connect, {
       extraXPath: '/div/button',
     });
   }
 
-  get disconnectButtonSelector() {
+  get disconnectButtonSelector(): WebElement {
     return getTestElement(dataTestIds.testPage.header.disconnect, {
       extraXPath: '/button',
     });
   }
 
-  get endpointSelector() {
+  get endpointSelector(): WebElement {
     return getTestElement(dataTestIds.testPage.header.endpoint, {
       tag: 'input',
     });
   }
 
-  get walletButtonSelector() {
+  get walletButtonSelector(): WebElement {
     return Matchers.getElementByCSS(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       SolanaTestDappSelectorsWebIDs.WALLET_BUTTON,
     );
   }
 
-  get confirmTransactionButtonSelector() {
+  get confirmTransactionButtonSelector(): WebElement {
     return Matchers.getElementByID(
       SolanaTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON,
     );
   }
 
-  get confirmSignMessageButtonSelector() {
+  get confirmSignMessageButtonSelector(): WebElement {
     return Matchers.getElementByID(
       SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
     );
@@ -95,7 +95,7 @@ class SolanaTestDApp {
    */
   async tapButton(webElement: WebElement): Promise<void> {
     await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tapWebElement(webElement);
+    await Gestures.waitAndTap(webElement);
   }
 
   getHeader() {
@@ -128,6 +128,7 @@ class SolanaTestDApp {
   getSignMessageTest() {
     return {
       signMessage: async () => {
+        // eslint-disable-next-line no-restricted-syntax
         await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
           getTestElement(dataTestIds.testPage.signMessage.signMessage, {
@@ -147,6 +148,7 @@ class SolanaTestDApp {
   getSendSolTest() {
     return {
       signTransaction: async () => {
+        // eslint-disable-next-line no-restricted-syntax
         await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
           getTestElement(dataTestIds.testPage.sendSol.signTransaction, {
@@ -155,6 +157,7 @@ class SolanaTestDApp {
         );
       },
       sendTransaction: async () => {
+        // eslint-disable-next-line no-restricted-syntax
         await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.METHOD_INVOCATION);
         await this.tapButton(
           getTestElement(dataTestIds.testPage.sendSol.sendTransaction, {
@@ -178,11 +181,13 @@ class SolanaTestDApp {
   }
 
   async confirmTransaction(): Promise<void> {
+    // eslint-disable-next-line no-restricted-syntax
     await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.DEFAULT_DELAY);
     await Gestures.waitAndTap(this.confirmTransactionButtonSelector);
   }
 
   async confirmSignMessage(): Promise<void> {
+    // eslint-disable-next-line no-restricted-syntax
     await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.DEFAULT_DELAY);
     await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
   }
@@ -193,6 +198,7 @@ class SolanaTestDApp {
       .toBeVisible()
       .withTimeout(SOLANA_TEST_TIMEOUTS.ELEMENT_VISIBILITY)
       .catch(); // Fixes component accessibility error causing timeout to be reached, even though the cancel button is visible and clickable
+    // eslint-disable-next-line no-restricted-syntax
     await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.DEFAULT_DELAY);
     await cancelButton.tap();
   }

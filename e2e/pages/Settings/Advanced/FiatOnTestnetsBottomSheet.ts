@@ -1,16 +1,18 @@
 import { FiatOnTestnetsBottomSheetSelectorsIDs } from '../../../selectors/Settings/Advanced/FiatOnTestnetsBottomSheet.selectors';
-import Gestures from '../../../utils/Gestures';
-import Matchers from '../../../utils/Matchers';
+import Gestures from '../../../framework/Gestures';
+import Matchers from '../../../framework/Matchers';
 
 class FiatOnTestnetsBottomSheet {
-  get continueButton() {
+  get continueButton(): DetoxElement {
     return Matchers.getElementByID(
       FiatOnTestnetsBottomSheetSelectorsIDs.CONTINUE_BUTTON,
     );
   }
 
-  async tapContinueButton() {
-    await Gestures.waitAndTap(this.continueButton);
+  async tapContinueButton(): Promise<void> {
+    await Gestures.waitAndTap(this.continueButton, {
+      elemDescription: 'Continue Button in Fiat On Testnets Bottom Sheet',
+    });
   }
 }
 

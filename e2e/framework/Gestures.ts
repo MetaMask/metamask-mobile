@@ -155,14 +155,19 @@ export default class Gestures {
   static async tapAtIndex(
     elem: DetoxElement,
     index: number,
-    timeout = 15000,
+    options: TapOptions = {},
   ): Promise<void> {
+    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
     return Utilities.executeWithRetry(
       async () => {
         const el = (await elem) as Detox.IndexableNativeElement;
         const itemElementAtIndex = el.atIndex(index);
         await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
         await itemElementAtIndex.tap();
+        const successMessage = elemDescription
+          ? `✅ Successfully tapped element at index: ${index} ${elemDescription}`
+          : `✅ Successfully tapped element at index: ${index}`;
+        logger.debug(successMessage);
       },
       {
         timeout,
@@ -483,6 +488,43 @@ export default class Gestures {
       {
         timeout: BASE_DEFAULTS.timeout,
         description: 'scrollToWebViewPort()',
+      },
+    );
+  }
+
+  /**
+   * Type text into a web element within a webview using JavaScript injection.
+   * @param {Promise<Detox.IndexableWebElement>} element - The web element to type into.
+   * @param {string} text - The text to type.
+   */
+  static async typeInWebElement(
+    elem: DetoxElement,
+    text: string,
+    options: Partial<TypeTextOptions> = {},
+  ): Promise<void> {
+    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await ((await elem) as Detox.IndexableWebElement).runScript(
+            (el, value) => {
+              el.focus();
+              el.value = value;
+              el._valueTracker?.setValue('');
+              el.dispatchEvent(new Event('input', { bubbles: true }));
+            },
+            [text],
+          );
+        } catch {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await ((await element) as any).typeText(text);
+        }
+      },
+      {
+        timeout,
+        description: `typeInWebElement("${text}")`,
+        elemDescription,
       },
     );
   }
