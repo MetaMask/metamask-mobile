@@ -14,6 +14,7 @@ import {
   getSecondTestDappLocalUrl,
 } from '../../fixtures/utils';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
+import { Assertions, Utilities } from '../../framework';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -155,10 +156,24 @@ class Browser {
   }: {
     delay?: number;
   } = {}): Promise<void> {
-    await Gestures.waitAndTap(this.tabsButton, {
-      elemDescription: 'Open all tabs button',
-      delay,
-    });
+    return Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.tabsButton, {
+          elemDescription: 'Open all tabs button',
+          delay,
+        });
+
+        await Assertions.expectElementToBeVisible(this.closeAllTabsButton, {
+          timeout: 2000
+        });
+      },
+      {
+        timeout: 30000,
+        description: 'tap open all tabs button and verify navigation',
+        elemDescription: 'Open All Tabs Button',
+      }
+    );
+
   }
 
   async tapSecondTabButton(): Promise<void> {

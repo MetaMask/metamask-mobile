@@ -60,7 +60,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
 
         // Navigate to 2nd test dapp to load page. This is a verification check. It should  be connected to global network selector: Eth mainnet
         // The delay is used here to ensure the connected notice has been displayed
-        await Browser.tapOpenAllTabsButton({ delay: 3500 });
+        await Browser.tapOpenAllTabsButton();
         await Browser.tapSecondTabButton();
 
         // This is here to debug whether or not the second test dapp loads and connected to chain
@@ -68,7 +68,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
 
         // Closing tabs because there is a webview challenging while selecting elements with more than 1 webview (tabs) are opened
         // The delay here is purposely longer as we need to wait for the second dapp to load and only then open the tabs
-        await Browser.tapOpenAllTabsButton({ delay: 4000 });
+        await Browser.tapOpenAllTabsButton();
         await Browser.tapCloseSecondTabButton();
 
         // Back to First Dapp
