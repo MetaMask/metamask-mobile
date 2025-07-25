@@ -21,7 +21,9 @@ jest.mock('../../../../../core/Engine', () => ({
 jest.mock(
   '../../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
   () => ({
-    useGasFeeEstimates: () => ({ gasFeeEstimates: {} }),
+    useGasFeeEstimates: () => ({
+      gasFeeEstimates: { medium: { suggestedMaxFeePerGas: 1.5 } },
+    }),
   }),
 );
 
@@ -61,6 +63,24 @@ const renderComponent = () =>
                     type: 'eip155:eoa',
                     address: '0x12345',
                     metadata: {},
+                  },
+                },
+              },
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                '0x12345': {
+                  '0x1': {
+                    '0x123': '0x5',
+                  },
+                },
+              },
+            },
+            AccountTrackerController: {
+              accountsByChainId: {
+                '0x1': {
+                  '0x12345': {
+                    balance: '0xDE0B6B3A7640000',
                   },
                 },
               },
@@ -173,5 +193,50 @@ describe('Send', () => {
     fireEvent.changeText(getByTestId('send_to_address'), '0x123');
     fireEvent.press(getByText('Confirm'));
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('asset passed in nav params should be used if present', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: '0x123',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+    const { getByText } = renderComponent();
+    expect(getByText('Asset: 0x123')).toBeTruthy();
+  });
+
+  it('pressing Max uses max balance of ERC20 token', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          address: '0x123',
+          decimals: 2,
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    expect(getByTestId('send_amount').props.value).toBe(undefined);
+    fireEvent.press(getByText('Max'));
+    expect(getByTestId('send_amount').props.value).toBe('0.05');
+  });
+
+  it.only('pressing Max uses max balance minus gas for native token', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          isNative: true,
+          chainId: '0x1',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    expect(getByTestId('send_amount').props.value).toBe(undefined);
+    fireEvent.press(getByText('Max'));
+    expect(getByTestId('send_amount').props.value).toBe('0.9999685');
   });
 });
