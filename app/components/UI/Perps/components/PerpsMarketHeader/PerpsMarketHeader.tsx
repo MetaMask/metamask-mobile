@@ -43,12 +43,19 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(market.symbol);
 
-  // Parse values for display
-  const displayPrice =
-    currentPrice || parseFloat(market.price.replace(/[^0-9.-]/g, ''));
-  const displayChange =
-    priceChange24h ||
-    parseFloat(market.change24hPercent.replace(/[^0-9.-]/g, ''));
+  // Parse values for display with safe parsing
+  const parseNumber = (value: string): number => {
+    const cleaned = value.replace(/[^0-9.-]/g, '');
+    // Check for empty string or invalid formats
+    if (!cleaned || cleaned === '-' || cleaned === '.' || cleaned === '-.') {
+      return 0;
+    }
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  const displayPrice = currentPrice || parseNumber(market.price);
+  const displayChange = priceChange24h || parseNumber(market.change24hPercent);
   const isPositiveChange = displayChange >= 0;
 
   // Calculate fiat change amount

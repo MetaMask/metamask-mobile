@@ -118,7 +118,7 @@ describe('usePerpsMarketStats', () => {
   });
 
   it('should calculate funding countdown correctly', () => {
-    // Set current time to 7:30 UTC (30 minutes before funding)
+    // Set current time to 7:30:00 UTC (30 minutes before funding)
     const mockDate = new Date('2024-01-01T07:30:00Z');
     jest.setSystemTime(mockDate);
 
@@ -132,10 +132,10 @@ describe('usePerpsMarketStats', () => {
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
-    expect(result.current.fundingCountdown).toBe('00:29:59');
+    expect(result.current.fundingCountdown).toBe('00:30:00');
   });
 
-  it('should update funding countdown every minute', () => {
+  it('should update funding countdown every second', () => {
     // Set initial time
     const mockDate = new Date('2024-01-01T07:30:00Z');
     jest.setSystemTime(mockDate);
@@ -150,16 +150,15 @@ describe('usePerpsMarketStats', () => {
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
-    expect(result.current.fundingCountdown).toBe('00:29:59');
+    expect(result.current.fundingCountdown).toBe('00:30:00');
 
-    // Advance time by 1 minute
+    // Advance time by 1 second
     act(() => {
-      jest.advanceTimersByTime(60000);
-      mockDate.setMinutes(mockDate.getMinutes() + 1);
-      jest.setSystemTime(mockDate);
+      jest.advanceTimersByTime(1000);
+      jest.setSystemTime(new Date('2024-01-01T07:30:01Z'));
     });
 
-    expect(result.current.fundingCountdown).toBe('00:28:59');
+    expect(result.current.fundingCountdown).toBe('00:29:59');
   });
 
   it('should handle no market data gracefully', () => {
