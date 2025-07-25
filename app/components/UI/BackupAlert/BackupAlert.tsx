@@ -53,9 +53,6 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
     (state: RootState) => state.user,
   );
 
-  const onboardingWizardStep = useSelector(
-    (state: RootState) => state.wizard.step,
-  );
   const dispatch = useDispatch();
 
   const currentRouteName = findRouteNameFromNavigatorState(
@@ -112,7 +109,6 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
     seedphraseBackedUp ||
     inBlockedView ||
     !backUpSeedphraseVisible ||
-    onboardingWizardStep !== 0 ||
     !isVisible;
 
   return shouldNotRenderAlert || isSeedlessOnboardingLoginFlow ? null : (

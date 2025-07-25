@@ -161,6 +161,8 @@ class ProtectYourWalletModal extends PureComponent {
         cancelButtonMode={'sign'}
         confirmButtonMode={'transparent-blue'}
         verticalButtons
+        cancelTestID={ProtectWalletModalSelectorsIDs.CANCEL_BUTTON}
+        confirmTestID={ProtectWalletModalSelectorsIDs.CONFIRM_BUTTON}
       >
         <View
           style={styles.wrapper}
@@ -190,7 +192,10 @@ class ProtectYourWalletModal extends PureComponent {
             </Text>
           </Text>
 
-          <TouchableOpacity onPress={this.onLearnMore}>
+          <TouchableOpacity
+            onPress={this.onLearnMore}
+            testID={ProtectWalletModalSelectorsIDs.LEARN_MORE_BUTTON}
+          >
             <Text style={styles.learnMoreText}>
               {strings('protect_wallet_modal.action')}
             </Text>
