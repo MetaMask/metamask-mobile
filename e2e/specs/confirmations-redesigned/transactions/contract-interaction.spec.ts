@@ -62,7 +62,7 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
           contractAddress: nftsAddress,
         });
 
-        await TestDApp.tabERC721MintButton();
+        await TestDApp.tapERC721MintButton();
 
         // Check all expected elements are visible
         await Assertions.checkIfVisible(

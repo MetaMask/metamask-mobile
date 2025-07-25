@@ -1,4 +1,11 @@
 import { CaipChainId } from '@metamask/utils';
+import {
+  BASE_MAINNET,
+  BSC_MAINNET,
+  ETHEREUM_MAINNET,
+  LINEA_MAINNET,
+  SOLANA_MAINNET,
+} from './networks';
 
 export interface DepositFiatCurrency {
   id: string;
@@ -22,11 +29,11 @@ export const EUR_CURRENCY: DepositFiatCurrency = {
 };
 
 export const TRANSAK_NETWORKS: Record<string, CaipChainId> = {
-  ethereum: 'eip155:1',
-  linea: 'eip155:59144',
-  base: 'eip155:8453',
-  solana: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  bsc: 'eip155:56',
+  ethereum: ETHEREUM_MAINNET.chainId,
+  linea: LINEA_MAINNET.chainId,
+  base: BASE_MAINNET.chainId,
+  solana: SOLANA_MAINNET.chainId,
+  bsc: BSC_MAINNET.chainId,
 };
 
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';

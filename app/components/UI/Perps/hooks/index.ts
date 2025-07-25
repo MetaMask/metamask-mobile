@@ -14,10 +14,23 @@ export { usePerpsAccount } from './usePerpsAccount';
 
 // Live data hooks (WebSocket subscriptions)
 export { usePerpsPositionData } from './usePerpsPositionData';
-// - usePerpsPrices (removed with Live Market Prices component)
+export { usePerpsPrices } from './usePerpsPrices';
 
-// Removed for minimal PR:
-// - usePerpsPositions (positions management)
+// Asset metadata hooks
+export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
+
+// Payment token hooks
+export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
+
+// Market data and calculation hooks
+export { usePerpsMarketData } from './usePerpsMarketData';
+export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
+
+// UI utility hooks
+export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
+export { usePerpsPositions } from './usePerpsPositions';
+export { useBalanceComparison } from './useBalanceComparison';
+export { useColorPulseAnimation } from './useColorPulseAnimation';
 // - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)
