@@ -8,7 +8,8 @@ permissions:
   id-token: write
 
 jobs:
-  ios-e2e:
+  ios-build:
+    name: Test iOS QA Build App
     runs-on: macos-15
     env:
       GITHUB_CI: "true"  # ✅ This ensures it's available during pod install
@@ -55,7 +56,7 @@ jobs:
             xcrun simctl list | grep Booted || echo "No booted simulators found"
         shell: bash
 
-      - name: Build iOS App
+      - name: Setup iOS Environment
         run: |
           yarn setup --build-on-github-ci --build-ios --no-build-android
         shell: bash
@@ -83,3 +84,16 @@ jobs:
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+
+      - name: Build iOS App
+        run: |
+          yarn build:ios:qa
+        shell: bash
+        env:
+          PLATFORM: ios
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: "true"
+          CI: "true"
