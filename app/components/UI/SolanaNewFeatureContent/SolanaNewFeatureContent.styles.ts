@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 
 const createStyles = () =>
@@ -13,13 +14,12 @@ const createStyles = () =>
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      paddingTop: 10,
     },
     title: {
       fontSize: 60,
       lineHeight: 60,
       textAlign: 'center',
-      paddingTop: 60,
+      paddingTop: Device.isLargeDevice() ? 40 : 10,
       fontFamily: 'MMPoly-Regular',
     },
     titleDescription: {
@@ -29,16 +29,17 @@ const createStyles = () =>
       fontFamily: 'MMSans-Regular',
     },
     foxImage: {
-      height: 350,
+      height: Device.isLargeDevice() ? 350 : 260,
     },
     ctas: {
       flex: 1,
       position: 'relative',
       width: '100%',
       paddingHorizontal: 30,
+      justifyContent: 'space-between',
     },
     createWrapper: {
-      flex: 1,
+      display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-end',
       rowGap: 5,
