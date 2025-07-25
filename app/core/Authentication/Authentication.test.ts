@@ -33,7 +33,7 @@ import {
 } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { logOut } from '../../actions/user';
 import { RootState } from '../../reducers';
 import {
@@ -2141,6 +2141,10 @@ describe('Authentication', () => {
         'test-keyring-id',
         SolScope.Mainnet,
       );
+      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
+        'test-keyring-id',
+        BtcScope.Mainnet,
+      );
       expect(result).toEqual({
         newAccountAddress: '0x1234567890abcdef',
         discoveredAccountsCount: 2 + 2, // 2 from Solana and 2 from Bitcoin
@@ -2198,6 +2202,10 @@ describe('Authentication', () => {
       expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
         'test-keyring-id',
         SolScope.Mainnet,
+      );
+      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
+        'test-keyring-id',
+        BtcScope.Mainnet,
       );
       expect(result).toEqual({
         newAccountAddress: '0x1234567890abcdef',
