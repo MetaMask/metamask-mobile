@@ -31,6 +31,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { DepositRegion, DEPOSIT_REGIONS, DEFAULT_REGION } from '../constants';
 import Logger from '../../../../../util/Logger';
+import { strings } from '../../../../../../locales/i18n';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -200,7 +201,9 @@ export const DepositSDKProvider = ({
         setAuthToken(undefined);
         setIsAuthenticated(false);
       } catch (error) {
-        Logger.error(error as Error, 'Failed to logout from provider server:');
+        throw new Error(
+          strings('deposit.configuration_modal.error_sdk_not_initialized'),
+        );
       }
     }
   }, [sdk]);
