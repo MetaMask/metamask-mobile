@@ -1,4 +1,3 @@
-import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
@@ -29,7 +28,6 @@ const invalidUrls = [
 ];
 
 describe('parseDeeplink', () => {
-  let instance: DeeplinkManager;
   const mockOnHandled = jest.fn();
   const mockBrowserCallBack = jest.fn();
 
@@ -56,7 +54,6 @@ describe('parseDeeplink', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    instance = {} as unknown as DeeplinkManager;
   });
 
   it('should call handleUniversalLinks for HTTP protocol', async () => {

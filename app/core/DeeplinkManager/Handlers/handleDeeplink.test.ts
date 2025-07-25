@@ -1,6 +1,6 @@
 import { handleDeeplink } from './handleDeeplink';
 import { checkForDeeplink } from '../../../actions/user';
-import { store } from '../../../store';
+import ReduxService from '../../redux';
 import Logger from '../../../util/Logger';
 import { AppStateEventProcessor } from '../../AppStateEventListener';
 
@@ -8,9 +8,12 @@ jest.mock('../../../actions/user', () => ({
   checkForDeeplink: jest.fn(() => ({ type: 'CHECK_FOR_DEEPLINK' })),
 }));
 
-jest.mock('../../../store', () => ({
-  store: {
-    dispatch: jest.fn(),
+jest.mock('../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      dispatch: jest.fn(),
+    },
   },
 }));
 
@@ -25,7 +28,7 @@ jest.mock('../../AppStateEventListener', () => ({
 }));
 
 describe('handleDeeplink', () => {
-  const mockDispatch = store.dispatch as jest.Mock;
+  const mockDispatch = ReduxService.store.dispatch as jest.Mock;
   const mockCheckForDeeplink = checkForDeeplink as jest.Mock;
   const mockLoggerError = Logger.error as jest.Mock;
   const mockSetCurrentDeeplink =
@@ -63,6 +66,7 @@ describe('handleDeeplink', () => {
   });
 
   it('should handle non-string URI without processing', () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Testing runtime behavior with invalid type
     handleDeeplink({ uri: 123 });
 

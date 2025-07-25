@@ -1,7 +1,4 @@
 import { ERROR_MESSAGES, WC2Manager } from './WalletConnectV2';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Ignoring the import error for testing purposes
-import { NavigationContainerRef } from '@react-navigation/native';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
 import StorageWrapper from '../../store/storage-wrapper';
 import AppConstants from '../AppConstants';
@@ -170,20 +167,25 @@ jest.mock('@walletconnect/core', () => ({
   })),
 }));
 
+jest.mock('../NavigationService', () => ({
+  __esModule: true,
+  default: {
+    get navigation() {
+      return {
+        getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
+        navigate: jest.fn(),
+      };
+    },
+  },
+}));
+
 describe('WC2Manager', () => {
   let manager: WC2Manager;
-  let mockNavigation: NavigationContainerRef;
   let mockApproveSession: jest.SpyInstance;
   const _sessions: { [topic: string]: WalletConnect2Session } = {};
 
   beforeEach(async () => {
-    mockNavigation = {
-      getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
-      navigate: jest.fn(),
-    } as unknown as NavigationContainerRef;
-
     const initResult = await WC2Manager.init({
-      navigation: mockNavigation,
       sessions: _sessions,
     });
     if (!initResult) {
@@ -244,20 +246,6 @@ describe('WC2Manager', () => {
           accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
         },
       },
-    });
-  });
-
-  describe('WC2Manager Initialization', () => {
-    it('should initialize correctly when called with valid inputs', async () => {
-      const result = await WC2Manager.init({ navigation: mockNavigation });
-      expect(result).toBeInstanceOf(WC2Manager);
-    });
-
-    it('should not initialize if navigation is missing', async () => {
-      const result = await WC2Manager.init({
-        navigation: null as unknown as NavigationContainerRef,
-      });
-      expect(result).toBeUndefined();
     });
   });
 

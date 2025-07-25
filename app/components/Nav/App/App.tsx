@@ -1,5 +1,9 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useNavigation,
+  useNavigationState,
+  useRoute,
+} from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';

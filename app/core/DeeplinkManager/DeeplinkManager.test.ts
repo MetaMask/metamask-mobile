@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import DeeplinkManager from './DeeplinkManager';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
@@ -7,6 +6,10 @@ import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
+import branch from 'react-native-branch';
+import { Linking } from 'react-native';
+import { handleDeeplink } from './Handlers/handleDeeplink';
+import Logger from '../../util/Logger';
 
 jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./Handlers/handleEthereumUrl');
@@ -14,12 +17,18 @@ jest.mock('./Handlers/handleBrowserUrl');
 jest.mock('./Handlers/handleRampUrl');
 jest.mock('./ParseManager/parseDeeplink');
 jest.mock('./Handlers/switchNetwork');
+jest.mock('./Handlers/handleDeeplink');
+jest.mock('../../util/Logger');
 
-const mockNavigation = {
-  navigate: jest.fn(),
-} as unknown as NavigationProp<ParamListBase>;
+jest.mock('react-native-branch', () => ({
+  subscribe: jest.fn(),
+  getLatestReferringParams: jest.fn(),
+}));
 
-const mockDispatch = jest.fn();
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  getInitialURL: jest.fn(),
+  addEventListener: jest.fn(),
+}));
 
 describe('DeeplinkManager', () => {
   beforeEach(() => {
@@ -144,5 +153,136 @@ describe('DeeplinkManager', () => {
         rampType: RampType.SELL,
       }),
     );
+  });
+
+  describe('Branch deeplink handling', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should initialize Linking listeners when start() is called', () => {
+      const mockLinking = jest.mocked(Linking);
+      mockLinking.getInitialURL = jest.fn().mockResolvedValue(null);
+      mockLinking.addEventListener = jest.fn();
+
+      DeeplinkManager.start();
+
+      expect(mockLinking.getInitialURL).toHaveBeenCalled();
+      expect(mockLinking.addEventListener).toHaveBeenCalledWith(
+        'url',
+        expect.any(Function),
+      );
+    });
+
+    it('should subscribe to Branch deeplink events when start() is called', () => {
+      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+
+      DeeplinkManager.start();
+
+      expect(branch.subscribe).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('should call getLatestReferringParams when branch subscription callback is triggered', async () => {
+      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+
+      DeeplinkManager.start();
+
+      // Trigger the branch subscription callback
+      const subscribeCallback = (branch.subscribe as jest.Mock).mock
+        .calls[0][0];
+      await subscribeCallback({ error: null });
+
+      expect(branch.getLatestReferringParams).toHaveBeenCalled();
+    });
+
+    it('should process cold start deeplink when non-branch link is found', async () => {
+      const mockDeeplink = 'https://link.metamask.io/home';
+      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+        '+non_branch_link': mockDeeplink,
+      });
+
+      DeeplinkManager.start();
+
+      // Trigger the branch subscription callback
+      const subscribeCallback = (branch.subscribe as jest.Mock).mock
+        .calls[0][0];
+      await subscribeCallback({ error: null });
+
+      expect(branch.getLatestReferringParams).toHaveBeenCalled();
+      expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
+    });
+
+    it('should process deeplink from subscription callback when uri is provided', async () => {
+      const mockUri = 'https://link.metamask.io/home';
+      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+
+      DeeplinkManager.start();
+
+      // Trigger the branch subscription callback with uri
+      const subscribeCallback = (branch.subscribe as jest.Mock).mock
+        .calls[0][0];
+      await subscribeCallback({ uri: mockUri, error: null });
+
+      expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+    });
+
+    it('should handle Branch subscription errors gracefully', async () => {
+      const mockError = 'Branch subscription error';
+
+      DeeplinkManager.start();
+
+      // Trigger the branch subscription callback with error
+      const subscribeCallback = (branch.subscribe as jest.Mock).mock
+        .calls[0][0];
+      await subscribeCallback({ error: mockError });
+
+      // The error should be logged using Logger.error but not throw
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Error subscribing to branch.',
+      );
+    });
+
+    it('should handle initial Linking URL when available', async () => {
+      const mockUrl = 'https://link.metamask.io/home';
+      const mockLinking = jest.mocked(Linking);
+      mockLinking.getInitialURL = jest.fn().mockResolvedValue(mockUrl);
+
+      DeeplinkManager.start();
+
+      // Wait for the async getInitialURL call
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUrl });
+    });
+
+    it('should setup Linking URL event listener and handle URL events', () => {
+      const mockLinking = jest.mocked(Linking);
+      let capturedCallback: ((params: { url: string }) => void) | undefined;
+
+      mockLinking.getInitialURL = jest.fn().mockResolvedValue(null);
+      mockLinking.addEventListener = jest
+        .fn()
+        .mockImplementation(
+          (event: string, callback: (params: { url: string }) => void) => {
+            if (event === 'url') {
+              capturedCallback = callback;
+            }
+          },
+        );
+
+      DeeplinkManager.start();
+
+      expect(mockLinking.addEventListener).toHaveBeenCalledWith(
+        'url',
+        expect.any(Function),
+      );
+
+      // Simulate URL event
+      if (capturedCallback) {
+        capturedCallback({ url: 'test://url' });
+        expect(handleDeeplink).toHaveBeenCalledWith({ uri: 'test://url' });
+      }
+    });
   });
 });

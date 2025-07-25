@@ -179,6 +179,22 @@ export function* handleDeeplinkSaga() {
   }
 }
 
+function* loadWCManager() {
+  try {
+    yield call(WC2Manager.init);
+  } catch (e) {
+    Logger.log('Cannot initialize WalletConnect Manager.', e);
+  }
+}
+
+function* loadSDKConnect() {
+  try {
+    yield call(SDKConnect.init, { context: 'Nav/App' });
+  } catch (e) {
+    Logger.log('Cannot initialize SDKConnect.', e);
+  }
+}
+
 /**
  * Handles initializing app services on start up
  */
@@ -191,13 +207,6 @@ export function* startAppServices() {
   // Start Engine service
   yield call(EngineService.start);
 
-  yield all([
-    // Initialize WalletConnect v2 Manager
-    call(WC2Manager.init),
-    // Initialize SDKConnect
-    call(SDKConnect.init, { context: 'Nav/App' }),
-  ]);
-
   // Start DeeplinkManager and process branch deeplinks
   DeeplinkManager.start();
 
@@ -206,9 +215,9 @@ export function* startAppServices() {
 
   yield all([
     // Initialize WalletConnect v2 Manager
-    call(WC2Manager.init, {}),
+    call(loadWCManager),
     // Initialize SDKConnect
-    call(SDKConnect.init, { context: 'Nav/App' }),
+    call(loadSDKConnect),
   ]);
 
   // Unblock the ControllersGate

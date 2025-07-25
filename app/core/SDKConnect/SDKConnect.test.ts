@@ -1,5 +1,4 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
 import AppConstants from '../AppConstants';
 import addDappConnection from './AndroidSDK/addDappConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
@@ -47,6 +46,11 @@ jest.mock('./RPCQueueManager');
 jest.mock('./SDKConnectConstants');
 jest.mock('./SessionManagement');
 jest.mock('./StateManagement');
+jest.mock('../../store', () => ({
+  store: {
+    dispatch: jest.fn(),
+  },
+}));
 
 describe('SDKConnect', () => {
   let sdkConnect: SDKConnect;
@@ -128,16 +132,12 @@ describe('SDKConnect', () => {
   describe('Initialization Management', () => {
     describe('init', () => {
       it('should initialize the SDKConnect instance', async () => {
-        const testNavigation = {} as NavigationContainerRef;
-
-        await sdkConnect.init({
-          navigation: testNavigation,
+        await SDKConnect.init({
           context: 'testContext',
         });
 
         expect(mockInit).toHaveBeenCalledTimes(1);
         expect(mockInit).toHaveBeenCalledWith({
-          navigation: testNavigation,
           context: 'testContext',
           instance: sdkConnect,
         });

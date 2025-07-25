@@ -6,7 +6,6 @@ import AppConstants from '../../AppConstants';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import SDKConnect from '../../SDKConnect/SDKConnect';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { handleBuyCrypto } from '../Handlers/handleBuyCrypto';
@@ -33,8 +32,6 @@ jest.mock('../Handlers/handleSellCrypto', () => ({
 }));
 
 describe('handleMetaMaskProtocol', () => {
-  const mockParse = jest.fn();
-  const mockHandleBrowserUrl = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -49,12 +46,6 @@ describe('handleMetaMaskProtocol', () => {
   const mockWC2ManagerGetInstance = WC2Manager.getInstance as jest.Mock;
   const mockHandleBuyCrypto = handleBuyCrypto as jest.Mock;
   const mockHandleSellCrypto = handleSellCrypto as jest.Mock;
-
-  const instance = {
-    parse: mockParse,
-    _handleBrowserUrl: mockHandleBrowserUrl,
-  } as unknown as DeeplinkManager;
-
   const handled = jest.fn();
 
   let url = '';

@@ -2,11 +2,10 @@ import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import { handleNetworkSwitch } from '../../../util/networks/handleNetworkSwitch';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
-import DeeplinkManager from '../DeeplinkManager';
 
 import { selectEvmChainId } from '../../../selectors/networkController';
-import { store } from '../../../store';
 import { toHex } from '@metamask/controller-utils';
+import ReduxService from '../../redux';
 
 function switchNetwork({
   switchToChainId,
@@ -17,6 +16,7 @@ function switchNetwork({
     typeof switchToChainId === 'number' ||
     typeof switchToChainId === 'string'
   ) {
+    const { store } = ReduxService;
     const newChainId = String(switchToChainId);
     const networkName = handleNetworkSwitch(newChainId);
 

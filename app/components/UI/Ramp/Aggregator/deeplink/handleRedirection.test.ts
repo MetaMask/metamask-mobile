@@ -15,7 +15,7 @@ describe('handleRedirection', () => {
   });
 
   it('navigates to TRANSACTIONS_VIEW route when first path is "activity"', () => {
-    handleRedirection(['activity'], undefined, RampType.BUY, navigation);
+    handleRedirection(['activity'], undefined, RampType.BUY);
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
       screen: Routes.TRANSACTIONS_VIEW,
       params: {

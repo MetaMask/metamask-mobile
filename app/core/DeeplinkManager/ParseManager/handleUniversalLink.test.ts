@@ -12,7 +12,6 @@ import handleDeepLinkModalDisplay from '../Handlers/handleDeepLinkModalDisplay';
 import { DeepLinkModalLinkType } from '../../../components/UI/DeepLinkModal';
 import { handleBuyCrypto } from '../Handlers/handleBuyCrypto';
 import { handleSellCrypto } from '../Handlers/handleSellCrypto';
-import handleBrowserUrl from '../Handlers/handleBrowserUrl';
 import { handleOpenHome } from '../Handlers/handleOpenHome';
 import { handleSwapUrl } from '../Handlers/handleSwapUrl';
 
@@ -66,7 +65,6 @@ describe('handleUniversalLinks', () => {
   const mockDeeplinkManagerParse = DeeplinkManager.parse as jest.Mock;
   const mockHandleBuyCrypto = handleBuyCrypto as jest.Mock;
   const mockHandleSellCrypto = handleSellCrypto as jest.Mock;
-  const mockHandleBrowserUrl = handleBrowserUrl as jest.Mock;
   const mockHandleOpenHome = handleOpenHome as jest.Mock;
   const mockHandleSwap = handleSwapUrl as jest.Mock;
 
@@ -289,7 +287,6 @@ describe('handleUniversalLinks', () => {
           const newSendUrl = `${PREFIXES[ACTIONS.SEND]}send-path`;
 
           await handleUniversalLink({
-            instance,
             handled,
             urlObj: sendUrlObj,
             browserCallBack: mockBrowserCallBack,
@@ -298,7 +295,7 @@ describe('handleUniversalLinks', () => {
           });
 
           expect(handled).toHaveBeenCalled();
-          expect(mockParse).toHaveBeenCalledWith(newSendUrl, {
+          expect(mockDeeplinkManagerParse).toHaveBeenCalledWith(newSendUrl, {
             origin: 'test-source',
           });
         },
@@ -319,7 +316,6 @@ describe('handleUniversalLinks', () => {
           const newSendUrl = `${PREFIXES[ACTIONS.SEND]}?value=123&to=0x123`;
 
           await handleUniversalLink({
-            instance,
             handled,
             urlObj: sendUrlObj,
             browserCallBack: mockBrowserCallBack,
@@ -328,7 +324,7 @@ describe('handleUniversalLinks', () => {
           });
 
           expect(handled).toHaveBeenCalled();
-          expect(mockParse).toHaveBeenCalledWith(newSendUrl, {
+          expect(mockDeeplinkManagerParse).toHaveBeenCalledWith(newSendUrl, {
             origin: 'test-source',
           });
         },

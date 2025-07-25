@@ -3,7 +3,7 @@ import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import { handleNetworkSwitch } from '../../../util/networks/handleNetworkSwitch';
 import { selectEvmChainId } from '../../../selectors/networkController';
-import { store } from '../../../store';
+import ReduxService from '../../redux';
 
 jest.mock('../../../util/networks/handleNetworkSwitch', () => ({
   handleNetworkSwitch: jest.fn(),
@@ -17,10 +17,13 @@ jest.mock('../../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(),
 }));
 
-jest.mock('../../../store', () => ({
-  store: {
-    dispatch: jest.fn(),
-    getState: jest.fn(),
+jest.mock('../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      dispatch: jest.fn(),
+      getState: jest.fn(),
+    },
   },
 }));
 
@@ -31,7 +34,9 @@ describe('switchNetwork', () => {
   const mockSelectEvmChainId = selectEvmChainId as jest.MockedFunction<
     typeof selectEvmChainId
   >;
-  const mockStore = store as jest.Mocked<typeof store>;
+  const mockStore = ReduxService.store as jest.Mocked<
+    typeof ReduxService.store
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();

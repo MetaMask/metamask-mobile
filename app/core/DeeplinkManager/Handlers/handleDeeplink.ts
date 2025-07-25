@@ -1,10 +1,10 @@
 import { checkForDeeplink } from '../../../actions/user';
-import { store } from '../../../store';
 import Logger from '../../../util/Logger';
 import { AppStateEventProcessor } from '../../AppStateEventListener';
+import ReduxService from '../../redux';
 
 export function handleDeeplink(opts: { uri?: string }) {
-  const { dispatch } = store;
+  const { dispatch } = ReduxService.store;
   const { uri } = opts;
   try {
     if (uri && typeof uri === 'string') {
