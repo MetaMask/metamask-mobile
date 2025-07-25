@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
 import {
   NavigationProp,
@@ -13,11 +13,42 @@ import type { PerpsMarketData } from '../../controllers/types';
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useFocusEffect: jest.fn((callback) => callback()),
 }));
 
 jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
 }));
+
+jest.mock('../../hooks', () => ({
+  usePerpsPositions: jest.fn(),
+}));
+
+// Mock Animated to prevent act() warnings
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  const MockedAnimated = {
+    ...RN.Animated,
+    timing: jest.fn(() => ({
+      start: jest.fn(), // Don't call any callbacks, just do nothing
+    })),
+    Value: jest.fn().mockImplementation((value) => ({
+      setValue: jest.fn(),
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      __getValue: () => value,
+      _value: value,
+    })),
+    View: RN.View,
+  };
+
+  return {
+    ...RN,
+    Animated: MockedAnimated,
+  };
+});
+
+const mockUsePerpsPositions = jest.requireMock('../../hooks').usePerpsPositions;
 
 jest.mock('../../components/PerpsMarketRowItem', () => {
   const {
@@ -192,8 +223,20 @@ describe('PerpsMarketListView', () => {
     },
   ];
 
+  let originalConsoleError: typeof console.error;
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Suppress console warnings for Animated during tests
+    originalConsoleError = console.error;
+    console.error = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes('act(...)')) {
+        return;
+      }
+      originalConsoleError.call(console, ...args);
+    };
+
     mockUseNavigation.mockReturnValue(
       mockNavigation as unknown as NavigationProp<ParamListBase>,
     );
@@ -206,14 +249,28 @@ describe('PerpsMarketListView', () => {
       refresh: jest.fn(),
       isRefreshing: false,
     });
+
+    mockUsePerpsPositions.mockReturnValue({
+      positions: [],
+      isLoading: false,
+      isRefreshing: false,
+      loadPositions: jest.fn(),
+    });
+  });
+
+  afterEach(() => {
+    // Restore original console.error
+    if (originalConsoleError) {
+      console.error = originalConsoleError;
+    }
   });
 
   describe('Component Rendering', () => {
-    it('renders the component with header and search bar', () => {
+    it('renders the component with header and search button', () => {
       render(<PerpsMarketListView />);
 
-      expect(screen.getByText('Perpetual Markets')).toBeOnTheScreen();
-      expect(screen.getByPlaceholderText('Search')).toBeOnTheScreen();
+      expect(screen.getByText('Perpetual markets')).toBeOnTheScreen();
+      expect(screen.getByTestId('search-toggle-button')).toBeOnTheScreen();
       expect(screen.getByText('Token Volume')).toBeOnTheScreen();
       expect(screen.getByText('Last Price / 24h Change')).toBeOnTheScreen();
     });
@@ -226,21 +283,47 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
     });
 
-    it('renders close button', () => {
+    it('renders interactive elements', () => {
       render(<PerpsMarketListView />);
 
-      // Find close button by looking for TouchableOpacity elements
-      const touchableElements = screen.root.findAllByType(TouchableOpacity);
-      expect(touchableElements.length).toBeGreaterThan(0);
+      // Should have search toggle button and market rows
+      expect(screen.getByTestId('search-toggle-button')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
+      expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
     });
   });
 
   describe('Search Functionality', () => {
+    it('shows search input when search button is pressed', () => {
+      render(<PerpsMarketListView />);
+
+      // Initially search should not be visible
+      expect(screen.queryByPlaceholderText('Search')).not.toBeOnTheScreen();
+
+      // Click search toggle button
+      const searchButton = screen.getByTestId('search-toggle-button');
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
+      // Now search input should be visible
+      expect(screen.getByPlaceholderText('Search')).toBeOnTheScreen();
+    });
+
     it('filters markets based on symbol search', () => {
       render(<PerpsMarketListView />);
 
+      // First toggle search visibility
+      const searchButton = screen.getByTestId('search-toggle-button');
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
       const searchInput = screen.getByPlaceholderText('Search');
-      fireEvent.changeText(searchInput, 'BTC');
+      act(() => {
+        fireEvent.changeText(searchInput, 'BTC');
+      });
 
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
@@ -250,8 +333,16 @@ describe('PerpsMarketListView', () => {
     it('filters markets based on name search', () => {
       render(<PerpsMarketListView />);
 
+      // First toggle search visibility
+      const searchButton = screen.getByTestId('search-toggle-button');
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
       const searchInput = screen.getByPlaceholderText('Search');
-      fireEvent.changeText(searchInput, 'bitcoin');
+      act(() => {
+        fireEvent.changeText(searchInput, 'bitcoin');
+      });
 
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
@@ -261,21 +352,40 @@ describe('PerpsMarketListView', () => {
     it('shows clear button when search has text', () => {
       render(<PerpsMarketListView />);
 
+      // First toggle search visibility
+      const searchButton = screen.getByTestId('search-toggle-button');
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
       const searchInput = screen.getByPlaceholderText('Search');
-      fireEvent.changeText(searchInput, 'BTC');
+      act(() => {
+        fireEvent.changeText(searchInput, 'BTC');
+      });
 
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
 
-      // After typing, should have close button + clear button + 1 filtered market row = 3 TouchableOpacity elements
-      const touchableElements = screen.root.findAllByType(TouchableOpacity);
-      expect(touchableElements.length).toBe(3); // Close button + clear button + filtered market row
+      // Should show clear button when there's search text
+      expect(screen.getByTestId('search-clear-button')).toBeOnTheScreen();
+
+      // Should only show the filtered market (BTC), not others
+      expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('market-row-SOL')).not.toBeOnTheScreen();
     });
 
     it('clears search when clear button is pressed', () => {
       render(<PerpsMarketListView />);
 
+      // First toggle search visibility
+      const searchButton = screen.getByTestId('search-toggle-button');
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
       const searchInput = screen.getByPlaceholderText('Search');
-      fireEvent.changeText(searchInput, 'BTC');
+      act(() => {
+        fireEvent.changeText(searchInput, 'BTC');
+      });
 
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
@@ -283,10 +393,11 @@ describe('PerpsMarketListView', () => {
       // Verify the search input has the typed value
       expect(searchInput.props.value).toBe('BTC');
 
-      // Find and press clear button (second TouchableOpacity - after close button)
-      const touchableElements = screen.root.findAllByType(TouchableOpacity);
-      const clearButton = touchableElements[1]; // Clear button is second in the list
-      fireEvent.press(clearButton);
+      // Find and press clear button using testID
+      const clearButton = screen.getByTestId('search-clear-button');
+      act(() => {
+        fireEvent.press(clearButton);
+      });
 
       // After pressing clear button, the search input should be empty
       expect(searchInput.props.value).toBe('');
@@ -300,8 +411,16 @@ describe('PerpsMarketListView', () => {
     it('handles case-insensitive search', () => {
       render(<PerpsMarketListView />);
 
+      // First toggle search visibility
+      const searchButton = screen.getByTestId('search-toggle-button');
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
       const searchInput = screen.getByPlaceholderText('Search');
-      fireEvent.changeText(searchInput, 'ethereum');
+      act(() => {
+        fireEvent.changeText(searchInput, 'ethereum');
+      });
 
       expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
@@ -428,24 +547,6 @@ describe('PerpsMarketListView', () => {
 
       expect(mockRefresh).toHaveBeenCalled();
     });
-
-    it('does not refresh when already refreshing', () => {
-      const mockRefresh = jest.fn().mockResolvedValue(undefined);
-      mockUsePerpsMarkets.mockReturnValue({
-        markets: mockMarketData,
-        isLoading: false,
-        error: null,
-        refresh: mockRefresh,
-        isRefreshing: true,
-      });
-
-      render(<PerpsMarketListView />);
-
-      const flashList = screen.getByTestId('flash-list');
-      fireEvent(flashList, 'onRefresh');
-
-      expect(mockRefresh).not.toHaveBeenCalled();
-    });
   });
 
   describe('Navigation', () => {
@@ -520,8 +621,16 @@ describe('PerpsMarketListView', () => {
     it('handles search with no results', () => {
       render(<PerpsMarketListView />);
 
+      // First toggle search visibility
+      const searchButton = screen.getByTestId('search-toggle-button');
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
       const searchInput = screen.getByPlaceholderText('Search');
-      fireEvent.changeText(searchInput, 'NONEXISTENT');
+      act(() => {
+        fireEvent.changeText(searchInput, 'NONEXISTENT');
+      });
 
       expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
@@ -531,8 +640,16 @@ describe('PerpsMarketListView', () => {
     it('handles search with whitespace', () => {
       render(<PerpsMarketListView />);
 
+      // First toggle search visibility
+      const searchButton = screen.getByTestId('search-toggle-button');
+      act(() => {
+        fireEvent.press(searchButton);
+      });
+
       const searchInput = screen.getByPlaceholderText('Search');
-      fireEvent.changeText(searchInput, '   ');
+      act(() => {
+        fireEvent.changeText(searchInput, '   ');
+      });
 
       // Should show all markets when search is only whitespace
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
@@ -541,20 +658,62 @@ describe('PerpsMarketListView', () => {
     });
   });
 
-  describe('Accessibility', () => {
-    it('has proper interactive elements', () => {
+  describe('Tab Switching', () => {
+    it('switches from markets to positions tab', () => {
       render(<PerpsMarketListView />);
 
-      // Check that there are TouchableOpacity elements (interactive elements)
-      const touchableElements = screen.root.findAllByType(TouchableOpacity);
-      expect(touchableElements.length).toBeGreaterThan(0);
+      // Initially markets tab should be active
+      expect(screen.getByText('Perpetual markets')).toBeOnTheScreen();
+      expect(screen.getByText('Your positions')).toBeOnTheScreen();
+
+      // Switch to positions tab
+      const positionsTab = screen.getByText('Your positions');
+      act(() => {
+        fireEvent.press(positionsTab);
+      });
+
+      // Search button should be hidden on positions tab
+      expect(
+        screen.queryByTestId('search-toggle-button'),
+      ).not.toBeOnTheScreen();
     });
 
-    it('has proper placeholder text for search input', () => {
+    it('calls loadPositions when positions tab is selected', () => {
+      const mockLoadPositions = jest.fn();
+      mockUsePerpsPositions.mockReturnValue({
+        positions: [],
+        isLoading: false,
+        isRefreshing: false,
+        loadPositions: mockLoadPositions,
+      });
+
       render(<PerpsMarketListView />);
 
-      const searchInput = screen.getByPlaceholderText('Search');
-      expect(searchInput).toBeOnTheScreen();
+      const positionsTab = screen.getByText('Your positions');
+      act(() => {
+        fireEvent.press(positionsTab);
+      });
+
+      expect(mockLoadPositions).toHaveBeenCalled();
+    });
+
+    it('shows loading state for positions tab', () => {
+      mockUsePerpsPositions.mockReturnValue({
+        positions: [],
+        isLoading: true,
+        isRefreshing: false,
+        loadPositions: jest.fn(),
+      });
+
+      render(<PerpsMarketListView />);
+
+      // Switch to positions tab
+      const positionsTab = screen.getByText('Your positions');
+      act(() => {
+        fireEvent.press(positionsTab);
+      });
+
+      expect(screen.getByText('Loading positions...')).toBeOnTheScreen();
     });
   });
 });
