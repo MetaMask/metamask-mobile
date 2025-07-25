@@ -264,9 +264,10 @@ stages:
   #     - run_tag_multichain_permissions_ios: {}
   #     - run_tag_multichain_permissions_android: {}
   run_e2e_flask_ios_android_stage:
-    envs:
-      - METAMASK_BUILD_TYPE: 'flask'
     workflows:
+      - set_build_type_env_var:
+          envs:
+            - METAMASK_BUILD_TYPE: 'flask'
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
@@ -288,9 +289,10 @@ stages:
       - run_single_ios_e2e_test: {}
       - run_single_android_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
-    envs:
-      - METAMASK_BUILD_TYPE: 'main'
     workflows:
+      - set_build_type_env_var:
+          envs:
+            - METAMASK_BUILD_TYPE: 'main'
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
@@ -2194,6 +2196,7 @@ workflows:
   build_android_qa:
       after_run:
         - build_android_qa_prod
+        - _upload_apk_to_browserstack
   build_android_qa_flask:
     before_run:
       - code_setup
@@ -2755,6 +2758,7 @@ workflows:
   build_ios_qa:
     after_run:
       - build_ios_qa_prod
+      - _upload_ipa_to_browserstack
   _upload_ipa_to_browserstack:
     steps:
       - script@1:
@@ -2914,7 +2918,13 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_flask_apps.json
           title: Bitrise Deploy Browserstack Uploaded Flask Apps
-
+  set_build_type_env_var:
+    steps:
+      - share-pipeline-variable@1:
+          title: Persist METAMASK_BUILD_TYPE across all stages and workflows
+          inputs:
+            - variables: |-
+                METAMASK_BUILD_TYPE
 
 app:
   envs:
