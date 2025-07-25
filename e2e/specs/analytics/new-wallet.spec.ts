@@ -3,9 +3,7 @@
 import { SmokeWalletPlatform } from '../../tags';
 import { CreateNewWallet } from '../../viewHelper';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import Assertions from '../../framework/Assertions';
 import { getEventsPayloads, onboardingEvents } from './helpers';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
@@ -13,7 +11,9 @@ import {
   INFURA_MOCK_BALANCE_1_ETH,
 } from '../../api-mocking/mock-responses/balance-mocks';
 import SoftAssert from '../../utils/SoftAssert';
-import { MockttpServer } from 'mockttp';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { TestSpecificMock } from '../../framework';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 
 const balanceMock = getBalanceMocks([
   {
@@ -24,7 +24,7 @@ const balanceMock = getBalanceMocks([
 
 const testSpecificMock = {
   POST: [...balanceMock, mockEvents.POST.segmentTrack],
-};
+} as TestSpecificMock;
 
 const eventNames = [
   onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
@@ -52,8 +52,14 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
         testSpecificMock,
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
+      async ({ mockServer }) => {
         await CreateNewWallet();
+
+        if (!mockServer) {
+          throw new Error(
+            'Mock server is not defined, check testSpecificMock setup',
+          );
+        }
 
         const events = await getEventsPayloads(mockServer, eventNames);
 
@@ -187,10 +193,16 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
         testSpecificMock,
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
+      async ({ mockServer }) => {
         await CreateNewWallet({
           optInToMetrics: false,
         });
+
+        if (!mockServer) {
+          throw new Error(
+            'Mock server is not defined, check testSpecificMock setup',
+          );
+        }
 
         const events = await getEventsPayloads(mockServer);
         await Assertions.checkIfArrayHasLength(events, 0);

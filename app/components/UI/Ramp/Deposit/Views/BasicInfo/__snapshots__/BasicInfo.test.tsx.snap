@@ -129,15 +129,15 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -605,7 +605,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
-                                      "marginTop": 8,
+                                      "marginBottom": 16,
                                     }
                                   }
                                 >
@@ -1446,15 +1446,15 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -1922,7 +1922,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
-                                      "marginTop": 8,
+                                      "marginBottom": 16,
                                     }
                                   }
                                 >
@@ -2763,15 +2763,15 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -3239,7 +3239,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
-                                      "marginTop": 8,
+                                      "marginBottom": 16,
                                     }
                                   }
                                 >
