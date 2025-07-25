@@ -448,7 +448,7 @@ export const useDepositRouting = ({
         throw new Error(strings('deposit.buildQuote.unexpectedError'));
       } catch (error) {
         if ((error as AxiosError).status === 401) {
-          logoutFromProvider();
+          await logoutFromProvider();
           navigateToEnterEmailCallback({ quote });
           return;
         }
