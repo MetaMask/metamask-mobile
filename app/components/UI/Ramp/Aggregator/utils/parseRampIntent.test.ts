@@ -7,7 +7,7 @@ describe('parseRampIntent', () => {
       const pathParams = {};
       const result = parseRampIntent(pathParams);
       expect(result).toBeUndefined();
-    });``
+    });
 
     it('returns a RampIntent object if pathParams contain necessary fields', () => {
       const pathParams = {

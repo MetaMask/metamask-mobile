@@ -1,5 +1,5 @@
-import { 
-  RampIntent, 
+import {
+  RampIntent,
   parseLegacyCurrencyFormat,
 } from '../types';
 
@@ -14,7 +14,7 @@ export default function parseRampIntent(
     assetId: pathParams.assetId,
   };
 
-  if (!rampIntent.assetId && rampIntent.chainId && rampIntent.chainId.includes('/')) {
+  if (!rampIntent.assetId && rampIntent.chainId?.includes('/')) {
     rampIntent.assetId = rampIntent.chainId;
   }
 

@@ -1,5 +1,5 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { isCaipAssetType, isHexString } from '@metamask/utils';
+import { isCaipAssetType } from '@metamask/utils';
 import handleRedirection from './handleRedirection';
 import getRedirectPathsAndParams from './utils/getRedirectPathAndParams';
 import { RampType } from '../types';

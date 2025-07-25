@@ -33,8 +33,8 @@ import {
   parseCaipAssetType,
   toCaipChainId,
   isHexString,
+  Hex,
 } from '@metamask/utils';
-import { Hex } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { SolScope } from '@metamask/keyring-api';
 

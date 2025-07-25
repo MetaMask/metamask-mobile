@@ -55,6 +55,19 @@ export default function useCryptoCurrencies() {
    */
   useEffect(() => {
     if (cryptoCurrencies) {
+      // Handle assetId from intent first
+      if (intent?.assetId) {
+        const intentAsset = cryptoCurrencies.find(
+          (token) => token.assetId === intent.assetId,
+        );
+        if (intentAsset) {
+          setSelectedAsset(intentAsset);
+          setIntent((prevIntent) => ({ ...prevIntent, assetId: undefined }));
+          return;
+        }
+      }
+
+      // Handle address from intent (legacy support)
       if (intent?.address) {
         const intentAsset = cryptoCurrencies.find(
           (token) =>
@@ -82,6 +95,7 @@ export default function useCryptoCurrencies() {
     }
   }, [
     cryptoCurrencies,
+    intent?.assetId,
     intent?.address,
     selectedAsset,
     selectedChainId,
