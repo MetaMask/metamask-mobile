@@ -7,7 +7,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
 import transakNetworkToChainId from '../utils/transakNetworkToChainId';
-import { DepositSDKOrders } from '../sdk';
+import { DepositSDKNoAuth } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
 const depositOrderStateToFiatOrderState = (
@@ -61,7 +61,7 @@ export async function processDepositOrder(
   options?: ProcessorOptions,
 ): Promise<FiatOrder> {
   try {
-    const sdk = options?.sdk || DepositSDKOrders;
+    const sdk = options?.sdk || DepositSDKNoAuth;
 
     const updatedOrder = await sdk.getOrder(order.id, order.account);
     if (!updatedOrder) {
