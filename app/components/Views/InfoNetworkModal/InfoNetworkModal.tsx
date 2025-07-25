@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { InteractionManager } from 'react-native';
 import Modal from 'react-native-modal';
 import { useIsFocused } from '@react-navigation/native';
 import NetworkInfo from '../../UI/NetworkInfo';
@@ -14,6 +13,7 @@ import {
 import { toggleInfoNetworkModal } from '../../../actions/modals';
 import { getIsNetworkOnboarded } from '../../../util/networks';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
+import { handleNetworkSwitch } from './utils';
 
 const InfoNetworkModal = () => {
   const prevNetwork = useRef<string>();
@@ -48,11 +48,7 @@ const InfoNetworkModal = () => {
           chainId,
           networkOnboardingState,
         );
-        if (!networkOnboarded && !isOnBridgeRoute) {
-          InteractionManager.runAfterInteractions(() => {
-            dispatch(toggleInfoNetworkModal(true));
-          });
-        }
+        handleNetworkSwitch(dispatch, networkOnboarded, isOnBridgeRoute);
       }
       prevNetwork.current = chainId;
     }
