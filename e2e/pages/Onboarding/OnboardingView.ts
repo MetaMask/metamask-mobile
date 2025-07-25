@@ -26,7 +26,6 @@ class OnboardingView {
   async tapHaveAnExistingWallet() {
     await Gestures.waitAndTap(this.existingWalletButton, {
       elemDescription: 'Onboarding Have an Existing Wallet Button',
-      waitForElementToDisappear: true,
     });
   }
 }
