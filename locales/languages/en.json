@@ -750,6 +750,20 @@
   },
   "perps": {
     "title": "Perps Trading",
+    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
+    "manage_balance": "Manage Balance",
+    "total_balance": "Total Balance",
+    "available_balance": "Available Balance",
+    "margin_used": "Margin Used",
+    "unrealized_pnl": "Unrealized PnL",
+    "withdraw": "Withdraw",
+    "refresh_balance": "Refresh Balance",
+    "add_funds": "Add funds",
+    "perpetuals": "Perpetuals",
+    "your_positions": "Your positions",
+    "loading_positions": "Loading positions...",
+    "refreshing_positions": "Refreshing positions...",
+    "search": "Search",
     "deposit": {
       "title": "Amount to deposit",
       "pay_with": "Pay with",
@@ -1022,7 +1036,7 @@
     "chart": {
       "no_data": "No chart data available"
     },
-    "perpetual_markets": "Perpetual Markets",
+    "perpetual_markets": "Perpetual markets",
     "search": "Search",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
@@ -1097,6 +1111,7 @@
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "defi": "DeFi",
+    "perps": "Perpetuals",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
@@ -2039,6 +2054,7 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
     "perps_button": "Perpetuals",
+    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -2053,7 +2069,8 @@
       "send": "Sending not supported for this account",
       "action": "This action is not supported for this account",
       "earn": "Earning not supported for this account",
-      "perps": "Perpetuals trading not supported for this account"
+      "perps": "Perpetuals trading not supported for this account",
+      "perps_sandbox": "Perps sandbox not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Total Supply",
@@ -2072,6 +2089,7 @@
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
     "perps_description": "Trade perpetual contracts",
+    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",
