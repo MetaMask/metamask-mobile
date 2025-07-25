@@ -3,6 +3,9 @@ name : Test iOS Build App
 on:
   push:
 
+permissions:
+  contents: write
+  id-token: write
 
 jobs:
   ios-e2e:
