@@ -40,7 +40,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     jest.setTimeout(150000);
   });
 
-  /*it('should connect to the test dapp', async () => {
+  it('should connect to the test dapp', async () => {
     await withBrowser(async () => {
       await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
         description: 'Browser screen is visible',
@@ -116,7 +116,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
 
   it('Should download blob file', async () => {
     await testDownloadFile(ExternalSites.DOWNLOAD_BLOB_FILE_WEBSITE);
-  });*/
+  });
 
   it('Should download base64 file', async () => {
     await testDownloadFile(ExternalSites.DOWNLOAD_BASE64_FILE_WEBSITE);
@@ -172,7 +172,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     });
   }
 
-  /*it('Should connect to Uniswap', async () => {
+  it('Should connect to Uniswap', async () => {
     await withBrowser(async () => {
       await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
         description: 'Browser screen is visible',
@@ -257,5 +257,5 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
         },
       );
     });
-  });*/
+  });
 });
