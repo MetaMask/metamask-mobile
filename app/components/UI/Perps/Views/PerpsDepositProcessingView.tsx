@@ -223,7 +223,7 @@ const PerpsDepositProcessingView: React.FC<DepositProcessingViewProps> = () => {
   }, [navigation]);
 
   const handleViewBalance = useCallback(() => {
-    navigation.navigate(Routes.PERPS.TRADING_VIEW);
+    navigation.navigate(Routes.WALLET_VIEW);
   }, [navigation]);
 
   const getStatusContent = () => {
