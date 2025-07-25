@@ -71,7 +71,7 @@ describe('useWithdrawValidation', () => {
       useWithdrawValidation({ withdrawAmount: '100' }),
     );
 
-    expect(result.current.availableBalance).toBe('1000.00');
+    expect(result.current.availableBalance).toBe('1000');
   });
 
   it('should handle empty balance', () => {

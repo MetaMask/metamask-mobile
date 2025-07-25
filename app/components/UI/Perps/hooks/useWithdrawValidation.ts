@@ -3,8 +3,8 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { HYPERLIQUID_ASSET_CONFIGS } from '../constants/hyperLiquidConfig';
 import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
-import type { AssetRoute } from '../controllers/types';
 import { usePerpsAccount, usePerpsNetwork } from './index';
+import { parseCurrencyString } from '../utils/formatUtils';
 
 interface UseWithdrawValidationParams {
   withdrawAmount: string;
@@ -25,8 +25,9 @@ export const useWithdrawValidation = ({
   // Available balance from perps account
   const availableBalance = useMemo(() => {
     const balance = cachedAccountState?.availableBalance || '0';
-    // Remove $ and parse
-    return balance.replace('$', '').replace(',', '');
+    // Use parseCurrencyString to properly parse formatted currency
+    // Return as string to maintain compatibility with components
+    return parseCurrencyString(balance).toString();
   }, [cachedAccountState]);
 
   // Get withdrawal route for constraints
