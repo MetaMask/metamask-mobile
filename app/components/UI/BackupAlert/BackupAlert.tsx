@@ -23,6 +23,8 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { RootState } from '../../../reducers';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -48,9 +50,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
   const [isVisible, setIsVisible] = useState(true);
 
   const { seedphraseBackedUp, backUpSeedphraseVisible } = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.user,
+    (state: RootState) => state.user,
   );
 
   // TODO: Replace "any" with type
@@ -61,6 +61,8 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
   const currentRouteName = findRouteNameFromNavigatorState(
     navigation.dangerouslyGetState().routes,
   );
+
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
     const isInBrowserView = currentRouteName === BROWSER_ROUTE;
@@ -111,7 +113,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
     onboardingWizardStep !== 0 ||
     !isVisible;
 
-  return shouldNotRenderAlert ? null : (
+  return shouldNotRenderAlert || isSocialLogin ? null : (
     <ElevatedView
       elevation={99}
       style={[
