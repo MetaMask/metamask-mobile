@@ -5,9 +5,7 @@ import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.sel
 import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
-import {
-  SolanaTestDappSelectorsWebIDs,
-} from '../../selectors/Browser/SolanaTestDapp.selectors';
+import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
 
 /**
  * Get a test element by data-testid

@@ -44,7 +44,9 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
         await SolanaNewFeatureSheet.tapNotNowButton();
 
         await WalletView.tapIdenticon();
-        await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.accountList,
+        );
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapAddSolanaAccount();
         await AddNewHdAccountComponent.tapConfirm();

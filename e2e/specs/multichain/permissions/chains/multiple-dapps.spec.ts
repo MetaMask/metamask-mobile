@@ -35,9 +35,9 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-        .withPermissionControllerConnectedToTestDapp({}, true)
-        .withChainPermission()
-          .withMultipleDappTabs(2)
+          .withPermissionControllerConnectedToTestDapp({}, true)
+          .withChainPermission()
+          .withExtraTabs(1)
           .build(),
         dapps: [
           {
@@ -59,14 +59,16 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         await Browser.navigateToTestDApp();
 
         // Navigate to 2nd test dapp to load page. This is a verification check. It should  be connected to global network selector: Eth mainnet
-        await Browser.tapOpenAllTabsButton();
+        // The delay is used here to ensure the connected notice has been displayed
+        await Browser.tapOpenAllTabsButton({ delay: 3500 });
         await Browser.tapSecondTabButton();
 
         // This is here to debug whether or not the second test dapp loads and connected to chain
         // await TestHelpers.delay(10000)
 
         // Closing tabs because there is a webview challenging while selecting elements with more than 1 webview (tabs) are opened
-        await Browser.tapOpenAllTabsButton();
+        // The delay here is purposely longer as we need to wait for the second dapp to load and only then open the tabs
+        await Browser.tapOpenAllTabsButton({ delay: 4000 });
         await Browser.tapCloseSecondTabButton();
 
         // Back to First Dapp

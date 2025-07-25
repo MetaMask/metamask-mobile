@@ -38,9 +38,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await ConnectBottomSheet.tapConnectButton();
 
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(
-          ConnectedAccountsModal.title,
-        );
+        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
       },
     );
   });
@@ -85,9 +83,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
 
         // Open network permissions menu
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(
-          ConnectedAccountsModal.title,
-        );
+        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();

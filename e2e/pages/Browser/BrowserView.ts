@@ -13,6 +13,7 @@ import {
   getLocalTestDappUrl,
   getSecondTestDappLocalUrl,
 } from '../../fixtures/utils';
+import { DEFAULT_TAB_ID } from '../../framework/Constants';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -149,16 +150,23 @@ class Browser {
     });
   }
 
-  async tapOpenAllTabsButton(): Promise<void> {
+  async tapOpenAllTabsButton({
+    delay,
+  }: {
+    delay?: number;
+  } = {}): Promise<void> {
     await Gestures.waitAndTap(this.tabsButton, {
       elemDescription: 'Open all tabs button',
+      delay,
     });
   }
 
   async tapSecondTabButton(): Promise<void> {
+    // We start from the base tab id set by the fixtures and add 1 to get the second tab id
+    const secondTabId = DEFAULT_TAB_ID + 1;
     // the interger value is the tabID.
     // This value comes from the `browser` object in fixture builder
-    const secondTab = Matchers.getElementByID('browser-tab-1749234797566');
+    const secondTab = Matchers.getElementByID(`browser-tab-${secondTabId}`);
     await Gestures.waitAndTap(secondTab, {
       elemDescription: 'Second tab button',
     });
@@ -180,9 +188,13 @@ class Browser {
   }
 
   async tapCloseSecondTabButton(): Promise<void> {
+    // We start from the base tab id set by the fixtures and add 1 to get the second tab id
+    const secondTabId = DEFAULT_TAB_ID + 1;
     // the interger value is the tabID.
     // This value comes from the `browser` object in fixture builder
-    const secondTab = Matchers.getElementByID('tab-close-button-1749234797566');
+    const secondTab = Matchers.getElementByID(
+      `tab-close-button-${secondTabId}`,
+    );
     await Gestures.waitAndTap(secondTab, {
       elemDescription: 'Close second tab button',
     });

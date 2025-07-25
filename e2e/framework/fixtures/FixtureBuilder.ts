@@ -10,7 +10,7 @@ import {
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
-import { RampsRegions, RampsRegionsEnum } from '../Constants';
+import { DEFAULT_TAB_ID, RampsRegions, RampsRegionsEnum } from '../Constants';
 import {
   CustomNetworks,
   PopularNetworksList,
@@ -1317,17 +1317,18 @@ class FixtureBuilder {
    * This is intended to be used for testing multiple dapps concurrently.
    * The dapps are opened in the order they are added.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
-   * @param {number} amountOfDapps - The number of test dapps to open.
+   * @param {number} extraTabs - The amount of extra tabs to open.
    */
-  withMultipleDappTabs(amountOfDapps = 2) {
+  withExtraTabs(extraTabs = 1) {
     if (!this.fixture.state.browser.tabs) {
       this.fixture.state.browser.tabs = [];
     }
 
-    for (let i = 0; i < amountOfDapps; i++) {
+    // We start at 1 to easily identify the tab across all tests
+    for (let i = 1; i <= extraTabs; i++) {
       this.fixture.state.browser.tabs.push({
         url: getTestDappLocalUrl(i),
-        id: 1749234797566 + i,
+        id: DEFAULT_TAB_ID + i,
         isArchived: false,
       });
     }
