@@ -36,11 +36,11 @@ jobs:
         shell: bash
 
 
-      - name: Setup E2E iOS Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
-        with:
-          platform: ios
-          setup-simulator: false
+    #   - name: Setup E2E iOS Environment
+    #     uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+    #     with:
+    #       platform: ios
+    #       setup-simulator: false
 
       - name: Print iOS tool versions
         run: |
