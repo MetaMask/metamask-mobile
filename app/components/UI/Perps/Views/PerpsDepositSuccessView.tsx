@@ -158,7 +158,7 @@ const PerpsDepositSuccessView: React.FC<PerpsDepositSuccessViewProps> = () => {
       address: '', // Let the icon enhancement find the address from token list
       decimals: selectedToken === USDC_SYMBOL ? USDC_DECIMALS : TOKEN_DECIMALS,
       name: selectedToken === USDC_SYMBOL ? USDC_NAME : selectedToken,
-      chainId: toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex,
+      chainId: toHex(parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10)) as Hex,
     };
 
     return enhanceTokenWithIcon({

@@ -260,7 +260,7 @@ const DepositPreviewView: React.FC<DepositPreviewViewProps> = () => {
       const isDirectDeposit =
         selectedToken === USDC_SYMBOL &&
         selectedTokenObject.chainId ===
-          (toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex);
+          (toHex(parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10)) as Hex);
 
       navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
         amount,

@@ -52,7 +52,9 @@ export const useWithdrawTokens = () => {
 
   // Destination token (Arbitrum USDC)
   const destToken = useMemo<PerpsToken>(() => {
-    const arbitrumChainId = toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex;
+    const arbitrumChainId = toHex(
+      parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10),
+    ) as Hex;
 
     const baseToken: PerpsToken = {
       symbol: USDC_SYMBOL,

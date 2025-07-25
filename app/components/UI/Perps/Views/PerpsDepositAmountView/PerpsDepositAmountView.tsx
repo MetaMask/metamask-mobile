@@ -189,7 +189,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           address: parsedAsset.assetReference,
           decimals: USDC_DECIMALS,
           name: USDC_NAME,
-          chainId: toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex,
+          chainId: toHex(parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10)) as Hex,
         };
 
         const enhancedToken = enhanceTokenWithIcon({
