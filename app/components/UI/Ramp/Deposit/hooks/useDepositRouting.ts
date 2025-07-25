@@ -397,56 +397,57 @@ export const useDepositRouting = ({
                 : 'Failed to process KYC flow',
             );
           }
-        }
-
-        // auto-submit purpose of usage form and then recursive call to route again
-        const purposeOfUsageForm = getForm(TransakFormId.PURPOSE_OF_USAGE);
-        if (purposeOfUsageForm && purposeOfUsageForm.isSubmitted === false) {
-          if (depth < 5) {
-            await submitPurposeOfUsage([
-              'Buying/selling crypto for investments',
-            ]);
-            await routeAfterAuthentication(quote, depth + 1);
-          } else {
-            Logger.error(
-              new Error(`Submit of purpose depth exceeded: ${depth}`),
-            );
-          }
-          return;
-        }
-
-        // if personal details or address form is not submitted, route to basic info
-        // SSN is always submitted with personal details for US users, so we don't need to check for it
-        const personalDetailsForm = getForm(TransakFormId.PERSONAL_DETAILS);
-        const addressForm = getForm(TransakFormId.ADDRESS);
-        if (
-          personalDetailsForm?.isSubmitted === false ||
-          addressForm?.isSubmitted === false
-        ) {
-          trackEvent('RAMPS_KYC_STARTED', {
-            ramp_type: 'DEPOSIT',
-            kyc_type: forms?.kycType || '',
-            region: selectedRegion?.isoCode || '',
-          });
-
-          navigateToBasicInfoCallback({ quote });
-          return;
-        }
-
-        // check for id proof form and route to additional verification if needed
-        const idProofForm = getForm(TransakFormId.ID_PROOF);
-        if (idProofForm?.isSubmitted === false) {
-          const idProofData = await fetchKycFormData(quote, idProofForm);
-          if (idProofData?.data?.kycUrl) {
-            navigateToAdditionalVerificationCallback({
-              quote,
-              kycUrl: idProofData.data.kycUrl,
-            });
+        } else {
+          // auto-submit purpose of usage form and then recursive call to route again
+          const purposeOfUsageForm = getForm(TransakFormId.PURPOSE_OF_USAGE);
+          if (purposeOfUsageForm && purposeOfUsageForm.isSubmitted === false) {
+            if (depth < 5) {
+              await submitPurposeOfUsage([
+                'Buying/selling crypto for investments',
+              ]);
+              await routeAfterAuthentication(quote, depth + 1);
+            } else {
+              Logger.error(
+                new Error(`Submit of purpose depth exceeded: ${depth}`),
+              );
+            }
             return;
           }
-        }
 
-        throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          // if personal details or address form is not submitted, route to basic info
+          // SSN is always submitted with personal details for US users, so we don't need to check for it
+          const personalDetailsForm = getForm(TransakFormId.PERSONAL_DETAILS);
+          const addressForm = getForm(TransakFormId.ADDRESS);
+          if (
+            personalDetailsForm?.isSubmitted === false ||
+            addressForm?.isSubmitted === false
+          ) {
+            trackEvent('RAMPS_KYC_STARTED', {
+              ramp_type: 'DEPOSIT',
+              kyc_type: forms?.kycType || '',
+              region: selectedRegion?.isoCode || '',
+            });
+
+            navigateToBasicInfoCallback({ quote });
+            return;
+          }
+
+          // check for id proof form and route to additional verification if needed
+          const idProofForm = getForm(TransakFormId.ID_PROOF);
+          if (idProofForm?.isSubmitted === false) {
+            const idProofData = await fetchKycFormData(quote, idProofForm);
+            if (!idProofData) {
+              throw new Error(strings('deposit.buildQuote.unexpectedError'));
+            }
+            if (idProofData?.data?.kycUrl) {
+              navigateToAdditionalVerificationCallback({
+                quote,
+                kycUrl: idProofData.data.kycUrl,
+              });
+              return;
+            }
+          }
+        }
       } catch (error) {
         if ((error as AxiosError).status === 401) {
           clearAuthToken();
