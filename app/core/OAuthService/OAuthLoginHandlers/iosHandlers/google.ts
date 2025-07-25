@@ -91,7 +91,13 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
         codeVerifier: authRequest.codeVerifier,
       };
     }
-    if (result.type === 'cancel') {
+    if (
+      result.type === 'cancel' ||
+      (result.type === 'error' &&
+        result.error?.message.includes(
+          'The resource owner or authorization server denied the request',
+        ))
+    ) {
       throw new OAuthError(
         'handleIosGoogleLogin: User cancelled the login process',
         OAuthErrorType.UserCancelled,
