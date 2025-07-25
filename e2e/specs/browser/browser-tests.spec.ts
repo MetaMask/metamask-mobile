@@ -9,6 +9,8 @@ import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors.ts';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet.ts';
+import Matchers from '../../framework/Matchers';
+import Utilities from '../../framework/Utilities.ts';
 
 const getHostFromURL = (url: string): string => {
   try {
@@ -130,44 +132,37 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
 
       await Browser.tapUrlInputBox();
       await Browser.navigateToURL(url);
-      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
-        .element(by.web.id('download_button'))
-        .tap();
+      const downloadButton = await Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        "//button[@id='download_button']",
+      );
+      await downloadButton.tap();
+
       if (device.getPlatform() === 'ios') {
         // For iOS, we need a small delay before animated dialog is displayed
         await TestHelpers.delay(300);
       }
-      const downloadButtonElement =
+
+      // Verify Download button in dialog is disabled for first 500ms to prevent Tapjacking
+      const downloadButtonInDialog =
         device.getPlatform() === 'android'
-          ? element(by.text('Download'))
-          : element(by.label('Download'));
-      const downloadButtonInDialogAttrsBeforeDelay =
-        await downloadButtonElement.getAttributes();
-      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      if ((downloadButtonInDialogAttrsBeforeDelay as any).enabled === true) {
-        throw new Error(
-          'Download button is enabled, but should be disabled to prevent Tapjacking',
-        );
-      }
+          ? Matchers.getElementByText('Download')
+          : Matchers.getElementByLabel('Download');
+      await Utilities.checkElementDisabled(downloadButtonInDialog);
       await TestHelpers.delay(600);
-      const downloadButtonInDialogAttrsAfterDelay =
-        await downloadButtonElement.getAttributes();
-      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      if ((downloadButtonInDialogAttrsAfterDelay as any).enabled === false) {
-        throw new Error(
-          'Download button is disabled, but should be enabled after 500ms Tapjacking delay',
-        );
-      }
-      await element(by.text('Download')).tap();
+      await Utilities.checkElementEnabled(downloadButtonInDialog);
+      await (await downloadButtonInDialog).tap();
 
       if (device.getPlatform() === 'ios') {
         await TestHelpers.delay(500);
         // Verify for iOS that system file saving dialog is visible
-        waitFor(element(by.label('Save'))).toBeVisible();
+        waitFor(await Matchers.getElementByLabel('Save')).toBeVisible();
       } else {
         await TestHelpers.delay(3600);
         // Verify for Android that toast after successful downloading is visible
-        waitFor(element(by.text('Downloaded successfully'))).toBeVisible();
+        waitFor(
+          await Matchers.getElementByText('Downloaded successfully'),
+        ).toBeVisible();
       }
     });
   }
@@ -182,36 +177,34 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await Browser.navigateToURL(ExternalSites.UNISWAP_WEBSITE);
 
       // Click Connect button
-      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
-        .element(by.web.xpath("//button[.//span[text()='Connect']]"))
-        .tap();
+      const connectButton = await Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        "//button[.//span[text()='Connect']]",
+      );
+      await connectButton.tap();
 
       // Click Other wallets button
-      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
-        .element(
-          by.web.xpath(
-            "//*[.//span[text()='Other wallets']][@class][@style or contains(@class, '_cursor-pointer')]",
-          ),
-        )
-        .tap();
+      const otherWalletsButton = await Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        "//*[.//span[text()='Other wallets']][@class][@style or contains(@class, '_cursor-pointer')]",
+      );
+      await otherWalletsButton.tap();
 
       // Click MetaMask wallet option
-      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
-        .element(
-          by.web.xpath(
-            "//*[.//span[text()='MetaMask'] and contains(@class, '_cursor-pointer')]",
-          ),
-        )
-        .tap();
+      const metaMaskWalletOption = await Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        "//*[.//span[text()='MetaMask'] and contains(@class, '_cursor-pointer')]",
+      );
+      await metaMaskWalletOption.tap();
 
       await ConnectBottomSheet.tapConnectButton();
 
       // Click Select a token button which is displayed only if the wallet is connected
-      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
-        .element(
-          by.web.xpath("//button[.//span[contains(text(),'Select a token')]]"),
-        )
-        .tap();
+      const selectTokenButton = await Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        "//button[.//span[contains(text(),'Select a token')]]",
+      );
+      await selectTokenButton.tap();
     });
   });
 
@@ -224,9 +217,11 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await Browser.navigateToURL(ExternalSites.ENS_WEBSITE);
       await TestHelpers.delay(1000); // Wait for a website to load
       // Click General to interact with vitalik website and make sure it's loaded
-      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
-        .element(by.web.xpath("//a[@href='./categories/general.html']"))
-        .tap();
+      const generalLink = await Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        "//a[@href='./categories/general.html']",
+      );
+      await generalLink.tap();
     });
   });
 
@@ -245,9 +240,11 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
             'URL input box has the correct text from the initial website',
         },
       );
-      await web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID))
-        .element(by.web.id('redirect_button'))
-        .tap(); // Click button to redirect to portfolio.metamask.io website
+      const redirectButton = await Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        "//button[@id='redirect_button']",
+      );
+      await redirectButton.tap(); // Click button to redirect to http://portfolio.metamask.io website
       await Assertions.expectElementToHaveText(
         Browser.urlInputBoxID,
         getHostFromURL(ExternalSites.PORTFOLIO),
