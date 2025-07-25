@@ -813,27 +813,22 @@ class AuthenticationService {
       Engine.setSelectedAddress(newAccountAddress);
     }
 
-    const nAccountsPerSnap: number[] = [];
-    if (options.shouldImportAccounts) {
-      await Promise.all(
-        Object.values(WalletClientType).map(async (clientType) => {
-          const { discoveryScope } = WALLET_SNAP_MAP[clientType];
-          const multichainClient =
-            MultichainWalletSnapFactory.createClient(clientType);
+    const discoveredAccountsCount = options.shouldImportAccounts
+      ? (
+          await Promise.all(
+            Object.values(WalletClientType).map(async (clientType) => {
+              const { discoveryScope } = WALLET_SNAP_MAP[clientType];
+              const multichainClient =
+                MultichainWalletSnapFactory.createClient(clientType);
 
-          const count = await multichainClient.addDiscoveredAccounts(
-            id,
-            discoveryScope,
-          );
-          nAccountsPerSnap.push(count);
-        }),
-      );
-    }
-
-    const discoveredAccountsCount = nAccountsPerSnap.reduce(
-      (acc, count) => acc + count || 0,
-      0,
-    );
+              return await multichainClient.addDiscoveredAccounts(
+                id,
+                discoveryScope,
+              );
+            }),
+          )
+        ).reduce((acc, count) => acc + count || 0, 0)
+      : 0;
 
     return {
       newAccountAddress,
