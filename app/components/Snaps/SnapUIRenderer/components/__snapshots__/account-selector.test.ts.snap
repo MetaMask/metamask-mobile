@@ -1,0 +1,258 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SnapUIAccountSelector renders an account selector 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            color="Default"
+            flexDirection="column"
+            gap={8}
+            justifyContent="flex-start"
+            style={
+              [
+                {
+                  "color": "Default",
+                  "flexDirection": "column",
+                  "gap": 8,
+                  "justifyContent": "flex-start",
+                },
+                {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              ]
+            }
+          >
+            <View
+              flexDirection="column"
+              style={
+                [
+                  {
+                    "flexDirection": "column",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "stretch",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": "auto",
+                    "justifyContent": "center",
+                    "maxHeight": 58,
+                    "minHeight": 48,
+                    "overflow": "hidden",
+                    "paddingBottom": 8,
+                    "paddingHorizontal": 16,
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "paddingTop": 8,
+                  }
+                }
+                testID="snap-ui-renderer__selector"
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={16}
+                  name="ArrowDown"
+                  style={
+                    {
+                      "height": 16,
+                      "marginLeft": 8,
+                      "width": 16,
+                    }
+                  }
+                  width={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <View />
+          </View>
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIAccountSelector renders inside a field 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            color="Default"
+            flexDirection="column"
+            gap={8}
+            justifyContent="flex-start"
+            style={
+              [
+                {
+                  "color": "Default",
+                  "flexDirection": "column",
+                  "gap": 8,
+                  "justifyContent": "flex-start",
+                },
+                {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              ]
+            }
+          >
+            <View
+              flexDirection="column"
+              style={
+                [
+                  {
+                    "flexDirection": "column",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="label"
+              >
+                Account Selector
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "stretch",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": "auto",
+                    "justifyContent": "center",
+                    "maxHeight": 58,
+                    "minHeight": 48,
+                    "overflow": "hidden",
+                    "paddingBottom": 8,
+                    "paddingHorizontal": 16,
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "paddingTop": 8,
+                  }
+                }
+                testID="snap-ui-renderer__selector"
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={16}
+                  name="ArrowDown"
+                  style={
+                    {
+                      "height": 16,
+                      "marginLeft": 8,
+                      "width": 16,
+                    }
+                  }
+                  width={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <View />
+          </View>
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;

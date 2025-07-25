@@ -4918,6 +4918,9 @@
     "asset_selector": {
       "title": "Select an asset"
     },
+    "account_selector": {
+      "title": "Select account"
+    },
     "hideSentitiveInfo": {
       "message": "Hide sensitive information"
     },
