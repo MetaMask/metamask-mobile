@@ -313,20 +313,13 @@ export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
     options: MultichainWalletSnapOptions,
     snapKeyringOptions?: SnapKeyringOptions,
   ) {
-    return super.createAccount(
-      { ...options, synchronize: true },
-      snapKeyringOptions,
-    );
+    return super.createAccount(options, snapKeyringOptions);
   }
 }
 
 export class SolanaWalletSnapClient extends MultichainWalletSnapClient {
   constructor(snapKeyringOptions: SnapKeyringOptions) {
     super(SOLANA_WALLET_SNAP_ID, SOLANA_WALLET_NAME, snapKeyringOptions);
-  }
-
-  getScope(): CaipChainId {
-    return SolScope.Mainnet;
   }
 
   getClientType(): WalletClientType {
