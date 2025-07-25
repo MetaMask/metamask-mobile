@@ -200,7 +200,6 @@ const BasicInfo = (): JSX.Element => {
             <Text style={styles.subtitle}>
               {strings('deposit.basic_info.subtitle')}
             </Text>
-
             <View style={styles.nameInputRow}>
               <DepositTextField
                 label={strings('deposit.basic_info.first_name')}

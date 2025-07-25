@@ -168,12 +168,12 @@ stages:
       - build_ios_simbuild: {}
   create_build_release:
     workflows:
-      - build_android_release: {}
-      - build_ios_release: {}
+      - build_android_main_prod: {}
+      - build_ios_main_prod: {}
   create_build_beta:
     workflows:
-      - build_android_beta: {}
-      - build_ios_beta: {}
+      - build_android_main_beta: {}
+      - build_ios_main_beta: {}
   deploy_build_release:
     workflows:
       - deploy_android_to_store: {}
@@ -186,7 +186,7 @@ stages:
       - deploy_ios_to_store: {}
   create_android_release:
     workflows:
-      - build_android_release: {}
+      - build_android_main_prod: {}
   create_android_release_new:
     workflows:
       - build_android_main_prod: {}
