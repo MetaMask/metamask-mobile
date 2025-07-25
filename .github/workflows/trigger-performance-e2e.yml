@@ -44,12 +44,12 @@ jobs:
       MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.branch_name || 'main' }}
       
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
       
@@ -62,7 +62,7 @@ jobs:
         with:
           username: ${{ secrets.BROWSERSTACK_USERNAME }}
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-          build-name: ${{ github.repository }}-${{ github.run_number }}
+          build-name: ${{ github.repository }}-${{ github.event.inputs.branch_name || 'main' }}-${{ github.event.inputs.device || 'Xiaomi Redmi Note 11' }}-run-${{ github.run_number }}
           project-name: ${{ github.repository }}
       
       - name: Run Android Performance Tests
