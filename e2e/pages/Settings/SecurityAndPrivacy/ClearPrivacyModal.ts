@@ -2,27 +2,29 @@ import {
   ClearPrivacyModalSelectorsIDs,
   ClearPrivacyModalSelectorsText,
 } from '../../../selectors/Settings/SecurityAndPrivacy/ClearPrivacyModal.selectors';
-import Matchers from '../../../utils/Matchers';
-import Gestures from '../../../utils/Gestures';
+import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../framework/Gestures';
 
 class ClearPrivacyModal {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ClearPrivacyModalSelectorsIDs.CONTAINER);
   }
 
-  get clearButton() {
+  get clearButton(): DetoxElement {
     return Matchers.getElementByText(
       ClearPrivacyModalSelectorsText.CLEAR_BUTTON,
     );
   }
-  get cancelButton() {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByText(
       ClearPrivacyModalSelectorsText.CANCEL_BUTTON,
     );
   }
 
-  async tapClearButton() {
-    await Gestures.waitAndTap(this.clearButton);
+  async tapClearButton(): Promise<void> {
+    await Gestures.waitAndTap(this.clearButton, {
+      elemDescription: 'Clear Button in Clear Privacy Modal',
+    });
   }
 }
 

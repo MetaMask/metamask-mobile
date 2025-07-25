@@ -1,16 +1,18 @@
 import { DetectedTokensSelectorIDs } from '../../selectors/wallet/DetectedTokensView.selectors';
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 
 class DetectedTokensView {
-  get importButton() {
+  get importButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID)
       : Matchers.getElementByLabel(DetectedTokensSelectorIDs.IMPORT_BUTTON_ID);
   }
 
-  async tapImport() {
-    await Gestures.waitAndTap(this.importButton);
+  async tapImport(): Promise<void> {
+    await Gestures.waitAndTap(this.importButton, {
+      elemDescription: 'Import Button in Detected Tokens View',
+    });
   }
 }
 

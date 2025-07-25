@@ -2,40 +2,36 @@ import {
   TransactionDetailsModalSelectorsText,
   TransactionDetailsModalSelectorsIDs,
 } from '../../selectors/Transactions/TransactionDetailsModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { logger } from '../../framework';
 
 class TransactionDetailsModal {
-  get title() {
+  get title(): DetoxElement {
     return Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE);
   }
 
-  get closeIcon() {
+  get closeIcon(): DetoxElement {
     return Matchers.getElementByID(
       TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
     );
   }
 
-  get statusConfirmed() {
-    return Matchers.getElementIDWithAncestor(
-      CommonSelectorsIDs.STATUS_CONFIRMED,
-      TransactionDetailsModalSelectorsIDs.BODY,
-    );
-  }
-
-  generateExpectedTitle(sourceToken, destinationToken) {
+  generateExpectedTitle(sourceToken: string, destinationToken: string): string {
     let title = TransactionDetailsModalSelectorsText.TITLE;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
     return title;
   }
 
-  async tapOnCloseIcon() {
+  async tapOnCloseIcon(): Promise<void> {
     try {
       await Gestures.waitAndTap(this.closeIcon);
     } catch {
-      //
+      // Handle error
+      logger.warn(
+        'TransactionDetailsModal: tapOnCloseIcon - failed, skipping tap.',
+      );
     }
   }
 }

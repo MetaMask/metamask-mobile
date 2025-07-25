@@ -1,15 +1,15 @@
-import Matchers from '../../../utils/Matchers';
-import Gestures from '../../../utils/Gestures';
+import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../framework/Gestures';
 import { DeleteContactBottomSheetSelectorsText } from '../../../selectors/Settings/Contacts/DeleteContactBottomSheet.selectors';
 
 class DeleteContactBottomSheet {
-  get title() {
+  get title(): DetoxElement {
     return Matchers.getElementByText(
       DeleteContactBottomSheetSelectorsText.MODAL_TITLE,
     );
   }
 
-  get deleteButton() {
+  get deleteButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByText(
           DeleteContactBottomSheetSelectorsText.DELETE_BUTTON,
@@ -20,8 +20,10 @@ class DeleteContactBottomSheet {
         );
   }
 
-  async tapDeleteButton() {
-    await Gestures.waitAndTap(this.deleteButton);
+  async tapDeleteButton(): Promise<void> {
+    await Gestures.waitAndTap(this.deleteButton, {
+      elemDescription: 'Delete Button in Delete Contact Bottom Sheet',
+    });
   }
 }
 
