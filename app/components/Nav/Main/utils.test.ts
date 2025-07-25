@@ -10,7 +10,9 @@ describe('handleShowNetworkActiveToast', () => {
     },
   };
   const mockNetworkName = 'Ethereum Mainnet';
-  const mockNetworkImage: ImageSourcePropType = { uri: 'https://example.com/eth.png' };
+  const mockNetworkImage: ImageSourcePropType = {
+    uri: 'https://example.com/eth.png',
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -115,7 +117,9 @@ describe('handleShowNetworkActiveToast', () => {
   it('passes through network image source correctly', () => {
     // Arrange
     const isOnBridgeRoute = false;
-    const customNetworkImage: ImageSourcePropType = { uri: 'https://example.com/polygon.png' };
+    const customNetworkImage: ImageSourcePropType = {
+      uri: 'https://example.com/polygon.png',
+    };
 
     // Act
     handleShowNetworkActiveToast(
