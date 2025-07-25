@@ -102,6 +102,7 @@ import {
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsOrderView.styles';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -128,6 +129,7 @@ const PerpsOrderView: React.FC = () => {
 
   const toastRef = toastContext?.toastRef;
   const { openTooltipModal } = useTooltipModal();
+  const { top } = useSafeAreaInsets();
 
   // Selectors
   const tokenList = useSelector(selectTokenList);
@@ -628,6 +630,7 @@ const PerpsOrderView: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={{ paddingTop: top }} />
       {/* Header */}
       <PerpsOrderHeader
         asset={orderForm.asset}

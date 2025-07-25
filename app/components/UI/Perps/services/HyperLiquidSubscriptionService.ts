@@ -107,6 +107,7 @@ export class HyperLiquidSubscriptionService {
     // Ensure global subscriptions are established
     this.ensureGlobalAllMidsSubscription();
     symbols.forEach((symbol) => {
+      // Always subscribe to activeAssetCtx for market data
       this.ensureActiveAssetSubscription(symbol);
       if (includeOrderBook) {
         this.ensureL2BookSubscription(symbol);
@@ -323,6 +324,10 @@ export class HyperLiquidSubscriptionService {
       bestBid: orderBookData?.bestBid,
       bestAsk: orderBookData?.bestAsk,
       spread: orderBookData?.spread,
+      // Add market data if available
+      funding: marketData?.funding,
+      openInterest: marketData?.openInterest,
+      volume24h: marketData?.volume24h,
     };
   }
 
