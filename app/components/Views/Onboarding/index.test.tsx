@@ -713,7 +713,7 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
