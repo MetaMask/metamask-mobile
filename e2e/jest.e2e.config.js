@@ -29,16 +29,14 @@ module.exports = {
       'jest-junit',
       {
         outputDirectory: './e2e/reports',
-        outputName: 'junit.xml',
-        // Add configuration to ensure all test suites are captured
+        outputName: 'junit-[hash].xml', // Generate separate files per test file
+        // Configuration for individual test file reporting
         suiteName: 'E2E Mobile Tests',
         classNameTemplate: '{filepath}',
         titleTemplate: '{classname} {title}',
         ancestorSeparator: ' › ',
         usePathForSuiteName: 'true',
-        // Ensure we wait for all tests to complete before writing
         reportTestSuiteErrors: true,
-        // Debug: Log when junit reporter is called
         addFileAttribute: 'true',
         properties: (() => {
           // Debug: Check environment variables
