@@ -250,6 +250,18 @@ jobs:
           pattern: smoke-*
           merge-multiple: true
 
+      - name: Debug downloaded files
+        run: |
+          echo "🔍 Debugging downloaded files structure:"
+          echo "📁 Current directory:"
+          ls -la
+          echo "📁 e2e directory (if exists):"
+          ls -la e2e/ || echo "❌ e2e directory not found"
+          echo "📁 e2e/reports directory (if exists):"
+          ls -la e2e/reports/ || echo "❌ e2e/reports directory not found"
+          echo "🔍 Finding all XML files:"
+          find . -name "*.xml" -type f || echo "❌ No XML files found"
+
       - name: Create test report
         run: yarn create-e2e-test-report
         working-directory: '.github/scripts'
