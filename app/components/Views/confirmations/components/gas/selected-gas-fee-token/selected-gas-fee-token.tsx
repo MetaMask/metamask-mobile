@@ -9,7 +9,6 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { GasFeeTokenIcon, GasFeeTokenIconSize } from '../gas-fee-token-icon';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { useInsufficientBalanceAlert } from '../../../hooks/alerts/useInsufficientBalanceAlert';
 import { useSelectedGasFeeToken } from '../../../hooks/useGasFeeToken';
@@ -62,10 +61,6 @@ export function SelectedGasFeeToken() {
       style={styles.gasFeeTokenButton}
       testID="selected-gas-fee-token"
     >
-      <GasFeeTokenIcon
-        tokenAddress={gasFeeToken?.tokenAddress ?? NATIVE_TOKEN_ADDRESS}
-        size={GasFeeTokenIconSize.Sm}
-      />
       <Text>{symbol}</Text>
       {hasGasFeeTokens && (
         <Icon
