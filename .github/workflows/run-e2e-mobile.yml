@@ -47,7 +47,7 @@ jobs:
       # Job information for test reporting
       JOB_NAME: ${{ inputs.test-suite-name }}
       RUN_ID: ${{ github.run_id }}
-      PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+      PR_NUMBER: ${{ github.event.pull_request.number || github.event.number || '0' }}
       # Test secrets
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}

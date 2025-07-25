@@ -80,7 +80,11 @@ export function normalizeTestPath(path: string): string {
   if (normalized.includes('e2e/')) {
     return normalized.slice(normalized.indexOf('e2e/'));
   }
-  return normalized.slice(normalized.indexOf('test/'));
+  if (normalized.includes('test/')) {
+    return normalized.slice(normalized.indexOf('test/'));
+  }
+  // If no e2e/ or test/ found, this is likely a suite name, so return a meaningful path
+  return `e2e/specs/${normalized.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.spec.js`;
 }
 
 export const XML = {

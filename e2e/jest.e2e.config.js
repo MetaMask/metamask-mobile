@@ -30,12 +30,20 @@ module.exports = {
       {
         outputDirectory: './e2e/reports',
         outputName: 'junit.xml',
-        properties: {
-          // These properties will be added to the JUnit XML for the test report script
-          JOB_NAME: process.env.JOB_NAME || 'unknown-job',
-          RUN_ID: process.env.RUN_ID || '0',
-          PR_NUMBER: process.env.PR_NUMBER || '0',
-        },
+        properties: (() => {
+          // Debug: Check environment variables
+          console.log('🔍 Jest Environment Variables:');
+          console.log(`  JOB_NAME: "${process.env.JOB_NAME}"`);
+          console.log(`  RUN_ID: "${process.env.RUN_ID}"`);
+          console.log(`  PR_NUMBER: "${process.env.PR_NUMBER}"`);
+          
+          return {
+            // These properties will be added to the JUnit XML for the test report script
+            JOB_NAME: process.env.JOB_NAME || 'unknown-job',
+            RUN_ID: process.env.RUN_ID || '0',
+            PR_NUMBER: process.env.PR_NUMBER || '0',
+          };
+        })(),
       },
     ],
   ],
