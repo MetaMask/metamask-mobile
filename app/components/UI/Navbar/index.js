@@ -68,6 +68,7 @@ import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -562,7 +563,7 @@ export function getSendFlowTitle(
   themeColors,
   resetTransaction,
   transaction,
-  disableNetwork =  true,
+  disableNetwork = true,
   showSelectedNetwork = false,
   sendFlowContextualChainId = '',
 ) {
@@ -605,9 +606,21 @@ export function getSendFlowTitle(
       <NavbarTitle
         title={titleToRender}
         disableNetwork={disableNetwork}
-        showSelectedNetwork={isRemoveGlobalNetworkSelectorEnabled() ? showSelectedNetwork : undefined}
-        networkName={isRemoveGlobalNetworkSelectorEnabled() ? sendFlowContextualChainId : undefined}
-        source={isRemoveGlobalNetworkSelectorEnabled() ? "SendFlow" : undefined}
+        showSelectedNetwork={
+          isRemoveGlobalNetworkSelectorEnabled()
+            ? showSelectedNetwork
+            : undefined
+        }
+        networkName={
+          isRemoveGlobalNetworkSelectorEnabled()
+            ? sendFlowContextualChainId
+            : undefined
+        }
+        source={
+          isRemoveGlobalNetworkSelectorEnabled()
+            ? NETWORK_SELECTOR_SOURCES.SEND_FLOW
+            : undefined
+        }
       />
     ),
     headerRight: () => (

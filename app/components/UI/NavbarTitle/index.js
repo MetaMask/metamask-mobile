@@ -18,6 +18,7 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { selectNetworkName } from '../../../selectors/networkInfos';
+import { NETWORK_SELECTOR_SOURCE_VALUES } from '../../../constants/networkSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -84,7 +85,7 @@ class NavbarTitle extends PureComponent {
     /**
      * Source of the network selector
      */
-    source: PropTypes.string,
+    source: PropTypes.oneOf(NETWORK_SELECTOR_SOURCE_VALUES),
   };
 
   static defaultProps = {

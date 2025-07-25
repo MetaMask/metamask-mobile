@@ -25,7 +25,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
@@ -103,6 +103,7 @@ import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { MetaMetrics } from '../../../core/Analytics';
 import { selectSendFlowContextualChainId } from '../../../selectors/sendFlow';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 
 interface infuraNetwork {
   name: string;
@@ -145,7 +146,6 @@ const NetworkSelector = () => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const safeAreaInsets = useSafeAreaInsets();
-  const dispatch = useDispatch();
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -158,6 +158,7 @@ const NetworkSelector = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const contextualChainId = useSelector(selectSendFlowContextualChainId);
 
   const route =
     useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
@@ -171,11 +172,6 @@ const NetworkSelector = () => {
     op: TraceOperation.NetworkSwitch,
   });
 
-  // Get both chain IDs
-  // const globalChainId = useSelector(selectChainId);
-  const contextualChainId = useSelector(selectSendFlowContextualChainId);
-
-  // console.log('>>> NetworkSelector contextualChainId', contextualChainId);
   const {
     chainId: perDappChainId,
     rpcUrl: selectedRpcUrl,
@@ -183,12 +179,12 @@ const NetworkSelector = () => {
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
 
-  // console.log('>>> NetworkSelector route.params?.source', route.params?.source);
-  // console.log('>>> NetworkSelector contextualChainId', contextualChainId);
-  const selectedChainId =
-    route.params?.source === 'SendFlow' && contextualChainId
-      ? contextualChainId
-      : perDappChainId;
+  const isContextualChainId =
+    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW &&
+    contextualChainId;
+  const selectedChainId = isContextualChainId
+    ? contextualChainId
+    : perDappChainId;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -387,7 +383,6 @@ const NetworkSelector = () => {
     closeRpcModal,
     parentSpan,
     source,
-    dispatch,
   });
 
   useEffect(() => {
@@ -905,7 +900,7 @@ const NetworkSelector = () => {
       {renderRpcNetworks()}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        renderNonEvmNetworks(false)
+        !isContextualChainId && renderNonEvmNetworks(false)
         ///: END:ONLY_INCLUDE_IF
       }
       {isNetworkUiRedesignEnabled() &&

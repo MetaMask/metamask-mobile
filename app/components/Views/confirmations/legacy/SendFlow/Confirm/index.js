@@ -140,14 +140,13 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../../utils/generic';
-import {
-  setTransactionSendFlowContextualChainId,
-} from '../../../../../../actions/sendFlow';
+import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { selectAllTokens } from '../../../../../../selectors/tokensController';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
 import { selectAllTokenBalances } from '../../../../../../selectors/tokenBalancesController';
 import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -748,14 +747,28 @@ class Confirm extends PureComponent {
     const {
       prepareTransaction,
       transactionState: { transaction },
+      networkClientId,
+      globalNetworkClientId,
+      sendFlowContextualNetworkConfiguration,
     } = this.props;
-    const { networkClientId } = this.props;
-    const { rpcEndpoints, defaultRpcEndpointIndex } =
-      this.props.sendFlowContextualNetworkConfiguration;
-    const { networkClientId: sendFlowContextualNetworkClientId } =
-      rpcEndpoints[defaultRpcEndpointIndex];
-    const effectiveNetworkClientId =
-      sendFlowContextualNetworkClientId || globalNetworkClientId;
+
+    let effectiveNetworkClientId = networkClientId;
+
+    // Only use contextual network logic when feature flag is enabled
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      if (sendFlowContextualNetworkConfiguration?.rpcEndpoints) {
+        const { rpcEndpoints, defaultRpcEndpointIndex } =
+          sendFlowContextualNetworkConfiguration;
+        const { networkClientId: sendFlowContextualNetworkClientId } =
+          rpcEndpoints[defaultRpcEndpointIndex] || {};
+
+        effectiveNetworkClientId =
+          sendFlowContextualNetworkClientId || globalNetworkClientId;
+      } else {
+        // Fallback to globalNetworkClientId if no contextual config
+        effectiveNetworkClientId = globalNetworkClientId;
+      }
+    }
 
     const estimation = await getGasLimit(
       transaction,
@@ -1628,7 +1641,7 @@ Confirm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
-  const chainId = selectSendFlowContextualChainId(state);
+  const chainId = transaction?.chainId || selectEvmChainId(state);
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
 

@@ -67,9 +67,7 @@ import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlo
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
-import {
-  setTransactionSendFlowContextualChainId,
-} from '../../../../../../actions/sendFlow';
+import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
 import { store } from '../../../../../../store';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { toHexadecimal } from '../../../../../../util/number';
@@ -189,7 +187,9 @@ class SendFlow extends PureComponent {
         null,
         isRemoveGlobalNetworkSelectorEnabled() ? false : undefined,
         isRemoveGlobalNetworkSelectorEnabled() ? true : undefined,
-        isRemoveGlobalNetworkSelectorEnabled() ? this.props.sendFlowContextualNetworkConfiguration?.name || '' : undefined,
+        isRemoveGlobalNetworkSelectorEnabled()
+          ? this.props.sendFlowContextualNetworkConfiguration?.name || ''
+          : undefined,
       ),
     );
   };
@@ -226,19 +226,12 @@ class SendFlow extends PureComponent {
     this.hardwareBackPress = () => true;
     BackHandler.addEventListener('hardwareBackPress', this.hardwareBackPress);
 
-    // Check initial value before setting
-    const initialContextualChainId = selectSendFlowContextualChainId(
-      store.getState(),
-    );
-
     // Initialize contextual chain ID with global chain ID
-    this.props.dispatch(
-      setTransactionSendFlowContextualChainId(this.props.globalChainId),
-    );
-
-    // Verify the state was set by checking selector directly
-    const contextualChainId = selectSendFlowContextualChainId(store.getState());
-    // console.log('>>> SendTo contextualChainId', contextualChainId);
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      this.props.dispatch(
+        setTransactionSendFlowContextualChainId(this.props.globalChainId),
+      );
+    }
   };
 
   componentDidUpdate(prevProps) {
@@ -543,6 +536,12 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const contextualChainId =
+      isRemoveGlobalNetworkSelectorEnabled() &&
+      this.props?.sendFlowContextualChainId
+        ? this.props?.sendFlowContextualChainId
+        : globalChainId;
+
     const checksummedAddress = this.safeChecksumAddress(toAccount);
     const existingAddressName = this.getAddressNameFromBookOrInternalAccounts(
       toEnsAddressResolved || toAccount,
@@ -569,7 +568,7 @@ class SendFlow extends PureComponent {
       >
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
-            chainId={isRemoveGlobalNetworkSelectorEnabled() ? this.props?.sendFlowContextualChainId || globalChainId : globalChainId}
+            chainId={contextualChainId}
             fromAccountBalanceState={this.fromAccountBalanceState}
             setFromAddress={this.setFromAddress}
           />

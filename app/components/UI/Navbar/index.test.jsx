@@ -10,10 +10,11 @@ import {
   getOnboardingCarouselNavbarOptions,
   getOnboardingNavbarOptions,
   getTransparentOnboardingNavbarOptions,
+  getSendFlowTitle,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
-import { View } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
@@ -21,6 +22,42 @@ jest.mock('../../../util/device', () => ({
   isIphone5S: jest.fn(),
   isIos: jest.fn(),
 }));
+
+jest.mock('../../../util/networks', () => ({
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
+  getNetworkNameFromProviderConfig: jest.fn(() => 'Ethereum Mainnet'),
+}));
+
+jest.mock('../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: () => ({
+      trackEvent: jest.fn(),
+    }),
+  },
+  MetaMetricsEvents: {
+    SEND_FLOW_CANCEL: 'send_flow_cancel',
+  },
+}));
+
+jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
+  MetricsEventBuilder: {
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({
+        build: jest.fn(() => ({})),
+      })),
+    })),
+  },
+}));
+
+jest.mock('../../../util/blockaid', () => ({
+  getBlockaidTransactionMetricsParams: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../locales/i18n', () => ({
+  strings: jest.fn((key) => key),
+}));
+
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 
 describe('getNetworkNavbarOptions', () => {
   const Stack = createStackNavigator();
@@ -98,6 +135,254 @@ describe('getDepositNavbarOptions', () => {
     const headerLeftComponent = options.headerLeft();
     headerLeftComponent.props.onPress();
     expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('get send flow title', () => {
+  const mockNavigation = {
+    pop: jest.fn(),
+    dangerouslyGetParent: jest.fn(() => ({
+      pop: jest.fn(),
+    })),
+  };
+
+  const mockRoute = {
+    params: {
+      providerType: 'ethereum',
+    },
+  };
+
+  const mockResetTransaction = jest.fn();
+  const mockTransaction = {};
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('source parameter behavior', () => {
+    it('passes source="SendFlow" when global network selector is enabled', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
+      const options = getSendFlowTitle(
+        'send.amount',
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+        true,
+        true,
+        'Ethereum Mainnet',
+      );
+
+      const headerTitleComponent = options.headerTitle();
+      
+      expect(headerTitleComponent.props.source).toBe(NETWORK_SELECTOR_SOURCES.SEND_FLOW);
+    });
+
+    it('passes source=undefined when global network selector is disabled', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+      const options = getSendFlowTitle(
+        'send.amount',
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+        true,
+        true,
+        'Ethereum Mainnet',
+      );
+
+      const headerTitleComponent = options.headerTitle();
+      
+      expect(headerTitleComponent.props.source).toBeUndefined();
+    });
+
+    it('passes showSelectedNetwork when global network selector is enabled', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
+      const options = getSendFlowTitle(
+        'send.amount',
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+        true,
+        true,
+        'Ethereum Mainnet',
+      );
+
+      const headerTitleComponent = options.headerTitle();
+      
+      expect(headerTitleComponent.props.showSelectedNetwork).toBe(true);
+    });
+
+    it('passes showSelectedNetwork=undefined when global network selector is disabled', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+      const options = getSendFlowTitle(
+        'send.amount',
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+        true,
+        true,
+        'Ethereum Mainnet',
+      );
+
+      const headerTitleComponent = options.headerTitle();
+      
+      expect(headerTitleComponent.props.showSelectedNetwork).toBeUndefined();
+    });
+
+    it('passes networkName when global network selector is enabled', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
+      const contextualChainId = 'Ethereum Mainnet';
+      const options = getSendFlowTitle(
+        'send.amount',
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+        true,
+        true,
+        contextualChainId,
+      );
+
+      const headerTitleComponent = options.headerTitle();
+      
+      expect(headerTitleComponent.props.networkName).toBe(contextualChainId);
+    });
+
+    it('passes networkName=undefined when global network selector is disabled', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+      const options = getSendFlowTitle(
+        'send.amount',
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+        true,
+        true,
+        'Ethereum Mainnet',
+      );
+
+      const headerTitleComponent = options.headerTitle();
+      
+      expect(headerTitleComponent.props.networkName).toBeUndefined();
+    });
+  });
+
+  describe('basic functionality', () => {
+    it('returns correct header structure', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+      const options = getSendFlowTitle(
+        'send.amount',
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+      );
+
+      expect(options).toHaveProperty('headerTitle');
+      expect(options).toHaveProperty('headerLeft');
+      expect(options).toHaveProperty('headerRight');
+      expect(options).toHaveProperty('headerStyle');
+    });
+
+    it('passes correct title to NavbarTitle', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+      const title = 'send.amount';
+      const options = getSendFlowTitle(
+        title,
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+      );
+
+      const headerTitleComponent = options.headerTitle();
+      
+      expect(headerTitleComponent.props.title).toBe(title);
+    });
+
+    it('passes disableNetwork prop correctly', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+      const disableNetwork = false;
+      const options = getSendFlowTitle(
+        'send.amount',
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+        disableNetwork,
+      );
+
+      const headerTitleComponent = options.headerTitle();
+      
+      expect(headerTitleComponent.props.disableNetwork).toBe(disableNetwork);
+    });
+
+    it('shows back button when not on send_to screen', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+      const options = getSendFlowTitle(
+        'send.amount',
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+      );
+
+      const headerLeftComponent = options.headerLeft();
+      
+      expect(headerLeftComponent).not.toBeNull();
+      expect(headerLeftComponent.type).toBe(TouchableOpacity);
+    });
+
+    it('hides back button on send_to screen', () => {
+      const { isRemoveGlobalNetworkSelectorEnabled } = require('../../../util/networks');
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+      const options = getSendFlowTitle(
+        'send.send_to',
+        mockNavigation,
+        mockRoute,
+        mockTheme.colors,
+        mockResetTransaction,
+        mockTransaction,
+      );
+
+      const headerLeftComponent = options.headerLeft();
+      
+      expect(headerLeftComponent.type).toBe(View);
+    });
   });
 });
 

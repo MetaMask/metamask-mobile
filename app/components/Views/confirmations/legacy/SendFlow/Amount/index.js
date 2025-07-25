@@ -19,9 +19,7 @@ import {
   resetTransaction,
   setMaxValueMode,
 } from '../../../../../../actions/transaction';
-import {
-  setTransactionSendFlowContextualChainId,
-} from '../../../../../../actions/sendFlow';
+import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
 import StyledButton from '../../../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -84,8 +82,14 @@ import {
   selectCurrentCurrency,
 } from '../../../../../../selectors/currencyRateController';
 import { selectTokens } from '../../../../../../selectors/tokensController';
-import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
+import {
+  selectAccounts,
+  selectAccountsByContextualChainId,
+} from '../../../../../../selectors/accountTrackerController';
+import {
+  selectContractBalances,
+  selectContractBalancesByContextualChainId,
+} from '../../../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
@@ -120,6 +124,7 @@ import { selectAccountsByChainId } from '../../../../../../selectors/accountTrac
 import { selectAllTokenBalances } from '../../../../../../selectors/tokenBalancesController';
 import { BigNumber } from 'bignumber.js';
 import { isHardwareAccount } from '../../../../../../util/address';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -414,6 +419,10 @@ class Amount extends PureComponent {
      */
     contractBalances: PropTypes.object,
     /**
+     * Object containing token balances in the format address => balance by contextual chain id
+     */
+    contractBalancesByContextualChainId: PropTypes.object,
+    /**
      * ETH to current currency conversion rate
      */
     conversionRate: PropTypes.number,
@@ -572,14 +581,16 @@ class Amount extends PureComponent {
   };
 
   UNSAFE_componentWillMount = async () => {
-     // TODO: check with Salim if the content of this function is still needed
-     // this was debugging code in attempt to fix https://github.com/MetaMask/MetaMask-planning/issues/5200
-     // since then, Salim confirmed the issue will be fixed in his PR https://github.com/MetaMask/core/pull/6012
-     // Salim also offered to provide a patch (yarn) that could fix this locally until his PR is merged and controller updated
-     await Engine.context.TokenDetectionController.detectTokens({
+    // TODO: check with Salim if the content of this function is still needed
+    // this was debugging code in attempt to fix https://github.com/MetaMask/MetaMask-planning/issues/5200
+    // since then, Salim confirmed the issue will be fixed in his PR https://github.com/MetaMask/core/pull/6012
+    // Salim also offered to provide a patch (yarn) that could fix this locally until his PR is merged and controller updated
+    await Engine.context.TokenDetectionController.detectTokens({
       chainIds: [this.props.sendFlowContextualChainId],
     });
-    await Engine.context.TokenListController.fetchTokenList(this.props.sendFlowContextualChainId);
+    await Engine.context.TokenListController.fetchTokenList(
+      this.props.sendFlowContextualChainId,
+    );
     await Engine.context.TokenBalancesController.updateBalancesByChainId({
       chainId: this.props.sendFlowContextualChainId,
     });
@@ -589,8 +600,9 @@ class Amount extends PureComponent {
   };
 
   componentDidMount = async () => {
-    // console.log(">>> Amount componentDidMount");
     const {
+      tokens,
+      allTokens,
       ticker,
       transactionState: { readableValue },
       navigation,
@@ -599,32 +611,19 @@ class Amount extends PureComponent {
       isPaymentRequest,
       gasEstimateType,
       gasFeeEstimates,
-      conversionRate,
     } = this.props;
     // For analytics
-
-    // console.log(">>> Amount componentDidMount sendFlowContextualChainId", this.props.sendFlowContextualChainId);
     this.updateNavBar();
     navigation.setParams({ providerType, isPaymentRequest });
-
-    // await Engine.context.TokenDetectionController.detectTokens({
-    //   chainIds: [this.props.sendFlowContextualChainId],
-    // });
-    // await Engine.context.TokenListController.fetchTokenList(this.props.sendFlowContextualChainId);
-    // await Engine.context.TokenBalancesController.updateBalancesByChainId({
-    //   chainId: this.props.sendFlowContextualChainId,
-    // });
-    // await Engine.context.AccountTrackerController.updateAccountsByChainId({
-    //   chainId: this.props.sendFlowContextualChainId,
-    // });
-
-    // console.log(">>> Amount allTokens", this.props.allTokens);
     const allTokensFilteredByChainId =
-      this.props.allTokens?.[this.props.sendFlowContextualChainId]?.[
+      allTokens?.[this.props.sendFlowContextualChainId]?.[
         this.props.selectedAddress?.toLowerCase()
       ] ?? [];
 
-    this.tokens = [getEther(ticker), ...allTokensFilteredByChainId];
+    const tokensToDisplay = isRemoveGlobalNetworkSelectorEnabled()
+      ? allTokensFilteredByChainId
+      : tokens;
+    this.tokens = [getEther(ticker), ...tokensToDisplay];
     this.collectibles = this.processCollectibles();
     // Wait until navigation finishes to focus
     InteractionManager.runAfterInteractions(() =>
@@ -807,27 +806,27 @@ class Amount extends PureComponent {
             : BNToHex(transaction.value),
       };
 
-        const { globalNetworkClientId } = this.props;
+      const { globalNetworkClientId } = this.props;
 
-        const { rpcEndpoints, defaultRpcEndpointIndex } =
-          this.props.sendFlowContextualNetworkConfiguration;
-        const { networkClientId: sendFlowContextualNetworkClientId } =
-          rpcEndpoints[defaultRpcEndpointIndex];
-        const effectiveNetworkClientId =
-          sendFlowContextualNetworkClientId || globalNetworkClientId;
+      const { rpcEndpoints, defaultRpcEndpointIndex } =
+        this.props.sendFlowContextualNetworkConfiguration;
+      const { networkClientId: sendFlowContextualNetworkClientId } =
+        rpcEndpoints[defaultRpcEndpointIndex];
+      const effectiveNetworkClientId =
+        sendFlowContextualNetworkClientId || globalNetworkClientId;
 
-        // console.log('>>> Amount addTransaction effectiveNetworkClientId', effectiveNetworkClientId);
-        await addTransaction(transactionParams, {
-          origin: MMM_ORIGIN,
-          networkClientId: effectiveNetworkClientId,
-        });
-        this.setState({ isRedesignedTransferTransactionLoading: false });
-        navigation.navigate('SendFlowView', {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        });
-      } else {
-        navigation.navigate(Routes.SEND_FLOW.CONFIRM);
-      }
+      // console.log('>>> Amount addTransaction effectiveNetworkClientId', effectiveNetworkClientId);
+      await addTransaction(transactionParams, {
+        origin: MMM_ORIGIN,
+        networkClientId: effectiveNetworkClientId,
+      });
+      this.setState({ isRedesignedTransferTransactionLoading: false });
+      navigation.navigate('SendFlowView', {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+    } else {
+      navigation.navigate(Routes.SEND_FLOW.CONFIRM);
+    }
   };
 
   getCollectibleTranferTransactionProperties() {
@@ -1001,9 +1000,15 @@ class Amount extends PureComponent {
       selectedAsset,
       conversionRate,
       contractExchangeRates,
+      contractBalancesByContextualChainId,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
-    const tokenBalance = contractBalances[selectedAsset.address] || '0x0';
+    const tokenBalance =
+      isRemoveGlobalNetworkSelectorEnabled() &&
+      contractBalancesByContextualChainId?.[selectedAsset.address]
+        ? contractBalancesByContextualChainId[selectedAsset.address]
+        : contractBalances?.[selectedAsset.address] || '0x0';
+
     let input;
     if (isNativeToken(selectedAsset)) {
       const balanceBN = hexToBN(accounts[selectedAddress].balance);
@@ -1049,7 +1054,6 @@ class Amount extends PureComponent {
       setMaxValueMode,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
-
     setMaxValueMode(useMax ?? false);
 
     let inputValueConversion,
@@ -1659,12 +1663,12 @@ class Amount extends PureComponent {
                   <TouchableOpacity
                     testID={AmountViewSelectorsIDs.MAX_BUTTON}
                     style={styles.actionMaxTouchable}
-                    disabled={!isEstimateedTotalGasValid}
+                    disabled={!estimatedTotalGas}
                     onPress={this.useMax}
                   >
                     <Text
                       style={
-                        isEstimateedTotalGasValid
+                        estimatedTotalGas
                           ? styles.maxText
                           : styles.maxTextDisabled
                       }
@@ -1714,22 +1718,24 @@ const mapStateToProps = (state, ownProps) => {
   const globalChainId = selectEvmChainId(state);
   const globalNetworkClientId = selectNetworkClientId(state);
   const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
-  // console.log('>>> Amount sendFlowContextualChainId', sendFlowContextualChainId);
   const sendFlowContextualNetworkConfiguration =
     selectNetworkConfigurationByChainId(
       state,
       toHexadecimal(selectSendFlowContextualChainId(state)),
     );
-  // console.log('>>> Amount sendFlowContextualNetworkConfiguration', sendFlowContextualNetworkConfiguration);
-  // TODO: double check all mapped state is used in the component
+
   return {
-    accounts: selectAccounts(state),
+    accounts: isRemoveGlobalNetworkSelectorEnabled()
+      ? selectAccountsByContextualChainId(state)
+      : selectAccounts(state),
     accountsByChainId: selectAccountsByChainId(state),
     contractExchangeRates: selectContractExchangeRatesByChainId(
       state,
       sendFlowContextualChainId,
     ),
     contractBalances: selectContractBalances(state),
+    contractBalancesByContextualChainId:
+      selectContractBalancesByContextualChainId(state),
     allTokenBalances: selectAllTokenBalances(state),
     collectibles: collectiblesSelector(state),
     collectibleContracts: collectibleContractsSelector(state),

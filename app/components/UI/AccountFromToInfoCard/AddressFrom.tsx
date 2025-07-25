@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { toHex } from '@metamask/controller-utils';
@@ -62,41 +62,50 @@ const AddressFrom = ({
   );
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
+  const hexChainId = useMemo(
+    () => (chainId ? toHex(chainId) : null),
+    [chainId],
+  );
   const networkConfiguration = useSelector((state: RootState) =>
-    chainId ? selectNetworkConfigurationByChainId(state, toHex(chainId)) : null,
+    hexChainId ? selectNetworkConfigurationByChainId(state, hexChainId) : null,
   );
 
   const internalAccounts = useSelector(selectInternalEvmAccounts);
-  const activeAddress = toChecksumAddress(from);
-  
+
   const globalNetworkName = useSelector(selectEvmNetworkName);
   const globalNetworkImage = useSelector(selectEvmNetworkImageSource);
 
-  let perDappNetworkName, perDappNetworkImageSource;
-  if(origin) {
-    const perDappNetworkInfo = useNetworkInfo(origin);
-    perDappNetworkName = perDappNetworkInfo.networkName;
-    perDappNetworkImageSource = perDappNetworkInfo.networkImage;
-  }
-
-  let sendFlowNetworkName, sendFlowNetworkImageSource;
-
-  if (isRemoveGlobalNetworkSelectorEnabled() && networkConfiguration) {
-    sendFlowNetworkName = networkConfiguration.name;
-  }
-
-  if (isRemoveGlobalNetworkSelectorEnabled() && chainId) {
-    // @ts-expect-error The utils/network file is still JS and this function expects a networkType, which should be optional
-    const sendFlowChainImage = getNetworkImageSource({ chainId: toHex(chainId) });
-    if (sendFlowChainImage) {
-      sendFlowNetworkImageSource = sendFlowChainImage;
-    }
-  }
-
   const useBlockieIcon = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.useBlockieIcon,
+    (state: RootState) => state.settings.useBlockieIcon,
+  );
+
+  const activeAddress = useMemo(() => toChecksumAddress(from), [from]);
+  const isContextualNetworkEnabled = useMemo(
+    () => isRemoveGlobalNetworkSelectorEnabled(),
+    [],
+  );
+
+  const perDappNetworkInfo = useMemo(() => {
+    if (!origin) return null;
+    return useNetworkInfo(origin);
+  }, [origin]);
+
+  const sendFlowNetworkData = useMemo(() => {
+    if (!isContextualNetworkEnabled) {
+      return { name: null, imageSource: null };
+    }
+
+    const name = networkConfiguration?.name || null;
+    const imageSource = hexChainId
+      ? getNetworkImageSource({ chainId: hexChainId })
+      : null;
+
+    return { name, imageSource };
+  }, [isContextualNetworkEnabled, networkConfiguration, hexChainId]);
+
+  const accountTypeLabel = useMemo(
+    () => getLabelTextByAddress(activeAddress),
+    [activeAddress],
   );
 
   useEffect(() => {
@@ -104,41 +113,66 @@ const AddressFrom = ({
       ? renderAccountName(activeAddress, internalAccounts)
       : '';
     setAccountName(accountNameVal);
+  }, [activeAddress, internalAccounts]);
 
-    if (!origin) {
-      return;
+  const displayNetworkName = useMemo(() => {
+    if (origin && perDappNetworkInfo) {
+      return perDappNetworkInfo.networkName;
     }
-  }, [accountsByChainId, internalAccounts, activeAddress, origin]);
+    if (isContextualNetworkEnabled) {
+      return sendFlowNetworkData.name;
+    }
+    return globalNetworkName;
+  }, [
+    origin,
+    perDappNetworkInfo,
+    isContextualNetworkEnabled,
+    sendFlowNetworkData,
+    globalNetworkName,
+  ]);
 
-  const displayNetworkName = origin 
-    ? perDappNetworkName 
-    : isRemoveGlobalNetworkSelectorEnabled() ? sendFlowNetworkName : globalNetworkName;
-  
-  const displayNetworkImage = origin 
-    ? perDappNetworkImageSource
-    : isRemoveGlobalNetworkSelectorEnabled() ? sendFlowNetworkImageSource : globalNetworkImage;
+  const displayNetworkImage = useMemo(() => {
+    if (origin && perDappNetworkInfo) {
+      return perDappNetworkInfo.networkImage;
+    }
+    if (isContextualNetworkEnabled) {
+      return sendFlowNetworkData.imageSource;
+    }
+    return globalNetworkImage;
+  }, [
+    origin,
+    perDappNetworkInfo,
+    isContextualNetworkEnabled,
+    sendFlowNetworkData,
+    globalNetworkImage,
+  ]);
 
-  const accountTypeLabel = getLabelTextByAddress(activeAddress);
+  const badgeProps = useMemo(
+    () => ({
+      variant: BadgeVariant.Network as const,
+      name: displayNetworkName || undefined,
+      imageSource: displayNetworkImage || undefined,
+    }),
+    [displayNetworkName, displayNetworkImage],
+  );
+
+  const accountBalanceLabel = useMemo(() => strings('transaction.balance'), []);
+
+  const fromLabel = useMemo(() => strings('transaction.fromWithColon'), []);
 
   return (
     <View style={styles.container}>
       <View style={styles.fromTextContainer}>
-        <Text style={styles.fromText}>
-          {strings('transaction.fromWithColon')}
-        </Text>
+        <Text style={styles.fromText}>{fromLabel}</Text>
       </View>
       <AccountBalance
         accountAddress={activeAddress}
         accountTokenBalance={addressBalance}
         accountName={accountName}
-        accountBalanceLabel={strings('transaction.balance')}
+        accountBalanceLabel={accountBalanceLabel}
         accountTypeLabel={accountTypeLabel as string}
         accountNetwork={String(displayNetworkName)}
-        badgeProps={{
-          variant: BadgeVariant.Network,
-          name: displayNetworkName,
-          imageSource: displayNetworkImage,
-        }}
+        badgeProps={badgeProps}
         useBlockieIcon={useBlockieIcon}
       />
     </View>

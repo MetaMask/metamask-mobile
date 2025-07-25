@@ -8,6 +8,7 @@ import { selectEvmChainId } from './networkController';
 import { createDeepEqualSelector } from './util';
 import { selectShowFiatInTestnets } from './settings';
 import { isTestNet } from '../util/networks';
+import { selectSendFlowContextualChainId } from './sendFlow';
 
 const selectTokenBalancesControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenBalancesController;
@@ -73,6 +74,20 @@ export const selectContractBalances = createSelector(
     tokenBalancesControllerState.tokenBalances?.[
       selectedInternalAccountAddress as Hex
     ]?.[chainId as Hex] ?? {},
+);
+
+export const selectContractBalancesByContextualChainId = createSelector(
+  selectTokenBalancesControllerState,
+  selectSelectedInternalAccountAddress,
+  selectSendFlowContextualChainId,
+  (
+    tokenBalancesControllerState: TokenBalancesControllerState,
+    selectedInternalAccountAddress: string | undefined,
+    contextualChainId: string,
+  ) =>
+    tokenBalancesControllerState.tokenBalances?.[
+      selectedInternalAccountAddress as Hex
+    ]?.[contextualChainId as Hex] ?? {},
 );
 
 export const selectContractBalancesPerChainId = createSelector(
