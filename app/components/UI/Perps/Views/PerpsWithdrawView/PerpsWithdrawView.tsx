@@ -215,9 +215,6 @@ const PerpsWithdrawView: React.FC = () => {
             },
           ],
         });
-
-        // Go back to the previous screen
-        navigation.goBack();
       } else {
         // Show error toast
         toastRef?.current?.showToast({
@@ -256,6 +253,10 @@ const PerpsWithdrawView: React.FC = () => {
       });
     } finally {
       setIsSubmittingTx(false);
+      // Add a small delay to allow the toast to display before navigating back
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1000);
     }
   }, [
     withdrawAmount,
