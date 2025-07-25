@@ -3,9 +3,8 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTransactionBridgeQuotes } from './useTransactionBridgeQuotes';
-import { getBridgeQuotes } from '../../utils/bridge';
+import { TransactionBridgeQuote, getBridgeQuotes } from '../../utils/bridge';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { QuoteResponse } from '@metamask/bridge-controller';
 import { act } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
 import * as confirmationReducer from '../../../../../core/redux/slices/confirmationMetrics';
@@ -29,7 +28,7 @@ const SOURCE_AMOUNT_2_MOCK = '5678';
 
 const QUOTE_MOCK = {
   quote: {},
-} as QuoteResponse;
+} as TransactionBridgeQuote;
 
 function runHook() {
   return renderHookWithProvider(useTransactionBridgeQuotes, { state: {} })

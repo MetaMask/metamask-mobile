@@ -1,11 +1,14 @@
 import {
   BridgeControllerState,
+  QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
+
+export type TransactionBridgeQuote = QuoteResponse & QuoteMetadata;
 
 const QUOTE_TIMEOUT = 5000; // 5 Seconds
 
@@ -22,11 +25,11 @@ export interface BridgeQuoteRequest {
 
 export async function getBridgeQuotes(
   requests: BridgeQuoteRequest[],
-): Promise<QuoteResponse[] | undefined> {
+): Promise<TransactionBridgeQuote[] | undefined> {
   log('Fetching bridge quotes', requests);
 
   try {
-    const allQuotes: QuoteResponse[] = [];
+    const allQuotes: TransactionBridgeQuote[] = [];
 
     for (const request of requests) {
       const quotes = await getSingleBridgeQuotes(request);
@@ -49,7 +52,7 @@ export async function getBridgeQuotes(
 
 async function getSingleBridgeQuotes(
   request: BridgeQuoteRequest,
-): Promise<QuoteResponse | undefined> {
+): Promise<TransactionBridgeQuote | undefined> {
   const {
     from,
     sourceChainId,
@@ -96,12 +99,12 @@ async function getSingleBridgeQuotes(
 
 function waitForQuoteOrTimeout(
   targetTokenAddress: Hex,
-): Promise<QuoteResponse | undefined> {
-  return new Promise<QuoteResponse>((resolve, reject) => {
+): Promise<TransactionBridgeQuote | undefined> {
+  return new Promise<TransactionBridgeQuote>((resolve, reject) => {
     Engine.controllerMessenger.subscribeOnceIf(
       'BridgeController:stateChange',
       (controllerState) => {
-        resolve(getActiveQuote(controllerState) as QuoteResponse);
+        resolve(getActiveQuote(controllerState) as TransactionBridgeQuote);
       },
       (controllerState) => {
         const activeQuote = getActiveQuote(controllerState);
@@ -122,7 +125,7 @@ function waitForQuoteOrTimeout(
 
 function getActiveQuote(
   controllerState: BridgeControllerState,
-): QuoteResponse | undefined {
+): TransactionBridgeQuote | undefined {
   const fullState = store.getState();
 
   const state = {
