@@ -1,11 +1,10 @@
+import { Hex } from '@metamask/utils';
 import React, {
   ReactElement,
   createContext,
-  useCallback,
   useContext,
   useState,
 } from 'react';
-import { TransactionParams } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
@@ -13,16 +12,22 @@ import { AssetType } from '../../types/token';
 
 export interface SendContextType {
   asset?: AssetType;
-  transactionParams: TransactionParams;
+  from: Hex;
+  to?: Hex;
   updateAsset: (asset: AssetType) => void;
-  updateTransactionParams: (params: Partial<TransactionParams>) => void;
+  updateTo: (to: Hex) => void;
+  updateValue: (value: string) => void;
+  value?: string;
 }
 
 export const SendContext = createContext<SendContextType>({
   asset: undefined,
-  transactionParams: {} as TransactionParams,
+  from: '0x',
+  to: undefined,
   updateAsset: () => undefined,
-  updateTransactionParams: () => undefined,
+  updateTo: () => undefined,
+  updateValue: () => undefined,
+  value: undefined,
 });
 
 export const SendContextProvider: React.FC<{
@@ -30,27 +35,19 @@ export const SendContextProvider: React.FC<{
 }> = ({ children }) => {
   const [asset, updateAsset] = useState<AssetType>();
   const from = useSelector(selectSelectedInternalAccount);
-  const [transactionParams, setTransactionParams] = useState<TransactionParams>(
-    {
-      from: from?.address as string,
-      // to: '0x089595380921f555d52AB6f5a49defdAaB23B444',
-    },
-  );
-
-  const updateTransactionParams = useCallback(
-    (params: Partial<TransactionParams>) => {
-      setTransactionParams({ ...transactionParams, ...params });
-    },
-    [setTransactionParams, transactionParams],
-  );
+  const [to, updateTo] = useState<Hex>();
+  const [value, updateValue] = useState<string>();
 
   return (
     <SendContext.Provider
       value={{
         asset,
-        transactionParams,
+        from: from?.address as Hex,
+        to,
         updateAsset,
-        updateTransactionParams,
+        updateTo,
+        updateValue,
+        value,
       }}
     >
       {children}

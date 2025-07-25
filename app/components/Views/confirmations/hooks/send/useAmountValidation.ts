@@ -1,6 +1,6 @@
 import { AccountInformation } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
-import { useCallback } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -64,28 +64,24 @@ export const validateAmountFn = ({
   return undefined;
 };
 
-const useValidateAmount = () => {
+const useAmountValidation = () => {
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
-  const { asset, transactionParams } = useSendContext();
+  const { asset, from, value } = useSendContext();
 
-  const validateAmount = useCallback(() => {
-    return validateAmountFn({
-      accounts,
-      amount: transactionParams.value,
-      asset,
-      contractBalances,
-      from: transactionParams.from as Hex,
-    });
-  }, [
-    accounts,
-    asset,
-    contractBalances,
-    transactionParams.from,
-    transactionParams.value,
-  ]);
+  const amountError = useMemo(
+    () =>
+      validateAmountFn({
+        accounts,
+        amount: value,
+        asset,
+        contractBalances,
+        from: from as Hex,
+      }),
+    [accounts, asset, contractBalances, from, value],
+  );
 
-  return { validateAmount };
+  return { amountError };
 };
 
-export default useValidateAmount;
+export default useAmountValidation;

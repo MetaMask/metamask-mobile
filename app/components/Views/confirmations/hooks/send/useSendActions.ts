@@ -10,8 +10,7 @@ import { prepareEVMTransaction } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 
 const useSendActions = () => {
-  const { asset, transactionParams, updateTransactionParams } =
-    useSendContext();
+  const { asset, from, to, value } = useSendContext();
   const navigation = useNavigation();
   const { chainId } = asset ?? { chainId: undefined };
   const { NetworkController } = Engine.context;
@@ -24,7 +23,7 @@ const useSendActions = () => {
       toHex(chainId),
     );
     // toHex is added here as sometime chainId in asset is not hexadecimal
-    const trxnParams = prepareEVMTransaction(asset, transactionParams);
+    const trxnParams = prepareEVMTransaction(asset, { from, to, value });
     await addTransaction(trxnParams, {
       origin: MMM_ORIGIN,
       networkClientId,
@@ -32,7 +31,7 @@ const useSendActions = () => {
     navigation.navigate(
       Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     );
-  }, [asset, chainId, NetworkController, navigation, transactionParams]);
+  }, [asset, chainId, NetworkController, navigation, from, to, value]);
 
   const cancelSend = useCallback(() => {
     navigation.goBack();

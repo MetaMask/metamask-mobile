@@ -10,6 +10,7 @@ import styleSheet from './asset.styles';
 
 const Asset = () => {
   const { styles } = useStyles(styleSheet, {});
+  // todo: more below to hook
   const route =
     useRoute<RouteProp<Record<string, { asset: AssetType }>, string>>();
   const paramsAsset = route?.params?.asset;

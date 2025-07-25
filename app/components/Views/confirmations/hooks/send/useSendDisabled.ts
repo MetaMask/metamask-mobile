@@ -1,22 +1,21 @@
 import { useMemo } from 'react';
 
 import { useSendContext } from '../../context/send-context';
-import useValidations from './useValidations';
+import useAmountValidation from './useAmountValidation';
 
 const useSendDisabled = () => {
-  const { amountError } = useValidations();
-  const { transactionParams } = useSendContext();
+  const { amountError } = useAmountValidation();
+  const { to, value } = useSendContext();
 
-  const sendDisabled = useMemo(() => {
-    const { value, to } = transactionParams;
-    return (
+  const sendDisabled = useMemo(
+    () =>
       Boolean(amountError) ||
       value === undefined ||
       value === null ||
       value === '' ||
-      !to
-    );
-  }, [amountError, transactionParams]);
+      !to,
+    [amountError, to, value],
+  );
 
   return { sendDisabled };
 };

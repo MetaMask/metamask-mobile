@@ -9,25 +9,25 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
+import useAmountValidation from '../../../hooks/send/useAmountValidation';
 import useMaxAmount from '../../../hooks/send/useMaxAmount';
-import useValidations from '../../../hooks/send/useValidations';
 import { useSendContext } from '../../../context/send-context';
 import styleSheet from './amount.styles';
 
 const Amount = () => {
   const { styles } = useStyles(styleSheet, {});
-  const { transactionParams, updateTransactionParams } = useSendContext();
+  const { value, updateValue } = useSendContext();
   const { updateToMaxAmount } = useMaxAmount();
-  const { amountError } = useValidations();
+  const { amountError } = useAmountValidation();
 
   return (
     <View>
       <Text>Value:</Text>
       <Input
         style={styles.input}
-        value={transactionParams.value}
+        value={value}
         onChangeText={(value: string) => {
-          updateTransactionParams({ value });
+          updateValue(value);
         }}
         testID="send_amount"
       />

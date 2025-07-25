@@ -1,4 +1,4 @@
-import { validateAmountFn, ValidateAmountArgs } from './useValidateAmount';
+import { validateAmountFn, ValidateAmountArgs } from './useAmountValidation';
 
 const getArguments = (params: Record<string, unknown>) =>
   ({
