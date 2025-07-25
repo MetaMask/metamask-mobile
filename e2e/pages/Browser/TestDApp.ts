@@ -362,7 +362,7 @@ class TestDApp {
     });
   }
 
-  async tabERC721MintButton(): Promise<void> {
+  async tapERC721MintButton(): Promise<void> {
     await Gestures.waitAndTap(this.erc721MintButton, {
       elemDescription: 'ERC721 mint button',
     });
