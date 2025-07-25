@@ -1,4 +1,4 @@
-import { useIsOnBridgeRoute } from './index';
+import { useIsOnBridgeRoute, getAllRouteValues, type RouteObject } from './index';
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useNavigationState } from '@react-navigation/native';
@@ -258,6 +258,85 @@ describe('useIsOnBridgeRoute', () => {
 
       // Assert
       expect(result.current).toBe(false);
+    });
+  });
+});
+
+describe('getAllRouteValues', () => {
+  describe('basic functionality', () => {
+    it('extracts string values from flat object', () => {
+      // Arrange
+      const routeObject = {
+        ROOT: 'Bridge',
+        DETAILS: 'BridgeTransactionDetails',
+      };
+
+      // Act
+      const result = getAllRouteValues(routeObject);
+
+      // Assert
+      expect(result).toEqual(['Bridge', 'BridgeTransactionDetails']);
+    });
+
+    it('extracts string values from nested object', () => {
+      // Arrange
+      const routeObject = {
+        ROOT: 'Bridge',
+        MODALS: {
+          SOURCE_TOKEN: 'BridgeSourceTokenSelector',
+          DEST_TOKEN: 'BridgeDestTokenSelector',
+        },
+      };
+
+      // Act
+      const result = getAllRouteValues(routeObject);
+
+      // Assert
+      expect(result).toEqual([
+        'Bridge',
+        'BridgeSourceTokenSelector',
+        'BridgeDestTokenSelector',
+      ]);
+    });
+
+    it('extracts string values from deeply nested object', () => {
+      // Arrange
+      const routeObject = {
+        ROOT: 'Bridge',
+        NESTED: {
+          LEVEL_2: {
+            LEVEL_3: {
+              DEEP_ROUTE: 'VeryDeepRoute',
+            },
+            ANOTHER_ROUTE: 'AnotherRoute',
+          },
+          MODAL: 'ModalRoute',
+        },
+      };
+
+      // Act
+      const result = getAllRouteValues(routeObject);
+
+      // Assert
+      expect(result).toEqual([
+        'Bridge',
+        'VeryDeepRoute',
+        'AnotherRoute',
+        'ModalRoute',
+      ]);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('returns empty array for empty object', () => {
+      // Arrange
+      const routeObject = {};
+
+      // Act
+      const result = getAllRouteValues(routeObject);
+
+      // Assert
+      expect(result).toEqual([]);
     });
   });
 });
