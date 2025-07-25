@@ -18,6 +18,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import type {
@@ -78,7 +79,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   if (!market) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
+        <View
+          style={styles.errorContainer}
+          testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
+        >
           <Text variant={TextVariant.BodySM} color={TextColor.Error}>
             {strings('perps.market.details.error_message')}
           </Text>
@@ -88,7 +92,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
+    >
       <ScrollView style={[styles.container, { paddingTop: top }]}>
         {/* Market Header */}
         <PerpsMarketHeader
@@ -96,6 +103,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           currentPrice={marketStats.currentPrice}
           priceChange24h={marketStats.priceChange24h}
           onBackPress={handleBackPress}
+          testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
         {/* Chart */}
         <View style={[styles.section, styles.chartSection]}>
@@ -121,7 +129,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           <View style={styles.statisticsGrid}>
             {/* Row 1: 24hr High/Low */}
             <View style={styles.statisticsRow}>
-              <View style={styles.statisticsItem}>
+              <View
+                style={styles.statisticsItem}
+                testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_HIGH_24H}
+              >
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -133,7 +144,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   {marketStats.high24h}
                 </Text>
               </View>
-              <View style={styles.statisticsItem}>
+              <View
+                style={styles.statisticsItem}
+                testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_LOW_24H}
+              >
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -149,7 +163,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
             {/* Row 2: Volume and Open Interest */}
             <View style={styles.statisticsRow}>
-              <View style={styles.statisticsItem}>
+              <View
+                style={styles.statisticsItem}
+                testID={
+                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_VOLUME_24H
+                }
+              >
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -161,7 +180,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   {marketStats.volume24h}
                 </Text>
               </View>
-              <View style={styles.statisticsItem}>
+              <View
+                style={styles.statisticsItem}
+                testID={
+                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_OPEN_INTEREST
+                }
+              >
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -177,7 +201,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
             {/* Row 3: Funding Rate and Countdown */}
             <View style={styles.statisticsRow}>
-              <View style={styles.statisticsItem}>
+              <View
+                style={styles.statisticsItem}
+                testID={
+                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_RATE
+                }
+              >
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -196,7 +225,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   {marketStats.fundingRate}
                 </Text>
               </View>
-              <View style={styles.statisticsItem}>
+              <View
+                style={styles.statisticsItem}
+                testID={
+                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_COUNTDOWN
+                }
+              >
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
@@ -222,6 +256,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           label={strings('perps.market.long')}
           onPress={handleLongPress}
           style={[styles.actionButton, styles.longButton]}
+          testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
         />
         <Button
           variant={ButtonVariants.Primary}
@@ -230,6 +265,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           label={strings('perps.market.short')}
           onPress={handleShortPress}
           style={[styles.actionButton, styles.shortButton]}
+          testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
         />
       </View>
     </SafeAreaView>

@@ -29,6 +29,7 @@ interface PerpsMarketHeaderProps {
   priceChange24h?: number;
   onBackPress?: () => void;
   onMorePress?: () => void;
+  testID?: string;
 }
 
 const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
@@ -37,6 +38,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   priceChange24h,
   onBackPress,
   onMorePress,
+  testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(market.symbol);
@@ -53,7 +55,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   const changeAmount = (displayChange / 100) * displayPrice;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID={testID}>
       {/* Back Button */}
       {onBackPress && (
         <View style={styles.backButton}>
