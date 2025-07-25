@@ -6,7 +6,7 @@ import { useNavigationState } from '@react-navigation/native';
 // Mock @react-navigation/native
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigationState:  jest.fn(),
+  useNavigationState: jest.fn(),
 }));
 
 describe('useIsOnBridgeRoute', () => {
