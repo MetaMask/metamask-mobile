@@ -921,18 +921,17 @@ const App: React.FC = () => {
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
+  const firstLoad = useRef(true);
   // periodically check seedless password outdated when app UI is open
   useInterval(
     async () => {
       if (isSeedlessOnboardingLoginFlow) {
-        await Authentication.checkIsSeedlessPasswordOutdated().catch(
-          (error) => {
-            Logger.error(
-              error,
-              'App: Error in checkIsSeedlessPasswordOutdated',
-            );
-          },
-        );
+        await Authentication.checkIsSeedlessPasswordOutdated(
+          firstLoad.current,
+        ).catch((error) => {
+          Logger.error(error, 'App: Error in checkIsSeedlessPasswordOutdated');
+        });
+        firstLoad.current = false;
       }
     },
     {
