@@ -80,7 +80,7 @@ const PerpsMarketListHeader = () => {
 };
 
 const PerpsMarketListView = ({
-  onMarketSelect: _onMarketSelect,
+  onMarketSelect,
   protocolId: _protocolId,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -126,9 +126,13 @@ const PerpsMarketListView = ({
   }, [markets.length, fadeAnimation]);
 
   const handleMarketPress = (market: PerpsMarketData) => {
-    navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
-      market,
-    });
+    if (onMarketSelect) {
+      onMarketSelect(market);
+    } else {
+      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+        market,
+      });
+    }
   };
 
   const handleRefresh = () => {
