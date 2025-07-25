@@ -99,6 +99,16 @@ export const getPerpsPayWithRowSelector = {
 };
 
 // ========================================
+// PERPS MARKET LIST VIEW SELECTORS
+// ========================================
+
+export const PerpsMarketListViewSelectorsIDs = {
+  SEARCH_TOGGLE_BUTTON: 'search-toggle-button',
+  CLOSE_BUTTON: 'close-button',
+  SEARCH_CLEAR_BUTTON: 'search-clear-button',
+};
+
+// ========================================
 // PERPS ORDER HEADER SELECTORS
 // ========================================
 

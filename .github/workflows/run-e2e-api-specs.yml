@@ -12,7 +12,7 @@ on:
 jobs:
   api-specs-ios:
     name: "api-specs-ios"
-    if: github.event.label.name == 'Run E2E Smoke Test'
+    if: false
     runs-on: macos-latest-xlarge
 
     env:

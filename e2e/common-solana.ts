@@ -44,8 +44,6 @@ export async function withSolanaAccountEnabled(
       dapp: true,
       dappPath: dappPath ?? DEFAULT_SOLANA_TEST_DAPP_PATH,
       restartDevice: true,
-      // @ts-ignore - disableGanache is supported in JS version but not in TS types
-      disableGanache: true,
     },
     async () => {
       await TestHelpers.reverseServerPort();

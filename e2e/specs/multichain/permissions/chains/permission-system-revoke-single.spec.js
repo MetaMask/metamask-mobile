@@ -25,7 +25,6 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
           .withChainPermission()
           .build(),
         restartDevice: true,
-        disableGanache: true,
       },
       async () => {
         // Step 1: Navigate to browser view

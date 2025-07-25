@@ -168,12 +168,12 @@ stages:
       - build_ios_simbuild: {}
   create_build_release:
     workflows:
-      - build_android_release: {}
-      - build_ios_release: {}
+      - build_android_main_prod: {}
+      - build_ios_main_prod: {}
   create_build_beta:
     workflows:
-      - build_android_beta: {}
-      - build_ios_beta: {}
+      - build_android_main_beta: {}
+      - build_ios_main_beta: {}
   deploy_build_release:
     workflows:
       - deploy_android_to_store: {}
@@ -186,7 +186,7 @@ stages:
       - deploy_ios_to_store: {}
   create_android_release:
     workflows:
-      - build_android_release: {}
+      - build_android_main_prod: {}
   create_android_release_new:
     workflows:
       - build_android_main_prod: {}
@@ -922,7 +922,6 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
     after_run:
       - ios_e2e_test
-
   run_wallet_platform_swimlane_android_smoke:
     meta:
       bitrise.io:
@@ -1739,7 +1738,7 @@ workflows:
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
       - script:
           inputs:
-            - content: |- 
+            - content: |-
                 # Add cache directory to environment variable
                 envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
@@ -3260,13 +3259,13 @@ app:
       VERSION_NAME: 7.50.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2103
+      VERSION_NUMBER: 2186
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.50.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2103
+      FLASK_VERSION_NUMBER: 2186
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
