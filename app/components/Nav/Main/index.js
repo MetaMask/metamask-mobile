@@ -95,6 +95,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
+import { handleShowNetworkActiveToast } from './utils';
 
 const Stack = createStackNavigator();
 
@@ -311,19 +312,13 @@ const Main = (props) => {
           });
         }
       }
-      if (!isOnBridgeRoute) {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Network,
-          labelOptions: [
-            {
-              label: `${networkName} `,
-              isBold: true,
-            },
-            { label: strings('toast.now_active') },
-          ],
-          networkImageSource: networkImage,
-        });
-      }
+
+      handleShowNetworkActiveToast(
+        isOnBridgeRoute,
+        toastRef,
+        networkName,
+        networkImage,
+      );
     }
     previousProviderConfig.current = !isEvmSelected
       ? { chainId }
