@@ -1,0 +1,91 @@
+name: Test Android E2E Setup
+
+on:
+  push:
+
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  android-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+
+      - name: Setup E2E Android Environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+        with:
+          platform: android
+          setup-simulator: false
+
+        
+      - name: Print Android Environment Info
+        run: |
+          echo "🔧 Node.js Version:"
+          node -v || echo "Node not found"
+          echo "Android Studio Version:"
+          /Applications/Android\ Studio.app/Contents/MacOS/studio --version || echo "Check manually via finder"
+          echo "🧶 Yarn Version:"
+          yarn -v || echo "Yarn not found"
+          echo "📦 SDK Manager Version:"
+          sdkmanager --version || echo "sdkmanager not found"
+          echo "📱 ADB Version:"
+          adb version || echo "adb not found"
+          echo "🖥️ Emulator Version:"
+          emulator -version || echo "emulator not found"
+          echo "🧱 NDK Info:"
+          echo "NDK Dir: $ANDROID_SDK_ROOT/ndk/${NDK_VERSION:-unknown}"
+          if [ -n "${NDK_VERSION}" ] && [ -f "$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}/source.properties" ]; then
+            grep "Pkg.Revision" "$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}/source.properties" || echo "NDK version info not found"
+          else
+            echo "NDK not found or NDK_VERSION not set"
+          fi
+          echo "🔧 Checking for ndk-build:"
+          command -v ndk-build || echo "ndk-build not found in PATH"
+          echo "🔧 Checking for clang:"
+          command -v clang || echo "clang not found in PATH"
+          echo "🔧 Checking for llvm-ar:"
+          command -v llvm-ar || echo "llvm-ar not found in PATH"
+          echo "📱 Available AVD Devices:"
+          avdmanager list device || echo "avdmanager not found"
+          echo "📱 Available System Images:"
+          sdkmanager --list | grep "system-images;" || echo "No system images listed"
+          echo "🟢 Emulator Processes:"
+          pgrep -fl emulator || echo "No running emulator processes"
+          echo "📱 Connected Android Devices:"
+          adb devices || echo "adb devices failed"
+        shell: bash
+
+      - name: Build iOS App
+        run: |
+          yarn setup:github-ci --build-on-github-ci --build-android --no-build-ios
+          yarn build:android:qa
+        shell: bash
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: "true"
+          CI: "true"
+
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
