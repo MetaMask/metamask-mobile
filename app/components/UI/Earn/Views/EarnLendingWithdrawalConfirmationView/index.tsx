@@ -330,34 +330,32 @@ const EarnLendingWithdrawalConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           if (!earnToken) {
-            const tokenNetworkClientId =
-              Engine.context.NetworkController.findNetworkClientIdByChainId(
-                tokenSnapshot?.chainId as Hex,
-              );
-            Engine.context.TokensController.addToken({
-              decimals: tokenSnapshot?.token?.decimals || 0,
-              symbol: tokenSnapshot?.token?.symbol || '',
-              address: tokenSnapshot?.token?.address || '',
-              name: tokenSnapshot?.token?.name || '',
-              networkClientId: tokenNetworkClientId,
-            }).catch((error) => {
+            try {
+              const tokenNetworkClientId =
+                Engine.context.NetworkController.findNetworkClientIdByChainId(
+                  tokenSnapshot?.chainId as Hex,
+                );
+              Engine.context.TokensController.addToken({
+                decimals: tokenSnapshot?.token?.decimals || 0,
+                symbol: tokenSnapshot?.token?.symbol || '',
+                address: tokenSnapshot?.token?.address || '',
+                name: tokenSnapshot?.token?.name || '',
+                networkClientId: tokenNetworkClientId,
+              }).catch(console.error);
+            } catch (error) {
               console.error(
                 error,
-                'error adding counter-token on confirmation',
+                `error adding counter-token for ${
+                  outputToken?.symbol || outputToken?.ticker || ''
+                } on confirmation`,
               );
-            });
+            }
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [
-      emitTxMetaMetric,
-      tokenSnapshot,
-      earnToken,
-      navigation,
-      outputToken?.chainId,
-    ],
+    [emitTxMetaMetric, tokenSnapshot, earnToken, outputToken, navigation],
   );
 
   // Guards

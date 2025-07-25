@@ -398,9 +398,9 @@ export const useDepositRouting = ({
             );
           }
         }
-
         // auto-submit purpose of usage form and then recursive call to route again
-        if (!getForm(TransakFormId.PURPOSE_OF_USAGE)?.isSubmitted) {
+        const purposeOfUsageForm = getForm(TransakFormId.PURPOSE_OF_USAGE);
+        if (purposeOfUsageForm && purposeOfUsageForm.isSubmitted === false) {
           if (depth < 5) {
             await submitPurposeOfUsage([
               'Buying/selling crypto for investments',
@@ -436,6 +436,9 @@ export const useDepositRouting = ({
         const idProofForm = getForm(TransakFormId.ID_PROOF);
         if (idProofForm?.isSubmitted === false) {
           const idProofData = await fetchKycFormData(quote, idProofForm);
+          if (!idProofData) {
+            throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          }
           if (idProofData?.data?.kycUrl) {
             navigateToAdditionalVerificationCallback({
               quote,

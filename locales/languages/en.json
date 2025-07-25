@@ -595,7 +595,7 @@
       "navbar_title": "Deposit",
       "description_1": "To deposit cash for the first time, your identity must be verified.",
       "description_2_transak": "Transak",
-      "description_2_rest": " will facilitate your deposit, and we work with them to ensure your privacy. We never store your data, and Transak never sells your data.",
+      "description_2_rest": " will facilitate your deposit and your data is sent directly to Transak. We do not process the data you share.",
       "description_3_part1": "Check out our ",
       "description_3_privacy_policy": "privacy policy",
       "description_3_part2": " to learn more.",
@@ -750,6 +750,20 @@
   },
   "perps": {
     "title": "Perps Trading",
+    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
+    "manage_balance": "Manage Balance",
+    "total_balance": "Total Balance",
+    "available_balance": "Available Balance",
+    "margin_used": "Margin Used",
+    "unrealized_pnl": "Unrealized PnL",
+    "withdraw": "Withdraw",
+    "refresh_balance": "Refresh Balance",
+    "add_funds": "Add funds",
+    "perpetuals": "Perpetuals",
+    "your_positions": "Your positions",
+    "loading_positions": "Loading positions...",
+    "refreshing_positions": "Refreshing positions...",
+    "search": "Search",
     "deposit": {
       "title": "Amount to deposit",
       "pay_with": "Pay with",
@@ -1022,7 +1036,7 @@
     "chart": {
       "no_data": "No chart data available"
     },
-    "perpetual_markets": "Perpetual Markets",
+    "perpetual_markets": "Perpetual markets",
     "search": "Search",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
@@ -1097,6 +1111,7 @@
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "defi": "DeFi",
+    "perps": "Perpetuals",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
@@ -2039,6 +2054,7 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
     "perps_button": "Perpetuals",
+    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -2048,11 +2064,13 @@
       "buy": "Buying not supported for this account",
       "sell": "Selling not supported for this account",
       "swap": "Swapping not supported for this account",
+      "deposit": "Depositing not supported for this account",
       "bridge": "Bridging not supported for this account",
       "send": "Sending not supported for this account",
       "action": "This action is not supported for this account",
       "earn": "Earning not supported for this account",
-      "perps": "Perpetuals trading not supported for this account"
+      "perps": "Perpetuals trading not supported for this account",
+      "perps_sandbox": "Perps sandbox not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Total Supply",
@@ -2062,7 +2080,8 @@
     "troubleshooting_missing": "troubleshooting missing balances",
     "for_help": "for help.",
     "troubleshoot": "Troubleshoot",
-    "buy_description": "Buy crypto with cash",
+    "deposit_description": "Low-cost card or bank transfer",
+    "buy_description": "Good for buying a specific token",
     "sell_description": "Sell crypto for cash",
     "swap_description": "Exchange between tokens",
     "bridge_description": "Transfer tokens between networks",
@@ -2070,6 +2089,7 @@
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
     "perps_description": "Trade perpetual contracts",
+    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",
@@ -2494,7 +2514,7 @@
     "multichain_priority_fee": "Priority Fee",
     "max_fee": "Max Fee Per Gas",
     "total": "Total",
-    "view_on": "VIEW ON",
+    "view_on": "View on",
     "view_on_etherscan": "View on Etherscan",
     "view_full_history_on": "View full history on",
     "view_full_history_on_etherscan": "View full history on Etherscan",
@@ -4897,6 +4917,9 @@
   "snap_ui": {
     "asset_selector": {
       "title": "Select an asset"
+    },
+    "account_selector": {
+      "title": "Select account"
     },
     "hideSentitiveInfo": {
       "message": "Hide sensitive information"
