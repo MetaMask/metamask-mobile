@@ -130,15 +130,23 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
-  let discoveredAccountsCount = 0;
+  const nAccountsPerSnap: number[] = [];
 
-  for (const clientType of Object.values(WalletClientType)) {
-    const snapClient = MultichainWalletSnapFactory.createClient(clientType);
-    discoveredAccountsCount += await snapClient.addDiscoveredAccounts(
-      newKeyring.id,
-      WALLET_SNAP_MAP[clientType].discoveryScope,
-    );
-  }
+  await Promise.all(
+    Object.values(WalletClientType).map(async (clientType) => {
+      const snapClient = MultichainWalletSnapFactory.createClient(clientType);
+      const count = await snapClient.addDiscoveredAccounts(
+        newKeyring.id,
+        WALLET_SNAP_MAP[clientType].discoveryScope,
+      );
+      nAccountsPerSnap.push(count);
+    }),
+  );
+
+  const discoveredAccountsCount = nAccountsPerSnap.reduce(
+    (acc, count) => acc + count || 0,
+    0,
+  );
 
   if (shouldSelectAccount) {
     Engine.setSelectedAddress(newAccountAddress);
