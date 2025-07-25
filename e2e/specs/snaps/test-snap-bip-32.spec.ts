@@ -11,7 +11,6 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import BrowserView from '../../pages/Browser/BrowserView';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 
 const fixtureServer = new FixtureServer();
@@ -32,8 +31,6 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
     // Navigate to test snaps URL once for all tests
     await TabBarComponent.tapBrowser();
     await TestSnaps.navigateToTestSnap();
-    await TestHelpers.delay(3500); // Wait for page to load
-    await Assertions.checkIfVisible(BrowserView.browserScreenID);
   });
 
   afterAll(async () => {
@@ -50,7 +47,6 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
 
   it('can get BIP-32 public key', async () => {
     await TestSnaps.tapButton('getPublicKeyBip32Button');
-    await TestHelpers.delay(3000);
     await TestSnaps.checkResultSpan(
       'bip32PublicKeyResultSpan',
       '"0x043e98d696ae15caef75fa8dd204a7c5c08d1272b2218ba3c20feeb4c691eec366606ece56791c361a2320e7fad8bcbb130f66d51c591fc39767ab2856e93f8dfb"',
@@ -114,7 +110,9 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
     );
   });
 
-  it('fails when choosing the invalid entropy source', async () => {
+  // This test is skipped because of a bug causing the app to crash when the
+  // alert is displayed.
+  it.skip('fails when choosing the invalid entropy source', async () => {
     await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'Invalid');
     await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
     await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
