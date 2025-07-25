@@ -1191,15 +1191,21 @@ export class PerpsController extends BaseController<
       );
 
       // Submit via TransactionController using Engine.context
-      const { NetworkController } = Engine.context;
+      const { NetworkController, TransactionController } = Engine.context;
 
       // Get current network client ID from state
       const selectedNetworkClientId =
         NetworkController.state.selectedNetworkClientId;
 
-      // Use lower-level transaction submission to bypass UI confirmation
-      const result = await this.submitDirectDepositTransaction(transaction);
-      const txHash = result.txHash;
+      // Submit the transaction to TransactionController
+      const result = await TransactionController.addTransaction(transaction, {
+        networkClientId: selectedNetworkClientId,
+        requireApproval: false,
+        origin: 'metamask',
+      });
+
+      // Wait for the transaction hash
+      const txHash = await result.result;
 
       DevLogger.log(
         '✅ PerpsController: DIRECT DEPOSIT TRANSACTION SUBMITTED',

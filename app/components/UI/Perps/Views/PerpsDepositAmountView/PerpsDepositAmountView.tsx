@@ -12,6 +12,7 @@ import {
 } from '@react-navigation/native';
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -37,6 +38,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectSourceToken as selectBridgeSourceToken,
@@ -106,6 +111,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const dispatch = useDispatch();
+  const { toastRef } = useContext(ToastContext);
 
   // State
   const [sourceAmount, setSourceAmount] = useState<string | undefined>('');
@@ -422,11 +428,24 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       const depositResult = await deposit(depositParams);
 
       if (depositResult.success && depositResult.txHash) {
-        navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
-          amount: sourceAmount,
-          fromToken: sourceToken.symbol,
-          transactionHash: depositResult.txHash,
+        // Show success toast
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Received,
+          iconColor: IconColor.Success,
+          hasNoTimeout: false,
+          labelOptions: [
+            {
+              label: `${sourceAmount} ${sourceToken.symbol} ${strings(
+                'perps.deposit.deposit_completed',
+              )}`,
+              isBold: true,
+            },
+          ],
         });
+
+        // Navigate to trading view
+        navigation.navigate(Routes.PERPS.TRADING_VIEW);
       } else {
         setError(depositResult.error || strings('perps.errors.depositFailed'));
       }
@@ -445,6 +464,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     selectedAddress,
     getDepositRoutes,
     deposit,
+    toastRef,
     navigation,
   ]);
 
