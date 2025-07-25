@@ -90,11 +90,14 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await WalletView.tapOnToken('BNB');
     await TokenOverview.tapSwapButton();
     await QuoteView.tapOnCancelButton();
+    await TokenOverview.tapBackButton();
+    await WalletView.tapTokenNetworkFilter();
+    await WalletView.tapTokenNetworkFilterCurrent();
+    const bnbCurrentNetwork = WalletView.tokenInWallet('BNB');
+    await Assertions.expectElementToBeVisible(bnbCurrentNetwork);
   });
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
-    await TokenOverview.tapBackButton();
-
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     if (device.getPlatform() === 'ios') {
