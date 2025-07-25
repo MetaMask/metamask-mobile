@@ -341,7 +341,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 address: tokenSnapshot?.token?.address || '',
                 name: tokenSnapshot?.token?.name || '',
                 networkClientId: tokenNetworkClientId,
-              });
+              }).catch(console.error);
             } catch (error) {
               console.error(
                 error,

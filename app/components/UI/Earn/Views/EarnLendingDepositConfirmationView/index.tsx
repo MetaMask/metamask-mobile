@@ -425,7 +425,7 @@ const EarnLendingDepositConfirmationView = () => {
                 address: tokenSnapshot?.token?.address || '',
                 name: tokenSnapshot?.token?.name || '',
                 networkClientId,
-              });
+              }).catch(console.error);
             } catch (error) {
               console.error(
                 error,
