@@ -3,8 +3,11 @@ import Engine from '../../../../core/Engine';
 import { usePerpsPrices } from './usePerpsPrices';
 import { usePerpsPositionData } from './usePerpsPositionData';
 import type { PriceUpdate } from '../controllers/types';
-import type { CandleData, CandleStick } from '../types';
 import { formatPrice, formatLargeNumber } from '../utils/formatUtils';
+import {
+  calculateFundingCountdown,
+  calculate24hHighLow,
+} from '../utils/marketUtils';
 
 interface MarketStats {
   high24h: string;
@@ -23,78 +26,6 @@ interface MarketDataUpdate {
   openInterest?: number;
   volume24h?: number;
 }
-
-/**
- * Calculate the time until the next funding period
- * HyperLiquid has 8-hour funding periods at 00:00, 08:00, and 16:00 UTC
- */
-const calculateFundingCountdown = (): string => {
-  const now = new Date();
-  const utcHour = now.getUTCHours();
-  const utcMinutes = now.getUTCMinutes();
-  const utcSeconds = now.getUTCSeconds();
-
-  // Determine next funding hour (0, 8, or 16)
-  let nextFundingHour: number;
-  if (utcHour < 8) {
-    nextFundingHour = 8;
-  } else if (utcHour < 16) {
-    nextFundingHour = 16;
-  } else {
-    nextFundingHour = 24; // Next day at 00:00
-  }
-
-  // Calculate time until next funding
-  const hoursUntil = nextFundingHour - utcHour - 1;
-  const minutesUntil = 59 - utcMinutes;
-  const secondsUntil = 59 - utcSeconds;
-
-  // Handle case where we're at 16:xx and next is 00:00
-  const adjustedHours = hoursUntil < 0 ? hoursUntil + 24 : hoursUntil;
-
-  // Format as HH:MM:SS
-  const hours = String(adjustedHours).padStart(2, '0');
-  const minutes = String(minutesUntil).padStart(2, '0');
-  const seconds = String(secondsUntil).padStart(2, '0');
-
-  return `${hours}:${minutes}:${seconds}`;
-};
-
-/**
- * Calculate 24h high and low from candlestick data
- */
-const calculate24hHighLow = (
-  candleData: CandleData | null,
-): { high: number; low: number } => {
-  if (!candleData?.candles || candleData.candles.length === 0) {
-    return { high: 0, low: 0 };
-  }
-
-  // Get candles from last 24 hours
-  const now = Date.now();
-  const twentyFourHoursAgo = now - 24 * 60 * 60 * 1000;
-
-  let last24hCandles = candleData.candles.filter(
-    (candle: CandleStick) => candle.time >= twentyFourHoursAgo,
-  );
-
-  if (last24hCandles.length === 0) {
-    // If no 24h data, use all available candles
-    last24hCandles = [...candleData.candles];
-  }
-
-  const highs = last24hCandles.map((candle: CandleStick) =>
-    parseFloat(candle.high),
-  );
-  const lows = last24hCandles.map((candle: CandleStick) =>
-    parseFloat(candle.low),
-  );
-
-  return {
-    high: Math.max(...highs),
-    low: Math.min(...lows),
-  };
-};
 
 /**
  * Hook to fetch and manage comprehensive market statistics
