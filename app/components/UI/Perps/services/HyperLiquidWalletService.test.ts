@@ -97,14 +97,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-// Mock toHexadecimal
-jest.mock('../../../../util/number', () => ({
-  toHexadecimal: jest.fn((value: string) => {
-    const num = parseInt(value, 10);
-    return num.toString(16);
-  }),
-}));
-
 import { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
