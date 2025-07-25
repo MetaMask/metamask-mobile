@@ -143,18 +143,38 @@ async function main() {
     }
 
     for (const filename of junitFiles) {
+      console.log(`🔍 Processing XML file: ${filename}`);
       const file = await fs.readFile(
         path.join(env.TEST_RESULTS_PATH, filename),
         'utf8',
       );
       const results = await XML.parse(file);
+      console.log(`📊 Parsed XML - testsuites:`, !!results.testsuites);
 
-      for (const suite of results.testsuites?.testsuite || []) {
-        if (!suite.testcase || !suite.$.file) continue;
+      const testsuites = results.testsuites?.testsuite || [];
+      const suitesArray = Array.isArray(testsuites) ? testsuites : [testsuites];
+      console.log(`📋 Found ${suitesArray.length} test suite(s)`);
+
+      for (const suite of suitesArray) {
+        console.log(`🔍 Processing suite: "${suite?.$.name}"`);
+        console.log(`   - Has testcase: ${!!suite.testcase}`);
+        console.log(`   - Has $.file: ${!!suite.$.file}`);
+        console.log(`   - Suite attributes:`, Object.keys(suite.$ || {}));
+        
+        // Fix: Don't require $.file for mobile tests - use suite name as identifier
+        if (!suite.testcase) {
+          console.log(`⏩ Skipping suite - no test cases`);
+          continue;
+        }
         const tests = +suite.$.tests;
         const failed = +suite.$.failures;
         const skipped = tests - suite.testcase.length;
         const passed = tests - failed - skipped;
+
+        console.log(`🔧 Properties in suite:`, !!suite.properties);
+        if (suite.properties) {
+          console.log(`🔧 Properties content:`, JSON.stringify(suite.properties, null, 2));
+        }
 
         const jobName = suite.properties?.[0]?.property?.[0]?.$.value
           ? `${suite.properties?.[0].property?.[0]?.$.value}`
@@ -166,6 +186,8 @@ async function main() {
         const prNumber = suite.properties?.[0]?.property?.[2]?.$.value
           ? +suite.properties?.[0].property?.[2]?.$.value
           : 0;
+
+        console.log(`🏷️ Extracted values - jobName: "${jobName}", runId: ${runId}, prNumber: ${prNumber}`);
 
         const testSuite: TestSuite = {
           name: suite.$.name,
@@ -191,7 +213,7 @@ async function main() {
         }
 
         const testFile: TestFile = {
-          path: normalizeTestPath(suite.$.file),
+          path: normalizeTestPath(suite.$.file || suite.$.name || 'e2e-tests'),
           tests: testSuite.tests,
           passed: testSuite.passed,
           failed: testSuite.failed,
@@ -436,6 +458,10 @@ async function main() {
     }
 
     await core.summary.write();
+    
+    // Debug: Show final testRuns before writing
+    console.log(`📝 Final testRuns array length: ${testRuns.length}`);
+    console.log(`📄 Final testRuns content:`, JSON.stringify(testRuns, null, 2));
     
     // Ensure the test-results directory exists
     const testResultsDir = path.dirname(env.TEST_RUNS_PATH);
