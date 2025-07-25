@@ -128,15 +128,23 @@ class AuthenticationService {
       parsedSeedUint8Array,
     );
 
-    for (const clientType of Object.values(WalletClientType)) {
-      const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
-      this.attemptAccountDiscovery(clientType).catch((error) => {
-        console.warn('Account discovery failed during wallet creation:', error);
-        // Store flag to retry on next unlock
-        StorageWrapper.setItem(discoveryStorageId, TRUE);
-      });
-    }
+        try {
+          await this.attemptAccountDiscovery(clientType);
+        } catch (error) {
+          console.warn(
+            'Account discovery failed during wallet creation:',
+            clientType,
+            error,
+          );
+          // Store flag to retry on next unlock
+          await StorageWrapper.setItem(discoveryStorageId, TRUE);
+        }
+      }),
+    );
 
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
@@ -171,18 +179,20 @@ class AuthenticationService {
   };
 
   private retryDiscoveryIfPending = async (): Promise<void> => {
-    for (const clientType of Object.values(WalletClientType)) {
-      const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
-      try {
-        const isPending = await StorageWrapper.getItem(discoveryStorageId);
-        if (isPending === TRUE) {
-          await this.attemptAccountDiscovery(clientType);
+        try {
+          const isPending = await StorageWrapper.getItem(discoveryStorageId);
+          if (isPending === TRUE) {
+            await this.attemptAccountDiscovery(clientType);
+          }
+        } catch (error) {
+          console.warn('Failed to check/retry discovery:', clientType, error);
         }
-      } catch (error) {
-        console.warn('Failed to check/retry discovery:', error);
-      }
-    }
+      }),
+    );
   };
 
   /**
@@ -198,15 +208,22 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    for (const clientType of Object.values(WalletClientType)) {
-      const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
-      this.attemptAccountDiscovery(clientType).catch((error) => {
-        console.warn('Account discovery failed during wallet creation:', error);
-        // Store flag to retry on next unlock
-        StorageWrapper.setItem(discoveryStorageId, TRUE);
-      });
-    }
+        try {
+          await this.attemptAccountDiscovery(clientType);
+        } catch (error) {
+          console.warn(
+            'Account discovery failed during wallet creation:',
+            error,
+          );
+          // Store flag to retry on next unlock
+          await StorageWrapper.setItem(discoveryStorageId, TRUE);
+        }
+      }),
+    );
 
     password = this.wipeSensitiveData();
   };
@@ -796,19 +813,27 @@ class AuthenticationService {
       Engine.setSelectedAddress(newAccountAddress);
     }
 
-    let discoveredAccountsCount = 0;
+    const nAccountsPerSnap: number[] = [];
     if (options.shouldImportAccounts) {
-      for (const clientType of Object.values(WalletClientType)) {
-        const { discoveryScope } = WALLET_SNAP_MAP[clientType];
-        const multichainClient =
-          MultichainWalletSnapFactory.createClient(clientType);
+      await Promise.all(
+        Object.values(WalletClientType).map(async (clientType) => {
+          const { discoveryScope } = WALLET_SNAP_MAP[clientType];
+          const multichainClient =
+            MultichainWalletSnapFactory.createClient(clientType);
 
-        discoveredAccountsCount += await multichainClient.addDiscoveredAccounts(
-          id,
-          discoveryScope,
-        );
-      }
+          const count = await multichainClient.addDiscoveredAccounts(
+            id,
+            discoveryScope,
+          );
+          nAccountsPerSnap.push(count);
+        }),
+      );
     }
+
+    const discoveredAccountsCount = nAccountsPerSnap.reduce(
+      (acc, count) => acc + count || 0,
+      0,
+    );
 
     return {
       newAccountAddress,
@@ -1068,7 +1093,7 @@ class AuthenticationService {
     // set discovery pending to true
     for (const clientType of Object.values(WalletClientType)) {
       const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-      StorageWrapper.setItem(discoveryStorageId, TRUE);
+      await StorageWrapper.setItem(discoveryStorageId, TRUE);
     }
   };
 

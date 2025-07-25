@@ -717,6 +717,7 @@ describe('Authentication', () => {
 
           expect(console.warn).toHaveBeenCalledWith(
             'Failed to check/retry discovery:',
+            'solana',
             expect.any(Error),
           );
 
@@ -746,6 +747,7 @@ describe('Authentication', () => {
           expect(mockAttemptAccountDiscovery).toHaveBeenCalled();
           expect(console.warn).toHaveBeenCalledWith(
             'Failed to check/retry discovery:',
+            'solana',
             expect.any(Error),
           );
         });
