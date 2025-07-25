@@ -181,12 +181,11 @@ export const importWalletWithRecoveryPhrase = async ({
   const tapsSequenceToProceedToImportWallet = async () => {
     await OnboardingView.tapHaveAnExistingWallet();
 
-    if (SEEDLESS_ONBOARDING_ENABLED) {
-      await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
-        description: 'Onboarding Sheet should be visible',
-      });
-      await OnboardingSheet.tapImportSeedButton();
-    }
+    // SEEDLESS ONBOARDING FLAG is undefined
+    await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
+      description: 'Onboarding Sheet should be visible',
+    });
+    await OnboardingSheet.tapImportSeedButton();
     await Utilities.waitForElementToDisappear(
       OnboardingView.existingWalletButton,
     );
