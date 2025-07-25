@@ -478,7 +478,7 @@ describe('usePerpsTrading', () => {
       const withdrawParams: WithdrawParams = {
         amount: '100.00',
         assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default',
       };
 
       const response = await result.current.withdraw(withdrawParams);
