@@ -12,7 +12,7 @@ import { GasFeeToken } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
 
-jest.mock('./gas/useFeeCalculations');
+jest.mock('./useFeeCalculations');
 const FROM_MOCK = '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc';
 
 const GAS_FEE_TOKEN_MOCK: GasFeeToken = {
