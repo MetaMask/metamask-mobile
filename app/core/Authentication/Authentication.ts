@@ -47,7 +47,10 @@ import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { SecretType } from '@metamask/seedless-onboarding-controller';
+import {
+  SecretType,
+  SeedlessOnboardingControllerErrorMessage,
+} from '@metamask/seedless-onboarding-controller';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
@@ -486,7 +489,7 @@ class AuthenticationService {
         await this.rehydrateSeedPhrase(password, authData);
       } else if (await this.checkIsSeedlessPasswordOutdated()) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-        await this.syncPasswordAndUnlockWallet(password);
+        await this.syncPasswordAndUnlockWallet(password, authData);
       } else {
         // else srp flow
         await this.loginVaultCreation(password);
@@ -774,30 +777,66 @@ class AuthenticationService {
    */
   syncPasswordAndUnlockWallet = async (
     globalPassword: string,
+    authData: AuthData,
   ): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
 
-    try {
-      await KeyringController.verifyPassword(globalPassword);
-      throw new SeedlessOnboardingControllerError(
-        'Password Recently Updated',
-        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+    const { success: isKeyringPasswordValid } =
+      await KeyringController.verifyPassword(globalPassword)
+        .then(() => ({ success: true, error: null }))
+        .catch((err) => ({ success: false, error: err }));
+
+    // recover the current keyring encryption key
+    // here e could be invalid password or outdated password error, which can result in following cases:
+    // 1. Seedless controller password verification succeeded.
+    // 2. Seedless controller failed but Keyring controller password verification succeeded.
+    // 3. Both keyring and seedless controller password verification failed.
+    const { success, error: seedlessSyncError } =
+      await SeedlessOnboardingController.submitGlobalPassword({
+        globalPassword,
+        maxKeyChainLength: 20,
+      })
+        .then(() => ({ success: true, error: null }))
+        .catch((err) => ({ success: false, error: err }));
+
+    if (!success) {
+      const errorMessage = (seedlessSyncError as Error).message;
+      Logger.error(
+        seedlessSyncError as Error,
+        `error while submitting global password: ${errorMessage}`,
       );
-    } catch (error) {
-      if (error instanceof SeedlessOnboardingControllerError) {
-        if (
-          error.code ===
-          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
-        ) {
-          throw error;
+
+      if (
+        errorMessage ===
+        SeedlessOnboardingControllerErrorMessage.MaxKeyChainLengthExceeded
+      ) {
+        // we are unable to recover the old pwd enc key as user is on a very old device.
+        // create a new vault and encrypt the new vault with the latest global password.
+        // also show a info popup to user.
+
+        // rehydrate with social accounts if max keychain length exceeded
+        await SeedlessOnboardingController.refreshAuthTokens();
+        await this.rehydrateSeedPhrase(globalPassword, authData);
+        // skip the rest of the flow ( change password and sync keyring encryption key)
+        return;
+      } else if (
+        errorMessage ===
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword
+      ) {
+        // Case 2: Keyring controller password verification succeeds and seedless controller failed.
+        if (isKeyringPasswordValid) {
+          throw new SeedlessOnboardingControllerError(
+            SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+          );
+        } else {
+          throw seedlessSyncError;
         }
+      } else {
+        throw seedlessSyncError;
       }
     }
 
-    // recover the current keyring encryption key
-    await SeedlessOnboardingController.submitGlobalPassword({
-      globalPassword,
-    });
+    // password synced successfully
     const keyringEncryptionKey =
       await SeedlessOnboardingController.loadKeyringEncryptionKey();
 
@@ -817,6 +856,11 @@ class AuthenticationService {
       throw err;
     }
     await this.resetPassword();
+
+    // set solana discovery pending to true
+    ///: BEGIN:ONLY_INCLUDE_IF(solana)
+    StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
+    ///: END:ONLY_INCLUDE_IF
   };
 
   /**
