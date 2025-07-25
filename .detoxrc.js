@@ -46,6 +46,10 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.release',
     },
+    'ios.sim.flask.release': {
+      device: 'ios.simulator',
+      app: 'ios.flask.release',
+    },
     'android.emu.debug': {
       device: 'android.emulator',
       app: 'android.debug',
@@ -53,6 +57,10 @@ module.exports = {
     'android.emu.release': {
       device: 'android.bitrise.emulator',
       app: 'android.release',
+    },
+    'android.emu.flask.release': {
+      device: 'android.bitrise.emulator',
+      app: 'android.flask.release',
     },
   },
   devices: {
@@ -88,6 +96,12 @@ module.exports = {
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
       build: `yarn build:ios:main:e2e`,
     },
+    'ios.flask.release': {
+      type: 'ios.app',
+      binaryPath:
+        'ios/build/Build/Products/Release-iphonesimulator/MetaMask-Flask.app',
+      build: `yarn build:ios:flask:e2e`,
+    },
     'android.debug': {
       type: 'android.apk',
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
@@ -98,6 +112,11 @@ module.exports = {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
       build: `yarn build:android:main:e2e`,
+    },
+    'android.flask.release': {
+      type: 'android.apk',
+      binaryPath: 'android/app/build/outputs/apk/flask/release/app-flask-release.apk',
+      build: `yarn build:android:flask:e2e`,
     },
   },
 };

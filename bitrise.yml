@@ -52,13 +52,13 @@ pipelines:
       - bump_version_stage: {}
       - create_android_release: {}
       - deploy_android_release: {}
-  #Run E2E test suite for iOS only
+  # TODO: Remove this workflow since it's not used anymore
   run_e2e_ios_pipeline:
     stages:
       - build_e2e_ios_stage: {}
       - run_e2e_ios_stage: {}
       - notify: {}
-  #Run E2E test suite for  Flask builds
+  # TODO: Remove this workflow since it's not used anymore
   run_e2e_flask_pipeline:
     stages:
       - build_e2e_flask_ios_android: {}
@@ -235,9 +235,11 @@ stages:
   create_build_qa_ios:
     workflows:
       - build_ios_qa: {}
+  # TODO: Remove this workflow since it's not used anymore
   build_e2e_ios_stage:
     workflows:
       - ios_e2e_build: {}
+  # TODO: Remove this workflow since it's not used anymore
   run_e2e_ios_stage:
     workflows:
       - ios_e2e_test: {}
@@ -262,6 +264,8 @@ stages:
   #     - run_tag_multichain_permissions_ios: {}
   #     - run_tag_multichain_permissions_android: {}
   run_e2e_flask_ios_android_stage:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
     workflows:
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
@@ -284,6 +288,8 @@ stages:
       - run_single_ios_e2e_test: {}
       - run_single_android_e2e_test: {}
   run_smoke_e2e_ios_android_stage:
+    envs:
+      - METAMASK_BUILD_TYPE: 'main'
     workflows:
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
@@ -335,6 +341,7 @@ stages:
   report_results_stage:
     workflows:
       - run_testrail_update_automated_test_results: {}
+  # TODO: Remove this stage since it's not used anymore
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -365,8 +372,9 @@ stages:
       - release_announcing_stores: {}
   build_e2e_flask_ios_android:
     workflows:
-      - build_flask_e2e_android: {}
-      - build_flask_e2e_ios: {}
+      - build_android_flask_e2e: {}
+      - build_ios_flask_e2e: {}
+  # TODO: Remove this workflow since it's not used anymore
   run_e2e_flask_ios_android:
     workflows:
       - run_flask_e2e_android: {}
@@ -768,6 +776,7 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  # TODO: Remove this workflow since it's not used anymore
   run_flask_e2e_android:
     meta:
       bitrise.io:
@@ -782,6 +791,7 @@ workflows:
       - YARN_COMMAND: 'build:ios:flask:e2e'
     after_run:
       - ios_e2e_build
+  # TODO: Remove this workflow since it's not used anymore
   run_flask_e2e_ios:
     envs:
       - METAMASK_BUILD_TYPE: 'flask'
@@ -1137,11 +1147,12 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                export METAMASK_ENVIRONMENT='local'
-                 node -v
+
+                export METAMASK_ENVIRONMENT='e2e'
+
                 if [ -n "${E2E_TEST_FILE:-}" ]; then
                   echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
-                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:main-release $E2E_TEST_FILE
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:$METAMASK_BUILD_TYPE:prod $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
                   ./scripts/run-e2e-tags.sh
@@ -1581,17 +1592,11 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
 
-                # node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                # if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:main-release e2e/specs/flask/
-                # else
-                # ./scripts/run-e2e-tags.sh
-                # fi
+                export METAMASK_ENVIRONMENT='e2e'
+
                 if [ -n "${E2E_TEST_FILE:-}" ]; then
                   echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
-                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:main-release $E2E_TEST_FILE
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:$METAMASK_BUILD_TYPE:prod $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
                   ./scripts/run-e2e-tags.sh
@@ -1625,6 +1630,7 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
             - zip_name: 'E2E_IOS_Failure_Artifacts'
+  # TODO: Remove this workflow since it's not used anymore
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -1949,13 +1955,13 @@ workflows:
         machine_type_id: elite-xl
   build_android_flask_e2e:
     envs:
+      - YARN_COMMAND: 'build:android:flask:e2e'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
       - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
-      - YARN_COMMAND: 'build:android:flask:e2e'
     after_run:
       - _android_build_template
     meta:
@@ -2657,6 +2663,7 @@ workflows:
   build_ios_flask_e2e:
     envs:
       - BUILD_TYPE: 'Release'
+      - IS_SIM_BUILD: 'true'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"

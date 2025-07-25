@@ -513,6 +513,7 @@ function sanitizeAddressesFromErrorMessages(report) {
  */
 export function deriveSentryEnvironment(
   isDev,
+  // TODO: Replace local with dev
   metamaskEnvironment = 'local',
   metamaskBuildType = 'main',
 ) {
@@ -528,6 +529,10 @@ export function deriveSentryEnvironment(
         return 'main-rc';
       case 'exp':
         return 'main-exp';
+      case 'e2e':
+        return 'main-e2e';
+      case 'test':
+        return 'main-test';
       default:
         return metamaskEnvironment;
     }
