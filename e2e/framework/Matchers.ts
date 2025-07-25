@@ -121,7 +121,7 @@ export default class Matchers {
   static async getElementByXPath(
     webviewID: string,
     xpath: string,
-  ): Promise<Detox.IndexableWebElement | Detox.SecuredWebElementFacade> {
+  ): Promise<DetoxElement | WebElement> {
     const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.xpath(xpath));
   }
