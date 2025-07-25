@@ -150,3 +150,6 @@ CLAUDE.md
 /CLAUDE.md
 temp/
 /temp/
+
+# E2E test results
+e2e/test-results/

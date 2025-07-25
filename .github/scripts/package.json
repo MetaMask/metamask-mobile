@@ -10,18 +10,25 @@
     "create-bug-report-issue": "ts-node ./create-bug-report-issue.ts",
     "run-bitrise-e2e-check": "ts-node ./bitrise/run-bitrise-e2e-check.ts",
     "bitrise-results-check": "ts-node ./bitrise/bitrise-results-check.ts",
+    "create-e2e-test-report": "ts-node ./create-e2e-test-report.ts",
     "gen:commits": "node generate-rc-commits.mjs"
   },
   "dependencies": {
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
+    "@octokit/types": "^12.4.0",
     "axios": "^1.7.4",
-    "simple-git": "^3.25.0"
+    "simple-git": "^3.25.0",
+    "humanize-duration": "^3.29.0",
+    "octokit": "^3.1.2",
+    "xml2js": "^0.6.0"
   },
   "devDependencies": {
     "@lavamoat/allow-scripts": "^3.2.0",
     "@lavamoat/preinstall-always-fail": "^2.1.0",
+    "@types/humanize-duration": "^3.27.4",
     "@types/node": "^20.16.2",
+    "@types/xml2js": "^0.4.14",
     "ts-node": "^10.5.0",
     "typescript": "~5.4.5"
   },
