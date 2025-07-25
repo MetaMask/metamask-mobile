@@ -46,6 +46,8 @@ export function useTransactionRequiredTokens() {
   );
 
   // Temporarily using deep equality as useTokensWithBalance is unstable and finalTokens is likely very small.
+  // eslint-disable-next-line react-compiler/react-compiler
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(() => finalTokens, [JSON.stringify(finalTokens)]);
 }
 

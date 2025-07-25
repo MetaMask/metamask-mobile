@@ -40,5 +40,8 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
     ],
   );
 
+  // Temporarily using deep equality as selector data is unstable and result is likely very small.
+  // eslint-disable-next-line react-compiler/react-compiler
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(() => result, [JSON.stringify(result)]);
 }
