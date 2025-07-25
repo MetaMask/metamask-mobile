@@ -359,7 +359,7 @@ describe('PerpsDepositProcessingView', () => {
       );
       viewBalanceButton.props.onPress();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TRADING_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
   });
 

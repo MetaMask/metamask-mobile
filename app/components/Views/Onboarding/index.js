@@ -11,6 +11,7 @@ import {
   Easing,
   Platform,
 } from 'react-native';
+import { captureException } from '@sentry/react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -59,6 +60,8 @@ import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
+import { withMetricsAwareness } from '../../hooks/useMetrics';
+import ErrorBoundary from '../ErrorBoundary';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -247,6 +250,10 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
@@ -272,6 +279,7 @@ class Onboarding extends PureComponent {
     createWallet: false,
     existingWallet: false,
     errorSheetVisible: false,
+    errorToThrow: null,
   };
 
   seedwords = null;
@@ -521,16 +529,22 @@ class Onboarding extends PureComponent {
     this.onPressContinueWithSocialLogin(createWallet, 'google');
 
   handleLoginError = (error, socialConnectionType) => {
-    let errorMessage;
     if (error instanceof OAuthError) {
-      if (error.code === OAuthErrorType.UserCancelled) {
-        errorMessage = 'user_cancelled';
-      } else {
-        errorMessage = 'oauth_error';
+      // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
+      if (
+        error.code !== OAuthErrorType.UserCancelled &&
+        error.code !== OAuthErrorType.UserDismissed
+      ) {
+        this.handleOAuthLoginError(error);
+        return;
       }
-    } else {
-      errorMessage = 'oauth_error';
+      if (error.code === OAuthErrorType.UserCancelled) {
+        // QA: do not show error sheet if user cancelled
+        return;
+      }
     }
+
+    const errorMessage = 'oauth_error';
 
     trace({
       name: TraceName.OnboardingSocialLoginError,
@@ -558,6 +572,24 @@ class Onboarding extends PureComponent {
         type: 'error',
       },
     });
+  };
+
+  handleOAuthLoginError = (error) => {
+    // If user has already consented to analytics, report error using regular Sentry
+    if (this.props.metrics.isEnabled()) {
+      captureException(error, {
+        tags: {
+          view: 'Onboarding',
+          context: 'OAuth login failed - user consented to analytics',
+        },
+      });
+    } else {
+      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
+      this.setState({
+        loading: false,
+        errorToThrow: new Error(`OAuth login failed: ${error.message}`),
+      });
+    }
   };
   track = (event, properties) => {
     trackOnboarding(
@@ -662,7 +694,7 @@ class Onboarding extends PureComponent {
           <Button
             variant={ButtonVariants.Secondary}
             onPress={() => this.handleCtaActions('existing')}
-            testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+            testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
             width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             label={
@@ -709,43 +741,62 @@ class Onboarding extends PureComponent {
 
   render() {
     const { loading } = this.props;
-    const { existingUser } = this.state;
+    const { existingUser, errorToThrow } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    // Component that throws error if needed (to be caught by ErrorBoundary)
+    const ThrowErrorIfNeeded = () => {
+      if (errorToThrow) {
+        throw errorToThrow;
+      }
+      return null;
+    };
+
     return (
-      <View
-        style={[
-          baseStyles.flexGrow,
-          { backgroundColor: importedColors.gettingStartedPageBackgroundColor },
-        ]}
-        testID={OnboardingSelectorIDs.CONTAINER_ID}
+      <ErrorBoundary
+        navigation={this.props.navigation}
+        view="Onboarding"
+        useOnboardingErrorHandling={
+          !!errorToThrow && !this.props.metrics.isEnabled()
+        }
       >
-        <ScrollView
-          style={baseStyles.flexGrow}
-          contentContainerStyle={styles.scroll}
+        <ThrowErrorIfNeeded />
+        <View
+          style={[
+            baseStyles.flexGrow,
+            {
+              backgroundColor: importedColors.gettingStartedPageBackgroundColor,
+            },
+          ]}
+          testID={OnboardingSelectorIDs.CONTAINER_ID}
         >
-          <View style={styles.wrapper}>
-            {loading ? this.renderLoader() : this.renderContent()}
-          </View>
-
-          {existingUser && !loading && (
-            <View style={styles.footer}>
-              <Button
-                variant={ButtonVariants.Link}
-                onPress={this.onLogin}
-                label={strings('onboarding.unlock')}
-                width={ButtonWidthTypes.Full}
-                size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-              />
+          <ScrollView
+            style={baseStyles.flexGrow}
+            contentContainerStyle={styles.scroll}
+          >
+            <View style={styles.wrapper}>
+              {loading ? this.renderLoader() : this.renderContent()}
             </View>
-          )}
-        </ScrollView>
 
-        <FadeOutOverlay />
+            {existingUser && !loading && (
+              <View style={styles.footer}>
+                <Button
+                  variant={ButtonVariants.Link}
+                  onPress={this.onLogin}
+                  label={strings('onboarding.unlock')}
+                  width={ButtonWidthTypes.Full}
+                  size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+                />
+              </View>
+            )}
+          </ScrollView>
 
-        <View>{this.handleSimpleNotification()}</View>
-      </View>
+          <FadeOutOverlay />
+
+          <View>{this.handleSimpleNotification()}</View>
+        </View>
+      </ErrorBoundary>
     );
   }
 }
@@ -768,4 +819,7 @@ const mapDispatchToProps = (dispatch) => ({
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Onboarding));

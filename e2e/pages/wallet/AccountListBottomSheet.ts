@@ -98,11 +98,15 @@ class AccountListBottomSheet {
     return Matchers.getElementByText(accountName, 1);
   }
   async tapAccountIndex(index: number): Promise<void> {
-    await Gestures.tap(this.getMultiselectElement(index));
+    await Gestures.waitAndTap(this.getMultiselectElement(index), {
+      elemDescription: `Account at index ${index}`,
+    });
   }
 
   async tapToSelectActiveAccountAtIndex(index: number): Promise<void> {
-    await Gestures.tap(this.getSelectWithMenuElementName(index));
+    await Gestures.waitAndTap(this.getSelectWithMenuElementName(index), {
+      elemDescription: `Account at index ${index}`,
+    });
   }
 
   async longPressAccountAtIndex(index: number): Promise<void> {
@@ -146,6 +150,12 @@ class AccountListBottomSheet {
     await Gestures.waitAndTap(this.connectAccountsButton, {
       elemDescription: 'Connect accounts button',
     });
+  }
+
+  async tapAccountByName(accountName: string): Promise<void> {
+    const name = Matchers.getElementByText(accountName);
+
+    await Gestures.waitAndTap(name);
   }
 
   async scrollToAccount(index: number): Promise<void> {

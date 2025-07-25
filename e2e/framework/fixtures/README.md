@@ -41,6 +41,8 @@ describe('My Test Suite', () => {
 | `launcArgs`         | `LaunchArgs`            | `false`  | `-`     | Allows sending arbitrary launchArgs such as the fixtureServerPort |
 | `languageAndLocale` | `LanguageAndLocale`     | `false`  | -       | Set the device Language and Locale of the device                  |
 | `permissions`       | `object`                | `false`  | -       | Allows setting specific device permissions                        |
+| `mockServerInstance` | `Mockttp` | `false` | - | Allows providing a mock server instance instead of having one created automatically. Should not be used together with `testSpecificMock` | 
+| `endTestfn` | `fn()` | `false` | - | Allows providing a function that is executed at the end of the test before the cleanup | 
 
 ## Migration from Legacy Options
 
@@ -75,29 +77,6 @@ await withFixtures(
     dapps: [
       {
         dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-        dappVariant: DappVariants.TEST_DAPP,
-      },
-    ],
-    restartDevice: true,
-  },
-  async () => {
-    // Test interactions with dapps
-  },
-);
-```
-
-### Test with 2 Test Dapp instances and 2 browser tabs with permitted connections
-
-```typescript
-await withFixtures(
-  {
-    fixture: new FixtureBuilder()
-      .withPermissionControllerConnectedToMultipleTestDapps([{}, {}]) // Setting permissions for the 2 dapp instances
-      .withMultipleDappTabs(2)
-      .build(),
-    dapps: [
-      {
-        dappVariant: DappVariants.TEST_DAPP,
         dappVariant: DappVariants.TEST_DAPP,
       },
     ],
