@@ -29,7 +29,7 @@ import { BASE_DEFAULTS, Utilities } from './framework';
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
-  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
+  process.env.SEEDLESS_ONBOARDING_ENABLED !== 'false';
 
 /**
  * Accepts the terms of use modal.
@@ -181,11 +181,12 @@ export const importWalletWithRecoveryPhrase = async ({
   const tapsSequenceToProceedToImportWallet = async () => {
     await OnboardingView.tapHaveAnExistingWallet();
 
-    // SEEDLESS ONBOARDING FLAG is undefined
-    await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
-      description: 'Onboarding Sheet should be visible',
-    });
-    await OnboardingSheet.tapImportSeedButton();
+    if (SEEDLESS_ONBOARDING_ENABLED) {
+      await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
+        description: 'Onboarding Sheet should be visible',
+      });
+      await OnboardingSheet.tapImportSeedButton();
+    }
     await Utilities.waitForElementToDisappear(
       OnboardingView.existingWalletButton,
     );
