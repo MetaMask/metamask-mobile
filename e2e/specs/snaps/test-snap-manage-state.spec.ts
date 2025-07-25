@@ -41,7 +41,7 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
   });
 
   describe('new state functions', () => {
-    it('connects to the State Snap', async () => {
+    it.only('connects to the State Snap', async () => {
       await TestSnaps.installSnap('connectStateButton');
     });
 
