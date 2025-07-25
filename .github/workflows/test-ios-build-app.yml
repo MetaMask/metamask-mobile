@@ -59,6 +59,7 @@ jobs:
       - name: Setup iOS Environment
         run: |
           yarn setup:github-ci --build-ios --no-build-android
+          yarn build:ios:qa
         shell: bash
         env:
           PLATFORM: ios
@@ -84,16 +85,3 @@ jobs:
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-
-      - name: Build iOS App
-        run: |
-          yarn build:ios:qa
-        shell: bash
-        env:
-          PLATFORM: ios
-          METAMASK_ENVIRONMENT: qa
-          METAMASK_BUILD_TYPE: main
-          IS_TEST: true
-          IGNORE_BOXLOGS_DEVELOPMENT: true
-          GITHUB_CI: "true"
-          CI: "true"
