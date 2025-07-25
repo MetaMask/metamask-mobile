@@ -19,11 +19,25 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
 import { InteractionManager, Alert } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
+import Logger from '../../../util/Logger';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
+// Mock the entire trace module
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
+
 import ChoosePassword from './';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import {
+  TraceName,
+  TraceOperation,
+  trace,
+  endTrace,
+} from '../../../util/trace';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -77,9 +91,11 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
 }));
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
+const mockTrackEvent = jest.fn();
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   getInstance: () => ({
     isEnabled: mockMetricsIsEnabled,
+    trackEvent: mockTrackEvent,
   }),
 }));
 
@@ -121,6 +137,7 @@ interface ChoosePasswordProps {
       [PROTECT]?: boolean;
       [PREVIOUS_SCREEN]?: string;
       oauthLoginSuccess?: boolean;
+      onboardingTraceCtx?: unknown;
     };
   };
   navigation?: {
@@ -857,5 +874,425 @@ describe('ChoosePassword', () => {
     });
 
     mockNewWalletAndKeychain.mockRestore();
+  });
+
+  describe('ErrorBoundary Tests', () => {
+    it('should trigger ErrorBoundary for OAuth password creation failures when analytics disabled', async () => {
+      const loggerErrorSpy = jest.spyOn(Logger, 'error');
+      mockMetricsIsEnabled.mockReturnValueOnce(false);
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain
+        .mockRejectedValueOnce(
+          new Error('SeedlessOnboardingController - Auth server is down'),
+        )
+        .mockResolvedValueOnce(undefined);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'submitEditing');
+      });
+
+      expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('OAuth password creation failed'),
+        }),
+        expect.objectContaining({
+          View: 'ChoosePassword',
+          ErrorBoundary: true,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          name: 'Error Screen Viewed',
+        }),
+      );
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('should not trigger ErrorBoundary for OAuth password creation failures when analytics enabled', async () => {
+      mockMetricsIsEnabled.mockReturnValueOnce(true);
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain
+        .mockRejectedValueOnce(
+          new Error('SeedlessOnboardingController - Auth server is down'),
+        )
+        .mockResolvedValueOnce(undefined);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).not.toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          name: 'Error Screen Viewed',
+        }),
+      );
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+  });
+
+  describe('Tracing functionality', () => {
+    const mockTrace = trace as jest.MockedFunction<typeof trace>;
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
+    });
+
+    it('should start and end tracing on component unmount', async () => {
+      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
+      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+
+      mockTrace.mockReturnValue(mockTraceCtx);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            onboardingTraceCtx: mockOnboardingTraceCtx,
+          },
+        },
+      };
+
+      const { unmount } = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => Promise.resolve());
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: mockOnboardingTraceCtx,
+      });
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+      });
+    });
+
+    it('should not start or end tracing on component unmount when onboardingTraceCtx is not provided', async () => {
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            // No onboardingTraceCtx provided
+          },
+        },
+      };
+
+      const { unmount } = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockTrace).not.toHaveBeenCalled();
+
+      unmount();
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('should trace error when password creation fails', async () => {
+      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
+      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+      const testError = new Error('Password creation failed');
+
+      mockTrace.mockReturnValue(mockTraceCtx);
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
+      mockComponentAuthenticationType.mockRejectedValueOnce(testError);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            onboardingTraceCtx: mockOnboardingTraceCtx,
+          },
+        },
+      };
+
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => Promise.resolve());
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordSetupError,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: mockOnboardingTraceCtx,
+        tags: { errorMessage: testError.toString() },
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordSetupError,
+      });
+    });
+
+    it('should not trace error when onboardingTraceCtx is not provided', async () => {
+      const testError = new Error('Password creation failed');
+
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
+      mockComponentAuthenticationType.mockRejectedValueOnce(testError);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            // No onboardingTraceCtx provided
+          },
+        },
+      };
+
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      // Verify error tracing was not called since no onboardingTraceCtx
+      expect(mockTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingPasswordSetupError,
+        }),
+      );
+
+      expect(mockEndTrace).not.toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordSetupError,
+      });
+    });
+
+    it('should handle successful password creation without error tracing', async () => {
+      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
+      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
+
+      mockTrace.mockReturnValue(mockTraceCtx);
+
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
+      mockComponentAuthenticationType.mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: undefined,
+      });
+
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValueOnce(undefined);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            onboardingTraceCtx: mockOnboardingTraceCtx,
+          },
+        },
+      };
+
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: mockOnboardingTraceCtx,
+      });
+      expect(mockTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingPasswordSetupError,
+        }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordSetupError,
+      });
+    });
   });
 });

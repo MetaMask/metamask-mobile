@@ -127,28 +127,40 @@ const Main = (props) => {
   );
 
   useEffect(() => {
-    if (isSeedlessPasswordOutdated) {
-      // show seedless password outdated modal and force user to lock app
-      props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('login.seedless_password_outdated_modal_title'),
-          description: strings(
-            'login.seedless_password_outdated_modal_content',
-          ),
-          primaryButtonLabel: strings(
-            'login.seedless_password_outdated_modal_confirm',
-          ),
-          type: 'error',
-          icon: IconName.Danger,
-          isInteractable: false,
-          onPrimaryButtonPress: async () => {
-            await Authentication.lockApp({ locked: true });
+    const checkIsSeedlessPasswordOutdated = async () => {
+      if (isSeedlessPasswordOutdated) {
+        // Check for latest seedless password outdated state
+        // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
+        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
+          false,
+        );
+        if (!isOutdated) {
+          return;
+        }
+
+        // show seedless password outdated modal and force user to lock app
+        props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings('login.seedless_password_outdated_modal_title'),
+            description: strings(
+              'login.seedless_password_outdated_modal_content',
+            ),
+            primaryButtonLabel: strings(
+              'login.seedless_password_outdated_modal_confirm',
+            ),
+            type: 'error',
+            icon: IconName.Danger,
+            isInteractable: false,
+            onPrimaryButtonPress: async () => {
+              await Authentication.lockApp({ locked: true });
+            },
+            closeOnPrimaryButtonPress: true,
           },
-          closeOnPrimaryButtonPress: true,
-        },
-      });
-    }
+        });
+      }
+    };
+    checkIsSeedlessPasswordOutdated();
   }, [isSeedlessPasswordOutdated, props.navigation]);
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);

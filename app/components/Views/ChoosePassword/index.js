@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { captureException } from '@sentry/react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -77,6 +78,13 @@ import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import ErrorBoundary from '../ErrorBoundary';
+import {
+  TraceName,
+  endTrace,
+  trace,
+  TraceOperation,
+} from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -242,12 +250,14 @@ class ChoosePassword extends PureComponent {
     rememberMe: false,
     loading: false,
     error: null,
+    errorToThrow: null,
     inputWidth: { width: '99%' },
     showPasswordIndex: [0, 1],
     passwordInputContainerFocusedIndex: -1,
   };
 
   mounted = true;
+  passwordSetupAttemptTraceCtx = null;
 
   confirmPasswordInput = React.createRef();
   // Flag to know if password in keyring was set or not
@@ -302,6 +312,16 @@ class ChoosePassword extends PureComponent {
   };
 
   async componentDidMount() {
+    const { route } = this.props;
+    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtx) {
+      this.passwordSetupAttemptTraceCtx = trace({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtx,
+      });
+    }
+
     const authData = await Authentication.getType();
     const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
@@ -346,7 +366,39 @@ class ChoosePassword extends PureComponent {
 
   componentWillUnmount() {
     this.mounted = false;
+    if (this.passwordSetupAttemptTraceCtx) {
+      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
+      this.passwordSetupAttemptTraceCtx = null;
+    }
   }
+
+  isOAuthPasswordCreationError = (error, authType) =>
+    authType.oauth2Login &&
+    error.message &&
+    error.message.includes('SeedlessOnboardingController');
+
+  handleOAuthPasswordCreationError = (error, authType) => {
+    // If user has already consented to analytics, report error using regular Sentry
+    if (this.props.metrics.isEnabled()) {
+      authType.oauth2Login &&
+        captureException(error, {
+          tags: {
+            view: 'ChoosePassword',
+            context:
+              'OAuth password creation failed - user consented to analytics',
+          },
+        });
+    } else {
+      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
+      authType.oauth2Login &&
+        this.setState({
+          loading: false,
+          errorToThrow: new Error(
+            `OAuth password creation failed: ${error.message}`,
+          ),
+        });
+    }
+  };
 
   setSelection = () => {
     const { isSelected } = this.state;
@@ -408,6 +460,10 @@ class ChoosePassword extends PureComponent {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
+          if (this.isOAuthPasswordCreationError(error, authType)) {
+            this.handleOAuthPasswordCreationError(error, authType);
+            return;
+          }
           if (Device.isIos) {
             await this.handleRejectedOsBiometricPrompt();
           }
@@ -423,6 +479,9 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: false });
 
       if (authType.oauth2Login) {
+        endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
+        endTrace({ name: TraceName.OnboardingJourneyOverall });
+
         if (this.props.metrics.isEnabled()) {
           this.props.navigation.reset({
             index: 0,
@@ -488,6 +547,17 @@ class ChoosePassword extends PureComponent {
         wallet_setup_type: 'new',
         error_type: error.toString(),
       });
+
+      const onboardingTraceCtx = this.props.route.params?.onboardingTraceCtx;
+      if (onboardingTraceCtx) {
+        trace({
+          name: TraceName.OnboardingPasswordSetupError,
+          op: TraceOperation.OnboardingUserJourney,
+          parentContext: onboardingTraceCtx,
+          tags: { errorMessage: error.toString() },
+        });
+        endTrace({ name: TraceName.OnboardingPasswordSetupError });
+      }
     }
   };
 
@@ -509,6 +579,10 @@ class ChoosePassword extends PureComponent {
         newAuthData,
       );
     } catch (err) {
+      if (this.isOAuthPasswordCreationError(err, newAuthData)) {
+        this.handleOAuthPasswordCreationError(err, newAuthData);
+        return;
+      }
       throw Error(strings('choose_password.disable_biometric_error'));
     }
     this.setState({
@@ -665,7 +739,7 @@ class ChoosePassword extends PureComponent {
     );
   };
 
-  render() {
+  renderContent = () => {
     const { isSelected, password, passwordStrength, confirmPassword, loading } =
       this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
@@ -740,7 +814,9 @@ class ChoosePassword extends PureComponent {
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                   >
-                    {strings('choose_password.description')}
+                    {this.getOauth2LoginSuccess()
+                      ? strings('choose_password.description_social_login')
+                      : strings('choose_password.description')}
                   </Text>
                 </View>
 
@@ -916,6 +992,31 @@ class ChoosePassword extends PureComponent {
           </KeyboardAwareScrollView>
         )}
       </SafeAreaView>
+    );
+  };
+
+  render() {
+    const { errorToThrow } = this.state;
+
+    // Component that throws error if needed (to be caught by ErrorBoundary)
+    const ThrowErrorIfNeeded = () => {
+      if (errorToThrow) {
+        throw errorToThrow;
+      }
+      return null;
+    };
+
+    return (
+      <ErrorBoundary
+        navigation={this.props.navigation}
+        view="ChoosePassword"
+        useOnboardingErrorHandling={
+          !!errorToThrow && !this.props.metrics.isEnabled()
+        }
+      >
+        <ThrowErrorIfNeeded />
+        {this.renderContent()}
+      </ErrorBoundary>
     );
   }
 }
