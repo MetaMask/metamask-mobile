@@ -132,7 +132,8 @@ describe('ConfigurationModal', () => {
       expect(getByText('Log out')).toBeTruthy();
     });
 
-    it('should clear auth token and show success toast when logout is pressed', async () => {
+    it('should clear auth token and show success toast when logout is successful', async () => {
+      mockClearAuthToken.mockResolvedValue(undefined);
       const { getByText } = renderWithProvider(ConfigurationModal);
       const logoutButton = getByText('Log out');
       fireEvent.press(logoutButton);
@@ -145,6 +146,27 @@ describe('ConfigurationModal', () => {
           labelOptions: [{ label: 'Successfully logged out' }],
           iconName: 'CheckBold',
           iconColor: 'Success',
+          hasNoTimeout: false,
+        });
+      });
+    });
+
+    it('should show error toast when logout fails', async () => {
+      const mockError = new Error('Logout failed');
+      mockClearAuthToken.mockRejectedValue(mockError);
+      const { getByText } = renderWithProvider(ConfigurationModal);
+      const logoutButton = getByText('Log out');
+
+      fireEvent.press(logoutButton);
+
+      expect(mockClearAuthToken).toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith({
+          variant: 'Icon',
+          labelOptions: [{ label: 'Error logging out' }],
+          iconName: 'CircleX',
+          iconColor: 'Error',
           hasNoTimeout: false,
         });
       });

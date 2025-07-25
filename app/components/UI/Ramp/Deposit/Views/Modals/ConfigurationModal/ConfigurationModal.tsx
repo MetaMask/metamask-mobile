@@ -29,6 +29,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../../../component-library/components/Toast';
+import Logger from '../../../../../../../util/Logger';
 
 export const createConfigurationModalNavigationDetails =
   createNavigationDetails(
@@ -90,17 +91,31 @@ function ConfigurationModal() {
   }, []);
 
   const handleLogOut = useCallback(async () => {
-    sheetRef.current?.onCloseBottomSheet();
-    await logoutFromProvider();
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        { label: strings('deposit.configuration_modal.logged_out_success') },
-      ],
-      iconName: IconName.CheckBold,
-      iconColor: IconColor.Success,
-      hasNoTimeout: false,
-    });
+    try {
+      await logoutFromProvider();
+
+      sheetRef.current?.onCloseBottomSheet();
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('deposit.configuration_modal.logged_out_success') },
+        ],
+        iconName: IconName.CheckBold,
+        iconColor: IconColor.Success,
+        hasNoTimeout: false,
+      });
+    } catch (error) {
+      Logger.error(error as Error, 'Error logging out from provider:');
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('deposit.configuration_modal.logged_out_error') },
+        ],
+        iconName: IconName.CircleX,
+        iconColor: IconColor.Error,
+        hasNoTimeout: false,
+      });
+    }
   }, [logoutFromProvider, toastRef]);
 
   return (

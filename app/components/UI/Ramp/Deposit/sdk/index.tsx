@@ -195,16 +195,14 @@ export const DepositSDKProvider = ({
 
   const logoutFromProvider = useCallback(async () => {
     if (sdk) {
-      try {
-        await sdk.logout();
-        await resetProviderToken();
-        setAuthToken(undefined);
-        setIsAuthenticated(false);
-      } catch (error) {
-        throw new Error(
-          strings('deposit.configuration_modal.error_sdk_not_initialized'),
-        );
-      }
+      await sdk.logout();
+      await resetProviderToken();
+      setAuthToken(undefined);
+      setIsAuthenticated(false);
+    } else {
+      throw new Error(
+        strings('deposit.configuration_modal.error_sdk_not_initialized'),
+      );
     }
   }, [sdk]);
 

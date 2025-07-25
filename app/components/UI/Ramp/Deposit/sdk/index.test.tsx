@@ -510,5 +510,41 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.isAuthenticated).toBe(false);
       expect(contextValue?.authToken).toBeUndefined();
     });
+
+    it('throws error when SDK is not initialized during logout', async () => {
+      const stateWithoutProviderKeys = {
+        ...mockedState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                depositConfig: {
+                  providerApiKey: null,
+                  providerFrontendAuth: null,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return <Text>Test Component</Text>;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: stateWithoutProviderKeys },
+      );
+
+      await expect(async () => {
+        await contextValue?.logoutFromProvider();
+      }).rejects.toThrow();
+    });
   });
 });
