@@ -26,14 +26,16 @@ class ImportNFTView {
   }
 
   async typeInNFTAddress(address: string): Promise<void> {
-    await Gestures.typeInWebElement(this.addressInput, address, {
+    await Gestures.typeText(this.addressInput, address, {
       elemDescription: 'NFT Address Input',
+      hideKeyboard: true,
     });
   }
 
   async typeInNFTIdentifier(identifier: string): Promise<void> {
-    await Gestures.typeInWebElement(this.identifierInput, identifier, {
+    await Gestures.typeText(this.identifierInput, identifier, {
       elemDescription: 'NFT Identifier Input',
+      hideKeyboard: true,
     });
   }
 }

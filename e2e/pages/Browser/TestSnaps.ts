@@ -147,7 +147,9 @@ class TestSnaps {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
     ) as Promise<IndexableWebElement>;
-    await Gestures.typeInWebElement(webElement, message);
+    await Gestures.typeText(webElement, message, {
+      hideKeyboard: true,
+    });
   }
 
   async approveSignRequest() {

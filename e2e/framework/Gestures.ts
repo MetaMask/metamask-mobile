@@ -492,43 +492,6 @@ export default class Gestures {
     );
   }
 
-  /**
-   * Type text into a web element within a webview using JavaScript injection.
-   * @param {Promise<Detox.IndexableWebElement>} element - The web element to type into.
-   * @param {string} text - The text to type.
-   */
-  static async typeInWebElement(
-    elem: DetoxElement,
-    text: string,
-    options: Partial<TypeTextOptions> = {},
-  ): Promise<void> {
-    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
-
-    await Utilities.executeWithRetry(
-      async () => {
-        try {
-          await ((await elem) as Detox.IndexableWebElement).runScript(
-            (el, value) => {
-              el.focus();
-              el.value = value;
-              el._valueTracker?.setValue('');
-              el.dispatchEvent(new Event('input', { bubbles: true }));
-            },
-            [text],
-          );
-        } catch {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await ((await element) as any).typeText(text);
-        }
-      },
-      {
-        timeout,
-        description: `typeInWebElement("${text}")`,
-        elemDescription,
-      },
-    );
-  }
-
   // Legacy methods for backwards compatibility
 
   /**
