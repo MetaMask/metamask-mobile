@@ -1,16 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { selectIsCardDataLoaded } from '../../../../selectors/card';
 import { ThunkAction } from 'redux-thunk';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import { RootState } from '../../../../reducers';
-import {
-  loadCardholderAccountsFailure,
-  loadCardholderAccountsRequest,
-  loadCardholderAccountsSuccess,
-} from '../../../../actions/card';
+import { loadCardholderAccountsSuccess } from '../../../../actions/card';
 import { CardAction } from '../../../../actions/card/types';
 import { CardSDK } from '../sdk/CardSDK';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
@@ -22,7 +17,6 @@ import Logger from '../../../../util/Logger';
  */
 export const useCardholderCheck = () => {
   const dispatchThunk = useThunkDispatch();
-  const isDataLoaded = useSelector(selectIsCardDataLoaded);
 
   // Get app readiness states
   const userLoggedIn = useSelector((state: any) => state.user.userLoggedIn);
@@ -64,8 +58,6 @@ export const useCardholderCheck = () => {
             return;
           }
 
-          dispatch(loadCardholderAccountsRequest());
-
           const state = getState();
           const accounts = getAccountsFromEngine(state);
 
@@ -79,10 +71,8 @@ export const useCardholderCheck = () => {
             rawChainId: LINEA_CHAIN_ID,
           });
 
-          // Call isCardHolder method
           const result = await cardSDK.isCardHolder(accounts);
 
-          // Extract just the addresses for storage
           const cardholderAddresses = result.cardholderAccounts.map(
             (account) => account.split(':')[2],
           );
@@ -95,9 +85,6 @@ export const useCardholderCheck = () => {
             errorInstance,
             'Card: Error loading cardholder accounts',
           );
-          const errorMessage =
-            error instanceof Error ? error.message : 'Unknown error occurred';
-          dispatch(loadCardholderAccountsFailure(errorMessage));
         }
       },
     [cardFeatureFlag],

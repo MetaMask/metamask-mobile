@@ -15,11 +15,11 @@ export const selectCardholderAccounts = createSelector(
 );
 
 /**
- * Selector for card loading state
+ * Selector for checking if any accounts are cardholders
  */
-export const selectIsCardLoading = createSelector(
-  [selectCardState],
-  (card) => card.isLoading,
+export const selectIsCardholder = createSelector(
+  [selectCardholderAccounts],
+  (cardholderAccounts) => cardholderAccounts.length > 0,
 );
 
 /**
@@ -28,12 +28,4 @@ export const selectIsCardLoading = createSelector(
 export const selectIsCardDataLoaded = createSelector(
   [selectCardState],
   (card) => card.isLoaded,
-);
-
-/**
- * Selector for checking if any accounts are cardholders
- */
-export const selectHasCardholderAccounts = createSelector(
-  [selectCardholderAccounts],
-  (cardholderAccounts) => cardholderAccounts.length > 0,
 );
