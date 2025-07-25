@@ -56,50 +56,43 @@ class NetworkNonPemittedBottomSheet {
 
   async tapAddThisNetworkButton(): Promise<void> {
     await Gestures.waitAndTap(this.addThisNetworkButton, {
-      elemDescription:
-        'Add This Network Button in Network Non-Permitted Bottom Sheet',
+      elemDescription: 'Add this network button',
     });
   }
 
   async tapSepoliaNetworkName(): Promise<void> {
     await Gestures.waitAndTap(this.sepoliaNetworkName, {
-      elemDescription:
-        'Sepolia Network Name in Network Non-Permitted Bottom Sheet',
+      elemDescription: 'Sepolia network name',
     });
   }
 
   async tapEthereumMainNetNetworkName(): Promise<void> {
     await Gestures.waitAndTap(this.ethereumMainNetNetworkName, {
-      elemDescription:
-        'Ethereum Main Net Network Name in Network Non-Permitted Bottom Sheet',
+      elemDescription: 'Ethereum main net network name',
     });
   }
 
   async tapLineaSepoliaNetworkName(): Promise<void> {
     await Gestures.waitAndTap(this.lineaSepoliaNetworkName, {
-      elemDescription:
-        'Linea Sepolia Network Name in Network Non-Permitted Bottom Sheet',
+      elemDescription: 'Linea Sepolia network name',
     });
   }
 
   async tapElysiumTestnetNetworkName(): Promise<void> {
     await Gestures.waitAndTap(this.elysiumTestnetNetworkName, {
-      elemDescription:
-        'Elysium Testnet Network Name in Network Non-Permitted Bottom Sheet',
+      elemDescription: 'Elysium testnet network name',
     });
   }
 
   async tapChooseFromPermittedNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.chooseFromPermittedNetworksButton, {
-      elemDescription:
-        'Choose From Permitted Networks Button in Network Non-Permitted Bottom Sheet',
+      elemDescription: 'Choose from permitted networks button',
     });
   }
 
   async tapEditPermissionsButton(): Promise<void> {
     await Gestures.waitAndTap(this.editPermissionsButton, {
-      elemDescription:
-        'Edit Permissions Button in Network Non-Permitted Bottom Sheet',
+      elemDescription: 'Edit permissions button',
     });
   }
 }

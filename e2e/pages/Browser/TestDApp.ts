@@ -2,16 +2,16 @@ import enContent from '../../../locales/languages/en.json';
 
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import TestHelpers from '../../helpers';
 import { getLocalTestDappUrl } from '../../fixtures/utils';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from '../Browser/BrowserView';
-import { TapOptions } from '../../framework';
+import { TapOptions, Utilities } from '../../framework';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
 const CONNECT_BUTTON_TEXT = 'Connect';
+const DAPP_ACCOUNTS_TEXT = 'Accounts:';
 
 interface ContractNavigationParams {
   contractAddress: string;
@@ -30,6 +30,13 @@ class TestDApp {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.CONNECT_BUTTON,
+    );
+  }
+
+  get connectedAccounts(): WebElement {
+    return Matchers.getElementByXPath(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      `//*[contains(text(),"${DAPP_ACCOUNTS_TEXT}")]`,
     );
   }
 
@@ -242,111 +249,134 @@ class TestDApp {
     );
   }
 
+  /**
+   * Checks if the user is connected to the test dapp by checking if there are connected accounts
+   * @returns true if connected, false otherwise
+   */
+  async isConnectedToTestDapp(): Promise<boolean> {
+    return Utilities.executeWithRetry(
+      async () => {
+        const connectedAccounts = (await this
+          .connectedAccounts) as IndexableWebElement;
+        const text = await connectedAccounts.getText();
+        const accountsText = text.replace(DAPP_ACCOUNTS_TEXT, '').trim();
+        if (accountsText.length > 0) {
+          return true;
+        }
+        throw new Error('Not connected to test dapp');
+      },
+      {
+        timeout: 30000,
+        description: 'Check if connected to test dapp',
+      },
+    );
+  }
+
   async connect(): Promise<void> {
-    await this.tapButton(this.DappConnectButton, {
-      elemDescription: 'Connect Button',
+    await Gestures.waitAndTap(this.DappConnectButton, {
+      elemDescription: 'Dapp connect button',
     });
   }
 
   async tapApproveERC20TokensButton(): Promise<void> {
-    await this.tapButton(this.ApproveERC20TokensButton, {
-      elemDescription: 'Approve ERC20 Tokens Button',
+    await Gestures.waitAndTap(this.ApproveERC20TokensButton, {
+      elemDescription: 'Approve ERC20 tokens button',
     });
   }
 
   async tapApproveERC721TokenButton(): Promise<void> {
-    await this.tapButton(this.ApproveERC721TokenButton, {
-      elemDescription: 'Approve ERC721 Token Button',
+    await Gestures.waitAndTap(this.ApproveERC721TokenButton, {
+      elemDescription: 'Approve ERC721 token button',
     });
   }
 
   async tapInvalidSigButton(): Promise<void> {
-    await this.tapButton(this.invalidSignature, {
-      elemDescription: 'Invalid Signature Button',
+    await Gestures.waitAndTap(this.invalidSignature, {
+      elemDescription: 'Invalid signature button',
     });
   }
 
   async tapIncreaseAllowanceButton(): Promise<void> {
-    await this.tapButton(this.increaseAllowanceButton, {
-      elemDescription: 'Increase Allowance Button',
+    await Gestures.waitAndTap(this.increaseAllowanceButton, {
+      elemDescription: 'Increase allowance button',
     });
   }
 
   async tapAddERC20TokenToWalletButton(): Promise<void> {
-    await this.tapButton(this.addTokensToWalletButton, {
-      elemDescription: 'Add ERC20 Token to Wallet Button',
+    await Gestures.waitAndTap(this.addTokensToWalletButton, {
+      elemDescription: 'Add ERC20 token to wallet button',
     });
   }
 
   async tapPersonalSignButton(): Promise<void> {
-    await this.tapButton(this.personalSignButton, {
-      elemDescription: 'Personal Sign Button',
+    await Gestures.waitAndTap(this.personalSignButton, {
+      elemDescription: 'Personal sign button',
     });
   }
 
   async tapTypedSignButton(): Promise<void> {
-    await this.tapButton(this.signTypedDataButton, {
-      elemDescription: 'Typed Sign Button',
+    await Gestures.waitAndTap(this.signTypedDataButton, {
+      elemDescription: 'Typed sign button',
     });
   }
 
   async tapTypedV3SignButton(): Promise<void> {
-    await this.tapButton(this.signTypedDataV3Button, {
-      elemDescription: 'Typed V3 Sign Button',
+    await Gestures.waitAndTap(this.signTypedDataV3Button, {
+      elemDescription: 'Typed V3 sign button',
     });
   }
 
   async tapTypedV4SignButton(): Promise<void> {
-    await this.tapButton(this.signTypedDataV4Button, {
-      elemDescription: 'Typed V4 Sign Button',
+    await Gestures.waitAndTap(this.signTypedDataV4Button, {
+      elemDescription: 'Typed V4 sign button',
     });
   }
 
   async tapEthereumSignButton(): Promise<void> {
-    await this.tapButton(this.ethereumSignButton, {
-      elemDescription: 'Ethereum Sign Button',
+    await Gestures.waitAndTap(this.ethereumSignButton, {
+      elemDescription: 'Ethereum sign button',
     });
   }
 
   async tapPermitSignButton(): Promise<void> {
-    await this.tapButton(this.permitSignButton, {
-      elemDescription: 'Permit Sign Button',
+    await Gestures.waitAndTap(this.permitSignButton, {
+      elemDescription: 'Permit sign button',
     });
   }
 
   async tapSIWEBadDomainButton(): Promise<void> {
-    await this.tapButton(this.siweBadDomainButton, {
-      elemDescription: 'SIWE Bad Domain Button',
+    await Gestures.waitAndTap(this.siweBadDomainButton, {
+      elemDescription: 'SIWE bad domain button',
     });
   }
 
   async tapERC20TransferButton(): Promise<void> {
-    await this.tapButton(this.erc20TransferTokensButton, {
-      elemDescription: 'ERC20 Transfer Button',
+    await Gestures.waitAndTap(this.erc20TransferTokensButton, {
+      elemDescription: 'ERC20 transfer button',
     });
   }
 
   async tapNFTTransferButton(): Promise<void> {
-    await this.tapButton(this.nftTransferFromTokensButton, {
-      elemDescription: 'NFT Transfer Button',
+    await Gestures.waitAndTap(this.nftTransferFromTokensButton, {
+      elemDescription: 'NFT transfer button',
     });
   }
 
-  async tapERC721MintButton(): Promise<void> {
-    await this.tapButton(this.erc721MintButton, {
-      elemDescription: 'ERC721 Mint Button',
+  async tabERC721MintButton(): Promise<void> {
+    await Gestures.waitAndTap(this.erc721MintButton, {
+      elemDescription: 'ERC721 mint button',
     });
   }
 
   async tapNFTSetApprovalForAllButton(): Promise<void> {
-    await this.tapButton(this.nftSetApprovalForAllButton, {
-      elemDescription: 'NFT Set Approval for All Button',
+    await Gestures.waitAndTap(this.nftSetApprovalForAllButton, {
+      elemDescription: 'NFT set approval for all button',
     });
   }
 
   async tapERC1155SetApprovalForAllButton(): Promise<void> {
-    await this.tapButton(this.erc1155SetApprovalForAllButton, {
-      elemDescription: 'ERC1155 Set Approval for All Button',
+    await Gestures.waitAndTap(this.erc1155SetApprovalForAllButton, {
+      elemDescription: 'ERC1155 set approval for all button',
     });
   }
 
@@ -369,14 +399,14 @@ class TestDApp {
   }
 
   async tapSendFailingTransactionButton(): Promise<void> {
-    await this.tapButton(this.sendFailingTransactionButton, {
-      elemDescription: 'Send Failing Transaction Button',
+    await Gestures.waitAndTap(this.sendFailingTransactionButton, {
+      elemDescription: 'Send failing transaction button',
     });
   }
 
   async tapERC1155BatchTransferButton(): Promise<void> {
-    await this.tapButton(this.erc1155BatchTransferButton, {
-      elemDescription: 'ERC1155 Batch Transfer Button',
+    await Gestures.waitAndTap(this.erc1155BatchTransferButton, {
+      elemDescription: 'ERC1155 batch transfer button',
     });
   }
 
@@ -385,7 +415,7 @@ class TestDApp {
     options: TapOptions = {},
   ): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);
-    await Gestures.waitAndTap(elementId, options);
+    await Gestures.tap(elementId, options);
   }
 
   async navigateToTestDappWithContract({
@@ -395,8 +425,6 @@ class TestDApp {
     await Browser.navigateToURL(
       `${getLocalTestDappUrl()}?scrollTo=''&contract=${contractAddress}`,
     );
-    // eslint-disable-next-line no-restricted-syntax
-    await TestHelpers.delay(3000); // should have a better assertion that waits until the webpage loads
   }
 
   async switchChainFromTestDapp(): Promise<void> {

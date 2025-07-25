@@ -3,14 +3,12 @@ import Gestures from '../../framework/Gestures';
 import { AddNewAccountIds } from '../../selectors/MultiSRP/AddHdAccount.selectors';
 
 class AddNewAccountSheet {
-  get confirmButton(): DetoxElement {
+  get confirmButton() {
     return Matchers.getElementByID(AddNewAccountIds.CONFIRM);
   }
 
-  async tapConfirmButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
-      elemDescription: 'Confirm Button in Add New Account Sheet',
-    });
+  async tapConfirmButton() {
+    await Gestures.waitAndTap(this.confirmButton);
   }
 }
 
