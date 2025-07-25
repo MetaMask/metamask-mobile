@@ -1,9 +1,4 @@
-import { AssetType } from '../../types/token';
-import {
-  prepareEVMTransaction,
-  validateAmount,
-  ValidateAmountArgs,
-} from './utils';
+import { validateAmountFn, ValidateAmountArgs } from './useValidateAmount';
 
 const getArguments = (params: Record<string, unknown>) =>
   ({
@@ -14,82 +9,24 @@ const getArguments = (params: Record<string, unknown>) =>
     ...params,
   } as unknown as ValidateAmountArgs);
 
-describe('prepareEVMTransaction', () => {
-  it('prepares transaction for native token', () => {
-    expect(
-      prepareEVMTransaction(
-        {
-          name: 'Ethereum',
-          address: '0x123',
-          isNative: true,
-          chainId: '0x1',
-        } as AssetType,
-        { from: '0x123', to: '0x456', value: '100' },
-      ),
-    ).toStrictEqual({
-      data: '0x',
-      from: '0x123',
-      to: '0x456',
-      value: '0x56bc75e2d63100000',
-    });
-  });
-
-  it('prepares transaction for ERC20 token', () => {
-    expect(
-      prepareEVMTransaction(
-        {
-          name: 'MyToken',
-          address: '0x123',
-          chainId: '0x1',
-        } as AssetType,
-        { from: '0x123', to: '0x456', value: '100' },
-      ),
-    ).toStrictEqual({
-      data: '0xa9059cbb0000000000000000000000000000000000000000000000000000000000000456000000000000000000000000000000000000000000000000000000000003b27c',
-      from: '0x123',
-      to: '0x123',
-      value: '0x0',
-    });
-  });
-
-  it('prepares transaction for NFT token', () => {
-    expect(
-      prepareEVMTransaction(
-        {
-          name: 'MyNFT',
-          address: '0x123',
-          chainId: '0x1',
-          tokenId: '0x1',
-        } as AssetType,
-        { from: '0x123', to: '0x456', value: '100' },
-      ),
-    ).toStrictEqual({
-      data: '0x23b872dd000000000000000000000000000000000000000000000000000000000000012300000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000001',
-      from: '0x123',
-      to: '0x123',
-      value: '0x0',
-    });
-  });
-});
-
-describe('validateAmount', () => {
+describe('validateAmountFn', () => {
   it('returns undefined if no value is passed', () => {
-    expect(validateAmount(getArguments({ amount: undefined }))).toStrictEqual(
+    expect(validateAmountFn(getArguments({ amount: undefined }))).toStrictEqual(
       undefined,
     );
-    expect(validateAmount(getArguments({ amount: null }))).toStrictEqual(
+    expect(validateAmountFn(getArguments({ amount: null }))).toStrictEqual(
       undefined,
     );
-    expect(validateAmount(getArguments({ amount: '' }))).toStrictEqual(
+    expect(validateAmountFn(getArguments({ amount: '' }))).toStrictEqual(
       undefined,
     );
   });
 
   it('returns invalid value error if value passed is not correct positive decimal', () => {
-    expect(validateAmount(getArguments({ amount: 'abc' }))).toStrictEqual(
+    expect(validateAmountFn(getArguments({ amount: 'abc' }))).toStrictEqual(
       'Invalid amount',
     );
-    expect(validateAmount(getArguments({ amount: '-100' }))).toStrictEqual(
+    expect(validateAmountFn(getArguments({ amount: '-100' }))).toStrictEqual(
       'Invalid amount',
     );
   });
@@ -97,7 +34,7 @@ describe('validateAmount', () => {
   describe('for native token', () => {
     it('does not return error if amount is less than user balance', () => {
       expect(
-        validateAmount(
+        validateAmountFn(
           getArguments({
             amount: '999',
             asset: {
@@ -110,7 +47,7 @@ describe('validateAmount', () => {
 
     it('does not return error if amount is equal to user balance', () => {
       expect(
-        validateAmount(
+        validateAmountFn(
           getArguments({
             amount: '1000',
             asset: {
@@ -123,7 +60,7 @@ describe('validateAmount', () => {
 
     it('return error if amount is greater than user balance', () => {
       expect(
-        validateAmount(
+        validateAmountFn(
           getArguments({
             amount: '1001',
             asset: {
@@ -138,7 +75,7 @@ describe('validateAmount', () => {
   describe('for ERC20 token', () => {
     it('does not return error if amount is less than user balance', () => {
       expect(
-        validateAmount(
+        validateAmountFn(
           getArguments({
             amount: '999',
             asset: {
@@ -153,7 +90,7 @@ describe('validateAmount', () => {
 
     it('does not return error if amount is equal to user balance', () => {
       expect(
-        validateAmount(
+        validateAmountFn(
           getArguments({
             amount: '1000',
             asset: {
@@ -168,7 +105,7 @@ describe('validateAmount', () => {
 
     it('return error if amount is greater than user balance', () => {
       expect(
-        validateAmount(
+        validateAmountFn(
           getArguments({
             amount: '1001',
             asset: {

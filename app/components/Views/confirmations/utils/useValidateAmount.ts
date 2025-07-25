@@ -1,49 +1,19 @@
-import BN from 'bnjs5';
 import { AccountInformation } from '@metamask/assets-controllers';
-import { BNToHex, toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
-import { TransactionParams } from '@metamask/transaction-controller';
+import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 
-import { strings } from '../../../../../../locales/i18n.js';
-import { generateTransferData } from '../../../../../util/transactions';
+import { strings } from '../../../../../../locales/i18n';
 import {
   hexToBN,
   isDecimal,
   toTokenMinimalUnit,
   toWei,
 } from '../../../../../util/number';
+import { selectAccounts } from '../../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
 import { AssetType } from '../../types/token';
 import { isNativeToken } from '../../utils/generic';
-
-export const prepareEVMTransaction = (
-  asset: AssetType,
-  transactionParams: TransactionParams,
-) => {
-  const { from, to, value } = transactionParams;
-  const trxnParams: TransactionParams = { from };
-  if (isNativeToken(asset)) {
-    trxnParams.data = '0x';
-    trxnParams.to = to;
-    trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BN);
-  } else if (asset.tokenId) {
-    trxnParams.data = generateTransferData('transferFrom', {
-      fromAddress: from,
-      toAddress: to,
-      tokenId: toHex(asset.tokenId),
-    });
-    trxnParams.to = asset.address;
-    trxnParams.value = '0x0';
-  } else {
-    const tokenAmount = toTokenMinimalUnit(value ?? '0', asset.decimals);
-    trxnParams.data = generateTransferData('transfer', {
-      toAddress: to,
-      amount: BNToHex(tokenAmount),
-    });
-    trxnParams.to = asset.address;
-    trxnParams.value = '0x0';
-  }
-  return trxnParams;
-};
 
 export interface ValidateAmountArgs {
   accounts: Record<Hex, AccountInformation>;
@@ -53,7 +23,7 @@ export interface ValidateAmountArgs {
   from: Hex;
 }
 
-export const validateAmount = ({
+export const validateAmountFn = ({
   accounts,
   amount,
   asset,
@@ -75,7 +45,7 @@ export const validateAmount = ({
     const accountAddress = Object.keys(accounts).find(
       (address) => address.toLowerCase() === from.toLowerCase(),
     ) as Hex;
-    const account = accountAddress ? accounts[accountAddress] : undefined;
+    const account = accounts[accountAddress];
     // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
     try {
       weiValue = toWei(amount);
@@ -92,3 +62,25 @@ export const validateAmount = ({
   }
   return undefined;
 };
+
+const useValidateAmount = () => {
+  const accounts = useSelector(selectAccounts);
+  const contractBalances = useSelector(selectContractBalances);
+
+  const validateAmount = useCallback(
+    (from: Hex, amount?: string, asset?: AssetType) => {
+      return validateAmountFn({
+        accounts,
+        amount,
+        asset,
+        contractBalances,
+        from,
+      });
+    },
+    [accounts, contractBalances],
+  );
+
+  return { validateAmount };
+};
+
+export default useValidateAmount;

@@ -1,6 +1,9 @@
 import React from 'react';
 import { View } from 'react-native';
 
+import Button, {
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
 import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input';
 import Text, {
   TextColor,
@@ -11,19 +14,30 @@ import styleSheet from './amount.styles';
 
 const Amount = () => {
   const { styles } = useStyles(styleSheet, {});
-  const { amountError, updateTransactionParams } = useSendContext();
+  const {
+    amountError,
+    transactionParams,
+    updateTransactionParams,
+    updateToMaxAmount,
+  } = useSendContext();
 
   return (
     <View>
       <Text>Value:</Text>
       <Input
         style={styles.input}
+        value={transactionParams.value}
         onChangeText={(value: string) => {
           updateTransactionParams({ value });
         }}
         testID="send_amount"
       />
       <Text color={TextColor.Error}>{amountError}</Text>
+      <Button
+        label="Max"
+        onPress={updateToMaxAmount}
+        variant={ButtonVariants.Secondary}
+      />
     </View>
   );
 };

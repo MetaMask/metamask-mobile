@@ -15,21 +15,21 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { addTransaction } from '../../../../../util/transaction-controller';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController.ts';
-import { selectContractBalances } from '../../../../../selectors/tokenBalancesController.ts';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import useMaxAmount from '../../hooks/send/useMaxAmount.ts';
+import useValidateAmount from '../../hooks/send/useValidateAmount.ts';
 import { AssetType } from '../../types/token';
 import { MMM_ORIGIN } from '../../constants/confirmations';
-import { prepareEVMTransaction, validateAmount } from './utils.ts';
+import { prepareEVMTransaction } from '../../utils/send.ts';
 
 export interface SendContextType {
   amountError?: string;
   asset?: AssetType;
   cancelSend: () => void;
-  sendDisabled: boolean;
   submitSend: () => void;
-  transactionParams?: TransactionParams;
+  transactionParams: TransactionParams;
   updateAsset: (asset: AssetType) => void;
+  updateToMaxAmount: () => void;
   updateTransactionParams: (params: Partial<TransactionParams>) => void;
 }
 
@@ -37,10 +37,10 @@ export const SendContext = createContext<SendContextType>({
   amountError: undefined,
   asset: undefined,
   cancelSend: () => undefined,
-  sendDisabled: false,
   submitSend: () => undefined,
-  transactionParams: undefined,
+  transactionParams: {} as TransactionParams,
   updateAsset: () => undefined,
+  updateToMaxAmount: () => undefined,
   updateTransactionParams: () => undefined,
 });
 
@@ -48,8 +48,7 @@ export const SendContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
   const navigation = useNavigation();
-  const accounts = useSelector(selectAccounts);
-  const contractBalances = useSelector(selectContractBalances);
+  const { validateAmount } = useValidateAmount();
   const [asset, updateAsset] = useState<AssetType>();
   const from = useSelector(selectSelectedInternalAccount);
   const [transactionParams, setTransactionParams] = useState<TransactionParams>(
@@ -60,38 +59,25 @@ export const SendContextProvider: React.FC<{
   );
   const { chainId } = asset ?? { chainId: undefined };
   const { NetworkController } = Engine.context;
+  const networkClientId = useMemo(
+    () =>
+      chainId
+        ? NetworkController.findNetworkClientIdByChainId(toHex(chainId))
+        : undefined,
+    [chainId],
+  );
+  const { getMaxValue } = useMaxAmount(networkClientId);
 
   const amountError = useMemo(
-    () =>
-      validateAmount({
-        accounts,
-        amount: transactionParams.value,
-        asset,
-        contractBalances,
-        from: from?.address as Hex,
-      }),
-    [accounts, asset, contractBalances, from?.address, transactionParams],
+    () => validateAmount(from?.address as Hex, transactionParams.value, asset),
+    [asset, from?.address, transactionParams.value, validateAmount],
   );
 
-  const sendDisabled = useMemo(() => {
-    const { value, to } = transactionParams;
-    return (
-      Boolean(amountError) ||
-      value === undefined ||
-      value === null ||
-      value === '' ||
-      !to
-    );
-  }, [amountError, transactionParams]);
-
   const submitSend = useCallback(async () => {
-    if (!chainId || !asset) {
+    if (!networkClientId || !asset) {
       return;
     }
     // toHex is added here as sometime chainId in asset is not hexadecimal
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
-      toHex(chainId),
-    );
     const trxnParams = prepareEVMTransaction(asset, transactionParams);
     await addTransaction(trxnParams, {
       origin: MMM_ORIGIN,
@@ -100,15 +86,31 @@ export const SendContextProvider: React.FC<{
     navigation.navigate(
       Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     );
-  }, [asset, chainId, NetworkController, navigation, transactionParams]);
+  }, [
+    asset,
+    networkClientId,
+    NetworkController,
+    navigation,
+    transactionParams,
+  ]);
 
   const cancelSend = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const updateTransactionParams = (params: Partial<TransactionParams>) => {
-    setTransactionParams({ ...transactionParams, ...params });
-  };
+  const updateTransactionParams = useCallback(
+    (params: Partial<TransactionParams>) => {
+      setTransactionParams({ ...transactionParams, ...params });
+    },
+    [setTransactionParams, transactionParams],
+  );
+
+  const updateToMaxAmount = useCallback(() => {
+    const value = getMaxValue(from?.address as Hex, asset);
+    updateTransactionParams({
+      value,
+    });
+  }, [asset, from, getMaxValue, updateTransactionParams]);
 
   return (
     <SendContext.Provider
@@ -116,10 +118,10 @@ export const SendContextProvider: React.FC<{
         amountError,
         asset,
         cancelSend,
-        sendDisabled,
         submitSend,
         transactionParams,
         updateAsset,
+        updateToMaxAmount,
         updateTransactionParams,
       }}
     >

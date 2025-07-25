@@ -9,6 +9,7 @@ import Button, {
 import Text from '../../../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { useStyles } from '../../../../hooks/useStyles';
+import useSendDisabled from '../../hooks/send/useSendDisabled';
 import { useSendContext } from '../../context/send-context';
 import Amount from './amount';
 import Asset from './asset';
@@ -18,7 +19,8 @@ import styleSheet from './send.styles';
 export const Send = () => {
   const from = useSelector(selectSelectedInternalAccount);
   const { styles } = useStyles(styleSheet, {});
-  const { cancelSend, sendDisabled, submitSend } = useSendContext();
+  const { cancelSend, submitSend } = useSendContext();
+  const { sendDisabled } = useSendDisabled();
 
   return (
     <View style={styles.container}>
