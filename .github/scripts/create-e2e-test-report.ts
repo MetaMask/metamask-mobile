@@ -34,10 +34,10 @@ async function main() {
     REPOSITORY: process.env.REPOSITORY || 'metamask-mobile',
     BRANCH: process.env.BRANCH || 'main',
     TEST_SUMMARY_PATH:
-      process.env.TEST_SUMMARY_PATH || 'e2e/test-results/summary.md',
-    TEST_RESULTS_PATH: process.env.TEST_RESULTS_PATH || 'e2e/reports',
+      process.env.TEST_SUMMARY_PATH || '../../e2e/test-results/summary.md',
+    TEST_RESULTS_PATH: process.env.TEST_RESULTS_PATH || '../../e2e/reports',
     TEST_RUNS_PATH:
-      process.env.TEST_RUNS_PATH || 'e2e/test-results/test-runs-mobile.json',
+      process.env.TEST_RUNS_PATH || '../../e2e/test-results/test-runs-mobile.json',
     GITHUB_TOKEN: process.env.GITHUB_TOKEN!,
     GITHUB_ACTIONS: process.env.GITHUB_ACTIONS === 'true',
   };
