@@ -14,6 +14,7 @@ import { selectAccounts } from '../../../../../selectors/accountTrackerControlle
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
 import { AssetType } from '../../types/token';
 import { isNativeToken } from '../../utils/generic';
+import { useSendContext } from '../../context/send-context';
 
 export interface ValidateAmountArgs {
   accounts: Record<Hex, AccountInformation>;
@@ -66,19 +67,23 @@ export const validateAmountFn = ({
 const useValidateAmount = () => {
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
+  const { asset, transactionParams } = useSendContext();
 
-  const validateAmount = useCallback(
-    (from: Hex, amount?: string, asset?: AssetType) => {
-      return validateAmountFn({
-        accounts,
-        amount,
-        asset,
-        contractBalances,
-        from,
-      });
-    },
-    [accounts, contractBalances],
-  );
+  const validateAmount = useCallback(() => {
+    return validateAmountFn({
+      accounts,
+      amount: transactionParams.value,
+      asset,
+      contractBalances,
+      from: transactionParams.from as Hex,
+    });
+  }, [
+    accounts,
+    asset,
+    contractBalances,
+    transactionParams.from,
+    transactionParams.value,
+  ]);
 
   return { validateAmount };
 };

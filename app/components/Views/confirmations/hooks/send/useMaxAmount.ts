@@ -1,9 +1,11 @@
 import BN from 'bnjs4';
 import { AccountInformation } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
-import { useCallback } from 'react';
+import { toHex } from '@metamask/controller-utils';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
+import Engine from '../../../../../core/Engine';
 import {
   fromTokenMinimalUnitString,
   fromWei,
@@ -13,6 +15,7 @@ import { selectAccounts } from '../../../../../selectors/accountTrackerControlle
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
 import { AssetType } from '../../types/token';
 import { isNativeToken } from '../../utils/generic';
+import { useSendContext } from '../../context/send-context';
 import { useGasFeeEstimates } from '../gas/useGasFeeEstimates';
 
 const NATIVE_TRANSFER_GAS_LIMIT = 21000;
@@ -70,25 +73,43 @@ export const getMaxValueFn = ({
   );
 };
 
-const useMaxAmount = (networkClientId?: string) => {
-  const { gasFeeEstimates } = useGasFeeEstimates(networkClientId ?? '');
+const useMaxAmount = () => {
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
-
-  const getMaxValue = useCallback(
-    (from: Hex, asset?: AssetType) => {
-      return getMaxValueFn({
-        accounts,
-        asset,
-        contractBalances,
-        from,
-        gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
-      });
-    },
-    [accounts, contractBalances, gasFeeEstimates],
+  const { asset, transactionParams, updateTransactionParams } =
+    useSendContext();
+  const { chainId } = asset ?? { chainId: undefined };
+  const { NetworkController } = Engine.context;
+  const networkClientId = useMemo(
+    () =>
+      chainId
+        ? NetworkController.findNetworkClientIdByChainId(toHex(chainId))
+        : undefined,
+    [chainId],
   );
+  const { gasFeeEstimates } = useGasFeeEstimates(networkClientId ?? '');
 
-  return { getMaxValue };
+  const updateToMaxAmount = useCallback(() => {
+    const value = getMaxValueFn({
+      accounts,
+      asset,
+      contractBalances,
+      from: transactionParams.from as Hex,
+      gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
+    });
+    updateTransactionParams({
+      value,
+    });
+  }, [
+    accounts,
+    asset,
+    contractBalances,
+    transactionParams.from,
+    gasFeeEstimates,
+    updateTransactionParams,
+  ]);
+
+  return { updateToMaxAmount };
 };
 
 export default useMaxAmount;

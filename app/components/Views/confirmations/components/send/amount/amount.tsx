@@ -9,17 +9,16 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
+import useMaxAmount from '../../../hooks/send/useMaxAmount';
+import useValidations from '../../../hooks/send/useValidations';
 import { useSendContext } from '../../../context/send-context';
 import styleSheet from './amount.styles';
 
 const Amount = () => {
   const { styles } = useStyles(styleSheet, {});
-  const {
-    amountError,
-    transactionParams,
-    updateTransactionParams,
-    updateToMaxAmount,
-  } = useSendContext();
+  const { transactionParams, updateTransactionParams } = useSendContext();
+  const { updateToMaxAmount } = useMaxAmount();
+  const { amountError } = useValidations();
 
   return (
     <View>

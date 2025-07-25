@@ -10,6 +10,21 @@ import * as TransactionUtils from '../../../../../util/transaction-controller';
 import { SendContextProvider } from '../../context/send-context';
 import { Send } from './send';
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+    },
+  },
+}));
+
+jest.mock(
+  '../../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
+  () => ({
+    useGasFeeEstimates: () => ({ gasFeeEstimates: {} }),
+  }),
+);
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
