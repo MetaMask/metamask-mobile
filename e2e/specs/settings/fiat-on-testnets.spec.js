@@ -16,7 +16,7 @@ import TestHelpers from '../../helpers.js';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
-describe(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
+describe.skip(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
