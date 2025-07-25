@@ -1,9 +1,62 @@
 import React, { useCallback } from 'react';
-import PropTypes from 'prop-types';
+import { ViewStyle, TextStyle } from 'react-native';
 import Keypad from './components';
-import { KEYS } from './constants';
+import { Keys } from './constants';
 import useCurrency from './useCurrency';
-import { ViewPropTypes } from 'deprecated-react-native-prop-types';
+
+interface KeypadChangeData {
+  value: string;
+  valueAsNumber: number;
+  pressedKey: Keys;
+}
+
+interface KeypadComponentProps {
+  /**
+   * Function that will be called when a key is pressed with arguments `(value, key)`
+   */
+  onChange: (data: KeypadChangeData) => void;
+  /**
+   * Currency code for the keypad rules and symbols. Defaults to
+   * currency without decimals (CURRENCIES[default])
+   */
+  currency?: string;
+  /**
+   * Currency decimals
+   */
+  decimals?: number;
+  /**
+   * Current value used to create new value when a key is pressed.
+   */
+  value: string;
+  /**
+   * Custom style for container
+   */
+  style?: ViewStyle | ViewStyle[];
+  /**
+   * Custom style for digit buttons
+   */
+  digitButtonStyle?: ViewStyle | ViewStyle[];
+  /**
+   * Custom style for digit text
+   */
+  digitTextStyle?: TextStyle | TextStyle[];
+  /**
+   * Custom style for period button
+   */
+  periodButtonStyle?: ViewStyle | ViewStyle[];
+  /**
+   * Custom style for period text
+   */
+  periodTextStyle?: TextStyle | TextStyle[];
+  /**
+   * Custom style for delete button
+   */
+  deleteButtonStyle?: ViewStyle | ViewStyle[];
+  /**
+   * Custom icon for delete button
+   */
+  deleteIcon?: React.ReactNode;
+}
 
 function KeypadComponent({
   onChange,
@@ -17,14 +70,17 @@ function KeypadComponent({
   periodTextStyle,
   deleteButtonStyle,
   deleteIcon,
-}) {
+}: KeypadComponentProps): React.JSX.Element {
   const { handler, decimalSeparator } = useCurrency(currency, decimals);
+
   const handleKeypadPress = useCallback(
-    (pressedKey) => {
+    (pressedKey: Keys) => {
       const newValue = handler(value, pressedKey);
       let valueAsNumber = 0;
       try {
-        valueAsNumber = Number(newValue.replace(decimalSeparator, '.'));
+        valueAsNumber = decimalSeparator
+          ? Number(newValue.replace(decimalSeparator, '.'))
+          : Number(newValue);
       } catch (error) {
         console.error(error);
       }
@@ -32,56 +88,57 @@ function KeypadComponent({
     },
     [decimalSeparator, handler, onChange, value],
   );
+
   const handleKeypadPress1 = useCallback(
-    () => handleKeypadPress(KEYS.DIGIT_1),
+    () => handleKeypadPress(Keys.Digit1),
     [handleKeypadPress],
   );
   const handleKeypadPress2 = useCallback(
-    () => handleKeypadPress(KEYS.DIGIT_2),
+    () => handleKeypadPress(Keys.Digit2),
     [handleKeypadPress],
   );
   const handleKeypadPress3 = useCallback(
-    () => handleKeypadPress(KEYS.DIGIT_3),
+    () => handleKeypadPress(Keys.Digit3),
     [handleKeypadPress],
   );
   const handleKeypadPress4 = useCallback(
-    () => handleKeypadPress(KEYS.DIGIT_4),
+    () => handleKeypadPress(Keys.Digit4),
     [handleKeypadPress],
   );
   const handleKeypadPress5 = useCallback(
-    () => handleKeypadPress(KEYS.DIGIT_5),
+    () => handleKeypadPress(Keys.Digit5),
     [handleKeypadPress],
   );
   const handleKeypadPress6 = useCallback(
-    () => handleKeypadPress(KEYS.DIGIT_6),
+    () => handleKeypadPress(Keys.Digit6),
     [handleKeypadPress],
   );
   const handleKeypadPress7 = useCallback(
-    () => handleKeypadPress(KEYS.DIGIT_7),
+    () => handleKeypadPress(Keys.Digit7),
     [handleKeypadPress],
   );
   const handleKeypadPress8 = useCallback(
-    () => handleKeypadPress(KEYS.DIGIT_8),
+    () => handleKeypadPress(Keys.Digit8),
     [handleKeypadPress],
   );
   const handleKeypadPress9 = useCallback(
-    () => handleKeypadPress(KEYS.DIGIT_9),
+    () => handleKeypadPress(Keys.Digit9),
     [handleKeypadPress],
   );
   const handleKeypadPress0 = useCallback(
-    () => handleKeypadPress(KEYS.DIGIT_0),
+    () => handleKeypadPress(Keys.Digit0),
     [handleKeypadPress],
   );
   const handleKeypadPressPeriod = useCallback(
-    () => decimalSeparator && handleKeypadPress(KEYS.PERIOD),
+    () => decimalSeparator && handleKeypadPress(Keys.Period),
     [decimalSeparator, handleKeypadPress],
   );
   const handleKeypadPressBack = useCallback(
-    () => handleKeypadPress(KEYS.BACK),
+    () => handleKeypadPress(Keys.Back),
     [handleKeypadPress],
   );
   const handleKeypadLongPressBack = useCallback(
-    () => handleKeypadPress(KEYS.INITIAL),
+    () => handleKeypadPress(Keys.Initial),
     [handleKeypadPress],
   );
 
@@ -204,53 +261,6 @@ function KeypadComponent({
   );
 }
 
-KeypadComponent.propTypes = {
-  /**
-   * Function that will be called when a key is pressed with arguments `(value, key)`
-   */
-  onChange: PropTypes.func,
-  /**
-   * Currency code for the keypad rules and symbols. Defaults to
-   * currency without decimals (CURRENCIES[default])
-   */
-  currency: PropTypes.string,
-  /**
-   * Currency decimals
-   */
-  decimals: PropTypes.number,
-  /**
-   * Current value used to create new value when a key is pressed.
-   */
-  value: PropTypes.string,
-  /**
-   * Custom style for container
-   */
-  style: ViewPropTypes.style,
-  /**
-   * Custom style for digit buttons
-   */
-  digitButtonStyle: ViewPropTypes.style,
-  /**
-   * Custom style for digit text
-   */
-  digitTextStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
-  /**
-   * Custom style for period button
-   */
-  periodButtonStyle: ViewPropTypes.style,
-  /**
-   * Custom style for period text
-   */
-  periodTextStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
-  /**
-   * Custom style for delete button
-   */
-  deleteButtonStyle: ViewPropTypes.style,
-  /**
-   * Custom icon for delete button
-   */
-  deleteIcon: PropTypes.node,
-};
-
-export { KEYS };
+export { Keys };
+export type { KeypadChangeData, KeypadComponentProps };
 export default KeypadComponent;
