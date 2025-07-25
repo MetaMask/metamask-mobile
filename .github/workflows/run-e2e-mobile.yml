@@ -209,26 +209,6 @@ jobs:
           export TEST_SUITE_TAG="$test_suite_tag"
           echo "Using TEST_SUITE_TAG: $TEST_SUITE_TAG"
 
-          # Platform-specific preparation
-          if [[ "$platform" == "ios" ]]; then
-            echo "🔧 Preparing iOS environment..."
-            yarn detox build-framework-cache
-            yarn detox reset-lock-file
-
-          else
-            echo "🔧 Preparing Android environment..."
-            # Clean up existing emulators (Detox will launch with correct configuration)
-            adb devices | grep emulator | cut -f1 | while read line; do
-              adb -s "$line" emu kill 2>/dev/null || true
-            done
-            pkill -f "emulator.*avd" 2>/dev/null || true
-            pkill -f "qemu-system" 2>/dev/null || true
-            pkill -f "Metro\|node\|npm" 2>/dev/null || true
-            sleep 3
-            
-            echo "✅ Android environment ready - Detox will launch emulator with 1080x2340 configuration"
-          fi
-
           # Run tests (Detox/Jest handle retries internally)
           echo "🚀 Starting E2E tests..."
           if [[ "$platform" == "ios" ]]; then
