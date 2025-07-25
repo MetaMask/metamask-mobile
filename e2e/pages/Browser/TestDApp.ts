@@ -256,7 +256,8 @@ class TestDApp {
   async isConnectedToTestDapp(): Promise<boolean> {
     return Utilities.executeWithRetry(
       async () => {
-        const connectedAccounts = await this.connectedAccounts as IndexableWebElement;
+        const connectedAccounts = (await this
+          .connectedAccounts) as IndexableWebElement;
         const text = await connectedAccounts.getText();
         const accountsText = text.replace(DAPP_ACCOUNTS_TEXT, '').trim();
         if (accountsText.length > 0) {
@@ -267,7 +268,7 @@ class TestDApp {
       {
         timeout: 30000,
         description: 'Check if connected to test dapp',
-      }
+      },
     );
   }
 

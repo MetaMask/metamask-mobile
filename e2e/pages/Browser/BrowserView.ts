@@ -164,16 +164,15 @@ class Browser {
         });
 
         await Assertions.expectElementToBeVisible(this.closeAllTabsButton, {
-          timeout: 2000
+          timeout: 2000,
         });
       },
       {
         timeout: 30000,
         description: 'tap open all tabs button and verify navigation',
         elemDescription: 'Open All Tabs Button',
-      }
+      },
     );
-
   }
 
   async tapSecondTabButton(): Promise<void> {
