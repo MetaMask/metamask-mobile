@@ -24,7 +24,6 @@ import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
-import { BASE_DEFAULTS, Utilities } from './framework';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -179,25 +178,8 @@ export const importWalletWithRecoveryPhrase = async ({
     },
   );
 
-  const tapsSequenceToProceedToImportWallet = async () => {
-    await OnboardingView.tapHaveAnExistingWallet();
-
-    if (SEEDLESS_ONBOARDING_ENABLED) {
-      await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
-        description: 'Onboarding Sheet should be visible',
-      });
-      await OnboardingSheet.tapImportSeedButton();
-    }
-    await Utilities.waitForElementToDisappear(
-      OnboardingView.existingWalletButton,
-    );
-  };
-
-  await Utilities.executeWithRetry(tapsSequenceToProceedToImportWallet, {
-    timeout: BASE_DEFAULTS.timeout,
-    description: 'tapsSequenceToProceedToImportWallet()',
-    elemDescription: 'Tap sequence to proceed to import wallet',
-  });
+  await OnboardingView.tapHaveAnExistingWallet();
+  await OnboardingSheet.tapImportSeedButton();
 
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
