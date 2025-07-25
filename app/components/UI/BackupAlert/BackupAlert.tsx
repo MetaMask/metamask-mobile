@@ -53,16 +53,18 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
     (state: RootState) => state.user,
   );
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onboardingWizardStep = useSelector((state: any) => state.wizard.step);
+  const onboardingWizardStep = useSelector(
+    (state: RootState) => state.wizard.step,
+  );
   const dispatch = useDispatch();
 
   const currentRouteName = findRouteNameFromNavigatorState(
     navigation.dangerouslyGetState().routes,
   );
 
-  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
 
   useEffect(() => {
     const isInBrowserView = currentRouteName === BROWSER_ROUTE;
@@ -113,7 +115,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
     onboardingWizardStep !== 0 ||
     !isVisible;
 
-  return shouldNotRenderAlert || isSocialLogin ? null : (
+  return shouldNotRenderAlert || isSeedlessOnboardingLoginFlow ? null : (
     <ElevatedView
       elevation={99}
       style={[
