@@ -128,6 +128,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             "rowGap": 16,
           }
         }
+        testID="onboarding-sheet"
       >
         <Text
           accessibilityRole="text"
@@ -176,7 +177,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-create-new-wallet-button-id"
+            testID="onboarding-sheet-google-login-button-id"
           >
             <View
               style={
@@ -232,7 +233,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-import-from-seed-button-id"
+            testID="onboarding-sheet-apple-login-button-id"
           >
             <View
               style={
@@ -341,7 +342,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-import-from-seed-button-id"
+            testID="onboarding-sheet-import-seed-button-id"
           >
             <Text
               accessibilityRole="text"
@@ -493,6 +494,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             "rowGap": 16,
           }
         }
+        testID="onboarding-sheet"
       >
         <Text
           accessibilityRole="text"
@@ -541,7 +543,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-create-new-wallet-button-id"
+            testID="onboarding-sheet-google-login-button-id"
           >
             <View
               style={
@@ -597,7 +599,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-import-from-seed-button-id"
+            testID="onboarding-sheet-apple-login-button-id"
           >
             <View
               style={
@@ -706,7 +708,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-import-from-seed-button-id"
+            testID="onboarding-sheet-import-seed-button-id"
           >
             <Text
               accessibilityRole="text"
