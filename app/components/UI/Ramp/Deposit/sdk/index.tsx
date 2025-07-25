@@ -196,14 +196,13 @@ export const DepositSDKProvider = ({
     if (sdk) {
       try {
         await sdk.logout();
+        await resetProviderToken();
+        setAuthToken(undefined);
+        setIsAuthenticated(false);
       } catch (error) {
         Logger.error(error as Error, 'Failed to logout from provider server:');
       }
     }
-
-    await resetProviderToken();
-    setAuthToken(undefined);
-    setIsAuthenticated(false);
   }, [sdk]);
 
   const contextValue = useMemo(
