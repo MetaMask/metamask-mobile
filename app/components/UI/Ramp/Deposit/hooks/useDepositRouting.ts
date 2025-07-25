@@ -400,7 +400,8 @@ export const useDepositRouting = ({
         }
 
         // auto-submit purpose of usage form and then recursive call to route again
-        if (!getForm(TransakFormId.PURPOSE_OF_USAGE)?.isSubmitted) {
+        const purposeOfUsageForm = getForm(TransakFormId.PURPOSE_OF_USAGE);
+        if (purposeOfUsageForm && purposeOfUsageForm.isSubmitted === false) {
           if (depth < 5) {
             await submitPurposeOfUsage([
               'Buying/selling crypto for investments',
