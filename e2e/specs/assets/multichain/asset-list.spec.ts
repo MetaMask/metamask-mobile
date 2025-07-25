@@ -20,7 +20,6 @@ const fixtureServer = new FixtureServer();
 const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
-const AVAX_NETWORK_NAME = 'Avalanche C-Chain';
 
 describe(SmokeNetworkAbstractions('Import Tokens'), () => {
   beforeAll(async () => {
