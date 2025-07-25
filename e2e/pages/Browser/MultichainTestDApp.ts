@@ -1,20 +1,21 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-console */
 import TestHelpers from '../../helpers';
 import { getLocalTestDappPort } from '../../fixtures/utils';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import {
   MultichainTestDappViewSelectorsIDs,
   MULTICHAIN_TEST_TIMEOUTS,
 } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import Browser from './BrowserView';
-import Gestures from '../../utils/Gestures';
+import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import ConnectBottomSheet from './ConnectBottomSheet';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../wallet/TabBarComponent';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { isCaipChainId } from '@metamask/utils';
 
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
@@ -164,7 +165,7 @@ class MultichainTestDApp {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async tapButton(elementId: any): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);
-    await Gestures.tapWebElement(elementId);
+    await Gestures.tap(elementId);
   }
 
   /**
