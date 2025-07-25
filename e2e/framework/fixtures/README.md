@@ -88,29 +88,6 @@ await withFixtures(
 );
 ```
 
-### Test with 2 Test Dapp instances and 2 browser tabs with permitted connections
-
-```typescript
-await withFixtures(
-  {
-    fixture: new FixtureBuilder()
-      .withPermissionControllerConnectedToMultipleTestDapps([{}, {}]) // Setting permissions for the 2 dapp instances
-      .withMultipleDappTabs(2)
-      .build(),
-    dapps: [
-      {
-        dappVariant: DappVariants.TEST_DAPP,
-        dappVariant: DappVariants.TEST_DAPP,
-      },
-    ],
-    restartDevice: true,
-  },
-  async () => {
-    // Test interactions with dapps
-  },
-);
-```
-
 ### Test with Ganache Network Configuration
 
 ```typescript
