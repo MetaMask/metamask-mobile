@@ -34,7 +34,6 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import DevLogger from './utils/DevLogger';
-import NavigationService from '../NavigationService';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -362,12 +361,10 @@ export class SDKConnect {
     context?: string;
     postInitCallback?: () => void;
   }) {
-    const navigation = NavigationService.navigation;
     const instance = SDKConnect.getInstance();
-
     analytics.setGlobalProperty('platform', 'mobile');
     analytics.enable();
-    await init({ navigation, context, instance });
+    await init({ context, instance });
     await instance.postInit(postInitCallback);
   }
 

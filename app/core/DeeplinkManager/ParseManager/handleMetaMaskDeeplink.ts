@@ -7,18 +7,18 @@ import SDKConnect from '../../SDKConnect/SDKConnect';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
-import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
 import extractURLParams from './extractURLParams';
+import { handleBuyCrypto } from '../Handlers/handleBuyCrypto';
+import { handleSellCrypto } from '../Handlers/handleSellCrypto';
+
 export function handleMetaMaskDeeplink({
-  instance,
   handled,
   wcURL,
   origin,
   params,
   url,
 }: {
-  instance: DeeplinkManager;
   handled: () => void;
   wcURL: string;
   origin: string;
@@ -146,7 +146,7 @@ export function handleMetaMaskDeeplink({
     const rampPath = url
       .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY}`, '');
-    instance._handleBuyCrypto(rampPath);
+    handleBuyCrypto(rampPath);
   } else if (
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`) ||
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL}`)
@@ -154,7 +154,7 @@ export function handleMetaMaskDeeplink({
     const rampPath = url
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`, '')
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
-    instance._handleSellCrypto(rampPath);
+    handleSellCrypto(rampPath);
   }
 }
 

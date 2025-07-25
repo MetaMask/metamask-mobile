@@ -20,9 +20,12 @@ import {
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
+import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../core/Engine';
 import { setCompletedOnboarding } from '../../actions/onboarding';
+import Logger from '../../util/Logger';
+import SDKConnect from '../../core/SDKConnect/SDKConnect';
+import { WC2Manager } from '../../core/WalletConnect/WalletConnectV2';
 
 const mockBioStateMachineId = '123';
 
@@ -73,7 +76,8 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+jest.mock('../../core/DeeplinkManager/DeeplinkManager', () => ({
+  start: jest.fn(),
   parse: jest.fn(),
 }));
 
@@ -188,8 +192,14 @@ describe('biometricsStateMachine', () => {
 
 // TODO: Update all saga tests to use expectSaga (more intuitive and easier to read)
 describe('startAppServices', () => {
+  let loggerSpy: jest.SpyInstance;
   beforeEach(() => {
+    loggerSpy = jest.spyOn(Logger, 'log').mockImplementation();
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    loggerSpy.mockRestore();
   });
 
   it('should start app services', async () => {
@@ -202,6 +212,7 @@ describe('startAppServices', () => {
     // Verify services are started
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
+    expect(DeeplinkManager.start).toHaveBeenCalled();
   });
 
   it('should not start app services if navigation is not ready', async () => {
@@ -213,6 +224,7 @@ describe('startAppServices', () => {
     // Verify services are not started
     expect(EngineService.start).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
+    expect(DeeplinkManager.start).not.toHaveBeenCalled();
   });
 
   it('should not start app services if persisted data is not loaded', async () => {
@@ -224,6 +236,113 @@ describe('startAppServices', () => {
     // Verify services are not started
     expect(EngineService.start).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
+    expect(DeeplinkManager.start).not.toHaveBeenCalled();
+  });
+
+  describe('SDKConnect', () => {
+    it('should initialize SDKConnect during app startup', async () => {
+      const sdkInitSpy = jest.spyOn(SDKConnect, 'init');
+      await expectSaga(startAppServices)
+        .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+        .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+        .run();
+
+      expect(sdkInitSpy).toHaveBeenCalledWith({ context: 'Nav/App' });
+    });
+
+    it('should gracefully handle SDK errors during initialization', async () => {
+      const sdkInitSpy = jest.spyOn(SDKConnect, 'init');
+
+      const mockError = new Error('SDKConnect initialization failed');
+
+      sdkInitSpy.mockRejectedValue(mockError);
+
+      await expectSaga(startAppServices)
+        .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+        .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+        .run();
+
+      expect(sdkInitSpy).toHaveBeenCalledWith({ context: 'Nav/App' });
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Cannot initialize SDKConnect.',
+        mockError,
+      );
+    });
+
+    it('should properly spy on SDKConnect methods', async () => {
+      // Arrange: Spy on specific methods
+      const initSpy = jest.spyOn(SDKConnect, 'init');
+      const getInstanceSpy = jest.spyOn(SDKConnect, 'getInstance');
+
+      // Act
+      await expectSaga(startAppServices)
+        .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+        .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+        .run();
+
+      // Assert
+      expect(initSpy).toHaveBeenCalledWith({ context: 'Nav/App' });
+      expect(initSpy).toHaveBeenCalledTimes(1);
+
+      // Restore spies
+      initSpy.mockRestore();
+      getInstanceSpy.mockRestore();
+    });
+  });
+
+  describe('WalletConnect', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should initialize WalletConnect during app startup when enabled', async () => {
+      const wcInitSpy = jest.spyOn(WC2Manager, 'init');
+
+      await expectSaga(startAppServices)
+        .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+        .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+        .run();
+
+      expect(wcInitSpy).toHaveBeenCalledWith();
+    });
+
+    it('should gracefully handle WC errors during initialization', async () => {
+      const wcInitSpy = jest.spyOn(WC2Manager, 'init');
+      const mockError = new Error('WalletConnect initialization failed');
+
+      wcInitSpy.mockRejectedValue(mockError);
+
+      await expectSaga(startAppServices)
+        .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+        .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+        .run();
+
+      expect(WC2Manager.init).toHaveBeenCalled();
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Cannot initialize WalletConnect Manager.',
+        mockError,
+      );
+    });
+
+    it('should properly spy on WalletConnect methods', async () => {
+      // Arrange: Spy on specific methods
+      const initSpy = jest.spyOn(WC2Manager, 'init');
+      const getInstanceSpy = jest.spyOn(WC2Manager, 'getInstance');
+
+      // Act
+      await expectSaga(startAppServices)
+        .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+        .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+        .run();
+
+      // Assert
+      expect(initSpy).toHaveBeenCalledWith();
+      expect(initSpy).toHaveBeenCalledTimes(1);
+
+      // Restore spies
+      initSpy.mockRestore();
+      getInstanceSpy.mockRestore();
+    });
   });
 });
 
@@ -254,7 +373,7 @@ describe('handleDeeplinkSaga', () => {
         .dispatch(checkForDeeplink())
         .silentRun();
 
-      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+      expect(DeeplinkManager.parse).not.toHaveBeenCalled();
       expect(
         AppStateEventProcessor.clearPendingDeeplink,
       ).not.toHaveBeenCalled();
@@ -287,7 +406,7 @@ describe('handleDeeplinkSaga', () => {
           .silentRun();
 
         expect(Engine.context.KeyringController.isUnlocked).toHaveBeenCalled();
-        expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+        expect(DeeplinkManager.parse).not.toHaveBeenCalled();
         expect(
           AppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
@@ -306,7 +425,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(DeeplinkManager.parse).not.toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).not.toHaveBeenCalled();
@@ -327,7 +446,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(DeeplinkManager.parse).toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
@@ -363,7 +482,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(DeeplinkManager.parse).toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
