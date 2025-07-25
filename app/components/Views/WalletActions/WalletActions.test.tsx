@@ -649,7 +649,9 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith('Perps');
+    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
+      screen: 'PerpsMarketListView',
+    });
   });
 
   it('disables action buttons when the account cannot sign transactions', () => {

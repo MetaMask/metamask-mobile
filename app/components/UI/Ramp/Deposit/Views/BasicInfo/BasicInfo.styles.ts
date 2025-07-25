@@ -9,7 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 24,
     },
     subtitle: {
-      marginTop: 8,
+      marginBottom: 16,
       color: theme.colors.text.muted,
     },
     nameInputRow: {

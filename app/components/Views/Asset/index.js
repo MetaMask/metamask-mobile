@@ -79,6 +79,7 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -677,30 +678,30 @@ const mapStateToProps = (state, { route }) => {
     route.params?.chainId &&
     isNonEvmChainId(route.params.chainId)
   ) {
-    const solanaTransactionData = selectNonEvmTransactions(state);
-    const solanaTransactions = solanaTransactionData?.transactions || [];
+    const nonEvmTransactions = selectNonEvmTransactions(state);
+    const txs = nonEvmTransactions?.transactions || [];
 
     const assetAddress = route.params?.address?.toLowerCase();
     const assetSymbol = route.params?.symbol?.toLowerCase();
     const isNativeAsset = route.params?.isNative || route.params?.isETH;
 
     const newCacheKey = JSON.stringify({
-      txCount: solanaTransactions.length,
+      txCount: txs.length,
       assetAddress,
       assetSymbol,
       isNativeAsset,
-      lastTxId: solanaTransactions[0]?.id,
+      lastTxId: txs[0]?.id,
     });
 
     let filteredTransactions;
     if (cacheKey === newCacheKey && cachedFilteredTransactions) {
       filteredTransactions = cachedFilteredTransactions;
     } else {
-      filteredTransactions = solanaTransactions;
+      filteredTransactions = txs;
 
       if (isNativeAsset) {
-        filteredTransactions = solanaTransactions.filter((tx) => {
-          const txData = tx.from || tx.to || [];
+        filteredTransactions = txs.filter((tx) => {
+          const txData = (tx.from || []).concat(tx.to || []);
 
           if (!txData || txData.length === 0) {
             return false;
@@ -717,23 +718,20 @@ const mapStateToProps = (state, { route }) => {
 
           const allParticipantsAreNativeSol = participantsWithAssets.every(
             (participant) => {
-              const assetType = participant.asset.type || '';
-              const assetUnit = participant.asset.unit || '';
-
-              const isNativeSol =
-                assetUnit.toLowerCase() === 'sol' &&
-                assetType.includes('slip44:501') &&
-                !assetType.includes('/token:');
-
-              return isNativeSol;
+              const assetId = participant.asset.type;
+              return (
+                AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+                  route.params.chainId
+                ]?.nativeCurrency === assetId
+              );
             },
           );
 
           return allParticipantsAreNativeSol;
         });
       } else if (assetAddress || assetSymbol) {
-        filteredTransactions = solanaTransactions.filter((tx) => {
-          const txData = tx.from || tx.to || [];
+        filteredTransactions = txs.filter((tx) => {
+          const txData = (tx.from || []).concat(tx.to || []);
 
           const involvesToken = txData.some((participant) => {
             if (participant.asset && typeof participant.asset === 'object') {

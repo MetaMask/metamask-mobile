@@ -3,6 +3,8 @@ import { importAccountFromPrivateKey } from './importAccountFromPrivateKey';
 
 const mockSetSelectedAddress = jest.fn();
 const mockImportAccountWithStrategy = jest.fn();
+const mockCheckIsSeedlessPasswordOutdated = jest.fn();
+const mockImportAccountFromPrivateKey = jest.fn();
 
 jest.mock('../core/Engine', () => ({
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
@@ -16,6 +18,15 @@ jest.mock('../core/Engine', () => ({
   },
 }));
 
+jest.mock('../core/Authentication/Authentication', () => ({
+  Authentication: {
+    checkIsSeedlessPasswordOutdated: (skipCache: boolean) =>
+      mockCheckIsSeedlessPasswordOutdated(skipCache),
+    importAccountFromPrivateKey: (privateKey: string) =>
+      mockImportAccountFromPrivateKey(privateKey),
+  },
+}));
+
 describe('importAccountFromPrivateKey', () => {
   const mockPrivateKey =
     '0000111122223333444455556666777788889999000011112222333344445555';
@@ -23,6 +34,9 @@ describe('importAccountFromPrivateKey', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    // Default mock implementations
+    mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
+    mockImportAccountFromPrivateKey.mockResolvedValue(undefined);
   });
 
   it('import an account from a private key and select it', async () => {
@@ -30,19 +44,27 @@ describe('importAccountFromPrivateKey', () => {
 
     await importAccountFromPrivateKey(mockPrivateKey);
 
-    expect(mockImportAccountWithStrategy).toHaveBeenCalledWith(
-      AccountImportStrategy.privateKey,
-      [mockPrivateKey],
+    expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(true);
+    expect(mockImportAccountFromPrivateKey).toHaveBeenCalledWith(
+      mockPrivateKey,
     );
-    expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockPublicKey);
   });
 
   it('import an account from a private key and remove the 0x prefix', async () => {
     await importAccountFromPrivateKey(`0x${mockPrivateKey}`);
 
-    expect(mockImportAccountWithStrategy).toHaveBeenCalledWith(
-      AccountImportStrategy.privateKey,
-      [mockPrivateKey],
+    expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(true);
+    expect(mockImportAccountFromPrivateKey).toHaveBeenCalledWith(
+      `0x${mockPrivateKey}`,
     );
+  });
+
+  it('returns early when password is outdated', async () => {
+    mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+
+    await importAccountFromPrivateKey(mockPrivateKey);
+
+    expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(true);
+    expect(mockImportAccountFromPrivateKey).not.toHaveBeenCalled();
   });
 });
