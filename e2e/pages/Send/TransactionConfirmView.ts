@@ -1,5 +1,5 @@
-import Gestures from '../../framework/Gestures.js';
-import Matchers from '../../framework/Matchers.js';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
