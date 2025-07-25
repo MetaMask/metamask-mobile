@@ -674,6 +674,7 @@ class WalletConnect2Session {
     }
 
     if (method === 'eth_signTypedData') {
+
       this.backgroundBridge.onMessage({
         name: 'walletconnect-provider',
         data: {

@@ -128,6 +128,19 @@ export const useLatestBalance = (token: {
           id: traceId,
           timestamp: Date.now(),
         });
+        const web3Provider = getProviderByChainId(chainId);
+        const atomicBalance = await fetchEvmAtomicBalance(
+          web3Provider,
+          selectedAddress,
+          token.address,
+          chainId,
+        );
+        if (atomicBalance && token.decimals) {
+          setBalance({
+            displayBalance: formatUnits(atomicBalance, token.decimals),
+            atomicBalance,
+          });
+        }
       }
     }
   }, [token.address, token.decimals, chainId, selectedAddress]);

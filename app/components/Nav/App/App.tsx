@@ -35,6 +35,7 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
+import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
@@ -893,10 +894,16 @@ const AppFlow = () => {
   );
 };
 
+interface DeepLinkQueuedItem {
+  uri: string;
+  func: () => void;
+}
+
 const App: React.FC = () => {
   const navigation = useNavigation();
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const [onboarded, setOnboarded] = useState(false);
+  const queueOfHandleDeeplinkFunctions = useRef<DeepLinkQueuedItem[]>([]);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
@@ -1004,7 +1011,7 @@ const App: React.FC = () => {
     });
     // existingUser and isMetaMetricsUISeen are not present in the dependency array because they are not needed to re-run the effect when they change and it will cause a bug.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation]);
+  }, [navigation, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {
@@ -1020,15 +1027,43 @@ const App: React.FC = () => {
     [dispatch],
   );
 
-  // Subscribe to incoming deeplinks
-  // Ex. SDK and WalletConnect deeplinks will funnel through here when opening the app from the device's camera
+  // on Android devices, this creates a listener
+  // to deeplinks used to open the app
+  // when it is in background (so not closed)
+  // When the app is closed, the deeplink is received in the initialURL promise
+  // Documentation: https://reactnative.dev/docs/linking#handling-deep-links
   useEffect(() => {
-    Linking.addEventListener('url', (params) => {
-      const { url } = params;
-      if (url) {
+    const handleURL = (url: string) => {
+      if (url && sdkInit.current) {
         handleDeeplink({ uri: url });
+      } else {
+        DevLogger.log(`android handleDeeplink:: adding ${url} to queue`);
+        queueOfHandleDeeplinkFunctions.current =
+          queueOfHandleDeeplinkFunctions.current.concat([
+            {
+              uri: url,
+              func: () => {
+                handleDeeplink({ uri: url });
+              },
+            },
+          ]);
       }
+    };
+
+    Linking.getInitialURL().then((url) => {
+      if (!url) {
+        return;
+      }
+      DevLogger.log(`handleDeeplink:: got initial URL ${url}`);
+      handleURL(url);
     });
+
+    if (Device.isAndroid()) {
+      Linking.addEventListener('url', (params) => {
+        const { url } = params;
+        handleURL(url);
+      });
+    }
   }, [handleDeeplink]);
 
   // Subscribe to incoming Branch deeplinks
@@ -1070,7 +1105,25 @@ const App: React.FC = () => {
         trackErrorAsAnalytics(error, 'Branch:');
       }
 
-      getBranchDeeplink(opts.uri);
+      if (sdkInit.current) {
+        handleDeeplink(opts);
+      } else {
+        const uri = opts.params?.['+non_branch_link'] as string || opts.uri || null;
+        if (!uri) {
+          return;
+        }
+
+        DevLogger.log(`branch.io handleDeeplink:: adding ${uri} to queue. Got ${JSON.stringify(opts)} from branch.io`);
+        queueOfHandleDeeplinkFunctions.current =
+          queueOfHandleDeeplinkFunctions.current.concat([
+            {
+              uri,
+              func: () => {
+                handleDeeplink(opts);
+              },
+            },
+          ]);
+      }
     });
   }, [dispatch, handleDeeplink, navigation]);
 
@@ -1095,7 +1148,16 @@ const App: React.FC = () => {
             context: 'Nav/App',
             navigation: NavigationService.navigation,
           });
-          await SDKConnect.getInstance().postInit();
+          await SDKConnect.getInstance().postInit(() => {
+            const processedItems = new Set<string>();
+            queueOfHandleDeeplinkFunctions.current.forEach((item) => {
+              if (!processedItems.has(item.uri)) {
+                processedItems.add(item.uri);
+                item.func();
+              }
+            });
+            queueOfHandleDeeplinkFunctions.current = [];
+          });
           sdkInit.current = true;
         } catch (err) {
           sdkInit.current = undefined;

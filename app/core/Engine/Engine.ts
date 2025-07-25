@@ -1200,6 +1200,7 @@ export class Engine {
           'SnapController:handleRequest',
           'TransactionController:getState',
           'RemoteFeatureFlagController:getState',
+          'BridgeController:stopPollingForQuotes',
         ],
         allowedEvents: [
           'TransactionController:transactionConfirmed',

@@ -19,8 +19,8 @@ import ScrollableTabView, {
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
-import { store } from '../../../store';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { store } from '../../../store';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
