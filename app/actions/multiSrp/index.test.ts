@@ -147,7 +147,6 @@ describe('MultiSRP Actions', () => {
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
       expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith('keyring-id-123');
-      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith('keyring-id-123');
       expect(result).toEqual({
         address: testAddress,
         discoveredAccountsCount: 5,
