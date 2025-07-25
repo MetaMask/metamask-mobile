@@ -1,14 +1,14 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
-} from '../../selectors/SendFlow/EditGasView.selectors.js';
+} from '../../selectors/SendFlow/EditGasView.selectors';
 import {
-  TransactionConfirmViewSelectorsText,
   TransactionConfirmViewSelectorsIDs,
-} from '../../selectors/SendFlow/TransactionConfirmView.selectors.js';
-import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors.js';
+  TransactionConfirmViewSelectorsText,
+} from '../../selectors/SendFlow/TransactionConfirmView.selectors';
 
 class TransactionConfirmationView {
   get confirmButton(): DetoxElement {
