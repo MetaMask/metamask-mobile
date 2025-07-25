@@ -144,7 +144,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       const downloadButtonInDialogAttrsBeforeDelay =
         await downloadButtonElement.getAttributes();
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      if ((downloadButtonInDialogAttrsBeforeDelay as any).enabled == true) {
+      if ((downloadButtonInDialogAttrsBeforeDelay as any).enabled === true) {
         throw new Error(
           'Download button is enabled, but should be disabled to prevent Tapjacking',
         );
@@ -153,7 +153,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       const downloadButtonInDialogAttrsAfterDelay =
         await downloadButtonElement.getAttributes();
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      if ((downloadButtonInDialogAttrsAfterDelay as any).enabled == false) {
+      if ((downloadButtonInDialogAttrsAfterDelay as any).enabled === false) {
         throw new Error(
           'Download button is disabled, but should be enabled after 500ms Tapjacking delay',
         );
