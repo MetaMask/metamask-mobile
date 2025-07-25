@@ -95,33 +95,11 @@ async function main() {
   try {
     const testRuns: TestRun[] = [];
     
-    // Add debugging to understand the file structure
-    console.log(`🔍 Looking for test results in: ${env.TEST_RESULTS_PATH}`);
-    console.log(`📁 Current working directory: ${process.cwd()}`);
-    
-    // List all files and directories in current directory for debugging
-    try {
-      const currentDirFiles = await fs.readdir('.');
-      console.log(`📂 Files in current directory: ${currentDirFiles.join(', ')}`);
-      
-      // Check if e2e directory exists
-      try {
-        const e2eFiles = await fs.readdir('e2e');
-        console.log(`📂 Files in e2e directory: ${e2eFiles.join(', ')}`);
-      } catch (e) {
-        console.log(`❌ e2e directory not found`);
-      }
-    } catch (e) {
-      console.log(`❌ Could not list current directory: ${e}`);
-    }
-    
     // Check if the test results directory exists
     try {
       await fs.access(env.TEST_RESULTS_PATH);
-      console.log(`✅ Test results directory found: ${env.TEST_RESULTS_PATH}`);
     } catch (error) {
-      console.log(`❌ Test results directory ${env.TEST_RESULTS_PATH} not found. Creating empty report.`);
-      console.log(`Error details: ${error}`);
+      console.log(`Test results directory ${env.TEST_RESULTS_PATH} not found. Creating empty report.`);
       core.summary.addRaw('\n# 🧪 E2E Mobile Test Results\n\n');
       core.summary.addRaw('No test results found. Tests may not have run or failed to generate reports.\n');
       await core.summary.write();
@@ -129,7 +107,6 @@ async function main() {
     }
 
     const filenames = await fs.readdir(env.TEST_RESULTS_PATH);
-    console.log(`📄 Files found in ${env.TEST_RESULTS_PATH}: ${filenames.join(', ')}`);
     
     // Filter for junit.xml files
     const junitFiles = filenames.filter(name => name.endsWith('.xml') || name === 'junit.xml');

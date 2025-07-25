@@ -29,7 +29,6 @@ module.exports = {
       'jest-junit',
       {
         outputDirectory: './e2e/reports',
-        outputName: 'junit.xml',
         properties: {
           // These properties will be added to the JUnit XML for the test report script
           JOB_NAME: process.env.JOB_NAME || 'unknown-job',
