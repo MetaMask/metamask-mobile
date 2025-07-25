@@ -55,6 +55,7 @@ import {
   useWithdrawValidation,
 } from '../../hooks';
 import createStyles from './PerpsWithdrawView.styles';
+import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsWithdrawView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
@@ -294,7 +295,7 @@ const PerpsWithdrawView: React.FC = () => {
             onPress={handleBack}
             iconColor={IconColor.Default}
             style={styles.backButton}
-            testID="withdraw-back-button"
+            testID={PerpsWithdrawViewSelectorsIDs.BACK_BUTTON}
           />
           <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
             {strings('perps.withdrawal.title')}
@@ -320,7 +321,7 @@ const PerpsWithdrawView: React.FC = () => {
                 chainId: sourceToken.chainId,
               })}
               networkName="Hyperliquid"
-              testID="source-token-area"
+              testID={PerpsWithdrawViewSelectorsIDs.SOURCE_TOKEN_AREA}
               tokenType={TokenInputAreaType.Source}
               onFocus={() => setIsInputFocused(true)}
               onBlur={() => {
@@ -344,7 +345,7 @@ const PerpsWithdrawView: React.FC = () => {
               token={destToken}
               networkImageSource={destNetworkImage}
               networkName="Arbitrum"
-              testID="dest-token-area"
+              testID={PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA}
               tokenType={TokenInputAreaType.Destination}
             />
           </Box>
@@ -370,7 +371,7 @@ const PerpsWithdrawView: React.FC = () => {
               style={styles.actionButton}
               disabled={!hasValidInputs || isSubmittingTx}
               loading={isSubmittingTx}
-              testID="continue-button"
+              testID={PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON}
             />
 
             {shouldShowPercentageButtons && (
@@ -433,7 +434,7 @@ const PerpsWithdrawView: React.FC = () => {
               style={styles.actionButton}
               disabled={!hasValidInputs || isSubmittingTx}
               loading={isSubmittingTx}
-              testID="continue-button"
+              testID={PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON}
             />
           </View>
         )}

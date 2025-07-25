@@ -1146,11 +1146,7 @@ export class PerpsController extends BaseController<
       );
 
       // Use lower-level transaction submission to bypass UI confirmation
-      const result = await this.submitTransactionDirectly(
-        transaction,
-        selectedNetworkClientId,
-        params.amount,
-      );
+      const result = await this.submitDirectDepositTransaction(transaction);
       const txHash = result.txHash;
 
       DevLogger.log(
@@ -1202,10 +1198,7 @@ export class PerpsController extends BaseController<
         NetworkController.state.selectedNetworkClientId;
 
       // Use lower-level transaction submission to bypass UI confirmation
-      const result = await this.submitTransactionDirectly(
-        transaction,
-        selectedNetworkClientId,
-      );
+      const result = await this.submitDirectDepositTransaction(transaction);
       const txHash = result.txHash;
 
       DevLogger.log(

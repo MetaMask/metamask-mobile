@@ -45,6 +45,7 @@ import {
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import PerpsLoader from '../components/PerpsLoader';
 import { PerpsNavigationParamList } from '../types/navigation';
+import { parseCurrencyString } from '../utils/formatUtils';
 
 interface PerpsViewProps {}
 
@@ -175,6 +176,15 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   // Get real-time prices for popular assets
   const priceData = usePerpsPrices(POPULAR_ASSETS);
 
+  // Parse available balance to check if withdrawal should be enabled
+  const hasAvailableBalance = useCallback((): boolean => {
+    if (!cachedAccountState?.availableBalance) return false;
+    const availableAmount = parseCurrencyString(
+      cachedAccountState.availableBalance,
+    );
+    return availableAmount > 0;
+  }, [cachedAccountState?.availableBalance]);
+
   const getAccountBalance = useCallback(async () => {
     setIsLoading(true);
     setResult('');
@@ -263,6 +273,14 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     navigation.navigate(Routes.PERPS.POSITIONS);
   };
 
+  const handleDepositNavigation = () => {
+    navigation.navigate(Routes.PERPS.DEPOSIT);
+  };
+
+  const handleWithdrawNavigation = () => {
+    navigation.navigate(Routes.PERPS.WITHDRAW);
+  };
+
   // Show connection error screen if there's an error
   if (connectionError) {
     return (
@@ -348,26 +366,21 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label={strings('perps.buttons.deposit_funds')}
-            onPress={() => navigation.navigate(Routes.PERPS.DEPOSIT)}
+            onPress={handleDepositNavigation}
             style={styles.button}
           />
 
           {/* Show withdraw button only if there's available balance */}
-          {cachedAccountState?.availableBalance &&
-            parseFloat(
-              cachedAccountState.availableBalance
-                .replace('$', '')
-                .replace(',', ''),
-            ) > 0 && (
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.withdrawal.title')}
-                onPress={() => navigation.navigate(Routes.PERPS.WITHDRAW)}
-                style={styles.button}
-              />
-            )}
+          {hasAvailableBalance() && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('perps.withdrawal.title')}
+              onPress={handleWithdrawNavigation}
+              style={styles.button}
+            />
+          )}
 
           <Button
             variant={ButtonVariants.Secondary}
