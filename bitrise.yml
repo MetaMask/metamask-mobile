@@ -943,6 +943,7 @@ workflows:
   run_trade_swimlane_ios_smoke:
     envs:
       - TEST_SUITE_TAG: '.*SmokeTrade.*'
+      - METAMASK_BUILD_TYPE: $METAMASK_BUILD_TYPE
     after_run:
       - ios_e2e_test
   run_trade_swimlane_android_smoke:
@@ -952,6 +953,7 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_TAG: '.*SmokeTrade.*'
+      - METAMASK_BUILD_TYPE: $METAMASK_BUILD_TYPE
     after_run:
       - android_e2e_test
   run_ios_api_specs:
