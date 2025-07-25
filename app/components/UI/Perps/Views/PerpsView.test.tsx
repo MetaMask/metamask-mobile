@@ -1,5 +1,3 @@
-import React from 'react';
-
 // Mock all dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
@@ -38,7 +36,7 @@ jest.mock('../../../Base/ScreenView', () => 'MockedScreenView');
 describe('PerpsView', () => {
   it('should have proper mocks', () => {
     // Verify mocks are set up correctly
-    const hooks = require('../hooks');
-    expect(hooks.usePerpsAccount).toBeDefined();
+    const { usePerpsAccount } = jest.requireMock('../hooks');
+    expect(usePerpsAccount).toBeDefined();
   });
 });

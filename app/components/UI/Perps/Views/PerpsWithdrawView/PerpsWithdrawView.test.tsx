@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-} from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { ToastContext } from '../../../../../component-library/components/Toast';
@@ -12,14 +7,10 @@ import PerpsWithdrawView from './PerpsWithdrawView';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
-  HYPERLIQUID_MAINNET_CHAIN_ID,
-  HYPERLIQUID_WITHDRAWAL_FEE,
   USDC_SYMBOL,
   USDC_DECIMALS,
   ZERO_ADDRESS,
 } from '../../constants/hyperLiquidConfig';
-import { WITHDRAWAL_CONSTANTS } from '../../constants/perpsConfig';
-import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 
 // Mock react-native at the top
 jest.mock('react-native', () => ({
