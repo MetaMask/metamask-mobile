@@ -22,4 +22,5 @@ export const TokenOverviewSelectorsText = {
   '3m': enContent.asset_overview.chart_time_period_navigation['3m'],
   '1y': enContent.asset_overview.chart_time_period_navigation['1y'],
   '3y': enContent.asset_overview.chart_time_period_navigation['3y'],
+  all: enContent.asset_overview.chart_time_period_navigation.all,
 };

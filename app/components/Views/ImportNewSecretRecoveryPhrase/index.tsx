@@ -60,6 +60,7 @@ import {
   lockAccountSyncing,
   unlockAccountSyncing,
 } from '../../../actions/identity';
+import { Authentication } from '../../../core';
 
 const defaultNumberOfWords = 12;
 
@@ -232,6 +233,14 @@ const ImportNewSecretRecoveryPhrase = () => {
     setLoading(true);
     try {
       await lockAccountSyncing();
+
+      // check if seedless pwd is outdated skip cache before importing SRP
+      const isSeedlessPwdOutdated =
+        await Authentication.checkIsSeedlessPasswordOutdated(true);
+      if (isSeedlessPwdOutdated) {
+        // no need to handle error here, password outdated state will trigger modal that force user to log out
+        return;
+      }
       const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(
         secretRecoveryPhrase.join(' '),
       );

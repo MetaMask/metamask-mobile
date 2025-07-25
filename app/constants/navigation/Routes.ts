@@ -44,6 +44,7 @@ const Routes = {
       STATE_SELECTOR: 'DepositStateSelectorModal',
       WEBVIEW: 'DepositWebviewModal',
       KYC_WEBVIEW: 'DepositKycWebviewModal',
+      INCOMPATIBLE_ACCOUNT_TOKEN: 'IncompatibleAccountTokenModal',
       CONFIGURATION: 'DepositConfigurationModal',
     },
   },
@@ -287,7 +288,8 @@ const Routes = {
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
   SEND: {
-    ROOT: 'Send',
+    DEFAULT: 'Send',
+    ROOT: 'Root',
   },
 };
 
