@@ -1,4 +1,9 @@
-import { getGanachePort, getTestDappLocalUrl } from './FixtureUtils';
+import {
+  getGanachePort,
+  getSecondTestDappLocalUrl,
+  getTestDappLocalUrl,
+  TEST_DAPP_LOCAL_URL,
+} from './FixtureUtils';
 import { merge } from 'lodash';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
@@ -25,8 +30,6 @@ export const DEFAULT_FIXTURE_ACCOUNT_2 =
 
 export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
   '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b';
-
-const DAPP_URL = 'localhost';
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -775,7 +778,7 @@ class FixtureBuilder {
    */
   createPermissionControllerConfig(
     additionalPermissions: Record<string, unknown> = {},
-    dappUrl = DAPP_URL,
+    dappUrl = TEST_DAPP_LOCAL_URL,
   ) {
     const permission = additionalPermissions?.[
       Caip25EndowmentPermissionName
@@ -845,10 +848,9 @@ class FixtureBuilder {
       // This needs to be escalated as permissions are given based on the origin and it's impossible to have distinct
       // permissions for the same origin.
       if (i === 0) {
-        additionalPermissions[i].origin = DAPP_URL;
+        additionalPermissions[i].origin = TEST_DAPP_LOCAL_URL;
       } else {
-        additionalPermissions[i].origin =
-          device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
+        additionalPermissions[i].origin = getSecondTestDappLocalUrl();
       }
       const testDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions[i],

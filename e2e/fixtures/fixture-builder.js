@@ -20,6 +20,7 @@ import {
   POWER_USER_STATE,
   CASUAL_USER_STATE,
 } from './constants';
+import { TEST_DAPP_LOCAL_URL } from '../framework/fixtures/FixtureUtils';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -32,8 +33,6 @@ export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
 
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
-
-const DAPP_URL = 'localhost';
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -793,7 +792,7 @@ class FixtureBuilder {
    */
   createPermissionControllerConfig(
     additionalPermissions = {},
-    dappUrl = DAPP_URL,
+    dappUrl = TEST_DAPP_LOCAL_URL,
   ) {
     const caip25CaveatValue = additionalPermissions?.[
       Caip25EndowmentPermissionName
@@ -858,7 +857,7 @@ class FixtureBuilder {
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
+        getSecondTestDappLocalUrl(),
       );
     }
     this.withPermissionController(
