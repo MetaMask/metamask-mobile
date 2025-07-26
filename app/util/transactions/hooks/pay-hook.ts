@@ -13,6 +13,7 @@ import { TransactionControllerInitMessenger } from '../../../core/Engine/messeng
 import { store } from '../../../store';
 import { ExtractEventHandler } from '@metamask/base-controller';
 import { TransactionBridgeQuote } from '../../../components/Views/confirmations/utils/bridge';
+import { cloneDeep } from 'lodash';
 
 const log = createProjectLogger('pay-publish-hook');
 
@@ -74,7 +75,17 @@ export class PayHook {
     return EMPTY_RESULT;
   }
 
-  async submitBridge(quote: TransactionBridgeQuote): Promise<void> {
+  async submitBridge(originalQuote: TransactionBridgeQuote): Promise<void> {
+    const quote = cloneDeep(originalQuote);
+
+    if (quote.approval?.gasLimit) {
+      quote.approval.gasLimit *= 3;
+    }
+
+    if (quote.trade.gasLimit) {
+      quote.trade.gasLimit *= 3;
+    }
+
     const result = await this.#messenger.call(
       'BridgeStatusController:submitTx',
       quote,
