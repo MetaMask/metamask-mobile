@@ -3,7 +3,7 @@ import { Linking } from 'react-native';
 import ConfigurationModal from './ConfigurationModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
 import { ToastContext } from '../../../../../../../component-library/components/Toast';
@@ -92,7 +92,7 @@ describe('ConfigurationModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDepositSDK.mockReturnValue({
-      clearAuthToken: mockClearAuthToken,
+      logoutFromProvider: mockClearAuthToken,
       isAuthenticated: false,
     });
   });
@@ -122,7 +122,7 @@ describe('ConfigurationModal', () => {
   describe('when user is authenticated', () => {
     beforeEach(() => {
       mockUseDepositSDK.mockReturnValue({
-        clearAuthToken: mockClearAuthToken,
+        logoutFromProvider: mockClearAuthToken,
         isAuthenticated: true,
       });
     });
@@ -132,18 +132,43 @@ describe('ConfigurationModal', () => {
       expect(getByText('Log out')).toBeTruthy();
     });
 
-    it('should clear auth token and show success toast when logout is pressed', () => {
+    it('should clear auth token and show success toast when logout is successful', async () => {
+      mockClearAuthToken.mockResolvedValue(undefined);
       const { getByText } = renderWithProvider(ConfigurationModal);
       const logoutButton = getByText('Log out');
       fireEvent.press(logoutButton);
 
       expect(mockClearAuthToken).toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledWith({
-        variant: 'Icon',
-        labelOptions: [{ label: 'Successfully logged out' }],
-        iconName: 'CheckBold',
-        iconColor: 'Success',
-        hasNoTimeout: false,
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith({
+          variant: 'Icon',
+          labelOptions: [{ label: 'Successfully logged out' }],
+          iconName: 'CheckBold',
+          iconColor: 'Success',
+          hasNoTimeout: false,
+        });
+      });
+    });
+
+    it('should show error toast when logout fails', async () => {
+      const mockError = new Error('Logout failed');
+      mockClearAuthToken.mockRejectedValue(mockError);
+      const { getByText } = renderWithProvider(ConfigurationModal);
+      const logoutButton = getByText('Log out');
+
+      fireEvent.press(logoutButton);
+
+      expect(mockClearAuthToken).toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith({
+          variant: 'Icon',
+          labelOptions: [{ label: 'Error logging out' }],
+          iconName: 'CircleX',
+          iconColor: 'Error',
+          hasNoTimeout: false,
+        });
       });
     });
   });

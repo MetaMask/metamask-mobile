@@ -522,7 +522,9 @@
       "view_order_history": "View order history",
       "contact_support": "Contact support",
       "log_out": "Log out",
-      "logged_out_success": "Successfully logged out"
+      "logged_out_success": "Successfully logged out",
+      "error_sdk_not_initialized": "SDK not initialized",
+      "logged_out_error": "Error logging out"
     },
     "region_modal": {
       "select_a_region": "Select a region",

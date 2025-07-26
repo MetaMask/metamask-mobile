@@ -81,6 +81,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       isKycApproved: jest.fn().mockReturnValue(true),
     }),
     setAccessToken: jest.fn(),
+    logout: jest.fn(),
     getGeolocation: jest.fn().mockResolvedValue({ ipCountryCode: 'US' }),
   })),
 }));
@@ -461,15 +462,15 @@ describe('Deposit SDK Context', () => {
       jest.requireMock('../utils/ProviderTokenVault').getProviderToken =
         originalMock;
     });
-    it('clears authentication state when calling clearAuthToken', async () => {
+    it('clears authentication state when calling logoutFromProvider', async () => {
       const resetProviderTokenMock = jest.fn().mockResolvedValue(undefined);
       jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
         resetProviderTokenMock;
 
-      const clearAccessTokenMock = jest.fn();
+      const logoutMock = jest.fn();
       (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
         setAccessToken: jest.fn(),
-        clearAccessToken: clearAccessTokenMock,
+        logout: logoutMock,
       }));
 
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
@@ -501,13 +502,49 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.authToken).toEqual(mockToken);
 
       await act(async () => {
-        contextValue?.clearAuthToken();
+        contextValue?.logoutFromProvider();
       });
 
       expect(resetProviderTokenMock).toHaveBeenCalled();
-      expect(clearAccessTokenMock).toHaveBeenCalled();
+      expect(logoutMock).toHaveBeenCalled();
       expect(contextValue?.isAuthenticated).toBe(false);
       expect(contextValue?.authToken).toBeUndefined();
+    });
+
+    it('throws error when SDK is not initialized during logout', async () => {
+      const stateWithoutProviderKeys = {
+        ...mockedState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                depositConfig: {
+                  providerApiKey: null,
+                  providerFrontendAuth: null,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return <Text>Test Component</Text>;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: stateWithoutProviderKeys },
+      );
+
+      await expect(async () => {
+        await contextValue?.logoutFromProvider();
+      }).rejects.toThrow();
     });
   });
 });

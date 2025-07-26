@@ -31,6 +31,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { DepositRegion, DEPOSIT_REGIONS, DEFAULT_REGION } from '../constants';
 import Logger from '../../../../../util/Logger';
+import { strings } from '../../../../../../locales/i18n';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -40,7 +41,7 @@ export interface DepositSDK {
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
-  clearAuthToken: () => Promise<void>;
+  logoutFromProvider: () => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
   getStarted: boolean;
   setGetStarted: (seen: boolean) => void;
@@ -192,12 +193,16 @@ export const DepositSDKProvider = ({
     [sdk],
   );
 
-  const clearAuthToken = useCallback(async () => {
-    await resetProviderToken();
-    setAuthToken(undefined);
-    setIsAuthenticated(false);
+  const logoutFromProvider = useCallback(async () => {
     if (sdk) {
-      sdk.clearAccessToken();
+      await sdk.logout();
+      await resetProviderToken();
+      setAuthToken(undefined);
+      setIsAuthenticated(false);
+    } else {
+      throw new Error(
+        strings('deposit.configuration_modal.error_sdk_not_initialized'),
+      );
     }
   }, [sdk]);
 
@@ -210,7 +215,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthToken: setAuthTokenCallback,
-      clearAuthToken,
+      logoutFromProvider,
       checkExistingToken,
       getStarted,
       setGetStarted: setGetStartedCallback,
@@ -226,7 +231,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthTokenCallback,
-      clearAuthToken,
+      logoutFromProvider,
       checkExistingToken,
       getStarted,
       setGetStartedCallback,
