@@ -20,6 +20,7 @@ import {
   balanceToFiat,
   isDecimal,
   hexToBN,
+  toHexadecimal,
 } from '../../../../../../util/number';
 import {
   getTicker,
@@ -139,6 +140,13 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../../utils/generic';
+import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
+import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
+import { selectAllTokens } from '../../../../../../selectors/tokensController';
+import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
+import { selectAllTokenBalances } from '../../../../../../selectors/tokenBalancesController';
+import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -273,17 +281,17 @@ class Confirm extends PureComponent {
      */
     shouldUseSmartTransaction: PropTypes.bool,
     /**
-     * Object containing confirmation metrics by id
-     */
-    confirmationMetricsById: PropTypes.object,
-    /**
      * Transaction metadata from the transaction controller
      */
     transactionMetadata: PropTypes.object,
     /**
-     * Update confirmation metrics
+     * Update transaction metrics
      */
-    updateConfirmationMetric: PropTypes.func,
+    updateTransactionMetrics: PropTypes.func,
+    /**
+     * Indicates whether the transaction simulations feature is enabled
+     */
+    useTransactionSimulations: PropTypes.bool,
     /**
      * Object containing blockaid validation response for confirmation
      */
@@ -296,6 +304,10 @@ class Confirm extends PureComponent {
      * Function that sets the transaction value
      */
     setTransactionValue: PropTypes.func,
+    /**
+     * ID of the send flow contextual chain
+     */
+    sendFlowContextualChainId: PropTypes.string,
   };
 
   state = {
@@ -512,8 +524,10 @@ class Confirm extends PureComponent {
       );
     }
     // add transaction
-    const { TransactionController } = Engine.context;
+    const { TransactionController, NetworkController } = Engine.context;
     const transactionParams = this.prepareTransactionToSend();
+    const contextualNetworkClientId =
+      NetworkController.findNetworkClientIdByChainId(chainId);
 
     let result, transactionMeta;
     try {
@@ -521,7 +535,7 @@ class Confirm extends PureComponent {
         transactionParams,
         {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId: globalNetworkClientId,
+          networkClientId: contextualNetworkClientId ?? globalNetworkClientId,
           origin: TransactionTypes.MMM,
         },
       ));
@@ -733,9 +747,34 @@ class Confirm extends PureComponent {
     const {
       prepareTransaction,
       transactionState: { transaction },
+      networkClientId,
+      globalNetworkClientId,
+      sendFlowContextualNetworkConfiguration,
     } = this.props;
-    const { networkClientId } = this.props;
-    const estimation = await getGasLimit(transaction, true, networkClientId);
+
+    let effectiveNetworkClientId = networkClientId;
+
+    // Only use contextual network logic when feature flag is enabled
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      if (sendFlowContextualNetworkConfiguration?.rpcEndpoints) {
+        const { rpcEndpoints, defaultRpcEndpointIndex } =
+          sendFlowContextualNetworkConfiguration;
+        const { networkClientId: sendFlowContextualNetworkClientId } =
+          rpcEndpoints[defaultRpcEndpointIndex] || {};
+
+        effectiveNetworkClientId =
+          sendFlowContextualNetworkClientId || globalNetworkClientId;
+      } else {
+        // Fallback to globalNetworkClientId if no contextual config
+        effectiveNetworkClientId = globalNetworkClientId;
+      }
+    }
+
+    const estimation = await getGasLimit(
+      transaction,
+      true,
+      effectiveNetworkClientId,
+    );
     prepareTransaction({ ...transaction, ...estimation });
   };
 
@@ -867,15 +906,18 @@ class Confirm extends PureComponent {
    */
   validateAmount = ({ transaction }) => {
     const {
-      accounts,
-      contractBalances,
       selectedAsset,
       ticker,
       transactionState: {
         transaction: { value },
       },
       updateConfirmationMetric,
+      allTokenBalances,
+      accountsByChainId,
+      sendFlowContextualChainId,
     } = this.props;
+    const account =
+      accountsByChainId?.[sendFlowContextualChainId]?.[transaction?.from];
     const { EIP1559GasTransaction, legacyGasTransaction, transactionMeta } =
       this.state;
     const { id: transactionId } = transactionMeta;
@@ -889,9 +931,12 @@ class Confirm extends PureComponent {
     const transactionValueHex = hexToBN(value);
 
     const totalTransactionValue = transactionValueHex.add(transactionFeeMax);
-
+    const tokenBalances =
+      allTokenBalances?.[transaction?.from.toLowerCase()]?.[
+        sendFlowContextualChainId
+      ];
     const selectedAddress = transaction?.from;
-    const weiBalance = hexToBN(accounts[selectedAddress].balance);
+    const weiBalance = hexToBN(account?.balance);
 
     if (!isDecimal(value)) {
       return strings('transaction.invalid_amount');
@@ -920,7 +965,7 @@ class Confirm extends PureComponent {
 
     const insufficientTokenBalanceMessage = validateSufficientTokenBalance(
       transaction,
-      contractBalances,
+      tokenBalances,
       selectedAsset,
     );
 
@@ -942,6 +987,7 @@ class Confirm extends PureComponent {
     assetType,
     gaParams,
   ) => {
+    const { TransactionController } = Engine.context;
     const { navigation } = this.props;
     // Manual cancel from UI or rejected from ledger device.
     try {
@@ -1596,14 +1642,24 @@ Confirm.contextType = ThemeContext;
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
   const chainId = transaction?.chainId || selectEvmChainId(state);
-
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
 
+  const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
+
+  const transactionState = {
+    ...state.transaction,
+    chainId: sendFlowContextualChainId || chainId,
+  };
   return {
     accounts: selectAccounts(state),
-    contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
+    accountsByChainId: selectAccountsByChainId(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(
+      state,
+      sendFlowContextualChainId,
+    ),
     contractBalances: selectContractBalances(state),
+    allTokenBalances: selectAllTokenBalances(state),
     conversionRate: selectConversionRateByChainId(state, chainId),
     currentCurrency: selectCurrentCurrency(state),
     providerType: selectProviderTypeByChainId(state, chainId),
@@ -1615,7 +1671,7 @@ const mapStateToProps = (state) => {
     ticker: selectNativeCurrencyByChainId(state, chainId),
     transaction,
     selectedAsset: state.transaction.selectedAsset,
-    transactionState: state.transaction,
+    transactionState,
     primaryCurrency: state.settings.primaryCurrency,
     gasFeeEstimates: selectGasFeeEstimates(state),
     gasEstimateType: selectGasFeeControllerEstimateType(state),
@@ -1628,14 +1684,22 @@ const mapStateToProps = (state) => {
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-    maxValueMode: state.transaction.maxValueMode,
+    sendFlowContextualChainId: sendFlowContextualChainId,
+    sendFlowContextualNetworkConfiguration: selectNetworkConfigurationByChainId(
+      state,
+      toHexadecimal(sendFlowContextualChainId),
+    ),
+    allTokens: selectAllTokens(state),
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
   prepareTransaction: (transaction) =>
     dispatch(prepareTransaction(transaction)),
-  resetTransaction: () => dispatch(resetTransaction()),
+  resetTransaction: () => {
+    dispatch(setTransactionSendFlowContextualChainId(null));
+    dispatch(resetTransaction());
+  },
   setTransactionId: (transactionId) =>
     dispatch(setTransactionId(transactionId)),
   setNonce: (nonce) => dispatch(setNonce(nonce)),
