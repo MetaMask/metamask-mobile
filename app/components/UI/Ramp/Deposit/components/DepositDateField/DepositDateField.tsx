@@ -25,7 +25,7 @@ import Icon, {
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
 
-const MAXIMUM_DATE = new Date(2025, 11, 31);
+const MAXIMUM_DATE = new Date(Date.now());
 const MINIMUM_DATE = new Date(1900, 0, 1);
 const DEFAULT_DATE = new Date(2000, 0, 1);
 
