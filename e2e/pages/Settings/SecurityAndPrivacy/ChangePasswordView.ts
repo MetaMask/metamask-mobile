@@ -22,14 +22,14 @@ class ChangePasswordView {
   }
 
   get iUnderstandCheckBox(): DetoxElement {
-    return Matchers.getElementByText(
+    return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
   }
 
   get submitButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ChoosePasswordSelectorsIDs.SAVE_PASSWORD_BUTTON_TEXT,
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
     );
   }
 

@@ -19,7 +19,7 @@ export default class Matchers {
   }
 
   /**
-   * Get element by text with optional index
+   * Get element by text (string or regex) with optional index
    */
   static async getElementByText(
     text: string | RegExp,

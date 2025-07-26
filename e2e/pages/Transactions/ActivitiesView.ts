@@ -61,11 +61,11 @@ class ActivitiesView {
     return title;
   }
 
-  generateApprovedTokenActivityLabel(sourceToken: string): string {
+  generateApprovedTokenActivityLabel(sourceToken: string): RegExp {
     let title = ActivitiesViewSelectorsText.APPROVE;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{upTo}}', '.*');
-    return `^${title}`;
+    return new RegExp(`^${title}`);
   }
 
   swapActivityTitle(
