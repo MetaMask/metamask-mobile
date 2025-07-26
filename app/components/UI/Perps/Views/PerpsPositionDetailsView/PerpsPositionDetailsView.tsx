@@ -22,6 +22,7 @@ import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsTPSLUpdate } from '../../hooks';
 import { createStyles } from './PerpsPositionDetailsView.styles';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface PositionDetailsRouteParams {
   position: Position;
@@ -33,6 +34,7 @@ const PerpsPositionDetailsView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const route =
     useRoute<RouteProp<{ params: PositionDetailsRouteParams }, 'params'>>();
+  const { top } = useSafeAreaInsets();
 
   const { position } = route.params || {};
 
@@ -88,7 +90,7 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.container}>
+      <ScrollView style={[styles.container, { paddingTop: top }]}>
         {/* Position Header */}
         <PerpsPositionHeader
           position={position}

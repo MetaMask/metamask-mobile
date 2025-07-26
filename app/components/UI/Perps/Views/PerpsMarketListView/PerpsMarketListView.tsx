@@ -32,6 +32,8 @@ import type {
 } from '../../controllers/types';
 import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -84,7 +86,7 @@ const PerpsMarketListView = ({
   const { styles, theme } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-
+  const { top } = useSafeAreaInsets();
   const hiddenButtonStyle = {
     position: 'absolute' as const,
     opacity: 0,
@@ -124,7 +126,13 @@ const PerpsMarketListView = ({
   }, [markets.length, fadeAnimation]);
 
   const handleMarketPress = (market: PerpsMarketData) => {
-    onMarketSelect?.(market);
+    if (onMarketSelect) {
+      onMarketSelect(market);
+    } else {
+      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+        market,
+      });
+    }
   };
 
   const handleRefresh = () => {
@@ -292,7 +300,7 @@ const PerpsMarketListView = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: top }]}>
       <View style={styles.container}>
         {/* Hidden close button for navigation tests */}
         <TouchableOpacity

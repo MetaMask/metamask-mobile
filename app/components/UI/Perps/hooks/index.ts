@@ -26,6 +26,7 @@ export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 // Market data and calculation hooks
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 export { usePerpsMarketData } from './usePerpsMarketData';
+export { usePerpsMarketStats } from './usePerpsMarketStats';
 
 // Withdrawal specific hooks
 export { useWithdrawTokens } from './useWithdrawTokens';
