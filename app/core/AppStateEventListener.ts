@@ -73,12 +73,15 @@ export class AppStateEventListener {
         MetaMetricsEvents.APP_OPENED,
       );
       if (attribution) {
-        const { attributionId, utm, ...utmParams } = attribution;
+        const { attributionId, ...utmParams } = attribution;
         DevLogger.log(
-          `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId} utm=${attribution.utm}`,
+          `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId}`,
           utmParams,
         );
-        appOpenedEventBuilder.addProperties({ attributionId, ...utmParams });
+        appOpenedEventBuilder.addProperties({
+          attributionId,
+          ...utmParams,
+        });
       }
       metrics.trackEvent(appOpenedEventBuilder.build());
     } catch (error) {
