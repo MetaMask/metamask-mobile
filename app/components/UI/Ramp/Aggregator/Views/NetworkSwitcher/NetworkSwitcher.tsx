@@ -35,6 +35,7 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { useRampSDK } from '../../sdk';
 import { isNetworkRampSupported } from '../../utils';
+import { areChainIdsEqual } from '../../types';
 
 import Engine from '../../../../../../core/Engine';
 import { useTheme } from '../../../../../../util/theme';
@@ -250,7 +251,7 @@ function NetworkSwitcher() {
   useEffect(() => {
     if (
       isCurrentNetworkRampSupported &&
-      (!intent?.chainId || selectedChainId === intent.chainId)
+      (!intent?.chainId || areChainIdsEqual(selectedChainId, intent.chainId))
     ) {
       navigateToGetStarted();
     } else if (intent?.chainId) {
