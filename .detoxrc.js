@@ -31,7 +31,7 @@ module.exports = {
   configurations: {
     'ios.sim.apiSpecs': {
       device: 'ios.simulator',
-      app: process.env.CI ? 'ios.release' :'ios.debug',
+      app: process.env.CI ? `ios.${process.env.METAMASK_BUILD_TYPE}.release` : 'ios.debug',
       testRunner: {
         args: {
           "$0": "node e2e/api-specs/run-api-spec-tests.js",
@@ -42,9 +42,9 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.debug',
     },
-    'ios.sim.release': {
+    'ios.sim.main.release': {
       device: 'ios.simulator',
-      app: 'ios.release',
+      app: 'ios.main.release',
     },
     'ios.sim.flask.release': {
       device: 'ios.simulator',
@@ -90,7 +90,7 @@ module.exports = {
         process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app',
       build: 'yarn start:ios:e2e',
     },
-    'ios.release': {
+    'ios.main.release': {
       type: 'ios.app',
       binaryPath:
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
