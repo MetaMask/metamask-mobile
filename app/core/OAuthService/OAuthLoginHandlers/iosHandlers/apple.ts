@@ -90,12 +90,12 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
             OAuthErrorType.UserCancelled,
           );
         } else {
-          throw new OAuthError(error, OAuthErrorType.UnknownError);
+          throw new OAuthError(error, OAuthErrorType.UserDismissed);
         }
       } else {
         throw new OAuthError(
           'handleIosAppleLogin: Unknown error',
-          OAuthErrorType.UnknownError,
+          OAuthErrorType.UserDismissed,
         );
       }
     }

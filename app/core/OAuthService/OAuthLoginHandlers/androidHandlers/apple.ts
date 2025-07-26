@@ -103,15 +103,6 @@ export class AndroidAppleLoginHandler
         codeVerifier,
       };
     }
-    if (result.type === 'error') {
-      if (result.error) {
-        throw new OAuthError(result.error.message, OAuthErrorType.LoginError);
-      }
-      throw new OAuthError(
-        'handleAndroidAppleLogin: Unknown error',
-        OAuthErrorType.UnknownError,
-      );
-    }
     if (result.type === 'cancel') {
       throw new OAuthError(
         'handleAndroidAppleLogin: User cancelled the login process',
@@ -124,9 +115,10 @@ export class AndroidAppleLoginHandler
         OAuthErrorType.UserDismissed,
       );
     }
+    // make all failing oauth error as dimissed
     throw new OAuthError(
       'handleAndroidAppleLogin: Unknown error',
-      OAuthErrorType.UnknownError,
+      OAuthErrorType.UserDismissed,
     );
   }
 

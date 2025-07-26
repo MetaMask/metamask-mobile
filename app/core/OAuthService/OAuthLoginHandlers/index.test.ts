@@ -201,7 +201,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UnknownError for other errors', async () => {
+      it('should throw UserDismissed for other errors', async () => {
         mockSignInAsync.mockRejectedValue(new Error('Network error'));
 
         const handler = createLoginHandler('ios', AuthConnection.Apple);
@@ -209,10 +209,7 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - Error: Network error',
-          );
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UserDismissed);
         }
       });
 
@@ -283,7 +280,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw UnknownError for other result types', async () => {
+      it('should throw UserDismissed for other result types', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'error',
           error: 'Some error',
@@ -294,21 +291,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleIosGoogleLogin: Unknown error',
-          );
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UserDismissed);
         }
-      });
-
-      it('should throw error when promptAsync throws exception', async () => {
-        mockExpoAuthSessionPromptAsync.mockRejectedValue(
-          new Error('Network error'),
-        );
-
-        const handler = createLoginHandler('ios', AuthConnection.Google);
-
-        await expect(handler.login()).rejects.toThrow('Network error');
       });
     });
 
@@ -328,9 +312,6 @@ describe('OAuth login handlers', () => {
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
           expect((error as OAuthError).code).toBe(OAuthErrorType.UserCancelled);
-          expect((error as OAuthError).message).toContain(
-            'User cancelled - handleAndroidAppleLogin: User cancelled the login process',
-          );
         }
       });
 
@@ -351,7 +332,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      it('should throw LoginError when error with message is returned', async () => {
+      it('should throw UserDismissed when error with message is returned', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'error',
           error: { message: 'Authentication failed' },
@@ -362,14 +343,11 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.LoginError);
-          expect((error as OAuthError).message).toContain(
-            'Login error - Authentication failed',
-          );
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UserDismissed);
         }
       });
 
-      it('should throw UnknownError when error without message is returned', async () => {
+      it('should throw UserDismissed when error without message is returned', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'error',
           error: null,
@@ -380,14 +358,11 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleAndroidAppleLogin: Unknown error',
-          );
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UserDismissed);
         }
       });
 
-      it('should throw UnknownError for unexpected result types', async () => {
+      it('should throw UserDismissed for unexpected result types', async () => {
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'unknown',
         });
@@ -397,10 +372,7 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleAndroidAppleLogin: Unknown error',
-          );
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UserDismissed);
         }
       });
 

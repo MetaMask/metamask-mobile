@@ -78,41 +78,53 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
       usePKCE: true,
       state,
     });
-    const result = await authRequest.promptAsync({
-      authorizationEndpoint: this.OAUTH_SERVER_URL,
-    });
 
-    if (result.type === 'success') {
-      return {
-        authConnection: this.authConnection,
-        code: result.params.code, // result.params.idToken
-        clientId: this.clientId,
-        redirectUri: this.redirectUri,
-        codeVerifier: authRequest.codeVerifier,
-      };
-    }
-    if (
-      result.type === 'cancel' ||
-      (result.type === 'error' &&
-        result.error?.message.includes(
-          'The resource owner or authorization server denied the request',
-        ))
-    ) {
+    try {
+      const result = await authRequest.promptAsync({
+        authorizationEndpoint: this.OAUTH_SERVER_URL,
+      });
+
+      if (result.type === 'success') {
+        return {
+          authConnection: this.authConnection,
+          code: result.params.code, // result.params.idToken
+          clientId: this.clientId,
+          redirectUri: this.redirectUri,
+          codeVerifier: authRequest.codeVerifier,
+        };
+      }
+      if (
+        result.type === 'cancel' ||
+        (result.type === 'error' &&
+          result.error?.message.includes(
+            'The resource owner or authorization server denied the request',
+          ))
+      ) {
+        throw new OAuthError(
+          'handleIosGoogleLogin: User cancelled the login process',
+          OAuthErrorType.UserCancelled,
+        );
+      }
+      if (result.type === 'dismiss') {
+        throw new OAuthError(
+          'handleIosGoogleLogin: User dismissed the login process',
+          OAuthErrorType.UserDismissed,
+        );
+      }
+      // make all failing oauth error as dimissed
       throw new OAuthError(
-        'handleIosGoogleLogin: User cancelled the login process',
-        OAuthErrorType.UserCancelled,
+        'handleIosGoogleLogin: Unknown error',
+        OAuthErrorType.UserDismissed,
       );
-    }
-    if (result.type === 'dismiss') {
+    } catch (error) {
+      if (error instanceof OAuthError) {
+        throw error;
+      }
       throw new OAuthError(
-        'handleIosGoogleLogin: User dismissed the login process',
+        'handleIosGoogleLogin: Unknown error',
         OAuthErrorType.UserDismissed,
       );
     }
-    throw new OAuthError(
-      'handleIosGoogleLogin: Unknown error',
-      OAuthErrorType.UnknownError,
-    );
   }
 
   getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams {
