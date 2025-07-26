@@ -17,9 +17,9 @@ class ImportSrpView {
     return Matchers.getElementByID(ImportSRPIDs.SRP_SELECTION_DROPDOWN);
   }
 
-  inputOfIndex(srpIndex: string): DetoxElement {
+  inputOfIndex(srpIndex: number): DetoxElement {
     return Matchers.getElementByID(
-      ImportSRPIDs.SRP_INPUT_WORD_NUMBER + `-${srpIndex}`,
+      ImportSRPIDs.SRP_INPUT_WORD_NUMBER + `-${String(srpIndex)}`,
     );
   }
 
@@ -29,7 +29,7 @@ class ImportSrpView {
     });
   }
 
-  async enterSrpWord(srpIndex: string, word: string) {
+  async enterSrpWord(srpIndex: number, word: string) {
     await Gestures.typeText(this.inputOfIndex(srpIndex), word, {
       elemDescription: `SRP word input at index ${srpIndex}`,
       hideKeyboard: true,
