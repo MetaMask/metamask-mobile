@@ -120,7 +120,11 @@ const SolanaNewFeatureContent = () => {
                 testID={
                   SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
                 }
-                label={strings('solana_new_feature_content.import_your_wallet')}
+                label={
+                  <Text color={importedColors.applePayWhite}>
+                    {strings('solana_new_feature_content.import_your_wallet')}
+                  </Text>
+                }
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
                 style={styles.importWalletButton}
