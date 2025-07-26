@@ -1484,6 +1484,7 @@ describe('Authentication', () => {
         loadKeyringEncryptionKey: jest.fn(),
         submitGlobalPassword: jest.fn(),
         fetchAllSecretData: jest.fn(),
+        revokeRefreshToken: jest.fn().mockResolvedValue(undefined),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
       jest.spyOn(Authentication, 'resetPassword');
@@ -1932,6 +1933,7 @@ describe('Authentication', () => {
         state: { vault: 'existing vault data' },
         submitPassword: jest.fn(),
         checkIsPasswordOutdated: jest.fn(),
+        revokeRefreshToken: jest.fn().mockResolvedValue(undefined),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
       Engine.context.KeyringController = {
         submitPassword: jest.fn(),

@@ -107,6 +107,9 @@ class AuthenticationService {
     await KeyringController.submitPassword(password);
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
+      SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {
+        Logger.error(err, 'Failed to revoke refresh token');
+      });
     }
     password = this.wipeSensitiveData();
   };
@@ -1064,6 +1067,11 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
+      SeedlessOnboardingController.revokeRefreshToken(globalPassword).catch(
+        (err) => {
+          Logger.error(err, 'Failed to revoke refresh token');
+        },
+      );
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true });
