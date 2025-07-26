@@ -3292,7 +3292,7 @@ app:
       COREPACK_VERSION: 0.28.0
     - opts:
         is_expand: false
-      WEB3AUTH_NETWORK: 'sapphire_devnet'
+      SEEDLESS_ONBOARDING_ENABLED: true
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x
