@@ -1,27 +1,23 @@
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { ImportSRPIDs } from '../../selectors/MultiSRP/SRPImport.selectors';
 
 class ImportSrpView {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ImportSRPIDs.CONTAINER);
   }
 
-  get importButton() {
+  get importButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON)
       : Matchers.getElementByLabel(ImportSRPIDs.IMPORT_BUTTON);
   }
 
-  get clearButton() {
-    return Matchers.getElementByID(ImportSRPIDs.CLEAR_BUTTON);
-  }
-
-  get dropdown() {
+  get dropdown(): DetoxElement {
     return Matchers.getElementByID(ImportSRPIDs.SRP_SELECTION_DROPDOWN);
   }
 
-  inputOfIndex(srpIndex) {
+  inputOfIndex(srpIndex: string): DetoxElement {
     return Matchers.getElementByID(
       ImportSRPIDs.SRP_INPUT_WORD_NUMBER + `-${srpIndex}`,
     );
@@ -29,18 +25,23 @@ class ImportSrpView {
 
   async tapImportButton() {
     await Gestures.waitAndTap(this.importButton, {
-      skipVisibilityCheck: true,
+      elemDescription: 'Import button',
     });
   }
 
-  async enterSrpWord(srpIndex, word) {
-    await Gestures.typeTextAndHideKeyboard(this.inputOfIndex(srpIndex), word);
+  async enterSrpWord(srpIndex: string, word: string) {
+    await Gestures.typeText(this.inputOfIndex(srpIndex), word, {
+      elemDescription: `SRP word input at index ${srpIndex}`,
+      hideKeyboard: true,
+    });
   }
 
-  async selectNWordSrp(numberOfWords) {
+  async selectNWordSrp(numberOfWords: number) {
     await Gestures.waitAndTap(this.dropdown);
     await Gestures.waitAndTap(
-      Matchers.getElementByLabel(`I have a ${numberOfWords} word phrase`),
+      Matchers.getElementByLabel(
+        `I have a ${String(numberOfWords)} word phrase`,
+      ),
     );
   }
 }
