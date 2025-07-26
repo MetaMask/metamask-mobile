@@ -128,7 +128,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
         </Text>
         <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {formatPerpsFiat(result.totalBalance || '0')}
+            {formatPerpsFiat(result.availableBalance || '0')}
           </Text>
         </Animated.View>
       </View>

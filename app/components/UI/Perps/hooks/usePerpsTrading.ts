@@ -19,6 +19,8 @@ import type {
   SubscribePositionsParams,
   SubscribePricesParams,
   UpdatePositionTPSLParams,
+  WithdrawParams,
+  WithdrawResult,
 } from '../controllers/types';
 
 /**
@@ -113,6 +115,14 @@ export function usePerpsTrading() {
     controller.resetDepositState();
   }, []);
 
+  const withdraw = useCallback(
+    async (params: WithdrawParams): Promise<WithdrawResult> => {
+      const controller = Engine.context.PerpsController;
+      return controller.withdraw(params);
+    },
+    [],
+  );
+
   const calculateLiquidationPrice = useCallback(
     async (params: LiquidationPriceParams): Promise<string> => {
       const controller = Engine.context.PerpsController;
@@ -155,6 +165,7 @@ export function usePerpsTrading() {
     deposit,
     getDepositRoutes,
     resetDepositState,
+    withdraw,
     calculateLiquidationPrice,
     calculateMaintenanceMargin,
     getMaxLeverage,

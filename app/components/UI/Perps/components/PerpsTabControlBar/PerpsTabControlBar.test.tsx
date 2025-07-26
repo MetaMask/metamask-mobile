@@ -183,7 +183,7 @@ describe('PerpsTabControlBar', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('$1000.50')).toBeOnTheScreen();
+        expect(screen.getByText('$800.25')).toBeOnTheScreen();
       });
     });
 
@@ -341,7 +341,7 @@ describe('PerpsTabControlBar', () => {
 
       // Should still update the balance even if animation fails
       await waitFor(() => {
-        expect(screen.getByText('$1000.50')).toBeOnTheScreen();
+        expect(screen.getByText('$800.25')).toBeOnTheScreen();
       });
     });
 

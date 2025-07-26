@@ -77,6 +77,13 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     });
   }, [navigation]);
 
+  const handleWithdrawFunds = useCallback(() => {
+    setIsBottomSheetVisible(false);
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.WITHDRAW,
+    });
+  }, [navigation]);
+
   const renderPositionsSection = () => {
     if (isLoading) {
       return (
@@ -172,7 +179,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
               label={strings('perps.withdraw')}
-              onPress={handleCloseBottomSheet}
+              onPress={handleWithdrawFunds}
               style={styles.actionButton}
               startIconName={IconName.Minus}
             />

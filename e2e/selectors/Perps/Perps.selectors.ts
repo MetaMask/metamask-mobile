@@ -153,3 +153,14 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 export const getPerpsViewSelector = {
   buttonIcon: (iconName: string) => `button-icon-${iconName.toLowerCase()}`,
 };
+
+// ========================================
+// PERPS WITHDRAW VIEW SELECTORS
+// ========================================
+
+export const PerpsWithdrawViewSelectorsIDs = {
+  BACK_BUTTON: 'withdraw-back-button',
+  SOURCE_TOKEN_AREA: 'source-token-area',
+  DEST_TOKEN_AREA: 'dest-token-area',
+  CONTINUE_BUTTON: 'continue-button',
+};

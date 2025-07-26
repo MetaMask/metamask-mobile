@@ -19,6 +19,8 @@ export const ARBITRUM_TESTNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_TESTNET_CHAIN_I
 // Hyperliquid chain constants
 export const HYPERLIQUID_MAINNET_CHAIN_ID = '0x3e7'; // 999 in decimal
 export const HYPERLIQUID_TESTNET_CHAIN_ID = '0x3e6'; // 998 in decimal (assumed)
+export const HYPERLIQUID_MAINNET_CAIP_CHAIN_ID = 'eip155:999' as CaipChainId;
+export const HYPERLIQUID_TESTNET_CAIP_CHAIN_ID = 'eip155:998' as CaipChainId;
 export const HYPERLIQUID_NETWORK_NAME = 'Hyperliquid';
 
 // Token constants
@@ -100,6 +102,14 @@ export const FEE_RATES: FeeRatesConfig = {
 
 // MetaMask fee for deposits (temporary placeholder)
 export const METAMASK_DEPOSIT_FEE = '$0.00';
+
+// Withdrawal fees
+export const HYPERLIQUID_WITHDRAWAL_FEE = 1; // $1 USD fixed fee
+export const METAMASK_WITHDRAWAL_FEE = 0; // $0 - no MM fee for withdrawals
+export const METAMASK_WITHDRAWAL_FEE_PLACEHOLDER = '$0.00'; // Display format
+
+// Withdrawal timing
+export const WITHDRAWAL_ESTIMATED_TIME = '5 minutes';
 
 // Order book spread constants
 export const ORDER_BOOK_SPREAD = {
