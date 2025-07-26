@@ -135,7 +135,7 @@ export const TransactionControllerInit: ControllerInitFunction<
   }
 };
 
-function publishHook({
+async function publishHook({
   transactionMeta,
   getState,
   transactionController,
@@ -157,7 +157,7 @@ function publishHook({
   const { shouldUseSmartTransaction, featureFlags } =
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
-  new PayHook({
+  await new PayHook({
     messenger: initMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
