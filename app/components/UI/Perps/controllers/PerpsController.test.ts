@@ -8,7 +8,7 @@ import {
   type PerpsControllerState,
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import { CaipAssetId, CaipChainId } from '@metamask/utils';
+import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { DepositStatus } from './types';
 
 // Mock the HyperLiquid SDK first
@@ -27,6 +27,16 @@ jest.mock('../services/HyperLiquidWalletService');
 jest.mock('../utils/hyperLiquidAdapter');
 jest.mock('../utils/hyperLiquidValidation');
 jest.mock('../constants/hyperLiquidConfig');
+
+// Mock parseCaipAssetId from @metamask/utils
+jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
+  parseCaipAssetId: jest.fn((_assetId) => ({
+    chainId: 'eip155:42161',
+    assetNamespace: 'erc20',
+    assetReference: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+  })),
+}));
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -94,6 +104,10 @@ describe('PerpsController', () => {
       setLiveDataConfig: jest.fn(),
       disconnect: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      calculateLiquidationPrice: jest.fn(),
+      calculateMaintenanceMargin: jest.fn(),
+      getMaxLeverage: jest.fn(),
+      getMarketDataWithPrices: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -764,9 +778,80 @@ describe('PerpsController', () => {
     it('should handle withdraw operation', async () => {
       const withdrawParams = {
         amount: '100',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
         destination: '0x1234567890123456789012345678901234567890' as any,
       };
 
+      const mockPendingWithdrawal = {
+        withdrawalId: 'hl_test-uuid-123',
+        provider: 'hyperliquid',
+        amount: '100',
+        asset: 'USDC',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        sourceChainId: 'eip155:999' as CaipChainId,
+        destinationChainId: 'eip155:42161' as CaipChainId,
+        destinationAddress: '0x1234567890123456789012345678901234567890' as Hex,
+        initiatedAt: Date.now(),
+        status: 'pending' as const,
+        providerTxHash: undefined,
+        estimatedArrivalTime: Date.now() + 5 * 60 * 1000,
+        metadata: {
+          isTestnet: false,
+        },
+      };
+
+      const mockWithdrawResult = {
+        success: true,
+        txHash: '0xabcdef123456789',
+        withdrawalId: 'hl_test-uuid-123',
+        estimatedArrivalTime: mockPendingWithdrawal.estimatedArrivalTime,
+        pendingWithdrawal: mockPendingWithdrawal,
+      };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.withdraw.mockResolvedValue(mockWithdrawResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        mockHyperLiquidProvider.getWithdrawalRoutes.mockReturnValue([
+          {
+            assetId:
+              'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+            chainId: 'eip155:42161' as CaipChainId,
+            contractAddress:
+              '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+            constraints: {
+              minAmount: '1.01',
+              estimatedTime: '5 minutes',
+              fees: {
+                fixed: 1,
+                token: 'USDC',
+              },
+            },
+          },
+        ]);
+
+        await controller.initializeProviders();
+        const result = await controller.withdraw(withdrawParams);
+
+        // Verify result returned from provider
+        expect(result).toEqual(mockWithdrawResult);
+
+        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
+          withdrawParams,
+        );
+      });
+    });
+
+    it('should handle withdraw when provider does not return pendingWithdrawal', async () => {
+      const withdrawParams = {
+        amount: '100',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        destination: '0x1234567890123456789012345678901234567890' as any,
+      };
+
+      // Provider returns success but no pendingWithdrawal (legacy behavior)
       const mockWithdrawResult = {
         success: true,
         txHash: '0xabcdef123456789',
@@ -775,11 +860,31 @@ describe('PerpsController', () => {
       withController(async ({ controller }) => {
         mockHyperLiquidProvider.withdraw.mockResolvedValue(mockWithdrawResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        mockHyperLiquidProvider.getWithdrawalRoutes.mockReturnValue([
+          {
+            assetId:
+              'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+            chainId: 'eip155:42161' as CaipChainId,
+            contractAddress:
+              '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+            constraints: {
+              minAmount: '1.01',
+              estimatedTime: '5 minutes',
+              fees: {
+                fixed: 1,
+                token: 'USDC',
+              },
+            },
+          },
+        ]);
 
         await controller.initializeProviders();
         const result = await controller.withdraw(withdrawParams);
 
+        // Verify result returned from provider
         expect(result).toEqual(mockWithdrawResult);
+
+        // Verify provider was called correctly
         expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
           withdrawParams,
         );

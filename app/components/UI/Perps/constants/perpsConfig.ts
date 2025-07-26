@@ -8,3 +8,13 @@ export const PERPS_CONSTANTS = {
   DEFAULT_ASSET_PREVIEW_LIMIT: 5,
   DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
 } as const;
+
+/**
+ * Withdrawal-specific constants
+ */
+export const WITHDRAWAL_CONSTANTS = {
+  DEFAULT_MIN_AMOUNT: '1.01', // Default minimum withdrawal amount in USDC
+  DEFAULT_FEE_AMOUNT: 1, // Default withdrawal fee in USDC
+  DEFAULT_FEE_TOKEN: 'USDC', // Default fee token
+  DEFAULT_ESTIMATED_TIME: '5 minutes', // Default estimated withdrawal time
+} as const;

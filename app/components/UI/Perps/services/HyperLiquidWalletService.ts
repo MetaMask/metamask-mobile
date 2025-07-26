@@ -10,6 +10,8 @@ import Engine from '../../../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
 import { strings } from '../../../../../locales/i18n';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { toHexadecimal } from '../../../../util/number';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -43,6 +45,18 @@ export class HyperLiquidWalletService {
               throw new Error(strings('perps.errors.noAccountSelected'));
             }
             return [selectedAddress];
+          }
+          case 'eth_chainId': {
+            // Return Arbitrum chain ID in hex format
+            // HyperLiquid operates on Arbitrum
+            const chainId = getChainId(this.isTestnet);
+            const hexChainId = `0x${toHexadecimal(chainId)}`;
+            DevLogger.log('HyperLiquidWalletService: eth_chainId requested', {
+              isTestnet: this.isTestnet,
+              decimalChainId: chainId,
+              hexChainId,
+            });
+            return hexChainId;
           }
 
           case 'eth_signTypedData_v4': {
