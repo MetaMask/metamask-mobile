@@ -1,10 +1,15 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
-import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
-import ButtonIcon, { ButtonIconSizes } from '../../Buttons/ButtonIcon';
-import Text, { TextVariant, TextColor } from '../../Texts/Text';
-import { IconName, IconColor } from '../../Icons/Icon';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../components/Avatars/Avatar';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../components/Buttons/ButtonIcon';
+import Text, { TextVariant, TextColor } from '../../../components/Texts/Text';
+import { IconName, IconColor } from '../../../components/Icons/Icon';
 import { useStyles } from '../../../hooks';
 import { formatAddress } from '../../../../util/address';
 import { getNetworkImageSource } from '../../../../util/networks';
