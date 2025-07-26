@@ -13,6 +13,7 @@ import AppConstants from '../../../AppConstants';
 
 const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
+  return 'rc';
   switch (env) {
     case 'pre-release':
     case 'rc':
