@@ -4,7 +4,26 @@ import {
   TRIGGER_TYPES,
   defaultState as notificationControllerServiceDefaultState,
   INotification,
+  processNotification,
 } from '@metamask/notification-services-controller/notification-services';
+import {
+  createMockNotificationEthSent,
+  createMockNotificationEthReceived,
+  createMockNotificationERC20Sent,
+  createMockNotificationERC20Received,
+  createMockNotificationERC721Sent,
+  createMockNotificationERC721Received,
+  createMockNotificationERC1155Sent,
+  createMockNotificationERC1155Received,
+  createMockNotificationLidoReadyToBeWithdrawn,
+  createMockNotificationLidoStakeCompleted,
+  createMockNotificationLidoWithdrawalCompleted,
+  createMockNotificationLidoWithdrawalRequested,
+  createMockNotificationMetaMaskSwapsCompleted,
+  createMockNotificationRocketPoolStakeCompleted,
+  createMockNotificationRocketPoolUnStakeCompleted,
+  createMockFeatureAnnouncementRaw,
+} from '@metamask/notification-services-controller/notification-services/mocks';
 import {
   NotificationServicesPushControllerState,
   defaultState as pushControllerDefaultState,
@@ -12,6 +31,25 @@ import {
 
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
+
+const mockNotifications = [
+  createMockNotificationEthSent(),
+  createMockNotificationEthReceived(),
+  createMockNotificationERC20Sent(),
+  createMockNotificationERC20Received(),
+  createMockNotificationERC721Sent(),
+  createMockNotificationERC721Received(),
+  createMockNotificationERC1155Sent(),
+  createMockNotificationERC1155Received(),
+  createMockNotificationLidoReadyToBeWithdrawn(),
+  createMockNotificationLidoStakeCompleted(),
+  createMockNotificationLidoWithdrawalCompleted(),
+  createMockNotificationLidoWithdrawalRequested(),
+  createMockNotificationMetaMaskSwapsCompleted(),
+  createMockNotificationRocketPoolStakeCompleted(),
+  createMockNotificationRocketPoolUnStakeCompleted(),
+  createMockFeatureAnnouncementRaw(),
+].map((n) => processNotification(n));
 
 type NotificationServicesState = NotificationServicesControllerState;
 
@@ -76,6 +114,7 @@ export const getmetamaskNotificationsReadList = createSelector(
 export const getNotificationsList = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
+    mockNotifications ??
     notificationServicesControllerState.metamaskNotificationsList,
 );
 
@@ -83,21 +122,27 @@ export const getMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
+      mockNotifications ??
+      notificationServicesControllerState.metamaskNotificationsList ??
+      []
     ).filter((notification: INotification) => !notification.isRead).length,
 );
 export const getMetamaskNotificationsReadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
+      mockNotifications ??
+      notificationServicesControllerState.metamaskNotificationsList ??
+      []
     ).filter((notification: INotification) => notification.isRead).length,
 );
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
+      mockNotifications ??
+      notificationServicesControllerState.metamaskNotificationsList ??
+      []
     ).filter(
       (notification: INotification) =>
         !notification.isRead &&
