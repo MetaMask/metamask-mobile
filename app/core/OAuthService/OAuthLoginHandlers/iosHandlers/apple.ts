@@ -78,19 +78,24 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
         throw error;
       } else if (error instanceof Error) {
         if (
-          error.message.includes('The user canceled the authorization attempt')
+          error.message.includes(
+            'The user canceled the authorization attempt',
+          ) ||
+          error.message.includes(
+            'The authorization attempt failed for an unknown reason',
+          )
         ) {
           throw new OAuthError(
             'handleIosAppleLogin: User canceled the authorization attempt',
             OAuthErrorType.UserCancelled,
           );
         } else {
-          throw new OAuthError(error, OAuthErrorType.UnknownError);
+          throw new OAuthError(error, OAuthErrorType.UserDismissed);
         }
       } else {
         throw new OAuthError(
           'handleIosAppleLogin: Unknown error',
-          OAuthErrorType.UnknownError,
+          OAuthErrorType.UserDismissed,
         );
       }
     }

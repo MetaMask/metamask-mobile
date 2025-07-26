@@ -538,8 +538,11 @@ class Onboarding extends PureComponent {
         this.handleOAuthLoginError(error);
         return;
       }
-      if (error.code === OAuthErrorType.UserCancelled) {
-        // QA: do not show error sheet if user cancelled
+      if (
+        error.code === OAuthErrorType.UserCancelled ||
+        error.code === OAuthErrorType.UserDismissed
+      ) {
+        // QA: do not show error sheet if user cancelled or dismissed
         return;
       }
     }
