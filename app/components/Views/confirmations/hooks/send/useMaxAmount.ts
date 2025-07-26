@@ -21,7 +21,7 @@ import { useGasFeeEstimates } from '../gas/useGasFeeEstimates';
 const NATIVE_TRANSFER_GAS_LIMIT = 21000;
 const GWEI_TO_WEI_CONVERSION_RATE = 1e9;
 
-interface GasFeeEstimatesType {
+export interface GasFeeEstimatesType {
   medium: {
     suggestedMaxFeePerGas: number;
   };
@@ -39,19 +39,21 @@ export const getEstimatedTotalGas = (gasFeeEstimates: GasFeeEstimatesType) => {
   return totalGas.mul(conversionrate);
 };
 
+export interface GetMaxValueArgs {
+  accounts: Record<Hex, AccountInformation>;
+  asset?: AssetType;
+  contractBalances: Record<Hex, Hex>;
+  from: Hex;
+  gasFeeEstimates: GasFeeEstimatesType;
+}
+
 export const getMaxValueFn = ({
   accounts,
   asset,
   contractBalances,
   from,
   gasFeeEstimates,
-}: {
-  accounts: Record<Hex, AccountInformation>;
-  asset?: AssetType;
-  contractBalances: Record<Hex, Hex>;
-  from: Hex;
-  gasFeeEstimates: GasFeeEstimatesType;
-}) => {
+}: GetMaxValueArgs) => {
   if (!asset) {
     return '0';
   }

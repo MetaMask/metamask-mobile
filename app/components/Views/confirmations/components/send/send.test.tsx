@@ -126,6 +126,36 @@ describe('Send', () => {
     expect(mockAddTransaction).not.toHaveBeenCalled();
   });
 
+  it('display error if amount is greater than balance for native token', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          isNative: true,
+          chainId: '0x1',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '100');
+    expect(getByText('Insufficient funds')).toBeTruthy();
+  });
+
+  it('display error if amount is greater than balance for ERC20 token', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          address: '0x123',
+          decimals: 2,
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '100');
+    expect(getByText('Insufficient funds')).toBeTruthy();
+  });
+
   it('when confirm is clicked create transaction for ERC20 token', async () => {
     const mockAddTransaction = jest
       .spyOn(TransactionUtils, 'addTransaction')
@@ -224,7 +254,7 @@ describe('Send', () => {
     expect(getByTestId('send_amount').props.value).toBe('0.05');
   });
 
-  it.only('pressing Max uses max balance minus gas for native token', () => {
+  it('pressing Max uses max balance minus gas for native token', () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
         asset: {
