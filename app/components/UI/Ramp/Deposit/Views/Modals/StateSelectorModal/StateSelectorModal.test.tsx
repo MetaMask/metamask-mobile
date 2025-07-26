@@ -50,6 +50,22 @@ let mockUseParamsValues = {
   onStateSelect: jest.fn(),
 };
 
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockDangerouslyGetParent = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      dangerouslyGetParent: mockDangerouslyGetParent,
+    }),
+  };
+});
+
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
@@ -115,11 +131,31 @@ describe('StateSelectorModal Component', () => {
   });
 
   describe('Behavior Tests', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('calls onStateSelect when a state is selected', () => {
       const { getByText } = renderWithProvider(StateSelectorModal);
       const californiaState = getByText('California');
       fireEvent.press(californiaState);
       expect(mockUseParamsValues.onStateSelect).toHaveBeenCalledWith('CA');
+    });
+
+    it('navigates to unsupported state modal when NY is selected', () => {
+      const { getByText } = renderWithProvider(StateSelectorModal);
+      const newYorkState = getByText('New York');
+      fireEvent.press(newYorkState);
+
+      expect(mockUseParamsValues.onStateSelect).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        params: {
+          stateCode: 'NY',
+          stateName: 'New York',
+          onStateSelect: mockUseParamsValues.onStateSelect,
+        },
+        screen: 'DepositUnsupportedStateModal',
+      });
     });
 
     it('filters states when searching by name', () => {
