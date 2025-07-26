@@ -1528,7 +1528,7 @@ export class Engine {
           ],
         }),
         // TODO: This is long, can we decrease it?
-        interval: 180000,
+        interval: 5000,
         state: initialState.TokenBalancesController,
       }),
       TokenRatesController: new TokenRatesController({

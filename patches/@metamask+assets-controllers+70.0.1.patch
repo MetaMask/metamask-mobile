@@ -161,3 +161,16 @@ index e16e91f..3168b35 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
+diff --git a/node_modules/@metamask/assets-controllers/dist/multicall.cjs b/node_modules/@metamask/assets-controllers/dist/multicall.cjs
+index 43a0531..bc965d1 100644
+--- a/node_modules/@metamask/assets-controllers/dist/multicall.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/multicall.cjs
+@@ -297,6 +297,8 @@ const multicall = async (calls, multicallAddress, provider, maxCallsPerMulticall
+                 callData: call.contract.interface.encodeFunctionData(call.contract.interface.functions[call.functionSignature], call.arguments),
+             }));
+             const results = await multicallContract.callStatic.tryAggregate(false, calldata);
++            console.log('multicall success', { results })
++            // ^ Inspect the results after sending some tokens between accounts on extension, you can see that this is always stale!
+             return [
+                 ...workingResult,
+                 ...results.map((r, i) => ({
