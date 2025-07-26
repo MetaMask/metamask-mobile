@@ -1,6 +1,6 @@
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
@@ -37,7 +37,10 @@ export function useTransactionRequiredFiat() {
   const tokenDecimals = useMemo(
     () =>
       requiredTokens.map(
-        (token) => tokens[token.address.toLowerCase()]?.decimals ?? 18,
+        (token) =>
+          Object.values(tokens).find(
+            (t) => t.address.toLowerCase() === token.address.toLowerCase(),
+          )?.decimals ?? 18,
       ),
     [requiredTokens, tokens],
   );
@@ -54,7 +57,7 @@ export function useTransactionRequiredFiat() {
 
         return calculateFiat(target.amount, targetDecimals, targetFiatRate);
       }),
-    [requiredTokens, tokenDecimals, tokenFiatRates],
+    [requiredTokens, JSON.stringify(tokenDecimals), tokenFiatRates],
   );
 
   const fiatTotal = fiatValues.reduce<number>(

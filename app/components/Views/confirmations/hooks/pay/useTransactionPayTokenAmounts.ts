@@ -1,5 +1,5 @@
 import { BigNumber } from 'bignumber.js';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
@@ -17,7 +17,10 @@ export function useTransactionPayTokenAmounts() {
     selectTokensByChainIdAndAddress(state, chainId),
   );
 
-  const tokenDecimals = tokens[address.toLowerCase()]?.decimals ?? 18;
+  const tokenDecimals =
+    Object.values(tokens).find(
+      (t) => t.address.toLowerCase() === address.toLowerCase(),
+    )?.decimals ?? 18;
 
   const fiatRequest = useMemo(
     () => [
@@ -30,7 +33,6 @@ export function useTransactionPayTokenAmounts() {
   );
 
   const tokenFiatRate = useTokenFiatRates(fiatRequest)[0];
-
   const { fiatValues } = useTransactionRequiredFiat();
 
   return useMemo(() => {
