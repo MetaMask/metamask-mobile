@@ -18,7 +18,10 @@ export interface TransactionPayToken {
 export interface ConfirmationMetricsState {
   metricsById: Record<string, ConfirmationMetrics>;
   transactionPayTokenById: Record<string, TransactionPayToken>;
-  transactionBridgeQuotesById: Record<string, TransactionBridgeQuote[] | undefined>;
+  transactionBridgeQuotesById: Record<
+    string,
+    TransactionBridgeQuote[] | undefined
+  >;
 }
 
 export const initialState: ConfirmationMetricsState = {
