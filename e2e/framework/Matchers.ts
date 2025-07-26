@@ -22,7 +22,7 @@ export default class Matchers {
    * Get element by text with optional index
    */
   static async getElementByText(
-    text: string,
+    text: string | RegExp,
     index = 0,
   ): Promise<Detox.IndexableNativeElement> {
     return element(by.text(text)).atIndex(
