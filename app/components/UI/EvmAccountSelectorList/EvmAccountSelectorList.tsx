@@ -572,7 +572,7 @@ const EvmAccountSelectorList = ({
         data={flattenedData}
         keyExtractor={getKeyExtractor}
         renderItem={renderItem}
-        estimatedItemSize={listItemHeight}
+        // estimatedItemSize={listItemHeight}
         getItemType={getItemType}
         renderScrollComponent={
           ScrollView as React.ComponentType<ScrollViewProps>
