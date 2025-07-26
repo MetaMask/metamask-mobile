@@ -186,6 +186,7 @@ const useAccounts = ({
           // This only works for EOAs
           caipAccountId: `${internalAccount.scopes[0]}:${internalAccount.address}`,
           scopes: internalAccount.scopes,
+          snapId: internalAccount.metadata.snap?.id,
           isLoadingAccount: accountBalance.isLoadingAccount,
         };
         // Calculate height of the account item.

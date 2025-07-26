@@ -1101,7 +1101,6 @@
   },
   "defi_positions": {
     "loading_positions": "Cargando posiciones DeFi...",
-    "no_positions": "Aún no hay posiciones",
     "error_cannot_load_page": "No pudimos cargar esta página.",
     "error_visit_again": "Vuelve a visitarnos más tarde.",
     "single_token": "Solo {{symbol}}",
@@ -1627,8 +1626,6 @@
     "display_nft_media": "Mostrar medios NFT",
     "display_nft_media_desc": "La visualización de medios y datos NFT expone su dirección IP a OpenSea u otros terceros. La detección automática de NFT se basa en esta función y no estará disponible cuando esté desactivada.",
     "autodetect_nft_desc": "Permita que MetaMask agregue NFT de su propiedad mediante servicios de terceros (como OpenSea). La detección automática de NFT expone su IP y dirección de cuenta a estos servicios. Habilitar esta función podría asociar su dirección IP con su dirección de Ethereum y mostrar NFT enviados mediante airdrop por estafadores. Puede agregar tokens manualmente para evitar este riesgo.",
-    "incoming_transactions_title": "Mostrar transacciones entrantes",
-    "incoming_transactions_content": "Esto depende de la red que seleccione, la misma que expondrá su dirección Ethereum y su dirección IP.",
     "display_nft_media_desc_new": "La visualización de medios y datos NFT expone su dirección IP a OpenSea o a otros terceros. La autodetección de NFT se basa en esta función y no estará disponible cuando esté desactivada. Si los medios NFT están completamente ubicados en IPFS, aún se pueden mostrar incluso cuando esta función está desactivada.",
     "use_safe_chains_list_validation_desc_1": "MetaMask utiliza un servicio de terceros llamado ",
     "use_safe_chains_list_validation_desc_2": "para mostrar detalles de red precisos y estandarizados. Esto reduce las posibilidades de conectarse a una red maliciosa o incorrecta. Al utilizar esta función, su dirección IP queda expuesta a  ",

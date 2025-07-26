@@ -51,6 +51,7 @@ export const FIELD_ELEMENT_TYPES = [
   'Selector',
   'AddressInput',
   'AssetSelector',
+  'AccountSelector',
 ];
 
 /**
