@@ -157,4 +157,38 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toHaveLength(1);
     expect(result.current[0].key).toBe(AlertKeys.InsufficientBalance);
   });
+
+  describe('when ignoreGasFeeToken is true', () => {
+    it('returns empty array', () => {
+      mockSelectTransactionState.mockReturnValue({
+        maxValueMode: true,
+      });
+      const { result } = renderHook(() =>
+        useInsufficientBalanceAlert({ ignoreGasFeeToken: true }),
+      );
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns alert when balance is insufficient', () => {
+      const { result } = renderHook(() =>
+        useInsufficientBalanceAlert({ ignoreGasFeeToken: true }),
+      );
+
+      expect(result.current).toEqual([
+        {
+          action: {
+            label: `Buy ${mockNativeCurrency}`,
+            callback: expect.any(Function),
+          },
+          isBlocking: true,
+          field: RowAlertKey.EstimatedFee,
+          key: AlertKeys.InsufficientBalance,
+          message: `Insufficient ${mockNativeCurrency} balance`,
+          title: 'Insufficient Balance',
+          severity: Severity.Danger,
+          skipConfirmation: true,
+        },
+      ]);
+    });
+  });
 });

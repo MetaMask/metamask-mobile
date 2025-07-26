@@ -14,13 +14,17 @@ import { createBuyNavigationDetails } from '../../../../UI/Ramp/Aggregator/route
 import { selectTransactionState } from '../../../../../reducers/transaction';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { Severity } from '../../types/alerts';
+import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 
 const HEX_ZERO = '0x0';
 
-export const useInsufficientBalanceAlert = () => {
+export const useInsufficientBalanceAlert = ({
+  ignoreGasFeeToken,
+}: {
+  ignoreGasFeeToken?: boolean;
+} = {}): Alert[] => {
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -35,7 +39,7 @@ export const useInsufficientBalanceAlert = () => {
       return [];
     }
 
-    const { txParams } = transactionMetadata;
+    const { txParams, selectedGasFeeToken } = transactionMetadata;
     const { maxFeePerGas, gas, gasPrice } = txParams;
     const { nativeCurrency } =
       networkConfigurations[transactionMetadata.chainId as Hex];
@@ -52,7 +56,12 @@ export const useInsufficientBalanceAlert = () => {
     const balanceWeiInHexBN = new BigNumber(balanceWeiInHex);
     const totalTransactionValueBN = new BigNumber(totalTransactionInHex);
 
-    const showAlert = balanceWeiInHexBN.lt(totalTransactionValueBN);
+    const hasInsufficientBalance = balanceWeiInHexBN.lt(
+      totalTransactionValueBN,
+    );
+
+    const showAlert =
+      hasInsufficientBalance && (ignoreGasFeeToken || !selectedGasFeeToken);
 
     if (!showAlert) {
       return [];
@@ -81,6 +90,7 @@ export const useInsufficientBalanceAlert = () => {
     ];
   }, [
     balanceWeiInHex,
+    ignoreGasFeeToken,
     maxValueMode,
     navigation,
     networkConfigurations,
