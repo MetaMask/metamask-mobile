@@ -11,7 +11,7 @@ import reducer, {
   selectTransactionBridgeQuotesById,
 } from './index';
 import { RootState } from '../../../../reducers';
-import { QuoteResponse } from '@metamask/bridge-controller';
+import { TransactionBridgeQuote } from '../../../../components/Views/confirmations/utils/bridge';
 
 const ID_MOCK = '123-456';
 
@@ -24,7 +24,7 @@ const QUOTE_MOCK = {
   quote: {
     srcChainId: '0x1',
   },
-} as unknown as QuoteResponse;
+} as unknown as TransactionBridgeQuote;
 
 describe('confirmationMetrics slice', () => {
   describe('updateConfirmationMetric', () => {
