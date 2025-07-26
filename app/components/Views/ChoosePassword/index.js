@@ -85,6 +85,7 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import OAuthService from '../../../core/OAuthService/OAuthService';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -462,9 +463,9 @@ class ChoosePassword extends PureComponent {
         } catch (error) {
           if (this.isOAuthPasswordCreationError(error, authType)) {
             this.handleOAuthPasswordCreationError(error, authType);
-            return;
-          }
-          if (Device.isIos) {
+            await this.handleSeedlessOnboardingControllerError(error);
+            throw error;
+          } else if (Device.isIos) {
             await this.handleRejectedOsBiometricPrompt();
           }
         }
@@ -558,7 +559,41 @@ class ChoosePassword extends PureComponent {
         });
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
       }
+
+      if (error.message.includes('SeedlessOnboardingController')) {
+        this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
+      }
     }
+  };
+
+  handleSeedlessOnboardingControllerError = async (error) => {
+    Logger.error(error);
+    OAuthService.resetOauthState();
+
+    return new Promise((resolve) => {
+      // to add error code and message
+      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings(
+            'seedless_onboarding.seedless_onboarding_create_error_title',
+          ),
+          description: strings(
+            'seedless_onboarding.seedless_onboarding_create_error_description',
+          ),
+          primaryButtonLabel: strings(
+            'seedless_onboarding.seedless_onboarding_create_error_button',
+          ),
+          type: 'error',
+          icon: IconName.Danger,
+          isInteractable: false,
+          onPrimaryButtonPress: async () => {
+            resolve();
+          },
+          closeOnPrimaryButtonPress: true,
+        },
+      });
+    });
   };
 
   /**
@@ -571,8 +606,6 @@ class ChoosePassword extends PureComponent {
       false,
     );
 
-    const oauth2LoginSuccess = this.getOauth2LoginSuccess();
-    newAuthData.oauth2Login = oauth2LoginSuccess;
     try {
       await Authentication.newWalletAndKeychain(
         this.state.password,

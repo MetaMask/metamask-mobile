@@ -394,6 +394,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             () => null,
           );
         }
+      } else {
+        const errMessage = seedlessError.message.replace(
+          'SeedlessOnboardingController - ',
+          '',
+        );
+        setError(errMessage);
         return;
       }
     } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
@@ -404,6 +410,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         setError(strings('login.seedless_password_outdated'));
         return;
       }
+      setError(seedlessError.message);
     }
     const errMessage = seedlessError.message.replace(
       'SeedlessOnboardingController - ',

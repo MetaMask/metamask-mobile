@@ -1070,11 +1070,6 @@ class AuthenticationService {
       throw err;
     }
     await this.resetPassword();
-
-    // set solana discovery pending to true
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
-    ///: END:ONLY_INCLUDE_IF
   };
 
   /**
