@@ -749,7 +749,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   placeholder="Enter token name or paste address"
                                   style={
                                     {
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",

@@ -774,7 +774,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   placeholder="Enter token name or paste address"
                                   style={
                                     {
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",

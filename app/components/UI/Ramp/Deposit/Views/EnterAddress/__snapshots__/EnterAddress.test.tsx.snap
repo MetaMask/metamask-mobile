@@ -686,7 +686,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -786,7 +786,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -881,7 +881,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -1104,7 +1104,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -1225,7 +1225,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2105,7 +2105,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -2190,7 +2190,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -2285,7 +2285,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2478,7 +2478,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2584,7 +2584,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3464,7 +3464,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -3549,7 +3549,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -3644,7 +3644,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3730,7 +3730,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3827,7 +3827,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3933,7 +3933,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",

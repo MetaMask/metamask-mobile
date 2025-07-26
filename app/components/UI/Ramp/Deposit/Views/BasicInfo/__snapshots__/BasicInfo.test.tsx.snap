@@ -687,7 +687,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -774,7 +774,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -909,7 +909,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         placeholderTextColor="#b7bbc8"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -1038,7 +1038,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -1159,7 +1159,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         secureTextEntry={true}
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -2038,7 +2038,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2125,7 +2125,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2260,7 +2260,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         placeholderTextColor="#b7bbc8"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -2389,7 +2389,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2510,7 +2510,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         secureTextEntry={true}
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -3389,7 +3389,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3491,7 +3491,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3641,7 +3641,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         placeholderTextColor="#b7bbc8"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -3785,7 +3785,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3921,7 +3921,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         secureTextEntry={true}
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",

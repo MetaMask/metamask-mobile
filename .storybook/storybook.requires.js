@@ -96,6 +96,7 @@ const getStories = () => {
     "./app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories.tsx": require("../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories.tsx"),
     "./app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories.tsx": require("../app/component-library/components/Modals/ModalMandatory/ModalMandatory.stories.tsx"),
     "./app/component-library/components/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.stories.tsx": require("../app/component-library/components/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.stories.tsx"),
+    "./app/component-library/components/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.stories.tsx": require("../app/component-library/components/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.stories.tsx"),
     "./app/component-library/components/Navigation/TabBar/TabBar.stories.tsx": require("../app/component-library/components/Navigation/TabBar/TabBar.stories.tsx"),
     "./app/component-library/components/Navigation/TabBarItem/TabBarItem.stories.tsx": require("../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories.tsx"),
     "./app/component-library/components/Overlay/Overlay.stories.tsx": require("../app/component-library/components/Overlay/Overlay.stories.tsx"),

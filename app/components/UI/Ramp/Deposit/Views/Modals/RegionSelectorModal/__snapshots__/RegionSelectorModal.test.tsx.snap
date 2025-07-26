@@ -584,7 +584,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   placeholder="Search by country"
                                   style={
                                     {
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
@@ -1716,7 +1716,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   placeholder="Search by country"
                                   style={
                                     {
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
@@ -2436,7 +2436,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   placeholder="Search by country"
                                   style={
                                     {
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",

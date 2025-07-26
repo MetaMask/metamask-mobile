@@ -159,7 +159,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                       secureTextEntry={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#121314",

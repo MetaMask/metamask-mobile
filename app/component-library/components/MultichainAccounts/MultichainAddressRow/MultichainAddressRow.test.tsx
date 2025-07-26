@@ -85,7 +85,6 @@ describe('MultichainAddressRow', () => {
     const propsWithoutRpcPrefs = {
       ...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS,
       network: {
-        ...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS.network,
         rpcPrefs: {},
       },
     };

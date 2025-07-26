@@ -114,7 +114,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
         placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
@@ -250,7 +250,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
         placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
@@ -386,7 +386,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
         placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
@@ -522,7 +522,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
         placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
@@ -658,7 +658,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
         placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
@@ -809,7 +809,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
         placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
@@ -946,7 +946,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
         placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
@@ -1082,7 +1082,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
         placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
@@ -1218,7 +1218,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
         placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
@@ -1354,7 +1354,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
         placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
