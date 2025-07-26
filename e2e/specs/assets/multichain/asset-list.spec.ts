@@ -82,7 +82,6 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
 
   it('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
     await SendView.tapCancelButton();
-    const BNB_NETWORK_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     await WalletView.scrollToToken('BNB');
@@ -90,18 +89,15 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
     await Assertions.expectElementToBeVisible(bnb);
     await WalletView.tapOnToken('BNB');
     await TokenOverview.tapSwapButton();
-    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
-    await Assertions.expectElementToHaveText(
-      NetworkEducationModal.networkName,
-      BNB_NETWORK_NAME,
-    );
-    await NetworkEducationModal.tapGotItButton();
     await QuoteView.tapOnCancelButton();
+    await TokenOverview.tapBackButton();
+    await WalletView.tapTokenNetworkFilter();
+    await WalletView.tapTokenNetworkFilterCurrent();
+    const bnbCurrentNetwork = WalletView.tokenInWallet('BNB');
+    await Assertions.expectElementToBeVisible(bnbCurrentNetwork);
   });
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
-    await TokenOverview.tapBackButton();
-
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     if (device.getPlatform() === 'ios') {

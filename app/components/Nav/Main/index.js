@@ -94,6 +94,8 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
+import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
+import { handleShowNetworkActiveToast } from './utils';
 
 const Stack = createStackNavigator();
 
@@ -277,6 +279,7 @@ const Main = (props) => {
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const isOnBridgeRoute = useIsOnBridgeRoute();
 
   const hasNetworkChanged = useCallback(
     (chainId, previousConfig, isEvmSelected) => {
@@ -309,17 +312,13 @@ const Main = (props) => {
           });
         }
       }
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Network,
-        labelOptions: [
-          {
-            label: `${networkName} `,
-            isBold: true,
-          },
-          { label: strings('toast.now_active') },
-        ],
-        networkImageSource: networkImage,
-      });
+
+      handleShowNetworkActiveToast(
+        isOnBridgeRoute,
+        toastRef,
+        networkName,
+        networkImage,
+      );
     }
     previousProviderConfig.current = !isEvmSelected
       ? { chainId }
@@ -334,6 +333,7 @@ const Main = (props) => {
     hasNetworkChanged,
     isAllNetworks,
     tokenNetworkFilter,
+    isOnBridgeRoute,
   ]);
 
   // Show add network confirmation.

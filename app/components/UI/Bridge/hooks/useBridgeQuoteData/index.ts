@@ -25,10 +25,18 @@ import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../../locales/i18n';
 import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import useIsInsufficientBalance from '../useInsufficientBalance';
+import { BigNumber as EthersBigNumber } from 'ethers';
+
+interface UseBridgeQuoteDataParams {
+  latestSourceAtomicBalance?: EthersBigNumber;
+}
+
 /**
  * Hook for getting bridge quote data without request logic
  */
-export const useBridgeQuoteData = () => {
+export const useBridgeQuoteData = ({
+  latestSourceAtomicBalance,
+}: UseBridgeQuoteDataParams = {}) => {
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -54,6 +62,7 @@ export const useBridgeQuoteData = () => {
   const insufficientBal = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
+    latestAtomicBalance: latestSourceAtomicBalance,
   });
 
   const willRefresh = shouldRefreshQuote(
