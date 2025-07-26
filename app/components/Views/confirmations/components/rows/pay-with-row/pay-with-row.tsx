@@ -4,8 +4,8 @@ import InfoSection from '../../UI/info-row/info-section';
 import { Box } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useTransactionPayToken } from '../../../hooks/transactions/useTransactionPayToken';
 import { TokenPill } from '../../token-pill/token-pill';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 export function PayWithRow() {
   const navigation = useNavigation();

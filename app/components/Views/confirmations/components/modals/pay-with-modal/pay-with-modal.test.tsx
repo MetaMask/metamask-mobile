@@ -30,7 +30,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/transactions/useTransactionPayToken', () => ({
+jest.mock('../../../hooks/pay/useTransactionPayToken', () => ({
   useTransactionPayToken: () => ({
     payToken: { address: '0x0', chainId: '0x0' },
     setPayToken: mockSetPayToken,
