@@ -86,7 +86,7 @@ const useMaxAmount = () => {
       chainId
         ? NetworkController.findNetworkClientIdByChainId(toHex(chainId))
         : undefined,
-    [chainId],
+    [chainId], // eslint-disable-line react-hooks/exhaustive-deps,
   );
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId ?? '');
 

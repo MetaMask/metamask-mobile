@@ -8,7 +8,7 @@ const useRouteParams = () => {
   const route =
     useRoute<RouteProp<Record<string, { asset: AssetType }>, string>>();
   const paramsAsset = route?.params?.asset;
-  const { asset, updateAsset } = useSendContext();
+  const { updateAsset } = useSendContext();
 
   useEffect(() => {
     updateAsset(paramsAsset);

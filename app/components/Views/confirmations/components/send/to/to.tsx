@@ -17,8 +17,8 @@ const To = () => {
       <Text>To:</Text>
       <Input
         style={styles.input}
-        onChangeText={(to: string) => {
-          updateTo(to as Hex);
+        onChangeText={(toAddr: string) => {
+          updateTo(toAddr as Hex);
         }}
         value={to}
         testID="send_to_address"

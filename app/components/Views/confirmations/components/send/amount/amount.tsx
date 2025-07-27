@@ -26,8 +26,8 @@ const Amount = () => {
       <Input
         style={styles.input}
         value={value}
-        onChangeText={(value: string) => {
-          updateValue(value);
+        onChangeText={(val: string) => {
+          updateValue(val);
         }}
         testID="send_amount"
       />
