@@ -37,7 +37,7 @@ export { useBalanceComparison } from './useBalanceComparison';
 export { useColorPulseAnimation } from './useColorPulseAnimation';
 export { usePerpsPositions } from './usePerpsPositions';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
-
+export { usePerpsClosePosition } from './usePerpsClosePosition';
 // - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)

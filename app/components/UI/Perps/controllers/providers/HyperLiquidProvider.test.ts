@@ -17,6 +17,7 @@ import {
   validateAssetSupport,
   validateBalance,
 } from '../../utils/hyperLiquidValidation';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock dependencies
 jest.mock('../../services/HyperLiquidClientService');
@@ -429,6 +430,521 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.closePosition(closeParams);
 
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('closePosition with TP/SL handling', () => {
+    beforeEach(() => {
+      // Mock DevLogger to capture logs
+      jest.spyOn(DevLogger, 'log');
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should close position without TP/SL successfully', async () => {
+      // Position without TP/SL
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+      expect(DevLogger.log).not.toHaveBeenCalledWith(
+        expect.stringContaining('Position has TP/SL orders'),
+        expect.any(Object),
+      );
+    });
+
+    it('should handle position with TP/SL and log defensive checks', async () => {
+      // Mock position with TP/SL
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest
+          .fn()
+          .mockResolvedValueOnce([
+            // First call for getPositions
+            {
+              coin: 'BTC',
+              oid: 1001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Market',
+              triggerPx: '55000',
+              isPositionTpsl: true,
+            },
+            {
+              coin: 'BTC',
+              oid: 1002,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Stop Market',
+              triggerPx: '45000',
+              isPositionTpsl: true,
+            },
+          ])
+          .mockResolvedValueOnce([
+            // Second call for closePosition TP/SL check
+            {
+              coin: 'BTC',
+              oid: 1001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Market',
+              triggerPx: '55000',
+              isPositionTpsl: true,
+              side: 'A',
+            },
+            {
+              coin: 'BTC',
+              oid: 1002,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Stop Market',
+              triggerPx: '45000',
+              isPositionTpsl: true,
+              side: 'B',
+            },
+          ]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+
+      // Verify defensive TP/SL logging
+      expect(DevLogger.log).toHaveBeenCalledWith('Position has TP/SL orders:', {
+        coin: 'BTC',
+        takeProfitPrice: '55000',
+        stopLossPrice: '45000',
+      });
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'Found open TP/SL orders that may be auto-canceled:',
+        {
+          count: 2,
+          orders: [
+            { oid: 1001, side: 'A', limitPx: '55000' },
+            { oid: 1002, side: 'B', limitPx: '45000' },
+          ],
+        },
+      );
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'Position close successful, monitoring TP/SL auto-cancellation...',
+      );
+    });
+
+    it('should handle partial position close with TP/SL', async () => {
+      // Mock position with TP/SL
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'ETH',
+                szi: '1.5',
+                entryPx: '3000',
+                positionValue: '4500',
+                unrealizedPnl: '50',
+                marginUsed: '450',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '2700',
+                maxLeverage: 50,
+                returnOnEquity: '10',
+                cumFunding: {
+                  allTime: '5',
+                  sinceOpen: '2',
+                  sinceChange: '1',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest
+          .fn()
+          .mockResolvedValueOnce([
+            // First call for getPositions
+            {
+              coin: 'ETH',
+              oid: 2001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Limit',
+              triggerPx: '3500',
+              limitPx: '3490',
+              isPositionTpsl: true,
+            },
+          ])
+          .mockResolvedValueOnce([
+            // Second call for closePosition TP/SL check
+            {
+              coin: 'ETH',
+              oid: 2001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Limit',
+              triggerPx: '3500',
+              limitPx: '3490',
+              isPositionTpsl: true,
+              side: 'A',
+            },
+          ]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ ETH: '3000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'ETH',
+        size: '0.5', // Partial close
+        orderType: 'limit',
+        price: '3100',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+
+      // Verify partial close size is used (with HyperLiquid's short property names)
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              s: '0.5', // 's' is the short form for 'sz' (size)
+              r: true, // 'r' is the short form for 'reduceOnly'
+            }),
+          ],
+        }),
+      );
+
+      // Verify TP/SL warning is still logged for partial close
+      expect(DevLogger.log).toHaveBeenCalledWith('Position has TP/SL orders:', {
+        coin: 'ETH',
+        takeProfitPrice: '3500',
+        stopLossPrice: undefined,
+      });
+    });
+
+    it('should handle position without open TP/SL orders', async () => {
+      // Position exists but no open TP/SL orders
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([
+          // No TP/SL orders, just a regular limit order
+          {
+            coin: 'BTC',
+            oid: 9999,
+            reduceOnly: false,
+            isTrigger: false,
+            orderType: 'Limit',
+            limitPx: '49000',
+          },
+        ]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+
+      // Should not log TP/SL related messages
+      expect(DevLogger.log).not.toHaveBeenCalledWith(
+        expect.stringContaining('Found open TP/SL orders'),
+        expect.any(Object),
+      );
+    });
+
+    it('should handle close position when position not found', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [], // No positions
+        }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('No position found for BTC');
+    });
+
+    it('should handle short position close with TP/SL', async () => {
+      // Mock short position with TP/SL
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '-0.1', // Short position
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '-100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '55000',
+                maxLeverage: 50,
+                returnOnEquity: '-20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest
+          .fn()
+          .mockResolvedValueOnce([
+            // First call for getPositions - short position TP/SL
+            {
+              coin: 'BTC',
+              oid: 3001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Market',
+              triggerPx: '45000', // TP below entry for short
+              isPositionTpsl: true,
+            },
+            {
+              coin: 'BTC',
+              oid: 3002,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Stop Market',
+              triggerPx: '55000', // SL above entry for short
+              isPositionTpsl: true,
+            },
+          ])
+          .mockResolvedValueOnce([
+            // Second call for closePosition TP/SL check
+            {
+              coin: 'BTC',
+              oid: 3001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Market',
+              triggerPx: '45000',
+              isPositionTpsl: true,
+              side: 'B',
+            },
+            {
+              coin: 'BTC',
+              oid: 3002,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Stop Market',
+              triggerPx: '55000',
+              isPositionTpsl: true,
+              side: 'A',
+            },
+          ]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+
+      // Verify buy order is placed to close short (with HyperLiquid's short property names)
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              b: true, // 'b' is the short form for 'isBuy' (Buy to close short)
+              s: '0.1', // 's' is the short form for 'sz' (size)
+              r: true, // 'r' is the short form for 'reduceOnly'
+            }),
+          ],
+        }),
+      );
+
+      // Verify TP/SL logging for short position
+      expect(DevLogger.log).toHaveBeenCalledWith('Position has TP/SL orders:', {
+        coin: 'BTC',
+        takeProfitPrice: '45000',
+        stopLossPrice: '55000',
+      });
+    });
+
+    it('should handle errors in fetching TP/SL orders gracefully', async () => {
+      // Mock position exists but error fetching TP/SL orders
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest
+          .fn()
+          .mockResolvedValueOnce([
+            // First call for getPositions succeeds
+            {
+              coin: 'BTC',
+              oid: 1001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Market',
+              triggerPx: '55000',
+              isPositionTpsl: true,
+            },
+          ])
+          .mockRejectedValueOnce(new Error('Failed to fetch orders')), // Second call fails
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      // Should still fail due to error in the try block
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Failed to fetch orders');
     });
   });
 
