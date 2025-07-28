@@ -1,5 +1,8 @@
 import { BridgeClientId } from '@metamask/bridge-controller';
-import { BridgeStatusController, BridgeStatusControllerMessenger } from '@metamask/bridge-status-controller';
+import {
+  BridgeStatusController,
+  BridgeStatusControllerMessenger,
+} from '@metamask/bridge-status-controller';
 import { handleFetch, TraceCallback } from '@metamask/controller-utils';
 
 import { ControllerInitFunction, ControllerInitRequest } from '../../types';
