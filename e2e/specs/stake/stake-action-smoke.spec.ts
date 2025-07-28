@@ -246,20 +246,15 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await Assertions.checkIfNotVisible(WalletView.stakedEthereumLabel);
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    // Wait for network filter to apply and layout to stabilize
-    await TestHelpers.delay(2000);
 
     // Scroll to top first to ensure consistent starting position
     await WalletView.scrollToBottomOfTokensList();
-    await TestHelpers.delay(1000);
 
     // 3rd one is Linea Network
     await WalletView.scrollToToken('Ethereum');
-    await TestHelpers.delay(1500); // Extra time for scroll to complete
 
     await WalletView.tapOnToken('Ethereum', THIRD_ONE);
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(3000);
     await Assertions.checkIfNotVisible(TokenOverview.stakedBalance);
     await Assertions.checkIfNotVisible(TokenOverview.unstakingBanner);
     await Assertions.checkIfNotVisible(TokenOverview.unstakeButton);

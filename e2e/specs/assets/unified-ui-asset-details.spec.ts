@@ -56,9 +56,6 @@ describe(Regression('Unified UI Asset Details Actions'), () => {
         // Tap swap button
         await TokenOverview.tapSwapButton();
 
-        // Wait for navigation to complete
-        await TestHelpers.delay(3000);
-
         // Verify we navigated away from token overview
         // (The exact destination depends on unified UI configuration)
       },
@@ -80,9 +77,6 @@ describe(Regression('Unified UI Asset Details Actions'), () => {
 
         // Tap send button
         await TokenOverview.tapSendButton();
-
-        // Wait for navigation to complete
-        await TestHelpers.delay(2000);
 
         // Verify we navigated away from token overview
         await Assertions.checkIfNotVisible(TokenOverview.container);

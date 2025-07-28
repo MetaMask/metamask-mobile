@@ -8,6 +8,8 @@ import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
 
 class WalletView {
+  static readonly MAX_SCROLL_ITERATIONS = 8;
+
   get container(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
@@ -200,7 +202,7 @@ class WalletView {
 
   async scrollToBottomOfTokensList(): Promise<void> {
     const tokensContainer = await this.getTokensInWallet();
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < WalletView.MAX_SCROLL_ITERATIONS; i++) {
       await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
         speed: 'fast',
         percentage: 0.7,
