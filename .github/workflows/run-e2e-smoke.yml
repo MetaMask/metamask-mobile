@@ -246,9 +246,11 @@ jobs:
       - name: Download test results
         uses: actions/download-artifact@v4
         with:
-          path: e2e/reports
+          path: e2e/reports/
           pattern: smoke-*
-          merge-multiple: true
+          # We are not merging-multiple anymore.
+          # This will download each artifact into a separate directory.
+          merge-multiple: false
 
       - name: Debug downloaded files
         run: |

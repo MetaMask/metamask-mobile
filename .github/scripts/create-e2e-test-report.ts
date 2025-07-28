@@ -128,24 +128,22 @@ async function main() {
       return;
     }
 
-    const filenames = await fs.readdir(env.TEST_RESULTS_PATH);
-    console.log(`📄 Files found in ${env.TEST_RESULTS_PATH}: ${filenames.join(', ')}`);
+    const jobDirectories = await fs.readdir(env.TEST_RESULTS_PATH);
+    console.log(`📄 Found job directories in ${env.TEST_RESULTS_PATH}: ${jobDirectories.join(', ')}`);
     
-    // Filter for junit.xml files
-    const junitFiles = filenames.filter(name => name.endsWith('.xml') || name === 'junit.xml');
-    
-    if (junitFiles.length === 0) {
-      console.log('No JUnit XML files found in test results directory.');
-      core.summary.addRaw('\n# 🧪 E2E Mobile Test Results\n\n');
-      core.summary.addRaw('No JUnit XML test reports found.\n');
-      await core.summary.write();
-      return;
-    }
+    for (const jobName of jobDirectories) {
+      const jobPath = path.join(env.TEST_RESULTS_PATH, jobName);
+      const jobFiles = await fs.readdir(jobPath);
+      const junitFile = jobFiles.find(name => name.endsWith('.xml'));
 
-    for (const filename of junitFiles) {
-      console.log(`🔍 Processing XML file: ${filename}`);
+      if (!junitFile) {
+        console.log(`No JUnit XML file found in directory: ${jobPath}`);
+        continue;
+      }
+
+      console.log(`🔍 Processing XML file: ${junitFile} in job ${jobName}`);
       const file = await fs.readFile(
-        path.join(env.TEST_RESULTS_PATH, filename),
+        path.join(jobPath, junitFile),
         'utf8',
       );
       const results = await XML.parse(file);
@@ -176,9 +174,6 @@ async function main() {
           console.log(`🔧 Properties content:`, JSON.stringify(suite.properties, null, 2));
         }
 
-        const jobName = suite.properties?.[0]?.property?.[0]?.$.value
-          ? `${suite.properties?.[0].property?.[0]?.$.value}`
-          : filename.replace('.xml', ''); // Use filename as fallback
         const runId = suite.properties?.[0]?.property?.[1]?.$.value
           ? +suite.properties?.[0].property?.[1]?.$.value
           : 0;
