@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Browser from './BrowserView';
-import Matchers from '../../utils/Matchers';
+import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import {
   TestSnapViewSelectorWebIDS,
@@ -9,39 +9,39 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
 } from '../../selectors/Browser/TestSnaps.selectors';
-import Gestures from '../../utils/Gestures';
+import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
-import Utilities from '../../utils/Utilities';
+import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.25.0/';
 
 class TestSnaps {
-  get getConnectSnapButton() {
+  get getConnectSnapButton(): DetoxElement {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
   }
 
-  get getApproveSnapPermissionsRequestButton() {
+  get getApproveSnapPermissionsRequestButton(): DetoxElement {
     return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE);
   }
 
-  get getConnectSnapInstallOkButton() {
+  get getConnectSnapInstallOkButton(): DetoxElement {
     return Matchers.getElementByID(SNAP_INSTALL_OK);
   }
 
-  get getApproveSignRequestButton() {
+  get getApproveSignRequestButton(): DetoxElement {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
     );
   }
 
-  get confirmSignatureButton() {
+  get confirmSignatureButton(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
@@ -50,7 +50,7 @@ class TestSnaps {
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
-  ) {
+  ): Promise<void> {
     const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
@@ -63,7 +63,7 @@ class TestSnaps {
   async checkResultSpanIncludes(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
-  ) {
+  ): Promise<void> {
     const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
@@ -75,12 +75,14 @@ class TestSnaps {
     }
   }
 
-  async navigateToTestSnap() {
+  async navigateToTestSnap(): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
   }
 
-  async tapButton(buttonLocator: keyof typeof TestSnapViewSelectorWebIDS) {
+  async tapButton(
+    buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
+  ): Promise<void> {
     const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapViewSelectorWebIDS[buttonLocator],
@@ -89,7 +91,10 @@ class TestSnaps {
     await Gestures.tapWebElement(webElement);
   }
 
-  async getOptionValueByText(webElement: IndexableWebElement, text: string) {
+  async getOptionValueByText(
+    webElement: IndexableWebElement,
+    text: string,
+  ): Promise<string | null> {
     return await webElement.runScript(
       (el, searchText) => {
         if (!el?.options) return null;
@@ -105,7 +110,7 @@ class TestSnaps {
   async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
-  ) {
+  ): Promise<void> {
     const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       EntropyDropDownSelectorWebIDS[selector],
@@ -122,7 +127,9 @@ class TestSnaps {
     );
   }
 
-  async installSnap(buttonLocator: keyof typeof TestSnapViewSelectorWebIDS) {
+  async installSnap(
+    buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
+  ): Promise<void> {
     await this.tapButton(buttonLocator);
 
     await Gestures.waitAndTap(this.getConnectSnapButton);
@@ -140,7 +147,9 @@ class TestSnaps {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
     ) as Promise<IndexableWebElement>;
-    await Gestures.typeInWebElement(webElement, message);
+    await Gestures.typeText(webElement, message, {
+      hideKeyboard: true,
+    });
   }
 
   async approveSignRequest() {
@@ -155,7 +164,7 @@ class TestSnaps {
     open: boolean;
     origin: string | null;
     blockNumber: string | null;
-  }) {
+  }): Promise<void> {
     const resultElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
@@ -166,6 +175,7 @@ class TestSnaps {
         try {
           await this.tapButton('getWebSocketState');
 
+          // eslint-disable-next-line no-restricted-syntax
           await TestHelpers.delay(250);
 
           const text = await resultElement.getText();
