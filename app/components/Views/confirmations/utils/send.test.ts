@@ -1,4 +1,4 @@
-import { AssetType } from '../../types/token';
+import { AssetType } from '../types/token';
 import { prepareEVMTransaction } from './send';
 
 describe('prepareEVMTransaction', () => {
