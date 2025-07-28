@@ -29,8 +29,8 @@ module.exports = {
       'jest-junit',
       {
         outputDirectory: './e2e/reports',
-        outputName: 'junit-[hash].xml', // Generate separate files per test file
-        // Configuration for individual test file reporting
+        outputName: 'junit.xml', // Single file with all test results (like junit-[hash].xml but with correct name)
+        // Configuration for comprehensive test reporting
         suiteName: 'E2E Mobile Tests',
         classNameTemplate: '{filepath}',
         titleTemplate: '{classname} {title}',
