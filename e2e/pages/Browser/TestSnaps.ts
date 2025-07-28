@@ -16,7 +16,7 @@ import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapAp
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
-import Utilities, { BASE_DEFAULTS } from '../../framework/Utilities';
+import Utilities from '../../framework/Utilities';
 import LegacyGestures from '../../utils/Gestures';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 
@@ -133,33 +133,18 @@ class TestSnaps {
   ): Promise<void> {
     await this.tapButton(buttonLocator);
 
-    await Utilities.waitForElementToBeVisible(
-      this.getConnectSnapButton,
-      BASE_DEFAULTS.timeout,
-    );
     await Gestures.tap(this.getConnectSnapButton, {
       elemDescription: 'Connect Snap button',
-      checkVisibility: false,
       waitForElementToDisappear: true,
     });
 
-    await Utilities.waitForElementToBeVisible(
-      this.getApproveSnapPermissionsRequestButton,
-      BASE_DEFAULTS.timeout,
-    );
     await Gestures.tap(this.getApproveSnapPermissionsRequestButton, {
       elemDescription: 'Approve permission for Snap button',
-      checkVisibility: false,
       waitForElementToDisappear: true,
     });
 
-    await Utilities.waitForElementToBeVisible(
-      this.getConnectSnapInstallOkButton,
-      BASE_DEFAULTS.timeout,
-    );
     await Gestures.tap(this.getConnectSnapInstallOkButton, {
       elemDescription: 'OK button',
-      checkVisibility: false,
       waitForElementToDisappear: true,
     });
   }
