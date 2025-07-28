@@ -210,7 +210,7 @@ jobs:
       # smoke-trade-ios,
       smoke-trade-android,
       # smoke-wallet-platform-ios,
-      # smoke-wallet-platform-android,
+      smoke-wallet-platform-android,
       # smoke-identity-ios,
       # smoke-identity-android,
       # smoke-accounts-ios,
