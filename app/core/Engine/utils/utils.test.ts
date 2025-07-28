@@ -60,6 +60,8 @@ import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-ini
 import { perpsControllerInit } from '../controllers/perps-controller';
 import { BridgeControllerInit } from '../controllers/bridge-controller/bridge-controller-init';
 import { BridgeStatusControllerInit } from '../controllers/bridge-status-controller/bridge-status-controller-init';
+import { BridgeController } from '@metamask/bridge-controller';
+import { BridgeStatusController } from '@metamask/bridge-status-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -265,10 +267,10 @@ describe('initModularizedControllers', () => {
       controller: {} as unknown as AccountTreeController,
     });
     mockBridgeControllerInit.mockReturnValue({
-      controller: {} as unknown as any,
+      controller: {} as BridgeController,
     });
     mockBridgeStatusControllerInit.mockReturnValue({
-      controller: {} as unknown as any,
+      controller: {} as BridgeStatusController,
     });
   });
 

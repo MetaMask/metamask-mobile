@@ -1,11 +1,13 @@
-import { BridgeController } from '@metamask/bridge-controller';
+import { 
+  BridgeController,
+  type BridgeControllerMessenger 
+} from '@metamask/bridge-controller';
 import { TransactionController } from '@metamask/transaction-controller';
 import { handleFetch } from '@metamask/controller-utils';
 
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { getBridgeControllerMessenger } from '../../messengers/bridge-controller-messenger';
-import type { BridgeControllerMessenger } from '@metamask/bridge-controller';
 import { ControllerInitRequest } from '../../types';
 import { BridgeControllerInit } from './bridge-controller-init';
 import { MetaMetrics } from '../../../Analytics';
@@ -63,13 +65,6 @@ describe('BridgeController Init', () => {
   const metaMetricsInstanceMock = {
     trackEvent: jest.fn(),
   };
-  const metricsEventBuilderMock = {
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({
-        build: jest.fn().mockReturnValue({ mockEvent: true }),
-      }),
-    }),
-  };
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -82,7 +77,7 @@ describe('BridgeController Init', () => {
       }),
     });
     (handleFetch as jest.Mock).mockResolvedValue({ ok: true });
-    (trace as jest.Mock).mockImplementation((label, fn) => fn());
+    (trace as jest.Mock).mockImplementation((_label, fn) => fn());
   });
 
   it('returns controller instance', () => {
@@ -215,6 +210,7 @@ describe('BridgeController Init', () => {
       const trackMetaMetricsFn = constructorOptions.trackMetaMetricsFn;
 
       // Act - call the tracking function
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       trackMetaMetricsFn('bridge_completed' as any, { property: 'value' });
 
       // Assert
@@ -238,6 +234,7 @@ describe('BridgeController Init', () => {
       const trackMetaMetricsFn = constructorOptions.trackMetaMetricsFn;
 
       // Act - call the tracking function without properties
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       trackMetaMetricsFn('bridge_completed' as any, {});
 
       // Assert

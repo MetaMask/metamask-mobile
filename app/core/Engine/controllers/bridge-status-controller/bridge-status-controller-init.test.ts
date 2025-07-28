@@ -1,4 +1,7 @@
-import { BridgeStatusController } from '@metamask/bridge-status-controller';
+import {
+  BridgeStatusController,
+  type BridgeStatusControllerMessenger
+} from '@metamask/bridge-status-controller';
 import { BridgeClientId } from '@metamask/bridge-controller';
 import { TransactionController } from '@metamask/transaction-controller';
 import { handleFetch } from '@metamask/controller-utils';
@@ -6,7 +9,6 @@ import { handleFetch } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { getBridgeStatusControllerMessenger } from '../../messengers/bridge-status-controller-messenger';
-import type { BridgeStatusControllerMessenger } from '@metamask/bridge-status-controller';
 import { ControllerInitRequest } from '../../types';
 import { BridgeStatusControllerInit } from './bridge-status-controller-init';
 import { trace } from '../../../../util/trace';
@@ -72,7 +74,7 @@ describe('BridgeStatusController Init', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     (handleFetch as jest.Mock).mockResolvedValue({ ok: true });
-    (trace as jest.Mock).mockImplementation((label, fn) => fn());
+    (trace as jest.Mock).mockImplementation((_label, fn) => fn());
   });
 
   it('returns controller instance', () => {
@@ -301,6 +303,7 @@ describe('BridgeStatusController Init', () => {
         networkClientId: 'mainnet',
         time: Date.now(),
         txParams: { from: '0xabc', to: '0x123', value: '0x0' },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         status: 'confirmed' as any,
       };
       const mockNote = 'test note';
