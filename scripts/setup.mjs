@@ -196,7 +196,7 @@ const setupIosTask = {
       },
     ];
 
-    if (INSTALL_PODS && !GITHUB_CI) {
+    if (INSTALL_PODS) {
       tasks.push({
         title: 'Install CocoaPods',
         task: async () => {
