@@ -23,7 +23,7 @@ const WorkletExampleComponent = () => {
         }
         sharedValue.value += result;
         setResultFromWorklet()
-    })
+    }, [sharedValue, setResultFromWorklet])
 
     const mainJSFunction = () => {
         console.log("hello from main JS function!", sharedValue.value)
@@ -32,7 +32,7 @@ const WorkletExampleComponent = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Worklet Hooks Example</Text>
+            <Text style={styles.title}>After (worklets enabled)</Text>
 
             <View style={styles.infoBox}>
 
@@ -110,7 +110,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     descriptionBox: {
-        marginTop: 24,
         padding: 16,
         backgroundColor: '#f0f0f0',
         borderRadius: 8,
