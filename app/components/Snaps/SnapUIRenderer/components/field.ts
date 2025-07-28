@@ -6,6 +6,7 @@ import {
   SelectorElement,
   AddressInputElement,
   AssetSelectorElement,
+  AccountSelectorElement,
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
@@ -14,6 +15,7 @@ import { selector as selectorFn } from './selector';
 import { UIComponentFactory, UIComponentParams } from './types';
 import { constructInputProps } from './input';
 import { assetSelector as assetSelectorFn } from './asset-selector';
+import { accountSelector as accountSelectorFn } from './account-selector';
 
 export const field: UIComponentFactory<FieldElement> = ({
   element: e,
@@ -176,6 +178,25 @@ export const field: UIComponentFactory<FieldElement> = ({
           error: e.props.error,
           compact: params.isParentFlexRow,
           style,
+        },
+      };
+    }
+
+    case 'AccountSelector': {
+      const accountSelector = child as AccountSelectorElement;
+      const accountSelectorMapped = accountSelectorFn({
+        ...params,
+        element: accountSelector,
+      } as UIComponentParams<AccountSelectorElement>);
+
+      return {
+        ...accountSelectorMapped,
+        element: 'SnapUIAccountSelector',
+        props: {
+          ...accountSelectorMapped.props,
+          label: e.props.label,
+          form,
+          error: e.props.error,
         },
       };
     }
