@@ -1,6 +1,8 @@
 import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.selectors';
-import Matchers from '../../framework/Matchers.ts';
-import Gestures from '../../framework/Gestures.ts';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { BASE_DEFAULTS, Utilities } from '../../framework';
+import OnboardingSheet from './OnboardingSheet';
 
 class OnboardingView {
   get container() {
@@ -22,9 +24,21 @@ class OnboardingView {
   }
 
   async tapHaveAnExistingWallet() {
-    await Gestures.waitAndTap(this.existingWalletButton, {
-      elemDescription: 'Onboarding Have an Existing Wallet Button',
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.existingWalletButton, {
+          elemDescription: 'Onboarding Have an Existing Wallet Button',
+        });
+        await Utilities.waitForElementToBeVisible(
+          OnboardingSheet.importSeedButton,
+        );
+      },
+      {
+        timeout: BASE_DEFAULTS.timeout,
+        description: 'tapHaveAnExistingWallet()',
+        elemDescription: 'Taps to prompt bottom sheet',
+      },
+    );
   }
 }
 
