@@ -7,6 +7,114 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.51.1]
+
+### Added
+
+- migrate BSC network RPC to bsc-mainnet.infura.io ([#16824](https://github.com/MetaMask/metamask-mobile/pull/16824))
+- feat: allow multiple provider connections ([#16699](https://github.com/MetaMask/metamask-mobile/pull/16699))
+
+### Fixed
+
+- fix: cp-7.51.1 fox size adjustments ([#17569](https://github.com/MetaMask/metamask-mobile/pull/17569))
+
+## [7.51.0]
+
+### Added
+
+- feat(smart-transactions): enable Arbitrum for Smart Transactions ([#16624](https://github.com/MetaMask/metamask-mobile/pull/16624))
+- feat(deposit): updates region list to flat list to fix android scroll bug ([#16809](https://github.com/MetaMask/metamask-mobile/pull/16809))
+- feat(deposit): adds interfaces for deposit analytics events ([#16820](https://github.com/MetaMask/metamask-mobile/pull/16820))
+- feat(deposit): Bank Details View (SEPA) ([#16778](https://github.com/MetaMask/metamask-mobile/pull/16778))
+- feat(deposit): International KYC ([#16768](https://github.com/MetaMask/metamask-mobile/pull/16768))
+- feat(deposit): adds unsupported region modal ([#16772](https://github.com/MetaMask/metamask-mobile/pull/16772))
+- feat(deposit): region modal refactor ([#16728](https://github.com/MetaMask/metamask-mobile/pull/16728))
+- feat(deposit): refactor OrderProcessing for shared in-flow/outside-flow use ([#16651](https://github.com/MetaMask/metamask-mobile/pull/16651))
+- feat(deposit): adds resend otp feature ([#16112](https://github.com/MetaMask/metamask-mobile/pull/16112))
+- feat(deposit): Deposit feature analytics config ([#16564](https://github.com/MetaMask/metamask-mobile/pull/16564))
+- feat(deposit): order details ([#16606](https://github.com/MetaMask/metamask-mobile/pull/16606))
+- feat(deposit): adds date picker keyboard to basic info form ([#15906](https://github.com/MetaMask/metamask-mobile/pull/15906))
+- feat(perf): accounts performance/sentry tracing ([#15439](https://github.com/MetaMask/metamask-mobile/pull/15439))
+- feat(deposit): adds region selector to deposit page ([#16478](https://github.com/MetaMask/metamask-mobile/pull/16478))
+- feat(identity): enable contact backup-and-sync ([#15784](https://github.com/MetaMask/metamask-mobile/pull/15784))
+- feat(deposit): Build quote page UI ([#16298](https://github.com/MetaMask/metamask-mobile/pull/16298))
+- feat(deposit): KYC webview ([#16180](https://github.com/MetaMask/metamask-mobile/pull/16180))
+- feat: integrate your earnings component with stablecoin lending data ([#16428](https://github.com/MetaMask/metamask-mobile/pull/16428))
+- feat(deposit): adds initial deposit processor ([#16352](https://github.com/MetaMask/metamask-mobile/pull/16352))
+- feat(deposit): adds get started screen to deposit flow ([#16148](https://github.com/MetaMask/metamask-mobile/pull/16148))
+- feat(deposit): pass email to OTP view ([#16113](https://github.com/MetaMask/metamask-mobile/pull/16113))
+- feat(deposit): adds order type to ramp processor ([#16210](https://github.com/MetaMask/metamask-mobile/pull/16210))
+- feat(deposit): kyc processing screen ([#16053](https://github.com/MetaMask/metamask-mobile/pull/16053))
+- feat(deposit): adds logout button to settings page ([#16156](https://github.com/MetaMask/metamask-mobile/pull/16156))
+- feat(4057): account list active networks avatars ([#15964](https://github.com/MetaMask/metamask-mobile/pull/15964))
+- feat(deposit): submit kyc form data to provider ([#16115](https://github.com/MetaMask/metamask-mobile/pull/16115))
+- feat(deposit): adds logout button to settings page ([#16110](https://github.com/MetaMask/metamask-mobile/pull/16110))
+- feat(deposit): fetch user KYC status and route to correct view ([#16091](https://github.com/MetaMask/metamask-mobile/pull/16091))
+- feat(15638): for the block explorer of the account menu, use Etherscan's multichain portfolio view ([#15821](https://github.com/MetaMask/metamask-mobile/pull/15821))
+- feat(deposit): add sdk environment ([#16097](https://github.com/MetaMask/metamask-mobile/pull/16097))
+- feat: 1.3 new create import srp ([#15669](https://github.com/MetaMask/metamask-mobile/pull/15669))
+- feat(deposit): kyc address form ([#15822](https://github.com/MetaMask/metamask-mobile/pull/15822))
+- feat(deposit): phone number input formatting (USA only) ([#15905](https://github.com/MetaMask/metamask-mobile/pull/15905))
+- feat(deposit): adds basic info KYC form ([#15818](https://github.com/MetaMask/metamask-mobile/pull/15818))
+- feat(ramp): store provider accessToken in a secure token vault ([#15570](https://github.com/MetaMask/metamask-mobile/pull/15570))
+- feat(deposit): MVP - deposit feature email authentication UX ([#15568](https://github.com/MetaMask/metamask-mobile/pull/15568))
+- feat(deposit): add native ramps sdk ([#15465](https://github.com/MetaMask/metamask-mobile/pull/15465))
+- feat(deposit): add routes and root route ([#15374](https://github.com/MetaMask/metamask-mobile/pull/15374))
+- feat(INFRA-2531): check for bitrise success comments in imported commits ([#15349](https://github.com/MetaMask/metamask-mobile/pull/15349))
+- feat(INFRA-2571): add pr line checker ([#15397](https://github.com/MetaMask/metamask-mobile/pull/15397))
+- feat(deposit): initial context and feature flag selectors ([#15331](https://github.com/MetaMask/metamask-mobile/pull/15331))
+- feat: phase 1 of typecript based e2e utils ([#16783](https://github.com/MetaMask/metamask-mobile/pull/16783))
+- feat: start using new Preference controller field smartAccountOptInForAccounts ([#16906](https://github.com/MetaMask/metamask-mobile/pull/16906))
+- feat: add preference for user to enable smart account opt-in ([#16745](https://github.com/MetaMask/metamask-mobile/pull/16745))
+- feat: 2.2 new srp oauth service ([#15877](https://github.com/MetaMask/metamask-mobile/pull/15877))
+- feat: Adding slider for smart account upgrade ([#16862](https://github.com/MetaMask/metamask-mobile/pull/16862))
+- feat: change contacts logic in order to support global network selector removal ([#16585](https://github.com/MetaMask/metamask-mobile/pull/16585))
+- feat: Enable 7702 in latest code ([#16853](https://github.com/MetaMask/metamask-mobile/pull/16853))
+- feat: Implement edit spending cap modal for `approve` confirmations ([#16856](https://github.com/MetaMask/metamask-mobile/pull/16856))
+- feat: add xrpl logos ([#16859](https://github.com/MetaMask/metamask-mobile/pull/16859))
+- feat: remove temporary snap navigation workaround ([#16817](https://github.com/MetaMask/metamask-mobile/pull/16817))
+- feat: cp-7.50.0 Hide 7702 feature behind env flag ([#16836](https://github.com/MetaMask/metamask-mobile/pull/16836))
+- feat: add omni logos ([#16825](https://github.com/MetaMask/metamask-mobile/pull/16825))
+- feat: Implement `approve` confirmation methods ([#16784](https://github.com/MetaMask/metamask-mobile/pull/16784))
+- feat: Process batched transaction with single nested transaction as regular transaction ([#16712](https://github.com/MetaMask/metamask-mobile/pull/16712))
+- feat: Adding alternateGasFees capability to wallet getCapabilities ([#16628](https://github.com/MetaMask/metamask-mobile/pull/16628))
+- feat: solana wallet standard e2e ([#16136](https://github.com/MetaMask/metamask-mobile/pull/16136))
+- feat: deprecate snap confirmation page ([#16293](https://github.com/MetaMask/metamask-mobile/pull/16293))
+- feat: Add tracing for the smart transactions controller ([#16713](https://github.com/MetaMask/metamask-mobile/pull/16713))
+- feat: Add account from wallet details ([#16685](https://github.com/MetaMask/metamask-mobile/pull/16685))
+- feat: 15278 Determine Vault Behaviour when getVaultFromBackup is not found ([#16584](https://github.com/MetaMask/metamask-mobile/pull/16584))
+- feat: integrate seedless onboarding controller into the Engine ([#15844](https://github.com/MetaMask/metamask-mobile/pull/15844))
+- feat: Create initial approve components and parser hook ([#16580](https://github.com/MetaMask/metamask-mobile/pull/16580))
+- feat: Reveal srp from wallet details ([#16593](https://github.com/MetaMask/metamask-mobile/pull/16593))
+- feat: (fix) cp-7.47.2 migrate caip permission to include sessionProperties value ([#16601](https://github.com/MetaMask/metamask-mobile/pull/16601))
+- feat: calculate solana gas requirements for swaps ([#16581](https://github.com/MetaMask/metamask-mobile/pull/16581))
+- feat: Add support for gas fees component for batch transactions ([#16367](https://github.com/MetaMask/metamask-mobile/pull/16367))
+- feat: Add contract deployment redesigned confirmation ([#16524](https://github.com/MetaMask/metamask-mobile/pull/16524))
+- feat: add `SEI` mainnet network support ([#14661](https://github.com/MetaMask/metamask-mobile/pull/14661))
+- feat: Base Wallet Details Screen ([#16344](https://github.com/MetaMask/metamask-mobile/pull/16344))
+- feat: deposit provider webview ([#16351](https://github.com/MetaMask/metamask-mobile/pull/16351))
+- feat: Analytics/track earn events ([#16477](https://github.com/MetaMask/metamask-mobile/pull/16477))
+
+### Fixed
+
+- fix(ramps): adds error message if user tries to sell zero balance token ([#16417](https://github.com/MetaMask/metamask-mobile/pull/16417))
+- fix(permissions): fixed issue where the network badges doesn't show Solana and cannot select Solana ([#16386](https://github.com/MetaMask/metamask-mobile/pull/16386))
+- fix(identity): un-quarantine contact-syncing sync-new-user.spec.ts ([#16592](https://github.com/MetaMask/metamask-mobile/pull/16592))
+- fix(bridge): fix: cp-7.47.3 prevent crash when viewing Solana asset details ([#16770](https://github.com/MetaMask/metamask-mobile/pull/16770))
+- fix(deposit): use lists from rngh ([#16759](https://github.com/MetaMask/metamask-mobile/pull/16759))
+- fix(16004): filter network icons by account scopes in dapp connections ([#16041](https://github.com/MetaMask/metamask-mobile/pull/16041))
+- fix(15815): in TransactionElement componet, ticker displayed as undefined instead instead of ticker symbol. This is now fixed ([#16043](https://github.com/MetaMask/metamask-mobile/pull/16043))
+- fix(5091): remove misleading network badges from AccountRightButton ([#16104](https://github.com/MetaMask/metamask-mobile/pull/16104))
+- fix(15875): preserve active tab when returning from permission edits ([#16038](https://github.com/MetaMask/metamask-mobile/pull/16038))
+- fix(permissions): properly hide Bitcoin network in permissions flow ([#16045](https://github.com/MetaMask/metamask-mobile/pull/16045))
+- fix(AccountConnect): filter networks for WalletConnect and MMSDK remote connections ([#15968](https://github.com/MetaMask/metamask-mobile/pull/15968))
+- fix(ramp): region not detected case ([#15869](https://github.com/MetaMask/metamask-mobile/pull/15869))
+- fix(15641): dapp connected accounts is now scrollable on android ([#15758](https://github.com/MetaMask/metamask-mobile/pull/15758))
+- fix(15619): permissions summary page shows only network permissions ([#15623](https://github.com/MetaMask/metamask-mobile/pull/15623))
+- fix(ramp): custom actions check ([#15752](https://github.com/MetaMask/metamask-mobile/pull/15752))
+- fix (cp-7.47.0): Ensure we pass the correct type when rendering the price overview ([#15711](https://github.com/MetaMask/metamask-mobile/pull/15711))
+- fix(snaps): Add fix for missing Snap permission labels ([#15265](https://github.com/MetaMask/metamask-mobile/pull/15265))
+
 
 ## [7.50.2]
 
