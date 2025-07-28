@@ -2,14 +2,14 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { SelectedGasFeeToken } from './selected-gas-fee-token';
 import { useInsufficientBalanceAlert } from '../../../hooks/alerts/useInsufficientBalanceAlert';
-import { useSelectedGasFeeToken } from '../../../hooks/useGasFeeToken';
+import { useSelectedGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { useIsGaslessSupported } from '../../../hooks/gas/useIsGaslessSupported';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { transferTransactionStateMock } from '../../../__mocks__/transfer-transaction-mock';
 import { merge } from 'lodash';
 
 jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert');
-jest.mock('../../../hooks/useGasFeeToken');
+jest.mock('../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../hooks/useNetworkInfo');
 

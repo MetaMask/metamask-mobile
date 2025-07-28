@@ -74,10 +74,10 @@ describe('TokenSelectorModal Component', () => {
   it('displays tokens and allows selection', async () => {
     const { getByText } = renderWithProvider(TokenSelectorModal);
 
-    expect(getByText('USD Coin')).toBeTruthy();
-    expect(getByText('Tether USD')).toBeTruthy();
+    expect(getByText('USDC')).toBeTruthy();
+    expect(getByText('USDT')).toBeTruthy();
 
-    const tetherElement = getByText('Tether USD');
+    const tetherElement = getByText('USDT');
     fireEvent.press(tetherElement);
 
     await waitFor(() => {

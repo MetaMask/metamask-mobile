@@ -1058,6 +1058,22 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           ...webStates.current[nativeEvent.url],
           started: true,
         };
+        if (nativeEvent.url.startsWith('http://')) {
+          /*
+            If the user is initially redirected to the page using the HTTP protocol,
+            which then automatically redirects to HTTPS, we receive `onLoadStart` for the HTTP URL
+            and `onLoadEnd` for the HTTPS URL. In this case, the URL bar will not be updated.
+            To fix this, we also mark the HTTPS version of the URL as started.
+          */
+          const urlWithHttps = nativeEvent.url.replace(
+            regex.urlHttpToHttps,
+            'https://',
+          );
+          webStates.current[urlWithHttps] = {
+            ...webStates.current[urlWithHttps],
+            started: true,
+          };
+        }
 
         // Cancel loading the page if we detect its a phishing page
         const isAllowed = await isAllowedOrigin(urlOrigin);
@@ -1515,6 +1531,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         onShouldStartLoadWithRequest
                       }
                       allowsInlineMediaPlayback
+                      {...(process.env.IS_TEST === 'true'
+                        ? { javaScriptEnabled: true }
+                        : {})}
                       testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                       applicationNameForUserAgent={'WebView MetaMaskMobile'}
                       onFileDownload={handleOnFileDownload}

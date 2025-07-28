@@ -1101,7 +1101,6 @@
   },
   "defi_positions": {
     "loading_positions": "Chargement des positions DeFi…",
-    "no_positions": "Aucune position pour l’instant",
     "error_cannot_load_page": "Nous n’avons pas pu charger cette page.",
     "error_visit_again": "Essayez de la visiter à nouveau plus tard.",
     "single_token": "{{symbol}} uniquement",
@@ -1627,8 +1626,6 @@
     "display_nft_media": "Afficher les supports NFT",
     "display_nft_media_desc": "L’affichage des médias et des données NFT expose votre adresse IP à OpenSea ou à d’autres fournisseurs de services tiers. La détection automatique des NFT dépend de cette fonctionnalité et ne sera pas disponible si cette option est désactivée.",
     "autodetect_nft_desc": "Laissez MetaMask ajouter les NFT que vous possédez en utilisant des services tiers (comme OpenSea). La détection automatique des NFT révèle votre adresse IP et l’adresse de votre compte à ces services. Si vous activez cette fonctionnalité, un lien pourrait être établi entre votre adresse IP et votre adresse Ethereum, et entrainer l’affichage de faux NFT déposés par des escrocs. Vous pouvez ajouter des jetons manuellement pour éviter ce risque.",
-    "incoming_transactions_title": "Afficher les transactions entrantes",
-    "incoming_transactions_content": "Cela dépend du réseau que vous sélectionnez et qui exposera votre adresse Ethereum et votre adresse IP.",
     "display_nft_media_desc_new": "L’affichage des médias et des données NFT expose votre adresse IP à OpenSea ou à de tierces parties. La détection automatique des NFT dépend de cette fonctionnalité et ne sera pas disponible si elle est désactivée. Si les médias NFT sont entièrement hébergés sur IPFS, ils peuvent toujours être affichés même si cette fonctionnalité est désactivée.",
     "use_safe_chains_list_validation_desc_1": "MetaMask utilise un service tiers appelé ",
     "use_safe_chains_list_validation_desc_2": "pour afficher des détails précis et standardisés concernant les réseaux. Cela réduit les risques de connexion au mauvais réseau ou à un réseau malveillant. En utilisant cette fonctionnalité, vous exposez votre adresse IP à  ",

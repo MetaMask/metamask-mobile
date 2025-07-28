@@ -1,5 +1,5 @@
 import QuickCrypto from 'react-native-quick-crypto';
-import { ACTIONS } from '../../../constants/deeplinks';
+import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import SDKConnect from '../../SDKConnect/SDKConnect';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
@@ -120,6 +120,7 @@ describe('handleUniversalLinks', () => {
         urlObj,
         browserCallBack: mockBrowserCallBack,
         url,
+        source: 'test-source',
       });
 
       expect(handled).toHaveBeenCalled();
@@ -143,6 +144,7 @@ describe('handleUniversalLinks', () => {
         urlObj,
         browserCallBack: mockBrowserCallBack,
         url,
+        source: 'test-source',
       });
 
       expect(handled).toHaveBeenCalled();
@@ -171,6 +173,7 @@ describe('handleUniversalLinks', () => {
           urlObj: homeUrlObj,
           browserCallBack: mockBrowserCallBack,
           url,
+          source: 'test-source',
         });
 
         expect(handled).toHaveBeenCalled();
@@ -194,6 +197,7 @@ describe('handleUniversalLinks', () => {
           urlObj: swapUrlObj,
           browserCallBack: mockBrowserCallBack,
           url,
+          source: 'test-source',
         });
 
         expect(handled).toHaveBeenCalled();
@@ -219,6 +223,7 @@ describe('handleUniversalLinks', () => {
           urlObj: buyUrlObj,
           browserCallBack: mockBrowserCallBack,
           url,
+          source: 'test-source',
         });
 
         expect(handled).toHaveBeenCalled();
@@ -242,6 +247,7 @@ describe('handleUniversalLinks', () => {
           urlObj: buyUrlObj,
           browserCallBack: mockBrowserCallBack,
           url,
+          source: 'test-source',
         });
 
         expect(handled).toHaveBeenCalled();
@@ -249,6 +255,83 @@ describe('handleUniversalLinks', () => {
           `${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.BUY_CRYPTO}/some-buy-path`,
         );
       });
+    });
+
+    describe('ACTIONS.SEND', () => {
+      const testCases = [
+        {
+          domain: AppConstants.MM_UNIVERSAL_LINK_HOST,
+          description: 'old deeplink domain',
+        },
+        {
+          domain: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+          description: 'new deeplink domain',
+        },
+        {
+          domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+          description: 'test deeplink domain',
+        },
+      ] as const;
+
+      it.each(testCases)(
+        'calls parse with new deeplinkUrl with $description',
+        async ({ domain }) => {
+          const sendUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.SEND}/send-path`;
+          const origin = `${PROTOCOLS.HTTPS}://${domain}`;
+          const sendUrlObj = {
+            ...urlObj,
+            hostname: domain,
+            href: sendUrl,
+            pathname: `/${ACTIONS.SEND}/send-path`,
+            origin,
+          };
+          const newSendUrl = `${PREFIXES[ACTIONS.SEND]}send-path`;
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: sendUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: sendUrl,
+            source: 'test-source',
+          });
+
+          expect(handled).toHaveBeenCalled();
+          expect(mockParse).toHaveBeenCalledWith(newSendUrl, {
+            origin: 'test-source',
+          });
+        },
+      );
+
+      it.each(testCases)(
+        'handles send URL without trailing slash with query parameters for $description',
+        async ({ domain }) => {
+          const sendUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.SEND}?value=123&to=0x123`;
+          const origin = `${PROTOCOLS.HTTPS}://${domain}`;
+          const sendUrlObj = {
+            ...urlObj,
+            hostname: domain,
+            href: sendUrl,
+            pathname: `/${ACTIONS.SEND}`,
+            origin,
+          };
+          const newSendUrl = `${PREFIXES[ACTIONS.SEND]}?value=123&to=0x123`;
+
+          await handleUniversalLink({
+            instance,
+            handled,
+            urlObj: sendUrlObj,
+            browserCallBack: mockBrowserCallBack,
+            url: sendUrl,
+            source: 'test-source',
+          });
+
+          expect(handled).toHaveBeenCalled();
+          expect(mockParse).toHaveBeenCalledWith(newSendUrl, {
+            origin: 'test-source',
+          });
+        },
+      );
     });
   });
 
@@ -270,6 +353,7 @@ describe('handleUniversalLinks', () => {
         urlObj,
         browserCallBack: mockBrowserCallBack,
         url,
+        source: 'test-source',
       });
 
       expect(DevLogger.log).toHaveBeenCalledWith(
@@ -294,6 +378,7 @@ describe('handleUniversalLinks', () => {
         urlObj,
         browserCallBack: mockBrowserCallBack,
         url,
+        source: 'test-source',
       });
 
       expect(DevLogger.log).toHaveBeenCalledWith(
@@ -318,6 +403,7 @@ describe('handleUniversalLinks', () => {
         urlObj,
         browserCallBack: mockBrowserCallBack,
         url,
+        source: 'test-source',
       });
 
       expect(DevLogger.log).toHaveBeenCalledWith(
@@ -342,6 +428,7 @@ describe('handleUniversalLinks', () => {
         urlObj,
         browserCallBack: mockBrowserCallBack,
         url,
+        source: 'test-source',
       });
 
       expect(DevLogger.log).not.toHaveBeenCalled();
