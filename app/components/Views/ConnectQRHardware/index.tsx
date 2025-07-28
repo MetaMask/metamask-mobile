@@ -28,7 +28,9 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import ExtendedKeyringTypes, { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import ExtendedKeyringTypes, {
+  HardwareDeviceTypes,
+} from '../../../constants/keyringTypes';
 import { ThemeColors } from '@metamask/design-tokens';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
 import { Hex } from '@metamask/utils';
@@ -325,8 +327,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     resetError();
     await Engine.context.KeyringController.withKeyring(
       { type: ExtendedKeyringTypes.qr },
-      ({keyring}: {keyring: QRKeyring}) => {
-        removeAccountsFromPermissions(keyring.accounts as Hex[])
+      ({ keyring }: { keyring: QRKeyring }) => {
+        removeAccountsFromPermissions(keyring.accounts as Hex[]);
       },
     );
     const { remainingAccounts } = await KeyringController.forgetQRDevice();

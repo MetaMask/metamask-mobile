@@ -1,5 +1,4 @@
 import ImportedEngine from '../Engine';
-import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
 import {
   CaipAccountId,

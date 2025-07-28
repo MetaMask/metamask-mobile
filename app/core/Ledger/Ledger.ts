@@ -96,7 +96,7 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  */
 export const forgetLedger = async (): Promise<void> => {
   await withLedgerKeyring(async ({ keyring }) => {
-    removeAccountsFromPermissions(keyring.accounts as Hex[])
+    removeAccountsFromPermissions(keyring.accounts as Hex[]);
     keyring.forgetDevice();
   });
 };
