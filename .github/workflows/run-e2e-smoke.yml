@@ -52,7 +52,7 @@ jobs:
 
   smoke-trade-android:
     name: "Trade Smoke (Android)"
-    if: false
+    #if: false
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-trade-android

@@ -80,10 +80,9 @@ module.exports = {
       device: {
         avdName: 'emulator',
       },
-      // to be used by github action runners later on
-      // bootArgs: '-skin 1080x2340 -memory 4096 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096',
-      // forceAdbInstall: true,
-      // gpuMode: 'swiftshader_indirect',
+       bootArgs: '-skin 1080x2340 -memory 4096 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096',
+       forceAdbInstall: true,
+       gpuMode: 'swiftshader_indirect',
     },
     'android.emulator': {
       type: 'android.emulator',
