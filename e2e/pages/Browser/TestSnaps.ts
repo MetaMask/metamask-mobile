@@ -17,6 +17,7 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
+import LegacyGestures from '../../utils/Gestures';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 
 export const TEST_SNAPS_URL =
@@ -147,9 +148,8 @@ class TestSnaps {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
     ) as Promise<IndexableWebElement>;
-    await Gestures.typeText(webElement, message, {
-      hideKeyboard: true,
-    });
+    // New gestures currently don't support web elements
+    await LegacyGestures.typeInWebElement(webElement, message);
   }
 
   async approveSignRequest() {
