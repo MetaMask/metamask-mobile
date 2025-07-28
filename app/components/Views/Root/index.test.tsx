@@ -14,6 +14,7 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 jest.mock('../../../core/SecureKeychain', () => ({
+  ...jest.requireActual('../../../core/SecureKeychain').default,
   init: jest.fn(),
 }));
 
