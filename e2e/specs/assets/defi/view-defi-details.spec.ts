@@ -1,19 +1,12 @@
-'use strict';
-import { loginToApp } from '../../../viewHelper';
 import { SmokeNetworkAbstractions } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import Assertions from '../../../utils/Assertions';
-import TestHelpers from '../../../helpers';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { withFixtures } from '../../../fixtures/fixture-helper';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { loginToApp } from '../../../viewHelper';
 
 describe(SmokeNetworkAbstractions('View DeFi details'), () => {
-  beforeAll(async () => {
-    jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
-  });
-
   it('open the Aave V3 position details', async () => {
     await withFixtures(
       {

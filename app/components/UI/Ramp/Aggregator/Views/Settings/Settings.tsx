@@ -4,7 +4,7 @@ import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
-import { useRampSDK } from '../../sdk';
+import { useRampSDK, withRampSDK } from '../../sdk';
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
 import Text, {
@@ -28,7 +28,6 @@ import styles from './Settings.styles';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
 import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
-import withRampAndDepositSDK from '../../../utils/withRampAndDepositSDK';
 
 function Settings() {
   const navigation = useNavigation();
@@ -102,4 +101,4 @@ function Settings() {
   );
 }
 
-export default withRampAndDepositSDK(Settings);
+export default withRampSDK(Settings);
