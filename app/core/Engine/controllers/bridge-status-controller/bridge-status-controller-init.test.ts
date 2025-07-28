@@ -45,8 +45,9 @@ function buildInitRequestMock(
   const baseControllerMessenger = new ExtendedControllerMessenger();
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
-    controllerMessenger:
-      getBridgeStatusControllerMessenger(baseControllerMessenger),
+    controllerMessenger: getBridgeStatusControllerMessenger(
+      baseControllerMessenger,
+    ),
     persistedState: {
       BridgeStatusController: {
         txHistory: {},
@@ -129,7 +130,8 @@ describe('BridgeStatusController Init', () => {
       BridgeStatusControllerInit(requestMock);
 
       // Assert
-      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
       expect(constructorOptions.messenger).toBe(
         requestMock.controllerMessenger,
       );
@@ -144,7 +146,8 @@ describe('BridgeStatusController Init', () => {
       BridgeStatusControllerInit(requestMock);
 
       // Assert
-      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
       expect(constructorOptions.clientId).toBe(BridgeClientId.MOBILE);
     });
 
@@ -156,7 +159,8 @@ describe('BridgeStatusController Init', () => {
       BridgeStatusControllerInit(requestMock);
 
       // Assert
-      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
       expect(constructorOptions.fetchFn).toBe(handleFetch);
     });
 
@@ -168,7 +172,8 @@ describe('BridgeStatusController Init', () => {
       BridgeStatusControllerInit(requestMock);
 
       // Assert
-      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
       expect(constructorOptions.traceFn).toBe(trace);
     });
 
@@ -180,7 +185,8 @@ describe('BridgeStatusController Init', () => {
       BridgeStatusControllerInit(requestMock);
 
       // Assert
-      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
       expect(constructorOptions.config).toEqual({
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       });
@@ -199,14 +205,15 @@ describe('BridgeStatusController Init', () => {
       BridgeStatusControllerInit(requestMock);
 
       // Assert
-      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
       const addTransactionFn = constructorOptions.addTransactionFn;
       const mockTxParams = { from: '0xabc', to: '0x123', value: '0x0' };
       const mockOrigin = 'test-origin';
-      
-      addTransactionFn(mockTxParams, { 
+
+      addTransactionFn(mockTxParams, {
         origin: mockOrigin,
-        networkClientId: 'mainnet'
+        networkClientId: 'mainnet',
       });
       expect(mockTransactionController.addTransaction).toHaveBeenCalledWith(
         mockTxParams,
@@ -227,13 +234,14 @@ describe('BridgeStatusController Init', () => {
       BridgeStatusControllerInit(requestMock);
 
       // Assert
-      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
       const estimateGasFeeFn = constructorOptions.estimateGasFeeFn;
       const mockTxParams = {
         transactionParams: { from: '0xabc', to: '0x123', value: '0x0' },
         chainId: '0x1' as const,
       };
-      
+
       estimateGasFeeFn(mockTxParams);
       expect(mockTransactionController.estimateGasFee).toHaveBeenCalledWith(
         mockTxParams,
@@ -253,21 +261,22 @@ describe('BridgeStatusController Init', () => {
       BridgeStatusControllerInit(requestMock);
 
       // Assert
-      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
       const addTransactionBatchFn = constructorOptions.addTransactionBatchFn;
       const mockTxBatch = {
         from: '0xabc' as const,
         networkClientId: 'mainnet',
         transactions: [
           { params: { from: '0xabc' as const, to: '0x123' as const } },
-          { params: { from: '0xabc' as const, to: '0x456' as const } }
+          { params: { from: '0xabc' as const, to: '0x456' as const } },
         ],
       };
-      
+
       addTransactionBatchFn(mockTxBatch);
-      expect(mockTransactionController.addTransactionBatch).toHaveBeenCalledWith(
-        mockTxBatch,
-      );
+      expect(
+        mockTransactionController.addTransactionBatch,
+      ).toHaveBeenCalledWith(mockTxBatch);
     });
 
     it('correctly sets up updateTransactionFn', () => {
@@ -283,7 +292,8 @@ describe('BridgeStatusController Init', () => {
       BridgeStatusControllerInit(requestMock);
 
       // Assert
-      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
       const updateTransactionFn = constructorOptions.updateTransactionFn;
       const mockTxUpdate = {
         id: 'txId',
@@ -294,7 +304,7 @@ describe('BridgeStatusController Init', () => {
         status: 'confirmed' as any,
       };
       const mockNote = 'test note';
-      
+
       updateTransactionFn(mockTxUpdate, mockNote);
       expect(mockTransactionController.updateTransaction).toHaveBeenCalledWith(
         mockTxUpdate,
@@ -312,7 +322,8 @@ describe('BridgeStatusController Init', () => {
       BridgeStatusControllerInit(requestMock);
 
       // Assert
-      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
       expect(constructorOptions.state).toBeUndefined();
     });
   });

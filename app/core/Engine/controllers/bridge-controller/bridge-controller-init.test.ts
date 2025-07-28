@@ -45,8 +45,7 @@ function buildInitRequestMock(
   const baseControllerMessenger = new ExtendedControllerMessenger();
   const requestMock = {
     ...buildControllerInitRequestMock(baseControllerMessenger),
-    controllerMessenger:
-      getBridgeControllerMessenger(baseControllerMessenger),
+    controllerMessenger: getBridgeControllerMessenger(baseControllerMessenger),
     ...initRequestProperties,
   };
 
@@ -197,7 +196,7 @@ describe('BridgeController Init', () => {
         transactionParams: { from: '0xabc', to: '0x123', value: '0x0' },
         chainId: '0x1' as const,
       };
-      
+
       await getLayer1GasFeeFn(mockParams);
       expect(mockTransactionController.getLayer1GasFee).toHaveBeenCalledWith(
         mockParams,
