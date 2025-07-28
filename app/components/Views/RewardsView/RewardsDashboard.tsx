@@ -34,6 +34,9 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 8,
       paddingVertical: 8,
     },
+    signedInContainer: {
+      alignItems: 'center',
+    },
   });
 
 const RewardsDashboard: React.FC = () => {
