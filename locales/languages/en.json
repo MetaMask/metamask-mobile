@@ -553,6 +553,10 @@
       "description": "The {{networkName}} account you’re on doesn't support the selected token. Switch your account or token to continue.",
       "cta": "I understand"
     },
+    "ssn_info_modal": {
+      "title": "Why we ask",
+      "description": "U.S. laws require Transak to check your identity before changing dollars into crypto. This means U.S. customers need to provide a Social Security number."
+    },
     "get_started": {
       "navbar_title": "Deposit",
       "title": "Starting is easy with USDC",
