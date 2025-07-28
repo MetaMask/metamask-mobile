@@ -131,26 +131,6 @@ jobs:
           if-no-files-found: error
         continue-on-error: true
 
-      - name: Upload iOS Archive Artifact
-        id: upload-archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-archive-qa
-          path: ios/build/MetaMask-QA.xcarchive
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true
-
-      - name: Upload iOS Source Map
-        id: upload-sourcemap
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-sourcemap-qa
-          path: sourcemaps/ios/index.js.map
-          retention-days: 7
-          if-no-files-found: warn
-        continue-on-error: true
-
       - name: Set Artifacts URL and Status
         id: set-artifacts-url
         run: |
@@ -159,9 +139,8 @@ jobs:
           echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
           echo ""
           echo "Upload Status Summary:"
-          echo "- IPA: ${{ steps.upload-ipa.outcome }}"
-          echo "- Archive: ${{ steps.upload-archive.outcome }}"
-          echo "- Source Map: ${{ steps.upload-sourcemap.outcome }}"
+          echo "-  IPA: ${{ steps.upload-ipa.outcome }}"
+
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }} 
