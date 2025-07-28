@@ -141,7 +141,6 @@ export const seedlessChangePassword = async (newPassword, password) => {
       op: TraceOperation.OnboardingSecurityOp,
     });
     await SeedlessOnboardingController.changePassword(newPassword, password);
-    await Authentication.syncKeyringEncryptionKey();
     specificTraceSucceeded = true;
   } catch (error) {
     const errorMessage =
@@ -162,10 +161,7 @@ export const seedlessChangePassword = async (newPassword, password) => {
     );
     // restore keyring with old password if seedless onboarding pw change fails
 
-    new SeedlessOnboardingControllerError(
-      SeedlessOnboardingControllerErrorType.ChangePasswordError,
-      error || 'Password change failed',
-    );
+    throw error;
   } finally {
     endTrace({
       name: TraceName.OnboardingResetPassword,
