@@ -1,11 +1,7 @@
-'use strict';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import NftDetectionModal from '../../pages/wallet/NftDetectionModal';
@@ -28,7 +24,6 @@ describe(SmokeNetworkAbstractions('NFT Detection Modal'), () => {
           })
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -58,7 +53,6 @@ describe(SmokeNetworkAbstractions('NFT Detection Modal'), () => {
           })
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
