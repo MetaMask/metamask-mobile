@@ -215,8 +215,11 @@ const PerpsWithdrawView: React.FC = () => {
             },
           ],
         });
+
+        // Navigate back immediately - the toast will persist since it's rendered globally
+        navigation.goBack();
       } else {
-        // Show error toast
+        // Show error toast - do NOT navigate back on error
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           iconName: IconName.Danger,
@@ -233,7 +236,7 @@ const PerpsWithdrawView: React.FC = () => {
         });
       }
     } catch (error) {
-      // Show error toast
+      // Show error toast - do NOT navigate back on error
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Danger,
@@ -253,10 +256,6 @@ const PerpsWithdrawView: React.FC = () => {
       });
     } finally {
       setIsSubmittingTx(false);
-      // Add a small delay to allow the toast to display before navigating back
-      setTimeout(() => {
-        navigation.goBack();
-      }, 1000);
     }
   }, [
     withdrawAmount,
