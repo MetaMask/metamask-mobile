@@ -31,6 +31,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { DepositRegion, DEPOSIT_REGIONS, DEFAULT_REGION } from '../constants';
 import Logger from '../../../../../util/Logger';
+import { strings } from '../../../../../../locales/i18n';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -40,7 +41,7 @@ export interface DepositSDK {
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
-  clearAuthToken: () => Promise<void>;
+  logoutFromProvider: (requireServerInvalidation?: boolean) => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
   getStarted: boolean;
   setGetStarted: (seen: boolean) => void;
@@ -192,14 +193,31 @@ export const DepositSDKProvider = ({
     [sdk],
   );
 
-  const clearAuthToken = useCallback(async () => {
-    await resetProviderToken();
-    setAuthToken(undefined);
-    setIsAuthenticated(false);
-    if (sdk) {
-      sdk.clearAccessToken();
-    }
-  }, [sdk]);
+  const logoutFromProvider = useCallback(
+    async (requireServerInvalidation = true) => {
+      if (!sdk) {
+        throw new Error(
+          strings('deposit.configuration_modal.error_sdk_not_initialized'),
+        );
+      }
+
+      requireServerInvalidation
+        ? await sdk.logout()
+        : await sdk
+            .logout()
+            .catch((error) =>
+              Logger.error(
+                error as Error,
+                'SDK logout failed but invalidation was not required. Error:',
+              ),
+            );
+
+      await resetProviderToken();
+      setAuthToken(undefined);
+      setIsAuthenticated(false);
+    },
+    [sdk],
+  );
 
   const contextValue = useMemo(
     (): DepositSDK => ({
@@ -210,7 +228,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthToken: setAuthTokenCallback,
-      clearAuthToken,
+      logoutFromProvider,
       checkExistingToken,
       getStarted,
       setGetStarted: setGetStartedCallback,
@@ -226,7 +244,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthTokenCallback,
-      clearAuthToken,
+      logoutFromProvider,
       checkExistingToken,
       getStarted,
       setGetStartedCallback,
