@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix: cp-7.51.1 fox size adjustments ([#17569](https://github.com/MetaMask/metamask-mobile/pull/17569))
-- 
 
 ## [7.51.0]
 
