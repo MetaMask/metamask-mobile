@@ -195,11 +195,19 @@ export function* startAppServices() {
   AppStateEventProcessor.start();
   yield call(applyVaultInitialization);
 
-  // Initialize WalletConnect
-  WC2Manager.init({});
+  try {
+    // Initialize WalletConnect
+    WC2Manager.init({});
+  } catch (e) {
+    Logger.log('Failed to initialize WalletConnect', e);
+  }
 
-  // Initialize SDKConnect
-  SDKConnect.init({ context: 'Nav/App' });
+  try {
+    // Initialize SDKConnect
+    SDKConnect.init({ context: 'Nav/App' });
+  } catch (e) {
+    Logger.log('Failed to initialize SDKConnect', e);
+  }
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
