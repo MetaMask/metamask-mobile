@@ -28,7 +28,7 @@ describe(Regression('Import custom token'), () => {
     await ImportTokensView.replaceTextInFieldTokenAddress(TOKEN_ADDRESS);
     await TestHelpers.delay(5000); // Wait for token details to load automatically
     await ImportTokensView.scrollDownOnAddressInput();
-    await ImportTokensView.tapOnNextButtonWithFallback();
+    await ImportTokensView.tapOnNextButton();
     await Assertions.checkIfVisible(ConfirmAddAssetView.container);
     await ConfirmAddAssetView.tapOnConfirmButton();
     await Assertions.checkIfVisible(WalletView.container);
