@@ -1,6 +1,6 @@
 import {
   BridgeStatusController,
-  type BridgeStatusControllerMessenger
+  type BridgeStatusControllerMessenger,
 } from '@metamask/bridge-status-controller';
 import { BridgeClientId } from '@metamask/bridge-controller';
 import { TransactionController } from '@metamask/transaction-controller';

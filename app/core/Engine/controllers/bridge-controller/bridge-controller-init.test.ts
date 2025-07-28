@@ -1,6 +1,6 @@
-import { 
+import {
   BridgeController,
-  type BridgeControllerMessenger 
+  type BridgeControllerMessenger,
 } from '@metamask/bridge-controller';
 import { TransactionController } from '@metamask/transaction-controller';
 import { handleFetch } from '@metamask/controller-utils';
