@@ -25,13 +25,13 @@ import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
-import { safeToChecksumAddress } from '../../../util/address';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import ExtendedKeyringTypes, { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { ThemeColors } from '@metamask/design-tokens';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
+import { Hex } from '@metamask/utils';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -323,14 +323,14 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const onForget = useCallback(async () => {
     resetError();
-    // removedAccounts and remainingAccounts are not checksummed here.
-    const { removedAccounts, remainingAccounts } =
-      await KeyringController.forgetQRDevice();
-    Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
-    const checksummedRemovedAccounts = removedAccounts.map(
-      safeToChecksumAddress,
+    await Engine.context.KeyringController.withKeyring(
+      { type: ExtendedKeyringTypes.qr },
+      ({keyring}: {keyring: QRKeyring}) => {
+        removeAccountsFromPermissions(keyring.accounts as Hex[])
+      },
     );
-    removeAccountsFromPermissions(checksummedRemovedAccounts);
+    const { remainingAccounts } = await KeyringController.forgetQRDevice();
+    Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
     navigation.pop(2);
   }, [KeyringController, navigation, resetError]);
 

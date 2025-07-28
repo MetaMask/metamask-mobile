@@ -17,6 +17,8 @@ import {
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
+import { removeAccountsFromPermissions } from '../Permissions';
+import { Hex } from '@metamask/utils';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -94,6 +96,7 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  */
 export const forgetLedger = async (): Promise<void> => {
   await withLedgerKeyring(async ({ keyring }) => {
+    removeAccountsFromPermissions(keyring.accounts as Hex[])
     keyring.forgetDevice();
   });
 };
