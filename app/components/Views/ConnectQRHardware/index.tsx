@@ -48,7 +48,7 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'center',
     },
     header: {
-      marginTop: Device.isIphoneX() ? 50 : 50,
+      marginTop: Device.isIphoneX() ? 50 : 20,
       flexDirection: 'row',
       width: '100%',
       paddingHorizontal: 32,
