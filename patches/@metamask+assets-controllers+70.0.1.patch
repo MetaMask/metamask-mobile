@@ -161,6 +161,24 @@ index e16e91f..3168b35 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
+index 0fec746..5f9fda9 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
+@@ -336,6 +336,13 @@ async function _TokenBalancesController_batchBalanceOf({ chainId, pairs, }) {
+         functionSignature: 'balanceOf(address)',
+         arguments: [accountAddress],
+     }));
++
++    // HOTFIX: Force fresh block data before multicall
++    const networkClient = __classPrivateFieldGet(this, _TokenBalancesController_instances, "m", _TokenBalancesController_getNetworkClient).call(this, chainId);
++    await networkClient.blockTracker.checkForLatestBlock?.();
++    const blockNumber = await provider.getBlockNumber();
++    console.log(`After block tracker update - blockNumber: ${blockNumber} at ${new Date().toISOString()}`);
++    
+     return (0, multicall_1.multicallOrFallback)(calls, chainId, provider);
+ }, _TokenBalancesController_getNetworkClient = function _TokenBalancesController_getNetworkClient(chainId) {
+     const { networkConfigurationsByChainId } = this.messagingSystem.call('NetworkController:getState');
 diff --git a/node_modules/@metamask/assets-controllers/dist/multicall.cjs b/node_modules/@metamask/assets-controllers/dist/multicall.cjs
 index 43a0531..bc965d1 100644
 --- a/node_modules/@metamask/assets-controllers/dist/multicall.cjs
