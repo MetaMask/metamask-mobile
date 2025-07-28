@@ -1,19 +1,16 @@
-'use strict';
-
 import { SmokeNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
 import { buildPermissions } from '../../fixtures/utils';
+import { defaultGanacheOptions, DappVariants } from '../../framework/Constants';
+import { LocalNodeType } from '../../framework/types';
 
 describe(SmokeNetworkAbstractions('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -26,18 +23,28 @@ describe(SmokeNetworkAbstractions('NFT Details page'), () => {
   it('show nft details', async () => {
     await withFixtures(
       {
-        dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
           )
           .build(),
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
+        localNodeOptions: [
+          {
+            type: LocalNodeType.ganache,
+            options: defaultGanacheOptions,
+          },
+        ],
         restartDevice: true,
-        smartContract: NFT_CONTRACT,
+        smartContracts: [NFT_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const nftsAddress = await contractRegistry.getContractAddress(
+        const nftsAddress = await contractRegistry?.getContractAddress(
           NFT_CONTRACT,
         );
 
