@@ -161,6 +161,7 @@ export const mockEvents = {
     defiPositionsError: {
       urlEndpoint:
         'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      response: { error: 'Internal server error' },
       responseCode: 500,
     },
 
