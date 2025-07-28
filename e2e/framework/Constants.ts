@@ -9,6 +9,8 @@ export const defaultGanacheOptions = {
     'drive manage close raven tape average sausage pledge riot furnace august tip',
 };
 
+export const DEFAULT_TAB_ID = 1749234797566;
+
 export const DEFAULT_TEST_DAPP_PATH = path.join(
   '..',
   '..',
