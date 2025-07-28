@@ -939,6 +939,7 @@ export function getOfflineModalNavbar() {
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
  * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
+ * @param {boolean} isCardholderEnabled - Whether cardholder feature is enabled
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -1141,6 +1142,7 @@ export function getWalletNavbarOptions(
         )}
 
         {isCardholderEnabled && (
+          // This will be replaced with a Cardholder button in the future
           <ButtonIcon
             iconColor={IconColor.Default}
             onPress={openQRScanner}

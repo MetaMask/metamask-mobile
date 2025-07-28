@@ -1,7 +1,10 @@
 import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
-import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import {
+  CardFeatureFlag,
+  selectCardFeatureFlag,
+} from '../../../../selectors/featureFlagController/card';
 import { loadCardholderAccounts } from '../../../../core/redux/slices/card';
 import {
   selectAppServicesReady,
@@ -20,16 +23,9 @@ export const useCardholderCheck = () => {
   const accounts = useSelector(selectInternalAccountsWithCaipAccountId);
 
   const checkCardholderAccounts = useCallback(() => {
-    if (!cardFeatureFlag || !userLoggedIn || !appServicesReady || !accounts) {
-      return;
-    }
-
-    const filteredAccounts = Object.values(accounts).filter(
-      (account) => account.type === 'eip155:eoa',
-    );
-    const formattedAccounts = filteredAccounts.map(
-      (account) => account.caipAccountId,
-    );
+    const formattedAccounts = Object.values(accounts)
+      .filter((account) => account.type === 'eip155:eoa')
+      .map((account) => account.caipAccountId);
 
     if (!formattedAccounts.length) {
       // For empty accounts, we could dispatch with empty array, but RTK will handle this
@@ -41,13 +37,18 @@ export const useCardholderCheck = () => {
       loadCardholderAccounts({
         formattedAccounts:
           formattedAccounts as `eip155:${string}:0x${string}`[],
-        cardFeatureFlag,
+        cardFeatureFlag: cardFeatureFlag as CardFeatureFlag,
       }),
     );
-  }, [cardFeatureFlag, userLoggedIn, appServicesReady, dispatch, accounts]);
+  }, [cardFeatureFlag, dispatch, accounts]);
 
   useEffect(() => {
-    if (userLoggedIn && appServicesReady) {
+    if (
+      userLoggedIn &&
+      appServicesReady &&
+      cardFeatureFlag &&
+      accounts?.length
+    ) {
       checkCardholderAccounts();
     }
   }, [
