@@ -58,8 +58,11 @@ import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
 import { perpsControllerInit } from '../controllers/perps-controller';
+import { rewardsControllerInit } from '../controllers/rewards-controller';
+import { RewardsController } from '../controllers/rewards-controller/RewardsController';
 
 jest.mock('../controllers/accounts-controller');
+jest.mock('../controllers/rewards-controller');
 jest.mock('../controllers/app-metadata-controller');
 jest.mock('../controllers/approval-controller');
 jest.mock(
@@ -140,6 +143,7 @@ describe('initModularizedControllers', () => {
   );
   const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
   const mockPerpsControllerInit = jest.mocked(perpsControllerInit);
+  const mockRewardsControllerInit = jest.mocked(rewardsControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -176,6 +180,7 @@ describe('initModularizedControllers', () => {
           DeFiPositionsController: mockDeFiPositionsControllerInit,
           SeedlessOnboardingController: mockSeedlessOnboardingControllerInit,
           PerpsController: mockPerpsControllerInit,
+          RewardsController: mockRewardsControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -251,6 +256,9 @@ describe('initModularizedControllers', () => {
     });
     mockAccountTreeControllerInit.mockReturnValue({
       controller: {} as unknown as AccountTreeController,
+    });
+    mockRewardsControllerInit.mockReturnValue({
+      controller: {} as unknown as RewardsController,
     });
   });
 

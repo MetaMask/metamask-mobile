@@ -6,13 +6,14 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useTheme } from '../../../util/theme';
+import type { Colors } from '../../../util/theme/models';
 import Device from '../../../util/device';
 
 interface RewardsHeroProps {
   onOptIn: () => void;
 }
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     heroContainer: {
       backgroundColor: colors.background.alternative,
@@ -107,7 +108,7 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({ onOptIn }) => {
         Join thousands of users earning rewards through staking, liquidity
         provision, and exclusive MetaMask programs.
       </Text>
-      
+
       <TouchableOpacity style={styles.ctaButton} onPress={onOptIn}>
         <Text style={styles.ctaButtonText}>Get Started</Text>
       </TouchableOpacity>
@@ -119,14 +120,14 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({ onOptIn }) => {
           </View>
           <Text style={styles.featureText}>Earn rewards on your ETH holdings</Text>
         </View>
-        
+
         <View style={styles.featureItem}>
           <View style={styles.featureIcon}>
             <Text style={styles.featureIconText}>✓</Text>
           </View>
           <Text style={styles.featureText}>Access exclusive DeFi opportunities</Text>
         </View>
-        
+
         <View style={styles.featureItem}>
           <View style={styles.featureIcon}>
             <Text style={styles.featureIconText}>✓</Text>

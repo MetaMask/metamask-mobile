@@ -269,6 +269,12 @@ import {
   PerpsControllerActions,
   PerpsControllerEvents,
 } from '../../components/UI/Perps/controllers/PerpsController';
+import { RewardsController } from './controllers/rewards-controller/RewardsController';
+import type {
+  RewardsControllerState,
+  RewardsControllerActions,
+  RewardsControllerEvents,
+} from './controllers/rewards-controller/types';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -379,6 +385,7 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | PerpsControllerActions
+  | RewardsControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
@@ -435,6 +442,7 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | PerpsControllerEvents
+  | RewardsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
@@ -516,6 +524,7 @@ export type Controllers = {
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
   PerpsController: PerpsController;
+  RewardsController: RewardsController;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
 };
 
@@ -583,6 +592,7 @@ export type EngineState = {
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
   PerpsController: PerpsControllerState;
+  RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
 };
 
@@ -641,7 +651,8 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TransactionController'
-  | 'PerpsController';
+  | 'PerpsController'
+  | 'RewardsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

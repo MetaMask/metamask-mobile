@@ -232,6 +232,7 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
+import { rewardsControllerInit } from './controllers/rewards-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1275,6 +1276,7 @@ export class Engine {
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         PerpsController: perpsControllerInit,
+        RewardsController: rewardsControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1291,6 +1293,7 @@ export class Engine {
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
+    const rewardsController = controllersByName.RewardsController;
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1647,6 +1650,7 @@ export class Engine {
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
       PerpsController: perpsController,
+      RewardsController: rewardsController,
     };
 
     const childControllers = Object.assign({}, this.context);
