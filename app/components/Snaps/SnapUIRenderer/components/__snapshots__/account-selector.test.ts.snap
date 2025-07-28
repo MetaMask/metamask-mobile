@@ -108,6 +108,7 @@ exports[`SnapUIAccountSelector renders an account selector 1`] = `
                 />
               </TouchableOpacity>
             </View>
+            <View />
           </View>
         </TouchableHighlight>
       </View>
@@ -243,6 +244,7 @@ exports[`SnapUIAccountSelector renders inside a field 1`] = `
                 />
               </TouchableOpacity>
             </View>
+            <View />
           </View>
         </TouchableHighlight>
       </View>
