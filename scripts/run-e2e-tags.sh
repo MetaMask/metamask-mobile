@@ -72,65 +72,82 @@ merge_junit_files() {
     echo "📄 Found XML files to merge:"
     echo "$junit_files" | sed 's/^/  - /'
     
-    # Create merged XML using Node.js for reliable XML parsing
-    node -e "
-    const fs = require('fs');
-    const path = require('path');
-    
-    try {
-        const reportsDir = './e2e/reports';
-        const files = fs.readdirSync(reportsDir).filter(f => f.startsWith('junit-') && f.endsWith('.xml'));
-        
-        if (files.length === 0) {
-            console.log('No junit files to merge');
-            process.exit(1);
-        }
-        
-        console.log(\`Merging \${files.length} XML files...\`);
-        
-        let totalTests = 0, totalFailures = 0, totalErrors = 0, totalTime = 0;
-        let mergedTestSuites = [];
-        
-        files.forEach(file => {
-            const content = fs.readFileSync(path.join(reportsDir, file), 'utf8');
-            
-            // Extract testsuite elements and aggregate stats
-            const testSuiteMatch = content.match(/<testsuite[^>]*>[\s\S]*?<\/testsuite>/g);
-            if (testSuiteMatch) {
-                mergedTestSuites.push(...testSuiteMatch);
-            }
-            
-            // Extract stats from testsuites root element
-            const statsMatch = content.match(/<testsuites[^>]*tests=\"(\d+)\"[^>]*failures=\"(\d+)\"[^>]*errors=\"(\d+)\"[^>]*time=\"([^\"]+)\"/);
-            if (statsMatch) {
-                totalTests += parseInt(statsMatch[1]) || 0;
-                totalFailures += parseInt(statsMatch[2]) || 0;
-                totalErrors += parseInt(statsMatch[3]) || 0;
-                totalTime += parseFloat(statsMatch[4]) || 0;
-            }
-        });
-        
-        // Create merged XML
-        const mergedXml = \`<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+         # Create merged XML using Node.js for reliable XML parsing
+     node -e "
+     const fs = require('fs');
+     const path = require('path');
+     
+     try {
+         const reportsDir = './e2e/reports';
+         const files = fs.readdirSync(reportsDir).filter(f => f.startsWith('junit-') && f.endsWith('.xml'));
+         
+         if (files.length === 0) {
+             console.log('No junit files to merge');
+             process.exit(1);
+         }
+         
+         console.log(\`Merging \${files.length} XML files...\`);
+         
+         let totalTests = 0, totalFailures = 0, totalErrors = 0, totalTime = 0;
+         let mergedTestSuites = [];
+         
+         files.forEach((file, index) => {
+             console.log(\`Processing file \${index + 1}/\${files.length}: \${file}\`);
+             const content = fs.readFileSync(path.join(reportsDir, file), 'utf8');
+             
+             // Debug: Show file content structure
+             console.log(\`  File size: \${content.length} chars\`);
+             
+             // Extract ONLY testsuite elements (not the wrapper testsuites)
+             const testSuiteMatches = content.match(/<testsuite[^>]*>[\s\S]*?<\/testsuite>/g);
+             if (testSuiteMatches) {
+                 console.log(\`  Found \${testSuiteMatches.length} testsuite(s) in \${file}\`);
+                 mergedTestSuites.push(...testSuiteMatches);
+                 
+                 // Extract individual testsuite stats for aggregation
+                 testSuiteMatches.forEach(suite => {
+                     const suiteStats = suite.match(/<testsuite[^>]*tests=\"(\d+)\"[^>]*failures=\"(\d+)\"[^>]*errors=\"(\d+)\"[^>]*time=\"([^\"]+)\"/);
+                     if (suiteStats) {
+                         totalTests += parseInt(suiteStats[1]) || 0;
+                         totalFailures += parseInt(suiteStats[2]) || 0;
+                         totalErrors += parseInt(suiteStats[3]) || 0;
+                         totalTime += parseFloat(suiteStats[4]) || 0;
+                     }
+                 });
+             } else {
+                 console.log(\`  ⚠️ No testsuite elements found in \${file}\`);
+                 // Debug: show first 200 chars of problematic file
+                 console.log(\`  File preview: \${content.substring(0, 200)}...\`);
+             }
+         });
+         
+         console.log(\`📊 Aggregated stats: \${totalTests} tests, \${totalFailures} failures, \${totalErrors} errors, \${totalTime.toFixed(3)}s\`);
+         console.log(\`📋 Found \${mergedTestSuites.length} test suites total\`);
+         
+         if (mergedTestSuites.length === 0) {
+             console.log('❌ No test suites found to merge');
+             process.exit(1);
+         }
+         
+         // Create merged XML with proper indentation
+         const mergedXml = \`<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <testsuites name=\"jest tests\" tests=\"\${totalTests}\" failures=\"\${totalFailures}\" errors=\"\${totalErrors}\" time=\"\${totalTime.toFixed(3)}\">
-\${mergedTestSuites.join('\n')}
+\${mergedTestSuites.map(suite => '  ' + suite.split('\n').join('\n  ')).join('\n')}
 </testsuites>\`;
-        
-        fs.writeFileSync(path.join(reportsDir, 'junit.xml'), mergedXml);
-        console.log(\`✅ Successfully merged \${files.length} XML files into junit.xml\`);
-        console.log(\`📊 Total: \${totalTests} tests, \${totalFailures} failures, \${totalErrors} errors\`);
-        
-        // Clean up individual files
-        files.forEach(file => {
-            fs.unlinkSync(path.join(reportsDir, file));
-        });
-        console.log('🧹 Cleaned up individual XML files');
-        
-    } catch (error) {
-        console.error('❌ Error merging XML files:', error.message);
-        process.exit(1);
-    }
-    "
+         
+         fs.writeFileSync(path.join(reportsDir, 'junit.xml'), mergedXml);
+         console.log(\`✅ Successfully merged \${files.length} XML files into junit.xml\`);
+         console.log(\`📊 Final: \${totalTests} tests, \${totalFailures} failures, \${totalErrors} errors\`);
+         
+         // Keep individual files for debugging this time
+         console.log('🔍 Keeping individual XML files for debugging');
+         
+     } catch (error) {
+         console.error('❌ Error merging XML files:', error.message);
+         console.error(error.stack);
+         process.exit(1);
+     }
+     "
 }
 
 # Execute the merge function
