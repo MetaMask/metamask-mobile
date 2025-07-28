@@ -1,5 +1,5 @@
 import { BigNumber } from 'bignumber.js';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';

@@ -67,7 +67,7 @@ export class PayHook {
     for (const quote of quotes) {
       log('Submitting bridge', index, quote);
 
-      await this.submitBridge(quote);
+      await this.#submitBridgeTransaction(quote);
 
       index += 1;
     }
@@ -75,16 +75,8 @@ export class PayHook {
     return EMPTY_RESULT;
   }
 
-  async submitBridge(originalQuote: TransactionBridgeQuote): Promise<void> {
+  async #submitBridgeTransaction(originalQuote: TransactionBridgeQuote): Promise<void> {
     const quote = cloneDeep(originalQuote);
-
-    if (quote.approval?.gasLimit) {
-      quote.approval.gasLimit *= 3;
-    }
-
-    if (quote.trade.gasLimit) {
-      quote.trade.gasLimit *= 3;
-    }
 
     const result = await this.#messenger.call(
       'BridgeStatusController:submitTx',
@@ -98,10 +90,10 @@ export class PayHook {
 
     log('Waiting for bridge completion', bridgeTransactionId);
 
-    await this.waitForBridgeCompletion(bridgeTransactionId);
+    await this.#waitForBridgeCompletion(bridgeTransactionId);
   }
 
-  async waitForBridgeCompletion(transactionId: string): Promise<void> {
+  async #waitForBridgeCompletion(transactionId: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const handler = (bridgeHistory: BridgeHistoryItem) => {
         const unsubscribe = () =>
