@@ -1,5 +1,4 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
 import AppConstants from '../AppConstants';
 import addDappConnection from './AndroidSDK/addDappConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
@@ -33,6 +32,23 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import Engine from '../../core/Engine';
+
+const mockNavigation = {
+  getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
+  navigate: jest.fn(),
+};
+
+jest.mock('../NavigationService', () => ({
+  __esModule: true,
+  default: {
+    get navigation() {
+      return mockNavigation;
+    },
+    set navigation(value) {
+      // Mock setter - does nothing but prevents errors
+    },
+  },
+}));
 
 jest.mock('./Connection');
 jest.mock('@react-navigation/native');
@@ -123,21 +139,25 @@ describe('SDKConnect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     sdkConnect = SDKConnect.getInstance();
+    // Reset SDK state for test isolation
+    sdkConnect.state._initialized = false;
+    sdkConnect.state._initializing = undefined;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('Initialization Management', () => {
     describe('init', () => {
       it('should initialize the SDKConnect instance', async () => {
-        const testNavigation = {} as NavigationContainerRef;
-
-        await sdkConnect.init({
-          navigation: testNavigation,
+        await SDKConnect.init({
           context: 'testContext',
         });
 
         expect(mockInit).toHaveBeenCalledTimes(1);
         expect(mockInit).toHaveBeenCalledWith({
-          navigation: testNavigation,
+          navigation: mockNavigation,
           context: 'testContext',
           instance: sdkConnect,
         });

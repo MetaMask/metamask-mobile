@@ -193,12 +193,11 @@ export function* startAppServices() {
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
 
-  yield all([
-    // Initialize WalletConnect v2 Manager
-    call(WC2Manager.init, {}),
-    // Initialize SDKConnect
-    call(SDKConnect.init, { context: 'Nav/App' }),
-  ]);
+  // Initialize WalletConnect
+  WC2Manager.init({});
+
+  // Initialize SDKConnect
+  SDKConnect.init({ context: 'Nav/App' });
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
