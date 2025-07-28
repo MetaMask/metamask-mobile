@@ -4,9 +4,14 @@ import {
   ButtonBase,
   ButtonBaseProps,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  useTailwind,
+  ThemeProvider,
+  Theme,
+} from '@metamask/design-system-twrnc-preset';
 
-const ButtonHero = ({
+// Internal component that uses the locked theme
+const ButtonHeroInner = ({
   children,
   onPress,
   isLoading,
@@ -15,7 +20,7 @@ const ButtonHero = ({
   textClassName,
   ...props
 }: ButtonBaseProps) => {
-  const tw = useTailwind();
+  const tw = useTailwind(); // Now this gets the light theme from ThemeProvider
 
   // Pressed color is the same as default state
   // TODO: @MetaMask/design-system-engineers we should change the type e.g. textClassName?: string | ((pressed: boolean) => string)
@@ -43,5 +48,16 @@ const ButtonHero = ({
     </ButtonBase>
   );
 };
+
+/*
+ * Lock ButtonHero to light theme
+ * The useTailwind hook needs to be called inside the ThemeProvider context to get the locked theme.
+ * By splitting into two components, we ensure the hook gets the correct theme context for all color calculations.
+ */
+const ButtonHero = (props: ButtonBaseProps) => (
+  <ThemeProvider theme={Theme.Light}>
+    <ButtonHeroInner {...props} />
+  </ThemeProvider>
+);
 
 export default ButtonHero;
