@@ -82,17 +82,17 @@ jobs:
   #     use_prebuilt_apps: true
   #   secrets: inherit
 
-  # smoke-wallet-platform-android:
-  #   name: "Wallet Platform Smoke (Android)"
-  #   #if: false # github.event.label.name == 'Run E2E Smoke Test'
-  #   uses: ./.github/workflows/run-e2e-mobile.yml
-  #   with:
-  #     test-suite-name: smoke-wallet-platform-android
-  #     platform: android
-  #     test_suite_tag: ".*SmokeWalletPlatform.*"
-  #     smoke-category: wallet-platform
-  #     use_prebuilt_apps: true
-  #   secrets: inherit
+  smoke-wallet-platform-android:
+    name: "Wallet Platform Smoke (Android)"
+    #if: false # github.event.label.name == 'Run E2E Smoke Test'
+    uses: ./.github/workflows/run-e2e-mobile.yml
+    with:
+      test-suite-name: smoke-wallet-platform-android
+      platform: android
+      test_suite_tag: ".*SmokeWalletPlatform.*"
+      smoke-category: wallet-platform
+      use_prebuilt_apps: true
+    secrets: inherit
 
   # smoke-identity-ios:
   #   name: "Identity Smoke (iOS)"
