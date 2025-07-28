@@ -29,6 +29,9 @@ import Engine from '../../../core/Engine';
 const MOCK_EVM_ACCOUNT_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const MOCK_EVM_ACCOUNT_2 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
 
+const MOCK_EVM_ACCOUNT_1_ID = 'mock-account-id-1';
+const MOCK_EVM_ACCOUNT_2_ID = 'mock-account-id-2';
+
 const MOCK_EVM_ACCOUNT_1_NAME = 'Account 1';
 const MOCK_EVM_ACCOUNT_2_NAME = 'Account 2';
 
@@ -39,6 +42,7 @@ const MOCK_EVM_CAIP_SCOPE_1 = EthScope.Eoa;
 
 const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
   {
+    id: MOCK_EVM_ACCOUNT_1_ID,
     name: MOCK_EVM_ACCOUNT_1_NAME,
     address: MOCK_EVM_ACCOUNT_1,
     assets: {
@@ -54,6 +58,7 @@ const MOCK_USE_ACCOUNTS_RETURN: Account[] = [
     scopes: [MOCK_EVM_CAIP_SCOPE_1],
   },
   {
+    id: MOCK_EVM_ACCOUNT_2_ID,
     name: MOCK_EVM_ACCOUNT_2_NAME,
     address: MOCK_EVM_ACCOUNT_2,
     assets: {

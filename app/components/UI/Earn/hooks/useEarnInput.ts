@@ -29,7 +29,7 @@ const useEarnInputHandlers = ({
 
   const balanceMinimalUnit: BN4 = useMemo(
     () => new BN4(earnToken?.balanceMinimalUnit ?? '0'),
-    [earnToken.balanceMinimalUnit],
+    [earnToken?.balanceMinimalUnit],
   );
 
   const {
@@ -49,8 +49,8 @@ const useEarnInputHandlers = ({
     handleMaxInput,
   } = useInputHandler({
     balance: earnToken?.balanceMinimalUnit ?? '0',
-    decimals: earnToken.decimals,
-    ticker: earnToken.ticker ?? earnToken.symbol,
+    decimals: earnToken?.decimals ?? 0,
+    ticker: earnToken?.ticker ?? earnToken?.symbol,
     conversionRate,
     exchangeRate,
   });

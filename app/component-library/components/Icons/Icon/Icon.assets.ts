@@ -12,6 +12,7 @@ import addsquareSVG from './assets/add-square.svg';
 import addSVG from './assets/add.svg';
 import aiSVG from './assets/ai.svg';
 import alternateemailSVG from './assets/alternate-email.svg';
+import appleSVG from './assets/apple.svg';
 import appsSVG from './assets/apps.svg';
 import arrow2downSVG from './assets/arrow-2-down.svg';
 import arrow2leftSVG from './assets/arrow-2-left.svg';
@@ -287,6 +288,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Add]: addSVG,
   [IconName.Ai]: aiSVG,
   [IconName.AlternateEmail]: alternateemailSVG,
+  [IconName.Apple]: appleSVG,
   [IconName.Apps]: appsSVG,
   [IconName.Arrow2Down]: arrow2downSVG,
   [IconName.Arrow2Left]: arrow2leftSVG,

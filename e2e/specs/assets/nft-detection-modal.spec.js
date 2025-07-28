@@ -7,7 +7,7 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import NftDetectionModal from '../../pages/wallet/NftDetectionModal';
 import { SmokeNetworkAbstractions } from '../../tags';
 
@@ -32,18 +32,15 @@ describe(SmokeNetworkAbstractions('NFT Detection Modal'), () => {
       },
       async () => {
         await loginToApp();
-        await Assertions.checkIfVisible(NftDetectionModal.container);
-
-        // fix flaky test: toast should desapear to get access to cancel button
-        await TestHelpers.delay(5000);
+        await Assertions.expectElementToBeVisible(NftDetectionModal.container);
 
         await NftDetectionModal.tapCancelButton();
         // Check that we are on the wallet screen
-        await Assertions.checkIfVisible(WalletView.container);
+        await Assertions.expectElementToBeVisible(WalletView.container);
 
         // Go to NFTs tab and check that the banner is visible
         await WalletView.tapNftTab();
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );
       },
@@ -66,18 +63,18 @@ describe(SmokeNetworkAbstractions('NFT Detection Modal'), () => {
       async () => {
         await loginToApp();
 
-        await Assertions.checkIfVisible(NftDetectionModal.container);
+        await Assertions.expectElementToBeVisible(NftDetectionModal.container);
         await NftDetectionModal.tapAllowButton();
         // Check that we are on the wallet screen
-        await Assertions.checkIfVisible(WalletView.container);
+        await Assertions.expectElementToBeVisible(WalletView.container);
 
         // Go to NFTs tab and check that the banner is NOT visible
         await WalletView.tapNftTab();
-        await Assertions.checkIfTextIsNotDisplayed(
+        await Assertions.expectTextNotDisplayed(
           NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );
 
-        await Assertions.checkIfTextIsDisplayed(testNftOnMainnet);
+        await Assertions.expectTextDisplayed(testNftOnMainnet);
       },
     );
   });

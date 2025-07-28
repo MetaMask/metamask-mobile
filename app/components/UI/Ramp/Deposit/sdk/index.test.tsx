@@ -7,6 +7,7 @@ import {
   DepositSDKProvider,
   useDepositSDK,
 } from '.';
+import { DEPOSIT_REGIONS } from '../constants';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
@@ -14,6 +15,12 @@ import {
   NativeRampsSdk,
   TransakEnvironment,
 } from '@consensys/native-ramps-sdk';
+
+const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
 
 jest.mock('../utils/ProviderTokenVault', () => ({
   getProviderToken: jest
@@ -74,6 +81,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       isKycApproved: jest.fn().mockReturnValue(true),
     }),
     setAccessToken: jest.fn(),
+    getGeolocation: jest.fn().mockResolvedValue({ ipCountryCode: 'US' }),
   })),
 }));
 
@@ -91,11 +99,16 @@ const mockedState = {
       },
     },
   },
+  fiatOrders: {
+    selectedRegionDeposit: null,
+    getStartedDeposit: false,
+  },
 };
 
 describe('Deposit SDK Context', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDispatch.mockClear();
   });
 
   describe('DepositSDKProvider', () => {
@@ -204,7 +217,6 @@ describe('Deposit SDK Context', () => {
         },
       );
 
-      // Manually trigger the onPress event
       const button = getByTestId('sdk-test');
       button.props.onPress();
 
@@ -271,6 +283,80 @@ describe('Deposit SDK Context', () => {
 
       renderWithProvider(<TestComponent />);
       expect(screen.getByText('Error thrown correctly')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Region Management', () => {
+    it('initializes with region from Redux state', () => {
+      const testRegion =
+        DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null;
+      const stateWithRegion = {
+        ...mockedState,
+        fiatOrders: {
+          ...mockedState.fiatOrders,
+          selectedRegionDeposit: testRegion,
+        },
+      };
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: stateWithRegion },
+      );
+
+      expect(contextValue?.selectedRegion).toEqual(testRegion);
+    });
+
+    it('initializes with null region when Redux state is null and geolocation is not called yet', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      expect(contextValue?.selectedRegion).toBeNull();
+    });
+
+    it('updates region and dispatches to Redux when setSelectedRegion is called', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const newRegion =
+        DEPOSIT_REGIONS.find((region) => region.isoCode === 'CA') || null;
+
+      act(() => {
+        contextValue?.setSelectedRegion(newRegion);
+      });
+
+      expect(contextValue?.selectedRegion).toEqual(newRegion);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'FIAT_SET_REGION_DEPOSIT',
+        payload: newRegion,
+      });
     });
   });
 

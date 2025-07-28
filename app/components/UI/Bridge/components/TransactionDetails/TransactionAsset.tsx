@@ -27,38 +27,41 @@ import { StyleSheet } from 'react-native';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
 import { BridgeToken } from '../../types';
 import { ethers } from 'ethers';
+import { TransactionType } from '@metamask/transaction-controller';
 
 const styles = StyleSheet.create({
   tokenIcon: {
     width: 40,
-      height: 40,
-    },
-    tokenInfo: {
-      flex: 1,
-      marginLeft: 12,
-      marginTop: -6,
-    },
-    infoButton: {
-      marginRight: 12,
-    },
-    container: {
-      padding: 4,
-    },
-    networkName: {
-      marginTop: -2,
-    },
-  });
+    height: 40,
+  },
+  tokenInfo: {
+    flex: 1,
+    marginLeft: 12,
+    marginTop: -6,
+  },
+  infoButton: {
+    marginRight: 12,
+  },
+  container: {
+    padding: 4,
+  },
+  networkName: {
+    marginTop: -2,
+  },
+});
 
 interface TransactionAssetProps {
   token: BridgeToken;
   tokenAmount: string;
   chainId: Hex | CaipChainId;
+  txType: TransactionType;
 }
 
 const TransactionAsset = ({
   token,
   tokenAmount,
   chainId,
+  txType,
 }: TransactionAssetProps) => {
   const networkName =
     NETWORK_TO_SHORT_NETWORK_NAME_MAP[chainId as AllowedBridgeChainIds];
@@ -110,13 +113,15 @@ const TransactionAsset = ({
         <Text variant={TextVariant.BodyLGMedium}>
           {tokenAmount} {token.symbol}
         </Text>
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Alternative}
-          style={styles.networkName}
-        >
-          {networkName}
-        </Text>
+        {txType === TransactionType.bridge && (
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Alternative}
+            style={styles.networkName}
+          >
+            {networkName}
+          </Text>
+        )}
       </Box>
     </Box>
   );

@@ -1,23 +1,19 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 'use strict';
 import { SmokeWalletPlatform } from '../../tags';
 import { CreateNewWallet } from '../../viewHelper';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  EventPayload,
-  filterEvents,
-  getEventsPayloads,
-  onboardingEvents,
-} from './helpers';
+import Assertions from '../../framework/Assertions';
+import { getEventsPayloads, onboardingEvents } from './helpers';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
   getBalanceMocks,
   INFURA_MOCK_BALANCE_1_ETH,
 } from '../../api-mocking/mock-responses/balance-mocks';
 import SoftAssert from '../../utils/SoftAssert';
-import { MockttpServer } from 'mockttp';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { TestSpecificMock } from '../../framework';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 
 const balanceMock = getBalanceMocks([
   {
@@ -28,7 +24,7 @@ const balanceMock = getBalanceMocks([
 
 const testSpecificMock = {
   POST: [...balanceMock, mockEvents.POST.segmentTrack],
-};
+} as TestSpecificMock;
 
 const eventNames = [
   onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
@@ -56,24 +52,134 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
         testSpecificMock,
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
+      async ({ mockServer }) => {
         await CreateNewWallet();
+
+        if (!mockServer) {
+          throw new Error(
+            'Mock server is not defined, check testSpecificMock setup',
+          );
+        }
 
         const events = await getEventsPayloads(mockServer, eventNames);
 
         const softAssert = new SoftAssert();
 
-        softAssert.checkAndCollect(async () => {
-          await Assertions.checkIfArrayHasLength(events, 12);
-        }, 'Should have 12 events in the new wallet flow');
+        const analyticsPreferenceSelectedEvent = events.find(
+          (event) => event.event === 'Analytics Preference Selected',
+        );
+        const welcomeMessageViewedEvent = events.find(
+          (event) => event.event === 'Welcome Message Viewed',
+        );
+        const onboardingStartedEvent = events.find(
+          (event) => event.event === 'Onboarding Started',
+        );
+        const walletSetupStartedEvent = events.find(
+          (event) => event.event === 'Wallet Setup Started',
+        );
+        const walletCreationAttemptedEvent = events.find(
+          (event) => event.event === 'Wallet Creation Attempted',
+        );
+        const walletCreatedEvent = events.find(
+          (event) => event.event === 'Wallet Created',
+        );
+        const walletSetupCompletedEvent = events.find(
+          (event) => event.event === 'Wallet Setup Completed',
+        );
 
-        eventNames.forEach((eventName) => {
-          const filtered = filterEvents(events, eventName) as EventPayload[];
-          softAssert.checkAndCollect(
-            () => Assertions.checkIfArrayHasLength(filtered, 1),
-            `${eventName} event should be tracked`,
+        const checkEventCount = softAssert.checkAndCollect(
+          () => Assertions.checkIfArrayHasLength(events, 7),
+          'Expected 6 events for new wallet onboarding',
+        );
+
+        const checkAnalyticsPreferenceSelected = softAssert.checkAndCollect(
+          async () => {
+            Assertions.checkIfValueIsDefined(analyticsPreferenceSelectedEvent);
+            Assertions.checkIfObjectsMatch(
+              analyticsPreferenceSelectedEvent!.properties,
+              {
+                has_marketing_consent: false,
+                is_metrics_opted_in: true,
+                location: 'onboarding_metametrics',
+                updated_after_onboarding: false,
+              },
+            );
+          },
+          'Analytics Preference Selected: Should be present with correct properties',
+        );
+
+        const checkWelcomeMessageViewed = softAssert.checkAndCollect(
+          async () => {
+            Assertions.checkIfValueIsDefined(welcomeMessageViewedEvent);
+            Assertions.checkIfObjectsMatch(
+              welcomeMessageViewedEvent!.properties,
+              {},
+            );
+          },
+          'Welcome Message Viewed: Should be present with empty properties',
+        );
+
+        const checkOnboardingStarted = softAssert.checkAndCollect(async () => {
+          Assertions.checkIfValueIsDefined(onboardingStartedEvent);
+          Assertions.checkIfObjectsMatch(
+            onboardingStartedEvent!.properties,
+            {},
           );
-        });
+        }, 'Onboarding Started: Should be present with empty properties');
+
+        const checkWalletSetupStarted = softAssert.checkAndCollect(async () => {
+          Assertions.checkIfValueIsDefined(walletSetupStartedEvent);
+          Assertions.checkIfObjectsMatch(walletSetupStartedEvent!.properties, {
+            account_type: 'metamask',
+          });
+        }, 'Wallet Setup Started: Should be present with correct properties');
+
+        const checkWalletCreationAttempted = softAssert.checkAndCollect(
+          async () => {
+            Assertions.checkIfValueIsDefined(walletCreationAttemptedEvent);
+            Assertions.checkIfObjectsMatch(
+              walletCreationAttemptedEvent!.properties,
+              {
+                account_type: 'metamask',
+              },
+            );
+          },
+          'Wallet Creation Attempted: Should be present with correct properties',
+        );
+
+        const checkWalletCreated = softAssert.checkAndCollect(async () => {
+          Assertions.checkIfValueIsDefined(walletCreatedEvent);
+          Assertions.checkIfObjectsMatch(walletCreatedEvent!.properties, {
+            biometrics_enabled: false,
+            password_strength: 'weak',
+          });
+        }, 'Wallet Created: Should be present with correct properties');
+
+        const checkWalletSetupCompleted = softAssert.checkAndCollect(
+          async () => {
+            Assertions.checkIfValueIsDefined(walletSetupCompletedEvent);
+            Assertions.checkIfObjectsMatch(
+              walletSetupCompletedEvent!.properties,
+              {
+                wallet_setup_type: 'new',
+                new_wallet: true,
+                account_type: 'metamask',
+              },
+            );
+          },
+          'Wallet Setup Completed: Should be present with correct properties',
+        );
+
+        await Promise.all([
+          checkEventCount,
+          checkAnalyticsPreferenceSelected,
+          checkWelcomeMessageViewed,
+          checkOnboardingStarted,
+          checkWalletSetupStarted,
+          checkWalletCreationAttempted,
+          checkWalletCreated,
+          checkWalletSetupCompleted,
+        ]);
 
         softAssert.throwIfErrors();
       },
@@ -87,10 +193,16 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
         testSpecificMock,
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
+      async ({ mockServer }) => {
         await CreateNewWallet({
           optInToMetrics: false,
         });
+
+        if (!mockServer) {
+          throw new Error(
+            'Mock server is not defined, check testSpecificMock setup',
+          );
+        }
 
         const events = await getEventsPayloads(mockServer);
         await Assertions.checkIfArrayHasLength(events, 0);

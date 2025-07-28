@@ -24,5 +24,10 @@ module.exports = {
         subdomains: '*',
       },
     ],
+
+    'expo-apple-authentication',
   ],
+  ios: {
+    usesAppleSignIn: true,
+  },
 };

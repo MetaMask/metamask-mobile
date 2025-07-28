@@ -36,27 +36,7 @@ Ensure that these devices are set up. You can change the default devices at any 
 
 - **Option #1 - Using Expo prebuilds (recommended)**
 
-  **Install dependencies**
-
-  ```bash
-  yarn setup:expo
-  ```
-
-  **Start Metro Server**: Ensure the Metro server is running before executing tests:
-
-  ```bash
-  yarn watch:clean
-  ```
-
-  Instead of building apps localy, you can download prebuilt `.app`/`.ipa`/`.apk` files from [Runway buckets](../../README.md#download-and-install-the-development-build) and run the tests against them.
-
-  Use `.app` for the iOS simulator and `.ipa` for physical iOS devices.
-
-  After downloading the prebuilt apps, update your local environment variables so that the prebuilds are picked up in the [.detoxrc.js](../../.detoxrc.js) file:
-
-  - `PREBUILT_IOS_APP_PATH` for iOS
-  - `PREBUILT_ANDROID_APP_PATH` for Android APK
-  - `PREBUILT_ANDROID_TEST_APP_PATH` for Android test APK (needs to be set when using prebuilds)
+  Please follow the [Expo E2E Testing](./expo-e2e-testing.md) documentation
 
 - **Option #2 - Building locally**:
 
@@ -403,6 +383,9 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
   - **Faster Feedback**: Running a subset of tests on PRs provides quicker feedback, ensuring critical functionalities are validated without the overhead of executing all tests.
   - **Efficient Resource Use**: Limits resource consumption and test execution time, optimizing CI/CD pipeline performance.
 
-### Best Practices
+### Framework Documentation
 
-For more guidelines and best practices, refer to our [Best Practices Document](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/e2e-testing.md).
+For detailed E2E framework documentation, patterns, and best practices, see:
+
+- **[E2E Framework Guide](../../e2e/framework/README.md)** - Comprehensive guide to the TypeScript testing framework
+- **[General E2E Best Practices](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/e2e-testing.md)** - MetaMask-wide testing guidelines

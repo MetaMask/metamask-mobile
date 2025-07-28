@@ -35,6 +35,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { useMetrics } from '../../hooks/useMetrics';
 import { CommonActions } from '@react-navigation/native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { TraceName, endTrace } from '../../../util/trace';
 
 const ManualBackupStep2 = ({
   navigation,
@@ -53,6 +54,8 @@ const ManualBackupStep2 = ({
   const [emptySlots, setEmptySlots] = useState([]);
   const [missingWords, setMissingWords] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [usedWordIndices, setUsedWordIndices] = useState(new Set());
+  const [wordPositionMap, setWordPositionMap] = useState({});
 
   const headerLeft = useCallback(
     () => (
@@ -70,7 +73,6 @@ const ManualBackupStep2 = ({
     ),
     [colors, navigation, styles.headerLeft],
   );
-
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
@@ -136,6 +138,9 @@ const ManualBackupStep2 = ({
               },
             ],
           });
+          endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+          endTrace({ name: TraceName.OnboardingJourneyOverall });
+
           if (isMetricsEnabled()) {
             navigation.dispatch(resetAction);
           } else {
@@ -183,6 +188,8 @@ const ManualBackupStep2 = ({
     setEmptySlots(emptySlotsIndexes);
     const sortedIndexes = emptySlotsIndexes.sort((a, b) => a - b);
     setSelectedSlot(sortedIndexes[0]);
+    setUsedWordIndices(new Set());
+    setWordPositionMap({});
   }, [words]);
 
   useEffect(() => {
@@ -190,20 +197,33 @@ const ManualBackupStep2 = ({
   }, [generateMissingWords]);
 
   const handleWordSelect = useCallback(
-    (word) => {
+    (word, wordIndex) => {
       const updatedGrid = [...gridWords];
 
-      // Step 1: Deselect if already placed
-      const existingIndex = updatedGrid.findIndex((w) => w === word);
-      if (existingIndex !== -1) {
-        updatedGrid[existingIndex] = '';
-        setGridWords(updatedGrid);
+      // Check if this specific word index is already used
+      if (usedWordIndices.has(wordIndex)) {
+        // This specific word instance is already placed, find and remove it
+        const positionToRemove = Object.keys(wordPositionMap).find(
+          (pos) => wordPositionMap[pos] === wordIndex,
+        );
 
-        // Focus the slot where we just removed the word if it's an empty slot
-        if (emptySlots.includes(existingIndex)) {
-          setSelectedSlot(existingIndex);
-          return;
+        if (positionToRemove !== undefined) {
+          const newGrid = [...updatedGrid];
+          newGrid[parseInt(positionToRemove)] = '';
+          setGridWords(newGrid);
+          setSelectedSlot(parseInt(positionToRemove));
+
+          // Remove this word index from used indices
+          const newUsedIndices = new Set(usedWordIndices);
+          newUsedIndices.delete(wordIndex);
+          setUsedWordIndices(newUsedIndices);
+
+          // Remove from position map
+          const newPositionMap = { ...wordPositionMap };
+          delete newPositionMap[positionToRemove];
+          setWordPositionMap(newPositionMap);
         }
+        return;
       }
 
       // Word must be one of the missing ones
@@ -228,8 +248,19 @@ const ManualBackupStep2 = ({
 
       if (targetIndex === undefined) return;
 
-      updatedGrid[targetIndex] = word;
-      setGridWords(updatedGrid);
+      const newGrid = [...updatedGrid];
+      newGrid[targetIndex] = word;
+      setGridWords(newGrid);
+
+      // Add this word index to used indices
+      const newUsedIndices = new Set(usedWordIndices);
+      newUsedIndices.add(wordIndex);
+      setUsedWordIndices(newUsedIndices);
+
+      // Track which word index is placed in which position
+      const newPositionMap = { ...wordPositionMap };
+      newPositionMap[targetIndex] = wordIndex;
+      setWordPositionMap(newPositionMap);
 
       // Set focus to next empty slot in order
       const nextEmptySlot =
@@ -237,7 +268,14 @@ const ManualBackupStep2 = ({
         emptySlotsUpdated[0];
       setSelectedSlot(nextEmptySlot);
     },
-    [gridWords, missingWords, selectedSlot, emptySlots],
+    [
+      gridWords,
+      missingWords,
+      selectedSlot,
+      emptySlots,
+      usedWordIndices,
+      wordPositionMap,
+    ],
   );
 
   const handleSlotPress = useCallback(
@@ -245,7 +283,6 @@ const ManualBackupStep2 = ({
       if (!emptySlots.includes(index)) return;
 
       const isFilled = gridWords[index] !== '';
-      const word = gridWords[index];
 
       const updated = [...gridWords];
 
@@ -253,13 +290,25 @@ const ManualBackupStep2 = ({
         updated[index] = '';
         setGridWords(updated);
 
-        const stillUsed = updated.includes(word);
-        if (!stillUsed) setSelectedSlot(index); // reselect same slot
+        // Remove the word index from used indices
+        const wordIndexToRemove = wordPositionMap[index];
+        if (wordIndexToRemove !== undefined) {
+          const newUsedIndices = new Set(usedWordIndices);
+          newUsedIndices.delete(wordIndexToRemove);
+          setUsedWordIndices(newUsedIndices);
+        }
+
+        // Remove from position map
+        const newPositionMap = { ...wordPositionMap };
+        delete newPositionMap[index];
+        setWordPositionMap(newPositionMap);
+
+        setSelectedSlot(index); // reselect same slot
       } else {
         setSelectedSlot(index); // highlight this for next word
       }
     },
-    [emptySlots, gridWords],
+    [emptySlots, gridWords, wordPositionMap, usedWordIndices],
   );
 
   const innerWidth = Dimensions.get('window').width;
@@ -341,17 +390,17 @@ const ManualBackupStep2 = ({
     () => (
       <View style={styles.missingWords}>
         {missingWords.map((word, i) => {
-          const isUsed = gridWords.includes(word);
+          const isUsed = usedWordIndices.has(i);
           return (
             <TouchableOpacity
-              key={word}
+              key={`${word}-${i}`}
               testID={`${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`}
               style={[
                 styles.missingWord,
                 isUsed && styles.selectedWord,
                 { width: innerWidth / 3.9 },
               ]}
-              onPress={() => handleWordSelect(word)}
+              onPress={() => handleWordSelect(word, i)}
             >
               <Text
                 variant={TextVariant.BodyMDMedium}
@@ -374,7 +423,7 @@ const ManualBackupStep2 = ({
       styles.missingWord,
       styles.selectedWord,
       missingWords,
-      gridWords,
+      usedWordIndices,
       innerWidth,
       handleWordSelect,
     ],
@@ -383,6 +432,12 @@ const ManualBackupStep2 = ({
   const validateSeedPhrase = () => {
     const isSuccess = validateWords();
     if (isSuccess) {
+      trackOnboarding(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
+        ).build(),
+        saveOnboardingEvent,
+      );
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         params: {
@@ -392,6 +447,7 @@ const ManualBackupStep2 = ({
           type: 'success',
           onClose: () => goNext(),
           onPrimaryButtonPress: () => goNext(),
+          closeOnPrimaryButtonPress: true,
         },
       });
     } else {
@@ -404,6 +460,7 @@ const ManualBackupStep2 = ({
           type: 'error',
           onClose: () => generateMissingWords(),
           onPrimaryButtonPress: () => generateMissingWords(),
+          closeOnPrimaryButtonPress: true,
         },
       });
     }

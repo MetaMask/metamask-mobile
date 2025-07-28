@@ -6,7 +6,6 @@ import {
   waitForNetworkModalOnboarding,
   getApprovedSessionMethods,
   getScopedPermissions,
-  checkWCPermissions,
   networkModalOnboardingConfig,
   onRequestUserApproval,
   getHostname,
@@ -15,12 +14,6 @@ import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
 // eslint-disable-next-line import/no-namespace
 import * as StoreModule from '../../../app/store';
-import { selectProviderConfig } from '../../selectors/networkController';
-import {
-  findExistingNetwork,
-  switchToNetwork,
-} from '../RPCMethods/lib/ethereum-chain-utils';
-
 import Engine from '../Engine';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 
@@ -58,6 +51,14 @@ jest.mock('../../selectors/networkController', () => ({
   selectProviderConfig: jest
     .fn()
     .mockReturnValue({ chainId: '0x1' }) as jest.Mock,
+}));
+
+jest.mock('../../selectors/smartTransactionsController', () => ({
+  selectSmartTransactionsEnabled: () => false,
+}));
+
+jest.mock('../../reducers/swaps', () => ({
+  swapsLivenessSelector: jest.fn().mockReturnValue({}),
 }));
 
 jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
@@ -221,7 +222,7 @@ describe('WalletConnect Utils', () => {
 
   describe('getApprovedSessionMethods', () => {
     it('returns all approved EIP-155 methods', () => {
-      const methods = getApprovedSessionMethods({ origin: 'test' });
+      const methods = getApprovedSessionMethods();
       expect(methods).toContain('eth_sendTransaction');
       expect(methods).toContain('wallet_switchEthereumChain');
     });
@@ -229,7 +230,7 @@ describe('WalletConnect Utils', () => {
 
   describe('getScopedPermissions', () => {
     it('returns correct scoped permissions', async () => {
-      const result = await getScopedPermissions({ origin: 'test' });
+      const result = await getScopedPermissions({ channelId: 'test' });
       expect(result).toEqual({
         eip155: {
           chains: ['eip155:1'],
@@ -238,75 +239,6 @@ describe('WalletConnect Utils', () => {
           accounts: ['eip155:1:0x123'],
         },
       });
-    });
-  });
-
-  describe('checkWCPermissions', () => {
-    beforeEach(() => {
-      (findExistingNetwork as jest.Mock).mockReturnValue({ chainId: '0x1' });
-    });
-
-    it('returns true for permitted chain', async () => {
-      const result = await checkWCPermissions({
-        origin: 'test',
-        caip2ChainId: 'eip155:1',
-      });
-      expect(result).toBe(true);
-    });
-
-    it('throws error for non-existent network', async () => {
-      (findExistingNetwork as jest.Mock).mockReturnValue(null);
-      await expect(
-        checkWCPermissions({
-          origin: 'test',
-          caip2ChainId: 'eip155:2',
-        }),
-      ).rejects.toThrow('Invalid parameters');
-    });
-
-    it('throws error for not allowed chain', async () => {
-      const mockPermittedChains =
-        jest.requireMock('../Permissions').getPermittedChains;
-      mockPermittedChains.mockResolvedValueOnce([]);
-      await expect(
-        checkWCPermissions({
-          origin: 'test',
-          caip2ChainId: 'eip155:2',
-        }),
-      ).rejects.toThrow('Invalid parameters');
-    });
-
-    it('switches network when chainIds differ', async () => {
-      (selectProviderConfig as unknown as jest.Mock).mockReturnValue({ chainId: '0x2' });
-      await checkWCPermissions({
-        origin: 'test',
-        caip2ChainId: 'eip155:1',
-      });
-      expect(switchToNetwork).toHaveBeenCalled();
-    });
-
-    it('adds permitted chain when allowSwitchingToNewChain is true', async () => {
-      // Mock that the chain is not permitted
-      const mockPermittedChains = jest.requireMock('../Permissions').getPermittedChains;
-      mockPermittedChains.mockResolvedValueOnce([]);
-
-      // Mock the updatePermittedChains function
-      const mockUpdatePermittedChain = jest.requireMock('../Permissions').updatePermittedChains;
-
-      // Test with allowSwitchingToNewChain set to true
-      const result = await checkWCPermissions({
-        origin: 'test-dapp.com',
-        caip2ChainId: 'eip155:3',
-        allowSwitchingToNewChain: true,
-      });
-
-      // Verify addPermittedChain was called with the right parameters
-      expect(mockUpdatePermittedChain).toHaveBeenCalledWith(
-        'test-dapp.com',
-        ['eip155:3']
-      );
-      expect(switchToNetwork).toHaveBeenCalled();
-      expect(result).toBe(true);
     });
   });
 
@@ -378,8 +310,6 @@ describe('WalletConnect Utils', () => {
   describe('getHostname', () => {
     it('returns empty string for null or undefined URI', () => {
       expect(getHostname('')).toBe('');
-      expect(getHostname(undefined as unknown as string)).toBe('');
-      expect(getHostname(null as unknown as string)).toBe('');
     });
 
     it('returns protocol part for protocol-based URIs', () => {

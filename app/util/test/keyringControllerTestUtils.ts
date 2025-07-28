@@ -12,6 +12,9 @@ export const mockSolanaAddress = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 export const mockSecondHDKeyringAddress =
   '0xf5E7127d55ed72EBe33d2b0540cc82baF3E31561';
 
+export const MOCK_ENTROPY_SOURCE = '01JNG7170V9X27V5NFDTY04PJ4';
+export const MOCK_ENTROPY_SOURCE_2 = '01JSJNVTJEPSHZSNWAD3JT0PJN';
+
 const MOCK_DEFAULT_KEYRINGS: KeyringObject[] = [
   {
     accounts: [mockSimpleKeyringAddress],
@@ -33,7 +36,7 @@ const MOCK_DEFAULT_KEYRINGS: KeyringObject[] = [
     accounts: [mockHDKeyringAddress],
     type: KeyringTypes.hd,
     metadata: {
-      id: '01JNG7170V9X27V5NFDTY04PJ4',
+      id: MOCK_ENTROPY_SOURCE,
       name: '',
     },
   },
@@ -49,7 +52,7 @@ const MOCK_DEFAULT_KEYRINGS: KeyringObject[] = [
     accounts: [mockSecondHDKeyringAddress],
     type: KeyringTypes.hd,
     metadata: {
-      id: '01JSJNVTJEPSHZSNWAD3JT0PJN',
+      id: MOCK_ENTROPY_SOURCE_2,
       name: '',
     },
   },

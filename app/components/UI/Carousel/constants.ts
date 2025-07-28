@@ -7,11 +7,13 @@ import {
 } from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import cardImage from '../../../images/banners/banner_image_card.png';
+import smartAccount from '../../../images/banners/smart-account-upgrade.png';
 import fundImage from '../../../images/banners/banner_image_fund.png';
 import cashoutImage from '../../../images/banners/banner_image_cashout.png';
 import aggregatedImage from '../../../images/banners/banner_image_aggregated.png';
 import backupAndSyncImage from '../../../images/banners/banner_image_backup_and_sync.png';
 import multiSrpImage from '../../../images/banners/banner_image_multisrp.png';
+import { createSmartAccountNavigationDetails } from '../../Views/confirmations/utils/generic';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
 import solanaImage from '../../../images/banners/banner_image_solana.png';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
@@ -40,6 +42,16 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     },
   },
   ///: END:ONLY_INCLUDE_IF
+  {
+    id: 'smartAccount',
+    title: strings('banner.smartAccount.title'),
+    description: strings('banner.smartAccount.subtitle'),
+    undismissable: false,
+    navigation: {
+      type: 'function',
+      navigate: createSmartAccountNavigationDetails,
+    },
+  },
   {
     id: 'card',
     title: strings('banner.card.title'),
@@ -108,6 +120,7 @@ export const BANNER_IMAGES: Partial<Record<SlideId, ImageSourcePropType>> = {
   aggregated: aggregatedImage,
   multisrp: multiSrpImage,
   backupAndSync: backupAndSyncImage,
+  smartAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   solana: solanaImage,
   ///: END:ONLY_INCLUDE_IF

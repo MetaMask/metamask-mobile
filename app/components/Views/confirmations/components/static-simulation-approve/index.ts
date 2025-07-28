@@ -1,1 +1,0 @@
-export { StaticSimulationApprove } from './static-simulation-approve';

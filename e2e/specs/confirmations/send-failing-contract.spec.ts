@@ -26,17 +26,20 @@ describe(SmokeConfirmations('Failing contracts'), () => {
   });
 
   it('sends a failing contract transaction', async () => {
-    const testSpecificMock  = {
-        GET: [
-          mockEvents.GET.suggestedGasFeesApiGanache
-        ],
-      };
+    const testSpecificMock = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache,
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
+      ],
+    };
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
@@ -68,10 +71,10 @@ describe(SmokeConfirmations('Failing contracts'), () => {
 
         // Assert the failed transaction is displayed
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION
+          ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION,
         );
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.FAILED_TEXT
+          ActivitiesViewSelectorsText.FAILED_TEXT,
         );
       },
     );

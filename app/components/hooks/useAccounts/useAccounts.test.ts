@@ -1,14 +1,13 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { EthScope } from '@metamask/keyring-api';
-import { toChecksumAddress } from 'ethereumjs-util';
 import useAccounts from './useAccounts';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
-import { Hex } from '@metamask/utils';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+import { toChecksumAddress } from '../../../util/address';
 
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
@@ -25,13 +24,14 @@ const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
 const MOCK_CHAIN_ID = '0x1';
 
-const MOCK_ACCOUNT_ADDRESSES = Object.values(
+const MOCK_ACCOUNTS = Object.values(
   MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-).map((account) => account.address);
+);
 
 const MOCK_ACCOUNT_1: Account = {
+  id: MOCK_ACCOUNTS[0].id,
   name: 'Account 1',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
+  address: toChecksumAddress(MOCK_ACCOUNTS[0].address),
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: false,
@@ -39,13 +39,15 @@ const MOCK_ACCOUNT_1: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
-  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[0]}`,
+  caipAccountId: `eip155:0:${MOCK_ACCOUNTS[0].address}`,
   scopes: [EthScope.Eoa],
   isLoadingAccount: false,
+  snapId: undefined,
 };
 const MOCK_ACCOUNT_2: Account = {
+  id: MOCK_ACCOUNTS[1].id,
   name: 'Account 2',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
+  address: toChecksumAddress(MOCK_ACCOUNTS[1].address),
   type: KeyringTypes.hd,
   yOffset: 78,
   isSelected: true,
@@ -53,9 +55,10 @@ const MOCK_ACCOUNT_2: Account = {
     fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
-  caipAccountId: `eip155:0:${MOCK_ACCOUNT_ADDRESSES[1]}`,
+  caipAccountId: `eip155:0:${MOCK_ACCOUNTS[1].address}`,
   scopes: [EthScope.Eoa],
   isLoadingAccount: false,
+  snapId: undefined,
 };
 
 const MOCK_STORE_STATE = {

@@ -51,6 +51,7 @@ export const FIELD_ELEMENT_TYPES = [
   'Selector',
   'AddressInput',
   'AssetSelector',
+  'AccountSelector',
 ];
 
 /**
@@ -74,7 +75,7 @@ function getChildrenForHash(component: JSXElement) {
   }
 
   // Prevent re-rendering when rendering forms, we don't care what children it contains
-  // since we can identify it by its name. 
+  // since we can identify it by its name.
   if (component.type === 'Form') {
     return null;
   }

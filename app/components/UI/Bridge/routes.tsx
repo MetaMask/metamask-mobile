@@ -10,6 +10,7 @@ import QuoteInfoModal from './components/QuoteInfoModal';
 import BridgeView from './Views/BridgeView';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 import QuoteExpiredModal from './components/QuoteExpiredModal';
+import BlockaidModal from './components/BlockaidModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -63,6 +64,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL}
       component={QuoteExpiredModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BLOCKAID_MODAL}
+      component={BlockaidModal}
     />
   </ModalStack.Navigator>
 );

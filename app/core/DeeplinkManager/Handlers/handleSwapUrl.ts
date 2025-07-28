@@ -1,13 +1,12 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   isCaipAssetType,
   isHexString,
   parseCaipAssetType,
 } from '@metamask/utils';
+import NavigationService from '../../../core/NavigationService';
 
 interface HandleSwapUrlParams {
   swapPath: string;
-  navigation: NavigationProp<ParamListBase>;
 }
 
 /**
@@ -16,7 +15,6 @@ interface HandleSwapUrlParams {
  *
  * @param params Object containing the swap path and navigation object
  * @param params.swapPath - The swap URL path containing the parameters
- * @param params.navigation - The navigation object
  *
  * @example
  * URL format:
@@ -29,10 +27,7 @@ interface HandleSwapUrlParams {
  * - to: CAIP-19 format for destination token
  * - value: Hexadecimal amount (e.g., "0x38d7ea4c68000")
  */
-export const handleSwapUrl = ({
-  swapPath,
-  navigation,
-}: HandleSwapUrlParams) => {
+export const handleSwapUrl = ({ swapPath }: HandleSwapUrlParams) => {
   try {
     const cleanPath = swapPath.startsWith('?') ? swapPath.slice(1) : swapPath;
     const urlParams = new URLSearchParams(cleanPath);
@@ -42,14 +37,14 @@ export const handleSwapUrl = ({
     const amount = urlParams.get('value');
 
     if (!isCaipAssetType(fromCaip) || !isCaipAssetType(toCaip)) {
-      navigation.navigate('Swaps', {
+      NavigationService.navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
       });
       return;
     }
 
     if (!fromCaip || !toCaip) {
-      navigation.navigate('Swaps', {
+      NavigationService.navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
       });
       return;
@@ -60,13 +55,13 @@ export const handleSwapUrl = ({
     const toAddress = parseCaipAssetType(toCaip).assetReference;
 
     if (!fromAddress || !toAddress) {
-      navigation.navigate('Swaps', {
+      NavigationService.navigation.navigate('Swaps', {
         screen: 'SwapsAmountView',
       });
       return;
     }
 
-    navigation.navigate('Swaps', {
+    NavigationService.navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {
         sourceToken: fromAddress,
@@ -75,7 +70,7 @@ export const handleSwapUrl = ({
       },
     });
   } catch (_) {
-    navigation.navigate('Swaps', {
+    NavigationService.navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
     });
   }

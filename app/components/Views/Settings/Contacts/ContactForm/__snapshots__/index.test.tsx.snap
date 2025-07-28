@@ -1,32 +1,367 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ContactForm should render correctly 1`] = `
-<ContextProvider
-  value={
+exports[`ContactForm renders correctly 1`] = `
+<RCTSafeAreaView
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "flexDirection": "column",
     }
   }
+  testID="add-contacts-screen"
 >
-  <Component />
-</ContextProvider>
+  <RCTScrollView
+    automaticallyAdjustContentInsets={false}
+    contentInset={
+      {
+        "bottom": 0,
+      }
+    }
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    getScrollResponder={[Function]}
+    handleOnScroll={[Function]}
+    keyboardDismissMode="interactive"
+    keyboardOpeningTime={250}
+    keyboardSpace={0}
+    onScroll={[Function]}
+    resetKeyboardSpace={[Function]}
+    scrollEventThrottle={1}
+    scrollForExtraHeightOnAndroid={[Function]}
+    scrollIntoView={[Function]}
+    scrollToEnd={[Function]}
+    scrollToFocusedInput={[Function]}
+    scrollToPosition={[Function]}
+    showsVerticalScrollIndicator={true}
+    style={
+      {
+        "flex": 1,
+        "paddingHorizontal": 24,
+      }
+    }
+    update={[Function]}
+    viewIsInsideTabBar={false}
+  >
+    <View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "paddingVertical": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          Name
+        </Text>
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          editable={true}
+          keyboardAppearance="light"
+          numberOfLines={1}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="Name"
+          placeholderTextColor="#b7bbc8"
+          spellCheck={false}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "color": "#121314",
+                "flex": 1,
+                "flexDirection": "row",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "padding": 10,
+              },
+              {},
+              {},
+            ]
+          }
+          testID="add-contact-name-input"
+          value={null}
+        />
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          Address
+        </Text>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "color": "#121314",
+                "flex": 1,
+                "flexDirection": "row",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "padding": 10,
+              },
+              {},
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "flex": 1,
+                "flexDirection": "column",
+              }
+            }
+          >
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={true}
+              keyboardAppearance="light"
+              numberOfLines={1}
+              onChangeText={[Function]}
+              onSubmitEditing={[Function]}
+              placeholder="Public address (0x), or ENS"
+              placeholderTextColor="#b7bbc8"
+              spellCheck={false}
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontWeight": "400",
+                    "padding": 0,
+                    "paddingRight": 8,
+                  },
+                  {},
+                  {},
+                ]
+              }
+              testID="add-contact-address-input"
+              value={null}
+            />
+          </View>
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "flex-end",
+              }
+            }
+          >
+            <Text
+              allowFontScaling={false}
+              selectable={false}
+              style={
+                [
+                  {
+                    "color": "#4459ff",
+                    "fontSize": 20,
+                  },
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "column",
+                  },
+                  {
+                    "fontFamily": "anticon",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  {},
+                ]
+              }
+            >
+              
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          Memo
+        </Text>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "color": "#121314",
+                "flex": 1,
+                "flexDirection": "row",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "padding": 10,
+              },
+              {},
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "flex": 1,
+                "flexDirection": "column",
+              }
+            }
+          >
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={true}
+              keyboardAppearance="light"
+              multiline={true}
+              numberOfLines={1}
+              onChangeText={[Function]}
+              placeholder="Memo"
+              placeholderTextColor="#b7bbc8"
+              spellCheck={false}
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontWeight": "400",
+                    "padding": 0,
+                    "paddingRight": 8,
+                  },
+                  {},
+                ]
+              }
+              testID="add-contact-memo-input"
+              value={null}
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignSelf": "flex-end",
+            "flexDirection": "row",
+            "marginVertical": 12,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignSelf": "flex-end",
+              "flex": 1,
+              "flexDirection": "column",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginVertical": 4,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={true}
+              style={
+                [
+                  [
+                    {
+                      "borderRadius": 12,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    {
+                      "backgroundColor": "#4459ff",
+                      "minHeight": 50,
+                    },
+                    undefined,
+                  ],
+                  {
+                    "opacity": 0.6,
+                  },
+                ]
+              }
+              testID="add-contact-add-contact-button"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#dcdcdc",
+                    },
+                    [
+                      {
+                        "fontFamily": "CentraNo1-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": "#ffffff",
+                      },
+                      undefined,
+                    ],
+                    {
+                      "opacity": 0.6,
+                    },
+                  ]
+                }
+              >
+                Add contact
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</RCTSafeAreaView>
 `;

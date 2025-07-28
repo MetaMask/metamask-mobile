@@ -4,6 +4,7 @@ import {
   renderFromTokenMinimalUnit,
 } from '../../../../../util/number';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { TOKENS_REQUIRING_ALLOWANCE_RESET } from '../../constants/token';
 
 export const getEstimatedAnnualRewards = (
   apr: string,
@@ -74,3 +75,16 @@ export const sortByHighestApr = (tokensToSort: EarnTokenDetails[]) =>
   [...tokensToSort].sort(
     (a, b) => parseFloat(b.experience.apr) - parseFloat(a.experience.apr),
   );
+
+export const sortByHighestBalance = (tokensToSort: EarnTokenDetails[]) =>
+  [...tokensToSort].sort((a, b) =>
+    b.balanceFiatNumber > a.balanceFiatNumber ? 1 : -1,
+  );
+
+export const doesTokenRequireAllowanceReset = (
+  chainId: string,
+  symbol: string,
+) => {
+  if (!chainId || !symbol) return false;
+  return Boolean(TOKENS_REQUIRING_ALLOWANCE_RESET[chainId]?.includes(symbol));
+};

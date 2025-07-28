@@ -22,20 +22,22 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import AssetElement from '../../../AssetElement';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenI } from '../../../Tokens/types';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import Earnings from '../Earnings';
 import EarnEmptyStateCta from '../EmptyStateCta';
 import styleSheet from './EarnLendingBalance.styles';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { trace, TraceName } from '../../../../../util/trace';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -108,26 +110,57 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     );
   };
 
-  const handleNavigateToWithdrawalInputScreen = () => {
-    emitLendingActionButtonMetaMetric('withdrawal');
+  const getNetworkClientId = (token: TokenI): string | undefined => {
+    const { NetworkController } = Engine.context;
 
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.UNSTAKE,
-      params: {
-        token: receiptToken,
-      },
-    });
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      token.chainId as Hex,
+    );
+
+    if (!networkClientId) {
+      console.error(
+        `EarnLendingBalance redirect failed: could not retrieve networkClientId for chainId: ${token.chainId}`,
+      );
+      return;
+    }
+
+    return networkClientId;
   };
 
-  const handleNavigateToDepositInputScreen = () => {
-    emitLendingActionButtonMetaMetric('deposit');
+  const handleNavigateToWithdrawalInputScreen = async () => {
+    trace({ name: TraceName.EarnWithdrawScreen });
+    emitLendingActionButtonMetaMetric('withdrawal');
+    const networkClientId = getNetworkClientId(asset);
+    if (!networkClientId) return;
+    try {
+      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.UNSTAKE,
+        params: {
+          token: receiptToken,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE,
-      params: {
-        token: earnToken,
-      },
-    });
+  const handleNavigateToDepositInputScreen = async () => {
+    trace({ name: TraceName.EarnDepositScreen });
+    emitLendingActionButtonMetaMetric('deposit');
+    const networkClientId = getNetworkClientId(asset);
+    if (!networkClientId) return;
+    try {
+      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token: earnToken,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   if (!isStablecoinLendingEnabled) return null;

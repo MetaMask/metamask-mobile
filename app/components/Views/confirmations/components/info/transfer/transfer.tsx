@@ -9,7 +9,6 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { ConfirmationInfoComponentIDs } from '../../../constants/info-ids';
 import useNavbar from '../../../hooks/ui/useNavbar';
-import { MMM_ORIGIN } from '../../../constants/confirmations';
 import { useMaxValueRefresher } from '../../../hooks/useMaxValueRefresher';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransferAssetType } from '../../../hooks/useTransferAssetType';
@@ -18,12 +17,12 @@ import { NetworkAndOriginRow } from '../../rows/transactions/network-and-origin-
 import FromToRow from '../../rows/transactions/from-to-row';
 import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row';
+import { PayWithRow } from '../../rows/pay-with-row';
 
 const Transfer = () => {
   // Set navbar as first to prevent Android navigation flickering
   useNavbar(strings('confirm.review'));
   const transactionMetadata = useTransactionMetadataRequest();
-  const isDappTransfer = transactionMetadata?.origin !== MMM_ORIGIN;
   const { usdValue } = useTokenAmount();
   const { assetType } = useTransferAssetType();
   const { trackPageViewedEvent, setConfirmationMetric } =
@@ -46,15 +45,14 @@ const Transfer = () => {
       <HeroRow />
       <FromToRow />
       <NetworkAndOriginRow />
-      {isDappTransfer && (
-        <SimulationDetails
-          transaction={transactionMetadata as TransactionMeta}
-          enableMetrics
-          isTransactionsRedesign
-        />
-      )}
+      <SimulationDetails
+        transaction={transactionMetadata as TransactionMeta}
+        enableMetrics
+        isTransactionsRedesign
+      />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
+      {process.env.MM_CONFIRMATION_INTENTS === 'true' && <PayWithRow />}
     </View>
   );
 };

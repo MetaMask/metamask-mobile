@@ -19,7 +19,6 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
-import { useDispatch } from 'react-redux';
 import Icon, {
   IconName,
   IconColor,
@@ -29,7 +28,6 @@ import AppConstants from '../../../core/AppConstants';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
-import { setCompletedOnboarding } from '../../../actions/onboarding';
 import createStyles from './index.styles';
 import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import SearchingFox from '../../../animations/Searching_Fox.json';
@@ -51,8 +49,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   successFlow,
 }) => {
   const navigation = useNavigation();
-
-  const dispatch = useDispatch();
 
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -76,11 +72,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
       await importAdditionalAccounts();
-      dispatch(setCompletedOnboarding(true));
     };
     onOnboardingSuccess();
     onDone();
-  }, [onDone, dispatch]);
+  }, [onDone]);
 
   const renderContent = () => {
     switch (successFlow) {
@@ -88,16 +83,18 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       case ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP:
         return (
           <>
-            <Text variant={TextVariant.DisplayMD}>
+            <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
               {strings('onboarding_success.title')}
             </Text>
-            <LottieView
-              style={styles.walletReadyImage}
-              autoPlay
-              loop
-              source={SearchingFox}
-              resizeMode="contain"
-            />
+            <View style={styles.imageWrapper}>
+              <LottieView
+                style={styles.walletReadyImage}
+                autoPlay
+                loop
+                source={SearchingFox}
+                resizeMode="contain"
+              />
+            </View>
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('onboarding_success.description')}
@@ -123,16 +120,18 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       case ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP:
         return (
           <>
-            <Text variant={TextVariant.DisplayMD}>
+            <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
               {strings('onboarding_success.remind_later')}
             </Text>
-            <LottieView
-              style={styles.walletReadyImage}
-              autoPlay
-              loop
-              source={SearchingFox}
-              resizeMode="contain"
-            />
+            <View style={styles.imageWrapper}>
+              <LottieView
+                style={styles.walletReadyImage}
+                autoPlay
+                loop
+                source={SearchingFox}
+                resizeMode="contain"
+              />
+            </View>
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('onboarding_success.remind_later_description')}
@@ -152,20 +151,19 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
             <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
               {strings('onboarding_success.import_title')}
             </Text>
-
-            <LottieView
-              style={styles.walletReadyImage}
-              autoPlay
-              loop
-              source={CelebratingFox}
-              resizeMode="contain"
-            />
-
+            <View style={styles.imageWrapper}>
+              <LottieView
+                style={styles.walletReadyImage}
+                autoPlay
+                loop
+                source={CelebratingFox}
+                resizeMode="contain"
+              />
+            </View>
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('onboarding_success.import_description')}
               </Text>
-
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 <Text
                   color={TextColor.Primary}

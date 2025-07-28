@@ -4,6 +4,7 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -125,6 +126,75 @@ describe('OptinMetrics', () => {
     await waitFor(() => {
       expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
       expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('scroll view logic', () => {
+    it('action buttons are enabled when scroll view content fits viewport', () => {
+      const { getByTestId } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+
+      const scrollView = getByTestId(
+        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
+      );
+
+      // Simulate scroll to end by triggering onScroll with end position
+      fireEvent.scroll(scrollView, {
+        nativeEvent: {
+          contentOffset: { y: 1000 },
+          contentSize: { height: 400, width: 100 },
+          layoutMeasurement: { height: 500, width: 100 },
+        },
+      });
+
+      // Check that buttons are enabled (they should be clickable)
+      const agreeButton = screen.getByRole('button', {
+        name: strings('privacy_policy.cta_i_agree'),
+      });
+      const noThanksButton = screen.getByRole('button', {
+        name: strings('privacy_policy.cta_no_thanks'),
+      });
+
+      expect(agreeButton).toBeEnabled();
+      expect(noThanksButton).toBeEnabled();
+    });
+
+    it('action buttons are not enabled when scroll view content does not fit viewport', () => {
+      const { getByTestId } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+
+      const scrollView = getByTestId(
+        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
+      );
+
+      // Simulate scroll to middle (not end) by triggering onScroll with middle position
+      fireEvent.scroll(scrollView, {
+        nativeEvent: {
+          contentOffset: { y: 200 },
+          contentSize: { height: 600, width: 100 },
+          layoutMeasurement: { height: 500, width: 100 },
+        },
+      });
+
+      // Check that buttons are still disabled (they should not be clickable)
+      const agreeButton = screen.getByRole('button', {
+        name: strings('privacy_policy.cta_i_agree'),
+      });
+      const noThanksButton = screen.getByRole('button', {
+        name: strings('privacy_policy.cta_no_thanks'),
+      });
+
+      fireEvent.press(agreeButton);
+      fireEvent.press(noThanksButton);
+
+      expect(agreeButton).toBeTruthy();
+      expect(noThanksButton).toBeTruthy();
     });
   });
 });

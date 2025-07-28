@@ -5,7 +5,7 @@ const styleSheet = () =>
     networkAvatar: {
       height: 32,
       width: 32,
-      flexShrink: 0,
+      flexGrow: 1,
     },
   });
 

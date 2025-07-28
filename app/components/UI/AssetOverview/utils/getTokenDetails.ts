@@ -10,8 +10,16 @@ export const getTokenDetails = (
   tokenMetadata: Record<string, string | number | string[]>,
 ): TokenDetails => {
   if (isNonEvmAsset) {
+    // Use the same approach as useTokenHistoricalPrices
+    const isCaipAssetType = asset.address.startsWith(`${asset.chainId}`);
+
+    // Ensure we have proper CAIP format address for parsing
+    const normalizedCaipAssetTypeAddress = isCaipAssetType
+      ? asset.address
+      : `${asset.chainId}/token:${asset.address}`;
+
     const { assetNamespace, assetReference } = parseCaipAssetType(
-      asset.address as `${string}:${string}/${string}:${string}`,
+      normalizedCaipAssetTypeAddress as `${string}:${string}/${string}:${string}`,
     );
     const isNative = assetNamespace === 'slip44';
     return {

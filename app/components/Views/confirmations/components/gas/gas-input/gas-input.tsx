@@ -3,13 +3,10 @@ import { View } from 'react-native';
 import { add0x, Hex } from '@metamask/utils';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import {
-  hexToDecimal,
-  decimalToHex,
-} from '../../../../../../util/conversions';
+import { hexToDecimal, decimalToHex } from '../../../../../../util/conversions';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { validateGas } from '../../../utils/gas-validations';
+import { validateGas } from '../../../utils/validations/gas';
 import { TextFieldWithLabel } from '../../UI/text-field-with-label';
 import styleSheet from './gas-input.styles';
 

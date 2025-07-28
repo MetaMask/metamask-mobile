@@ -17,6 +17,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'optimism-mainnet': () => process.env.QUICKNODE_OPTIMISM_URL,
   'polygon-mainnet': () => process.env.QUICKNODE_POLYGON_URL,
   'base-mainnet': () => process.env.QUICKNODE_BASE_URL,
+  'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -57,7 +58,8 @@ export const PopularList = [
   {
     chainId: toHex('56'),
     nickname: 'BNB Smart Chain Mainnet',
-    rpcUrl: 'https://bsc-dataseed1.binance.org',
+    rpcUrl: `https://bsc-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
     ticker: 'BNB',
     warning: true,
     rpcPrefs: {
@@ -89,6 +91,17 @@ export const PopularList = [
       blockExplorerUrl: 'https://optimistic.etherscan.io',
       imageUrl: 'OPTIMISM',
       imageSource: require('../../images/optimism.png'),
+    },
+  },
+  {
+    chainId: toHex('999'),
+    nickname: 'Hyperliquid',
+    rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
+    ticker: 'HYPE',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.hyperliquid.xyz',
+      imageUrl: 'HL',
+      imageSource: require('../../images/HL_symbol_mint_green.png'),
     },
   },
   {
@@ -142,13 +155,20 @@ export const PopularList = [
 ];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
-  if (chainId === SolScope.Mainnet) {
-    return require('../../images/solana-logo.png');
+  switch (chainId) {
+    case SolScope.Mainnet:
+      return require('../../images/solana-logo.png');
+    case BtcScope.Mainnet:
+      return require('../../images/bitcoin-logo.png');
+    case BtcScope.Testnet:
+    case BtcScope.Testnet4:
+    case BtcScope.Regtest:
+      return require('../../images/bitcoin-testnet-logo.png');
+    case BtcScope.Signet:
+      return require('../../images/bitcoin-signet-logo.svg');
+    default:
+      return undefined;
   }
-  if (chainId === BtcScope.Mainnet) {
-    return require('../../images/bitcoin-logo.png');
-  }
-  return undefined;
 };
 
 export const INFURA_TESTNET_CHAIN_IDS = {
@@ -281,6 +301,8 @@ export const NETWORK_CHAIN_ID: {
   readonly BERACHAIN: '0x138de';
   readonly EDU: '0xa3c3';
   readonly ABSTRACT: '0xab5';
+  readonly OMNI: '0xa6';
+  readonly XRPLEVM: '0x15f900';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -304,6 +326,8 @@ export const NETWORK_CHAIN_ID: {
   BERACHAIN: '0x138de',
   EDU: '0xa3c3',
   ABSTRACT: '0xab5',
+  OMNI: '0xa6',
+  XRPLEVM: '0x15f900',
   ...CHAIN_IDS,
 };
 
@@ -332,4 +356,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.BERACHAIN]: require('../../images/berachain.png'),
   [NETWORK_CHAIN_ID.EDU]: require('../../images/edu.png'),
   [NETWORK_CHAIN_ID.ABSTRACT]: require('../../images/abstract.png'),
+  [NETWORK_CHAIN_ID.OMNI]: require('../../images/omni.png'),
+  [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
 };

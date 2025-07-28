@@ -24,10 +24,12 @@ describe(Regression('Send ERC Token'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(150000);
+
     // Start mock server to force old confirmation UI
     mockServer = await startMockServer({
       GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
     });
+
     await TestHelpers.launchApp();
   });
 
@@ -39,7 +41,7 @@ describe(Regression('Send ERC Token'), () => {
 
   it('should import wallet and go to the wallet view', async () => {
     await importWalletWithRecoveryPhrase({
-      seedPhrase: process.env.MM_TEST_WALLET_SRP
+      seedPhrase: process.env.MM_TEST_WALLET_SRP,
     });
   });
 

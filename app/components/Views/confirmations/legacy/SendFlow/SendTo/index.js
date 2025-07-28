@@ -2,7 +2,6 @@ import React, { Fragment, PureComponent } from 'react';
 import { View, ScrollView, Alert, Platform, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddressList from '../AddressList';
@@ -11,13 +10,17 @@ import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
 import StyledButton from '../../../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { getDecimalChainId } from '../../../../../../util/networks';
+import {
+  getDecimalChainId,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../../../../util/networks';
 import { handleNetworkSwitch } from '../../../../../../util/networks/handleNetworkSwitch';
 import {
   isENS,
   isValidHexAddress,
   validateAddressOrENS,
   areAddressesEqual,
+  toChecksumAddress,
 } from '../../../../../../util/address';
 import { getEther, getTicker } from '../../../../../../util/transactions';
 import {
@@ -278,7 +281,8 @@ class SendFlow extends PureComponent {
   };
 
   onTransactionDirectionSet = async () => {
-    const { setRecipient, navigation, providerType, selectedAddress } = this.props;
+    const { setRecipient, navigation, providerType, selectedAddress } =
+      this.props;
     const {
       toAccount,
       toEnsName,
@@ -291,12 +295,7 @@ class SendFlow extends PureComponent {
     }
 
     const toAddress = toEnsAddressResolved || toAccount;
-    setRecipient(
-      selectedAddress,
-      toAddress,
-      toEnsName,
-      toSelectedAddressName,
-    );
+    setRecipient(selectedAddress, toAddress, toEnsName, toSelectedAddressName);
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT)
@@ -378,15 +377,24 @@ class SendFlow extends PureComponent {
     const { addressBook, internalAccounts, globalChainId } = this.props;
     if (!toAccount) return;
 
-    const networkAddressBook = addressBook[globalChainId] || {};
+    let filteredAddressBook = addressBook[globalChainId] || {};
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      filteredAddressBook = Object.values(addressBook).reduce(
+        (acc, networkAddressBook) => ({
+          ...acc,
+          ...networkAddressBook,
+        }),
+        {},
+      );
+    }
 
     const checksummedAddress = this.safeChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
       areAddressesEqual(account.address, checksummedAddress),
     );
 
-    return networkAddressBook[checksummedAddress]
-      ? networkAddressBook[checksummedAddress].name
+    return filteredAddressBook[checksummedAddress]
+      ? filteredAddressBook[checksummedAddress].name
       : matchingAccount
       ? matchingAccount.metadata.name
       : null;

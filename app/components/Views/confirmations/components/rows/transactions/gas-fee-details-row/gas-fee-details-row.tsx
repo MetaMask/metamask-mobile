@@ -1,4 +1,7 @@
-import { TransactionBatchMeta, TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionBatchMeta,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
@@ -45,9 +48,15 @@ const EstimationInfo = ({
   );
 };
 
-const SingleEstimateInfo = ({ hideFiatForTestnet }: { hideFiatForTestnet: boolean }) => {
+const SingleEstimateInfo = ({
+  hideFiatForTestnet,
+}: {
+  hideFiatForTestnet: boolean;
+}) => {
   const transactionMetadata = useTransactionMetadataRequest();
-  const feeCalculations = useFeeCalculations(transactionMetadata as TransactionMeta);
+  const feeCalculations = useFeeCalculations(
+    transactionMetadata as TransactionMeta,
+  );
 
   return (
     <EstimationInfo
@@ -57,9 +66,15 @@ const SingleEstimateInfo = ({ hideFiatForTestnet }: { hideFiatForTestnet: boolea
   );
 };
 
-const BatchEstimateInfo = ({ hideFiatForTestnet }: { hideFiatForTestnet: boolean }) => {
+const BatchEstimateInfo = ({
+  hideFiatForTestnet,
+}: {
+  hideFiatForTestnet: boolean;
+}) => {
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
-  const feeCalculations = useFeeCalculationsTransactionBatch(transactionBatchesMetadata as TransactionBatchMeta);
+  const feeCalculations = useFeeCalculationsTransactionBatch(
+    transactionBatchesMetadata as TransactionBatchMeta,
+  );
 
   return (
     <EstimationInfo
@@ -87,7 +102,7 @@ const ClickableEstimationInfo = ({
     <TouchableOpacity onPress={onPress} style={styles.editButton}>
       <Icon
         name={IconName.Edit}
-        size={IconSize.Sm}
+        size={IconSize.Md}
         color={theme.colors.info.default}
         style={styles.editIcon}
       />

@@ -22,20 +22,15 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
-import {
-  isTestNet,
-  isPerDappSelectedNetworkEnabled,
-} from '../../../util/networks';
+import { isTestNet } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
+  TransactionType,
   WalletDevice,
   isEIP1559Transaction,
 } from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  selectTickerByChainId,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../selectors/networkController';
+import { selectTickerByChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
@@ -45,9 +40,7 @@ import {
   useBridgeTxHistoryData,
 } from '../../../util/bridge/hooks/useBridgeTxHistoryData';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
-import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
-import { decimalToHex } from '../../../util/conversions';
-import { addHexPrefix } from '../../../util/number';
+import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
@@ -58,12 +51,9 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import {
-  formatChainIdToCaip,
-  formatChainIdToHex,
-  isSolanaChainId,
-} from '@metamask/bridge-controller';
-import { getBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
+import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -194,12 +184,6 @@ class TransactionElement extends PureComponent {
      */
     txChainId: PropTypes.string,
     /**
-     * Network configurations by chain id
-     */
-    // adding a disable rule since this prop is part of a prop spread <TransactionElement {...props} but ts lint cant see that
-    // eslint-disable-next-line react/no-unused-prop-types
-    networkConfigurationsByChainId: PropTypes.object,
-    /**
      * Ticker
      */
     ticker: PropTypes.string,
@@ -258,7 +242,11 @@ class TransactionElement extends PureComponent {
   onPressItem = () => {
     const { tx, i, onPressItem } = this.props;
     onPressItem(tx.id, i);
-    if (tx.type === 'bridge') {
+
+    const isUnifiedSwap =
+      tx.type === TransactionType.swap &&
+      this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
+    if (tx.type === TransactionType.bridge || isUnifiedSwap) {
       this.props.navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
         evmTxMeta: tx,
       });
@@ -401,10 +389,11 @@ class TransactionElement extends PureComponent {
       tx: { time, status, isSmartTransaction, chainId, type },
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
-    const isBridgeTransaction = type === 'bridge';
+    const isBridgeTransaction = type === TransactionType.bridge;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
+
     const renderNormalActions =
       (status === 'submitted' ||
         (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
@@ -416,8 +405,9 @@ class TransactionElement extends PureComponent {
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
     let title = actionKey;
     if (isBridgeTransaction && bridgeTxHistoryItem) {
-      title = getBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
+      title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
     }
+
     return (
       <>
         {accountImportTime > time && this.renderImportTime()}
@@ -705,14 +695,17 @@ class TransactionElement extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  networkConfigurationsByChainId: isPerDappSelectedNetworkEnabled()
-    ? undefined
-    : selectEvmNetworkConfigurationsByChainId(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
   swapsTokens: swapsControllerTokens(state),
-  ticker: selectTickerByChainId(state, ownProps.tx.chainId),
+  ticker: selectTickerByChainId(state, ownProps.txChainId),
+  conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
+  contractExchangeRates: selectContractExchangeRatesByChainId(
+    state,
+    ownProps.txChainId,
+  ),
+  tokens: selectTokensByChainIdAndAddress(state, ownProps.txChainId),
 });
 
 TransactionElement.contextType = ThemeContext;

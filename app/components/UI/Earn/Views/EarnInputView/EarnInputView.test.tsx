@@ -61,6 +61,7 @@ import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
+import { trace, TraceName } from '../../../../../util/trace';
 
 jest.mock('./utils');
 
@@ -170,6 +171,11 @@ jest.mock('../../../../../selectors/accountsController', () => ({
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/confirmations');
+
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+}));
 
 const mockBalanceBN = toWei('1.5'); // 1.5 ETH
 const mockGasFeeBN = new BN4('100000000000000');
@@ -349,6 +355,7 @@ describe('EarnInputView', () => {
   );
 
   const selectConversionRateMock = jest.mocked(selectConversionRate);
+  const mockTrace = jest.mocked(trace);
 
   const baseProps: EarnInputViewProps = {
     route: {
@@ -774,7 +781,7 @@ describe('EarnInputView', () => {
       });
     });
 
-    it('earn lending deposit view', async () => {
+    it('earn lending deposit view to increase token allowance', async () => {
       selectConversionRateMock.mockReturnValueOnce(1);
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
       const getErc20SpendingLimitSpy = jest
@@ -853,6 +860,97 @@ describe('EarnInputView', () => {
             token: {
               ...MOCK_USDC_MAINNET_ASSET,
             },
+            allowanceMinimalTokenUnit: '0',
+          },
+        });
+      });
+    });
+
+    it('earn lending deposit view to deposit tokens', async () => {
+      selectConversionRateMock.mockReturnValueOnce(1);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      const getErc20SpendingLimitSpy = jest
+        .spyOn(Engine.context.EarnController, 'getLendingTokenAllowance')
+        .mockResolvedValue(EthersBigNumber.from('0'));
+      (useEarnMetadata as jest.Mock).mockReturnValue({
+        annualRewardRate: '2.5%',
+        annualRewardRateDecimal: 0.025,
+        isLoadingEarnMetadata: false,
+      });
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x123232',
+          balance: '100',
+          balanceFiat: '$100',
+          balanceWei: new BN4('100000000'), // 100 USDC in minimal units (6 decimals)
+          balanceMinimalUnit: '100000000', // 100 USDC in minimal units (6 decimals)
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experience: {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '2.5%',
+            estimatedAnnualRewardsFormatted: '$3.00',
+            estimatedAnnualRewardsFiatNumber: 3,
+            estimatedAnnualRewardsTokenMinimalUnit: '3000000',
+            estimatedAnnualRewardsTokenFormatted: '3 USDC',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+            },
+          },
+        })),
+        getOutputToken: jest.fn(() => ({
+          ...MOCK_USDC_MAINNET_ASSET,
+          chainId: CHAIN_IDS.MAINNET,
+        })),
+      });
+
+      // User has exact allowance needed to directly deposit
+      (
+        Engine.context.EarnController.getLendingTokenAllowance as jest.Mock
+      ).mockResolvedValue('25000000');
+
+      const routeParamsWithUSDC: EarnInputViewProps['route'] = {
+        params: {
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      };
+
+      const { getByText } = render(EarnInputView, routeParamsWithUSDC);
+
+      await act(async () => {
+        fireEvent.press(getByText('25%'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('stake.review')));
+      });
+
+      expect(getErc20SpendingLimitSpy).toHaveBeenCalledTimes(1);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+          screen: Routes.EARN.LENDING_DEPOSIT_CONFIRMATION,
+          params: {
+            action: 'DEPOSIT',
+            amountFiat: '25',
+            amountTokenMinimalUnit: '25000000',
+            annualRewardRate: '2.5%',
+            annualRewardsFiat: '0.63 USD',
+            annualRewardsToken: '0.625 USDC',
+            lendingContractAddress:
+              '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
+            lendingProtocol: 'AAVE v3',
+            token: {
+              ...MOCK_USDC_MAINNET_ASSET,
+            },
+            allowanceMinimalTokenUnit: '25000000',
           },
         });
       });
@@ -1371,6 +1469,120 @@ describe('EarnInputView', () => {
             }),
           }),
         );
+      });
+    });
+  });
+
+  describe('Tracing', () => {
+    describe('Lending flow tracing', () => {
+      beforeEach(() => {
+        selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+        (useEarnTokens as jest.Mock).mockReturnValue({
+          getEarnToken: jest.fn(() => ({
+            ...MOCK_USDC_MAINNET_ASSET,
+            address: '0x123232',
+            chainId: CHAIN_IDS.MAINNET,
+            balance: '1000',
+            balanceFiat: '$1000',
+            balanceWei: new BN4('1000000000'),
+            balanceMinimalUnit: '1000000000',
+            balanceFiatNumber: 1000,
+            experience: {
+              type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+              market: {
+                protocol: 'AAVE v3',
+                underlying: {
+                  address: '0x123232',
+                },
+              },
+            },
+          })),
+          getOutputToken: jest.fn(() => ({
+            ...MOCK_USDC_MAINNET_ASSET,
+          })),
+        });
+      });
+
+      it('calls trace with EarnDepositSpendingCapScreen when allowance increase is needed', async () => {
+        const mockGetLendingTokenAllowance = jest
+          .fn()
+          .mockResolvedValue(new BigNumber('0'));
+        (
+          Engine.context.EarnController.getLendingTokenAllowance as jest.Mock
+        ).mockImplementation(mockGetLendingTokenAllowance);
+
+        const { getByText } = render(EarnInputView, {
+          params: {
+            ...baseProps.route.params,
+            token: MOCK_USDC_MAINNET_ASSET,
+          },
+          key: Routes.STAKING.STAKE,
+          name: 'params',
+        });
+
+        fireEvent.press(getByText('1'));
+
+        await act(async () => {
+          fireEvent.press(getByText('Review'));
+        });
+
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: TraceName.EarnDepositSpendingCapScreen,
+        });
+      });
+
+      it('calls trace with EarnDepositReviewScreen when no allowance increase is needed', async () => {
+        const mockGetLendingTokenAllowance = jest
+          .fn()
+          .mockResolvedValue(new BigNumber('1000000000000000000'));
+        (
+          Engine.context.EarnController.getLendingTokenAllowance as jest.Mock
+        ).mockImplementation(mockGetLendingTokenAllowance);
+
+        const { getByText } = render(EarnInputView, {
+          params: {
+            ...baseProps.route.params,
+            token: MOCK_USDC_MAINNET_ASSET,
+          },
+          key: Routes.STAKING.STAKE,
+          name: 'params',
+        });
+
+        fireEvent.press(getByText('1'));
+
+        await act(async () => {
+          fireEvent.press(getByText('Review'));
+        });
+
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: TraceName.EarnDepositReviewScreen,
+        });
+      });
+    });
+
+    describe('Pooled Staking flow tracing', () => {
+      it('calls trace with EarnDepositConfirmationScreen when redesigned confirmations are enabled', async () => {
+        selectConfirmationRedesignFlagsMock.mockReturnValue({
+          staking_confirmations: true,
+        } as unknown as ConfirmationRedesignRemoteFlags);
+
+        const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
+        usePoolStakedDepositMock.mockReturnValue({
+          attemptDepositTransaction: attemptDepositTransactionMock,
+        });
+
+        const { getByText } = renderComponent();
+
+        fireEvent.press(getByText('1'));
+
+        await act(async () => {
+          fireEvent.press(getByText('Review'));
+        });
+
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: TraceName.EarnDepositConfirmationScreen,
+          data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+        });
       });
     });
   });

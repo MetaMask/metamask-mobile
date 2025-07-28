@@ -31,11 +31,13 @@ import getNotificationDetails from './utils/getNotificationDetails';
 import stateHasOrder from './utils/stateHasOrder';
 import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
+import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
 export interface ProcessorOptions {
   forced?: boolean;
+  sdk?: NativeRampsSdk;
 }
 
 export async function processFiatOrder(

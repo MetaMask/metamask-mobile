@@ -3,6 +3,8 @@ import {
   getEstimatedAnnualRewards,
   sortByHighestRewards,
   sortByHighestApr,
+  sortByHighestBalance,
+  doesTokenRequireAllowanceReset,
 } from '.';
 import {
   createMockEarnToken,
@@ -10,6 +12,11 @@ import {
 } from '../../../Stake/testUtils';
 import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
 import { EarnTokenDetails } from '../../types/lending.types';
+import {
+  MOCK_USDC_MAINNET_ASSET,
+  MOCK_USDT_BASE_MAINNET_ASSET,
+  MOCK_USDT_MAINNET_ASSET,
+} from '../../../Stake/__mocks__/stakeMockData';
 
 describe('tokenUtils', () => {
   describe('getEstimatedAnnualRewards', () => {
@@ -197,6 +204,126 @@ describe('tokenUtils', () => {
 
     it('returns empty array if input is empty', () => {
       expect(sortByHighestApr([])).toEqual([]);
+    });
+  });
+
+  describe('sortByHighestBalance', () => {
+    const tokens = [
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.ETH,
+        ),
+        balanceFiatNumber: 50.5,
+      }),
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.DAI,
+        ),
+        balanceFiatNumber: 100.25,
+      }),
+      createMockEarnToken({
+        ...getCreateMockTokenOptions(
+          CHAIN_IDS.MAINNET,
+          TOKENS_WITH_DEFAULT_OPTIONS.USDC,
+        ),
+        balanceFiatNumber: 10.75,
+      }),
+    ];
+
+    it('sorts tokens by highest balance', () => {
+      const sorted = sortByHighestBalance(tokens);
+
+      expect(sorted[0].balanceFiatNumber).toBe(100.25);
+      expect(sorted[1].balanceFiatNumber).toBe(50.5);
+      expect(sorted[2].balanceFiatNumber).toBe(10.75);
+    });
+
+    it('handles tokens with zero balance', () => {
+      const tokensWithZero = [
+        ...tokens,
+        createMockEarnToken({
+          ...getCreateMockTokenOptions(
+            CHAIN_IDS.MAINNET,
+            TOKENS_WITH_DEFAULT_OPTIONS.USDT,
+          ),
+          balanceFiatNumber: 0,
+        }),
+      ];
+      const sorted = sortByHighestBalance(tokensWithZero);
+
+      expect(sorted[sorted.length - 1].balanceFiatNumber).toBe(0);
+    });
+
+    it('returns empty array if input is empty', () => {
+      expect(sortByHighestBalance([])).toEqual([]);
+    });
+  });
+
+  describe('doesTokenRequireAllowanceReset', () => {
+    describe('Ethereum mainnet', () => {
+      it('returns true when token requires allowance reset', () => {
+        const { chainId, symbol } = MOCK_USDT_MAINNET_ASSET;
+        const result = doesTokenRequireAllowanceReset(chainId, symbol);
+
+        expect(result).toBe(true);
+      });
+
+      it("returns false when token doesn't require allowance reset", () => {
+        const { chainId, symbol } = MOCK_USDC_MAINNET_ASSET;
+        const result = doesTokenRequireAllowanceReset(chainId, symbol);
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false when chainId is undefined', () => {
+        const { symbol } = MOCK_USDC_MAINNET_ASSET;
+        const result = doesTokenRequireAllowanceReset(
+          undefined as unknown as string,
+          symbol,
+        );
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false when symbol is undefined', () => {
+        const { chainId } = MOCK_USDC_MAINNET_ASSET;
+        const result = doesTokenRequireAllowanceReset(
+          chainId,
+          undefined as unknown as string,
+        );
+
+        expect(result).toBe(false);
+      });
+    });
+    describe('Non-Mainnet Networks (Base)', () => {
+      it("returns false when token doesn't require allowance reset", () => {
+        const { chainId, symbol } = MOCK_USDT_BASE_MAINNET_ASSET;
+        const result = doesTokenRequireAllowanceReset(chainId, symbol);
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false when chainId is undefined', () => {
+        const { symbol } = MOCK_USDT_BASE_MAINNET_ASSET;
+        const result = doesTokenRequireAllowanceReset(
+          undefined as unknown as string,
+          symbol,
+        );
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false when symbol is undefined', () => {
+        const { chainId } = MOCK_USDT_BASE_MAINNET_ASSET;
+        const result = doesTokenRequireAllowanceReset(
+          chainId,
+          undefined as unknown as string,
+        );
+
+        expect(result).toBe(false);
+      });
     });
   });
 });

@@ -8,8 +8,9 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 import Name from '../../../../UI/Name';
 import { NameType } from '../../../../UI/Name/Name.types';
 import InfoSectionAccordion from '../../components/UI/info-section-accordion';
-import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import CurrencyDisplay from '../UI/info-row/info-value/currency-display';
 import InfoRow from '../UI/info-row';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 
 const TransactionInfo = ({
   chainId,
@@ -20,7 +21,7 @@ const TransactionInfo = ({
   index: number;
   transaction: NestedTransactionMetadata;
 }) => {
-  const { to, data } = transaction;
+  const { to, data, value } = transaction;
   return (
     <InfoSectionAccordion
       header={strings('confirm.nested_transaction_heading', {
@@ -34,6 +35,11 @@ const TransactionInfo = ({
           variation={chainId ?? ''}
         />
       </InfoRow>
+      {value && (
+        <InfoRow label={strings('confirm.label.amount')}>
+          <CurrencyDisplay chainId={chainId} value={value} />
+        </InfoRow>
+      )}
       <InfoRow label={strings('confirm.data')} copyText={data} valueOnNewLine>
         <Text variant={TextVariant.BodyMD}>{data}</Text>
       </InfoRow>

@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
@@ -10,11 +10,11 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.GET_QUOTES);
   }
 
-  get getNewQuotes() {
+  get getNewQuotes(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.GET_NEW_QUOTES);
   }
 
-  get cancelButton() {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByText(QuoteViewSelectorText.CANCEL);
   }
 
@@ -27,53 +27,65 @@ class QuoteView {
   }
 
   get searchToken(): TypableElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.SEARCH_TOKEN) as TypableElement;
+    return Matchers.getElementByID(
+      QuoteViewSelectorIDs.SEARCH_TOKEN,
+    ) as TypableElement;
   }
 
   get maxSlippage(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.MAX_SLIPPAGE);
   }
 
- async enterSwapAmount(amount: string) {
-  for (const digit of amount) {
-    const button = Matchers.getElementByText(digit);
-    await Gestures.waitAndTap(button);
+  async enterSwapAmount(amount: string) {
+    for (const digit of amount) {
+      const button = Matchers.getElementByText(digit);
+      await Gestures.waitAndTap(button, {
+        elemDescription: `Digit ${digit} in Swap Amount`,
+      });
+    }
   }
-}
 
   async tapOnSelectSourceToken() {
-    await Gestures.waitAndTap(this.sourceToken);
+    await Gestures.waitAndTap(this.sourceToken, {
+      elemDescription: 'Source Token in Quote View',
+    });
   }
 
   async tapOnSelectDestToken() {
     await Gestures.waitAndTap(this.destToken, {
-      experimentalWaitForStability: true,
+      elemDescription: 'Destination Token in Quote View',
     });
   }
 
   async tapSearchToken() {
     await Gestures.waitAndTap(this.searchToken, {
-      experimentalWaitForStability: true,
+      elemDescription: 'Search Token in Quote View',
     });
   }
 
   async typeSearchToken(symbol: string) {
-    await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
+    await Gestures.typeText(this.searchToken, symbol, {
+      elemDescription: `Search Token with symbol ${symbol}`,
+    });
   }
 
   async selectToken(symbol: string, index: number = 1): Promise<void> {
     const token = Matchers.getElementByText(symbol, index);
-    await Gestures.waitAndTap(token);
-  }
-
-  async tapOnGetQuotes() {
-    await Gestures.waitAndTap(this.getQuotes, {
-      experimentalWaitForStability: true,
+    await Gestures.waitAndTap(token, {
+      elemDescription: `Token with symbol ${symbol} at index ${index}`,
     });
   }
 
-  async tapOnCancelButton() {
-    await Gestures.waitAndTap(this.cancelButton);
+  async tapOnGetQuotes(): Promise<void> {
+    await Gestures.waitAndTap(this.getQuotes, {
+      elemDescription: 'Get Quotes Button in Quote View',
+    });
+  }
+
+  async tapOnCancelButton(): Promise<void> {
+    await Gestures.waitAndTap(this.cancelButton, {
+      elemDescription: 'Cancel Button in Quote View',
+    });
   }
 }
 

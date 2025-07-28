@@ -18,6 +18,7 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { earnSelectors } from '../../../../../selectors/earnController';
+import Engine from '../../../../../core/Engine';
 
 jest.mock('../../../../hooks/useMetrics');
 jest.mock('../../hooks/useEarnTokens', () => ({
@@ -27,6 +28,15 @@ jest.mock('../../hooks/useEarnTokens', () => ({
 
 const mockTrackEvent = jest.fn();
 const mockNavigate = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+      setActiveNetwork: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -335,6 +345,59 @@ describe('EmptyStateCta', () => {
       saveDataRecording: true,
       sensitiveProperties: {},
     });
+  });
+
+  it('calls NetworkController methods when "earn" button is clicked', async () => {
+    const { findByText } = renderComponent(mockEarnToken);
+
+    (
+      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
+    ).mockReturnValue('test-network-client-id');
+    (
+      Engine.context.NetworkController.setActiveNetwork as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const startEarningButton = await findByText(
+      strings('earn.empty_state_cta.earn'),
+    );
+
+    await act(async () => {
+      fireEvent.press(startEarningButton);
+    });
+
+    expect(
+      Engine.context.NetworkController
+        .findNetworkClientIdByChainId as jest.Mock,
+    ).toHaveBeenCalledWith(mockEarnToken.chainId);
+    expect(
+      Engine.context.NetworkController.setActiveNetwork as jest.Mock,
+    ).toHaveBeenCalledWith('test-network-client-id');
+  });
+
+  it('handles case when network client ID is not found', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    (
+      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
+    ).mockReturnValue(null);
+
+    const { findByText } = renderComponent(mockEarnToken);
+
+    const startEarningButton = await findByText(
+      strings('earn.empty_state_cta.earn'),
+    );
+
+    await act(async () => {
+      fireEvent.press(startEarningButton);
+    });
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      `EarnDepositTokenListItem redirect failed: could not retrieve networkClientId for chainId: ${mockEarnToken.chainId}`,
+    );
+    expect(
+      Engine.context.NetworkController.setActiveNetwork as jest.Mock,
+    ).not.toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
   });
 
   it('does not render if token prop is missing', () => {

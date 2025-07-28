@@ -1,26 +1,15 @@
-import {
-  EthAccountType,
-  SolAccountType,
-  SolScope,
-} from '@metamask/keyring-api';
-import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
+import { SolScope } from '@metamask/keyring-api';
+import { fireEvent } from '@testing-library/react-native';
+import '../../UI/Bridge/_mocks_/initialState';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
-import {
-  selectCanSignTransactions,
-  selectSelectedInternalAccount,
-} from '../../../selectors/accountsController';
+import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { selectChainId } from '../../../selectors/networkController';
-
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
-
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { ethers } from 'ethers';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
-import Engine from '../../../core/Engine';
-import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { RootState } from '../../../reducers';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
@@ -28,10 +17,13 @@ import {
   expectedUuid2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
 } from '../../../util/test/accountsControllerTestUtils';
+import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
 import { trace, TraceName } from '../../../util/trace';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { ethers } from 'ethers';
+import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -39,6 +31,11 @@ import {
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import WalletActions from './WalletActions';
 import Routes from '../../../constants/navigation/Routes';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+
+jest.mock('../../UI/Perps', () => ({
+  selectPerpsEnabledFlag: jest.fn(),
+}));
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
@@ -57,10 +54,23 @@ jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
   sendMultichainTransaction: jest.fn(),
 }));
 
+const mockSendNonEvmAsset = jest.fn();
+jest.mock('../../hooks/useSendNonEvmAsset', () => ({
+  useSendNonEvmAsset: jest.fn(),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     NetworkController: {
       setActiveNetwork: jest.fn(),
+      getNetworkConfigurationByChainId: jest.fn().mockReturnValue({
+        rpcEndpoints: [
+          {
+            networkClientId: 'mockNetworkClientId',
+          },
+        ],
+        defaultRpcEndpointIndex: 0,
+      }),
     },
     MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
@@ -159,14 +169,14 @@ jest.mock('../../UI/Bridge/utils', () => ({
   isBridgeAllowed: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../../selectors/featureFlagController/deposit', () => ({
-  selectDepositEntrypointWalletActions: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue([true]),
 }));
+
+jest.mock('../../UI/Ramp/Deposit/hooks/useDepositEnabled', () =>
+  jest.fn().mockReturnValue({ isDepositEnabled: true }),
+);
 
 jest.mock('../../../core/AppConstants', () => {
   const actual = jest.requireActual('../../../core/AppConstants');
@@ -296,8 +306,18 @@ jest.mock('../../../util/trace', () => ({
 }));
 
 describe('WalletActions', () => {
+  beforeEach(() => {
+    // Set up default mock for useSendNonEvmAsset hook
+    mockSendNonEvmAsset.mockResolvedValue(false); // Default to EVM flow
+    (useSendNonEvmAsset as jest.Mock).mockReturnValue({
+      sendNonEvmAsset: mockSendNonEvmAsset,
+      isNonEvmAccount: false,
+    });
+  });
+
   afterEach(() => {
     mockNavigate.mockClear();
+    jest.clearAllMocks();
   });
   it('should renderWithProvider correctly', () => {
     jest.mock('react-redux', () => ({
@@ -331,6 +351,10 @@ describe('WalletActions', () => {
     // Feature flag is disabled by default
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    ).toBeNull();
+    // Feature flag is disabled by default
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     ).toBeNull();
   });
   it('should render earn button if the stablecoin lending feature is enabled', () => {
@@ -457,7 +481,7 @@ describe('WalletActions', () => {
     });
   });
 
-  it('should call the onSend function when the Send button is pressed', () => {
+  it('should call the onSend function when the Send button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
@@ -465,6 +489,8 @@ describe('WalletActions', () => {
     fireEvent.press(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
     );
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -498,7 +524,6 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       params: {
-        bridgeViewMode: 'Swap',
         sourcePage: 'MainView',
         token: {
           address: ethers.constants.AddressZero,
@@ -593,6 +618,42 @@ describe('WalletActions', () => {
     ).toBeNull();
   });
 
+  it('should render the Perpetuals button if the Perps feature flag is enabled', () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    ).toBeDefined();
+  });
+
+  it('should call the onPerps function when the Perpetuals button is pressed', () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
+      screen: 'PerpsMarketListView',
+    });
+  });
+
   it('disables action buttons when the account cannot sign transactions', () => {
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<
@@ -667,21 +728,16 @@ describe('WalletActions', () => {
   describe('onSend', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      // Reset to default mock setup (already configured in parent beforeEach)
+      mockSendNonEvmAsset.mockResolvedValue(false);
+      (useSendNonEvmAsset as jest.Mock).mockReturnValue({
+        sendNonEvmAsset: mockSendNonEvmAsset,
+        isNonEvmAccount: false,
+      });
     });
 
-    it('calls sendMultichainTransaction for a Solana snap account', async () => {
-      (selectChainId as unknown as jest.Mock).mockReturnValue('solana:mainnet');
-      (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue({
-        id: expectedUuid2,
-        type: SolAccountType.DataAccount,
-        metadata: {
-          snap: {
-            id: 'npm:@metamask/solana-wallet-snap',
-            name: 'Solana Wallet Snap',
-            enabled: true,
-          },
-        },
-      });
+    it('uses hook for non-EVM snap account and handles successful transaction', async () => {
+      mockSendNonEvmAsset.mockResolvedValue(true); // Hook handled the transaction
 
       const { getByTestId } = renderWithProvider(<WalletActions />, {
         state: mockInitialState,
@@ -691,22 +747,15 @@ describe('WalletActions', () => {
         getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
       );
 
-      expect(sendMultichainTransaction).toHaveBeenCalledWith(
-        'npm:@metamask/solana-wallet-snap',
-        {
-          account: expectedUuid2,
-          scope: 'solana:mainnet',
-        },
-      );
-      expect(mockNavigate).not.toHaveBeenCalled();
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith('SendFlowView');
     });
 
-    it('calls native send flow for an EVM account', async () => {
-      (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue({
-        id: expectedUuid2,
-        type: EthAccountType.Eoa,
-        metadata: {},
-      });
+    it('calls native send flow for EVM account', async () => {
+      mockSendNonEvmAsset.mockResolvedValue(false); // Hook did not handle, continue with EVM
 
       const { getByTestId } = renderWithProvider(<WalletActions />, {
         state: mockInitialState,
@@ -716,27 +765,16 @@ describe('WalletActions', () => {
         getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
       );
 
-      expect(sendMultichainTransaction).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
     });
 
-    it('handles errors in sendMultichainTransaction gracefully', async () => {
-      (selectChainId as unknown as jest.Mock).mockReturnValue('solana:mainnet');
-      (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue({
-        id: expectedUuid2,
-        type: SolAccountType.DataAccount,
-        metadata: {
-          snap: {
-            id: 'npm:@metamask/solana-wallet-snap',
-            name: 'Solana Wallet Snap',
-            enabled: true,
-          },
-        },
-      });
-
-      (sendMultichainTransaction as jest.Mock).mockRejectedValue(
-        new Error('Test error'),
-      );
+    it('handles hook errors gracefully', async () => {
+      // The hook handles errors internally and returns true (handled) even with errors
+      mockSendNonEvmAsset.mockResolvedValue(true);
 
       const { getByTestId } = renderWithProvider(<WalletActions />, {
         state: mockInitialState,
@@ -746,8 +784,40 @@ describe('WalletActions', () => {
         getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
       );
 
-      expect(sendMultichainTransaction).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      // Wait for async operation
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
+      // Should not navigate since hook handled it (even with internal error)
+      expect(mockNavigate).not.toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('calls hook with correct asset parameters', async () => {
+      const mockSelectedAsset = {
+        address: '0x123',
+        chainId: '0x1',
+        symbol: 'TEST',
+      };
+
+      const stateWithSelectedAsset = {
+        ...mockInitialState,
+        transaction: {
+          selectedAsset: mockSelectedAsset,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(<WalletActions />, {
+        state: stateWithSelectedAsset,
+      });
+
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
+      );
+
+      expect(useSendNonEvmAsset).toHaveBeenCalledWith({
+        asset: mockSelectedAsset,
+        closeModal: expect.any(Function),
+      });
     });
   });
 });

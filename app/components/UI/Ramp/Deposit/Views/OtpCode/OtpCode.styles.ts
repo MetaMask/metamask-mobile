@@ -5,13 +5,19 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
+    title: {
+      marginTop: 24,
+      fontWeight: 'bold',
+    },
+    description: {
+      marginTop: 8,
+      color: theme.colors.text.alternative,
+    },
     codeFieldRoot: {
-      marginTop: 40,
-      marginLeft: 'auto',
-      marginRight: 'auto',
+      marginTop: 8,
+      gap: 5,
     },
     cellRoot: {
-      margin: 5,
       width: 50,
       height: 50,
       justifyContent: 'center',
@@ -30,23 +36,22 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     focusCell: {
       borderColor: theme.colors.info.default,
-      borderBottomWidth: 2,
     },
     resendButtonContainer: {
       flexDirection: 'row',
       marginTop: 12,
     },
     resendButtonText: {
-      color: theme.colors.text.muted,
+      color: theme.colors.text.alternative,
       marginRight: 4,
     },
-    resendButton: {
-      color: theme.colors.info.default,
+    inlineLink: {
+      color: theme.colors.text.alternative,
       marginLeft: 4,
+      textDecorationLine: 'underline',
     },
-    contactSupportButton: {
-      color: theme.colors.info.default,
-      marginLeft: 4,
+    footerContent: {
+      gap: 8,
     },
   });
 };

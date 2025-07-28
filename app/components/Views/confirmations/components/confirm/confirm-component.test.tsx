@@ -76,7 +76,16 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [],
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            accounts: ['0x935e73edb9ff52e23bac7f7e043a1ecd06d05477'],
+            metadata: {
+              id: '01JNG7170V9X27V5NFDTY04PJ4',
+              name: '',
+            },
+          },
+        ],
       },
       getOrAddQRKeyring: jest.fn(),
     },
@@ -93,9 +102,22 @@ jest.mock('../../../../../core/Engine', () => ({
         internalAccounts: {
           accounts: {
             '1': {
+              id: '1',
+              type: 'eip155:eoa',
               address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              options: {
+                entropySource: '01JNG7170V9X27V5NFDTY04PJ4',
+              },
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              scopes: ['eip155:0'],
             },
           },
+          selectedAccount: '1',
         },
       },
     },
@@ -108,6 +130,7 @@ jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
+    subscribeOnceIf: jest.fn(),
   },
 }));
 
@@ -208,7 +231,6 @@ describe('Confirm', () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: stakingClaimConfirmationState,
     });
-    expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Claiming to')).toBeDefined();
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Pooled Staking')).toBeDefined();
@@ -256,7 +278,9 @@ describe('Confirm', () => {
       .mockReturnValue({ isRedesignedEnabled: true });
 
     const { getByText } = renderWithProvider(<Confirm />, {
-      state: getAppStateForConfirmation(upgradeAccountConfirmation),
+      state: getAppStateForConfirmation(upgradeAccountConfirmation, {
+        PreferencesController: { smartAccountOptIn: false },
+      }),
     });
 
     await act(async () => {
@@ -264,7 +288,6 @@ describe('Confirm', () => {
     });
 
     expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
   });
 
   it('returns null if confirmation redesign is not enabled', () => {

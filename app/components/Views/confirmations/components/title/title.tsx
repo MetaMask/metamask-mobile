@@ -9,18 +9,27 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
+  EARN_CONTRACT_INTERACTION_TYPES,
   MMM_ORIGIN,
   REDESIGNED_APPROVE_TYPES,
   REDESIGNED_TRANSFER_TYPES,
 } from '../../constants/confirmations';
+import { ApproveMethod } from '../../types/approve';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
+import {
+  type ApproveTransactionData,
+  useApproveTransactionData,
+} from '../../hooks/useApproveTransactionData';
 import {
   isPermitDaiRevoke,
   isRecognizedPermit,
@@ -29,6 +38,44 @@ import {
 } from '../../utils/signature';
 import { BatchedTransactionTag } from '../batched-transactions-tag';
 import styleSheet from './title.styles';
+import { TokenStandard } from '../../types/token';
+
+const getApproveTitle = (approveTransactionData?: ApproveTransactionData) => {
+  const { isRevoke, tokenStandard } = approveTransactionData ?? {};
+  let title = strings('confirm.title.permit');
+  let subTitle = strings('confirm.sub_title.permit');
+
+  if (tokenStandard === TokenStandard.ERC20) {
+    if (isRevoke) {
+      title = strings('confirm.title.permit_revoke');
+      subTitle = strings('confirm.sub_title.permit_revoke');
+    }
+  }
+  if (
+    tokenStandard === TokenStandard.ERC721 ||
+    tokenStandard === TokenStandard.ERC1155
+  ) {
+    title = strings('confirm.title.permit_NFTs');
+    subTitle = strings('confirm.sub_title.permit_NFTs');
+
+    if (isRevoke) {
+      title = strings('confirm.title.permit_revoke');
+      subTitle = strings('confirm.sub_title.permit_revoke_NFTs');
+    }
+  }
+
+  if (
+    approveTransactionData?.approveMethod === ApproveMethod.DECREASE_ALLOWANCE
+  ) {
+    title = strings('confirm.title.permit');
+    subTitle = strings('confirm.sub_title.decrease_allowance');
+  }
+
+  return {
+    title,
+    subTitle,
+  };
+};
 
 const getTitleAndSubTitle = (
   approvalRequest?: ApprovalRequest<{ data: string }>,
@@ -37,6 +84,7 @@ const getTitleAndSubTitle = (
   isDowngrade: boolean = false,
   isBatched: boolean = false,
   isUpgradeOnly: boolean = false,
+  approveTransactionData?: ApproveTransactionData,
 ) => {
   const type = approvalRequest?.type;
   const transactionType = transactionMetadata?.type as TransactionType;
@@ -96,7 +144,6 @@ const getTitleAndSubTitle = (
       };
     }
     case ApprovalType.Transaction: {
-      
       if (isDowngrade || isUpgradeOnly) {
         return {
           title: strings('confirm.title.switch_account_type'),
@@ -111,8 +158,10 @@ const getTitleAndSubTitle = (
         };
       }
       if (REDESIGNED_APPROVE_TYPES.includes(transactionType)) {
+        const { title, subTitle } = getApproveTitle(approveTransactionData);
         return {
-          title: strings('confirm.title.approve'),
+          title,
+          subTitle,
         };
       }
 
@@ -124,10 +173,12 @@ const getTitleAndSubTitle = (
       }
 
       // Default to contract interaction
+      const shouldHideSubTitle =
+        isBatched || EARN_CONTRACT_INTERACTION_TYPES.includes(transactionType);
       return {
         title: strings('confirm.title.contract_interaction'),
-        subTitle: isBatched
-          ? ''
+        subTitle: shouldHideSubTitle
+          ? undefined
           : strings('confirm.sub_title.contract_interaction'),
       };
     }
@@ -152,6 +203,7 @@ const Title = () => {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionMetadata = useTransactionMetadataRequest();
   const { isDowngrade, isBatched, isUpgradeOnly } = use7702TransactionType();
+  const approveTransactionData = useApproveTransactionData();
 
   if (isFullScreenConfirmation) {
     return null;
@@ -164,12 +216,23 @@ const Title = () => {
     isDowngrade,
     isBatched,
     isUpgradeOnly,
+    approveTransactionData,
   );
 
   return (
     <View style={styles.titleContainer}>
-      <Text style={styles.title}>{title}</Text>
-      {subTitle && <Text style={styles.subTitle}>{subTitle}</Text>}
+      <Text style={styles.title} variant={TextVariant.HeadingMD}>
+        {title}
+      </Text>
+      {subTitle && (
+        <Text
+          style={styles.subTitle}
+          color={TextColor.Alternative}
+          variant={TextVariant.BodyMD}
+        >
+          {subTitle}
+        </Text>
+      )}
       <BatchedTransactionTag />
     </View>
   );

@@ -1,16 +1,16 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { BigNumber } from 'bignumber.js';
+import { View, ViewProps } from 'react-native';
+
+import I18n, { strings } from '../../../../../locales/i18n';
+import { TextVariant } from '../../../../component-library/components/Texts/Text';
+import { hexToDecimal } from '../../../../util/conversions';
+import TextWithTooltip from '../../../Views/confirmations/components/UI/text-with-tooltip';
+import { useStyles } from '../../../hooks/useStyles';
 import { AssetIdentifier, AssetType } from '../types';
 import { formatAmount, formatAmountMaxPrecision } from '../formatAmount';
-import I18n, { strings } from '../../../../../locales/i18n';
 import styleSheet from './AmountPill.styles';
-import { View, ViewProps } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../hooks/useStyles';
-import { hexToDecimal } from '../../../../util/conversions';
 
 interface AmountPillProperties extends ViewProps {
   asset: AssetIdentifier;
@@ -80,13 +80,14 @@ const AmountPill: React.FC<AmountPillProperties> = ({
       style={styles.base}
       {...props}
     >
-      <Text
+      <TextWithTooltip
+        label={strings('confirm.label.value')}
         ellipsizeMode="tail"
-        variant={TextVariant.BodyMD}
-        style={styles.label}
-      >
-        {amountParts.join(' ')}
-      </Text>
+        textVariant={TextVariant.BodyMD}
+        text={amountParts.join(' ')}
+        tooltip={tooltipParts.join(' ')}
+        textStyle={styles.label}
+      />
     </View>
   );
 };

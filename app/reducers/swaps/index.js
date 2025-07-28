@@ -2,7 +2,10 @@ import { createSelector } from 'reselect';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress, areAddressesEqual } from '../../util/address';
 import { lte } from '../../util/lodash';
-import { selectEvmChainId } from '../../selectors/networkController';
+import {
+  selectChainId,
+  selectEvmChainId,
+} from '../../selectors/networkController';
 import {
   selectAllTokens,
   selectTokens,
@@ -14,7 +17,10 @@ import { allowedTestnetChainIds } from '../../components/UI/Swaps/utils';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
-import { invert } from 'lodash';
+import { invert, omit } from 'lodash';
+import { createDeepEqualSelector } from '../../selectors/util';
+import { toHex } from '@metamask/controller-utils';
+import { SolScope } from '@metamask/keyring-api';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
@@ -41,6 +47,42 @@ export const setSwapsHasOnboarded = (hasOnboarded) => ({
 });
 
 // * Functions
+
+/**
+ * Processes and normalizes a token by removing unwanted properties
+ * and ensuring consistent data types
+ */
+function processToken(token) {
+  if (!token) return null;
+  const { hasBalanceError, image, ...tokenData } = token;
+  return {
+    occurrences: 0,
+    ...tokenData,
+    decimals: Number(tokenData.decimals),
+    address: tokenData.address.toLowerCase(),
+  };
+}
+
+/**
+ * Combines tokens from multiple sources with deduplication
+ * Maintains first-occurrence-wins behavior
+ */
+function combineTokens(tokenSources) {
+  const tokenMap = new Map();
+
+  for (const tokens of tokenSources) {
+    if (!tokens) continue;
+
+    for (const token of tokens) {
+      const processedToken = processToken(token);
+      if (processedToken && !tokenMap.has(processedToken.address)) {
+        tokenMap.set(processedToken.address, processedToken);
+      }
+    }
+  }
+
+  return Array.from(tokenMap.values());
+}
 
 function addMetadata(chainId, tokens, tokenList) {
   if (!isMainnetByChainId(chainId)) {
@@ -70,8 +112,20 @@ export const swapsLivenessSelector = createSelector(
 );
 
 export const swapsLivenessMultichainSelector = createSelector(
-  [swapsStateSelector, (_state, chainId) => chainId],
-  (swapsState, chainId) => swapsState[chainId]?.isLive || false,
+  [
+    swapsStateSelector,
+    (state, chainId) =>
+      chainId !== undefined ? chainId : selectChainId(state),
+  ],
+  (swapsState, chainId) => {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (chainId === SolScope.Mainnet) {
+      return true;
+    }
+    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
+    return swapsState?.[chainId]?.isLive || false;
+  },
 );
 
 /**
@@ -172,58 +226,29 @@ export const selectSwapsIsInPolling = createSelector(
 const swapsControllerAndUserTokens = createSelector(
   swapsControllerTokens,
   selectTokens,
-  (swapsTokens, tokens) => {
-    const values = [...(swapsTokens || []), ...(tokens || [])]
-      .filter(Boolean)
-      .reduce((map, { hasBalanceError, image, ...token }) => {
-        const key = token.address.toLowerCase();
-
-        if (!map.has(key)) {
-          map.set(key, {
-            occurrences: 0,
-            ...token,
-            decimals: Number(token.decimals),
-            address: key,
-          });
-        }
-        return map;
-      }, new Map())
-      .values();
-
-    return [...values];
-  },
+  (swapsTokens, tokens) => combineTokens([swapsTokens, tokens]),
 );
 
-const swapsControllerAndUserTokensMultichain = createSelector(
+const swapsControllerAndUserTokensMultichain = createDeepEqualSelector(
   swapsControllerTokens,
   selectAllTokens,
   selectSelectedInternalAccountAddress,
   (swapsTokens, allTokens, currentUserAddress) => {
-    const allTokensArr = Object.values(allTokens);
-    const allUserTokensCrossChains = allTokensArr.reduce(
-      (acc, tokensElement) => {
-        const found = tokensElement[currentUserAddress] || [];
-        return [...acc, ...found.flat()];
-      },
-      [],
-    );
-    const values = [...(swapsTokens || []), ...(allUserTokensCrossChains || [])]
-      .filter(Boolean)
-      .reduce((map, { hasBalanceError, image, ...token }) => {
-        const key = token.address.toLowerCase();
+    // Flatten user tokens from all chains
+    const userTokensFlat = [];
+    if (allTokens && currentUserAddress) {
+      for (const chainId in allTokens) {
+        const chainTokens = allTokens[chainId];
+        if (!chainTokens || !chainTokens[currentUserAddress]) continue;
 
-        if (!map.has(key)) {
-          map.set(key, {
-            occurrences: 0,
-            ...token,
-            decimals: Number(token.decimals),
-            address: key,
-          });
+        const userTokensForChain = chainTokens[currentUserAddress];
+        if (Array.isArray(userTokensForChain)) {
+          userTokensFlat.push(...userTokensForChain);
         }
-        return map;
-      }, new Map())
-      .values();
-    return [...values];
+      }
+    }
+
+    return combineTokens([swapsTokens, userTokensFlat]);
   },
 );
 
@@ -398,9 +423,15 @@ function swapsReducer(state = initialState, action) {
         },
       };
 
+      // Testnet has the same name as mainnet, but occurs later in the map,
+      // so we need to omit it from the mapping, otherwise it will override 0x1
+      const noTestnetChainIdToNameMap = omit(
+        CHAIN_ID_TO_NAME_MAP,
+        toHex('1337'),
+      );
       // Invert CHAIN_ID_TO_NAME_MAP to get chain name to ID mapping
       // It will be e.g. { 'ethereum': '0x1', 'bsc': '0x38' }
-      const chainNameToIdMap = invert(CHAIN_ID_TO_NAME_MAP);
+      const chainNameToIdMap = invert(noTestnetChainIdToNameMap);
 
       // Save chain-specific feature flags for each chain
       Object.keys(featureFlags).forEach((chainName) => {

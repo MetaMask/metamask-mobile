@@ -67,9 +67,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 18,
-            "fontWeight": "700",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -99,9 +98,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
             "marginVertical": 8,
@@ -183,9 +181,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -212,6 +209,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
               "paddingRight": 0,
             }
@@ -223,9 +221,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "CentraNo1-Medium",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
-                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -244,6 +241,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             "address": "0x1234",
             "balance": "0x1",
             "caipAccountId": "eip155:0:0x1234",
+            "id": "mock-account-id-1",
             "isLoadingAccount": false,
             "isSelected": false,
             "name": "Account 1",
@@ -257,6 +255,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             "address": "0x5678",
             "balance": "0x2",
             "caipAccountId": "eip155:0:0x5678",
+            "id": "mock-account-id-2",
             "isLoadingAccount": false,
             "isSelected": false,
             "name": "Account 2",
@@ -300,7 +299,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           <TouchableOpacity
             buttonProps={
               {
-                "buttonTestId": "main-wallet-account-actions-0",
+                "buttonTestId": "main-wallet-account-actions",
                 "onButtonClick": [Function],
               }
             }
@@ -436,9 +435,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -453,9 +451,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       style={
                         {
                           "color": "#686e7d",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -492,7 +489,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           <TouchableOpacity
             buttonProps={
               {
-                "buttonTestId": "main-wallet-account-actions-1",
+                "buttonTestId": "main-wallet-account-actions",
                 "onButtonClick": [Function],
               }
             }
@@ -612,9 +609,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -629,9 +625,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       style={
                         {
                           "color": "#686e7d",
-                          "fontFamily": "CentraNo1-Book",
+                          "fontFamily": "Geist Regular",
                           "fontSize": 16,
-                          "fontWeight": "400",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -683,12 +678,13 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#4459ff",
+                "backgroundColor": "#121314",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -699,9 +695,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
