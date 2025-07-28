@@ -43,11 +43,12 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      marginTop: 10,
       flexDirection: 'column',
       alignItems: 'center',
     },
     header: {
-      marginTop: Device.isIphoneX() ? 50 : 20,
+      marginTop: Device.isIphoneX() ? 50 : 50,
       flexDirection: 'row',
       width: '100%',
       paddingHorizontal: 32,

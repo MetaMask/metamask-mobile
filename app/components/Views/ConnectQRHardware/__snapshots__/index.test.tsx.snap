@@ -8,6 +8,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
         "alignItems": "center",
         "flex": 1,
         "flexDirection": "column",
+        "marginTop": 10,
       }
     }
   >
