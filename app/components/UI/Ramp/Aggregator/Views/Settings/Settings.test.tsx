@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import Settings from './Settings';
 import useActivationKeys from '../../hooks/useActivationKeys';
-import { RampSDK } from '../../sdk';
+import { RampSDK, withRampSDK } from '../../sdk';
 import { ActivationKey } from '../../../../../../reducers/fiatOrders/types';
 import {
   renderScreen,
@@ -10,7 +10,6 @@ import {
 } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
-import withRampAndDepositSDK from '../../../utils/withRampAndDepositSDK';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -100,22 +99,7 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
 
 jest.mock('../../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
-}));
-
-const mockLogoutFromProvider = jest.fn();
-const mockCheckExistingToken = jest.fn();
-
-const mockUseDepositSDKInitialValues = {
-  isInternalBuild: false,
-  logoutFromProvider: mockLogoutFromProvider,
-  isAuthenticated: false,
-  checkExistingToken: mockCheckExistingToken,
-};
-
-let mockUseDepositSDKValues = { ...mockUseDepositSDKInitialValues };
-
-jest.mock('../../../Deposit/sdk', () => ({
-  useDepositSDK: () => mockUseDepositSDKValues,
+  withRampSDK: jest.fn().mockImplementation((Component) => Component),
 }));
 
 describe('Settings', () => {
@@ -130,15 +114,12 @@ describe('Settings', () => {
     mockUseRampSDKValues = {
       ...mockuseRampSDKInitialValues,
     };
-    mockUseDepositSDKValues = {
-      ...mockUseDepositSDKInitialValues,
-    };
   });
 
   it('renders correctly', () => {
     render(Settings);
     expect(screen.toJSON()).toMatchSnapshot();
-    expect(withRampAndDepositSDK).toHaveBeenCalled();
+    expect(withRampSDK).toHaveBeenCalled();
   });
 
   it('renders correctly for internal builds', () => {
