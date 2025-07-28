@@ -24,7 +24,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import { waitFor } from 'detox';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
@@ -572,12 +572,12 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
           const getStatusResult = JSON.parse(getStatusResultText ?? '{}');
 
           Assertions.checkIfObjectHasKeysAndValidValues(getStatusResult, {
-            version: (value: string) =>
+            version: (value: unknown) =>
               typeof value === 'string' && value.length > 0,
             id: isHexString,
             chainId: isHexString,
             atomic: Boolean,
-            status: 200,
+            status: (value: unknown) => value === 200,
             receipts: Array.isArray,
           });
         },
