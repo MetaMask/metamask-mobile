@@ -1,4 +1,4 @@
-import { selectAccountTreeControllerState } from '../../multichain-accounts/selectors/accountTreeController';
+import { selectAccountTreeControllerState } from './accountTreeController';
 import { selectMultichainAccountsState1Enabled } from '../featureFlagController/multichainAccounts';
 import { createDeepEqualSelector } from '../util';
 

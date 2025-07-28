@@ -39,7 +39,7 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
-import { selectAccountSections } from '../../../multichain-accounts/selectors/accountTreeController';
+import { selectAccountSections } from '../../../selectors/multichainAccounts/accountTreeController';
 
 import {
   AccountSection,
@@ -102,6 +102,8 @@ const EvmAccountSelectorList = ({
   );
 
   const accountTreeSections = useSelector(selectAccountSections);
+
+  console.log('design 1', accountTreeSections);
 
   const internalAccounts = useSelector(selectInternalAccounts);
   const internalAccountsById = useSelector(selectInternalAccountsById);
