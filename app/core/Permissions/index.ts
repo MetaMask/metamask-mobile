@@ -28,6 +28,7 @@ import {
 import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { areAddressesEqual } from '../../util/address';
+import Logger from '../../util/Logger';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -476,7 +477,10 @@ export const removeAccountsFromPermissions = (addresses: Hex[]) => {
       if (e instanceof Caip25EndowmentMissingError) {
         continue;
       }
-      throw e;
+      Logger.log(
+        e,
+        'Failed to remove account from permissions after deleting account from wallet.',
+      );
     }
   }
 };
