@@ -51,6 +51,7 @@ export default class Gestures {
       checkStability,
       checkVisibility,
       checkEnabled,
+      timeout: BASE_DEFAULTS.timeout,
     });
 
     if (options.delay) {
