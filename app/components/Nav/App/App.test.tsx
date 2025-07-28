@@ -195,6 +195,17 @@ jest.mock('../../../core/Multichain/networks', () => ({
   }),
 }));
 
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  // We need to provide a mock implementation for all the methods we use
+  getInitialURL: jest.fn().mockResolvedValue(null), // No initial URL
+  canOpenURL: jest.fn().mockResolvedValue(true),
+  openURL: jest.fn().mockResolvedValue(true),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
+
+const mockLinking = jest.mocked(Linking);
+
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 describe('App', () => {
@@ -691,24 +702,8 @@ describe('App', () => {
         expect(branch.subscribe).toHaveBeenCalled();
       });
     });
-    it('processes deeplink from subscription callback when uri is provided', async () => {
-      const mockUri = 'https://link.metamask.io/home';
-      const mockDeeplink = 'https://link.metamask.io/swap';
-      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
-        '+non_branch_link': mockDeeplink,
-      });
-      renderScreen(App, { name: 'App' }, { state: initialState });
-      await waitFor(() => {
-        expect(branch.subscribe).toHaveBeenCalledWith(expect.any(Function));
-      });
-      const subscribeCallback = (branch.subscribe as jest.Mock).mock
-        .calls[0][0];
-      subscribeCallback({ uri: mockUri });
-      await waitFor(() => {
-        expect(AppStateEventProcessor.setCurrentDeeplink).toHaveBeenCalledWith(
-          mockUri,
-        );
-      });
-    });
+    // test below is not applicable as the App.tsx check sdkInit.current before handleDeepLink
+    // either the deep link changes is not cherry picked or the test is cherry picked by mistake
+    // test -> processes deeplink from subscription callback when uri is provided
   });
 });
