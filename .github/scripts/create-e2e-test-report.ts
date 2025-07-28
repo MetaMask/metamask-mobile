@@ -202,7 +202,8 @@ async function main() {
             name: test.$.name,
             time: +test.$.time * 1000, // convert to ms
             status: test.failure ? 'failed' : 'passed',
-            error: test.failure ? test.failure[0]._ : undefined,
+            // Correctly parse the failure message, whether it's a simple string or a complex object
+            error: test.failure ? (test.failure[0]?._ || test.failure[0]) : undefined,
           };
           testSuite.testCases.push(testCase);
         }
