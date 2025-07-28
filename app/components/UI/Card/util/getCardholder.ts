@@ -11,11 +11,7 @@ export const getCardholder = async ({
   cardFeatureFlag: CardFeatureFlag;
 }) => {
   try {
-    if (!cardFeatureFlag) {
-      return [];
-    }
-
-    if (!formattedAccounts.length) {
+    if (!cardFeatureFlag || !formattedAccounts?.length) {
       return [];
     }
 
@@ -24,22 +20,17 @@ export const getCardholder = async ({
       rawChainId: LINEA_CHAIN_ID,
     });
 
-    // Call isCardHolder method
     const result = await cardSDK.isCardHolder(formattedAccounts);
 
-    // Extract just the addresses for storage
     const cardholderAddresses = result.cardholderAccounts.map(
       (account) => account.split(':')[2],
     );
 
     return cardholderAddresses;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error occurred';
     Logger.error(
       error instanceof Error ? error : new Error(String(error)),
       'Card: Error loading cardholder accounts',
     );
-    throw new Error(`Failed to load cardholder accounts: ${errorMessage}`);
   }
 };
