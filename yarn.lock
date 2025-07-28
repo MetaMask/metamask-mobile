@@ -5818,6 +5818,13 @@
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.10.0"
 
+"@metamask/preinstalled-example-snap@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preinstalled-example-snap/-/preinstalled-example-snap-0.6.0.tgz#eb5932f0d9df0e36e17b360bdcefa1d0ee92c467"
+  integrity sha512-4m+nxSjBAu7V8XqCos8fYFgBNdnXLgcbfUGDnDewPwRP6z1HgTJ46V/wEwYUEXdLT9uRWULzWeABMQVOJrRCbA==
+  dependencies:
+    "@metamask/snaps-sdk" "^9.1.0"
+
 "@metamask/profile-sync-controller@^21.0.0":
   version "21.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-21.0.0.tgz#897342aa91cdcb86364cd011dd382072f4c6b29a"
