@@ -155,14 +155,19 @@ export default class Gestures {
   static async tapAtIndex(
     elem: DetoxElement,
     index: number,
-    timeout = 15000,
+    options: TapOptions = {},
   ): Promise<void> {
+    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
     return Utilities.executeWithRetry(
       async () => {
         const el = (await elem) as Detox.IndexableNativeElement;
         const itemElementAtIndex = el.atIndex(index);
         await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
         await itemElementAtIndex.tap();
+        const successMessage = elemDescription
+          ? `✅ Successfully tapped element at index: ${index} ${elemDescription}`
+          : `✅ Successfully tapped element at index: ${index}`;
+        logger.debug(successMessage);
       },
       {
         timeout,
