@@ -8,7 +8,6 @@ import { defaultGanacheOptions } from '../../framework/Constants';
 import { LocalNodeType } from '../../framework/types';
 import { Regression } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import TestHelpers from '../../helpers';
 
 describe(Regression('Unified UI Asset Details Actions'), () => {
   beforeAll(async () => {
