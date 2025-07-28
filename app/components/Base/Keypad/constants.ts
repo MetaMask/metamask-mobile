@@ -1,22 +1,28 @@
 import createKeypadRule from './createKeypadRule';
 
-export const KEYS = {
-  DIGIT_1: '1',
-  DIGIT_2: '2',
-  DIGIT_3: '3',
-  DIGIT_4: '4',
-  DIGIT_5: '5',
-  DIGIT_6: '6',
-  DIGIT_7: '7',
-  DIGIT_8: '8',
-  DIGIT_9: '9',
-  DIGIT_0: '0',
-  PERIOD: 'PERIOD',
-  BACK: 'BACK',
-  INITIAL: 'INITIAL',
-};
+export enum Keys {
+  Digit1 = '1',
+  Digit2 = '2',
+  Digit3 = '3',
+  Digit4 = '4',
+  Digit5 = '5',
+  Digit6 = '6',
+  Digit7 = '7',
+  Digit8 = '8',
+  Digit9 = '9',
+  Digit0 = '0',
+  Period = 'Period',
+  Back = 'Back',
+  Initial = 'Initial',
+}
 
-export const CURRENCIES = {
+interface CurrencyConfig {
+  decimalSeparator: string | null;
+  handler: (currentAmount: string, inputKey: Keys) => string;
+  symbol: string | null;
+}
+
+export const CURRENCIES: Record<string, CurrencyConfig> = {
   native: {
     decimalSeparator: '.',
     handler: createKeypadRule({ decimalSeparator: '.' }),
@@ -178,3 +184,6 @@ export const CURRENCIES = {
     symbol: 'R',
   },
 };
+
+export type CurrencyConfigType = typeof CURRENCIES;
+export type CurrencyCode = keyof CurrencyConfigType;

@@ -115,13 +115,13 @@ jest.mock('./useDepositSdkMethod', () => ({
   }),
 }));
 
-const mockClearAuthToken = jest.fn();
+const mockLogoutFromProvider = jest.fn();
 const mockSelectedRegion = { isoCode: 'US' };
 
 jest.mock('../sdk', () => ({
   useDepositSDK: jest.fn(() => ({
     selectedRegion: mockSelectedRegion,
-    clearAuthToken: mockClearAuthToken,
+    logoutFromProvider: mockLogoutFromProvider,
     selectedWalletAddress: '0x123',
   })),
 }));
@@ -776,7 +776,7 @@ describe('useDepositRouting', () => {
       });
       const { result } = renderHook(() => useDepositRouting(mockParams));
       await result.current.routeAfterAuthentication(mockQuote);
-      expect(mockClearAuthToken).toHaveBeenCalled();
+      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
 
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`

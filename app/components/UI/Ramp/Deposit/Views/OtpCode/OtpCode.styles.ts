@@ -18,6 +18,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     title: {
       marginTop: 24,
+      fontWeight: 'bold',
     },
     description: {
       marginTop: 8,
