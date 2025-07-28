@@ -1,9 +1,17 @@
-import { BridgeClientId, BridgeController, BridgeControllerMessenger } from '@metamask/bridge-controller';
+import {
+  BridgeClientId,
+  BridgeController,
+  BridgeControllerMessenger,
+} from '@metamask/bridge-controller';
 
 import { ControllerInitFunction, ControllerInitRequest } from '../../types';
 import { MetaMetrics } from '../../../Analytics';
 import { TransactionParams } from '@metamask/transaction-controller';
-import { ChainId, handleFetch, TraceCallback } from '@metamask/controller-utils';
+import {
+  ChainId,
+  handleFetch,
+  TraceCallback,
+} from '@metamask/controller-utils';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import { trace } from '../../../../util/trace';
