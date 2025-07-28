@@ -23,6 +23,7 @@ import { AccountConnectSelectorsIDs } from '../../../../e2e/selectors/wallet/Acc
 import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SolScope } from '@metamask/keyring-api';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
@@ -134,6 +135,7 @@ jest.mock('../../../core/Engine', () => {
       },
       PermissionController: {
         rejectPermissionsRequest: jest.fn(),
+        getCaveat: jest.fn(),
         acceptPermissionsRequest: jest.fn().mockResolvedValue(undefined),
         updateCaveat: jest.fn(),
         grantPermissionsIncremental: jest.fn(),
@@ -281,7 +283,16 @@ mockGetConnection.mockReturnValue(undefined);
 mockIsUUID.mockReturnValue(false);
 
 describe('AccountConnect', () => {
-  it('renders correctly with base request', () => {
+  beforeEach(() => jest.clearAllMocks());
+  it('renders correctly with base request when there is no existing CAIP endowment', () => {
+    (
+      Engine.context.PermissionController.getCaveat as jest.Mock
+    ).mockImplementation(() => {
+      throw new PermissionDoesNotExistError(
+        'Permission does not exist',
+        Caip25EndowmentPermissionName,
+      );
+    });
     const { toJSON } = renderWithProvider(
       <AccountConnect
         route={{
@@ -349,6 +360,48 @@ describe('AccountConnect', () => {
                   accounts: [],
                 },
               }),
+            },
+            permissionRequestId: 'test',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly when merging existing CAIP-25 permissions', () => {
+    const existingCaveat = {
+      type: Caip25CaveatType,
+      value: {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': { accounts: [`eip155:1:${mockAddress1}`] },
+        },
+        isMultichainOrigin: false,
+        sessionProperties: {},
+      },
+    };
+
+    (
+      Engine.context.PermissionController.getCaveat as jest.Mock
+    ).mockReturnValue(existingCaveat);
+
+    const newPermissions = createMockCaip25Permission({
+      'eip155:10': { accounts: [`eip155:10:${mockAddress2}`] },
+    });
+
+    const { toJSON } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'mockOrigin',
+              },
+              permissions: newPermissions,
             },
             permissionRequestId: 'test',
           },
@@ -542,6 +595,74 @@ describe('AccountConnect', () => {
           }),
           permissions: expect.objectContaining({
             [Caip25EndowmentPermissionName]: expect.any(Object),
+          }),
+        }),
+      );
+    });
+  });
+
+  it('handles confirm button press correctly when merging existing CAIP-25 permissions', async () => {
+    const mockAcceptPermissionsRequest = jest.fn().mockResolvedValue(undefined);
+    Engine.context.PermissionController.acceptPermissionsRequest =
+      mockAcceptPermissionsRequest;
+
+    const existingCaveat = {
+      type: Caip25CaveatType,
+      value: {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': { accounts: [`eip155:1:${mockAddress1}`] },
+        },
+        isMultichainOrigin: false,
+        sessionProperties: {},
+      },
+    };
+
+    (
+      Engine.context.PermissionController.getCaveat as jest.Mock
+    ).mockReturnValue(existingCaveat);
+
+    const newPermissions = createMockCaip25Permission({
+      'eip155:10': { accounts: [`eip155:10:${mockAddress2}`] },
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'https://example.com',
+                isEip1193Request: true,
+              },
+              permissions: newPermissions,
+            },
+            permissionRequestId: 'test-merge-confirm',
+          },
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    const confirmButton = getByTestId('connect-button');
+    fireEvent.press(confirmButton);
+
+    await waitFor(() => {
+      // Verify that acceptPermissionsRequest was called with merged permissions
+      expect(mockAcceptPermissionsRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          permissions: expect.objectContaining({
+            [Caip25EndowmentPermissionName]: expect.objectContaining({
+              caveats: expect.arrayContaining([
+                expect.objectContaining({
+                  type: Caip25CaveatType,
+                  value: expect.objectContaining({
+                    optionalScopes: expect.any(Object),
+                  }),
+                }),
+              ]),
+            }),
           }),
         }),
       );

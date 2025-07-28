@@ -3,7 +3,7 @@ import {
   renderScreen,
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
@@ -387,6 +387,100 @@ describe('BridgeView', () => {
     // Verify balance is displayed
     await waitFor(() => {
       expect(getByText('2 ETH')).toBeTruthy();
+    });
+  });
+
+  it('should not display max button when source token is native token', () => {
+    const stateWithNativeToken = {
+      ...mockState,
+      bridge: {
+        ...mockState.bridge,
+        sourceToken: {
+          address: '0x0000000000000000000000000000000000000000', // Native ETH address
+          chainId: '0x1' as Hex,
+          decimals: 18,
+          image: '',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+      },
+    };
+
+    const { queryByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: stateWithNativeToken },
+    );
+
+    // Verify max button is not present for native token
+    expect(queryByText('Max')).toBeNull();
+  });
+
+  it('should display max button when source token is not native token', () => {
+    const stateWithERC20Token = {
+      ...mockState,
+      bridge: {
+        ...mockState.bridge,
+        sourceToken: {
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC token address
+          chainId: '0x1' as Hex,
+          decimals: 6,
+          image:
+            'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          name: 'USD Coin',
+          symbol: 'USDC',
+        },
+      },
+    };
+
+    const { queryByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: stateWithERC20Token },
+    );
+
+    // Verify max button is present for ERC-20 token
+    expect(queryByText('Max')).toBeTruthy();
+  });
+
+  it('should set source amount to maximum balance when max button is pressed', async () => {
+    const stateWithERC20Token = {
+      ...mockState,
+      bridge: {
+        ...mockState.bridge,
+        sourceToken: {
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC token address
+          chainId: '0x1' as Hex,
+          decimals: 6,
+          image:
+            'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          name: 'USD Coin',
+          symbol: 'USDC',
+        },
+      },
+    };
+
+    const { getByText, getByTestId } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: stateWithERC20Token },
+    );
+
+    // Find and press the max button
+    const maxButton = getByText('Max');
+    expect(maxButton).toBeTruthy();
+    fireEvent.press(maxButton);
+
+    // Verify the input value is set to the maximum available balance (2.0 from useLatestBalance mock)
+    const input = getByTestId('source-token-area-input');
+    await waitFor(() => {
+      expect(input.props.value).toBe('2.0');
     });
   });
 
@@ -924,6 +1018,7 @@ describe('BridgeView', () => {
     it('should navigate to blockaid modal on validation error for Solana swap', async () => {
       // Mock validation result with validation error
       mockValidateBridgeTx.mockResolvedValue({
+        status: 'ERROR',
         result: {
           validation: {
             reason: 'Transaction may result in loss of funds',
@@ -980,7 +1075,9 @@ describe('BridgeView', () => {
 
       // Find and press the continue button
       const continueButton = getByText(strings('bridge.confirm_swap'));
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockValidateBridgeTx).toHaveBeenCalledWith({
@@ -1002,6 +1099,7 @@ describe('BridgeView', () => {
     it('should navigate to blockaid modal on simulation error for Solana to EVM bridge', async () => {
       // Mock validation result with simulation error
       mockValidateBridgeTx.mockResolvedValue({
+        status: 'ERROR',
         result: {
           validation: {
             reason: null,
@@ -1061,7 +1159,9 @@ describe('BridgeView', () => {
 
       // Find and press the continue button
       const continueButton = getByText(strings('bridge.confirm_bridge'));
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockValidateBridgeTx).toHaveBeenCalledWith({
@@ -1083,6 +1183,7 @@ describe('BridgeView', () => {
     it('should prioritize validation error over simulation error', async () => {
       // Mock validation result with both validation and simulation errors
       mockValidateBridgeTx.mockResolvedValue({
+        status: 'ERROR',
         result: {
           validation: {
             reason: 'Transaction may result in loss of funds',
@@ -1139,7 +1240,9 @@ describe('BridgeView', () => {
 
       // Find and press the continue button
       const continueButton = getByText(strings('bridge.confirm_swap'));
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
@@ -1155,6 +1258,7 @@ describe('BridgeView', () => {
     it('should proceed with transaction when no validation errors', async () => {
       // Mock validation result with no errors
       mockValidateBridgeTx.mockResolvedValue({
+        status: 'SUCCESS',
         result: {
           validation: {
             reason: null,
@@ -1211,7 +1315,9 @@ describe('BridgeView', () => {
 
       // Find and press the continue button
       const continueButton = getByText(strings('bridge.confirm_swap'));
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockValidateBridgeTx).toHaveBeenCalledWith({
@@ -1279,7 +1385,9 @@ describe('BridgeView', () => {
 
       // Find and press the continue button
       const continueButton = getByText(strings('bridge.confirm_bridge'));
-      fireEvent.press(continueButton);
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledWith({

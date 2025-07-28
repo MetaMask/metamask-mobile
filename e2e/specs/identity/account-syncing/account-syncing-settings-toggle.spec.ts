@@ -1,7 +1,7 @@
-import { loginToApp } from '../../../viewHelper.js';
+import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView.js';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
+import WalletView from '../../../pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
@@ -11,11 +11,11 @@ import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import SettingsView from '../../../pages/Settings/SettingsView.js';
-import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView.js';
-import CommonView from '../../../pages/CommonView.js';
+import SettingsView from '../../../pages/Settings/SettingsView';
+import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
+import CommonView from '../../../pages/CommonView';
 import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(SmokeIdentity('Account syncing - Setting'), () => {

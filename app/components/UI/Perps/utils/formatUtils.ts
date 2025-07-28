@@ -4,25 +4,50 @@
 import { formatWithThreshold } from '../../../../util/assets';
 
 /**
- * Formats a price value as USD currency with appropriate decimal places
+ * Formats a balance value as USD currency with appropriate decimal places
  * Uses the existing formatWithThreshold utility for consistency
- * @param price - The price value to format (string or number)
- * @returns Formatted price string with currency symbol
+ * @param balance - The balance value to format (string or number)
+ * @returns Formatted balance string with currency symbol (e.g., "$1,234.56")
  */
-export const formatPrice = (price: string | number): string => {
-  const num = typeof price === 'string' ? parseFloat(price) : price;
+export const formatPerpsFiat = (balance: string | number): string => {
+  const num = typeof balance === 'string' ? parseFloat(balance) : balance;
 
   if (isNaN(num)) {
     return '$0.00';
   }
 
-  // For prices >= 1000, use 2 decimal places
+  return formatWithThreshold(num, 0.01, 'en-US', {
+    style: 'currency',
+    currency: 'USD',
+  });
+};
+
+/**
+ * Formats a price value as USD currency with appropriate decimal places
+ * Uses the existing formatWithThreshold utility for consistency
+ * @param price - The price value to format (string or number)
+ * @param options - Optional formatting options
+ * @param options.minimumDecimals - Minimum number of decimal places (default: 2, use 0 for whole numbers)
+ * @returns Formatted price string with currency symbol
+ */
+export const formatPrice = (
+  price: string | number,
+  options?: { minimumDecimals?: number },
+): string => {
+  const num = typeof price === 'string' ? parseFloat(price) : price;
+  const minDecimals = options?.minimumDecimals ?? 2;
+
+  if (isNaN(num)) {
+    return minDecimals === 0 ? '$0' : '$0.00';
+  }
+
+  // For prices >= 1000, use specified minimum decimal places
   if (num >= 1000) {
     return formatWithThreshold(num, 1000, 'en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: minDecimals,
+      maximumFractionDigits: Math.max(minDecimals, 2),
     });
   }
 
@@ -30,7 +55,7 @@ export const formatPrice = (price: string | number): string => {
   return formatWithThreshold(num, 0.0001, 'en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 2,
+    minimumFractionDigits: minDecimals,
     maximumFractionDigits: 4,
   });
 };

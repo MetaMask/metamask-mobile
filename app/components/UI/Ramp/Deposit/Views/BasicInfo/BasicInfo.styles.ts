@@ -9,7 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 24,
     },
     subtitle: {
-      marginTop: 8,
+      marginBottom: 16,
       color: theme.colors.text.muted,
     },
     nameInputRow: {
@@ -24,6 +24,11 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.icon.default,
     },
     footerContent: {
+      gap: 8,
+    },
+    ssnLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 8,
     },
   });

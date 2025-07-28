@@ -3,6 +3,7 @@
 
 # Design System Team
 app/component-library/               @MetaMask/design-system-engineers
+tailwind.config.js                   @MetaMask/design-system-engineers
 
 # Platform Team
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
@@ -53,6 +54,7 @@ app/components/UI/Card/              @MetaMask/card
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations
+app/components/Views/confirmations/external/staking          @MetaMask/confirmations @MetaMask/metamask-earn                
 app/core/Engine/controllers/approval-controller             @MetaMask/confirmations
 app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmations
 app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
@@ -201,6 +203,14 @@ app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/core/OAuthService                                       @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
+
+# QA Team - E2E Framework
+e2e/api-mocking/                             @MetaMask/qa
+e2e/fixtures/                                @MetaMask/qa
+e2e/framework/                               @MetaMask/qa
+e2e/pages/                                   @MetaMask/qa
+e2e/utils/                                   @MetaMask/qa
+e2e/viewHelper.ts                            @MetaMask/qa
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
