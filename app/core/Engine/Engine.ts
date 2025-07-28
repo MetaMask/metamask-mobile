@@ -195,6 +195,7 @@ import { ApprovalControllerInit } from './controllers/approval-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
+import { BridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
@@ -1134,55 +1135,6 @@ export class Engine {
         }),
       });
 
-    /* bridge controller Initialization */
-    const bridgeController = new BridgeController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'BridgeController',
-        allowedActions: [
-          'AccountsController:getSelectedMultichainAccount',
-          'SnapController:handleRequest',
-          'NetworkController:getState',
-          'NetworkController:getNetworkClientById',
-          'NetworkController:findNetworkClientIdByChainId',
-          'TokenRatesController:getState',
-          'MultichainAssetsRatesController:getState',
-          'CurrencyRateController:getState',
-          'RemoteFeatureFlagController:getState',
-        ],
-        allowedEvents: [],
-      }),
-      clientId: BridgeClientId.MOBILE,
-      // TODO: change getLayer1GasFee type to match transactionController.getLayer1GasFee
-      getLayer1GasFee: async ({
-        transactionParams,
-        chainId,
-      }: {
-        transactionParams: TransactionParams;
-        chainId: ChainId;
-      }) =>
-        this.transactionController.getLayer1GasFee({
-          transactionParams,
-          chainId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        }) as any,
-
-      fetchFn: handleFetch,
-      config: {
-        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
-      },
-      trackMetaMetricsFn: (event, properties) => {
-        const metricsEvent = MetricsEventBuilder.createEventBuilder({
-          // category property here maps to event name
-          category: event,
-        })
-          .addProperties({
-            ...(properties ?? {}),
-          })
-          .build();
-        MetaMetrics.getInstance().trackEvent(metricsEvent);
-      },
-      traceFn: trace as TraceCallback,
-    });
 
     const bridgeStatusController = new BridgeStatusController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1254,6 +1206,7 @@ export class Engine {
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
+        BridgeController: BridgeControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
@@ -1297,6 +1250,7 @@ export class Engine {
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
+    const bridgeController = controllersByName.BridgeController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const cronjobController = controllersByName.CronjobController;

@@ -37,6 +37,7 @@ import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-
 
 import { getApprovalControllerMessenger } from './approval-controller-messenger';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
+import { getBridgeControllerMessenger } from './bridge-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -139,6 +140,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  BridgeController: {
+    getMessenger: getBridgeControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;
