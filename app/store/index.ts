@@ -9,6 +9,7 @@ import { isE2E } from '../util/test/utils';
 import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 import thunk from 'redux-thunk';
 import persistConfig from './persistConfig';
+import { rewardsApi } from '../core/Engine/controllers/rewards-controller/services/rewardsApi';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
@@ -40,7 +41,7 @@ const createStoreAndPersistor = async () => {
   // Create the store and apply middlewares. In E2E tests, an optional initialState
   // from fixtures can be provided to preload the store; otherwise, it remains undefined.
 
-  const middlewares = [sagaMiddleware, thunk];
+  const middlewares = [sagaMiddleware, thunk, rewardsApi.middleware];
 
   store = configureStore({
     reducer: pReducer,

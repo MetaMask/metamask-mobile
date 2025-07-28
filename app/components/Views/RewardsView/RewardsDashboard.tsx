@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import type { Colors } from '../../../util/theme/models';
 
@@ -66,6 +61,9 @@ const createStyles = (colors: Colors) =>
       fontSize: 14,
       fontWeight: '500',
     },
+    signedInContainer: {
+      alignItems: 'center',
+    },
   });
 
 interface RewardsDashboardProps {
@@ -93,8 +91,8 @@ const RewardsDashboard: React.FC<RewardsDashboardProps> = ({
           <Text style={styles.historyText}>No rewards history yet</Text>
         </View>
       </View>
-      <View style={{ alignItems: 'center' }}>
-        <Text style={styles.signedInText}>✓ You're signed in to rewards!</Text>
+      <View style={styles.signedInContainer}>
+        <Text style={styles.signedInText}>✓ You&apos;re signed in to rewards!</Text>
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
           <Text style={styles.signOutButtonText}>Sign Out</Text>
         </TouchableOpacity>

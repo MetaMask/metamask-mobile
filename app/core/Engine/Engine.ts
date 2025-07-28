@@ -238,6 +238,7 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
+import { rewardsControllerInit } from './controllers/rewards-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1197,6 +1198,7 @@ export class Engine {
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
+        RewardsController: rewardsControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1213,6 +1215,7 @@ export class Engine {
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
+    const rewardsController = controllersByName.RewardsController;
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1584,6 +1587,7 @@ export class Engine {
       SeedlessOnboardingController: seedlessOnboardingController,
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
+      RewardsController: rewardsController,
     };
 
     const childControllers = Object.assign({}, this.context);

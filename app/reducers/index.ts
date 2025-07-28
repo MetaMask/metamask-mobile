@@ -37,6 +37,7 @@ import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
 import cardReducer from '../core/redux/slices/card';
+import { rewardsApiReducer } from '../core/Engine/controllers/rewards-controller/services/rewardsApi';
 import { isTest } from '../util/test/utils';
 
 /**
@@ -129,6 +130,7 @@ export interface RootState {
   card: StateFromReducer<typeof cardReducer>;
   performance?: PerformanceState;
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
+  rewardsApi: StateFromReducer<typeof rewardsApiReducer>;
 }
 
 const baseReducers = {
@@ -167,6 +169,7 @@ const baseReducers = {
   card: cardReducer,
   confirmationMetrics: confirmationMetricsReducer,
   cronjobController: cronjobControllerReducer,
+  rewardsApi: rewardsApiReducer,
 };
 
 if (isTest) {
