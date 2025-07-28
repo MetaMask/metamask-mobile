@@ -114,7 +114,9 @@ class ImportTokensView {
   }
 
   async replaceTextInFieldTokenAddress(address: string): Promise<void> {
-    await Gestures.replaceText(this.addressInput, address);
+    await Gestures.replaceText(this.addressInput, address, {
+      elemDescription: 'Enter token address input',
+    });
   }
 
   async tapOnNextButtonWithFallback() {
@@ -124,9 +126,13 @@ class ImportTokensView {
       });
     } catch (error) {
       try {
-        await Gestures.tapAtIndex(this.nextButtonByText, 1);
+        await Gestures.tapAtIndex(this.nextButtonByText, 1, {
+          elemDescription: 'Next Button by Text - Fallback',
+        });
       } catch (secondError) {
-        await Gestures.waitAndTap(this.nextButtonByText);
+        await Gestures.waitAndTap(this.nextButtonByText, {
+          elemDescription: 'Next Button by Text - Fallback 2',
+        });
       }
     }
   }
