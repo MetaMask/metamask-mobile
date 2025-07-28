@@ -11,13 +11,14 @@ export const BridgeStatusControllerInit: ControllerInitFunction<
   BridgeStatusController,
   BridgeStatusControllerMessenger
 > = (request) => {
-  const { controllerMessenger } = request;
+  const { controllerMessenger, persistedState } = request;
   const { transactionController } = getControllers(request);
 
   try {
     /* bridge status controller Initialization */
     const bridgeStatusController = new BridgeStatusController({
       messenger: controllerMessenger,
+      state: persistedState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
       fetchFn: handleFetch,
       addTransactionFn: (
