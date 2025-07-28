@@ -177,6 +177,24 @@ export function* handleDeeplinkSaga() {
   }
 }
 
+function* initialiseWC() {
+  try {
+    // Initialize WalletConnect
+    yield call(WC2Manager.init, {});
+  } catch (e) {
+    Logger.log('Failed to initialize WalletConnect', e);
+  }
+}
+
+function* initialiseSDKConnect() {
+  try {
+    // Initialize SDKConnect
+    yield call(SDKConnect.init, { context: 'Nav/App' });
+  } catch (e) {
+    Logger.log('Failed to initialize SDKConnect', e);
+  }
+}
+
 /**
  * Handles initializing app services on start up
  */
@@ -193,19 +211,7 @@ export function* startAppServices() {
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
 
-  try {
-    // Initialize WalletConnect
-    WC2Manager.init({});
-  } catch (e) {
-    Logger.log('Failed to initialize WalletConnect', e);
-  }
-
-  try {
-    // Initialize SDKConnect
-    SDKConnect.init({ context: 'Nav/App' });
-  } catch (e) {
-    Logger.log('Failed to initialize SDKConnect', e);
-  }
+  yield all([call(initialiseWC), call(initialiseSDKConnect)]);
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
