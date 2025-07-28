@@ -33,7 +33,6 @@ import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import branch from 'react-native-branch';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
-import Logger from '../../../util/Logger';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -62,14 +61,7 @@ jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
   parse: jest.fn(),
 }));
 
-jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
-  getInstance: () => ({
-    init: jest.fn().mockResolvedValue(undefined),
-    postInit: jest.fn().mockResolvedValue(undefined),
-  }),
-}));
-
-let mockIsWC2Enabled = true;
+const mockIsWC2Enabled = true;
 jest.mock('../../../../app/core/WalletConnect/WalletConnectV2', () => ({
   init: jest.fn().mockResolvedValue(undefined),
   get isWC2Enabled() {
@@ -84,9 +76,6 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
     getMetaMetricsId: jest.fn(),
   }),
 }));
-
-import WC2ManagerMock from '../../../../app/core/WalletConnect/WalletConnectV2';
-import { DevLogger as DevLoggerMock } from '../../../../app/core/SDKConnect/utils/DevLogger';
 
 jest.mock('../../../lib/ppom/PPOMView', () => ({ PPOMView: () => null }));
 
@@ -104,12 +93,6 @@ jest.mock('../../../core/AppStateEventListener', () => ({
 jest.mock('../../../core/NavigationService', () => ({
   navigation: {
     reset: jest.fn(),
-  },
-}));
-
-jest.mock('../../../../app/core/SDKConnect/utils/DevLogger', () => ({
-  DevLogger: {
-    log: jest.fn(),
   },
 }));
 
@@ -818,132 +801,6 @@ describe('App', () => {
         expect(AppStateEventProcessor.setCurrentDeeplink).toHaveBeenCalledWith(
           mockUri,
         );
-      });
-    });
-  });
-
-  describe('WalletConnect initialization', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockIsWC2Enabled = true;
-      (WC2ManagerMock.init as jest.Mock).mockClear();
-    });
-
-    it('initializes WalletConnect when isWC2Enabled is true', async () => {
-      mockIsWC2Enabled = true;
-      // Mock the user to be logged in so the component reaches the WalletConnect initialization
-      const loggedInState = {
-        ...initialState,
-        user: {
-          ...initialState.user,
-          existingUser: true,
-          userLoggedIn: true,
-        },
-      };
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
-      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
-
-      renderScreen(App, { name: 'App' }, { state: loggedInState });
-      await waitFor(() => {
-        expect(WC2ManagerMock.init).toHaveBeenCalledWith({
-          navigation: expect.any(Object),
-        });
-      });
-    });
-
-    it('does not initialize WalletConnect when isWC2Enabled is false', async () => {
-      mockIsWC2Enabled = false;
-      (WC2ManagerMock.init as jest.Mock).mockClear();
-      // Mock the user to be logged in so the component reaches the WalletConnect initialization
-      const loggedInState = {
-        ...initialState,
-        user: {
-          ...initialState.user,
-          existingUser: true,
-          userLoggedIn: true,
-        },
-      };
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
-      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
-
-      renderScreen(App, { name: 'App' }, { state: loggedInState });
-      await waitFor(() => {
-        expect(WC2ManagerMock.init).not.toHaveBeenCalled();
-      });
-    });
-
-    it('logs initialization message when WalletConnect is enabled', async () => {
-      const devLoggerSpy = jest
-        .spyOn(DevLoggerMock, 'log')
-        .mockImplementation();
-      mockIsWC2Enabled = true;
-      // Mock the user to be logged in so the component reaches the WalletConnect initialization
-      const loggedInState = {
-        ...initialState,
-        user: {
-          ...initialState.user,
-          existingUser: true,
-          userLoggedIn: true,
-        },
-      };
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
-      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
-
-      renderScreen(App, { name: 'App' }, { state: loggedInState });
-      await waitFor(() => {
-        expect(devLoggerSpy).toHaveBeenCalledWith(
-          'WalletConnect: Initializing WalletConnect Manager',
-        );
-      });
-      devLoggerSpy.mockRestore();
-    });
-
-    it('handles WalletConnect initialization errors gracefully', async () => {
-      const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
-      const mockError = new Error('WalletConnect initialization failed');
-      mockIsWC2Enabled = true;
-      (WC2ManagerMock.init as jest.Mock).mockRejectedValue(mockError);
-      // Mock the user to be logged in so the component reaches the WalletConnect initialization
-      const loggedInState = {
-        ...initialState,
-        user: {
-          ...initialState.user,
-          existingUser: true,
-          userLoggedIn: true,
-        },
-      };
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
-      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
-
-      renderScreen(App, { name: 'App' }, { state: loggedInState });
-      await waitFor(() => {
-        expect(loggerSpy).toHaveBeenCalledWith(
-          mockError,
-          'Cannot initialize WalletConnect Manager.',
-        );
-      });
-      loggerSpy.mockRestore();
-    });
-
-    it('passes NavigationService.navigation to WalletConnect init', async () => {
-      mockIsWC2Enabled = true;
-      // Mock the user to be logged in so the component reaches the WalletConnect initialization
-      const loggedInState = {
-        ...initialState,
-        user: {
-          ...initialState.user,
-          existingUser: true,
-          userLoggedIn: true,
-        },
-      };
-      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
-      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
-
-      renderScreen(App, { name: 'App' }, { state: loggedInState });
-      await waitFor(() => {
-        expect(WC2ManagerMock.init).toHaveBeenCalledWith({
-          navigation: expect.any(Object),
-        });
       });
     });
   });

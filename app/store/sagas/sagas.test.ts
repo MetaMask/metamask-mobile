@@ -23,6 +23,8 @@ import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../core/Engine';
 import { setCompletedOnboarding } from '../../actions/onboarding';
+import SDKConnect from '../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 
 const mockBioStateMachineId = '123';
 
@@ -82,6 +84,28 @@ jest.mock('../../core/AppStateEventListener', () => ({
     start: jest.fn(),
     pendingDeeplink: null,
     clearPendingDeeplink: jest.fn(),
+  },
+}));
+
+jest.mock('../../core/SDKConnect/SDKConnect', () => ({
+  __esModule: true,
+  default: {
+    init: jest.fn().mockResolvedValue(undefined),
+    getInstance: jest.fn().mockReturnValue({
+      postInit: jest.fn().mockResolvedValue(undefined),
+      state: {
+        _initialized: true,
+        _postInitialized: true,
+      },
+    }),
+  },
+}));
+
+jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
+  __esModule: true,
+  default: {
+    init: jest.fn().mockResolvedValue(undefined),
+    getInstance: jest.fn().mockReturnValue({}),
   },
 }));
 
@@ -202,6 +226,8 @@ describe('startAppServices', () => {
     // Verify services are started
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
   });
 
   it('should not start app services if navigation is not ready', async () => {
@@ -213,6 +239,8 @@ describe('startAppServices', () => {
     // Verify services are not started
     expect(EngineService.start).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
   });
 
   it('should not start app services if persisted data is not loaded', async () => {
@@ -224,6 +252,8 @@ describe('startAppServices', () => {
     // Verify services are not started
     expect(EngineService.start).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
   });
 });
 
