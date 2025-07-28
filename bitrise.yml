@@ -2095,9 +2095,12 @@ workflows:
                     exit 1
                 fi
       - deploy-to-bitrise-io@2.2.3:
+          title: Share Detox files between pipelines
+          run_if: '{{getenv "SHARE_WITH_DETOX" | eq "true"}}'
+          is_always_run: false
+          is_skippable: true
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
-          title: Share Detox files between pipelines
       - save-gradle-cache@1: {}
       - script@1:
           title: Rename release files
@@ -2362,6 +2365,7 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
+      - SHARE_WITH_DETOX: 'true'
     after_run:
       - _android_build_template
     meta:
@@ -2437,6 +2441,7 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
+      - SHARE_WITH_DETOX: 'true'
     after_run:
       - _android_build_template
     meta:
@@ -2879,13 +2884,14 @@ workflows:
                     exit 1
                 fi
       - deploy-to-bitrise-io@2.2.3:
+          title: Share Detox files between pipelines
+          run_if: '{{getenv "SHARE_WITH_DETOX" | eq "true"}}'
           is_always_run: false
           is_skippable: true
           inputs:
             - pipeline_intermediate_files: |-
                 ios/build/Build/Products/$BUILD_TYPE-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
                 ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
-          title: Share Detox files between pipelines
       - script@1:
           title: Rename iOS artifact files
           inputs:
@@ -3009,6 +3015,7 @@ workflows:
     envs:
       - BUILD_TYPE: 'Release'
       - IS_SIM_BUILD: 'true'
+      - SHARE_WITH_DETOX: 'true'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -3065,6 +3072,7 @@ workflows:
     envs:
       - BUILD_TYPE: 'Release'
       - IS_SIM_BUILD: 'true'
+      - SHARE_WITH_DETOX: 'true'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"

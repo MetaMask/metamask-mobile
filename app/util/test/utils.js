@@ -15,7 +15,8 @@ export const E2E_METAMETRICS_TRACK_URL = 'https://metametrics.test/track';
 export const isQa =
   process.env.METAMASK_BUILD_TYPE === 'qa' ||
   process.env.METAMASK_ENVIRONMENT === 'qa' ||
-  process.env.METAMASK_ENVIRONMENT === 'e2e';
+  process.env.METAMASK_ENVIRONMENT === 'e2e' ||
+  process.env.METAMASK_ENVIRONMENT === 'exp';
 /**
  * TODO: Update this condition once we change E2E builds to use release instead of debug
  */
