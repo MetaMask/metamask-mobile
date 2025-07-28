@@ -45,8 +45,7 @@ export const shouldSkipValidation = ({
     const existingContact =
       checksummedAddress &&
       chainId &&
-      addressBook[chainId] &&
-      addressBook[chainId][checksummedAddress];
+      addressBook[chainId]?.[checksummedAddress];
     if (existingContact) {
       return true;
     }
@@ -117,11 +116,10 @@ const validateENSAddress = async (
       return {
         error: message,
       };
-    } else {
-      return {
-        warning: message,
-      };
     }
+    return {
+      warning: message,
+    };
   }
   return {};
 };
