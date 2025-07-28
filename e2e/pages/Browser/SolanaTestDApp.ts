@@ -31,38 +31,38 @@ function getTestElement(
  * Class to interact with the Multichain Test DApp via the WebView
  */
 class SolanaTestDApp {
-  get connectButtonSelector() {
+  get connectButtonSelector(): WebElement {
     return getTestElement(dataTestIds.testPage.header.connect, {
       extraXPath: '/div/button',
     });
   }
 
-  get disconnectButtonSelector() {
+  get disconnectButtonSelector(): WebElement {
     return getTestElement(dataTestIds.testPage.header.disconnect, {
       extraXPath: '/button',
     });
   }
 
-  get endpointSelector() {
+  get endpointSelector(): WebElement {
     return getTestElement(dataTestIds.testPage.header.endpoint, {
       tag: 'input',
     });
   }
 
-  get walletButtonSelector() {
+  get walletButtonSelector(): WebElement {
     return Matchers.getElementByCSS(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       SolanaTestDappSelectorsWebIDs.WALLET_BUTTON,
     );
   }
 
-  get confirmTransactionButtonSelector() {
+  get confirmTransactionButtonSelector(): WebElement {
     return Matchers.getElementByID(
       SolanaTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON,
     );
   }
 
-  get confirmSignMessageButtonSelector() {
+  get confirmSignMessageButtonSelector(): WebElement {
     return Matchers.getElementByID(
       SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
     );
