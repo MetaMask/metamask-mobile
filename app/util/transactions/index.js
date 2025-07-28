@@ -383,15 +383,22 @@ export async function getMethodData(data, networkClientId) {
 
   if (fourByteSignature === normalizeHex(TRANSFER_FUNCTION_SIGNATURE)) {
     return { name: TOKEN_METHOD_TRANSFER };
-  } else if (fourByteSignature === normalizeHex(TRANSFER_FROM_FUNCTION_SIGNATURE)) {
+  } else if (
+    fourByteSignature === normalizeHex(TRANSFER_FROM_FUNCTION_SIGNATURE)
+  ) {
     return { name: TOKEN_METHOD_TRANSFER_FROM };
   } else if (fourByteSignature === normalizeHex(APPROVE_FUNCTION_SIGNATURE)) {
     return { name: TOKEN_METHOD_APPROVE };
   } else if (fourByteSignature === normalizeHex(INCREASE_ALLOWANCE_SIGNATURE)) {
     return { name: TOKEN_METHOD_INCREASE_ALLOWANCE };
-  } else if (fourByteSignature === normalizeHex(SET_APPROVAL_FOR_ALL_SIGNATURE)) {
+  } else if (
+    fourByteSignature === normalizeHex(SET_APPROVAL_FOR_ALL_SIGNATURE)
+  ) {
     return { name: TOKEN_METHOD_SET_APPROVAL_FOR_ALL };
-  } else if (normalizeHex(data.substr(0, 32)) === normalizeHex(CONTRACT_CREATION_SIGNATURE)) {
+  } else if (
+    normalizeHex(data.substr(0, 32)) ===
+    normalizeHex(CONTRACT_CREATION_SIGNATURE)
+  ) {
     return { name: CONTRACT_METHOD_DEPLOY };
   }
 
