@@ -31,6 +31,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: true
+          configure-keystores: false
 
       - name: Print iOS tool versions
         run: |

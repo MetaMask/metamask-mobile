@@ -18,6 +18,7 @@ jobs:
         with:
           platform: android
           setup-simulator: true
+          configure-keystores: false
 
 
       - name: Print Android Environment Info

@@ -33,16 +33,26 @@ printf '%s\n' "${matching_files[@]}" | sed 's/^/  - /'
 # Run all matching tests in a single command
 echo -e "\nRunning matching tests..."
 
+# Debug: Show exactly what files will be passed to Jest
+echo "🔍 Debug: Files being passed to Jest:"
+printf '  - %s\n' "${matching_files[@]}"
+echo "🔍 Debug: Total files: ${#matching_files[@]}"
 
-# Join array elements with spaces to pass to test command
-TEST_FILES="${matching_files[*]}"
-# yarn test:e2e:ios:debug:run $TEST_FILES
+# Pass array elements directly as separate arguments (proper shell array expansion)
 if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == *"ios"* ]]; then
     echo "Detected iOS workflow"
+    echo "🚀 Executing: yarn test:e2e:ios:run:qa-release ${matching_files[*]}"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
-    yarn test:e2e:ios:run:qa-release $TEST_FILES
+    yarn test:e2e:ios:run:qa-release "${matching_files[@]}"
 else
-    echo "Detected Android workflow"
+    echo "Detected Android workflow" 
+    echo "🚀 Executing: yarn test:e2e:android:run:qa-release ${matching_files[*]}"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
-    yarn test:e2e:android:run:qa-release $TEST_FILES
+    yarn test:e2e:android:run:qa-release "${matching_files[@]}"
 fi
+
+# Debug: Show what files were generated after test execution
+echo -e "\n🔍 Debug: Files in e2e/reports after test execution:"
+ls -la e2e/reports/ 2>/dev/null || echo "No reports directory found"
+
+echo -e "\n✅ Test execution completed. Jest-junit should have created junit.xml with all test results."
