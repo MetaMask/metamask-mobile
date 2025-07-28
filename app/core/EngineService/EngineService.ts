@@ -6,6 +6,10 @@ import Batcher from '../Batcher';
 import { getVaultFromBackup } from '../BackupVault';
 import Logger from '../../util/Logger';
 import {
+  ControllerStorage,
+  setupEnginePersistence,
+} from '../../store/persistConfig';
+import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
@@ -59,13 +63,23 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
+    const persistedState = await ControllerStorage.getKey();
+    // // TODO: this state will need to be migrated before
+    // Logger.log(' ======= Persisted State is ====== ', persistedState);
+
+    // // Logging state for inspection
+    // Logger.log(
+    //   ' ======= Persisted State Debug: ======= ',
+    //   JSON.stringify(persistedState, null, 2),
+    // );
     trace({
       name: TraceName.EngineInitialization,
       op: TraceOperation.EngineInitialization,
       parentContext: getUIStartupSpan(),
       tags: getTraceTags(reduxState),
     });
-    const state = reduxState?.engine?.backgroundState ?? {};
+    // Using the new ControllerStorage.getKey() method instead of Redux state to get the state
+    const state = persistedState?.backgroundState ?? {};
     const Engine = UntypedEngine;
     try {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
@@ -76,6 +90,9 @@ export class EngineService {
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.updateControllers(Engine as unknown as TypedEngine);
+
+      // Set up the new Engine persistence mechanism
+      setupEnginePersistence();
     } catch (error) {
       Logger.error(
         error as Error,
@@ -143,8 +160,9 @@ export class EngineService {
    */
   async initializeVaultFromBackup(): Promise<VaultBackupResult> {
     const vaultBackupResult = await getVaultFromBackup();
-    const reduxState = ReduxService.store.getState();
-    const state = reduxState?.engine?.backgroundState ?? {};
+    // Use the new ControllerStorage.getKey() method instead of Redux state
+    const persistedState = await ControllerStorage.getKey();
+    const state = persistedState?.backgroundState ?? {};
     const Engine = UntypedEngine;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();
