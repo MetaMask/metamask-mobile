@@ -1,0 +1,132 @@
+Run yarn create-e2e-test-report
+yarn run v1.22.22
+$ ts-node ./create-e2e-test-report.ts
+🔍 Looking for test results in: ../../e2e/reports
+📁 Current working directory: /home/runner/work/metamask-mobile/metamask-mobile/.github/scripts
+📂 Files in current directory: add-release-label-to-pr-and-linked-issues.ts, bitrise, check-pr-has-required-labels.ts, check-template-and-add-labels.ts, close-release-bug-report-issue.ts, create-bug-report-issue.ts, create-e2e-test-report.ts, fitness-functions, get-next-semver-version.sh, node_modules, package.json, scripts.types.ts, shared, tsconfig.json, yarn.lock
+❌ e2e directory not found
+✅ Test results directory found: ../../e2e/reports
+📄 Files found in ../../e2e/reports: junit-[hash].xml, junit.xml
+🔍 Processing XML file: junit-[hash].xml
+📊 Parsed XML - testsuites: true
+📋 Found 8 test suite(s)
+🔍 Processing suite: "e2e/specs/swaps/swap-action-smoke.spec.ts"
+   - Has testcase: true
+   - Has $.file: false
+   - Suite attributes: [
+  'name',
+  'errors',
+  'failures',
+  'skipped',
+  'timestamp',
+  'time',
+  'tests'
+]
+🔧 Properties in suite: false
+🏷️ Extracted values - jobName: "junit-[hash]", runId: 0, prNumber: 0
+🔍 Processing suite: "e2e/specs/stake/stake-action-smoke.spec.ts"
+   - Has testcase: true
+   - Has $.file: false
+   - Suite attributes: [
+  'name',
+  'errors',
+  'failures',
+  'skipped',
+  'timestamp',
+  'time',
+  'tests'
+]
+🔧 Properties in suite: false
+🏷️ Extracted values - jobName: "junit-[hash]", runId: 0, prNumber: 0
+🔍 Processing suite: "e2e/specs/ramps/onramp.spec.js"
+   - Has testcase: true
+   - Has $.file: false
+   - Suite attributes: [
+  'name',
+  'errors',
+  'failures',
+  'skipped',
+  'timestamp',
+  'time',
+  'tests'
+]
+🔧 Properties in suite: false
+🏷️ Extracted values - jobName: "junit-[hash]", runId: 0, prNumber: 0
+🔍 Processing suite: "e2e/specs/ramps/offramp.spec.js"
+   - Has testcase: true
+   - Has $.file: false
+   - Suite attributes: [
+  'name',
+  'errors',
+  'failures',
+  'skipped',
+  'timestamp',
+  'time',
+  'tests'
+]
+🔧 Properties in suite: false
+🏷️ Extracted values - jobName: "junit-[hash]", runId: 0, prNumber: 0
+🔍 Processing suite: "e2e/specs/ramps/ramps-account-switch.spec.ts"
+   - Has testcase: true
+   - Has $.file: false
+   - Suite attributes: [
+  'name',
+  'errors',
+  'failures',
+  'skipped',
+  'timestamp',
+  'time',
+  'tests'
+]
+🔧 Properties in suite: false
+🏷️ Extracted values - jobName: "junit-[hash]", runId: 0, prNumber: 0
+🔍 Processing suite: "e2e/specs/ramps/onramp-parameters.spec.js"
+   - Has testcase: true
+   - Has $.file: false
+   - Suite attributes: [
+  'name',
+  'errors',
+  'failures',
+  'skipped',
+  'timestamp',
+  'time',
+  'tests'
+]
+🔧 Properties in suite: false
+🏷️ Extracted values - jobName: "junit-[hash]", runId: 0, prNumber: 0
+🔍 Processing suite: "e2e/specs/ramps/offramp-cashout.spec.js"
+   - Has testcase: true
+   - Has $.file: false
+   - Suite attributes: [
+  'name',
+  'errors',
+  'failures',
+  'skipped',
+  'timestamp',
+  'time',
+  'tests'
+]
+🔧 Properties in suite: false
+🏷️ Extracted values - jobName: "junit-[hash]", runId: 0, prNumber: 0
+🔍 Processing suite: "e2e/specs/ramps/onramp-limits.spec.js"
+   - Has testcase: true
+   - Has $.file: false
+   - Suite attributes: [
+  'name',
+  'errors',
+  'failures',
+  'skipped',
+  'timestamp',
+  'time',
+  'tests'
+]
+🔧 Properties in suite: false
+🏷️ Extracted values - jobName: "junit-[hash]", runId: 0, prNumber: 0
+🔍 Processing XML file: junit.xml
+Error: Error creating the test report: Error: Unclosed root tag
+Line: 88
+Column: 13
+Char: 
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+Error: Process completed with exit code 1.
