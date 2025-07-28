@@ -332,12 +332,13 @@ stages:
     workflows:
       - run_tag_smoke_performance_ios: {}
       - run_tag_smoke_performance_android: {}
+  # TODO: This stage does the same thing as build_smoke_e2e_ios_android_stage
   build_regression_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
-      - ios_build_regression_tests:
+      - build_ios_main_e2e:
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
-      - android_build_regression_tests:
+      - build_android_main_e2e:
           run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   run_regression_e2e_ios_android_stage:
     workflows:
