@@ -76,6 +76,8 @@ jobs:
           GITHUB_CI: "true"
           CI: "true"
 
+          NODE_OPTIONS: "--max_old_space_size=4096"
+
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
           SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
