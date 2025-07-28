@@ -5,8 +5,8 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import Assertions from '../../framework/Assertions';
 import { SmokeAccounts } from '../../tags';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 describe(SmokeAccounts('Account Rename UI Flows'), () => {
@@ -24,7 +24,7 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
   it('should rename account using legacy UI flow', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: {
           GET: [
@@ -81,7 +81,7 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
   it('should rename account using modern multichain UI flow', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: {
           GET: [
