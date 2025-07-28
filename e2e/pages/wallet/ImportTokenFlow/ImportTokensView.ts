@@ -16,10 +16,6 @@ class ImportTokensView {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
   }
 
-  get nextButtonByText(): DetoxElement {
-    return Matchers.getElementByText('Next');
-  }
-
   get networkInput(): DetoxElement {
     return Matchers.getElementByID(
       ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON,
@@ -103,19 +99,6 @@ class ImportTokensView {
   async tapOnNetworkInput(): Promise<void> {
     await Gestures.waitAndTap(this.networkInput, {
       elemDescription: 'Network input field',
-    });
-  }
-
-  async scrollDownOnAddressInput() {
-    await Gestures.swipe(this.addressInput, 'up', {
-      speed: 'slow',
-      elemDescription: 'Scroll down to address input',
-    });
-  }
-
-  async replaceTextInFieldTokenAddress(address: string): Promise<void> {
-    await Gestures.replaceText(this.addressInput, address, {
-      elemDescription: 'Enter token address input',
     });
   }
 
