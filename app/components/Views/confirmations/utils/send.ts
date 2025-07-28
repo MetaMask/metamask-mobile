@@ -1,4 +1,3 @@
-import BN from 'bnjs5';
 import { BNToHex, toHex } from '@metamask/controller-utils';
 import { TransactionParams } from '@metamask/transaction-controller';
 
@@ -16,7 +15,7 @@ export const prepareEVMTransaction = (
   if (isNativeToken(asset)) {
     trxnParams.data = '0x';
     trxnParams.to = to;
-    trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BN);
+    trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BigNumber);
   } else if (asset.tokenId) {
     // NFT token
     trxnParams.data = generateTransferData('transferFrom', {
