@@ -102,7 +102,7 @@ class TestSnaps {
       TestSnapViewSelectorWebIDS[buttonLocator],
     ) as any;
     await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tapWebElement(webElement);
+    await Gestures.tap(webElement);
   }
 
   async getOptionValueByText(webElement: IndexableWebElement, text: string) {
@@ -143,14 +143,17 @@ class TestSnaps {
 
     await Gestures.waitAndTap(this.getConnectSnapButton, {
       timeout: 30_000,
+      checkVisibility: false,
     });
 
     await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, {
       timeout: 30_000,
+      checkVisibility: false,
     });
 
     await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, {
       timeout: 30_000,
+      checkVisibility: false,
     });
   }
 
