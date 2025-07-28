@@ -11,6 +11,11 @@ permissions:
 jobs:
   android-build:
     runs-on: ubuntu-latest
+    outputs:
+      artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
+      apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
+      aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
+      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -62,6 +67,7 @@ jobs:
 
       - name: Build Android App
         run: |
+          echo "🚀 Building Android APP..."
           yarn setup:github-ci --no-build-ios
           yarn build:android:qa
         shell: bash
@@ -89,3 +95,48 @@ jobs:
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+
+      - name: Upload Android APK Artifact
+        id: upload-apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-app-qa
+          path: android/app/build/outputs/apk/qa/release/app-qa-release.apk
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
+
+      - name: Upload Android AAB Artifact
+        id: upload-aab
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-bundle-qa
+          path: android/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+          retention-days: 7
+          if-no-files-found: warn
+        continue-on-error: true
+
+      - name: Upload Android Source Map
+        id: upload-sourcemap
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-sourcemap-qa
+          path: sourcemaps/android/index.android.bundle.map
+          retention-days: 7
+          if-no-files-found: warn
+        continue-on-error: true
+
+      - name: Set Artifacts URL and Status
+        id: set-artifacts-url
+        run: |
+          ARTIFACTS_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          echo "artifacts-url=${ARTIFACTS_URL}" >> $GITHUB_OUTPUT
+          echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
+          echo ""
+          echo "Upload Status Summary:"
+          echo "- APK: ${{ steps.upload-apk.outcome }}"
+          echo "- AAB Bundle: ${{ steps.upload-aab.outcome }}"
+          echo "- Source Map: ${{ steps.upload-sourcemap.outcome }}"
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
