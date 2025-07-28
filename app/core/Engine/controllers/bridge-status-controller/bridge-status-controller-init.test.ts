@@ -201,13 +201,16 @@ describe('BridgeStatusController Init', () => {
       // Assert
       const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
       const addTransactionFn = constructorOptions.addTransactionFn;
-      const mockTxParams = { to: '0x123', value: '0x0' };
+      const mockTxParams = { from: '0xabc', to: '0x123', value: '0x0' };
       const mockOrigin = 'test-origin';
       
-      addTransactionFn(mockTxParams, { origin: mockOrigin });
+      addTransactionFn(mockTxParams, { 
+        origin: mockOrigin,
+        networkClientId: 'mainnet'
+      });
       expect(mockTransactionController.addTransaction).toHaveBeenCalledWith(
         mockTxParams,
-        { origin: mockOrigin },
+        { origin: mockOrigin, networkClientId: 'mainnet' },
       );
     });
 
@@ -227,8 +230,8 @@ describe('BridgeStatusController Init', () => {
       const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
       const estimateGasFeeFn = constructorOptions.estimateGasFeeFn;
       const mockTxParams = {
-        transactionParams: { to: '0x123', value: '0x0' },
-        chainId: '0x1',
+        transactionParams: { from: '0xabc', to: '0x123', value: '0x0' },
+        chainId: '0x1' as const,
       };
       
       estimateGasFeeFn(mockTxParams);
@@ -253,9 +256,12 @@ describe('BridgeStatusController Init', () => {
       const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
       const addTransactionBatchFn = constructorOptions.addTransactionBatchFn;
       const mockTxBatch = {
-        from: '0xabc',
+        from: '0xabc' as const,
         networkClientId: 'mainnet',
-        transactions: [{ to: '0x123' }, { to: '0x456' }],
+        transactions: [
+          { params: { from: '0xabc' as const, to: '0x123' as const } },
+          { params: { from: '0xabc' as const, to: '0x456' as const } }
+        ],
       };
       
       addTransactionBatchFn(mockTxBatch);
@@ -279,7 +285,14 @@ describe('BridgeStatusController Init', () => {
       // Assert
       const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
       const updateTransactionFn = constructorOptions.updateTransactionFn;
-      const mockTxUpdate = { id: 'txId', status: 'confirmed' };
+      const mockTxUpdate = {
+        id: 'txId',
+        chainId: '0x1' as const,
+        networkClientId: 'mainnet',
+        time: Date.now(),
+        txParams: { from: '0xabc', to: '0x123', value: '0x0' },
+        status: 'confirmed' as any,
+      };
       const mockNote = 'test note';
       
       updateTransactionFn(mockTxUpdate, mockNote);

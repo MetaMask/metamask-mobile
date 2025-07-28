@@ -194,8 +194,8 @@ describe('BridgeController Init', () => {
       const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
       const getLayer1GasFeeFn = constructorOptions.getLayer1GasFee;
       const mockParams = {
-        transactionParams: { to: '0x123', value: '0x0' },
-        chainId: '0x1',
+        transactionParams: { from: '0xabc', to: '0x123', value: '0x0' },
+        chainId: '0x1' as const,
       };
       
       await getLayer1GasFeeFn(mockParams);
@@ -239,7 +239,7 @@ describe('BridgeController Init', () => {
       const trackMetaMetricsFn = constructorOptions.trackMetaMetricsFn;
 
       // Act - call the tracking function without properties
-      trackMetaMetricsFn('bridge_completed' as any);
+      trackMetaMetricsFn('bridge_completed' as any, {});
 
       // Assert
       expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith({

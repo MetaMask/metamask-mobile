@@ -58,6 +58,8 @@ import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
 import { perpsControllerInit } from '../controllers/perps-controller';
+import { BridgeControllerInit } from '../controllers/bridge-controller/bridge-controller-init';
+import { BridgeStatusControllerInit } from '../controllers/bridge-status-controller/bridge-status-controller-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -92,6 +94,8 @@ jest.mock(
   '../controllers/defi-positions-controller/defi-positions-controller-init',
 );
 jest.mock('../../../multichain-accounts/controllers/account-tree-controller');
+jest.mock('../controllers/bridge-controller/bridge-controller-init');
+jest.mock('../controllers/bridge-status-controller/bridge-status-controller-init');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
@@ -140,6 +144,8 @@ describe('initModularizedControllers', () => {
   );
   const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
   const mockPerpsControllerInit = jest.mocked(perpsControllerInit);
+  const mockBridgeControllerInit = jest.mocked(BridgeControllerInit);
+  const mockBridgeStatusControllerInit = jest.mocked(BridgeStatusControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -176,6 +182,8 @@ describe('initModularizedControllers', () => {
           DeFiPositionsController: mockDeFiPositionsControllerInit,
           SeedlessOnboardingController: mockSeedlessOnboardingControllerInit,
           PerpsController: mockPerpsControllerInit,
+          BridgeController: mockBridgeControllerInit,
+          BridgeStatusController: mockBridgeStatusControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -251,6 +259,12 @@ describe('initModularizedControllers', () => {
     });
     mockAccountTreeControllerInit.mockReturnValue({
       controller: {} as unknown as AccountTreeController,
+    });
+    mockBridgeControllerInit.mockReturnValue({
+      controller: {} as unknown as any,
+    });
+    mockBridgeStatusControllerInit.mockReturnValue({
+      controller: {} as unknown as any,
     });
   });
 
