@@ -1,16 +1,13 @@
 import { ERROR_MESSAGES, WC2Manager } from './WalletConnectV2';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Ignoring the import error for testing purposes
-import { NavigationContainerRef } from '@react-navigation/native';
-import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
 import StorageWrapper from '../../store/storage-wrapper';
 import AppConstants from '../AppConstants';
-import Engine from '../Engine';
 import { IWalletKit } from '@reown/walletkit';
 import WalletConnect from './WalletConnect';
 import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line import/no-namespace
 import * as wcUtils from './wc-utils';
+import Engine from '../Engine';
+import { SessionTypes } from '@walletconnect/types';
 import { Core } from '@walletconnect/core';
 
 jest.mock('../AppConstants', () => ({
@@ -31,6 +28,23 @@ jest.mock('../AppConstants', () => ({
   },
 }));
 
+const mockNavigation = {
+  getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
+  navigate: jest.fn(),
+};
+
+jest.mock('../NavigationService', () => ({
+  __esModule: true,
+  default: {
+    get navigation() {
+      return mockNavigation;
+    },
+    set navigation(value) {
+      // Mock setter - does nothing but prevents errors
+    },
+  },
+}));
+
 jest.mock('@reown/walletkit', () => {
   const mockClient = {
     approveRequest: jest.fn(),
@@ -38,6 +52,7 @@ jest.mock('@reown/walletkit', () => {
     updateSession: jest.fn().mockResolvedValue(true),
     getPendingSessionRequests: jest.fn(),
     getPendingSessionProposals: jest.fn(),
+    emitSessionEvent: jest.fn(),
     getActiveSessions: jest.fn().mockReturnValue({
       'test-topic': {
         topic: 'test-topic',
@@ -107,6 +122,38 @@ jest.mock('../Engine', () => ({
         id: 'mockPermissionId',
       }),
       revokeAllPermissions: jest.fn(),
+      getCaveat: jest
+        .fn()
+        .mockImplementation((_origin, permissionName, caveatType) => {
+          if (
+            permissionName === 'endowment:caip25' &&
+            caveatType === 'caip25'
+          ) {
+            return {
+              type: 'caip25',
+              value: {
+                requiredScopes: {},
+                optionalScopes: {
+                  'eip155:1': {
+                    methods: [
+                      'eth_sendTransaction',
+                      'eth_signTransaction',
+                      'eth_sign',
+                    ],
+                    notifications: ['eth_subscription'],
+                    accounts: [
+                      'eip155:1:0x1234567890abcdef1234567890abcdef12345678',
+                    ],
+                  },
+                },
+                sessionProperties: {},
+                isMultichainOrigin: false,
+              },
+            };
+          }
+          return null;
+        }),
+      updateCaveat: jest.fn(),
     },
   },
 }));
@@ -117,6 +164,7 @@ jest.mock('../Permissions', () => ({
     .fn()
     .mockReturnValue(['0x1234567890abcdef1234567890abcdef12345678']),
   getPermittedChains: jest.fn().mockResolvedValue(['eip155:1']),
+  updatePermittedChains: jest.fn(),
 }));
 
 jest.mock('../../selectors/networkController', () => ({
@@ -149,6 +197,8 @@ jest.mock('./WalletConnect2Session', () => ({
     removeListeners: jest.fn(),
     setDeeplink: jest.fn(),
     isHandlingRequest: jest.fn().mockReturnValue(false),
+    getCurrentChainId: jest.fn().mockReturnValue('0x1'),
+    getAllowedChainIds: ['eip155:1'],
   })),
 }));
 
@@ -163,6 +213,20 @@ jest.mock('./WalletConnect', () => ({
   newSession: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock('./wc-utils', () => ({
+  ...jest.requireActual('./wc-utils'),
+  getScopedPermissions: jest.fn().mockResolvedValue({
+    eip155: {
+      chains: ['eip155:1'],
+      methods: ['eth_sendTransaction', 'eth_signTransaction', 'eth_sign'],
+      events: ['chainChanged', 'accountsChanged'],
+      accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+    },
+  }),
+  showWCLoadingState: jest.fn(),
+  hideWCLoadingState: jest.fn(),
+}));
+
 jest.mock('@walletconnect/core', () => ({
   Core: jest.fn().mockImplementation((opts) => ({
     projectId: opts?.projectId,
@@ -172,18 +236,15 @@ jest.mock('@walletconnect/core', () => ({
 
 describe('WC2Manager', () => {
   let manager: WC2Manager;
-  let mockNavigation: NavigationContainerRef;
   let mockApproveSession: jest.SpyInstance;
   const _sessions: { [topic: string]: WalletConnect2Session } = {};
 
   beforeEach(async () => {
-    mockNavigation = {
-      getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
-      navigate: jest.fn(),
-    } as unknown as NavigationContainerRef;
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (WC2Manager as any).instance = undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (WC2Manager as any)._initialized = false;
     const initResult = await WC2Manager.init({
-      navigation: mockNavigation,
       sessions: _sessions,
     });
     if (!initResult) {
@@ -197,7 +258,24 @@ describe('WC2Manager', () => {
     mockApproveSession = jest.spyOn(web3Wallet, 'approveSession');
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+    // Reset WC2Manager singleton state
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (WC2Manager as any).instance = undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (WC2Manager as any)._initialized = false;
+  });
+
   it('should correctly handle a session proposal', async () => {
+    mockApproveSession.mockResolvedValue({
+      topic: 'test-topic',
+      pairingTopic: 'test-pairing',
+      peer: {
+        metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+      },
+    });
+
     const mockSessionProposal = {
       id: 1,
       params: {
@@ -249,15 +327,8 @@ describe('WC2Manager', () => {
 
   describe('WC2Manager Initialization', () => {
     it('should initialize correctly when called with valid inputs', async () => {
-      const result = await WC2Manager.init({ navigation: mockNavigation });
+      const result = await WC2Manager.init({});
       expect(result).toBeInstanceOf(WC2Manager);
-    });
-
-    it('should not initialize if navigation is missing', async () => {
-      const result = await WC2Manager.init({
-        navigation: null as unknown as NavigationContainerRef,
-      });
-      expect(result).toBeUndefined();
     });
   });
 
@@ -282,7 +353,7 @@ describe('WC2Manager', () => {
 
   describe('WC2Manager connect', () => {
     it('includes v2 URIs in paired sessions', async () => {
-      const mockWcUri = 'wc://testv2uri';
+      const mockWcUri = 'wc://testv2uri?sessionTopic=test-topic';
 
       await manager.connect({
         wcUri: mockWcUri,
@@ -659,6 +730,11 @@ describe('WC2Manager', () => {
         },
       };
 
+      // Mock approveSession to throw an error to trigger the catch block
+      mockApproveSession.mockRejectedValueOnce(
+        new Error('Session approval failed'),
+      );
+
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
       await manager.onSessionProposal(mockSessionProposal);
@@ -923,7 +999,7 @@ describe('WC2Manager', () => {
       (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         'test-topic': {
           topic: 'test-topic',
-          pairingTopic: 'test-topic',
+          pairingTopic: 'test-pairing',
           peer: {
             metadata: {
               url: 'https://example.com',
@@ -933,6 +1009,13 @@ describe('WC2Manager', () => {
           },
         },
       });
+
+      (
+        manager as unknown as { deeplinkSessions: Record<string, unknown> }
+      ).deeplinkSessions['test-pairing'] = {
+        redirectUrl: 'https://example.com',
+        origin: 'deeplink',
+      };
 
       // Trigger the session delete event
       await sessionDeleteCallback({ topic: 'test-topic' });
@@ -1044,7 +1127,7 @@ describe('WC2Manager', () => {
 
     it('throws error when Core initialization fails', async () => {
       // Override the mock for this specific test
-      (Core as unknown as jest.Mock).mockImplementationOnce(() => {
+      (Core as jest.MockedClass<typeof Core>).mockImplementationOnce(() => {
         throw new Error('Core initialization failed');
       });
 
