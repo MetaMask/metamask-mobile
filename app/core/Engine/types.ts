@@ -272,7 +272,6 @@ import {
 import { RewardsController } from './controllers/rewards-controller/RewardsController';
 import type {
   RewardsControllerState,
-  RewardsControllerActions,
   RewardsControllerEvents,
 } from './controllers/rewards-controller/types';
 import {
@@ -385,7 +384,6 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | PerpsControllerActions
-  | RewardsControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
