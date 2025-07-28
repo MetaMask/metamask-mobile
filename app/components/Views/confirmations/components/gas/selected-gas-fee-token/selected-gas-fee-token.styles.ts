@@ -10,7 +10,6 @@ const styleSheet = (params: {
   return StyleSheet.create({
     gasFeeTokenButton: {
       backgroundColor: theme.colors.background.alternative,
-      // paddingInline: 4,
       alignItems: 'center',
       display: 'flex',
       flexDirection: 'row',
