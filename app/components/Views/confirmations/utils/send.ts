@@ -18,6 +18,7 @@ export const prepareEVMTransaction = (
     trxnParams.to = to;
     trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BN);
   } else if (asset.tokenId) {
+    // NFT token
     trxnParams.data = generateTransferData('transferFrom', {
       fromAddress: from,
       toAddress: to,
@@ -26,6 +27,7 @@ export const prepareEVMTransaction = (
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
   } else {
+    // ERC20 token
     const tokenAmount = toTokenMinimalUnit(value ?? '0', asset.decimals);
     trxnParams.data = generateTransferData('transfer', {
       toAddress: to,
