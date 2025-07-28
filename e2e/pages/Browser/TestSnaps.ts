@@ -10,6 +10,7 @@ import {
   EntropyDropDownSelectorWebIDS,
 } from '../../selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../framework/Gestures';
+import LegacyGestures from '../../utils/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
@@ -161,7 +162,7 @@ class TestSnaps {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
     );
-    await Gestures.typeText(webElement, message);
+    await LegacyGestures.typeInWebElement(webElement, message);
   }
 
   async approveSignRequest() {
