@@ -2,11 +2,10 @@
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { defaultGanacheOptions } from '../../framework/Constants';
+import { LocalNodeType } from '../../framework/types';
 import { Regression } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
@@ -20,8 +19,12 @@ describe(Regression('Unified UI Asset Details Actions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
+        localNodeOptions: [
+          {
+            type: LocalNodeType.ganache,
+            options: defaultGanacheOptions,
+          },
+        ],
       },
       async () => {
         await loginToApp();
@@ -44,8 +47,12 @@ describe(Regression('Unified UI Asset Details Actions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
+        localNodeOptions: [
+          {
+            type: LocalNodeType.ganache,
+            options: defaultGanacheOptions,
+          },
+        ],
       },
       async () => {
         await loginToApp();
@@ -66,8 +73,12 @@ describe(Regression('Unified UI Asset Details Actions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
+        localNodeOptions: [
+          {
+            type: LocalNodeType.ganache,
+            options: defaultGanacheOptions,
+          },
+        ],
       },
       async () => {
         await loginToApp();
