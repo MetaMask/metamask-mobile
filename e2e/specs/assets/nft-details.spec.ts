@@ -9,8 +9,7 @@ import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
 import { buildPermissions } from '../../fixtures/utils';
-import { defaultGanacheOptions, DappVariants } from '../../framework/Constants';
-import { LocalNodeType } from '../../framework/types';
+import { DappVariants } from '../../framework/Constants';
 
 describe(SmokeNetworkAbstractions('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -32,12 +31,6 @@ describe(SmokeNetworkAbstractions('NFT Details page'), () => {
         dapps: [
           {
             dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
-        localNodeOptions: [
-          {
-            type: LocalNodeType.ganache,
-            options: defaultGanacheOptions,
           },
         ],
         restartDevice: true,

@@ -11,8 +11,7 @@ import Assertions from '../../framework/Assertions';
 import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import { buildPermissions } from '../../fixtures/utils';
-import { DappVariants, defaultGanacheOptions } from '../../framework/Constants';
-import { LocalNodeType } from '../../framework/types';
+import { DappVariants } from '../../framework/Constants';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -39,12 +38,6 @@ describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
           )
           .build(),
         restartDevice: true,
-        localNodeOptions: [
-          {
-            type: LocalNodeType.ganache,
-            options: defaultGanacheOptions,
-          },
-        ],
         smartContracts: [ERC20_CONTRACT],
       },
       async ({ contractRegistry }) => {
