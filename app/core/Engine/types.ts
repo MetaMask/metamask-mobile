@@ -642,7 +642,8 @@ export type ControllersToInitialize =
   | 'SeedlessOnboardingController'
   | 'TransactionController'
   | 'PerpsController'
-  | 'BridgeController';
+  | 'BridgeController'
+  | 'BridgeStatusController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

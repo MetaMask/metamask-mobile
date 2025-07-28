@@ -193,9 +193,8 @@ import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { ApprovalControllerInit } from './controllers/approval-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
-import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { BridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
+import { BridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
@@ -1135,53 +1134,6 @@ export class Engine {
         }),
       });
 
-
-    const bridgeStatusController = new BridgeStatusController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'BridgeStatusController',
-        allowedActions: [
-          'AccountsController:getSelectedMultichainAccount',
-          'NetworkController:getNetworkClientById',
-          'NetworkController:findNetworkClientIdByChainId',
-          'NetworkController:getState',
-          'BridgeController:getBridgeERC20Allowance',
-          'BridgeController:stopPollingForQuotes',
-          'BridgeController:trackUnifiedSwapBridgeEvent',
-          'GasFeeController:getState',
-          'AccountsController:getAccountByAddress',
-          'SnapController:handleRequest',
-          'TransactionController:getState',
-          'RemoteFeatureFlagController:getState',
-        ],
-        allowedEvents: [
-          'TransactionController:transactionConfirmed',
-          'TransactionController:transactionFailed',
-          'MultichainTransactionsController:transactionConfirmed',
-        ],
-      }),
-      state: initialState.BridgeStatusController,
-      clientId: BridgeClientId.MOBILE,
-      fetchFn: handleFetch,
-      addTransactionFn: (
-        ...args: Parameters<typeof this.transactionController.addTransaction>
-      ) => this.transactionController.addTransaction(...args),
-      estimateGasFeeFn: (
-        ...args: Parameters<typeof this.transactionController.estimateGasFee>
-      ) => this.transactionController.estimateGasFee(...args),
-      addTransactionBatchFn: (
-        ...args: Parameters<
-          typeof this.transactionController.addTransactionBatch
-        >
-      ) => this.transactionController.addTransactionBatch(...args),
-      updateTransactionFn: (
-        ...args: Parameters<typeof this.transactionController.updateTransaction>
-      ) => this.transactionController.updateTransaction(...args),
-      traceFn: trace as TraceCallback,
-      config: {
-        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
-      },
-    });
-
     const existingControllersByName = {
       KeyringController: this.keyringController,
       NetworkController: networkController,
@@ -1207,6 +1159,7 @@ export class Engine {
         MultichainNetworkController: multichainNetworkControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
         BridgeController: BridgeControllerInit,
+        BridgeStatusController: BridgeStatusControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
@@ -1594,7 +1547,7 @@ export class Engine {
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
-      BridgeStatusController: bridgeStatusController,
+      BridgeStatusController: controllersByName.BridgeStatusController,
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
