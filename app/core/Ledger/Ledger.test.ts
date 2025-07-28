@@ -188,7 +188,7 @@ describe('Ledger core', () => {
   });
 
   describe('forgetLedger', () => {
-    it('updates removes the accounts from existing permissions', async () => {
+    it('removes the accounts from existing permissions', async () => {
       await forgetLedger();
       expect(MockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
         '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
