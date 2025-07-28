@@ -11,7 +11,10 @@ import { colors as importedColors } from '../../../styles/common';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: { selected?: boolean; compact?: boolean };
+  vars: {
+    selected?: boolean;
+    compact?: boolean;
+  };
 }) => {
   const { theme, vars } = params;
   const { colors } = theme;
@@ -29,6 +32,7 @@ const styleSheet = (params: {
       paddingLeft: 16,
       paddingRight: 16,
     },
+
     button: {
       backgroundColor: colors.background.default,
       height: 'auto',
