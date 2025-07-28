@@ -1,4 +1,3 @@
-'use strict';
 import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
@@ -34,7 +33,7 @@ describe(Regression('Import custom token'), () => {
     await Assertions.checkIfVisible(WalletView.container);
   });
 
-  it('should switch to base and check added token ', async () => {
+  it('should switch to base and check added token', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await TestHelpers.delay(2000);
     await NetworkListModal.changeNetworkTo('Base Mainnet');
