@@ -1,11 +1,130 @@
-import { Transaction, TransactionType } from '@metamask/keyring-api';
-import I18n from '../../../../locales/i18n';
+import {
+  CaipChainId,
+  Transaction,
+  TransactionType,
+} from '@metamask/keyring-api';
+import I18n, { strings } from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
-import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
-import { formatUnits } from 'ethers/lib/utils';
+import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 
-type Fee = Transaction['fees'][0]['asset'];
-type Token = Transaction['from'][0]['asset'];
+interface Asset {
+  unit: string;
+  type: `${string}:${string}/${string}:${string}`;
+  amount: string;
+  fungible: true;
+}
+
+interface Movement {
+  asset: Asset;
+  address?: string;
+}
+
+interface AggregatedMovement {
+  address?: string;
+  unit: string;
+  amount: number;
+}
+
+export interface AggregatedMovementDisplayData {
+  address?: string;
+  unit: string;
+  amount: string;
+}
+
+export interface MultichainTransactionDisplayData {
+  title?: string;
+  from?: AggregatedMovementDisplayData;
+  to?: AggregatedMovementDisplayData;
+  baseFee?: AggregatedMovementDisplayData;
+  priorityFee?: AggregatedMovementDisplayData;
+  isRedeposit: boolean;
+}
+
+export function useMultichainTransactionDisplay(
+  transaction: Transaction,
+  chainId: CaipChainId,
+): MultichainTransactionDisplayData {
+  const locale = I18n.locale;
+  const decimalPlaces = MULTICHAIN_NETWORK_DECIMAL_PLACES[chainId];
+  const isRedeposit =
+    transaction.to.length === 0 && transaction.type === TransactionType.Send;
+
+  const from = aggregateAmount(
+    transaction.from as Movement[],
+    true,
+    locale,
+    decimalPlaces,
+  );
+  const to = aggregateAmount(
+    transaction.to as Movement[],
+    transaction.type === TransactionType.Send,
+    locale,
+    decimalPlaces,
+  );
+  const baseFee = aggregateAmount(
+    (transaction.fees || []).filter((fee) => fee.type === 'base') as Movement[],
+    true,
+    locale,
+  );
+  const priorityFee = aggregateAmount(
+    (transaction.fees || []).filter(
+      (fee) => fee.type === 'priority',
+    ) as Movement[],
+    true,
+    locale,
+  );
+
+  const typeToTitle: Partial<Record<TransactionType, string>> = {
+    [TransactionType.Send]: strings('transactions.sent'),
+    [TransactionType.Receive]: strings('transactions.received'),
+    [TransactionType.Swap]: `${strings('transactions.swap')} ${
+      from?.unit
+    } ${strings('transactions.to').toLowerCase()} ${to?.unit}`,
+    [TransactionType.Unknown]: strings('transactions.interaction'),
+  };
+
+  return {
+    title: isRedeposit
+      ? strings('transactions.redeposit')
+      : typeToTitle[transaction.type],
+    from,
+    to,
+    baseFee,
+    priorityFee,
+    isRedeposit,
+  };
+}
+
+function aggregateAmount(
+  movement: Movement[],
+  isNegative: boolean,
+  locale: string,
+  decimals?: number,
+) {
+  const amountByAsset: Record<string, AggregatedMovement> = {};
+
+  for (const mv of movement) {
+    if (!mv?.asset.fungible) {
+      continue;
+    }
+    const assetId = mv.asset.type;
+    if (!amountByAsset[assetId]) {
+      amountByAsset[assetId] = {
+        amount: parseFloat(mv.asset.amount),
+        address: mv.address,
+        unit: mv.asset.unit,
+      };
+      continue;
+    }
+
+    amountByAsset[assetId].amount += parseFloat(mv.asset.amount);
+  }
+
+  // We make an assumption that there is only one asset in the transaction.
+  return Object.entries(amountByAsset).map(([_, mv]) =>
+    parseAsset(mv, locale, isNegative, decimals),
+  )[0];
+}
 
 export const getMultichainTxFees = (transaction: Transaction) => {
   const baseFee = transaction?.fees?.find((fee) => fee.type === 'base') ?? null;
@@ -15,131 +134,30 @@ export const getMultichainTxFees = (transaction: Transaction) => {
   return { baseFee, priorityFee };
 };
 
-export function useMultichainTransactionDisplay({
-  transaction,
-  userAddress,
-  bridgeHistoryItem,
-}: {
-  transaction: Transaction;
-  userAddress: string;
-  bridgeHistoryItem?: BridgeHistoryItem;
-}) {
-  const locale = I18n.locale;
-  const isBridgeTx =
-    transaction.type === TransactionType.Send && bridgeHistoryItem;
-
-  const transactionFromEntry = transaction.from?.find(
-    (entry) => entry?.address === userAddress,
-  );
-  const transactionToEntry = transaction.to?.find(
-    (entry) => entry?.address === userAddress,
+function parseAsset(
+  movement: AggregatedMovement,
+  locale: string,
+  isNegative: boolean,
+  decimals?: number,
+): AggregatedMovementDisplayData {
+  const threshold = 1 / 10 ** (decimals || 8); // Smallest unit to display given the decimals.
+  const displayAmount = formatWithThreshold(
+    movement.amount,
+    threshold,
+    locale,
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: decimals || 8,
+    },
   );
 
-  const { baseFee, priorityFee } = getMultichainTxFees(transaction);
-
-  let from = null;
-  let to = null;
-
-  switch (transaction.type) {
-    case TransactionType.Swap:
-      from = transactionFromEntry ?? null;
-      to = transactionToEntry ?? null;
-      break;
-    case TransactionType.Send:
-      from = transactionFromEntry ?? transaction.from?.[0] ?? null;
-      to = transaction.to?.[0] ?? null;
-      break;
-    case TransactionType.Receive:
-      from = transaction.from?.[0] ?? null;
-      to = transactionToEntry ?? transaction.to?.[0] ?? null;
-      break;
-    default:
-      from = transaction.from?.[0] ?? null;
-      to = transaction.to?.[0] ?? null;
+  let finalAmount = displayAmount;
+  if (isNegative) {
+    finalAmount = `-${displayAmount}`;
   }
-
-  const asset = {
-    // NOTE: We force the type to `string` here to avoid infering this `Record` with
-    // a `TransactionType` as key (since `'bridge'` is not valid for this enum).
-    [TransactionType.Send as string]: parseAssetWithThreshold(
-      from?.asset ?? null,
-      '0.00001',
-      { locale, isNegative: true },
-    ),
-    [TransactionType.Receive as string]: parseAssetWithThreshold(
-      to?.asset ?? null,
-      '0.00001',
-      { locale, isNegative: false },
-    ),
-    [TransactionType.Swap as string]: parseAssetWithThreshold(
-      from?.asset ?? null,
-      '0.00001',
-      { locale, isNegative: true },
-    ),
-    bridge: parseAssetWithThreshold(
-      bridgeHistoryItem
-        ? {
-            unit: bridgeHistoryItem.quote.srcAsset.symbol,
-            type: bridgeHistoryItem.quote.srcAsset.assetId,
-            amount: formatUnits(
-              bridgeHistoryItem.quote.srcTokenAmount,
-              bridgeHistoryItem.quote.srcAsset.decimals,
-            ),
-            fungible: true,
-          }
-        : null,
-      '0.00001',
-      { locale, isNegative: true },
-    ),
-  }[isBridgeTx ? 'bridge' : transaction.type];
 
   return {
-    ...transaction,
-    from,
-    to,
-    asset,
-    baseFee: parseAssetWithThreshold(baseFee?.asset ?? null, '0.0000001', {
-      locale,
-      isNegative: false,
-    }),
-    priorityFee: parseAssetWithThreshold(
-      priorityFee?.asset ?? null,
-      '0.0000001',
-      { locale, isNegative: false },
-    ),
+    ...movement,
+    amount: finalAmount,
   };
-}
-
-function parseAssetWithThreshold(
-  asset: Token | Fee | null,
-  threshold: string,
-  { locale, isNegative }: { locale: string; isNegative: boolean },
-) {
-  if (asset?.fungible) {
-    const numberOfDecimals = threshold.split('.')?.[1]?.length ?? 0;
-
-    const amount = formatWithThreshold(
-      Number(asset?.amount),
-      Number(threshold),
-      locale,
-      {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: numberOfDecimals,
-      },
-    );
-
-    if (isNegative && !amount.startsWith('<')) {
-      return {
-        ...asset,
-        amount: `-${amount}`,
-      };
-    }
-
-    return {
-      ...asset,
-      amount,
-    };
-  }
-
-  return null;
 }
