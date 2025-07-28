@@ -153,7 +153,7 @@ const useToAddressValidation = () => {
   const { to, asset } = useSendContext();
   const { chainId } = asset ?? { chainId: undefined };
 
-  const { value: { error, warning } = {} } = useAsyncResult(async () => {
+  const { value } = useAsyncResult(async () => {
     if (
       shouldSkipValidation({
         toAddress: to as Hex,
@@ -166,6 +166,7 @@ const useToAddressValidation = () => {
     }
     return await validateToAddress(to as Hex, chainId as Hex);
   }, [addressBook, chainId, internalAccounts, to]);
+  const { error, warning } = value ?? {};
 
   return {
     toAddressError: error,

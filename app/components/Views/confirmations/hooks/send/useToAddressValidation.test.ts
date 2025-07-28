@@ -1,20 +1,18 @@
+import Engine from '../../../../../core/Engine';
 import {
   ProviderValues,
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import useAmountValidation, {
-  validateAmountFn,
-  ValidateAmountArgs,
-} from './useAmountValidation';
+// eslint-disable-next-line import/no-namespace
+import * as ENSUtils from '../../../../../util/ENSUtils';
+// eslint-disable-next-line import/no-namespace
+import * as ConfusablesUtils from '../../../../../util/confusables';
 import useToAddressValidation, {
   shouldSkipValidation,
   ShouldSkipValidationArgs,
   validateToAddress,
 } from './useToAddressValidation';
-import Engine from '../../../../../core/Engine';
-import * as ENSUtils from '../../../../../util/ENSUtils';
-import * as ConfusablesUtils from '../../../../../util/confusables';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
