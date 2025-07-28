@@ -122,7 +122,7 @@ import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-import { selectIsCardholder } from '../../../core/redux/slices/card';
+import { selectShowCardButton } from '../../../core/redux/slices/card';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 
@@ -274,7 +274,7 @@ const Wallet = ({
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  const isCardholder = useSelector(selectIsCardholder);
+  const shouldShowCardButton = useSelector(selectShowCardButton);
 
   /**
    * Object containing the balance of the current selected account
@@ -563,7 +563,7 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
-        isCardholder,
+        shouldShowCardButton,
       ),
     );
   }, [
@@ -579,7 +579,7 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
-    isCardholder,
+    shouldShowCardButton,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(

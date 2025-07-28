@@ -1111,7 +1111,18 @@ export function getWalletNavbarOptions(
           testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
           style={styles.addressCopyWrapper}
         >
-          <AddressCopy account={selectedInternalAccount} />
+          {isCardholderEnabled ? (
+            // This will be replaced with a Cardholder button in the future
+            <ButtonIcon
+              iconColor={IconColor.Default}
+              onPress={openQRScanner}
+              iconName={IconName.Card}
+              size={IconSize.Xl}
+              testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+            />
+          ) : (
+            <AddressCopy account={selectedInternalAccount} />
+          )}
         </View>
         {isNotificationsFeatureEnabled() && (
           <View>
@@ -1139,17 +1150,6 @@ export function getWalletNavbarOptions(
               />
             )}
           </View>
-        )}
-
-        {isCardholderEnabled && (
-          // This will be replaced with a Cardholder button in the future
-          <ButtonIcon
-            iconColor={IconColor.Default}
-            onPress={openQRScanner}
-            iconName={IconName.Card}
-            size={IconSize.Xl}
-            testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-          />
         )}
 
         <ButtonIcon

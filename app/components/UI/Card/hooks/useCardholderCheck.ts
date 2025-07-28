@@ -11,6 +11,7 @@ import {
   selectUserLoggedIn,
 } from '../../../../reducers/user';
 import { selectInternalAccountsWithCaipAccountId } from '../../../../selectors/accountsController';
+import Logger from '../../../../util/Logger';
 
 /**
  * Hook that automatically checks for cardholder accounts when conditions are met
@@ -28,11 +29,9 @@ export const useCardholderCheck = () => {
       .map((account) => account.caipAccountId);
 
     if (!formattedAccounts.length) {
-      // For empty accounts, we could dispatch with empty array, but RTK will handle this
       return;
     }
 
-    // Dispatch the async thunk
     dispatch(
       loadCardholderAccounts({
         formattedAccounts:
@@ -49,7 +48,14 @@ export const useCardholderCheck = () => {
       cardFeatureFlag &&
       accounts?.length
     ) {
-      checkCardholderAccounts();
+      try {
+        checkCardholderAccounts();
+      } catch (error) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'useCardholderCheck::Error loading cardholder accounts',
+        );
+      }
     }
   }, [
     userLoggedIn,
