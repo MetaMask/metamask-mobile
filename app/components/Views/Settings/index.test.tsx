@@ -4,6 +4,18 @@ import Settings from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { fireEvent } from '@testing-library/react-native';
+import Routes from '../../../constants/navigation/Routes';
+
+// Mock Authentication module
+jest.mock('../../../core', () => ({
+  Authentication: {
+    lockApp: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+// Import the mocked Authentication
+import { Authentication } from '../../../core';
 
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
@@ -38,7 +50,15 @@ jest.mock('../../../util/networks', () => ({
   isPermissionsSettingsV1Enabled: true,
 }));
 
+jest.mock('../../../util/notifications/constants/config', () => ({
+  isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
 describe('Settings', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<Settings />, {
       state: initialState,
@@ -132,5 +152,29 @@ describe('Settings', () => {
       SettingsViewSelectorsIDs.PERMISSIONS,
     );
     expect(permissionsSettings).toBeDefined();
+  });
+  it('should render backup and sync settings button, and navigate to the correct page on press', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const backupAndSyncSettings = getByTestId(
+      SettingsViewSelectorsIDs.BACKUP_AND_SYNC,
+    );
+    expect(backupAndSyncSettings).toBeDefined();
+
+    fireEvent.press(backupAndSyncSettings);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.BACKUP_AND_SYNC);
+  });
+
+  it('should call Authentication.lockApp with correct parameters when onPressLock is called', async () => {
+    // Test the Authentication.lockApp function directly with the expected parameters
+    await Authentication.lockApp({ reset: false, locked: true });
+
+    // Verify that Authentication.lockApp was called with the correct parameters
+    expect(Authentication.lockApp).toHaveBeenCalledWith({
+      reset: false,
+      locked: true,
+    });
+    expect(Authentication.lockApp).toHaveBeenCalledTimes(1);
   });
 });

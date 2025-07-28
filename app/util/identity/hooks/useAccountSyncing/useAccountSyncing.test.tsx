@@ -9,7 +9,8 @@ import {
 
 interface ArrangeMocksMetamaskStateOverrides {
   isSignedIn: boolean;
-  isProfileSyncingEnabled: boolean;
+  isBackupAndSyncEnabled: boolean;
+  isAccountSyncingEnabled: boolean;
   isUnlocked: boolean;
   useExternalServices: boolean;
   completedOnboarding: boolean;
@@ -24,12 +25,14 @@ const arrangeMockState = (
       backgroundState: {
         KeyringController: {
           isUnlocked: stateOverrides.isUnlocked,
+          keyrings: [],
         },
         AuthenticationController: {
           isSignedIn: stateOverrides.isSignedIn,
         },
         UserStorageController: {
-          isProfileSyncingEnabled: stateOverrides.isProfileSyncingEnabled,
+          isBackupAndSyncEnabled: stateOverrides.isBackupAndSyncEnabled,
+          isAccountSyncingEnabled: stateOverrides.isAccountSyncingEnabled,
           isAccountSyncingReadyToBeDispatched:
             stateOverrides.isAccountSyncingReadyToBeDispatched,
         },
@@ -50,7 +53,8 @@ describe('useShouldDispatchAccountSyncing()', () => {
   const testCases = (() => {
     const properties = [
       'isSignedIn',
-      'isProfileSyncingEnabled',
+      'isBackupAndSyncEnabled',
+      'isAccountSyncingEnabled',
       'isUnlocked',
       'useExternalServices',
       'completedOnboarding',
@@ -58,7 +62,8 @@ describe('useShouldDispatchAccountSyncing()', () => {
     ] as const;
     const baseState = {
       isSignedIn: true,
-      isProfileSyncingEnabled: true,
+      isBackupAndSyncEnabled: true,
+      isAccountSyncingEnabled: true,
       isUnlocked: true,
       useExternalServices: true,
       completedOnboarding: true,
@@ -138,7 +143,8 @@ describe('useAccountSyncing', () => {
       arrangeAndAct({
         completedOnboarding: true,
         isAccountSyncingReadyToBeDispatched: true,
-        isProfileSyncingEnabled: true,
+        isBackupAndSyncEnabled: true,
+        isAccountSyncingEnabled: true,
         isSignedIn: true,
         isUnlocked: true,
         useExternalServices: true,
@@ -155,7 +161,8 @@ describe('useAccountSyncing', () => {
       arrangeAndAct({
         completedOnboarding: true,
         isAccountSyncingReadyToBeDispatched: false,
-        isProfileSyncingEnabled: true,
+        isBackupAndSyncEnabled: true,
+        isAccountSyncingEnabled: true,
         isSignedIn: true,
         isUnlocked: true,
         useExternalServices: true,

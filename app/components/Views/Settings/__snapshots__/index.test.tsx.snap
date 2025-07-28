@@ -47,9 +47,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -62,9 +61,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -92,6 +90,7 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -142,9 +141,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -157,15 +155,14 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
               }
             >
-              Privacy settings, MetaMetrics, private key and wallet Secret Recovery Phrase
+              Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.
             </Text>
           </View>
           <View
@@ -187,6 +184,7 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -237,9 +235,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -252,9 +249,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -282,6 +278,195 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
+              height={20}
+              name="ArrowRight"
+              style={
+                {
+                  "height": 20,
+                  "paddingLeft": 16,
+                  "width": 20,
+                }
+              }
+              width={20}
+            />
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      testID="backup-and-sync-settings"
+    >
+      <View
+        accessibilityRole="none"
+        accessible={true}
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "padding": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Backup and sync
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Back up your accounts and sync settings.
+            </Text>
+          </View>
+          <View
+            accessible={false}
+            style={
+              {
+                "width": 16,
+              }
+            }
+            testID="listitem-gap"
+          />
+          <View
+            style={
+              {
+                "flex": -1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <SvgMock
+              color="#121314"
+              fill="currentColor"
+              height={20}
+              name="ArrowRight"
+              style={
+                {
+                  "height": 20,
+                  "paddingLeft": 16,
+                  "width": 20,
+                }
+              }
+              width={20}
+            />
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      testID="notifications-settings"
+    >
+      <View
+        accessibilityRole="none"
+        accessible={true}
+        style={
+          {
+            "backgroundColor": "#ffffff",
+            "padding": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 18,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Notifications
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Manage your notifications
+            </Text>
+          </View>
+          <View
+            accessible={false}
+            style={
+              {
+                "width": 16,
+              }
+            }
+            testID="listitem-gap"
+          />
+          <View
+            style={
+              {
+                "flex": -1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <SvgMock
+              color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -332,9 +517,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -347,9 +531,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -377,6 +560,7 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -427,9 +611,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -442,9 +625,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -472,6 +654,7 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -522,9 +705,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -537,9 +719,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -567,6 +748,7 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -616,9 +798,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -631,9 +812,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -661,6 +841,7 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -711,9 +892,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -726,9 +906,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -756,6 +935,7 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -806,9 +986,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -821,9 +1000,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -851,6 +1029,7 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -901,9 +1080,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -916,9 +1094,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -946,6 +1123,7 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -996,9 +1174,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1026,6 +1203,7 @@ exports[`Settings should render correctly 1`] = `
           >
             <SvgMock
               color="#121314"
+              fill="currentColor"
               height={20}
               name="ArrowRight"
               style={
@@ -1076,9 +1254,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1125,9 +1302,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1174,9 +1350,8 @@ exports[`Settings should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 18,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

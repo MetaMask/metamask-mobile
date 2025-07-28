@@ -30,16 +30,16 @@ const engineReducer = (
       return { backgroundState: Engine.state };
     }
     case updateBgState.type: {
-      const newState = { ...state };
+      if (!action.payload) return state;
 
-      if (action.payload) {
-        const newControllerState =
-          Engine.state[action.payload.key as keyof typeof Engine.state];
-
-        newState.backgroundState[action.payload.key] = newControllerState;
-      }
-
-      return newState;
+      return {
+        ...state,
+        backgroundState: {
+          ...state.backgroundState,
+          [action.payload.key]:
+            Engine.state[action.payload.key as keyof typeof Engine.state],
+        },
+      };
     }
     default:
       return state;

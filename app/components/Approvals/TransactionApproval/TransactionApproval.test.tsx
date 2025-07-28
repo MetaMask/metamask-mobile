@@ -77,9 +77,9 @@ describe('TransactionApproval', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('renders QR signing modal if signing QR object', () => {
+  it('renders QR signing modal if signing QR object is exists', () => {
     mockApprovalRequest({
-      type: ApprovalTypes.TRANSACTION,
+      type: 'non_existing_type',
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);

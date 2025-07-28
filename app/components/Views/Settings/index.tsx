@@ -20,6 +20,7 @@ import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -71,6 +72,13 @@ const Settings = () => {
       createEventBuilder(MetaMetricsEvents.SETTINGS_NOTIFICATIONS).build(),
     );
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
+  };
+
+  const onPressBackupAndSync = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SETTINGS_BACKUP_AND_SYNC).build(),
+    );
+    navigation.navigate(Routes.SETTINGS.BACKUP_AND_SYNC);
   };
 
   const onPressSecurity = () => {
@@ -166,7 +174,7 @@ const Settings = () => {
   };
 
   const onPressLock = async () => {
-    await Authentication.lockApp({ locked: true });
+    await Authentication.lockApp({ reset: false, locked: true });
   };
 
   const lock = () => {
@@ -201,6 +209,7 @@ const Settings = () => {
   aboutMetaMaskTitle = strings('app_settings.info_title_beta');
   ///: END:ONLY_INCLUDE_IF
 
+  const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
     <ScrollView
       style={styles.wrapper}
@@ -216,7 +225,11 @@ const Settings = () => {
         description={strings('app_settings.security_desc')}
         onPress={onPressSecurity}
         title={strings('app_settings.security_title')}
-        warning={!seedphraseBackedUp ? strings('drawer.settings_warning') : ''}
+        warning={
+          !oauthFlow && !seedphraseBackedUp
+            ? strings('drawer.settings_warning')
+            : ''
+        }
         testID={SettingsViewSelectorsIDs.SECURITY}
       />
       <SettingsDrawer
@@ -224,6 +237,12 @@ const Settings = () => {
         onPress={onPressAdvanced}
         title={strings('app_settings.advanced_title')}
         testID={SettingsViewSelectorsIDs.ADVANCED}
+      />
+      <SettingsDrawer
+        description={strings('backupAndSync.description')}
+        onPress={onPressBackupAndSync}
+        title={strings('backupAndSync.title')}
+        testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
       />
       {isNotificationsFeatureEnabled() && (
         <SettingsDrawer

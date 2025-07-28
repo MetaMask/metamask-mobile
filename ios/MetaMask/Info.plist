@@ -22,8 +22,6 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -51,15 +49,9 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
 		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
 	</dict>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>MetaMask needs Bluetooth access to connect to external devices.</string>
@@ -69,8 +61,6 @@
 	<string>MetaMask needs camera access to scan QR codes</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
@@ -95,16 +85,16 @@
 		<string>FontAwesome5_Brands.ttf</string>
 		<string>FontAwesome5_Regular.ttf</string>
 		<string>FontAwesome5_Solid.ttf</string>
-		<string>CentraNo1-Bold.otf</string>
-		<string>CentraNo1-BoldItalic.otf</string>
-		<string>CentraNo1-Book.otf</string>
-		<string>CentraNo1-BookItalic.otf</string>
-		<string>CentraNo1-Medium.otf</string>
-		<string>CentraNo1-MediumItalic.otf</string>
-		<string>MMSans-Regular.otf</string>
-		<string>MMPoly-Regular.otf</string>
-		<string>MMSans-Bold.otf</string>
-		<string>MMSans-Medium.otf</string>
+		<string>MM Poly Regular.otf</string>
+		<string>MM Sans Bold.otf</string>
+		<string>MM Sans Medium.otf</string>
+		<string>MM Sans Regular.otf</string>
+		<string>Geist Bold Italic.otf</string>
+		<string>Geist Bold.otf</string>
+		<string>Geist Medium Italic.otf</string>
+		<string>Geist Medium.otf</string>
+		<string>Geist Regular Italic.otf</string>
+		<string>Geist Regular.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
@@ -115,8 +105,10 @@
 	<string>LaunchScreen.xib</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -133,6 +125,8 @@
 	<key>branch_universal_link_domains</key>
 	<array>
 		<string>metamask.app.link</string>
+		<string>link.metamask.io</string>
+		<string>link-test.metamask.io</string>
 		<string>metamask-alternate.app.link</string>
 		<string>metamask.test.app.link</string>
 		<string>metamask-alternate.test.app.link</string>

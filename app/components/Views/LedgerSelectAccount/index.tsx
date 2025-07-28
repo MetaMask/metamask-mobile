@@ -7,8 +7,8 @@ import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAssetFromTheme, useTheme } from '../../../util/theme';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
-import ledgerDeviceLightImage from 'images/ledger-device-light.png';
-import ledgerDeviceDarkImage from 'images/ledger-device-dark.png';
+import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
+import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import {
   forgetLedger,
   getHDPath,
@@ -40,6 +40,7 @@ import {
 } from '../../../core/Ledger/constants';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
+import { toFormattedAddress } from '../../../util/address';
 
 interface OptionType {
   key: string;
@@ -122,7 +123,7 @@ const LedgerSelectAccount = () => {
 
   useEffect(() => {
     keyringController.getAccounts().then((value: string[]) => {
-      setExistingAccounts(value);
+      setExistingAccounts(value.map(toFormattedAddress));
     });
   }, [keyringController]);
 
@@ -193,7 +194,7 @@ const LedgerSelectAccount = () => {
     if (LEDGER_LEGACY_PATH === (await getHDPath())) {
       const ledgerAccounts = await getLedgerAccounts();
       const newAddedAccounts = ledgerAccounts.filter(
-        (account) => !existingAccounts.includes(account.toLowerCase()),
+        (account) => !existingAccounts.includes(toFormattedAddress(account)),
       );
 
       if (newAddedAccounts.length > 0) {

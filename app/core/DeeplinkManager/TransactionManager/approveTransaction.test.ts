@@ -7,6 +7,7 @@ import NotificationManager from '../../NotificationManager';
 import approveTransaction from './approveTransaction';
 import { addTransaction } from '../../../util/transaction-controller';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+import { toHex } from '@metamask/controller-utils';
 
 const MOCK_SENDER_ADDRESS = '0xMockSenderAddress';
 const MOCK_TARGET_ADDRESS = '0xTargetAddress';
@@ -168,7 +169,7 @@ describe('approveTransaction', () => {
 
     expect(spyGetAddress).toHaveBeenCalledWith(
       mockEthUrl.parameters?.address as string,
-      mockEthUrl.chain_id,
+      toHex(mockEthUrl.chain_id),
     );
   });
 

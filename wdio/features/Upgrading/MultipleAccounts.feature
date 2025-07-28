@@ -9,7 +9,7 @@ Feature: Upgrade previous app build with current release while being connected t
     Given the app displayed the splash animation
     And I have imported my wallet
     And I tap No Thanks on the Enable security check screen
-    And I close all the onboarding modals
+    And I dismiss the Solana New Feature Sheet
     And I am on the wallet view
     When I tap on the Identicon
     Then select account component is displayed
@@ -40,4 +40,4 @@ Feature: Upgrade previous app build with current release while being connected t
 
     Examples:
       | PRIVATEKEY                                                       | AccountName |
-      | cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1 | Account 4   |
+      | cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1 | Account 3   |

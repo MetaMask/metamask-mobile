@@ -24,9 +24,31 @@
     "inline_alert_label": "Оповещение",
     "review_alerts": "Просмотр оповещений",
     "review_alert": "Просмотр оповещения",
+    "upgrade_account": {
+      "title": "Ваш счет обновляется",
+      "message": "Вы обновляете свой счет до смарт-счета. Вы сохраните тот же адрес счета, одновременно разблокируя более быстрые транзакции и более низкие комиссии сети.",
+      "learn_more": "Подробнее"
+    },
     "domain_mismatch": {
       "title": "Подозрительный запрос на вход",
       "message": "Сайт, делающий запрос, не является тем сайтом, на который вы входите. Это может быть попыткой украсть ваши учетные данные для входа."
+    },
+    "insufficient_balance": {
+      "title": "Недостаточно средств",
+      "message": "На вашем счете недостаточно %{nativeCurrency} для оплаты комиссий сети.",
+      "buy_action": "Купить %{nativeCurrency}"
+    },
+    "signed_or_submitted": {
+      "message": "Предыдущая транзакция все еще находится в процессе подписания или отправки."
+    },
+    "pending_transaction": {
+      "title": "Ожидающая транзакция",
+      "message": "Эта транзакция не будет выполнена до завершения предыдущей.",
+      "learn_more": "Узнайте, как отменить или ускорить транзакцию."
+    },
+    "batched_unused_approvals": {
+      "title": "Ненужное разрешение",
+      "message": "Вы даете кому-то другому разрешение на снятие ваших токенов, даже если это не является необходимым для данной транзакции."
     }
   },
   "blockaid_banner": {
@@ -78,10 +100,11 @@
     "connector": "в"
   },
   "autocomplete": {
-    "placeholder": "Поиск по сайту или адресу",
+    "placeholder": "Поиск по токену, сайту или адресу",
     "recents": "Недавние",
     "favorites": "Избранное",
-    "sites": "Сайты"
+    "sites": "Сайты",
+    "tokens": "Токены"
   },
   "navigation": {
     "back": "Назад",
@@ -91,7 +114,7 @@
     "ok": "ОК"
   },
   "onboarding": {
-    "title": "Создание кошелька",
+    "title": "Давайте начнем!",
     "sync_desc": "Если у вас уже есть расширение MetaMask или другой кошелек, синхронизируйте или импортируйте его, чтобы управлять имеющимися активами.",
     "create_desc": "Создайте первый кошелек и начните изучать децентрализованные приложения.",
     "import": "Импортируйте текущий кошелек или создайте новый",
@@ -122,14 +145,25 @@
     "scan_step_3": "Нажмите «Синхронизировать с мобильным».",
     "scan_step_4": "Отсканируйте QR-код для запуска синхронизации",
     "success": "Успех",
-    "your_wallet": "Ваш кошелек успешно удален",
-    "delete_current": "Удаление текущего кошелька..."
+    "continue_with_google": "Продолжите с помощью Google",
+    "continue_with_apple": "Продолжите с помощью Apple",
+    "or": "ИЛИ",
+    "import_existing_wallet": "Импортируйте существующий кошелек",
+    "bottom_sheet_title": "Выберите вариант продолжения",
+    "continue_with_srp": "Продолжить с помощью секретной фразой для восстановления",
+    "import_srp": "Импорт с помощью секретной фразы для восстановления",
+    "sign_in_with_google": "Войти через Google",
+    "sign_in_with_apple": "Войти через Apple",
+    "your_wallet": "Вы успешно сбросили настройки кошелька!",
+    "delete_current": "Сбросить текущий кошелек",
+    "have_existing_wallet": "У меня есть кошелек",
+    "import_using_srp": "Импорт с помощью секретной фразы для восстановления"
   },
   "onboarding_success": {
-    "title": "Поздравляем!",
-    "description": "Ваш кошелек защищен и готов к использованию. Вы можете найти свою секретную фразу для восстановления в ",
+    "title": "Храните свою секретную фразу для восстановления в безопасности!",
+    "description": "Эта секретная фраза для восстановления может помочь вам восстановить доступ, если вы когда-нибудь забудете свой пароль или потеряете доступ к своим данным для входа.",
     "description_bold": "разделе «Настройки» > «Безопасность и конфиденциальность».",
-    "description_continued": "Сохраните напоминание о своей секретной фразе для восстановления в безопасном месте. Если вы потеряете ее, никто не сможет помочь вам вернуть ее. Хуже того, вы больше никогда не сможете получить доступ к своему кошельку.",
+    "description_continued": " вы можете сохранить эту фразу в надежном месте, чтобы никогда не потерять доступ к своим деньгам.",
     "learn_more": "Узнайте подробнее",
     "learn_how": "Узнайте как",
     "leave_hint": "Оставить себе подсказку?",
@@ -138,10 +172,22 @@
     "default_settings_footer": "Настройки оптимизированы для простоты использования и безопасности.\nИзменяйте их в любое время.",
     "no_srp_title": "Напоминание установлено!",
     "no_srp_description": "Если вы не сможете войти в приложение или приобретете новое устройство, вы потеряете свои средства. Обязательно сохраните резервную копию секретной фразы для восстановления в",
-    "import_title": "Ваш кошелек готов",
-    "import_description": "Помните: если вы потеряете секретную фразу восстановления, вы потеряете доступ к своему кошельку. ",
-    "import_description2": "чтобы сохранить этот набор слов в безопасности и всегда иметь доступ к своим средствам.",
-    "done": "Готово"
+    "import_title": "Ваш кошелек готов!",
+    "import_description": "Если вы потеряете свою секретную фразу для восстановления, вы не сможете пользоваться своим кошельком.",
+    "import_description2": "вы можете сохранить эту фразу в надежном месте, чтобы никогда не потерять доступ к своим деньгам.",
+    "done": "Готово",
+    "create_hint": "Создайте подсказку пароля",
+    "hint_title": "Подсказка пароля",
+    "hint_description": "Оставьте себе подсказку, которая поможет вам вспомнить пароль. Эта подсказка хранится на вашем устройстве и не будет передаваться третьим сторонам.",
+    "hint_description2": "Помните: если вы потеряете пароль, вы не сможете пользоваться своим кошельком.",
+    "hint_button": "Создать подсказку",
+    "hint_placeholder": "например, дом мамы",
+    "hint_saved": "Сохранить",
+    "hint_saved_toast": "Подсказка пароля сохранена",
+    "remind_later": "Мы напомним вам позже",
+    "remind_later_description": "Если вы не сделаете резервную копию своей секретной фразы для восстановления, вы потеряете доступ к своим средствам, если не сможете войти в приложение или приобретете новое устройство.",
+    "remind_later_description2": "Вы можете создать резервную копию своих кошельков или увидеть свою секретную фразу для восстановления в",
+    "setting_security_privacy": "«Настройки» > «Безопасность и конфиденциальность»"
   },
   "onboarding_carousel": {
     "title1": "Добро пожаловать в MetaMask",
@@ -244,18 +290,20 @@
   "login": {
     "title": "С возвращением!",
     "password": "Пароль",
-    "unlock_button": "РАЗБЛОКИРОВАТЬ",
+    "password_placeholder": "Введите пароль",
+    "unlock_button": "Разблокировать",
     "go_back": "Кошелек не разблокируется? Вы можете УДАЛИТЬ текущий кошелек и создать новый",
-    "reset_wallet": "Сбросить кошелек",
+    "forgot_password": "Забыли пароль?",
     "cant_proceed": "Вы не сможете продолжить, пока не введете слово «Удалить». Этим действием вы выражаете согласие с удалением текущего кошелька.",
-    "invalid_password": "Недействительный пароль",
-    "type_delete": "Введите «%{delete}», чтобы навсегда удалить текущий кошелек",
-    "delete_my": "Удалить мой кошелек",
-    "are_you_sure": "Уверены, что хотите удалить свой кошелек?",
-    "your_current_wallet": "Ваш текущий кошелек, счета и активы будут",
-    "removed_from": "удалены из этого приложения навсегда.",
+    "invalid_password": "Неверный пароль. Попробуйте еще раз.",
+    "type_delete": "Введите «%{erase}» для подтверждения",
+    "erase_my": "Да, сбросить кошелек",
+    "cancel": "Отмена",
+    "are_you_sure": "Вы уверены?",
+    "your_current_wallet": "Ваш кошелек, счета и активы будут",
+    "removed_from": " навсегда удалены из этого приложения",
     "this_action": "Это действие нельзя отменить.",
-    "you_can_only": "Вы можете восстановить этот кошелек ТОЛЬКО с помощью",
+    "you_can_only": "Вы можете вернуть себе этот кошелек только с помощью информации, использованной при его создании, например, с помощью вашей секретной фразы для восстановления, аккаунта Google или Apple. У MetaMask нет этой информации.",
     "recovery_phrase": "Секретная фраза для восстановления ",
     "metamask_does_not": "MetaMask неизвестна ваша секретная фраза для восстановления.",
     "i_understand": "Я понял(-а), продолжить",
@@ -264,8 +312,30 @@
     "wrong_password_error_android": "Ошибка: ошибка: 1e000065:Функции шифрования: OPENSSL_internal: BAD_DECRYPT",
     "vault_error": "Ошибка: невозможно разблокировать без предыдущего хранилища.",
     "clean_vault_error": "В MetaMask возникла ошибка из-за достижения предела хранилища. Локальные данные повреждены. Переустановите MetaMask и выполните восстановление с помощью секретной фразы для восстановления.",
+    "seedless_password_outdated": "Your password was changed recently.",
+    "seedless_password_outdated_modal_title": "Your password was changed",
+    "seedless_password_outdated_modal_content": "Your password was recently changed, so you need to enter your new password to stay logged into MetaMask.",
+    "seedless_password_outdated_modal_confirm": "Continue",
     "security_alert_title": "Оповещение безопасности",
-    "security_alert_desc": "Чтобы продолжить, необходимо включить защиту паролем или любой метод биометрической аутентификации, поддерживаемый вашим устройством (FaceID, TouchID или отпечаток пальца)."
+    "security_alert_desc": "Чтобы продолжить, необходимо включить защиту паролем или любой метод биометрической аутентификации, поддерживаемый вашим устройством (FaceID, TouchID или отпечаток пальца).",
+    "too_many_attempts": "Слишком много попыток. Попробуйте еще раз через {{remainingTime}}",
+    "apple_button": "Войти через Apple",
+    "google_button": "Войти через Google",
+    "other_methods": "Использовать другой способ",
+    "forgot_password_desc": "Забыли пароль?",
+    "forgot_password_desc_2": "MetaMask не сможет восстановить ваш пароль для вас.",
+    "forgot_password_point_1": "Если вы вошли в MetaMask на устройстве с",
+    "forgot_password_point_1_bold": "включенной биометрией",
+    "forgot_password_point_1_1": "(такой как Face ID), вы можете сбросить свой пароль на этом устройстве.",
+    "forgot_password_point_2": "Если у вас есть ваша",
+    "forgot_password_point_2_bold": "Секретная фраза для восстановления,",
+    "forgot_password_point_2_1": "вы можете сбросить настройки текущего кошелька и повторно импортировать его, используя секретную фразу для восстановления.",
+    "reset_wallet": "Сброс кошелька",
+    "reset_wallet_desc": "Данные вашего кошелька будут",
+    "reset_wallet_desc_bold": "удалены навсегда",
+    "reset_wallet_desc_2": "из MetaMask на этом устройстве. Это нельзя отменить.",
+    "reset_wallet_desc_login": "Чтобы восстановить кошелек, вы можете использовать свою секретную фразу восстановления или пароль от аккаунта Google или Apple. У MetaMask нет этой информации.",
+    "reset_wallet_desc_srp": "Чтобы восстановить свой кошелек, вы можете использовать свою секретную фразу для восстановления. У MetaMask нет этой информации."
   },
   "connect_hardware": {
     "title_select_hardware": "Подключить аппаратный кошелек",
@@ -279,9 +349,10 @@
     "error": "Ошибка"
   },
   "choose_password": {
-    "title": "Создать пароль",
+    "title": "Пароль MetaMask",
+    "description": "Разблокирует MetaMask только на этом устройстве.",
     "subtitle": "Этот пароль разблокирует ваш кошелек MetaMask только на этом устройстве.",
-    "password": "Новый пароль",
+    "password": "Создать новый пароль",
     "confirm_password": "Подтвердить пароль",
     "create_button": "Создать пароль",
     "import_with_seed_phrase": "Импорт с помощью секретной фразы для восстановления",
@@ -294,7 +365,7 @@
     "show": "Показать",
     "hide": "Скрыть",
     "seed_phrase": "Секретная фраза для восстановления",
-    "must_be_at_least": "должна содержать не менее {{number}} символов",
+    "must_be_at_least": "Пароль должен содержать не менее {{number}} символов",
     "remember_me": "Запомнить меня",
     "security_alert_title": "Оповещение безопасности",
     "security_alert_message": "Чтобы продолжить, необходимо включить защиту паролем или любой метод биометрической аутентификации, поддерживаемый вашим устройством (FaceID, TouchID или отпечаток пальца).",
@@ -302,7 +373,10 @@
     "learn_more": "Подробнее.",
     "secure": "Безопасный кошелек",
     "confirm": "Подтвердить секретную фразу для восстановления",
-    "disable_biometric_error": "Вы отключили биометрию в приложение. Обновите настройки «Запомнить меня» и повторите попытку."
+    "disable_biometric_error": "Вы отключили биометрию в приложение. Обновите настройки «Запомнить меня» и повторите попытку.",
+    "create_password_cta": "Создать пароль",
+    "steps": "Шаг {{currentStep}} из {{totalSteps}}",
+    "password_error": "Пароли не совпадают. Попробуйте еще раз."
   },
   "reset_password": {
     "title": "Изменить пароль",
@@ -328,23 +402,57 @@
     "learn_more": "Подробнее.",
     "secure": "Безопасный кошелек",
     "confirm": "Подтвердить секретную фразу для восстановления",
-    "password_updated": "Пароль изменен",
-    "successfully_changed": "Ваш пароль успешно изменен"
+    "password_updated": "Новый пароль сохранен",
+    "successfully_changed": "Ваш пароль успешно изменен",
+    "new_password_placeholder": "Используйте минимум 8 символов",
+    "confirm_password_placeholder": "Повторно введите пароль",
+    "confirm_btn": "Сохранить",
+    "warning_password_change_title": "Вы уверены?",
+    "warning_password_change_description": "Изменение пароля здесь заблокирует MetaMask на других используемых вами устройствах. Вам потребуется снова войти в систему с новым паролем.",
+    "warning_password_change_button": "Подтвердить",
+    "warning_password_cancel_button": "Отмена",
+    "changing_password": "Изменение пароля...",
+    "changing_password_subtitle": "На это не потребуется много времени",
+    "checkbox_forgot_password": "Если я забуду этот пароль, я потеряю доступ к своему кошельку навсегда. MetaMask не может сбросить его для меня."
   },
   "import_from_seed": {
-    "title": "Импорт из секретной фразы для восстановления",
+    "title": "Импортировать кошелек",
     "seed_phrase_placeholder": "Введите свою секретную фразу для восстановления",
-    "new_password": "Новый пароль",
+    "create_new_password": "Создать новый пароль",
     "confirm_password": "Подтвердить пароль",
     "import_button": "ИМПОРТ",
     "cancel_button": "Отмена",
     "password_length_error": "Пароль должен содержать не менее 8 символов",
     "password_dont_match": "Пароли не совпадают",
     "seed_phrase_requirements": "Секретные фразы для восстановления содержат 12, 15, 18, 21 или 24 слова.",
-    "invalid_seed_phrase": "Недействительная секретная фраза для восстановления",
+    "invalid_seed_phrase": "Секретная фраза для восстановления не найдена.",
     "error": "Ошибка",
     "invalid_qr_code_title": "Недействительный QR-код",
-    "invalid_qr_code_message": "Этот QR-код не является действительной секретной фразой для восстановления."
+    "invalid_qr_code_message": "Этот QR-код не является действительной секретной фразой для восстановления.",
+    "enter_your_secret_recovery_phrase": "Введите свою секретную фразу для восстановления",
+    "metamask_password": "Пароль MetaMask",
+    "metamask_password_description": "Разблокирует MetaMask только на этом устройстве.",
+    "seed_phrase_required": "Требуется секретная фраза для восстановления",
+    "re_enter_password": "Повторно введите пароль",
+    "use_at_least_8_characters": "Используйте не менее 8 символов",
+    "unlock_with_face_id": "Разблокировать с помощью Face ID?",
+    "learn_more": "Если я забуду этот пароль, MetaMask не сможет восстановить его для меня.",
+    "learn_more_social_login": "Если я забуду этот пароль, я потеряю доступ к своему кошельку навсегда. MetaMask не может сбросить его для меня.",
+    "seed_phrase_length_error": "Секретная фраза для восстановления должна состоять из 12, 15, 18, 21 или 24 слов",
+    "continue": "Продолжить",
+    "clear_all": "Очистить все",
+    "show_all": "Показать все",
+    "paste": "Вставить",
+    "hide_all": "Скрыть все",
+    "srp": "Секретная фраза для восстановления",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching.",
+    "learn_more_link": "Подробнее",
+    "create_password_cta": "Создать пароль",
+    "pass_flow": "Продолжить с Flow",
+    "steps": "Шаг {{currentStep}} из {{totalSteps}}",
+    "password_error": "Пароли не совпадают. Попробуйте еще раз.",
+    "spellcheck_error": "Используйте только строчные буквы, проверьте орфографию и расположите слова в исходном порядке.",
+    "enter_strong_password": "Введите надежный пароль"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -390,7 +498,374 @@
     "network_missing_id": "Отсутствует ID блокчейна."
   },
   "deposit": {
-    "title": "Депозит"
+    "title": "Депозит",
+    "selectRegion": "Выберите регион",
+    "chooseYourRegionToContinue": "Выберите свой регион, чтобы продолжить",
+    "buildQuote": {
+      "payWith": "Оплатить с помощью",
+      "unexpectedError": "Произошла неожиданная ошибка.",
+      "quoteFetchError": "Не удалось получить котировку.",
+      "kycFormsFetchError": "Не удалось получить формы ЗСК.",
+      "title": "Внести депозит"
+    },
+    "token_modal": {
+      "select_a_token": "Выбрать токен",
+      "search_by_name_or_address": "Поиск токена по имени или адресу",
+      "no_tokens_found": "Нет токенов, соответствующих «{{searchString}}»"
+    },
+    "region_modal": {
+      "select_a_region": "Выберите регион",
+      "search_by_country": "Поиск по стране",
+      "no_regions_found": "Нет регионов, соответствующих «{{searchString}}»"
+    },
+    "state_modal": {
+      "select_a_state": "Выбрать штат",
+      "search_by_state": "Поиск по штату",
+      "no_state_results": "Нет штатов, соответствующих «{{searchString}}»"
+    },
+    "payment_modal": {
+      "select_a_payment_method": "Выберите способ оплаты"
+    },
+    "payment_duration": {
+      "instant": "Мгновенный",
+      "1_to_2_days": "От 1 до 2 дней"
+    },
+    "unsupported_region_modal": {
+      "title": "Регион не поддерживается",
+      "location_prefix": "Похоже, вы в:",
+      "description": "Мы активно работаем над расширением охвата вашего региона. Тем временем, возможно, вам доступны другие способы купить криптовалюту.",
+      "change_region": "Изменить регион",
+      "buy_crypto": "Купить криптовалюту"
+    },
+    "get_started": {
+      "navbar_title": "Deposit",
+      "title": "Starting is easy with USDC",
+      "bullet_1_title": "Стоимость, обеспеченная долларом США",
+      "bullet_1_description": "USDC is a digital dollar, backed by U.S. dollars, so you always know what it’s worth.",
+      "bullet_2_title": "Низкая волатильность",
+      "bullet_2_description": "USDC is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title": "Быстрее, чем банки",
+      "bullet_3_description": "Send and receive in minutes, no waiting for bank hours or international delays.",
+      "button": "С чего начать"
+    },
+    "enter_email": {
+      "navbar_title": "Verify your identity",
+      "title": "Введите свой адрес эл. почты",
+      "description": "We'll email you a six-digit verification code to securely log in or create an account with Transak.",
+      "input_placeholder": "name@domain.com",
+      "submit_button": "Отправить эл. письмо",
+      "loading": "Отправка эл. письма...",
+      "validation_error": "Введите действительный адрес эл. почты",
+      "error": "При отправке эл. письма возникла ошибка"
+    },
+    "otp_code": {
+      "navbar_title": "Verify your identity",
+      "title": "Введите шестизначный код",
+      "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
+      "submit_button": "Отправить",
+      "loading": "Отправить код...",
+      "invalid_code_error": "Недействительный код",
+      "validation_error": "Введите действительный код",
+      "need_help": "Нужна помощь?",
+      "resend_code_description": "Не получили код?",
+      "resend_code_error": "Ошибка повторной отправки кода.",
+      "resend_code_button": "Отправить повторно",
+      "resend_cooldown": "Повторно отправить код через {{seconds}} секунд(-ы)",
+      "contact_support": "Связаться со службой поддержки",
+      "error": "Ошибка проверки кода"
+    },
+    "verify_identity": {
+      "title": "Подтвердите свою личность",
+      "navbar_title": "Deposit",
+      "description_1": "To deposit cash for the first time, your identity must be verified.",
+      "description_2_transak": "Transak",
+      "description_2_rest": " will facilitate your deposit, and we work with them to ensure your privacy. We never store your data, and Transak never sells your data.",
+      "description_3_part1": "Check out our ",
+      "description_3_privacy_policy": "privacy policy",
+      "description_3_part2": " to learn more.",
+      "agreement_text_part1": "By clicking the button below, you agree to ",
+      "agreement_text_transak_terms": "Transak's Terms of Use",
+      "agreement_text_and": " and ",
+      "agreement_text_privacy_policy": "Privacy Policy",
+      "agreement_text_part2": ".",
+      "button": "Agree and continue"
+    },
+    "additional_verification": {
+      "title": "Additional Verification",
+      "paragraph_1": "For larger deposits, you’ll need a valid ID (like a driver’s license) and a real-time selfie.",
+      "paragraph_2": "In order to complete your verification, you’ll need to enable access to your camera.",
+      "button": "Continue"
+    },
+    "basic_info": {
+      "navbar_title": "Verify your identity",
+      "title": "Введите основную информацию",
+      "continue": "Продолжить",
+      "subtitle": "Next, we need some basic information about you.",
+      "first_name": "Имя",
+      "last_name": "Фамилия",
+      "phone_number": "Номер телефона",
+      "date_of_birth": "Date of birth",
+      "social_security_number": "Номер социального страхования",
+      "enter_phone_number": "Укажите номер телефона",
+      "select_region": "Выберите регион",
+      "first_name_required": "Нужно указать имя",
+      "first_name_invalid": "Введите допустимое имя",
+      "last_name_required": "Нужно указать фамилию",
+      "last_name_invalid": "Введите допустимую фамилию",
+      "mobile_number_required": "Нужно указать номер телефона",
+      "mobile_number_invalid": "Введите действительный номер телефона",
+      "dob_required": "Нужно указать дату рождения",
+      "dob_invalid": "Введите действительную дату рождения",
+      "ssn_required": "Нужно указать номер соцстрахования"
+    },
+    "enter_address": {
+      "navbar_title": "Verify your identity",
+      "title": "Введите ваш адрес",
+      "subtitle": "Use your most recent permanent address.",
+      "continue": "Продолжить",
+      "address_line_1": "Строка адреса 1",
+      "address_line_2": "Строка адреса 2 (необязательно)",
+      "state": "Штат/регион",
+      "city": "Город",
+      "postal_code": "Почтовый индекс",
+      "country": "Страна",
+      "select_state": "Выбрать штат",
+      "address_line_1_required": "Необходимо заполнить строку адреса 1",
+      "address_line_1_invalid": "Введите действительный адрес",
+      "address_line_2_invalid": "Введите действительный адрес",
+      "city_required": "Нужно указать город",
+      "city_invalid": "Введите действительный город",
+      "state_required": "Нужно указать штат/регион",
+      "state_invalid": "Введите действительный штат",
+      "postal_code_required": "Нужно указать почтовый индекс",
+      "postal_code_invalid": "Укажите действительный почтовый индекс",
+      "unexpected_error": "Unexpected error."
+    },
+    "privacy_section": {
+      "transak": "Transak шифрует и хранит эту информацию.",
+      "metamask": "MetaMask никогда не получает и не использует ваши данные."
+    },
+    "kyc_processing": {
+      "navbar_title": "Verify your identity",
+      "heading": "Hang tight...",
+      "description": "Это должно занять всего 2 минуты.",
+      "error_heading": "Мы не смогли подтвердить вашу личность.",
+      "error_description": "Попробуйте загрузить документы еще раз и повторно отправить их на проверку.",
+      "error_button": "Повторить проверку",
+      "success_heading": "You're verified",
+      "success_description": "Now you can complete your deposit.",
+      "success_button": "Завершить оформление заказа"
+    },
+    "provider_webview": {
+      "title": "Внести депозит"
+    },
+    "kyc_webview": {
+      "title": "Проверка вашей личности...",
+      "webview_received_error": "WebView получил код ошибки: {{code}}"
+    },
+    "order_processing": {
+      "title": "Обработка депозита...",
+      "button": "Закрыть",
+      "description": "Покупки по карте обычно занимают несколько минут",
+      "bank_transfer_description": "Банковские переводы обычно занимают несколько рабочих дней.",
+      "success_title": "Внесение средств завершено",
+      "success_description": "Ваш депозит на сумму {{amount}} {{currency}} внесен!",
+      "error_title": "Ошибка депозита",
+      "error_description": "Мы не смогли обработать ваш депозит",
+      "cancel_order_description": "Вы запросили отмену депозита.",
+      "error_button": "Повторите попытку",
+      "contact_support_button": "Связаться со службой поддержки",
+      "account": "Счет",
+      "network": "Сеть",
+      "order_id": "Ид. заказа",
+      "fees": "Комиссии",
+      "total": "Итого",
+      "view_order_details_in_transak": "Посмотреть детали заказа в Transak",
+      "no_order_found": "Заказ не найден",
+      "back_to_wallet": "Назад в кошелек",
+      "cancel_order_button": "Отменить ордер"
+    },
+    "order_details": {
+      "title": "Распоряжение о депозите",
+      "error_title": "Ошибка поручения о внесении депозита",
+      "error_message": "Произошла неожиданная ошибка."
+    },
+    "bank_details": {
+      "navbar_title": "{{paymentMethod}} bank transfer",
+      "button": "Bank transfer sent",
+      "button_cancel": "Отменить поручение",
+      "main_title": "Для выполнения поручения",
+      "main_content_1": "Инициируйте перевод из выбранного вами банка, используя информацию ниже.",
+      "main_content_2": "Закончив, вернитесь и нажмите «Банковский перевод отправлен» для подтверждения.",
+      "show_bank_info": "Показать банковские реквизиты",
+      "hide_bank_info": "Скрыть банковские реквизиты",
+      "transfer_amount": "Сумма перевода",
+      "account_holder_name": "Имя владельца счета",
+      "beneficiary_name": "Имя получателя",
+      "routing_number": "Код банка",
+      "account_number": "Номер счета",
+      "iban": "IBAN",
+      "bic": "БИК",
+      "account_type": "Тип счета",
+      "bank_name": "Название банка",
+      "bank_address": "Адрес банка",
+      "info_banner_text": "В качестве владельца счета вы должны увидеть «{{accountHolderName}}». Это поможет вашему банку обработать перевод.",
+      "error_message": "Нам не удалось подтвердить ваш банковский перевод. Попробуйте еще раз.",
+      "cancel_order_error": "Мы не смогли отменить ваше поручение. Попробуйте еще раз."
+    },
+    "webview_modal": {
+      "error": "Webview получил ошибку: %{code}"
+    },
+    "notifications": {
+      "deposit_failed_title": "Не удалось внести {{currency}}! Попробуйте еще раз. Приносим извинения за неудобства!",
+      "deposit_failed_description": "Проверьте ваш способ оплаты и поддержку карты",
+      "deposit_cancelled_title": "Ваш депозит отменен",
+      "deposit_cancelled_description": "Вы запросили отмену депозита.",
+      "deposit_completed_title": "Ваш депозит на сумму {{amount}} {{currency}} внесен!",
+      "deposit_completed_description": "Ваши {{currency}} уже доступны в вашем кошельке",
+      "deposit_pending_title": "Ваш депозит на сумму {{currency}} обрабатывается",
+      "deposit_pending_description": "Это должно занять всего несколько минут..."
+    },
+    "error_view": {
+      "title": "Возникла ошибка",
+      "description": "При обработке вашего депозита возникла ошибка. Если проблема не устранена, обратитесь в службу поддержки.",
+      "try_again": "Повторите попытку"
+    }
+  },
+  "perps": {
+    "title": "Торговля бессрочными контрактами",
+    "deposit": {
+      "title": "Внести депозит",
+      "preview": {
+        "title": "Предпросмотр депозита"
+      },
+      "processing": {
+        "title": "Обработка депозита..."
+      },
+      "success": {
+        "title": "Депозит внесен"
+      }
+    },
+    "order": {
+      "title": "Новый ордер",
+      "success": {
+        "title": "Ордер успешно размещен",
+        "subtitle": "Ваша позиция {{direction}} для {{asset}} создана",
+        "order_placed": "Order placed successfully",
+        "asset": "Актив",
+        "direction": "Направление",
+        "amount": "Сумма",
+        "order_id": "Order ID",
+        "view_positions": "View Positions",
+        "place_another": "Place Another Order"
+      },
+      "details": {
+        "title": "Информация об ордере"
+      },
+      "history": {
+        "title": "История ордеров"
+      },
+      "long_title": "Long {{asset}}",
+      "short_title": "Short {{asset}}",
+      "market": "Рынок",
+      "margin_required": "Margin required",
+      "leverage": "Кредитное плечо",
+      "liquidation_price": "Liquidation price",
+      "take_profit_stop_loss": "Take profit/Stop loss",
+      "add_tpsl": "Add",
+      "balance": "Баланс",
+      "fees": "Комиссии",
+      "place_order": "Place order",
+      "cannot_place_order": "Cannot place order ({{count}} errors)",
+      "tpsl_modal": {
+        "title": "Set take profit/stop loss",
+        "mark_price": "Mark price",
+        "set_limit": "Set limit",
+        "take_profit_short": "TP",
+        "stop_loss_short": "SL",
+        "add_tp": "+ TP",
+        "remove_tp": "✕ TP",
+        "add_sl": "+ SL",
+        "remove_sl": "✕ SL"
+      },
+      "validation": {
+        "failed": "Ошибка проверки ордера",
+        "amount_required": "Order amount must be greater than 0",
+        "minimum_amount": "Minimum order size is ${{amount}}",
+        "maximum_amount": "Maximum order size is ${{amount}}",
+        "insufficient_balance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
+        "invalid_leverage": "Leverage must be between {{min}}x and {{max}}x",
+        "high_leverage_warning": "High leverage increases liquidation risk",
+        "invalid_take_profit": "Take profit must be {{direction}} current price for {{positionType}} positions",
+        "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
+        "liquidation_warning": "Position is close to liquidation price"
+      },
+      "error": {
+        "placement_failed": "Order placement failed",
+        "network_error": "Network error",
+        "unknown": "Произошла неизвестная ошибка",
+        "dismiss": "Отклонить"
+      }
+    },
+    "position": {
+      "title": "Положения",
+      "details": {
+        "error_message": "Position data not found. Please go back and try again.",
+        "section_title": "Position"
+      },
+      "card": {
+        "entry_price": "Entry Price",
+        "market_price": "Market Price",
+        "liquidity_price": "Liquidity Price",
+        "take_profit": "Take Profit",
+        "stop_loss": "Stop Loss",
+        "margin": "Margin",
+        "not_set": "Not Set",
+        "edit_tpsl": "Edit TP/SL",
+        "close_position": "Close Position"
+      },
+      "list": {
+        "loading": "Loading positions...",
+        "error_title": "Error Loading Positions",
+        "empty_title": "No Open Positions",
+        "empty_description": "You don't have any open positions yet.\nStart trading to see your positions here.",
+        "open_positions": "Open Positions",
+        "position_count": "{{count}} position",
+        "position_count_plural": "{{count}} positions"
+      },
+      "account": {
+        "summary_title": "Account Summary",
+        "total_balance": "Total Balance",
+        "available_balance": "Available Balance",
+        "margin_used": "Margin Used",
+        "total_unrealized_pnl": "Total Unrealized P&L"
+      }
+    },
+    "trading": {
+      "title": "Perps Trading (Minimal)",
+      "subtitle": "Core Controller & Services Testing",
+      "network": "Network:",
+      "cached_balance": "Cached Balance:",
+      "loading_balance": "Loading balance...",
+      "balance_auto_load": "Balance will load automatically",
+      "get_account_balance": "Get Account Balance",
+      "switch_to_mainnet": "Switch to Mainnet",
+      "switch_to_testnet": "Switch to Testnet",
+      "positions": "Positions",
+      "result": "Result:"
+    },
+    "connection": {
+      "connecting": "Connecting to Perps...",
+      "initializing": "Initializing Perps controller...",
+      "connecting_to_trading": "Connecting to Perps trading...",
+      "failed": "Connection Failed",
+      "error_message": "Unable to connect to Perps trading service.",
+      "retry_connection": "Retry Connection",
+      "retrying_connection": "Connecting..."
+    },
+    "chart": {
+      "no_data": "No chart data available"
+    }
   },
   "receive": {
     "title": "Получить"
@@ -438,8 +913,20 @@
       "subtitle": "Управляйте просмотром баланса в настройках"
     },
     "multisrp": {
-      "title": "Add multiple Secret Recovery Phrases",
-      "subtitle": "Import and use multiple wallets in MetaMask"
+      "title": "Добавьте несколько секретных фраз для восстановления",
+      "subtitle": "Импорт и использование нескольких кошельков в MetaMask"
+    },
+    "solana": {
+      "title": "Теперь поддерживается Solana",
+      "subtitle": "Создайте счет Solana, чтобы приступить к делу"
+    },
+    "smartAccount": {
+      "title": "Начните использовать смарт-счета",
+      "subtitle": "Тот же адрес, более умные функции"
+    },
+    "backupAndSync": {
+      "title": "Представляем резервное копирование и синхронизацию",
+      "subtitle": "Создавайте резервные копии своих счетов и синхронизируйте настройки."
     }
   },
   "wallet": {
@@ -447,6 +934,7 @@
     "tokens": "ТОКЕНЫ",
     "collectible": "Коллекционный актив",
     "collectibles": "NFT",
+    "defi": "DeFi",
     "transactions": "ТРАНЗАКЦИИ",
     "no_collectibles": "Не видите свои NFT?",
     "no_available_tokens": "Не видите свой токен?",
@@ -477,6 +965,7 @@
     "sort_by": "Сортировать по",
     "filter_by": "Фильтровать по",
     "current_network": "Текущая сеть",
+    "popular_networks": "Популярные сети",
     "all_networks": "Все сети",
     "declining_balance": "Уменьшающийся баланс (максимум-минимум {{currency}})",
     "alphabetically": "По алфавиту (A-Z/А-Я)",
@@ -528,7 +1017,7 @@
     "logout_to_import_seed": "Для импорта секретной фразы для восстановления вам сначала нужно выйти из системы.",
     "ready_to_explore": "Готовы приступить к изучению приложений блокчейна?",
     "unable_to_load": "Не удалось загрузить баланс",
-    "unable_to_find_conversion_rate": "не удалось найти обменный курс",
+    "unable_to_find_conversion_rate": "без курса конверсии",
     "display_nft_media_desc": "Чтобы импортировать NFT, включите параметр «Отображение носителя NFT» в меню «Настройки» > «Безопасность и конфиденциальность».",
     "display_nft_media_cta": "Включите отображение носителя NFT",
     "display_media_nft_warning": "Отображение носителей и данных NFT может раскрыть ваш IP-адрес централизованным серверам. Импортируйте NFT только в том случае, если вы понимаете связанные с этим риски.",
@@ -610,6 +1099,18 @@
       "custom_security_tips": "Советы по безопасности"
     }
   },
+  "defi_positions": {
+    "loading_positions": "Загрузка позиций DeFi...",
+    "error_cannot_load_page": "Мы не смогли загрузить эту страницу.",
+    "error_visit_again": "Попробуйте зайти еще раз позже.",
+    "single_token": "Только {{symbol}}",
+    "two_tokens": "{{symbol}} +1 другой",
+    "multiple_tokens": "{{symbol}} +{{count}} других",
+    "supply": "Поставлено",
+    "stake": "В стейкинге",
+    "borrow": "Заимствовано",
+    "reward": "Вознаграждения"
+  },
   "terms_and_conditions": {
     "title": "Положения и условия",
     "description": "Продолжая, вы принимаете следующие документы:",
@@ -630,9 +1131,9 @@
     "action_description_1_prefix": "Приватными:",
     "action_description_2_prefix": "Общедоступными:",
     "action_description_3_prefix": "Необязательными:",
-    "action_description_1_description": "клики и просмотры в приложении сохраняются, но другие данные (например, ваш публичный адрес) — нет.",
-    "action_description_2_description": "мы временно используем ваш IP-адрес для определения общего местоположения (например, вашей страны или региона), но он никогда не сохраняется.",
-    "action_description_3_description": "вы в любое время решаете, хотите ли вы поделиться своими данными об использовании или удалить их в настройках.",
+    "action_description_1_description": "Клики и просмотры в приложении сохраняются, но другие данные (например, ваш публичный адрес) — нет.",
+    "action_description_2_description": "Мы временно используем ваш IP-адрес для определения общего местоположения (например, вашей страны или региона), но он никогда не сохраняется.",
+    "action_description_3_description": "Вы в любое время решаете, хотите ли вы поделиться своими данными об использовании или удалить их в настройках.",
     "cta_no_thanks": "Нет, спасибо",
     "cta_i_agree": "Я согласен(-на)",
     "fine_print_1_legacy": "Эти данные агрегированы и, следовательно, являются анонимными для целей Общего регламента по защите данных (ЕС) 2016/679.",
@@ -690,7 +1191,8 @@
     "circulating_supply": "Циркулирующее предложение",
     "all_time_high": "Максимум за все время",
     "all_time_low": "Минимум за все время",
-    "fully_diluted": "Полностью разбавленные"
+    "fully_diluted": "Полностью разбавленные",
+    "unknown": "Неизвестно"
   },
   "collectible": {
     "collectible_address": "Адрес",
@@ -724,8 +1226,10 @@
     "receive": "ПОЛУЧИТЬ"
   },
   "accounts": {
+    "srp_index": "SRP №{{index}}",
     "snap_account_tag": "Snaps (бета-версия)",
     "create_new_account": "Создать новый счет",
+    "new_account": "Новый счет",
     "import_account": "Импортировать счет",
     "connect_hardware": "Подключить аппаратный кошелек",
     "imported": "Импортирован",
@@ -785,7 +1289,21 @@
     "add_new_hd_account_helper_text": "Секретная фраза для восстановления, на основе которой будет сгенерирован ваш счет",
     "accounts": "счета",
     "show_accounts": "Показать",
-    "hide_accounts": "Скрыть"
+    "hide_accounts": "Скрыть",
+    "labels": {
+      "bitcoin_testnet_account_name": "Счет тестнета Биткойн",
+      "bitcoin_account_name": "Счет Биткойн",
+      "solana_devnet_account_name": "Счет девнета Solana",
+      "solana_testnet_account_name": "Счет тестнета Solana",
+      "solana_account_name": "Счет Solana"
+    },
+    "error_messages": {
+      "failed_to_create_account": "Не удалось создать счет {{clientType}}"
+    },
+    "account_connect_create_initial_account": {
+      "description": "Для подключения к этому сайту необходим счет Solana.",
+      "button": "Создать счет Solana"
+    }
   },
   "toast": {
     "connected_and_active": "подключен и активен.",
@@ -844,8 +1362,6 @@
     "reset_notifications_description": "Сброс уведомлений приведет к удалению ключей хранения уведомлений и сбросу всей истории уведомлений. Уверены, что хотите это сделать?",
     "reset_notifications": "Сбросить уведомления",
     "reset_notifications_success": "Ключ хранения уведомлений удален и/или создан заново, а история уведомлений сброшена.",
-    "enabling_profile_sync": "Включение синхронизации профиля...",
-    "disabling_profile_sync": "Отключение синхронизации профиля...",
     "notifications_dismiss_modal": "Отклонить",
     "select_rpc_url": "Выберите URL-адрес RPC",
     "title": "Настройки",
@@ -893,9 +1409,11 @@
     "clear_browser_cookies_desc": "Очистить файлы cookie браузера",
     "clear": "ОЧИСТИТЬ",
     "protect_cta": "Защитить",
-    "protect_title": "Защитите свой кошелек",
+    "protect_title": "Восстановление кошелька",
+    "banner_social_login_enabled": "Войти с помощью {{authConnection}}",
+    "manage_recovery_method": "Управление способами восстановления",
     "video_failed": "Не удалось загрузить видео.",
-    "protect_desc": "Защитите свой кошелек, сохранив секретную фразу для восстановления в месте, которое доступно только вам и про которое вы не забудете. Ни в коем случае не храните фразу в Интернете для оптимальной безопасности.",
+    "protect_desc": "Сохраните свою секретную фразу для восстановления, чтобы никогда не терять доступ к своему кошельку. Обязательно сохраните ее в безопасном месте, к которому сможете получить доступ только вы и которое вы не забудете.",
     "protect_desc_no_backup": "Это фраза из 12 слов для защиты вашего кошелька. Ее можно использовать для управления всеми вашими текущими и будущими счетами, включая возможность отправлять средства в ваш кошелек. Храните эту фразу в надежном месте, НЕ ПЕРЕДАВАЙТЕ ее никому. MetaMask не сможет помочь вам восстановить этот ключ.",
     "learn_more": "Подробнее.",
     "seedphrase_not_backed_up": "Важно! Не создана резервная копия секретной фразы для восстановления",
@@ -956,7 +1474,7 @@
     "no_permissions_desc": "Если вы подключите счет к сайту или приложению, вы увидите его здесь.",
     "security_title": "Безопасность и конфиденциальность",
     "back": "Назад",
-    "security_desc": "Настройки конфиденциальности, MetaMetrics, закрытый ключ и секретная фраза для восстановления кошелька",
+    "security_desc": "Настройки конфиденциальности, MetaMetrics, закрытый ключ и секретная фраза для восстановления.",
     "networks_title": "Сети",
     "networks_default_title": "Сеть по умолчанию",
     "network_delete": "Если вы удалите эту сеть, вам нужно будет добавить ее снова, чтобы просмотреть свои активы в этой сети",
@@ -966,11 +1484,11 @@
     "networks_desc": "Добавляйте и редактируйте пользовательские сети RPC",
     "network_name_label": "Имя сети",
     "network_name_placeholder": "Имя сети (необязательно)",
-    "network_rpc_url_label": "RPC URL",
+    "network_rpc_url_label": "URL-адрес RPC",
     "network_rpc_name_label": "Имя RPC",
     "network_rpc_placeholder": "Новая сеть RPC",
-    "network_failover_rpc_url_label": "Failover RPC URL",
-    "failover": "Failover",
+    "network_failover_rpc_url_label": "URL-адрес отказоустойчивого RPC",
+    "failover": "Отказоустойчивость",
     "network_chain_id_label": "ID блокчейна",
     "network_chain_id_placeholder": "ID блокчейна",
     "network_symbol_label": "Символ",
@@ -1021,9 +1539,6 @@
     "invalid_password": "Недействительный пароль",
     "invalid_password_message": "Неверный пароль. Попробуйте еще раз.",
     "security_heading": "Безопасность",
-    "ses_heading": "Блокировка кода",
-    "ses_description": "Это тестовая функция, которая блокирует любые неразрешенные изменения в коде JavaScript приложения.",
-    "ses_link": "Подробнее",
     "general_heading": "Общие сведения",
     "privacy_heading": "Конфиденциальность",
     "failed_to_fetch_chain_id": "Не удалось получить ID блокчейна. Верен ли ваш URL RPC?",
@@ -1073,9 +1588,9 @@
     "check_status_button": "Проверить статус",
     "delete_metrics_confirm_modal_title": "Удалить данные MetaMetrics?",
     "delete_metrics_confirm_modal_description": "Мы собираемся удалить всю все данные MetaMetrics. Вы уверены?",
-    "delete_wallet_data_title": "Удалить кошелек",
+    "delete_wallet_data_title": "Сброс кошелька",
     "delete_wallet_data_description": "Это удалит все данные, связанные с кошельком, с вашего устройства. Ваши счета существуют в блокчейне и не связаны с MetaMask. Вы всегда можете восстановить свои счета, используя секретную фразу для восстановления.",
-    "delete_wallet_data_button": "Удалить кошелек",
+    "delete_wallet_data_button": "Сброс кошелька",
     "delete_data_status_title": "Статус задачи удаления",
     "delete_data_status_description": "Текущий статус —",
     "delete_metrics_error_title": "Мы не можем удалить эти данные прямо сейчас.",
@@ -1102,21 +1617,26 @@
       "key": "Ключ",
       "add": "Добавить",
       "update": "Обновить",
-      "cancel": "Отмена"
+      "cancel": "Отмена",
+      "deposit_provider_logout_button": "Выйти из {{depositProviderName}}",
+      "deposit_provider_logged_out": "Выполнен выход из {{depositProviderName}}"
     },
     "request_feature": "Запросить функцию",
     "contact_support": "Обратитесь в поддержку",
     "display_nft_media": "Показать носитель NFT",
     "display_nft_media_desc": "Отображение носителей и данных NFT раскрывает ваш IP-адрес OpenSea или другим третьим лицам. Автоопределение NFT основано на этой функции и не будет доступно, когда она отключена.",
     "autodetect_nft_desc": "Разрешает MetaMask добавлять ваши собственные NFT с помощью сторонних сервисов (например, OpenSea). Автоопределение NFT раскрывает ваш IP-адрес и адрес счета этим сервисам. Включение этой функции может связать ваш IP-адрес с вашим адресом Ethereum и отобразить поддельные NFT-файлы, аирдропнутые мошенниками. Вы можете добавлять токены вручную, чтобы избежать этого риска.",
-    "incoming_transactions_title": "Показать входящие транзакции",
-    "incoming_transactions_content": "Это зависит от выбранной вами сети, которая будет раскрывать ваш адрес Ethereum и ваш IP-адрес.",
     "display_nft_media_desc_new": "Отображение носителей и данных NFT раскрывает ваш IP-адрес OpenSea или другим третьим сторонам. Автоопределение NFT основано на этой функции и не будет доступно, если оно отключено. Если носитель NFT полностью расположен в IPFS, он все равно может отображаться, даже если эта функция отключена.",
     "use_safe_chains_list_validation_desc_1": "MetaMask использует сторонний сервис под названием ",
     "use_safe_chains_list_validation_desc_2": "для отображения точных и стандартизированных сведений о сети. Это снижает ваши шансы подключиться к вредоносной или неправильной сети. При использовании этой функции ваш IP-адрес доступен сети  ",
     "snaps": {
       "title": "Snaps",
       "description": "Обзор ваших snaps и управление ими",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Открывается в новой вкладке"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Удалить snap",
         "remove_snap_section_description": "Это действие приведет к удалению snap, его данных и предоставленных ему разрешений.",
@@ -1173,7 +1693,13 @@
           "endowment:caveat:transaction-origin": "Просмотр происхождения сайтов, которые предлагают транзакции",
           "endowment:extend-runtime": "Продление времени работы",
           "snap_dialog": "Отображение пользовательских диалогов",
-          "snap_manageAccounts": "Добавлять счета Ethereum и управлять ими"
+          "snap_manageAccounts": "Добавлять счета Ethereum и управлять ими",
+          "endowment:signature-insight": "Отображение модального окна сведений о подписи",
+          "endowment:protocol": "Предоставьте данные протокола для одного или нескольких блокчейнов",
+          "snap_getPreferences": "Просматривайте информацию, например, предпочитаемый вами язык и фиатную валюту",
+          "endowment:lifecycle-hooks": "Используйте хуки жизненного цикла",
+          "endowment:name-lookup": "Обеспечьте поиск доменов и адресов",
+          "endowment:page-home": "Отображать пользовательский экран"
         }
       }
     },
@@ -1187,6 +1713,11 @@
     "blockaid_desc": "Эта функция предупреждает вас о вредоносной активности, активно проверяя транзакции и запросы на подпись.",
     "security_alerts": "Оповещения безопасности",
     "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика.",
+    "dismiss_smart_account_update_heading": "Отклонить предложение «Перейти на смарт-счет»",
+    "dismiss_smart_account_update_desc": "Включите этот параметр, чтобы больше не видеть предложение «Перейти на смарт-счет» ни в одном из счетов. Смарт-счета дают доступ к более быстрым транзакциям, более низким комиссиям сети и большей гибкости при оплате на них.",
+    "use_smart_account_heading": "Использовать смарт-счет",
+    "use_smart_account_desc": "Включите этот параметр, чтобы автоматически менять счета, созданные в MetaMask, на смарт-счета, когда для них доступны соответствующие функции, такие как более быстрые транзакции, более низкие комиссии сети и гибкость при оплате.",
+    "use_smart_account_learn_more": "Узнайте подробнее.",
     "smart_transactions_opt_in_heading": "Умные транзакции",
     "smart_transactions_opt_in_desc_supported_networks": "Включите функцию «Умные транзакции» для более надежных и безопасных транзакций в поддерживаемых сетях.",
     "smart_transactions_learn_more": "Узнайте подробнее.",
@@ -1271,14 +1802,14 @@
     "done": "Готово",
     "confirm": "Далее",
     "seed_phrase_explanation": [
-      "-",
-      "Секретная фраза для восстановления (СФВ)",
+      "Ваша",
+      "секретная фраза для восстановления",
       "предоставляет",
       "полный доступ к вашему кошельку, средствам и счетам.\n\n",
       "MetaMask — это",
       "некастодиальный кошелек.",
       "Это означает",
-      "что только вы знаете свою секретную фразу для восстановления."
+      "вы являетесь владельцем своей секретной фразы для восстановления."
     ],
     "private_key_explanation": "Сохраните ее в надежном секретном месте.",
     "private_key_warning": "Это закрытый ключ для текущего выбранного счета: {{accountName}}. Никогда никому не сообщайте этот ключ. Любой, у кого есть ваш закрытый ключ, может полностью контролировать ваш счет, включая перевод любых средств.",
@@ -1330,7 +1861,8 @@
     "password_title": "Пароль",
     "password_desc": "Выберите надежный пароль, чтобы разблокировать приложение MetaMask на устройстве. Если вы потеряете этот пароль, вам потребуется секретная фраза для восстановления для повторного импорта кошелька.",
     "password_learn_more": "Подробнее.",
-    "change_password": "Изменить пароль"
+    "change_password": "Изменить пароль",
+    "password_hint": "Подсказка пароля"
   },
   "asset_overview": {
     "send_button": "Отправить",
@@ -1340,6 +1872,7 @@
     "receive_button": "Получить",
     "portfolio_button": "Portfolio",
     "earn_button": "Заработать",
+    "perps_button": "Бессрочные контракты",
     "add_collectible_button": "Добавить",
     "info": "Информация",
     "swap": "Своп",
@@ -1352,7 +1885,8 @@
       "bridge": "Этот счет не поддерживает создание моста",
       "send": "Этот счет не поддерживает отправку",
       "action": "Этот счет не поддерживает создание данное действие",
-      "earn": "Зарабатывание не поддерживается для этого счета"
+      "earn": "Зарабатывание не поддерживается для этого счета",
+      "perps": "Торговля бессрочными контрактами для этого счета не поддерживается."
     },
     "description": "Описание",
     "totalSupply": "Общий объем предложения",
@@ -1369,6 +1903,7 @@
     "send_description": "Отправляйте криптовалюту на любой счет",
     "receive_description": "Получить криптовалюту",
     "earn_description": "Зарабатывайте награды за свои токены",
+    "perps_description": "Торговля бессрочными контрактами",
     "chart_time_period": {
       "1d": "Сегодня",
       "7d": "Последние 7 дней",
@@ -1459,7 +1994,8 @@
     "url_redirection_alert_title": "Вы собираетесь перейти по внешней ссылке",
     "url_redirection_alert_desc": "Ссылки могут быть использованы для обмана или фишинга, поэтому обязательно посещайте только те сайты, которым доверяете.",
     "label": "Сканировать QR-код",
-    "open_settings": "Настройки"
+    "open_settings": "Настройки",
+    "camera_not_available": "Camera not available"
   },
   "action_view": {
     "cancel": "Отмена",
@@ -1487,6 +2023,7 @@
     "gas_fee_slow": "МЕДЛЕННО",
     "hex_data": "Шестнадцатеричные данные",
     "custom_nonce": "Одноразовый код",
+    "custom_nonce_tooltip": "Это номер транзакции по счету. Одноразовый код для первой транзакции равен 0 и увеличивается в последовательном порядке.",
     "this_is_an_advanced": "Это расширенная функция, используемая для отмены или ускорения любых ожидающих транзакций.",
     "current_suggested_nonce": "Текущий рекомендуемый одноразовый код:",
     "edit_transaction_nonce": "Изменить одноразовый номер транзакции",
@@ -1666,7 +2203,6 @@
     "share": "Поделиться",
     "bookmark": "Закладка",
     "add_to_favorites": "Добавить в Избранное",
-    "go_to_favorites": "Перейти в Избранное",
     "error": "Ошибка",
     "cancel": "Отмена",
     "go_back": "Назад",
@@ -1742,6 +2278,8 @@
     "tx_review_staking_claim": "Получение стейкинга",
     "tx_review_staking_deposit": "Депозит для стейкинга",
     "tx_review_staking_unstake": "Отменить стейкинг",
+    "tx_review_lending_deposit": "Кредитование депозита",
+    "tx_review_lending_withdraw": "Кредитование вывода средств",
     "sent_ether": "Отправлен эфир",
     "self_sent_ether": "Отправил(-а) себе эфир",
     "received_ether": "Получен эфир",
@@ -1765,6 +2303,7 @@
     "tx_details_not_available": "Недоступен",
     "smart_contract_interaction": "Взаимодействие со смарт-контрактом",
     "swaps_transaction": "Транзакция свопа",
+    "bridge_transaction": "Мост",
     "approve": "Одобрить",
     "increase_allowance": "Увеличить квоту",
     "set_approval_for_all": "Одобрить все",
@@ -1807,8 +2346,44 @@
     "sign_description_2": "нажмите «Получить подпись»",
     "sign_get_signature": "Получить подпись",
     "transaction_id": "ID транзакции",
+    "network": "Сеть",
+    "request_from": "Запрос от",
     "network_fee": "Комиссия сети",
-    "network_fee_tooltip": "Сумма, уплачиваемая за обработку транзакции в сети."
+    "network_fee_tooltip": "Сумма, уплачиваемая за обработку транзакции в сети.",
+    "smart_account_upgrade": "Повысить уровень до смарт-счета",
+    "smart_account_downgrade": "Перейти на стандартный счет",
+    "batched_transactions": "Пакетные транзакции",
+    "gas_modal": {
+      "edit_network_fee": "Изменить комиссию сети",
+      "advanced_gas_fee": "Дополнительная комиссия сети",
+      "site_suggested": "Рекомендовано сайтом",
+      "advanced": "Дополнительно",
+      "low": "Низкая",
+      "medium": "Рынок",
+      "high": "Агрессивный",
+      "network_suggested": "Рекомендовано сетью",
+      "gas_limit": "Лимит газа",
+      "save": "Сохранить",
+      "max_base_fee": "Максимальная базовая комиссия",
+      "priority_fee": "Плата за приоритет",
+      "current_priority_fee": "Текущая: {{min}} – {{max}} Гвей",
+      "historical_priority_fee": "12 ч: {{min}} – {{max}} Гвей",
+      "estimated_base_fee": "Текущая: {{value}} Гвей",
+      "historical_base_fee": "12 ч: {{min}} – {{max}} Гвей",
+      "gas_price": "Цена газа",
+      "field_required": "{{field}} необходимо заполнить",
+      "max_base_fee_required": "Требуется максимальная базовая комиссия",
+      "gas_price_required": "Требуется цена газа",
+      "priority_fee_required": "Требуется плата за приоритет",
+      "gas_limit_required": "Требуется лимит газа",
+      "only_numbers_allowed": "Разрешены только цифры",
+      "negative_values_not_allowed": "Отрицательные значения не допускаются",
+      "max_base_fee_must_be_greater_than_priority_fee": "Максимальная базовая комиссия должна быть больше платы за приоритет",
+      "gas_limit_too_low": "Лимит газа должен быть больше 21 000",
+      "priority_fee_too_high": "Плата за приоритет должна быть меньше максимальной базовой комиссии",
+      "no_zero_value": "{{field}} должно быть больше 0",
+      "speed": "Скорость"
+    }
   },
   "smart_transactions": {
     "status_submitting_header": "Ваша транзакция отправляется",
@@ -1851,7 +2426,8 @@
     "add_input_placeholder": "Публичный адрес (0x) или ENS",
     "between_account": "Перевести между моими счетами",
     "others": "Иные",
-    "memo": "Заметка"
+    "memo": "Заметка",
+    "network": "Сеть"
   },
   "duplicate_address": {
     "title": "Это повторяющийся адрес",
@@ -1958,6 +2534,9 @@
     "edit_permissions": "Изменить разрешения",
     "permitted_networks_info_sheet_description": "Это список сетей, которым вы ранее предоставили разрешения на использование на этом сайте. Выберите один из списка или измените сетевые разрешения для этого сайта.",
     "connect_an_account": "Подключить счет"
+  },
+  "account_dapp_connections": {
+    "account_summary_header": "Подключить этот сайт к MetaMask"
   },
   "select": {
     "cancel": "Отмена",
@@ -2090,7 +2669,7 @@
     "info_text_2": "Это гарантирует, что только вы сможете получить доступ к своим средствам, и позволит вам восстановить кошелек, если вы потеряете устройство.",
     "cta_text": "Создать пароль",
     "creating_password": "Создание пароля...",
-    "srp_list_selection": "Select Secret Recovery Phrase"
+    "srp_list_selection": "Выберите секретную фразу для восстановления"
   },
   "account_backup_step_1": {
     "remind_me_later": "Напомнить мне позже",
@@ -2100,16 +2679,21 @@
     "info_text_1_2": "Секретная фраза для восстановления",
     "info_text_1_3": "в месте, которому вы доверяете.",
     "info_text_1_4": "Это единственный способ восстановить кошелек, если вы заблокируете доступ к приложению или приобретете новое устройство.",
-    "cta_text": "Начать",
+    "cta_text": "С чего начать",
     "cta_subText": "Настоятельно рекомендуется",
     "skip_button_cancel": "Защитить сейчас",
     "skip_button_confirm": "Пропустить",
     "skip_title": "Пропустить этап защиты счета?",
-    "skip_check": "Я понимаю, что если я потеряю секретную фразу для восстановления, я не смогу получить доступ к своему кошельку.",
+    "skip_check": "Если вы потеряете эту секретную фразу для восстановления, вы утратите доступ к этому кошельку.",
     "what_is_seedphrase_title": "Что такое секретная фраза для восстановления?",
-    "what_is_seedphrase_text_1": "Секретная фраза для восстановления — это набор из двенадцати слов, который содержит всю информацию о вашем кошельке, в том числе о ваших средствах в нем. Эта фраза является аналогом секретного кода, используемого для доступа ко всему вашему кошельку.",
+    "what_is_seedphrase_text_1": "Секретная фраза для восстановления, также называемая сид-фразой или мнемонической фразой, представляет собой набор слов, который позволяет вам получить доступ к вашему криптокошельку и управлять им. Чтобы переместить ваш кошелек в MetaMask, вам нужна эта фраза.",
     "what_is_seedphrase_text_2": "Вам нужно сохранить секретную фразу для восстановления в тайне и в безопасном месте. Если кто-то узнает эту фразу, этот человек получит контроль над вашими счетами.",
-    "what_is_seedphrase_text_3": "Сохраните фразу в месте, к которому только вы можете получить доступ. Если вы ее потеряете, даже MetaMask не поможет вам ее восстановить."
+    "what_is_seedphrase_text_3": "Сохраните фразу в месте, к которому только вы можете получить доступ. Если вы ее потеряете, даже MetaMask не поможет вам ее восстановить.",
+    "what_is_seedphrase_text_4": "Любой, кто знает вашу секретную фразу для восстановления, может:",
+    "seedPhrase_point_1": "Снимите все свои деньги",
+    "seedPhrase_point_2": "Подтвердите транзакции",
+    "seedPhrase_point_3": "Измените данные для входа",
+    "what_is_seedphrase_confirm": "Понятно"
   },
   "account_backup_step_1B": {
     "title": "Защитите свой кошелек",
@@ -2200,25 +2784,40 @@
     "progressThree": "Подтвердить секретную фразу для восстановления"
   },
   "manual_backup_step_1": {
-    "action": "Запишите секретную фразу для восстановления",
-    "info": "Это ваша секретная фраза для восстановления. Запишите ее на бумаге и поместите на хранение в надежное место. Вам будет предложено повторно ввести эту фразу (слова по порядку) на следующем шаге.",
+    "steps": "Шаг {{currentStep}} из {{totalSteps}}",
+    "action": "Сохраните свою секретную фразу для восстановления",
+    "info-1": "Это ваша",
+    "info-2": "Секретная фраза для восстановления",
+    "info-3": "Запишите ее в правильном порядке и сохраните в безопасности. Если у какого-либо человека есть ваша секретная фраза для восстановления, он может получить доступ к вашему кошельку.",
+    "info-4": "Никогда не передавайте ее никому.",
     "continue": "Продолжить",
-    "reveal": "Нажмите для отображения секретной фразы для восстановления",
+    "reveal": "Нажмите, чтобы показать",
     "watching": "Убедитесь, что никто не смотрит на ваш экран.",
     "view": "Просмотр",
     "confirm_password": "Подтвердите пароль",
     "before_continiuing": "Прежде чем продолжить, нам нужно, чтобы вы подтвердили пароль",
-    "confirm": "ПОДТВЕРДИТЬ",
+    "enter_current_password": "Введите свой текущий пароль",
+    "confirm": "Подтвердить",
     "got_it": "Понятно",
-    "learn_more": "Подробнее"
+    "learn_more": "Подробнее",
+    "password": "Пароль"
   },
   "manual_backup_step_2": {
-    "action": "Подтвердить секретную фразу для восстановления",
-    "info": "Выберите каждое слово в том порядке, в котором оно было показано вам.",
+    "steps": "Шаг {{currentStep}} из {{totalSteps}}",
+    "action": "Подтвердите секретную фразу для восстановления",
+    "info": "Выберите пропущенные слова в правильном порядке.",
     "complete": "Полное резервное копирование",
-    "success": "Успех"
+    "success": "Успех",
+    "error-title": "Не совсем верно",
+    "error-description": "Перепроверьте свою секретную фразу восстановления и повторите попытку.",
+    "success-title": "Отлично!",
+    "success-description": "Совершенно верно! И помните: никогда и ни с кем не делитесь этой фразой.",
+    "success-button": "Понятно",
+    "error-button": "Повторите попытку",
+    "continue": "Продолжить"
   },
   "manual_backup_step_3": {
+    "steps": "Шаг {{currentStep}} из {{totalSteps}}",
     "congratulations": "Поздравляем",
     "success": "Вы успешно защитили свой кошелек. Храните секретную фразу для восстановления в тайне — вы отвечаете за ее сохранность!",
     "hint": "Оставить себе подсказку?",
@@ -2731,7 +3330,7 @@
     "minimum": "Минимальный депозит равен",
     "maximum": "Максимальный депозит равен",
     "insufficient_balance": "Эта сумма превышает ваш баланс",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "У вас недостаточно {{currency}} для оплаты платы за газ.",
     "enter_larger_amount": "Введите большую сумму, чтобы продолжить",
     "enter_smaller_amount": "Введите меньшую сумму, чтобы продолжить",
     "enter_lower_gas_fees": "Введите меньшую сумму для оплаты газа",
@@ -2836,9 +3435,11 @@
       "sale_pending_title": "Купля-продажа {{currency}} обрабатывается",
       "sale_pending_description": "Ваш ордер обрабатывается.",
       "no_date": "Неизвестно"
-    }
+    },
+    "deposit_order_title": "Депозит на сумму {{currency}}"
   },
   "swaps": {
+    "title": "Своп",
     "onboarding": {
       "get_the": "Получите",
       "best_price": "лучшую цену",
@@ -3271,15 +3872,6 @@
     "enable_remember_me": "Включить \"Запомнить меня\"",
     "enable_remember_me_description": "Когда функция \"Запомнить меня\" включена, любой, у кого есть доступ к вашему телефону, может получить доступ к вашему счету MetaMask."
   },
-  "profile_sync": {
-    "title": "Синхронизация профиля",
-    "disable_warning": "Если вы отключите синхронизацию профиля, вы не сможете получать уведомления.",
-    "enable_description": "Создает профиль, который MetaMask использует для синхронизации некоторых настроек между вашими устройствами. Это необходимо для получения уведомлений. ",
-    "enable_description2": " для получения дополнительной информации.",
-    "enable_privacy_link": "Узнайте, как мы защищаем вашу конфиденциальность",
-    "bottomSheetTurnOn": "Включение синхронизации профиля",
-    "bottomSheetTurnOff": "Выключение синхронизации профиля"
-  },
   "turn_off_remember_me": {
     "title": "Введите пароль, чтобы отключить \"Запомнить меня\"",
     "placeholder": "Пароль",
@@ -3298,16 +3890,16 @@
     "description": "Автоматическая проверка обновлений может привести к тому, что ваш IP-адрес станет доступен серверам GitHub. Это указывает только на то, что ваш IP-адрес использует MetaMask. Никакая другая информация или адреса счетов не раскрываются."
   },
   "terms_of_use_modal": {
-    "title": "Ознакомьтесь с нашими последними Условиями использования",
+    "title": "Ознакомьтесь с нашими Условиями использования",
     "terms_of_use_check_description": "Я согласен(-на) с Условиями использования, которые применяются к использованию мною MetaMask и всех его функций",
     "accept_cta": "Согласиться",
-    "accept_helper_description": "Прокрутите, чтобы прочитать все разделы"
+    "accept_helper_description": "Прокрутите, чтобы прочитать все разделы",
+    "agree_cta": "Согласиться"
   },
   "update_needed": {
-    "title": "Требуются обновления",
-    "description": "Мы повысили безопасность вашего кошелька! Пожалуйста, найдите время, чтобы защитить себя и обновить его до последней версии.",
-    "primary_action": "Обновить до последней версии",
-    "secondary_action": "Что-то пошло не так"
+    "title": "Получите новейшие функции",
+    "description": "Мы сделали ваш кошелек безопаснее и удобнее, а также добавили несколько новых функций. Обновите его сейчас, чтобы оставаться под защитой и использовать наши последние улучшения.",
+    "primary_action": "Обновить до последней версии"
   },
   "enable_automatic_security_check_modal": {
     "title": "Автоматически проверять наличие обновлений безопасности?",
@@ -3482,6 +4074,7 @@
     "connect_hardware_wallet": "Подключить счет",
     "import_wallet_or_account": "Импортировать кошелек или счет",
     "add_account": "Создать новый счет",
+    "add_multichain_account": "Создайте новый счет {{networkName}}",
     "create_an_account": "Создать новый счет",
     "add_new_account": "Счет Ethereum",
     "import_srp": "Секретная фраза для восстановления",
@@ -3489,7 +4082,12 @@
     "import_account": "Закрытый ключ",
     "add_bitcoin_account_testnet": "Счет тестнета Биткойна",
     "add_bitcoin_account_mainnet": "Счет Биткойн",
-    "add_solana_account": "Счет Solana"
+    "add_solana_account": "Счет Solana",
+    "switch_to_smart_account": "Перейти на смарт-счет",
+    "headers": {
+      "bitcoin": "Биткойн",
+      "solana": "Solana"
+    }
   },
   "show_nft": {
     "show_nft_title": "Показать NFT",
@@ -3509,16 +4107,12 @@
     "show_display_nft_media_content_5": "Настройки > Безопасность и конфиденциальность."
   },
   "solana_new_feature_content": {
-    "title": "Solana на MetaMask",
-    "create_solana_account": "Создать счет Solana",
+    "title": "появился solana",
+    "title_description": "Импортируйте свой кошелек, исследуйте, торгуйте и отправляйте. Теперь в MetaMask есть поддержка Solana.",
     "not_now": "Не сейчас",
-    "got_it": "Понятно",
-    "feature_1_title": "Отправляйте, получайте и обменивайте токены",
-    "feature_1_description": "Выполняйте переводы и совершайте транзакции с помощью токенов, таких как SOL, USDC и другие.",
-    "feature_2_title": "Импортировать счета Solana",
-    "feature_2_description": "Импортируйте секретную фразу для восстановления, чтобы перенести свой счет Solana из другого кошелька.",
-    "feature_3_title": "Скоро появятся новые функции",
-    "feature_3_description": "Скоро появятся dapps Solana, NFT, поддержка аппаратного кошелька и многое другое."
+    "view_solana_account": "Смотреть счет Solana",
+    "learn_more": "Узнайте больше о счетах Solana",
+    "import_your_wallet": "Импортируйте свой кошелек"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Шлюз IPFS",
@@ -3549,10 +4143,82 @@
   "earn": {
     "empty_state_cta": {
       "heading": "Давайте взаймы {{tokenSymbol}} и зарабатывайте",
-      "body_prefix": "Вы могли бы заработать до",
-      "body_suffix": "в год, дав взаймы свои {{tokenSymbol}}.",
-      "start_earning": "Начать зарабатывать"
-    }
+      "body": "Одолжите свой {{tokenSymbol}} с помощью {{protocol}} и зарабатывайте",
+      "annually": "каждый год.",
+      "learn_more": "Узнайте подробнее.",
+      "earn": "Заработать"
+    },
+    "service_interruption_banner": {
+      "maintenance_message": "Мы закрыты на техобслуживание. Скоро вернемся в сеть!"
+    },
+    "deposit": "Депозит",
+    "approve": "Одобрить",
+    "approval": "Одобрение",
+    "confirm": "Подтвердить",
+    "cancel": "Отмена",
+    "transaction_submitted": "Транзакция отправлена",
+    "every_minute": "Каждую минуту",
+    "immediate": "Немедленно",
+    "apr": "Год. проц. ставка",
+    "protocol": "Протокол",
+    "receive_tooltip": "получить подсказку",
+    "button": "кнопка",
+    "receive": "Получить",
+    "tooltip_content": {
+      "apr": {
+        "part_one": "Ожидаемый годовой прирост стоимости вашего депозита, рассчитанный на основе ставки вознаграждения за последнюю неделю.",
+        "part_two": "Примечание: годовая процентная ставка со временем меняется."
+      },
+      "protocol": "Протокол кредитования — это смарт-контракт, который позволяет вам давать взаймы токены, чтобы получать вознаграждения. Он также позволяет пользователям брать токены взаймы, предоставляя другие токены в качестве залога, за плату, которая выплачивается кредиторам.",
+      "reward_frequency": "Частота, с которой учитываются ваши вознаграждения.",
+      "withdrawal_time": "Время, необходимое для вывода вашего токена из протокола и возврата его в ваш кошелек",
+      "receive": "Этот токен используется для отслеживания ваших активов и вознаграждений. Не переводите его и не торгуйте им, иначе вы не сможете вывести свои активы.",
+      "health_factor": {
+        "your_health_factor_measures_liquidation_risk": "Ваш фактор здоровья измеряет риск ликвидации",
+        "above_two_dot_zero": "Выше 2,0",
+        "safe_position": "Безопасное положение",
+        "between_one_dot_five_and_2_dot_zero": "Между 1,5–2,0",
+        "medium_liquidation_risk": "Средний риск ликвидации",
+        "below_one_dot_five": "Ниже 1,5",
+        "higher_liquidation_risk": "Более высокий риск ликвидации"
+      },
+      "lending_risk_aware_withdrawal_tooltip": {
+        "why_cant_i_withdraw_full_balance": "Почему я не могу снять весь свой баланс?",
+        "your_withdrawal_amount_may_be_limited_by": "Сумма снимаемых средств может быть ограничена",
+        "pool_liquidity": "Ликвидность пула",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "На данный момент в кредитном пуле недостаточно средств.",
+        "existing_borrow_positions": "Текущие заимствованные позиции",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Вывод средств может подвергнуть ваши существующие кредитные позиции риску ликвидации."
+      }
+    },
+    "withdraw": "Вывести",
+    "deposit_more": "Внесите больше",
+    "earning": "Заработок",
+    "withdrawal_time": "Время вывода средств",
+    "withdrawing_to": "Вывод на",
+    "network": "Сеть",
+    "health_factor": "Фактор здоровья",
+    "liquidation_risk": "Риск ликвидации",
+    "insufficient_pool_liquidity": "Недостаточная ликвидность пула",
+    "available_to_withdraw": "доступно для вывода",
+    "unknown": "неизвестно",
+    "how_it_works": "Как это работает",
+    "market_historic_apr_modal": {
+      "earn_rewards_on_your_token": "Зарабатывайте награды на свой {{tokenSymbol}}",
+      "lend_and_earn_daily_rewards": "Одолжите свой {{tokenSymbol}} с помощью {{protocol}} и получайте ежедневные награды. Награды увеличиваются со временем, а годовая процентная ставка меняется.",
+      "withdraw_whenever_you_want": "Выводите деньги, когда хотите",
+      "get_asset_back_in_your_wallet_instantly": "Мгновенно получите {{tokenSymbol}} обратно в свой кошелек."
+    },
+    "amount_exceeds_safe_withdrawal_limit": "Сумма превышает безопасный лимит снятия средств",
+    "view_earnings_history": {
+      "lending": "Посмотреть историю позиций",
+      "staking": "Посмотреть историю доходов"
+    },
+    "earnings_history_list_title": {
+      "lending": "История позиций",
+      "staking": "История выплат"
+    },
+    "allowance_reset": "Сброс квоты"
   },
   "stake": {
     "stake": "Выполнить стейкинг",
@@ -3652,14 +4318,13 @@
     "estimated_unstaking_time": "от 1 до 11 дней",
     "proceed_anyway": "Все равно продолжить",
     "gas_cost_impact": "Влияние стоимости газа",
-    "select_a_token": "Выберите токен",
-    "you_could_earn": "Вы могли заработать",
+    "select_a_token_to_deposit": "Выберите токен для депозита",
+    "select_a_token_to_withdraw": "Выберите токен для вывода",
+    "you_could_earn_up_to": "Вы можете заработать до",
     "per_year_on_your_tokens": "в год за свои токены",
     "deposit": "Депозит",
     "gas_cost_impact_warning": "Внимание: стоимость газа за транзакцию составит более {{percentOverDeposit}}% от вашего депозита.",
-    "view_earnings_history": "Посмотреть историю доходов",
     "earnings_history_title": "Доходы {{ticker}}",
-    "earnings_history_list_title": "История выплат",
     "apr": "Год. проц. ставка",
     "interactive_chart": {
       "timespan_buttons": {
@@ -3686,12 +4351,17 @@
     "basic_functionality": "Базовый функционал",
     "manage_networks": "Выберите свою сеть",
     "manage_networks_body": "Мы используем Infura в качестве нашего поставщика удаленного вызова процедур (RPC), чтобы предложить наиболее надежный и конфиденциальный доступ к данным Ethereum из возможных. Вы можете выбрать свой собственного RPC, но помните, что любой RPC получит ваш IP-адрес и номер кошелька Ethereum для совершения транзакций. См. наши ",
-    "manage_networks_body2": " чтобы узнать больше о том, как Infura обрабатывает данные.",
+    "manage_networks_body2": " чтобы узнать больше о том, как Infura обрабатывает данные счетов EVM, для счетов Solana ",
+    "manage_networks_body3": "Нажмите здесь,",
     "functionality_body": "MetaMask предлагает базовые функции, такие как сведения о токенах и настройки газа, через интернет-службы. Когда вы пользуетесь интернет-службами, ваш IP-адрес передается, в данном случае MetaMask. Это похоже на посещение любого веб-сайта. MetaMask временно использует ваши данные и никогда не продает их. Вы можете использовать VPN или отключить эти службы, но это может негативно повлиять на вашу работу с MetaMask. Прочитайте нашу ",
     "functionality_body2": " для получения дополнительной информации.",
     "sheet": {
       "title_off": "Выключить базовый функционал",
       "description_off": "Это означает, что вы не сможете полностью оптимизировать свое время в MetaMask. Вам будут недоступны базовые функции (например, сведения о токенах, оптимальные настройки газа и т. д.).",
+      "description_off2": "Отключение этого параметра также отключает все функции",
+      "description_off2_related_features1": "безопасности и конфиденциальности, резервного копирования и синхронизации",
+      "description_off2_related_features1_and": "и",
+      "description_off2_related_features2": "уведомления.",
       "title_on": "Включить базовый функционал",
       "description_on": "Чтобы оптимизировать свое время в MetaMask, вам необходимо включить эту функцию. Базовые функции (например, сведения о токенах, оптимальные настройки газа, уведомления и другие) важны для работы с web3.",
       "checkbox_label": "Я понимаю и хочу продолжить",
@@ -3714,7 +4384,7 @@
     "failed": "Не удалось загрузить прогноз.",
     "fiat_not_available": "Недоступен",
     "incoming_heading": "Вы получаете",
-    "no_balance_changes": "Никаких изменений в вашем кошельке не прогнозируется",
+    "no_balance_changes": "Нет изменений",
     "outgoing_heading": "Вы отправляете",
     "reverted": "Эта транзакция, скорее всего, не удастся",
     "title": "Прогнозируемые изменения",
@@ -3766,6 +4436,8 @@
       "part3": "."
     },
     "label": {
+      "amount": "Сумма",
+      "value": "Значение",
       "account": "Счет",
       "balance": "Баланс",
       "interacting_with": "Взаимодействие с",
@@ -3773,30 +4445,53 @@
       "primary_type": "Первичный тип",
       "request_from": "Запрос от",
       "signing_in_with": "Вход через",
-      "spender": "Кто осуществляет расходы"
+      "spender": "Кто осуществляет расходы",
+      "now": "Сейчас",
+      "switching_to": "Переключение на"
     },
     "title": {
       "signature": "Запрос подписи",
       "permit": "Запрос на ограничение расходов",
       "permit_revoke": "Удалить разрешение",
       "permit_NFTs": "Запрос на вывод средств",
-      "signature_siwe": "Запрос на вход"
+      "signature_siwe": "Запрос на вход",
+      "contract_interaction": "Запрос транзакции",
+      "contract_deployment": "Развернуть контракт",
+      "transfer": "Запрос на перевод",
+      "switch_account_type": "Обновление счета",
+      "approve": "Одобрить запрос"
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",
+      "permit_revoke": "Вы отзываете у кого-то разрешение тратить токены с вашего счета.",
       "permit_NFTs": "Этот сайт запрашивает разрешение на вывод ваших NFT.",
+      "permit_revoke_NFTs": "Этот сайт хотел бы сбросить лимит вывода средств для ваших NFT",
       "signature": "Прежде чем подтвердить запрос, просмотрите детали запроса.",
-      "signature_siwe": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета."
+      "signature_siwe": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета.",
+      "contract_interaction": "Прежде чем подтвердить запрос, просмотрите детали запроса.",
+      "switch_to_smart_account": "Вы переходите на смарт-счет.",
+      "switch_to_standard_account": "Вы переходите обратно на стандартный счет (EOA).",
+      "contract_deployment": "Этот сайт хочет, чтобы вы развернули контракт",
+      "decrease_allowance": "Этот сайт хочет снизить лимит расходования ваших токенов."
     },
+    "spending_cap": "Лимит расходования",
+    "withdraw": "Вывести средства",
+    "nfts": "NFT",
+    "permission_from": "Разрешение от",
+    "spender": "Лицо, производящее расходы",
     "request_from": "Запрос от",
     "staking_from": "Стейкинг от",
     "signing_in_with": "Вход через",
     "message": "Сообщение",
     "personal_sign_tooltip": "Этот сайт запрашивает вашу подпись",
+    "transaction_tooltip": "Этот сайт запрашивает транзакцию с вами",
     "details": "Подробности",
     "qr_get_sign": "Получить подпись",
     "qr_scan_text": "Отсканируйте с помощью вашего аппаратного кошелька",
     "sign_with_ledger": "Подписать с помощью Ledger",
+    "smart_account": "Смарт-счет",
+    "smart_contract": "Смарт-контракта",
+    "standard_account": "Стандартный счет",
     "siwe_message": {
       "url": "URL",
       "network": "Сеть",
@@ -3809,8 +4504,12 @@
       "resources": "Ресурсы"
     },
     "simulation": {
+      "cancel": "Отмена",
       "decoded_tooltip_bid_nft": "NFT отобразится в вашем кошельке, когда ставка будет принята.",
       "decoded_tooltip_list_nft": "Ожидайте изменений, только если кто-то купит ваши NFT.",
+      "edit_approval_limit_description": "Введите сумму, которую вы считаете приемлемой для расходов от вашего имени.",
+      "edit_approval_limit_title": "Изменить лимит одобрения",
+      "edit_value_balance_info": "Баланс счета:",
       "info_permit": "Вы даете отправителю разрешение потратить такое количество токенов с вашего счета.",
       "info_revoke": "Вы лишаете кого-то права тратить токены с вашего счета.",
       "label_change_type_bidding": "Вы ставите",
@@ -3821,13 +4520,52 @@
       "label_change_type_receive": "Вы получаете",
       "label_change_type_revoke": "Отозвать",
       "label_change_type_transfer": "Вы отправляете",
+      "label_change_type_approve": "Вы одобряете",
       "personal_sign_info": "Вы входите на сайт, и в вашем счете не происходит никаких прогнозируемых изменений.",
+      "save": "Сохранить",
       "title": "Прогнозируемые изменения",
       "tooltip": "Прогнозируемые изменения — это то, что может произойти, если вы завершите эту транзакцию. Это всего лишь прогноз, а не гарантия.",
       "unavailable": "Недоступно"
     },
+    "7702_functionality": {
+      "smartAccountLabel": "Смарт-счет",
+      "standardAccountLabel": "Стандартный счет",
+      "switch": "Сменить",
+      "switchBack": "Переключиться обратно",
+      "splashpage": {
+        "accept": "Да",
+        "betterTransaction": "Транзакции быстрее, комиссии ниже",
+        "betterTransactionDescription": "Экономьте время и деньги, обрабатывая транзакции вместе.",
+        "featuresDescription": "Сохраните этот же адрес счета, и вы сможете вернуться к нему в любое время.",
+        "payToken": "Платите любым токеном в любое время",
+        "payTokenDescription": "Используйте имеющиеся у вас токены для оплаты комиссий сети.",
+        "reject": "Нет",
+        "sameAccount": "Тот же счет, более умные функции.",
+        "splashTitle": "Использовать смарт-счет?"
+      },
+      "includes_transaction": "Включает {{transactionCount}} транзакции(-ий)",
+      "useSmartAccount": "Использовать смарт-счет",
+      "successful": "Успех!",
+      "success_message": "Ваш счет будет обновлен до смарт-счета при следующей транзакции."
+    },
+    "edit_spending_cap_modal": {
+      "no_zero_error": "Лимит расходов не может быть равен 0",
+      "no_empty_error": "Лимит расходов не может быть пустым",
+      "invalid_number_error": "Лимит расходов должен быть числом",
+      "no_extra_decimals_error": "Лимит расходов не может содержать больше знаков после запятой, чем токен",
+      "no_zero_error_increase_allowance": "Лимит расходов 0 не влияет на метод «increaseAllowance»",
+      "no_zero_error_decrease_allowance": "Лимит расходов 0 не влияет на метод «decreaseAllowance»"
+    },
     "unlimited": "Неограничено",
-    "none": "Нет"
+    "all": "Все",
+    "none": "Нет",
+    "advanced_details": "Дополнительные сведения",
+    "interacting_with": "Взаимодействие с",
+    "data": "Данные",
+    "review": "Проверить",
+    "transferRequest": "Запрос на перевод",
+    "nested_transaction_heading": "Транзакция {{index}}",
+    "transaction": "Транзакция"
   },
   "change_in_simulation_modal": {
     "title": "Результаты изменились",
@@ -3848,6 +4586,8 @@
   },
   "bridge": {
     "continue": "Продолжить",
+    "confirm_bridge": "Подтвердить мост",
+    "confirm_swap": "Подтвердить своп",
     "terms_and_conditions": "Положения и условия",
     "select_token": "Выберите токен",
     "select_network": "Выбрать сеть",
@@ -3861,6 +4601,7 @@
     "slippage": "Проскальзывание",
     "slippage_info": "Если цена меняется между моментом размещения и подтверждения вашего ордера, это называется «проскальзывание». Ваш своп будет автоматически отменен, если проскальзывание превысит значение, которое вы установили здесь .",
     "network_fee": "Комиссия сети",
+    "included": "Включен",
     "estimated_time": "Примерное время",
     "quote": "Котировка",
     "quote_details": "Сведения о котировке",
@@ -3868,6 +4609,215 @@
     "time": "Время",
     "quote_info_content": "Эта котировка самая выгодная из найденных нами вариантов. Она основана на ставке свопа, включая комиссию за создание моста и комиссию MetaMask в размере 0,875%, но не на плату за газ. Размер платы за газ зависят от активности сети и сложности транзакции.",
     "quote_info_title": "Почему мы рекомендуем эту котировку",
-    "see_other_quotes": "Смотреть другие котировки"
+    "see_other_quotes": "Смотреть другие котировки",
+    "receive_at": "Получить в",
+    "error_banner_description": "Этот торговый маршрут сейчас недоступен. Попробуйте изменить сумму, сеть или токен, и мы найдем лучший вариант.",
+    "insufficient_funds": "Недостаточно средств",
+    "select_amount": "Выбрать сумму",
+    "bridge_to": "Мост к",
+    "swap_to": "Обменять на",
+    "title": "Мост",
+    "submitting_transaction": "Выполняется отправка",
+    "fetching_quote": "Получение котировки",
+    "fee_disclaimer": "Включает комиссию MM в размере 0,875%",
+    "hardware_wallet_not_supported": "Аппаратные кошельки пока не поддерживаются. Используйте горячий кошелек, чтобы продолжить.",
+    "hardware_wallet_not_supported_solana": "Аппаратные кошельки пока не поддерживаются для Solana. Используйте горячий кошелек, чтобы продолжить.",
+    "max": "Max"
+  },
+  "quote_expired_modal": {
+    "title": "Доступны новые котировки",
+    "description": "Курсы обновляются каждые {{refreshRate}} секунд, поэтому нажмите «Получить новую котировку», когда будете готовы.",
+    "get_new_quote": "Получить новую котировку"
+  },
+  "blockaid_modal": {
+    "simulation_title": "При моделировании транзакция не удалась",
+    "validation_title": "Транзакция не прошла проверку",
+    "go_back": "Назад"
+  },
+  "bridge_transaction_details": {
+    "status": "Статус",
+    "date": "Дата",
+    "total_gas_fee": "Итого платы за газ",
+    "estimated_completion": "Прим. завершение",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} получено в {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Выполняется получение {{destSymbol}} в {{destChainName}}",
+    "bridge_step_action_swap_complete": "Выполнен своп {{srcSymbol}} на {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Выполняется своп {{srcSymbol}} на {{destSymbol}}",
+    "view_on_block_explorer": "Просмотр в Обозревателе блоков",
+    "block_explorer_description": "Эта транзакция существует в двух сетях. Первая ссылка показывает источник, а вторая — пункт назначения после подтверждения транзакции.",
+    "transaction_details": "Сведения о транзакции",
+    "bridge_to_chain": "Мост к {{chainName}}",
+    "recipient": "Получатель"
+  },
+  "account_status": {
+    "account_already_exists": "Кошелек уже существует",
+    "account_already_exists_description": "Кошелек, использующий «{{accountName}}», уже существует. Хотите попробовать войти в него вместо этого?",
+    "log_in": "Войти",
+    "account_not_found": "Кошелек не найден",
+    "account_not_found_description": "Мы не смогли найти кошелек для«{{accountName}}» Хотите создать новый с этим логином?",
+    "create_new_wallet": "Создать новый кошелек",
+    "use_different_login_method": "Используйте другой способ входа"
+  },
+  "error_sheet": {
+    "still_there_title": "Вы все еще там?",
+    "still_there_description": "Срок вашего входа в систему истек из-за бездействия. Попробуйте еще раз, когда будете готовы.",
+    "unable_to_login_title": "Не удалось подключиться",
+    "unable_to_login_description": "Ваше подключение к интернету нестабильно. Проверьте подключение и повторите попытку.",
+    "something_went_wrong_title": "Что-то пошло не так",
+    "something_went_wrong_description": "Произошла ошибка при входе в систему. Попробуйте еще раз. Если проблема не исчезнет, свяжитесь с нами.",
+    "support_button": "Поддержка MetaMask.",
+    "error_button": "Повторите попытку",
+    "user_cancelled_title": "Вход отменен",
+    "user_cancelled_description": "Вы отменили вход. Попробуйте еще раз, когда будете готовы.",
+    "user_cancelled_button": "Повторите попытку",
+    "oauth_error_title": "Не удалось войти",
+    "oauth_error_description": "Произошла ошибка при входе в систему. Попробуйте еще раз. Если проблема не исчезнет, обратитесь в службу поддержки MetaMask.",
+    "oauth_error_button": "Повторите попытку"
+  },
+  "password_hint": {
+    "title": "Подсказка пароля",
+    "description": "Оставьте себе подсказку, которая поможет вам вспомнить пароль. Эта подсказка хранится на вашем устройстве и не будет передаваться третьим сторонам.",
+    "description2": "Помните: если вы потеряете пароль, вы не сможете пользоваться своим кошельком.",
+    "button": "Создать подсказку",
+    "placeholder": "например, дом мамы",
+    "saved": "Сохранить",
+    "saved_toast": "Подсказка пароля обновлена",
+    "error_matches_password": "Вы не можете использовать свой пароль в качестве подсказки."
+  },
+  "protect_your_wallet": {
+    "title": "Восстановление кошелька",
+    "login_with_social": "Войти с помощью аккаунтов соцсетей",
+    "setup": "Настройка",
+    "secret_recovery_phrase": "Секретная фраза для восстановления {{num}}",
+    "back_up": "Создать резервную копию",
+    "reveal": "Показать",
+    "social_recovery_title": "ВОССТАНОВЛЕНИЕ {{authConnection}}",
+    "social_recovery_enable": "Включено",
+    "social_login_description": "Используйте свой логин {{authConnection}} и пароль MetaMask для восстановления вашего счета и секретных фраз для восстановления.",
+    "srps_title": "СЕКРЕТНЫЕ ФРАЗЫ ДЛЯ ВОССТАНОВЛЕНИЯ",
+    "srps_description": "Ваш кошелек будет максимально защищен, если настроены оба способа восстановления. Если один из них не сработает, второй поможет восстановить кошелек."
+  },
+  "backupAndSync": {
+    "title": "Резервное копирование и синхронизация",
+    "description": "Создавайте резервные копии своих счетов и синхронизируйте настройки.",
+    "enabling": "Включение резервного копирования и синхронизации",
+    "disabling": "Отключение резервного копирования и синхронизации",
+    "enable": {
+      "title": "Включить резервное копирование и синхронизацию",
+      "confirmation": "Когда вы включаете резервное копирование и синхронизацию, вы также включаете базовые функции. Хотите продолжить?",
+      "description": "Резервное копирование и синхронизация позволяют нам хранить зашифрованные данные для ваших пользовательских настроек и функций. Это позволяет вам сохранять одинаковый опыт использования MetaMask на всех устройствах и восстанавливать настройки и функции, если вам когда-либо понадобится переустановить MetaMask. Резервное копирование секретной фразы для восстановления не выполняется.",
+      "updatePreferences": "Вы можете обновить свои параметры в любое время в разделе",
+      "settingsPath": "Настройки > Резервное копирование и синхронизация."
+    },
+    "privacyLink": "Узнайте, как мы защищаем вашу конфиденциальность",
+    "features": {
+      "accounts": "Счета",
+      "contacts": "Контакты"
+    },
+    "manageWhatYouSync": {
+      "title": "Управляйте тем, что вы синхронизируете",
+      "description": "Включите то, что синхронизируется между вашими устройствами."
+    }
+  },
+  "snap_ui": {
+    "asset_selector": {
+      "title": "Выбрать актив"
+    },
+    "hideSentitiveInfo": {
+      "message": "Скрыть конфиденциальную информацию"
+    },
+    "doNotShare": {
+      "message": "Не делитесь этим ни с кем"
+    },
+    "revealSensitiveContent": {
+      "message": "Показать чувствительный контент"
+    },
+    "show_more": "больше",
+    "show_less": "меньше"
+  },
+  "multichain_accounts": {
+    "account_details": {
+      "header_title": "Реквизиты счета",
+      "account_name": "Имя счета",
+      "account_address": "Адрес счета",
+      "wallet": "Кошелек",
+      "private_key": "Закрытый ключ"
+    },
+    "accounts_list": {
+      "details": "Подробности"
+    },
+    "wallet_details": {
+      "wallet_name": "Название кошелька",
+      "balance": "Баланс",
+      "create_account": "Создать счет",
+      "back_up": "Создать резервную копию",
+      "reveal_recovery_phrase_with_index": "Показать фразу для восстановления {{index}}"
+    },
+    "smart_account": {
+      "title": "Включить смарт-счет",
+      "description": "Вы можете включить функции смарт-счета в поддерживаемых сетях.",
+      "learn_more": "Подробнее"
+    },
+    "edit_account_name": {
+      "title": "Изменить имя счета",
+      "name": "Имя",
+      "save_button": "Сохранить",
+      "error_duplicate_name": "Имя этого счета уже существует"
+    },
+    "delete_account": {
+      "title": "Удалить счет",
+      "warning_title": "Этот счет будет удален из MetaMask.",
+      "warning_description": "Перед удалением убедитесь, что у вас есть секретная фраза для восстановления или закрытый ключ от этого счета.",
+      "remove_button": "Удалить",
+      "cancel_button": "Отмена",
+      "error": "Не удалось удалить счет"
+    },
+    "share_address": {
+      "title": "Поделиться адресом",
+      "copy_address": "Копировать адрес",
+      "view_on_explorer_button": "Просмотр на {{explorer}}",
+      "view_on_block_explorer": "Просмотр в обозревателе блоков"
+    },
+    "export_credentials": {
+      "export_private_key": "Закрытый ключ",
+      "private_key_warning_title": "Никогда не разглашайте этот ключ.",
+      "private_key_warning_description": "Любой, у кого есть ваш закрытый ключ, может украсть любые активы, хранящиеся на вашем счете.",
+      "credential_as_text": "Текст",
+      "credential_as_qr": "QR-код",
+      "export_mnemonic": "Экспортировать мнемоническую фразу",
+      "backup": "Создать резервную копию"
+    },
+    "reveal_private_key": {
+      "title": "Показать закрытый ключ",
+      "banner_title": "Никогда не разглашайте этот ключ.",
+      "banner_description": "Любой, у кого есть ваш закрытый ключ, может украсть любые активы, хранящиеся на вашем счете.",
+      "enter_password": "Введите пароль",
+      "password_placeholder": "Пароль",
+      "next": "Далее",
+      "copy": "Копировать"
+    },
+    "reveal_srp": {
+      "header": "Тест по безопасности",
+      "description": "Чтобы увидеть свою секретную фразу для восстановления, вам нужно правильно ответить на два вопроса",
+      "get_started": "Начало работы",
+      "learn_more": "Подробнее"
+    }
+  },
+  "deep_link_modal": {
+    "private_link": {
+      "title": "Вы перенаправляетесь в MetaMask",
+      "description": "Если вы продолжите, вы откроете {{pageTitle}}.",
+      "checkbox_label": "Больше не напоминать"
+    },
+    "public_link": {
+      "title": "Действуйте с осторожностью",
+      "description": "Вас сюда направила третья сторона, а не MetaMask. Вы откроете {{pageTitle}}, если продолжите."
+    },
+    "invalid": {
+      "title": "Этой страницы не существует",
+      "description": "Мы не можем найти страницу, которую вы ищете."
+    },
+    "back_button": "Назад",
+    "continue_button": "Продолжить"
   }
 }

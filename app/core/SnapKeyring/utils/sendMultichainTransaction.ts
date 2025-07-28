@@ -1,7 +1,7 @@
 import { HandlerType } from '@metamask/snaps-utils';
 import { handleSnapRequest } from '../../Snaps/utils';
 import Engine from '../../Engine';
-import { SnapId } from '@metamask/snaps-sdk';
+import { SnapId, CaipAssetType } from '@metamask/snaps-sdk';
 
 const controllerMessenger = Engine.controllerMessenger;
 
@@ -10,9 +10,11 @@ export async function sendMultichainTransaction(
   {
     account,
     scope,
+    assetId,
   }: {
     account: string;
     scope: string;
+    assetId?: CaipAssetType;
   },
 ) {
   await handleSnapRequest(controllerMessenger, {
@@ -24,6 +26,7 @@ export async function sendMultichainTransaction(
       params: {
         account,
         scope,
+        assetId,
       },
     },
   });

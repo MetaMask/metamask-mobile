@@ -5,6 +5,8 @@ import {
 import { initialState } from '../_mocks_/initialState';
 import { mockBridgeReducerState } from '../_mocks_/bridgeReducerState';
 import type { BridgeState } from '../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../reducers';
+import { DeepPartial } from '../../../../util/test/renderWithProvider';
 
 type BridgeControllerStateOverride = Partial<BridgeControllerState>;
 
@@ -30,17 +32,18 @@ export const createBridgeTestState = (
     bridgeControllerOverrides?: BridgeControllerStateOverride;
     bridgeReducerOverrides?: Partial<BridgeState>;
   } = {},
+  state: DeepPartial<RootState> = initialState,
 ) => {
   const bridgeControllerState = createBridgeControllerState(
     overrides.bridgeControllerOverrides ?? {},
   );
 
   return {
-    ...initialState,
+    ...state,
     engine: {
-      ...initialState.engine,
+      ...state.engine,
       backgroundState: {
-        ...initialState.engine.backgroundState,
+        ...state.engine?.backgroundState,
         BridgeController: bridgeControllerState,
       },
     },

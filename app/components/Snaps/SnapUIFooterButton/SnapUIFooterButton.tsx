@@ -42,6 +42,8 @@ interface SnapUIFooterButtonProps {
   snapVariant: ButtonProps['variant'];
   disabled?: boolean;
   loading?: boolean;
+  children: React.ReactNode;
+  testID?: string;
 }
 
 export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
@@ -53,6 +55,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   isSnapAction = false,
   variant = ButtonVariants.Primary,
   snapVariant,
+  testID,
   ...props
 }) => {
   const theme = useTheme();
@@ -116,7 +119,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
         color={
           variant === ButtonVariants.Primary
             ? theme.colors.primary.inverse
-            : theme.colors.primary.default
+            : theme.colors.text.default
         }
       >
         {children}
@@ -134,6 +137,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       size={ButtonSize.Lg}
       style={customButtonStyles.button}
       isDanger={snapVariant === 'destructive'}
+      testID={testID ?? `${name}-snap-footer-button`}
     />
   );
 };

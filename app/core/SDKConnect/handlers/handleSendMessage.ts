@@ -1,3 +1,5 @@
+import { analytics } from '@metamask/sdk-analytics';
+import { isAnalyticsTrackedRpcMethod } from '@metamask/sdk-communication-layer';
 import Routes from '../../../../app/constants/navigation/Routes';
 import AppConstants from '../../../../app/core/AppConstants';
 import Logger from '../../../util/Logger';
@@ -22,6 +24,27 @@ export const handleSendMessage = async ({
 
     const msgId = msg?.data?.id + '';
     let method = connection.rpcQueueManager.getId(msgId);
+    const anonId = connection.originatorInfo?.anonId;
+
+    if (
+      isAnalyticsTrackedRpcMethod(method) &&
+      msgId &&
+      msgId !== 'undefined' &&
+      anonId
+    ) {
+      if (msg?.data?.error) {
+        DevLogger.log(
+          `[MM SDK Analytics] event=wallet_action_user_rejected anonId=${anonId}`,
+        );
+        analytics.track('wallet_action_user_rejected', { anon_id: anonId });
+      } else {
+        DevLogger.log(
+          `[MM SDK Analytics] event=wallet_action_user_approved anonId=${anonId}`,
+        );
+        analytics.track('wallet_action_user_approved', { anon_id: anonId });
+      }
+    }
+
     // handle multichain rpc call responses separately
     const chainRPCs = connection.batchRPCManager.getById(msgId);
     DevLogger.log(`[handleSendMessage] chainRPCs`, chainRPCs);

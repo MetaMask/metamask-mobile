@@ -11,7 +11,8 @@ import {
   toTokenMinimalUnit,
 } from '../../../../util/number';
 import { selectChainId } from '../../../../selectors/networkController';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
+import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
+import { Keys } from '../../../Base/Keypad/constants';
 
 export interface InputHandlerParams {
   balance: string;
@@ -45,6 +46,10 @@ const useInputHandler = ({
   const currentCurrency = useSelector(selectCurrentCurrency);
   // the current selected chain id
   const chainId = useSelector(selectChainId);
+  // Stablecoin lending feature flag
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
 
   const isNonZeroAmount = useMemo(
     () => amountTokenMinimalUnit.gt(new BN4(0)),
@@ -94,14 +99,14 @@ const useInputHandler = ({
   );
 
   const handleKeypadChange = useCallback(
-    ({ value, pressedKey }) => {
+    ({ value, pressedKey }: { value: string; pressedKey: string }) => {
       const digitsOnly = value.replace(/[^0-9.]/g, '');
       const [whole = '', fraction = ''] = digitsOnly.split('.');
       const totalDigits = whole.length + fraction.length;
       const isValueNaN = isNaN(parseFloat(value));
 
       if (
-        pressedKey === 'BACK' ||
+        pressedKey === Keys.Back ||
         isValueNaN ||
         (totalDigits <= MAX_DIGITS &&
           fraction.length <= MAX_FRACTION_DIGITS &&
@@ -110,9 +115,9 @@ const useInputHandler = ({
         if (isValueNaN) {
           if (
             pressedKey === digitsOnly[digitsOnly.length - 1] ||
-            pressedKey === 'PERIOD'
+            pressedKey === Keys.Period
           ) {
-            value = pressedKey === 'PERIOD' ? '0.' : pressedKey;
+            value = pressedKey === Keys.Period ? '0.' : pressedKey;
           } else {
             value = '0';
           }
@@ -159,26 +164,24 @@ const useInputHandler = ({
   );
 
   const handleMaxInput = useCallback(
-    (maxStakeableMinimalUnit: BN4) => {
+    (maxMinimalUnit: BN4) => {
       const tokenValue = renderFromTokenMinimalUnit(
-        maxStakeableMinimalUnit,
+        maxMinimalUnit,
         decimals,
         5,
       );
       const fiatValue = balanceToFiatNumber(
-        fromTokenMinimalUnit(maxStakeableMinimalUnit, decimals),
+        fromTokenMinimalUnit(maxMinimalUnit, decimals),
         conversionRate,
         exchangeRate,
         2,
       ).toString();
-      setAmountTokenMinimalUnit(maxStakeableMinimalUnit);
+      setAmountTokenMinimalUnit(maxMinimalUnit);
       setAmountToken(tokenValue);
       setAmountFiatNumber(fiatValue);
     },
     [conversionRate, decimals, exchangeRate],
   );
-
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
 
   const currencyToggleValue = useMemo(() => {
     const upperCaseCurrentCurrency = currentCurrency.toUpperCase();

@@ -3,8 +3,8 @@ import { StyleSheet } from 'react-native';
 const createStyles = () =>
   StyleSheet.create({
     container: {
+      paddingVertical: 16,
       paddingHorizontal: 16,
-      gap: 16,
     },
     footer: {
       paddingVertical: 0,

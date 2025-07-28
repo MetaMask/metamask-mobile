@@ -1,5 +1,4 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { PROTOCOLS } from '../../../constants/deeplinks';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
@@ -54,11 +53,8 @@ describe('setupBridge', () => {
 
   it('should setup backgroundBridge with correct url and isRemoteConn', () => {
     connection.backgroundBridge = undefined;
-    const expectedUrl =
-      PROTOCOLS.METAMASK + '://' + originatorInfo.url ?? originatorInfo.title;
-
+    const expectedUrl = originatorInfo.url;
     setupBridge({ originatorInfo, connection });
-
     expect(BackgroundBridge).toHaveBeenCalledWith(
       expect.objectContaining({
         url: expectedUrl,

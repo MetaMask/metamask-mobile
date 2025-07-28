@@ -1,7 +1,10 @@
 import { isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
-import { SmartTransactionStatuses, type SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import {
+  SmartTransactionStatuses,
+  type SmartTransaction,
+} from '@metamask/smart-transactions-controller/dist/types';
 import { TransactionStatus, CHAIN_IDS } from '@metamask/transaction-controller';
 
 const migrationVersion = 63;
@@ -12,13 +15,19 @@ interface SmartTransactionsState {
   };
 }
 
+interface SmartTransactionsControllerState {
+  smartTransactionsState: SmartTransactionsState;
+}
+
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  const transactionControllerState = state.engine.backgroundState.TransactionController;
-  const smartTransactionsControllerState = state.engine.backgroundState.SmartTransactionsController;
+  const transactionControllerState =
+    state.engine.backgroundState.TransactionController;
+  const smartTransactionsControllerState =
+    state.engine.backgroundState.SmartTransactionsController;
 
   if (!isObject(transactionControllerState)) {
     captureException(
@@ -29,12 +38,11 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  if (!isObject(smartTransactionsControllerState)) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: Invalid SmartTransactionsController state: '${smartTransactionsControllerState}'`,
-      ),
-    );
+  if (
+    !isObject(smartTransactionsControllerState) &&
+    !smartTransactionsControllerState
+  ) {
+    // This is a fresh install, so we can skip this migration.
     return state;
   }
 
@@ -47,11 +55,16 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
-  const smartTransactions = (smartTransactionsControllerState?.smartTransactionsState as SmartTransactionsState)?.smartTransactions;
+
+  const smartTransactions = (
+    smartTransactionsControllerState as SmartTransactionsControllerState
+  )?.smartTransactionsState?.smartTransactions;
   if (!isObject(smartTransactions)) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Missing smart transactions property from SmartTransactionsController: '${typeof smartTransactionsControllerState?.smartTransactionsState}'`,
+        `Migration ${migrationVersion}: Missing smart transactions property from SmartTransactionsController: '${typeof (
+          smartTransactionsControllerState as SmartTransactionsControllerState
+        )?.smartTransactionsState}'`,
       ),
     );
     return state;
@@ -80,7 +93,9 @@ export default function migrate(state: unknown) {
         (smartTransaction) =>
           smartTransaction.txHash &&
           smartTransaction.status &&
-          smartTransactionStatusesForUpdate.includes(smartTransaction.status as SmartTransactionStatuses),
+          smartTransactionStatusesForUpdate.includes(
+            smartTransaction.status as SmartTransactionStatuses,
+          ),
       )
       .map((smartTransaction) => smartTransaction.txHash?.toLowerCase()),
   );

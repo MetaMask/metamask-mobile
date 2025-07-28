@@ -1,9 +1,17 @@
+import {
+  initialState as initialStateBase,
+  ethToken2Address,
+} from '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
-import { setDestToken } from '../../../../../core/redux/slices/bridge';
-import { initialState, ethToken2Address } from '../../_mocks_/initialState';
+import {
+  selectBridgeViewMode,
+  setDestToken,
+} from '../../../../../core/redux/slices/bridge';
+import { cloneDeep } from 'lodash';
+import { BridgeViewMode } from '../../types';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -23,6 +31,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     ...actual,
     default: actual.default,
     setDestToken: jest.fn(actual.setDestToken),
+    selectBridgeViewMode: jest.fn().mockReturnValue('Bridge'),
   };
 });
 
@@ -76,6 +85,10 @@ describe('BridgeDestTokenSelector', () => {
   // Fix ReferenceError: You are trying to access a property or method of the Jest environment after it has been torn down.
   jest.useFakeTimers();
 
+  const initialState = cloneDeep(initialStateBase);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  initialState.bridge.selectedDestChainId = '0x1' as any;
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -117,7 +130,7 @@ describe('BridgeDestTokenSelector', () => {
     expect(setDestToken).toHaveBeenCalledWith(
       expect.objectContaining({
         address: ethToken2Address,
-        balance: '2',
+        balance: '2.0',
         chainId: '0x1',
         decimals: 18,
         image: 'https://token2.com/logo.png',
@@ -156,7 +169,7 @@ describe('BridgeDestTokenSelector', () => {
       'Asset',
       expect.objectContaining({
         address: ethToken2Address,
-        balance: '2',
+        balance: '2.0',
         balanceFiat: '$200000',
         chainId: '0x1',
         decimals: 18,
@@ -216,6 +229,7 @@ describe('BridgeDestTokenSelector', () => {
   });
 
   it('displays empty state when no tokens match search', async () => {
+    jest.useFakeTimers();
     const { getByTestId, getByText } = renderScreen(
       BridgeDestTokenSelector,
       {
@@ -230,6 +244,40 @@ describe('BridgeDestTokenSelector', () => {
     await waitFor(() => {
       expect(getByText('No tokens match', { exact: false })).toBeTruthy();
     });
+  });
+
+  it('hides destination network bar when mode is Swap', async () => {
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Swap,
+    );
+    const { queryByText } = renderScreen(
+      BridgeDestTokenSelector,
+      {
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+      },
+      { state: initialState },
+    );
+
+    const seeAllButton = queryByText('See all');
+    expect(seeAllButton).toBeNull();
+
+    // Restore the original mock
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Bridge,
+    );
+  });
+
+  it('shows destination network bar when mode is Bridge', async () => {
+    const { getByText } = renderScreen(
+      BridgeDestTokenSelector,
+      {
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+      },
+      { state: initialState },
+    );
+
+    const seeAllButton = getByText('See all');
+    expect(seeAllButton).toBeTruthy();
   });
 
   it('navigates to destination network selector when See all is pressed', async () => {

@@ -8,6 +8,11 @@ export function toLocaleDateTime(timestamp) {
   return `${date} ${time}`;
 }
 
+/**
+ * Formats a given timestamp (number | Date)
+ * @param {number | Date} timestamp
+ * @returns string
+ */
 export function toDateFormat(timestamp) {
   const date = new Date(timestamp);
   const month = strings(`date.months.${date.getMonth()}`);

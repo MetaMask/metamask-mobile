@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, TouchableWithoutFeedback, View } from 'react-native';
+import { TouchableWithoutFeedback, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPListItem.styles';
 import { SRPListItemProps } from './SRPListItem.type';
@@ -9,17 +10,33 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
+  IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { getInternalAccountByAddress } from '../../../util/address';
-import Jazzicon from 'react-native-jazzicon';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import { SRPListItemSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPListItem.selectors';
+import Avatar, {
+  AvatarAccountType,
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../reducers';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
 
-const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
+const SRPListItem = ({
+  name,
+  keyring,
+  onActionComplete,
+  testID,
+  showArrowName = '',
+}: SRPListItemProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [showAccounts, setShowAccounts] = useState(false);
   const accountsToBeShown = useMemo(
     () =>
@@ -28,25 +45,91 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
       ),
     [keyring],
   );
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
+
+  const handleSRPSelection = () => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+      )
+        .addProperties({
+          button_type: 'srp_select',
+        })
+        .build(),
+    );
+    onActionComplete(keyring.metadata.id);
+  };
 
   return (
     <TouchableWithoutFeedback
-      onPress={() => onActionComplete(keyring.metadata.id)}
-      testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`}
+      onPress={handleSRPSelection}
+      testID={
+        testID ??
+        `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`
+      }
     >
       <View style={styles.srpItem}>
         <View style={styles.srpItemContent}>
-          <Text variant={TextVariant.BodyMDMedium}>{name}</Text>
-          <Button
-            testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_TOGGLE_SHOW}-${keyring.metadata.id}`}
-            variant={ButtonVariants.Link}
-            label={`${strings(
-              !showAccounts
-                ? 'accounts.show_accounts'
-                : 'accounts.hide_accounts',
-            )} ${keyring.accounts.length} ${strings('accounts.accounts')}`}
-            onPress={() => setShowAccounts(!showAccounts)}
-          />
+          <View>
+            <View style={styles.srpItemIconContainer}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+              >
+                {name}
+              </Text>
+              <View style={styles.srpIconContainer}>
+                {Boolean(showArrowName) && (
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Alternative}
+                  >
+                    {showArrowName}
+                  </Text>
+                )}
+                <Icon
+                  name={IconName.ArrowRight}
+                  style={styles.srpItemIcon}
+                  color={IconColor.Alternative}
+                />
+              </View>
+            </View>
+
+            <Button
+              testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_TOGGLE_SHOW}-${keyring.metadata.id}`}
+              variant={ButtonVariants.Link}
+              onPress={() => {
+                trackEvent(
+                  createEventBuilder(
+                    MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+                  )
+                    .addProperties({
+                      button_type: 'details',
+                    })
+                    .build(),
+                );
+                setShowAccounts(!showAccounts);
+              }}
+              label={
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Primary}
+                >
+                  {`${strings(
+                    !showAccounts
+                      ? 'accounts.show_accounts'
+                      : 'accounts.hide_accounts',
+                  )} ${keyring.accounts.length} ${strings(
+                    'accounts.accounts',
+                  )}`}
+                </Text>
+              }
+            />
+          </View>
           {showAccounts && (
             <>
               <View style={styles.horizontalLine} />
@@ -62,7 +145,12 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
                     }
                     return (
                       <View style={styles.accountItem}>
-                        <Jazzicon size={20} seed={parseInt(item.address, 16)} />
+                        <Avatar
+                          variant={AvatarVariant.Account}
+                          type={accountAvatarType}
+                          accountAddress={item.address}
+                          size={AvatarSize.Sm}
+                        />
                         <Text
                           variant={TextVariant.BodySM}
                           color={TextColor.Default}
@@ -81,7 +169,6 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
             </>
           )}
         </View>
-        <Icon name={IconName.ArrowRight} style={styles.srpItemIcon} />
       </View>
     </TouchableWithoutFeedback>
   );

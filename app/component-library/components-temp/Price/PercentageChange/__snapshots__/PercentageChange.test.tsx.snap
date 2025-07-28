@@ -6,12 +6,11 @@ exports[`PercentageChange should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#1c7e33",
-        "fontFamily": "CentraNo1-Medium",
-        "fontSize": 16,
-        "fontWeight": "500",
+        "color": "#457a39",
+        "fontFamily": "Geist Medium",
+        "fontSize": 14,
         "letterSpacing": 0,
-        "lineHeight": 24,
+        "lineHeight": 22,
       }
     }
   >

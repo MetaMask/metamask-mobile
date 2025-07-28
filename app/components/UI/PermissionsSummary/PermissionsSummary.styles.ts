@@ -1,27 +1,43 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 const createStyles = (params: {
   theme: Theme;
-  vars: { isRenderedAsBottomSheet: boolean | undefined };
+  vars: {
+    isRenderedAsBottomSheet: boolean | undefined;
+    nonTabView: boolean | undefined;
+    fullNonTabView: boolean | undefined;
+  };
 }) => {
-  const { theme } = params;
-  const { vars } = params;
+  const { theme, vars } = params;
+  const { colors } = theme;
+  const { isRenderedAsBottomSheet, nonTabView, fullNonTabView } = vars;
+
+  const tabHeight = fullNonTabView ? 400 : 325;
+  const bottomSheetHeight = isRenderedAsBottomSheet ? undefined : '100%';
+  const height = nonTabView ? tabHeight : bottomSheetHeight;
 
   return StyleSheet.create({
     safeArea: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.alternative,
     },
     mainContainer: {
-      backgroundColor: theme.colors.background.default,
-      paddingTop: 8,
+      backgroundColor: theme.colors.background.alternative,
+      paddingTop: 16,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
-      minHeight: 200,
-      height: vars.isRenderedAsBottomSheet ? undefined : '100%',
-      justifyContent: vars.isRenderedAsBottomSheet
-        ? 'flex-start'
-        : 'space-between',
+      height,
+      justifyContent: isRenderedAsBottomSheet ? 'flex-start' : 'space-between',
+    },
+    contentContainer: {
+      flex: 1,
+    },
+    container: {
+      marginTop: 16,
+      backgroundColor: colors.background.default,
+      borderRadius: 16,
+      paddingTop: 8,
+      marginHorizontal: 16,
     },
     title: {
       alignSelf: 'center',
@@ -36,8 +52,9 @@ const createStyles = (params: {
     actionButtonsContainer: {
       flex: 0,
       flexDirection: 'row',
-      paddingHorizontal: 24,
       marginTop: 8,
+      paddingHorizontal: 16,
+      marginBottom: Platform.OS === 'android' ? 16 : 0,
     },
     buttonPositioning: {
       flex: 1,
@@ -114,7 +131,10 @@ const createStyles = (params: {
       alignItems: 'center',
       justifyContent: 'space-between',
     },
-    startAccessory: { flex: 1, paddingLeft: 16 },
+    startAccessory: {
+      flex: 1,
+      paddingLeft: 16,
+    },
     endAccessory: {
       flex: 1,
       paddingRight: 16,
@@ -141,6 +161,22 @@ const createStyles = (params: {
     description: {
       marginHorizontal: 24,
       marginBottom: 16,
+    },
+    // Tab Bar
+    tabsContainer: {
+      flex: 1,
+      paddingHorizontal: 16,
+    },
+    // Header
+    connectionTitle: {
+      textAlign: 'center',
+    },
+    // Permissions Management
+    permissionsManagementContainer: {
+      marginTop: 8,
+      backgroundColor: colors.background.default,
+      borderRadius: 16,
+      paddingVertical: 8,
     },
   });
 };

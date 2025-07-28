@@ -1,12 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Image,
-  ViewPropTypes,
-  View,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
+import { Image, View, StyleSheet, Dimensions } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
@@ -42,6 +36,8 @@ import {
   PopularList,
   UnpopularNetworkList,
 } from '../../../util/networks/customNetworks';
+
+import { ViewPropTypes } from 'deprecated-react-native-prop-types';
 
 const createStyles = () =>
   StyleSheet.create({

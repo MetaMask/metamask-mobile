@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
-import { swapsUtils } from '@metamask/swaps-controller';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
@@ -14,10 +13,8 @@ import {
   selectChainId,
   selectEvmTicker,
 } from '../../../selectors/networkController';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { swapsLivenessMultichainSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
-import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
-import useGoToBridge from '../../UI/Bridge/hooks/useGoToBridge';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -25,7 +22,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
+import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
 import Routes from '../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../util/networks';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
@@ -37,37 +34,85 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
-} from '../../UI/Ramp/routes/utils';
+} from '../../UI/Ramp/Aggregator/routes/utils';
+import { trace, TraceName } from '../../../util/trace';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
-import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
-import { isEvmAccountType, SolScope } from '@metamask/keyring-api';
-import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
+import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { RampType } from '../../../reducers/fiatOrders/types';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../UI/Earn/selectors/featureFlags';
+import useDepositEnabled from '../../UI/Ramp/Deposit/hooks/useDepositEnabled';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
+import Engine from '../../../core/Engine';
+import { selectMultichainTokenListForAccountId } from '../../../selectors/multichain/multichain';
+import { RootState } from '../../../reducers';
+import { earnSelectors } from '../../../selectors/earnController/earn';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { isSendRedesignEnabled } from '../confirmations/utils/confirm';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector(swapsLivenessMultichainSelector);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
+  const { isDepositEnabled } = useDepositEnabled();
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   ///: END:ONLY_INCLUDE_IF
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
+  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } =
+    useSwapBridgeNavigation({
+      location: SwapBridgeNavigationLocation.TabBar,
+      sourcePage: 'MainView',
+    });
+
+  const selectedAsset = useSelector(
+    (state: RootState) => state.transaction.selectedAsset,
+  );
+
+  const multichainTokens = useSelector((state: RootState) =>
+    selectedAccount?.id
+      ? selectMultichainTokenListForAccountId(state, selectedAccount.id)
+      : [],
+  );
+  const nativeAsset =
+    multichainTokens.find((token) => token.isNative) || multichainTokens[0];
+
+  // Hook for handling non-EVM asset sending
+  const assetToSend = selectedAsset?.address ? selectedAsset : nativeAsset;
+  const { sendNonEvmAsset } = useSendNonEvmAsset({
+    asset: assetToSend || { chainId, address: undefined },
+    closeModal: () => sheetRef.current?.onCloseBottomSheet(),
+  });
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -105,6 +150,15 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+        params: {
+          tokenFilter: {
+            includeNativeTokens: true,
+            includeStakingTokens: false,
+            includeLendingTokens: true,
+            includeReceiptTokens: false,
+          },
+          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
+        },
       });
     });
 
@@ -139,6 +193,13 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: RampType.BUY,
+      },
+    });
   }, [
     closeBottomSheetAndNavigate,
     navigate,
@@ -161,12 +222,46 @@ const WalletActions = () => {
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadRampExperience,
+      tags: {
+        rampType: RampType.SELL,
+      },
+    });
   }, [
     closeBottomSheetAndNavigate,
     navigate,
     trackEvent,
     chainId,
     createEventBuilder,
+  ]);
+
+  const onDeposit = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.DEPOSIT.ID);
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Deposit',
+          location: 'TabBar',
+          chain_id_destination: getDecimalChainId(chainId),
+          ramp_type: 'DEPOSIT',
+        })
+        .build(),
+    );
+
+    trace({
+      name: TraceName.LoadDepositExperience,
+    });
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    createEventBuilder,
+    chainId,
   ]);
 
   const onSend = useCallback(async () => {
@@ -181,42 +276,48 @@ const WalletActions = () => {
         .build(),
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    // Non-EVM (Snap) Send flow
-    if (selectedAccount && !isEvmAccountType(selectedAccount.type)) {
-      if (!selectedAccount.metadata.snap) {
-        throw new Error('Non-EVM needs to be Snap accounts');
-      }
-
-      // TODO: Remove this once we want to enable all non-EVM Snaps
-      if (!isMultichainWalletSnap(selectedAccount.metadata.snap.id as SnapId)) {
-        throw new Error(
-          `Non-EVM Snap is not whitelisted: ${selectedAccount.metadata.snap.id}`,
-        );
-      }
-
-      try {
-        await sendMultichainTransaction(
-          selectedAccount.metadata.snap.id as SnapId,
-          {
-            account: selectedAccount.id,
-            scope: chainId as CaipChainId,
-          },
-        );
-      } catch {
-        // Restore the previous page in case of any error
-        sheetRef.current?.onCloseBottomSheet();
-      }
-
-      // Early return, not to let the non-EVM flow slip into the native send flow.
+    // Try non-EVM first, if handled, return early
+    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    if (wasHandledAsNonEvm) {
       return;
     }
-    ///: END:ONLY_INCLUDE_IF
 
-    // Native send flow
+    if (selectedAsset?.chainId && selectedAsset.chainId !== chainId) {
+      const { NetworkController, MultichainNetworkController } = Engine.context;
+      const networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(
+          selectedAsset.chainId,
+        );
+      const networkClientId =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.networkClientId;
+      await MultichainNetworkController.setActiveNetwork(
+        networkClientId as string,
+      );
+    }
+
+    if (isSendRedesignEnabled()) {
+      closeBottomSheetAndNavigate(() => {
+        navigate(Routes.SEND.DEFAULT, {
+          screen: Routes.SEND.ROOT,
+        });
+      });
+      return;
+    }
+
     closeBottomSheetAndNavigate(() => {
-      navigate('SendFlowView');
-      ticker && dispatch(newAssetTransaction(getEther(ticker)));
+      if (
+        !assetToSend ||
+        assetToSend.isETH ||
+        assetToSend.isNative ||
+        Object.keys(assetToSend).length === 0
+      ) {
+        ticker && dispatch(newAssetTransaction(getEther(ticker)));
+      } else {
+        dispatch(newAssetTransaction(assetToSend));
+      }
+      navigate('SendFlowView', {});
     });
   }, [
     closeBottomSheetAndNavigate,
@@ -226,20 +327,14 @@ const WalletActions = () => {
     trackEvent,
     chainId,
     createEventBuilder,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    selectedAccount,
-    ///: END:ONLY_INCLUDE_IF
+    selectedAsset,
+    assetToSend,
+    sendNonEvmAsset,
   ]);
 
   const goToSwaps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-          sourcePage: 'MainView',
-        },
-      });
+      goToSwapsBase();
     });
 
     trackEvent(
@@ -254,47 +349,31 @@ const WalletActions = () => {
     );
   }, [
     closeBottomSheetAndNavigate,
-    navigate,
+    goToSwapsBase,
     trackEvent,
     chainId,
     createEventBuilder,
   ]);
 
-  const handleBridgeNavigation = useCallback(() => {
+  const goToBridge = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-          sourcePage: 'MainView',
-        },
+      goToBridgeBase();
+    });
+  }, [closeBottomSheetAndNavigate, goToBridgeBase]);
+
+  const onPerps = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
       });
     });
+  }, [closeBottomSheetAndNavigate, navigate]);
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Bridge',
-          tokenSymbol: '',
-          location: 'TabBar',
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [
-    closeBottomSheetAndNavigate,
-    navigate,
-    trackEvent,
-    chainId,
-    createEventBuilder,
-  ]);
-
-  const goToPortfolioBridge = useGoToBridge('TabBar');
-
-  const goToBridge =
-    process.env.MM_BRIDGE_UI_ENABLED === 'true'
-      ? handleBridgeNavigation
-      : goToPortfolioBridge;
+  const onPerpsSandbox = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.PERPS.ROOT);
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
 
   const sendIconStyle = useMemo(
     () => ({
@@ -304,23 +383,17 @@ const WalletActions = () => {
     [styles.icon],
   );
 
-  const onPressSwaps = useCallback(() => {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (chainId === SolScope.Mainnet) {
-      goToBridge();
-      return;
+  const isEarnWalletActionEnabled = useMemo(() => {
+    if (
+      !isStablecoinLendingEnabled ||
+      (earnTokens.length <= 1 &&
+        earnTokens[0]?.isETH &&
+        !isPooledStakingEnabled)
+    ) {
+      return false;
     }
-    ///: END:ONLY_INCLUDE_IF
-
-    goToSwaps();
-  }, [
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    chainId,
-    goToBridge,
-    ///: END:ONLY_INCLUDE_IF
-    goToSwaps,
-  ]);
-
+    return true;
+  }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
@@ -345,24 +418,58 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
+        {isDepositEnabled && (
+          <WalletAction
+            actionType={WalletActionType.Deposit}
+            iconName={IconName.Cash}
+            onPress={onDeposit}
+            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+          />
+        )}
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
           <WalletAction
             actionType={WalletActionType.Swap}
             iconName={IconName.SwapHorizontal}
-            onPress={onPressSwaps}
+            onPress={goToSwaps}
             actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        {isBridgeAllowed(chainId) && (
+        {AppConstants.BRIDGE.ACTIVE &&
+          isBridgeAllowed(chainId) &&
+          !isUnifiedSwapsEnabled && (
+            <WalletAction
+              actionType={WalletActionType.Bridge}
+              iconName={IconName.Bridge}
+              onPress={goToBridge}
+              actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
+              iconStyle={styles.icon}
+              iconSize={AvatarSize.Md}
+              disabled={!canSignTransactions}
+            />
+          )}
+        {isPerpsEnabled && (
           <WalletAction
-            actionType={WalletActionType.Bridge}
-            iconName={IconName.Bridge}
-            onPress={goToBridge}
-            actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
+            actionType={WalletActionType.Perps}
+            iconName={IconName.TrendUp}
+            onPress={onPerps}
+            actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
             iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
+        {isPerpsEnabled && (
+          <WalletAction
+            actionType={WalletActionType.PerpsSandbox}
+            iconName={IconName.Arrow2Right}
+            onPress={onPerpsSandbox}
+            iconStyle={sendIconStyle}
+            actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_SANDBOX_BUTTON}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
           />
@@ -385,7 +492,7 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
-        {isStablecoinLendingFeatureEnabled() && (
+        {isEarnWalletActionEnabled && (
           <WalletAction
             actionType={WalletActionType.Earn}
             iconName={IconName.Plant}

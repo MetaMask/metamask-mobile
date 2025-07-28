@@ -8,7 +8,7 @@ import {
   MOCK_SIMPLE_ACCOUNTS,
   MOCK_QR_ACCOUNTS,
   MOCK_HD_ACCOUNTS,
-  MOCK_KEYRINGS_WITH_METADATA,
+  MOCK_KEYRINGS,
   MOCK_KEYRING_CONTROLLER,
 } from './testUtils';
 
@@ -23,7 +23,7 @@ describe('KeyringController Selectors', () => {
             },
           },
         } as RootState),
-      ).toEqual(MOCK_KEYRINGS_WITH_METADATA);
+      ).toEqual(MOCK_KEYRINGS);
     });
   });
   describe('selectFlattenedKeyringAccounts', () => {

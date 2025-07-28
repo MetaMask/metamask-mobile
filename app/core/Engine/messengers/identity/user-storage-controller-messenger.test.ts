@@ -28,17 +28,18 @@ describe('getUserStorageControllerMessenger', () => {
         'AuthenticationController:performSignIn',
         'AccountsController:listAccounts',
         'AccountsController:updateAccountMetadata',
-        'NetworkController:getState',
-        'NetworkController:addNetwork',
-        'NetworkController:removeNetwork',
-        'NetworkController:updateNetwork',
+        'AccountsController:updateAccounts',
+        'AddressBookController:list',
+        'AddressBookController:set',
+        'AddressBookController:delete',
       ],
       allowedEvents: [
         'KeyringController:lock',
         'KeyringController:unlock',
         'AccountsController:accountAdded',
         'AccountsController:accountRenamed',
-        'NetworkController:networkRemoved',
+        'AddressBookController:contactUpdated',
+        'AddressBookController:contactDeleted',
       ],
     });
 

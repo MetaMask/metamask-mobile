@@ -1,6 +1,6 @@
 'use strict';
 
-import { SmokeAssets } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -11,10 +11,11 @@ import {
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
+import { buildPermissions } from '../../fixtures/utils';
 
-describe(SmokeAssets('NFT Details page'), () => {
+describe(SmokeNetworkAbstractions('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const TEST_DAPP_CONTRACT = 'TestDappNFTs';
   beforeAll(async () => {
@@ -28,10 +29,11 @@ describe(SmokeAssets('NFT Details page'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
       },
       async ({ contractRegistry }) => {
@@ -45,27 +47,29 @@ describe(SmokeAssets('NFT Details page'), () => {
         await WalletView.scrollDownOnNFTsTab();
 
         await WalletView.tapImportNFTButton();
-        await Assertions.checkIfVisible(ImportNFTView.container);
+        await Assertions.expectElementToBeVisible(ImportNFTView.container);
         await ImportNFTView.typeInNFTAddress('1234');
         await ImportNFTView.typeInNFTIdentifier('');
-        await Assertions.checkIfVisible(ImportNFTView.addressWarningMessage);
+        await Assertions.expectElementToBeVisible(
+          ImportNFTView.addressWarningMessage,
+        );
         //await ImportNFTView.tapBackButton();
 
         await ImportNFTView.typeInNFTAddress(nftsAddress);
         await ImportNFTView.typeInNFTIdentifier('1');
 
-        await Assertions.checkIfVisible(WalletView.container);
+        await Assertions.expectElementToBeVisible(WalletView.container);
         // Wait for asset to load
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
           WalletView.nftInWallet(TEST_DAPP_CONTRACT),
         );
         await WalletView.tapOnNftName();
 
-        await Assertions.checkIfTextIsDisplayed(enContent.nft_details.token_id);
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(enContent.nft_details.token_id);
+        await Assertions.expectTextDisplayed(
           enContent.nft_details.contract_address,
         );
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           enContent.nft_details.token_standard,
         );
       },

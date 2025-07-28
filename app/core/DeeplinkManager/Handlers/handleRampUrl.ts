@@ -1,1 +1,1 @@
-export { default } from '../../../components/UI/Ramp/deeplink/handleRampUrl';
+export { default } from '../../../components/UI/Ramp/Aggregator/deeplink/handleRampUrl';

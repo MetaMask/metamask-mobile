@@ -8,11 +8,18 @@ import {
   selectDestToken,
   selectSelectedDestChainId,
   selectSlippage,
+  selectDestAddress,
+  selectIsEvmToSolana,
+  selectIsSolanaToEvm,
 } from '../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
+import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+
+export const DEBOUNCE_WAIT = 700;
 
 /**
  * Hook for handling bridge quote request updates
@@ -25,7 +32,13 @@ export const useBridgeQuoteRequest = () => {
   const destChainId = useSelector(selectSelectedDestChainId);
   const slippage = useSelector(selectSlippage);
   const walletAddress = useSelector(selectSelectedInternalAccountAddress);
-
+  const destAddress = useSelector(selectDestAddress);
+  const isEvmToSolana = useSelector(selectIsEvmToSolana);
+  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
+  const context = useUnifiedSwapBridgeContext();
+  const shouldUseSmartTransaction = useSelector(
+    selectShouldUseSmartTransaction,
+  );
   /**
    * Updates quote parameters in the bridge controller
    */
@@ -33,7 +46,7 @@ export const useBridgeQuoteRequest = () => {
     if (
       !sourceToken ||
       !destToken ||
-      !sourceAmount ||
+      sourceAmount === undefined ||
       !destChainId ||
       !walletAddress
     ) {
@@ -54,18 +67,17 @@ export const useBridgeQuoteRequest = () => {
       destChainId: getDecimalChainId(destChainId),
       destTokenAddress: destToken.address,
       srcTokenAmount: normalizedSourceAmount,
-      slippage: Number(slippage),
+      slippage: slippage ? Number(slippage) : undefined,
       walletAddress,
+      destWalletAddress:
+        isEvmToSolana || isSolanaToEvm ? destAddress : walletAddress,
+      gasIncluded: shouldUseSmartTransaction,
     };
 
-    try {
-      await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
-        params,
-      );
-    } catch (error) {
-      console.error('Error updating quote params:', error);
-      throw error;
-    }
+    await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
+      params,
+      context,
+    );
   }, [
     sourceToken,
     destToken,
@@ -73,8 +85,16 @@ export const useBridgeQuoteRequest = () => {
     destChainId,
     slippage,
     walletAddress,
+    destAddress,
+    isEvmToSolana,
+    isSolanaToEvm,
+    context,
+    shouldUseSmartTransaction,
   ]);
 
   // Create a stable debounced function that persists across renders
-  return useMemo(() => debounce(updateQuoteParams, 300), [updateQuoteParams]);
+  return useMemo(
+    () => debounce(updateQuoteParams, DEBOUNCE_WAIT),
+    [updateQuoteParams],
+  );
 };

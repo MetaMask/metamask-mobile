@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
@@ -9,7 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import styleSheet from '../AddAsset.styles';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../hooks/useStyles';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import Cell, {
   CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
@@ -19,6 +19,8 @@ import {
 } from '../../../../component-library/components/Avatars/Avatar';
 import { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../util/networks';
+import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
@@ -27,31 +29,54 @@ export default function NetworkListBottomSheet({
   setSelectedNetwork,
   setOpenNetworkSelector,
   sheetRef,
+  displayEvmNetworksOnly = true,
 }: {
   selectedNetwork: Hex | null;
   setSelectedNetwork: (network: Hex) => void;
   setOpenNetworkSelector: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef>;
+  displayEvmNetworksOnly?: boolean;
 }) {
   const { styles } = useStyles(styleSheet, {});
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const filteredNetworkConfigurations = useMemo(() => {
+    const configs = {} as Record<string, MultichainNetworkConfiguration>;
+
+    for (const [chainId, config] of Object.entries(networkConfigurations)) {
+      // If displayEvmNetworksOnly is true, filter out non-EVM networks
+      const shouldBeFilteredOut =
+        displayEvmNetworksOnly &&
+        ((Object.hasOwnProperty.call(config, 'isEvm') && !config.isEvm) ||
+          config.isEvm === false);
+
+      if (shouldBeFilteredOut) {
+        continue;
+      }
+
+      configs[chainId] = config;
+    }
+
+    return configs;
+  }, [displayEvmNetworksOnly, networkConfigurations]);
 
   return (
     <BottomSheet
       shouldNavigateBack={false}
       ref={sheetRef}
+      isInteractable={false}
       onClose={() => setOpenNetworkSelector(false)}
-      isInteractable
       style={styles.bottomSheetWrapperContent}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
-      <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
-        {strings('networks.select_network')}
-      </Text>
+      <BottomSheetHeader onClose={() => setOpenNetworkSelector(false)}>
+        <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
+          {strings('networks.select_network')}
+        </Text>
+      </BottomSheetHeader>
+
       <ScrollView>
-        {Object.values(networkConfigurations).map((network) => (
+        {Object.values(filteredNetworkConfigurations).map((network) => (
           <View style={styles.bottomSheetWrapper} key={network.chainId}>
             <Cell
               variant={CellVariant.Select}
@@ -59,14 +84,13 @@ export default function NetworkListBottomSheet({
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name: network.name,
-                // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
                 imageSource: getNetworkImageSource({
                   chainId: network.chainId,
                 }),
                 size: AvatarSize.Sm,
               }}
               onPress={() => {
-                setSelectedNetwork(network.chainId);
+                setSelectedNetwork(network.chainId as Hex);
                 setOpenNetworkSelector(false);
               }}
               isSelected={selectedNetwork === network.chainId}

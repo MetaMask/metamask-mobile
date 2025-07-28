@@ -1,17 +1,19 @@
 import React from 'react';
-import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
 import {
   Keyboard,
   StyleSheet,
   View,
-  ActivityIndicator,
   TouchableWithoutFeedback,
 } from 'react-native';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTheme } from '../../../util/theme';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
 
 export const ConfirmButtonState = {
   Error: 'error',
@@ -22,23 +24,14 @@ export const ConfirmButtonState = {
 const getStyles = (colors) =>
   StyleSheet.create({
     actionContainer: {
-      flex: 0,
       flexDirection: 'row',
       paddingVertical: 16,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
+      gap: 16,
+      width: '100%',
     },
     button: {
       flex: 1,
-    },
-    cancel: {
-      marginRight: 8,
-    },
-    confirm: {
-      marginLeft: 8,
-    },
-    confirmButtonError: {
-      backgroundColor: colors.error.default,
-      borderColor: colors.error.default,
     },
     confirmButtonWarning: {
       backgroundColor: colors.warning.default,
@@ -68,6 +61,8 @@ export default function ActionView({
   style = undefined,
   confirmButtonState = ConfirmButtonState.Normal,
   scrollViewTestID,
+  contentContainerStyle,
+  buttonContainerStyle,
 }) {
   const { colors } = useTheme();
   confirmText = confirmText || strings('action_view.confirm');
@@ -81,6 +76,7 @@ export default function ActionView({
         resetScrollToCoords={{ x: 0, y: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         testID={scrollViewTestID}
+        contentContainerStyle={contentContainerStyle}
       >
         <TouchableWithoutFeedback
           style={baseStyles.flexGrow}
@@ -95,44 +91,34 @@ export default function ActionView({
           {children}
         </TouchableWithoutFeedback>
 
-        <View style={styles.actionContainer}>
+        <View style={[styles.actionContainer, buttonContainerStyle]}>
           {showCancelButton && (
-            <StyledButton
-              testID={cancelTestID}
-              type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
+            <Button
               onPress={onCancelPress}
-              containerStyle={[styles.button, styles.cancel]}
-              disabled={confirmed}
-            >
-              {cancelText}
-            </StyledButton>
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              label={cancelText}
+              testID={cancelTestID}
+              style={styles.button}
+              isDisabled={confirmed}
+            />
           )}
           {showConfirmButton && (
-            <StyledButton
-              testID={confirmTestID}
-              type={confirmButtonMode}
+            <Button
               onPress={onConfirmPress}
-              containerStyle={[
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              label={confirmText}
+              testID={confirmTestID}
+              style={[
                 styles.button,
-                styles.confirm,
-                confirmButtonState === ConfirmButtonState.Error
-                  ? styles.confirmButtonError
-                  : {},
-                confirmButtonState === ConfirmButtonState.Warning
-                  ? styles.confirmButtonWarning
-                  : {},
+                confirmButtonState === ConfirmButtonState.Warning &&
+                  styles.confirmButtonWarning,
               ]}
-              disabled={confirmed || confirmDisabled || loading}
-            >
-              {confirmed || loading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary.default}
-                />
-              ) : (
-                confirmText
-              )}
-            </StyledButton>
+              isDisabled={confirmed || confirmDisabled || loading}
+              loading={confirmed || loading}
+              isDanger={confirmButtonState === ConfirmButtonState.Error}
+            />
           )}
         </View>
       </KeyboardAwareScrollView>
@@ -149,6 +135,7 @@ ActionView.defaultProps = {
   cancelTestID: '',
   showCancelButton: true,
   showConfirmButton: true,
+  contentContainerStyle: undefined,
 };
 
 ActionView.propTypes = {
@@ -226,4 +213,12 @@ ActionView.propTypes = {
    * Optional TestID for the parent scroll View
    */
   scrollViewTestID: PropTypes.string,
+  /**
+   * Optional View styles. Applies to scroll view
+   */
+  contentContainerStyle: PropTypes.object,
+  /**
+   * Optional View styles. Applies to button container
+   */
+  buttonContainerStyle: PropTypes.object,
 };

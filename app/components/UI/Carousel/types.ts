@@ -1,12 +1,25 @@
 import { ViewStyle } from 'react-native';
 
-export type SlideId = 'card' | 'fund' | 'cashout' | 'aggregated' | 'multisrp';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { CaipChainId } from '@metamask/utils';
+export type SlideId =
+  | 'card'
+  | 'fund'
+  | 'cashout'
+  | 'aggregated'
+  | 'multisrp'
+  | 'backupAndSync'
+  | 'solana'
+  | 'smartAccount'
+  | `contentful-${string}`;
 
 interface NavigationParams {
   address?: string;
   chainId?: string;
   amount?: string;
   currency?: string;
+  clientType?: WalletClientType;
+  scope?: CaipChainId;
 }
 
 interface NavigationScreen {
@@ -14,7 +27,9 @@ interface NavigationScreen {
   params: NavigationParams;
 }
 
-type NavigationRoute = readonly [string] | readonly [string, NavigationScreen];
+export type NavigationRoute =
+  | readonly [string]
+  | readonly [string, NavigationScreen];
 
 export interface UrlNavigationAction {
   type: 'url';
@@ -45,6 +60,9 @@ export interface CarouselSlide {
   navigation: NavigationAction;
   dismissed?: boolean;
   undismissable?: boolean;
+  href?: string;
+  startDate?: string;
+  endDate?: string;
   testID?: string;
   testIDTitle?: string;
   testIDCloseButton?: string;

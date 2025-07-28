@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import useBalance from '../../Stake/hooks/useBalance';
-import { EarnTokenDetails } from './useEarnTokenDetails';
 import useInputHandler from './useInput';
+import { EarnTokenDetails } from '../types/lending.types';
 
 const useEarnWithdrawInputHandlers = ({
   earnToken,
@@ -18,9 +18,9 @@ const useEarnWithdrawInputHandlers = ({
     stakedBalanceFiatNumber,
   } = useBalance();
 
-  // TODO: implement balanceMinimalUnit value for the earn token's underlying token
-  // once we have this data to link the two tokens in the state
-  const balanceMinimalUnit = earnToken.isETH ? stakedBalanceWei : '0';
+  const balanceMinimalUnit = earnToken.isETH
+    ? stakedBalanceWei
+    : earnToken?.balanceMinimalUnit;
 
   const {
     amountToken,

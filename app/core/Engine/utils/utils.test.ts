@@ -2,8 +2,10 @@ import {
   AccountsController,
   AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
+import { ApprovalController } from '@metamask/approval-controller';
 import {
   CurrencyRateController,
+  DeFiPositionsController,
   MultichainAssetsController,
   MultichainAssetsRatesController,
   MultichainBalancesController,
@@ -22,10 +24,12 @@ import {
 } from '@metamask/snaps-controllers';
 import { MultichainTransactionsController } from '@metamask/multichain-transactions-controller';
 import { TransactionController } from '@metamask/transaction-controller';
+import { SignatureController } from '@metamask/signature-controller';
 import { merge } from 'lodash';
 
 import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { accountsControllerInit } from '../controllers/accounts-controller';
+import { ApprovalControllerInit } from '../controllers/approval-controller';
 import { currencyRateControllerInit } from '../controllers/currency-rate-controller/currency-rate-controller-init';
 import { GasFeeControllerInit } from '../controllers/gas-fee-controller';
 import { multichainAssetsControllerInit } from '../controllers/multichain-assets-controller/multichain-assets-controller-init';
@@ -35,6 +39,8 @@ import { multichainNetworkControllerInit } from '../controllers/multichain-netwo
 import { multichainTransactionsControllerInit } from '../controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { notificationServicesControllerInit } from '../controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from '../controllers/notifications/notification-services-push-controller-init';
+import { SignatureControllerInit } from '../controllers/signature-controller';
+import { defiPositionsControllerInit } from '../controllers/defi-positions-controller/defi-positions-controller-init';
 import {
   cronjobControllerInit,
   executionServiceInit,
@@ -47,9 +53,15 @@ import { createMockControllerInitFunction } from './test-utils';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
+import { seedlessOnboardingControllerInit } from '../controllers/seedless-onboarding-controller';
+import { AccountTreeController } from '@metamask/account-tree-controller';
+import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
+import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
+import { perpsControllerInit } from '../controllers/perps-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
+jest.mock('../controllers/approval-controller');
 jest.mock(
   '../controllers/currency-rate-controller/currency-rate-controller-init',
 );
@@ -74,10 +86,16 @@ jest.mock(
   '../controllers/notifications/notification-services-push-controller-init',
 );
 jest.mock('../controllers/snaps');
+jest.mock('../controllers/signature-controller');
 jest.mock('../controllers/transaction-controller');
+jest.mock(
+  '../controllers/defi-positions-controller/defi-positions-controller-init',
+);
+jest.mock('../../../multichain-accounts/controllers/account-tree-controller');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
+  const mockApprovalControllerInit = jest.mocked(ApprovalControllerInit);
   const mockMultichainNetworkControllerInit = jest.mocked(
     multichainNetworkControllerInit,
   );
@@ -91,6 +109,7 @@ describe('initModularizedControllers', () => {
     snapInterfaceControllerInit,
   );
   const mockSnapsRegistryInit = jest.mocked(snapsRegistryInit);
+  const mockWebSocketServiceInit = jest.mocked(WebSocketServiceInit);
   const mockMultichainAssetsControllerInit = jest.mocked(
     multichainAssetsControllerInit,
   );
@@ -112,6 +131,15 @@ describe('initModularizedControllers', () => {
   );
   const mockGasFeeControllerInit = jest.mocked(GasFeeControllerInit);
   const mockAppMetadataControllerInit = jest.mocked(appMetadataControllerInit);
+  const mockSignatureControllerInit = jest.mocked(SignatureControllerInit);
+  const mockDeFiPositionsControllerInit = jest.mocked(
+    defiPositionsControllerInit,
+  );
+  const mockSeedlessOnboardingControllerInit = jest.mocked(
+    seedlessOnboardingControllerInit,
+  );
+  const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
+  const mockPerpsControllerInit = jest.mocked(perpsControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -121,10 +149,13 @@ describe('initModularizedControllers', () => {
         existingControllersByName: {},
         controllerInitFunctions: {
           AccountsController: mockAccountsControllerInit,
+          AccountTreeController: mockAccountTreeControllerInit,
+          ApprovalController: mockApprovalControllerInit,
           CurrencyRateController: mockCurrencyRateControllerInit,
           CronjobController: mockCronjobControllerInit,
           GasFeeController: mockGasFeeControllerInit,
           ExecutionService: mockExecutionServiceInit,
+          WebSocketService: mockWebSocketServiceInit,
           MultichainNetworkController: mockMultichainNetworkControllerInit,
           MultichainAssetsController: mockMultichainAssetsControllerInit,
           MultichainTransactionsController:
@@ -136,11 +167,15 @@ describe('initModularizedControllers', () => {
             mockNotificationServicesControllerInit,
           NotificationServicesPushController:
             mockNotificationServicesPushControllerInit,
+          SignatureController: mockSignatureControllerInit,
           SnapController: mockSnapControllerInit,
           SnapInterfaceController: mockSnapInterfaceControllerInit,
           SnapsRegistry: mockSnapsRegistryInit,
           TransactionController: mockTransactionControllerInit,
           AppMetadataController: mockAppMetadataControllerInit,
+          DeFiPositionsController: mockDeFiPositionsControllerInit,
+          SeedlessOnboardingController: mockSeedlessOnboardingControllerInit,
+          PerpsController: mockPerpsControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -156,6 +191,9 @@ describe('initModularizedControllers', () => {
 
     mockAccountsControllerInit.mockReturnValue({
       controller: {} as unknown as AccountsController,
+    });
+    mockApprovalControllerInit.mockReturnValue({
+      controller: {} as unknown as ApprovalController,
     });
     mockTransactionControllerInit.mockReturnValue({
       controller: {} as unknown as TransactionController,
@@ -205,6 +243,15 @@ describe('initModularizedControllers', () => {
     mockAppMetadataControllerInit.mockReturnValue({
       controller: {} as unknown as AppMetadataController,
     });
+    mockSignatureControllerInit.mockReturnValue({
+      controller: {} as unknown as SignatureController,
+    });
+    mockDeFiPositionsControllerInit.mockReturnValue({
+      controller: {} as unknown as DeFiPositionsController,
+    });
+    mockAccountTreeControllerInit.mockReturnValue({
+      controller: {} as unknown as AccountTreeController,
+    });
   });
 
   it('initializes controllers', () => {
@@ -212,6 +259,7 @@ describe('initModularizedControllers', () => {
     const controllers = initModularizedControllers(request);
 
     expect(controllers.controllersByName.AccountsController).toBeDefined();
+    expect(controllers.controllersByName.ApprovalController).toBeDefined();
     expect(
       controllers.controllersByName.MultichainNetworkController,
     ).toBeDefined();
@@ -231,6 +279,7 @@ describe('initModularizedControllers', () => {
     ).toBeDefined();
     expect(controllers.controllersByName.TransactionController).toBeDefined();
     expect(controllers.controllersByName.GasFeeController).toBeDefined();
+    expect(controllers.controllersByName.SignatureController).toBeDefined();
   });
 
   it('initializes function including initMessenger', () => {

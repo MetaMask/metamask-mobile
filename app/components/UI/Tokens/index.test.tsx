@@ -76,6 +76,13 @@ jest.mock('../../../core/Engine', () => ({
         },
       }),
       findNetworkClientIdByChainId: () => 'mainnet',
+      state: {
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+          },
+        },
+      },
     },
     AccountsController: {
       state: {
@@ -297,8 +304,8 @@ describe('Tokens', () => {
   });
 
   it('navigates to Asset screen when token is pressed', () => {
-    const { queryByTestId } = renderComponent(initialState);
-    fireEvent.press(queryByTestId('asset-ETH'));
+    const { getByTestId } = renderComponent(initialState);
+    fireEvent.press(getByTestId('asset-ETH'));
     expect(mockNavigate).toHaveBeenCalledWith(
       'Asset',
       expect.objectContaining({

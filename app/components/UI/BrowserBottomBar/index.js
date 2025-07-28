@@ -30,14 +30,12 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
     },
     iconButton: {
-      height: 24,
+      height: 60,
       width: 24,
       justifyContent: 'space-around',
       alignItems: 'center',
       textAlign: 'center',
       flex: 1,
-      paddingTop: 30,
-      paddingBottom: 30,
     },
     tabIcon: {
       marginTop: 0,
@@ -138,24 +136,27 @@ class BrowserBottomBar extends PureComponent {
     const styles = createStyles(colors);
 
     const onSearchPress = () => {
-      showUrlModal();
+      showUrlModal?.();
       this.trackSearchEvent();
     };
 
     const onBackPress = () => {
-      goBack();
+      goBack?.();
       this.trackNavigationEvent('Go Back');
     };
 
     const onForwardPress = () => {
-      goForward();
+      goForward?.();
       this.trackNavigationEvent('Go Forward');
     };
 
     const onHomePress = () => {
-      goHome();
+      goHome?.();
       this.trackNavigationEvent('Go Home');
     };
+
+    const homeDisabled = !goHome;
+    const optionsDisabled = !toggleOptions;
 
     return (
       <ElevatedView elevation={11} style={styles.bottomBar}>
@@ -202,16 +203,26 @@ class BrowserBottomBar extends PureComponent {
           onPress={onHomePress}
           style={styles.iconButton}
           testID={BrowserViewSelectorsIDs.HOME_BUTTON}
+          disabled={homeDisabled}
         >
-          <SimpleLineIcons name="home" size={22} style={styles.icon} />
+          <SimpleLineIcons
+            name="home"
+            size={22}
+            style={[styles.icon, homeDisabled && styles.disabledIcon]}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={toggleOptions}
           style={styles.iconButton}
           testID={BrowserViewSelectorsIDs.OPTIONS_BUTTON}
+          disabled={optionsDisabled}
         >
-          <MaterialIcon name="more-horiz" size={22} style={styles.icon} />
+          <MaterialIcon
+            name="more-horiz"
+            size={22}
+            style={[styles.icon, optionsDisabled && styles.disabledIcon]}
+          />
         </TouchableOpacity>
       </ElevatedView>
     );

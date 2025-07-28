@@ -88,20 +88,18 @@ MobilePortStream.prototype._read = noop;
  */
 MobilePortStream.prototype._write = function (msg, _encoding, cb) {
   try {
+    let dataToSend;
     if (Buffer.isBuffer(msg)) {
       const data = msg.toJSON();
       data._isBuffer = true;
-      window.ReactNativeWebView.postMessage(
-        JSON.stringify({ ...data, origin: window.location.href }),
-      );
+      dataToSend = JSON.stringify({ ...data, origin: window.location.href });
     } else {
       if (msg.data) {
         msg.data.toNative = true;
       }
-      window.ReactNativeWebView.postMessage(
-        JSON.stringify({ ...msg, origin: window.location.href }),
-      );
+      dataToSend = JSON.stringify({ ...msg, origin: window.location.href });
     }
+    window.ReactNativeWebView.postMessage(dataToSend);
   } catch (err) {
     return cb(new Error('MobilePortStream - disconnected'));
   }

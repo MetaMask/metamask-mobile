@@ -21,6 +21,8 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
     data={[]}
     getItem={[Function]}
     getItemCount={[Function]}
+    handlerTag={-1}
+    handlerType="NativeViewGestureHandler"
     keyExtractor={[Function]}
     onContentSizeChange={[Function]}
     onGestureHandlerEvent={[Function]}
@@ -34,7 +36,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
     removeClippedSubviews={false}
     renderItem={[Function]}
     renderScrollComponent={[Function]}
-    scrollEventThrottle={50}
+    scrollEventThrottle={0.0001}
     showsVerticalScrollIndicator={false}
     stickyHeaderIndices={[]}
     style={
@@ -63,12 +65,12 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
         [
           [
             {
-              "borderRadius": 100,
+              "borderRadius": 12,
               "justifyContent": "center",
               "padding": 15,
             },
             {
-              "backgroundColor": "white",
+              "backgroundColor": "transparent",
               "borderColor": "blue",
               "borderWidth": 1,
             },
@@ -125,7 +127,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
         [
           [
             {
-              "borderRadius": 100,
+              "borderRadius": 12,
               "justifyContent": "center",
               "padding": 15,
             },
@@ -215,6 +217,8 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
     }
     getItem={[Function]}
     getItemCount={[Function]}
+    handlerTag={-1}
+    handlerType="NativeViewGestureHandler"
     keyExtractor={[Function]}
     onContentSizeChange={[Function]}
     onGestureHandlerEvent={[Function]}
@@ -228,7 +232,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
     removeClippedSubviews={false}
     renderItem={[Function]}
     renderScrollComponent={[Function]}
-    scrollEventThrottle={50}
+    scrollEventThrottle={0.0001}
     showsVerticalScrollIndicator={false}
     stickyHeaderIndices={[]}
     style={
@@ -404,10 +408,11 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                     }
                   }
                 >
-                  0xToke...ken1
+                  0xToken...oken1
                 </Text>
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -427,7 +432,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                     ]
                   }
                 >
-                  
+                  
                 </Text>
               </TouchableOpacity>
             </View>
@@ -662,10 +667,11 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                     }
                   }
                 >
-                  0xToke...ken2
+                  0xToken...oken2
                 </Text>
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -685,7 +691,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                     ]
                   }
                 >
-                  
+                  
                 </Text>
               </TouchableOpacity>
             </View>
@@ -774,12 +780,12 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
         [
           [
             {
-              "borderRadius": 100,
+              "borderRadius": 12,
               "justifyContent": "center",
               "padding": 15,
             },
             {
-              "backgroundColor": "white",
+              "backgroundColor": "transparent",
               "borderColor": "blue",
               "borderWidth": 1,
             },
@@ -837,7 +843,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
         [
           [
             {
-              "borderRadius": 100,
+              "borderRadius": 12,
               "justifyContent": "center",
               "padding": 15,
             },

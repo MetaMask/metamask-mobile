@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
   SafeAreaView,
@@ -24,6 +23,7 @@ import Networks, {
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
   isValidNetworkName,
+  getDecimalChainId,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -35,8 +35,7 @@ import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { PopularList } from '../../../../../util/networks/customNetworks';
+import TabBar from '../../../../../component-library/components-temp/TabBar/TabBar';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -58,6 +57,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
+import { selectIsRpcFailoverEnabled } from '../../../../../selectors/featureFlagController/walletFramework';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { isSafeChainId, toHex } from '@metamask/controller-utils';
@@ -89,7 +89,7 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import ReusableModal from '../../../../../components/UI/ReusableModal';
 import Device from '../../../../../util/device';
 import { ScrollView } from 'react-native-gesture-handler';
-import {
+import Text, {
   getFontFamily,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -98,12 +98,18 @@ import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
 import { CellComponentSelectorsIDs } from '../../../../../../e2e/selectors/wallet/CellComponent.selectors';
 import stripProtocol from '../../../../../util/stripProtocol';
 import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
+import { MetaMetrics } from '../../../../../core/Analytics';
+import {
+  addItemToChainIdList,
+  removeItemFromChainIdList,
+} from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
+
+const formatNetworkRpcUrl = (rpcUrl) => {
+  return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
+};
 
 const createStyles = (colors) =>
   StyleSheet.create({
-    base: {
-      paddingHorizontal: 16,
-    },
     baseAll: {
       padding: 16,
     },
@@ -201,10 +207,9 @@ const createStyles = (colors) =>
     },
     informationWrapper: {
       flex: 1,
+      paddingHorizontal: 16,
     },
-    informationCustomWrapper: {
-      paddingHorizontal: 20,
-    },
+    informationCustomWrapper: {},
     scrollWrapper: {
       flex: 1,
       paddingVertical: 12,
@@ -340,7 +345,6 @@ const createStyles = (colors) =>
     },
     networksWrapper: {
       marginTop: 12,
-      paddingHorizontal: 20,
     },
     popularNetwork: {
       flexDirection: 'row',
@@ -358,9 +362,6 @@ const createStyles = (colors) =>
     textStyle: {
       ...fontStyles.bold,
       fontSize: 14,
-    },
-    tabLabelStyle: {
-      fontSize: scale(11),
     },
     popularNetworkImage: {
       width: 20,
@@ -462,11 +463,16 @@ export class NetworkSettings extends PureComponent {
      * Token network filter
      */
     tokenNetworkFilter: PropTypes.object,
+
+    /**
+     * Whether or not the RPC failover feature is enabled
+     */
+    isRpcFailoverEnabled: PropTypes.bool,
   };
 
   state = {
     rpcUrl: undefined,
-    failoverRpcUrls: [],
+    failoverRpcUrls: undefined,
     rpcName: undefined,
     rpcUrlFrom: undefined,
     rpcNameForm: '',
@@ -670,23 +676,6 @@ export class NetworkSettings extends PureComponent {
       networkList,
     });
   };
-  /**
-   * Attempts to convert the given chainId to a decimal string, for display
-   * purposes.
-   *
-   * Should be called with the props chainId whenever it is used to set the
-   * component's state.
-   *
-   * @param {unknown} chainId - The chainId to convert.
-   * @returns {string} The props chainId in decimal, or the original value if
-   * it can't be converted.
-   */
-  getDecimalChainId(chainId) {
-    if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
-      return chainId;
-    }
-    return parseInt(chainId, 16).toString(10);
-  }
 
   isAnyModalVisible = () =>
     this.state.showMultiRpcAddModal.isVisible ||
@@ -802,7 +791,7 @@ export class NetworkSettings extends PureComponent {
     const checkCustomNetworks = Object.values(
       this.props.networkConfigurations,
     ).filter((item) =>
-      item.rpcEndpoints.some((endpoint) => endpoint.url === rpcUrl),
+      item.rpcEndpoints?.some((endpoint) => endpoint.url === rpcUrl),
     );
 
     if (checkCustomNetworks.length > 0) {
@@ -896,6 +885,10 @@ export class NetworkSettings extends PureComponent {
       await NetworkController.addNetwork({
         ...networkConfig,
       });
+
+      MetaMetrics.getInstance().addTraitsToUser(
+        addItemToChainIdList(networkConfig.chainId),
+      );
     }
 
     isCustomMainnet
@@ -1314,7 +1307,7 @@ export class NetworkSettings extends PureComponent {
     const rpcName = name ?? '';
     const newRpcUrl = {
       url,
-      failoverUrls: [],
+      failoverUrls: undefined,
       name: rpcName,
       type: RpcEndpointType.Custom,
     };
@@ -1608,6 +1601,11 @@ export class NetworkSettings extends PureComponent {
     const [, networkConfiguration] = entry;
     const { NetworkController } = Engine.context;
     NetworkController.removeNetwork(networkConfiguration.chainId);
+
+    MetaMetrics.getInstance().addTraitsToUser(
+      removeItemFromChainIdList(networkConfiguration.chainId),
+    );
+
     navigation.goBack();
   };
 
@@ -1668,16 +1666,13 @@ export class NetworkSettings extends PureComponent {
       rpcName,
       blockExplorerUrlForm,
     } = this.state;
-    const { route, networkConfigurations } = this.props;
+    const { route, isRpcFailoverEnabled } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance =
       this.context.themeAppearance || themeAppearanceLight;
     const styles = createStyles(colors);
 
-    const formatNetworkRpcUrl = (rpcUrl) => {
-      return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
-    };
     const inputStyle = [
       styles.input,
       inputWidth,
@@ -1737,7 +1732,7 @@ export class NetworkSettings extends PureComponent {
 
     const selectedNetwork = {
       rpcUrl: url.href,
-      failoverRpcUrls: [],
+      failoverRpcUrls: undefined,
       ticker,
       nickname,
       rpcPrefs: {
@@ -1995,9 +1990,11 @@ export class NetworkSettings extends PureComponent {
                           {rpcName || formatNetworkRpcUrl(rpcUrl)}
                         </Text>
                       </View>
-                      {failoverRpcUrls.length > 0 && (
-                        <Tag label={strings('app_settings.failover')} />
-                      )}
+                      {isRpcFailoverEnabled &&
+                        failoverRpcUrls &&
+                        failoverRpcUrls.length > 0 && (
+                          <Tag label={strings('app_settings.failover')} />
+                        )}
                     </View>
                   }
                   secondaryText={rpcName ? formatNetworkRpcUrl(rpcUrl) : ''}
@@ -2048,18 +2045,20 @@ export class NetworkSettings extends PureComponent {
                 )
               : null}
 
-            {failoverRpcUrls.length > 0 && (
-              <>
-                <Text style={styles.label}>
-                  {strings('app_settings.network_failover_rpc_url_label')}
-                </Text>
-                <TextInput
-                  style={[styles.input, styles.inputDisabled]}
-                  value={onlyKeepHost(failoverRpcUrls[0])}
-                  editable={false}
-                />
-              </>
-            )}
+            {isRpcFailoverEnabled &&
+              failoverRpcUrls &&
+              failoverRpcUrls.length > 0 && (
+                <>
+                  <Text style={styles.label}>
+                    {strings('app_settings.network_failover_rpc_url_label')}
+                  </Text>
+                  <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={onlyKeepHost(failoverRpcUrls[0])}
+                    editable={false}
+                  />
+                </>
+              )}
 
             <Text style={styles.label}>
               {strings('app_settings.network_chain_id_label')}
@@ -2069,7 +2068,7 @@ export class NetworkSettings extends PureComponent {
               style={inputChainIdStyle}
               autoCapitalize={'none'}
               autoCorrect={false}
-              value={chainId}
+              value={addMode ? chainId : getDecimalChainId(chainId)}
               editable={!this.isAnyModalVisible() && addMode}
               onChangeText={this.onChainIDChange}
               onBlur={() => {
@@ -2431,9 +2430,13 @@ export class NetworkSettings extends PureComponent {
                                   {formattedName || formatNetworkRpcUrl(url)}
                                 </Text>
                               </View>
-                              {failoverUrls.length > 0 && (
-                                <Tag label={strings('app_settings.failover')} />
-                              )}
+                              {isRpcFailoverEnabled &&
+                                failoverUrls &&
+                                failoverUrls.length > 0 && (
+                                  <Tag
+                                    label={strings('app_settings.failover')}
+                                  />
+                                )}
                             </View>
                           }
                           secondaryText={
@@ -2533,21 +2536,15 @@ export class NetworkSettings extends PureComponent {
   goToLearnMore = () => Linking.openURL(strings('networks.learn_more_url'));
 
   renderTabBar = (props) => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
     return (
-      <View style={styles.base}>
-        <DefaultTabBar
-          underlineStyle={styles.tabUnderlineStyle}
-          activeTextColor={colors.primary.default}
-          inactiveTextColor={colors.text.muted}
-          backgroundColor={colors.background.default}
-          tabStyle={styles.tabStyle}
-          tabPadding={16}
-          textStyle={styles.textStyle}
-          {...props}
-        />
-      </View>
+      <TabBar
+        tabStyle={{
+          paddingHorizontal: 16, // Reduce padding to remove gaps
+          paddingVertical: 8,
+          paddingBottom: 8,
+        }}
+        {...props}
+      />
     );
   };
 
@@ -2572,7 +2569,6 @@ export class NetworkSettings extends PureComponent {
             this.customNetwork()
           ) : (
             <ScrollableTabView
-              tabBarTextStyle={styles.tabLabelStyle}
               renderTabBar={this.renderTabBar}
               ref={(tabView) => {
                 this.tabView = tabView;
@@ -2655,6 +2651,7 @@ const mapStateToProps = (state) => ({
   useSafeChainsListValidation: selectUseSafeChainsListValidation(state),
   isAllNetworks: selectIsAllNetworks(state),
   tokenNetworkFilter: selectTokenNetworkFilter(state),
+  isRpcFailoverEnabled: selectIsRpcFailoverEnabled(state),
 });
 
 export default compose(

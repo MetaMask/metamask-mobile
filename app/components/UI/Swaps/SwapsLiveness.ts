@@ -1,7 +1,7 @@
-import { swapsUtils } from '@metamask/swaps-controller';
+import { FeatureFlags, swapsUtils } from '@metamask/swaps-controller';
 import { useCallback, useEffect } from 'react';
 import { selectEvmChainId } from '../../../selectors/networkController';
-import { AppState } from 'react-native';
+import { AppState, AppStateStatus } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import {
@@ -19,7 +19,7 @@ function SwapLiveness() {
   const chainId = useSelector(selectEvmChainId);
   const dispatch = useDispatch();
   const setLiveness = useCallback(
-    (_chainId, featureFlags) => {
+    (_chainId: string, featureFlags?: FeatureFlags | null) => {
       dispatch(setSwapsLiveness(_chainId, featureFlags));
     },
     [dispatch],
@@ -52,7 +52,7 @@ function SwapLiveness() {
   }, [chainId, checkLiveness, isLive]);
   // Check on AppState change
   const appStateHandler = useCallback(
-    (newState) => {
+    (newState: AppStateStatus) => {
       if (!isLive && newState === 'active') {
         checkLiveness();
       }

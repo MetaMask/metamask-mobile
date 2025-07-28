@@ -38,18 +38,18 @@ describe('useStakingChain', () => {
     });
   });
 
-  describe('when the chainId is Holesky', () => {
-    it('returns true if chainId is holesky', () => {
+  describe('when the chainId is Hoodi', () => {
+    it('returns true if chainId is Hoodi', () => {
       const { result } = renderHookWithProvider(() => useStakingChain(), {
-        state: buildStateWithNetwork('17000', 'Holesky'),
+        state: buildStateWithNetwork('560048', 'Hoodi'),
       });
 
       expect(result.current.isStakingSupportedChain).toBe(true);
     });
   });
 
-  describe('when the chainId is neither mainnet nor Holesky', () => {
-    it('returns false if chainId is not mainnet or holesky', () => {
+  describe('when the chainId is neither mainnet nor Hoodi', () => {
+    it('returns false if chainId is not mainnet or Hoodi', () => {
       const { result } = renderHookWithProvider(() => useStakingChain(), {
         state: buildStateWithNetwork('11', 'Test'),
       });
@@ -75,9 +75,9 @@ describe('useStakingChainByChainId', () => {
     expect(result.current.isStakingSupportedChain).toBe(true);
   });
 
-  it('returns true for a supported chainId (Holesky)', () => {
+  it('returns true for a supported chainId (Hoodi)', () => {
     const { result } = renderHookWithProvider(() =>
-      useStakingChainByChainId(toHex('17000')),
+      useStakingChainByChainId(toHex('560048')),
     );
     expect(result.current.isStakingSupportedChain).toBe(true);
   });

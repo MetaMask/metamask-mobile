@@ -9,17 +9,19 @@ import {
   ActivityIndicator,
   StyleSheet,
   View,
-  TextStyle,
   Linking,
+  TextStyle,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import ScrollableTabView, {
+  ChangeTabProperties,
+} from 'react-native-scrollable-tab-view';
 import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
+import TabBar from '../../../component-library/components-temp/TabBar';
 import {
   isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
@@ -27,6 +29,9 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
 } from '../../../reducers/legalNotices';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+
 import {
   ToastContext,
   ToastVariants,
@@ -36,7 +41,6 @@ import NotificationsService from '../../../util/notifications/services/Notificat
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
@@ -44,6 +48,7 @@ import {
   getDecimalChainId,
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
+  isTestNet,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -53,7 +58,6 @@ import {
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectNetworkName,
@@ -62,29 +66,24 @@ import {
 import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
-  selectTokens,
-  selectTransformedTokens,
 } from '../../../selectors/tokensController';
 import {
   NavigationProp,
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
-  getFontFamily,
-  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
@@ -96,59 +95,49 @@ import {
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../selectors/identity';
+import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
   selectTokenNetworkFilter,
   selectUseTokenDetection,
 } from '../../../selectors/preferencesController';
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
-import { Token } from '@metamask/assets-controllers';
+import { Nft, Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
-///: END:ONLY_INCLUDE_IF
-import {
-  selectNativeEvmAsset,
-  selectStakedEvmAsset,
-} from '../../../selectors/multichain';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
+import { cloneDeep } from 'lodash';
+import { prepareNftDetectionEvents } from '../../../util/assets';
+import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
+import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
+import { toFormattedAddress } from '../../../util/address';
+import { selectHDKeyrings } from '../../../selectors/keyringController';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { endTrace, trace, TraceName } from '../../../util/trace';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 
-const createStyles = ({ colors, typography }: Theme) =>
+const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
-    base: {
-      paddingHorizontal: 16,
-    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
     },
     walletAccount: { marginTop: 28 },
-    tabUnderlineStyle: {
-      height: 2,
-      backgroundColor: colors.primary.default,
-    },
-    tabStyle: {
-      paddingBottom: 8,
-      paddingVertical: 8,
-    },
     tabBar: {
-      borderColor: colors.background.default,
       marginBottom: 8,
     },
-    textStyle: {
-      ...(typography.sBodyMD as TextStyle),
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-      fontWeight: '500',
+    tabContainer: {
+      paddingHorizontal: 16,
+      flex: 1,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -157,12 +146,15 @@ const createStyles = ({ colors, typography }: Theme) =>
       alignItems: 'center',
     },
     banner: {
-      widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
     },
     carouselContainer: {
       marginTop: 12,
+    },
+    tabStyle: {
+      paddingBottom: 8,
+      paddingVertical: 8,
     },
   });
 
@@ -175,6 +167,87 @@ interface WalletProps {
   showNftFetchingLoadingIndicator: () => void;
   hideNftFetchingLoadingIndicator: () => void;
 }
+
+const WalletTokensTabView = React.memo(
+  (props: {
+    navigation: WalletProps['navigation'];
+    onChangeTab: (value: ChangeTabProperties) => void;
+    defiEnabled: boolean;
+    collectiblesEnabled: boolean;
+  }) => {
+    const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+    const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
+
+    const theme = useTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
+
+    const renderTabBar = useCallback(
+      (tabBarProps: Record<string, unknown>) => (
+        <TabBar
+          style={styles.tabBar}
+          {...tabBarProps}
+          tabStyle={styles.tabStyle}
+          textStyle={{
+            ...(theme.typography.sBodySMBold as TextStyle),
+          }}
+        />
+      ),
+      [styles, theme],
+    );
+
+    const tokensTabProps = useMemo(
+      () => ({
+        key: 'tokens-tab',
+        tabLabel: strings('wallet.tokens'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    const perpsTabProps = useMemo(
+      () => ({
+        key: 'perps-tab',
+        tabLabel: strings('wallet.perps'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    const defiPositionsTabProps = useMemo(
+      () => ({
+        key: 'defi-tab',
+        tabLabel: strings('wallet.defi'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    const collectibleContractsTabProps = useMemo(
+      () => ({
+        key: 'nfts-tab',
+        tabLabel: strings('wallet.collectibles'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    return (
+      <View style={styles.tabContainer}>
+        <ScrollableTabView
+          renderTabBar={renderTabBar}
+          onChangeTab={onChangeTab}
+        >
+          <Tokens {...tokensTabProps} />
+          {isPerpsEnabled && <PerpsTabView {...perpsTabProps} />}
+          {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
+          {collectiblesEnabled && (
+            <CollectibleContracts {...collectibleContractsTabProps} />
+          )}
+        </ScrollableTabView>
+      </View>
+    );
+  },
+);
 
 /**
  * Main view for the wallet
@@ -191,8 +264,8 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const styles = createStyles(theme);
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -206,36 +279,10 @@ const Wallet = ({
   const accountBalanceByChainId = useSelector(selectAccountBalanceByChainId);
 
   /**
-   * ETH to current currency conversion rate
-   */
-  const conversionRate = useSelector(selectConversionRate);
-  const contractBalances = useSelector(selectContractBalances);
-  /**
-   * Currency code of the currently-active currency
-   */
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  /**
    * A string that represents the selected address
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  /**
-   * An array that represents the user tokens
-   */
-  const tokens = useSelector(selectTokens);
-  /**
-   * An array that represents the user tokens by chainId and address
-   */
-  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
-  /**
-   * Current provider ticker
-   */
-  const ticker = useSelector(selectEvmTicker);
-  /**
-   * Current onboarding wizard step
-   */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wizardStep = useSelector((state: any) => state.wizard.step);
+
   /**
    * Provider configuration for the current selected network
    */
@@ -243,6 +290,9 @@ const Wallet = ({
   const chainId = useSelector(selectChainId);
 
   const prevChainId = usePrevious(chainId);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
@@ -254,13 +304,22 @@ const Wallet = ({
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
 
+  const assetsDefiPositionsEnabled = useSelector(
+    selectAssetsDefiPositionsEnabled,
+  );
+
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+
   const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
 
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const currentToast = toastRef?.current;
 
+  const hdKeyrings = useSelector(selectHDKeyrings);
+
   const accountName = useAccountName();
+  useAccountsWithNetworkActivitySync();
 
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
@@ -283,6 +342,28 @@ const Wallet = ({
     isParticipatingInMetaMetrics,
     navigate,
   ]);
+
+  const checkAndNavigateToSolanaFeature = useCallback(async () => {
+    const hasSeenModal = await StorageWrapper.getItem(
+      SOLANA_FEATURE_MODAL_SHOWN,
+    );
+
+    if (hasSeenModal !== 'true') {
+      navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
+    }
+  }, [navigate]);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  useEffect(() => {
+    checkAndNavigateToSolanaFeature();
+  }, [checkAndNavigateToSolanaFeature]);
+  ///: END:ONLY_INCLUDE_IF
+
+  useEffect(() => {
+    addTraitsToUser({
+      [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
+    });
+  }, [addTraitsToUser, hdKeyrings.length]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
@@ -332,7 +413,7 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
@@ -340,7 +421,6 @@ const Wallet = ({
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
   const name = useSelector(selectNetworkName);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
@@ -351,8 +431,6 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const nativeEvmAsset = useSelector(selectNativeEvmAsset);
-  const stakedEvmAsset = useSelector(selectStakedEvmAsset);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -430,12 +508,11 @@ const Wallet = ({
       networkOnboardingState,
     );
 
-    if (wizardStep > 0 || (!networkOnboarded && prevChainId !== chainId)) {
-      // Do not check since it will conflict with the onboarding wizard and/or network onboarding
+    if (!networkOnboarded && prevChainId !== chainId) {
+      // Do not check since it will conflict with the onboarding and/or network onboarding
       return;
     }
   }, [
-    wizardStep,
     navigation,
     chainId,
     // TODO: Is this providerConfig.rpcUrl needed in this useEffect dependencies?
@@ -453,9 +530,9 @@ const Wallet = ({
 
         Object.values(evmNetworkConfigurations).forEach(
           ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh(
+            AccountTrackerController.refresh([
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            );
+            ]);
           },
         );
       });
@@ -480,7 +557,7 @@ const Wallet = ({
         navigation,
         colors,
         isNotificationEnabled,
-        isProfileSyncingEnabled,
+        isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
       ),
@@ -495,7 +572,7 @@ const Wallet = ({
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
-    isProfileSyncingEnabled,
+    isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
   ]);
@@ -600,49 +677,79 @@ const Wallet = ({
     selectedNetworkClientId,
   ]);
 
-  const renderTabBar = useCallback(
-    (props) => (
-      <View style={styles.base}>
-        <DefaultTabBar
-          underlineStyle={styles.tabUnderlineStyle}
-          activeTextColor={colors.primary.default}
-          inactiveTextColor={colors.text.default}
-          backgroundColor={colors.background.default}
-          tabStyle={styles.tabStyle}
-          textStyle={styles.textStyle}
-          tabPadding={16}
-          style={styles.tabBar}
-          {...props}
-        />
-      </View>
-    ),
-    [styles, colors],
-  );
+  const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {
+    try {
+      return {
+        chain_id: getDecimalChainId(nft.chainId),
+        source: 'detected' as const,
+      };
+    } catch (error) {
+      Logger.error(error as Error, 'Wallet.getNftDetectionAnalyticsParams');
+      return undefined;
+    }
+  }, []);
 
   const onChangeTab = useCallback(
-    async (obj) => {
+    async (obj: ChangeTabProperties) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
+      } else if (obj.ref.props.tabLabel === strings('wallet.defi')) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
+        );
       } else {
+        // Return early if no address selected
+        if (!selectedAddress) return;
+
+        const formattedSelectedAddress = toFormattedAddress(selectedAddress);
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
         );
         // Call detect nfts
-        const { NftDetectionController } = Engine.context;
+        const { NftDetectionController, NftController } = Engine.context;
+        const previousNfts = cloneDeep(
+          NftController.state.allNfts[formattedSelectedAddress],
+        );
+
         try {
+          trace({ name: TraceName.DetectNfts });
           showNftFetchingLoadingIndicator();
           await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
+          endTrace({ name: TraceName.DetectNfts });
         } finally {
           hideNftFetchingLoadingIndicator();
         }
+
+        const newNfts = cloneDeep(
+          NftController.state.allNfts[formattedSelectedAddress],
+        );
+
+        const eventParams = prepareNftDetectionEvents(
+          previousNfts,
+          newNfts,
+          getNftDetectionAnalyticsParams,
+        );
+        eventParams.forEach((params) => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+              .addProperties({
+                chain_id: params.chain_id,
+                source: params.source,
+              })
+              .build(),
+          );
+        });
       }
     },
     [
       trackEvent,
-      hideNftFetchingLoadingIndicator,
-      showNftFetchingLoadingIndicator,
       createEventBuilder,
+      selectedAddress,
+      showNftFetchingLoadingIndicator,
       chainIdsToDetectNftsFor,
+      hideNftFetchingLoadingIndicator,
+      getNftDetectionAnalyticsParams,
     ],
   );
 
@@ -652,47 +759,14 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  const tokensTabProps = useMemo(
-    () => ({
-      key: 'tokens-tab',
-      tabLabel: strings('wallet.tokens'),
-      navigation,
-    }),
-    [navigation],
-  );
+  const defiEnabled =
+    isEvmSelected &&
+    !isTestNet(chainId) &&
+    basicFunctionalityEnabled &&
+    assetsDefiPositionsEnabled;
 
-  const collectibleContractsTabProps = useMemo(
-    () => ({
-      key: 'nfts-tab',
-      tabLabel: strings('wallet.collectibles'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  function renderTokensContent() {
-    return (
-      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
-        <Tokens {...tokensTabProps} />
-        {isEvmSelected && (
-          <CollectibleContracts {...collectibleContractsTabProps} />
-        )}
-      </ScrollableTabView>
-    );
-  }
-
-  const renderContent = useCallback(() => {
-    const assets = tokensByChainIdAndAddress
-      ? [...tokensByChainIdAndAddress]
-      : [];
-    if (nativeEvmAsset) {
-      assets.push(nativeEvmAsset);
-    }
-    if (stakedEvmAsset) {
-      assets.push(stakedEvmAsset);
-    }
-
-    return (
+  const renderContent = useCallback(
+    () => (
       <View
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
@@ -713,34 +787,27 @@ const Wallet = ({
         <>
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
-          {renderTokensContent()}
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-            <SolanaNewFeatureContent />
-            ///: END:ONLY_INCLUDE_IF
-          }
+          <WalletTokensTabView
+            navigation={navigation}
+            onChangeTab={onChangeTab}
+            defiEnabled={defiEnabled}
+            collectiblesEnabled={isEvmSelected}
+          />
         </>
       </View>
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    tokens,
-    accountBalanceByChainId,
-    styles,
-    colors,
-    basicFunctionalityEnabled,
-    turnOnBasicFunctionality,
-    onChangeTab,
-    navigation,
-    ticker,
-    conversionRate,
-    currentCurrency,
-    contractBalances,
-    isEvmSelected,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    tokensByChainIdAndAddress,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+    ),
+    [
+      styles.banner,
+      styles.carouselContainer,
+      styles.wrapper,
+      basicFunctionalityEnabled,
+      defiEnabled,
+      isEvmSelected,
+      turnOnBasicFunctionality,
+      onChangeTab,
+      navigation,
+    ],
+  );
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>
@@ -750,26 +817,10 @@ const Wallet = ({
     [styles],
   );
 
-  /**
-   * Return current step of onboarding wizard if not step 5 nor 0
-   */
-  const renderOnboardingWizard = useCallback(
-    () =>
-      [1, 2, 3, 4, 5, 6, 7].includes(wizardStep) && (
-        <OnboardingWizard
-          navigation={navigation}
-          coachmarkRef={walletRef.current}
-        />
-      ),
-    [navigation, wizardStep],
-  );
-
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
         {selectedInternalAccount ? renderContent() : renderLoader()}
-
-        {renderOnboardingWizard()}
       </View>
     </ErrorBoundary>
   );

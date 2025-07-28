@@ -19,11 +19,10 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
-import { passwordSet } from '../../../../actions/user';
+import { passwordSet, setExistingUser } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import {
-  EXISTING_USER,
   TRUE,
   PASSCODE_DISABLED,
   BIOMETRY_CHOICE_DISABLED,
@@ -39,7 +38,6 @@ import {
   DeleteMetaMetricsData,
   DeleteWalletData,
   RememberMeOptionSection,
-  AutomaticSecurityChecks,
   ProtectYourWallet,
   LoginOptionsSettings,
   RevealPrivateKey,
@@ -72,11 +70,9 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
-import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
@@ -84,7 +80,6 @@ import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSetti
 import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
 import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
-import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
@@ -115,7 +110,6 @@ const Settings: React.FC = () => {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
-  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
@@ -267,7 +261,8 @@ const Settings: React.FC = () => {
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      // Mark user as existing when they set up authentication
+      dispatch(setExistingUser(true));
 
       if (!enabled) {
         setLoading(false);
@@ -506,20 +501,6 @@ const Settings: React.FC = () => {
     />
   );
 
-  const toggleProfileSyncing = async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
-        .addProperties({
-          settings_group: 'security_privacy',
-          settings_type: 'profile_syncing',
-          old_value: isProfileSyncingEnabled,
-          new_value: !isProfileSyncingEnabled,
-          was_notifications_on: isNotificationEnabled,
-        })
-        .build(),
-    );
-  };
-
   const toggleBasicFunctionality = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -574,7 +555,6 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -603,7 +583,6 @@ const Settings: React.FC = () => {
           {strings('app_settings.transactions_subheading')}
         </Text>
         <BatchAccountBalanceSettings />
-        <IncomingTransactionsSettings />
         {renderHistoryModal()}
         {renderUseTransactionSimulations()}
         <Text
@@ -620,16 +599,6 @@ const Settings: React.FC = () => {
           </View>
         )}
         <IPFSGatewaySettings />
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
-          style={styles.subHeading}
-        >
-          {strings('app_settings.security_check_subheading')}
-        </Text>
-        <View style={styles.halfSetting}>
-          <AutomaticSecurityChecks />
-        </View>
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

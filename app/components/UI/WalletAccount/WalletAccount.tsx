@@ -24,9 +24,6 @@ import Logger from '../../../util/Logger';
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
-import { TraceName, TraceOperation, trace } from '../../../util/trace';
-import { store } from '../../../store';
-import { getTraceTags } from '../../../util/sentry/tags';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,11 +78,6 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         accountName={accountName}
         accountAvatarType={accountAvatarType}
         onPress={() => {
-          trace({
-            name: TraceName.AccountList,
-            tags: getTraceTags(store.getState()),
-            op: TraceOperation.AccountList,
-          });
           navigate(...createAccountSelectorNavDetails());
         }}
         accountTypeLabel={
@@ -98,7 +90,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
       />
       <View style={styles.middleBorder} />
       <View style={styles.addressContainer} ref={accountActionsRef}>
-        <AddressCopy />
+        <AddressCopy account={selectedAccount} />
         <ButtonIcon
           iconName={IconName.MoreHorizontal}
           size={ButtonIconSizes.Sm}

@@ -103,6 +103,70 @@ describe('useNotificationAccountListProps', () => {
     expect(hook.result.current.isAccountEnabled('0x456')).toBe(false);
   });
 
+  it('handles account loading with different address formats', async () => {
+    const addresses = ['0x123', '0x456'];
+    const { hook } = arrange(addresses, (m) => {
+      m.mockUseFetchAccountNotifications.mockReturnValue({
+        ...m.createUseFetchAccountNotificationsReturn(),
+        // accountsBeingUpdated contains lowercase address
+        accountsBeingUpdated: ['0xc4955c0d639d99699bfd7ec54d9fafee40e4d272'],
+      });
+    });
+    // Should match even when checking with different case
+    expect(
+      hook.result.current.isAccountLoading(
+        '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+      ),
+    ).toBe(true);
+    expect(hook.result.current.isAccountLoading('0x456')).toBe(false);
+  });
+
+  it('returns account enabled state with formatted address keys', async () => {
+    const addresses = ['0x123', '0x456'];
+    const { hook } = arrange(addresses, (m) => {
+      m.mockUseFetchAccountNotifications.mockReturnValue({
+        ...m.createUseFetchAccountNotificationsReturn(),
+        // Data keys are in checksummed format
+        data: { '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': true },
+      });
+    });
+    // Should find the account even with different case input
+    expect(
+      hook.result.current.isAccountEnabled(
+        '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+      ),
+    ).toBe(true);
+  });
+
+  it('falls back to lowercase address when formatted address not found', async () => {
+    const addresses = ['0x123', '0x456'];
+    const { hook } = arrange(addresses, (m) => {
+      m.mockUseFetchAccountNotifications.mockReturnValue({
+        ...m.createUseFetchAccountNotificationsReturn(),
+        // Data keys are in lowercase format
+        data: { '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272': true },
+      });
+    });
+    // Should find the account using lowercase fallback
+    expect(
+      hook.result.current.isAccountEnabled(
+        '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false when address not found in any format', async () => {
+    const addresses = ['0x123', '0x456'];
+    const { hook } = arrange(addresses, (m) => {
+      m.mockUseFetchAccountNotifications.mockReturnValue({
+        ...m.createUseFetchAccountNotificationsReturn(),
+        data: { '0x789': true },
+      });
+    });
+    // Should return false when address not found
+    expect(hook.result.current.isAccountEnabled('0x999')).toBe(false);
+  });
+
   it('refetches account settings', async () => {
     const addresses = ['0x123', '0x456'];
     const { mocks, hook } = arrange(addresses);

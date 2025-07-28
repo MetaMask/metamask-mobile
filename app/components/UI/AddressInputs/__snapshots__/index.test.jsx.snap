@@ -504,6 +504,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
@@ -591,7 +592,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
                   }
                 }
               >
-                0x9004...0d12
+                0x9004C...A0d12
               </Text>
               <View
                 style={
@@ -602,10 +603,11 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
-                        "color": "#1c7e33",
+                        "color": "#457a39",
                         "fontSize": 15,
                       },
                       undefined,
@@ -775,6 +777,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
@@ -862,7 +865,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
                   }
                 }
               >
-                0x9004...0d12
+                0x9004C...A0d12
               </Text>
               <View
                 style={
@@ -873,10 +876,11 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
-                        "color": "#1c7e33",
+                        "color": "#457a39",
                         "fontSize": 15,
                       },
                       undefined,

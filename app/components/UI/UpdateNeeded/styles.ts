@@ -13,6 +13,13 @@ export const createStyles = (colors: any) =>
       alignItems: 'center',
       backgroundColor: colors.background.default,
     },
+    header: {
+      alignItems: 'center',
+    },
+    headerLogo: {
+      width: 67,
+      height: 32,
+    },
     content: {
       justifyContent: 'center',
       paddingHorizontal: 16,
@@ -27,6 +34,7 @@ export const createStyles = (colors: any) =>
     },
     images: {
       alignItems: 'center',
+      marginBottom: 40,
     },
     actionButtonWrapper: {
       width: '100%',
@@ -36,5 +44,9 @@ export const createStyles = (colors: any) =>
       height: undefined,
       marginVertical: 10,
       padding: 8,
+    },
+    foxImage: {
+      width: 140,
+      height: 140,
     },
   });

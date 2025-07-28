@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from 'react-native-modal';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from '../../styles';
-import Box from '../../../../UI/Ramp/components/Box';
+import Box from '../../../Ramp/Aggregator/components/Box';
 import { View } from 'react-native';
 import SheetHeader from '../../../../../../app/component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../../locales/i18n';

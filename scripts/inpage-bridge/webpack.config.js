@@ -9,6 +9,10 @@ function getBuildIcon() {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
+// Get the build type from environment variable
+const isBuildTypeFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
+const appId = isBuildTypeFlask ? 'io.metamask.mobile.flask' : 'io.metamask.mobile';
+
 const config = {
   entry: './src/index.js',
 
@@ -50,7 +54,7 @@ const config = {
     new webpack.DefinePlugin({
       'process.env.METAMASK_BUILD_NAME': JSON.stringify('MetaMask'),
       'process.env.METAMASK_BUILD_ICON': JSON.stringify(getBuildIcon()),
-      'process.env.METAMASK_BUILD_APP_ID': JSON.stringify('io.metamask.mobile'),
+      'process.env.METAMASK_BUILD_APP_ID': JSON.stringify(appId),
     }),
   ],
 };

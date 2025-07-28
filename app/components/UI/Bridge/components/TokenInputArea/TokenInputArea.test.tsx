@@ -1,143 +1,216 @@
-import { getDisplayFiatValue } from '.';
-import { Hex } from '@metamask/utils';
+import React from 'react';
+import { initialState } from '../../_mocks_/initialState';
+import { fireEvent } from '@testing-library/react-native';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import {
+  TokenInputArea,
+  TokenInputAreaType,
+  calculateFontSize,
+  getDisplayAmount,
+} from '.';
+import { BridgeToken } from '../../types';
 
-describe('getDisplayFiatValue', () => {
-  const mockChainId = '0x1' as Hex;
-  const mockTokenAddress = '0x0000000000000000000000000000000000000001' as Hex;
+jest.mock('../../hooks/useLatestBalance', () => ({
+  useLatestBalance: jest.fn(),
+}));
 
-  const mockToken = {
-    address: mockTokenAddress,
-    chainId: mockChainId,
-    symbol: 'TOKEN1',
-    decimals: 18,
-    image: 'https://token1.com/logo.png',
-    name: 'Token One',
-    balance: '1',
-    balanceFiat: '$20000',
-    tokenFiatAmount: 20000,
-  };
+const mockOnTokenPress = jest.fn();
+const mockOnFocus = jest.fn();
+const mockOnBlur = jest.fn();
+const mockOnInputPress = jest.fn();
+const mockOnMaxPress = jest.fn();
 
-  const mockNetworkConfigurations = {
-    [mockChainId]: {
-      chainId: mockChainId,
-      nativeCurrency: 'ETH',
-    },
-  };
+describe('TokenInputArea', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  const mockMultiChainMarketData = {
-    [mockChainId]: {
-      [mockTokenAddress]: {
-        tokenAddress: mockTokenAddress,
-        price: 10,
+  it('renders with initial state', () => {
+    const { getByTestId } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          onTokenPress={mockOnTokenPress}
+          onFocus={mockOnFocus}
+          onBlur={mockOnBlur}
+          onInputPress={mockOnInputPress}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
       },
-    },
-  };
+      { state: initialState },
+    );
 
-  const mockMultiChainCurrencyRates = {
-    ETH: {
-      conversionRate: 2000,
-    },
-  };
-
-  it('should return zero when token is undefined', () => {
-    const result = getDisplayFiatValue({
-      token: undefined,
-      amount: '1',
-      multiChainMarketData: mockMultiChainMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-    });
-
-    expect(result).toBe('$0');
+    expect(getByTestId('token-input-input')).toBeTruthy();
   });
 
-  it('should return zero when amount is undefined', () => {
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: undefined,
-      multiChainMarketData: mockMultiChainMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-    });
-
-    expect(result).toBe('$0');
-  });
-
-  it('should calculate correct fiat value for token amount', () => {
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: '1',
-      multiChainMarketData: mockMultiChainMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-    });
-
-    // 1 TOKEN1 = 10 ETH, 1 ETH = $2000, so 1 TOKEN1 = $20000
-    expect(result).toBe('$20000');
-  });
-
-  it('should return "< $0.01" for very small fiat values', () => {
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: '0.0000001',
-      multiChainMarketData: mockMultiChainMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-    });
-
-    expect(result).toBe('< $0.01');
-  });
-
-  it('should handle different currencies correctly', () => {
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: '1',
-      multiChainMarketData: mockMultiChainMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'EUR',
-    });
-
-    // Currency symbol should be included
-    expect(result).toBe('€20000');
-  });
-
-  it('should handle undefined market data correctly', () => {
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: '1',
-      multiChainMarketData: undefined,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-    });
-
-    expect(result).toBe('$0');
-  });
-
-  it('should handle zero price correctly', () => {
-    const noValueMarketData = {
-      [mockChainId]: {
-        [mockTokenAddress]: {
-          tokenAddress: mockTokenAddress,
-          price: 0,
-        },
+  it('handles input focus and blur correctly', () => {
+    const { getByTestId } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          onFocus={mockOnFocus}
+          onBlur={mockOnBlur}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
       },
+      { state: initialState },
+    );
+
+    const input = getByTestId('token-input-input');
+    fireEvent(input, 'focus');
+    expect(mockOnFocus).toHaveBeenCalled();
+
+    fireEvent(input, 'blur');
+    expect(mockOnBlur).toHaveBeenCalled();
+  });
+
+  it('displays max button for source token with balance and calls onMaxPress when clicked', () => {
+    // Arrange
+    const mockToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'TEST',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
     };
+    const tokenBalance = '100.5';
 
-    const result = getDisplayFiatValue({
-      token: mockToken,
-      amount: '1',
-      multiChainMarketData: noValueMarketData,
-      networkConfigurationsByChainId: mockNetworkConfigurations,
-      multiChainCurrencyRates: mockMultiChainCurrencyRates,
-      currentCurrency: 'USD',
-    });
+    const { getByText } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          token={mockToken}
+          tokenBalance={tokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: initialState },
+    );
 
-    expect(result).toBe('$0');
+    // Act
+    const maxButton = getByText('Max');
+    fireEvent.press(maxButton);
+
+    // Assert
+    expect(mockOnMaxPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not display max button for destination token', () => {
+    // Arrange
+    const mockToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'TEST',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const tokenBalance = '100.5';
+
+    const { queryByText } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Destination}
+          token={mockToken}
+          tokenBalance={tokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: initialState },
+    );
+
+    // Assert
+    expect(queryByText('Max')).toBeNull();
+  });
+
+  it('does not display max button for native assets', () => {
+    // Arrange
+    const nativeToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000', // AddressZero for native ETH
+      symbol: 'ETH',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const tokenBalance = '1.5';
+
+    const { queryByText } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          token={nativeToken}
+          tokenBalance={tokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: initialState },
+    );
+
+    // Assert
+    expect(queryByText('Max')).toBeNull();
+  });
+});
+
+describe('calculateFontSize', () => {
+  it('returns 40 for lengths up to 10', () => {
+    expect(calculateFontSize(5)).toBe(40);
+    expect(calculateFontSize(10)).toBe(40);
+  });
+
+  it('returns 35 for lengths between 11 and 15', () => {
+    expect(calculateFontSize(11)).toBe(35);
+    expect(calculateFontSize(15)).toBe(35);
+  });
+
+  it('returns 30 for lengths between 16 and 20', () => {
+    expect(calculateFontSize(16)).toBe(30);
+    expect(calculateFontSize(20)).toBe(30);
+  });
+
+  it('returns 25 for lengths between 21 and 25', () => {
+    expect(calculateFontSize(21)).toBe(25);
+    expect(calculateFontSize(25)).toBe(25);
+  });
+
+  it('returns 20 for lengths greater than 25', () => {
+    expect(calculateFontSize(26)).toBe(20);
+    expect(calculateFontSize(100)).toBe(20);
+  });
+});
+
+describe('getDisplayAmount', () => {
+  it('returns undefined for undefined input', () => {
+    expect(getDisplayAmount(undefined)).toBeUndefined();
+  });
+
+  it('returns full amount for source type when under max length', () => {
+    const amount = '123456789012345678';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
+  });
+
+  it('returns full amount for source type when over max length', () => {
+    const amount = '1234567890123456789';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Source)).toBe(amount);
+  });
+
+  it('parses amount for destination type', () => {
+    const amount = '1234567890123456789.12345';
+    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe(
+      '1234567890123456789.12345',
+    );
   });
 });

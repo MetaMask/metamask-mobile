@@ -12,6 +12,10 @@ import {
   View,
   Text,
   SectionList,
+  ActivityIndicator,
+  SectionListRenderItem,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
@@ -21,17 +25,43 @@ import { useStyles } from '../../../component-library/hooks';
 import {
   UrlAutocompleteComponentProps,
   FuseSearchResult,
+  TokenSearchResult,
+  AutocompleteSearchResult,
   UrlAutocompleteRef,
+  UrlAutocompleteCategory,
 } from './types';
 import { debounce } from 'lodash';
 import { strings } from '../../../../locales/i18n';
-import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
+import {
+  selectBrowserBookmarksWithType,
+  selectBrowserHistoryWithType,
+} from '../../../selectors/browser';
 import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
 import { Result } from './Result';
+import useTokenSearchDiscovery from '../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch';
+import { Hex } from '@metamask/utils';
+import Engine from '../../../core/Engine';
+import {
+  selectCurrentCurrency,
+  selectUsdConversionRate,
+} from '../../../selectors/currencyRateController';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../Bridge/hooks/useSwapBridgeNavigation';
 
 export * from './types';
 
-const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'}));
+const dappsWithType: FuseSearchResult[] = dappUrlList.map(
+  (i) => ({ ...i, category: UrlAutocompleteCategory.Sites } as const),
+);
+
+const TOKEN_SEARCH_LIMIT = 10;
+
+interface ResultsWithCategory {
+  category: UrlAutocompleteCategory;
+  data: AutocompleteSearchResult[];
+}
 
 /**
  * Autocomplete list that appears when the browser url bar is focused
@@ -40,11 +70,93 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
-  const [resultsByCategory, setResultsByCategory] = useState<{category: string, data: FuseSearchResult[]}[]>([]);
-  const hasResults = resultsByCategory.length > 0;
-
   const browserHistory = useSelector(selectBrowserHistoryWithType);
   const bookmarks = useSelector(selectBrowserBookmarksWithType);
+  const initialFuseResults = useMemo(
+    () => [...browserHistory, ...bookmarks],
+    [browserHistory, bookmarks],
+  );
+  const [fuseResults, setFuseResults] =
+    useState<FuseSearchResult[]>(initialFuseResults);
+  const {
+    searchTokens,
+    results: tokenSearchResults,
+    reset: resetTokenSearch,
+    isLoading: isTokenSearchLoading,
+  } = useTokenSearchDiscovery();
+  const usdConversionRate = useSelector(selectUsdConversionRate);
+  const tokenResults: TokenSearchResult[] = useMemo(
+    () =>
+      tokenSearchResults
+        .map(
+          ({
+            tokenAddress,
+            usdPricePercentChange,
+            usdPrice,
+            chainId,
+            ...rest
+          }) => ({
+            ...rest,
+            category: UrlAutocompleteCategory.Tokens as const,
+            address: tokenAddress,
+            chainId: chainId as Hex,
+            price: usdConversionRate ? usdPrice / usdConversionRate : -1,
+            percentChange: usdPricePercentChange.oneDay,
+            decimals: 18,
+            isFromSearch: true as const,
+          }),
+        )
+        .slice(0, TOKEN_SEARCH_LIMIT),
+    [tokenSearchResults, usdConversionRate],
+  );
+
+  const hasResults = fuseResults.length > 0 || tokenResults.length > 0;
+
+  const currentCurrency = useSelector(selectCurrentCurrency);
+
+  useEffect(() => {
+    if (currentCurrency) {
+      Engine.context.CurrencyRateController.updateExchangeRate([
+        currentCurrency,
+      ]);
+    }
+  }, [currentCurrency]);
+
+  const resultsByCategory: ResultsWithCategory[] = useMemo(
+    () =>
+      ORDERED_CATEGORIES.flatMap((category) => {
+        if (category === UrlAutocompleteCategory.Tokens) {
+          if (tokenResults.length === 0 && !isTokenSearchLoading) {
+            return [];
+          }
+          return {
+            category,
+            data: tokenResults,
+          };
+        }
+
+        let data = fuseResults.filter(
+          (result, index, self) =>
+            result.category === category &&
+            index ===
+              self.findIndex(
+                (r) => r.url === result.url && r.category === result.category,
+              ),
+        );
+        if (data.length === 0) {
+          return [];
+        }
+        if (category === UrlAutocompleteCategory.Recents) {
+          data = data.slice(0, MAX_RECENTS);
+        }
+        return {
+          category,
+          data,
+        };
+      }),
+    [fuseResults, tokenResults, isTokenSearchLoading],
+  );
+
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
   const resultsRef = useRef<View | null>(null);
   const { styles } = useStyles(styleSheet, {});
@@ -56,44 +168,33 @@ const UrlAutocomplete = forwardRef<
     resultsRef.current?.setNativeProps({ style: { display: 'flex' } });
   };
 
-  const updateResults = useCallback((results: FuseSearchResult[]) => {
-    const newResultsByCategory = ORDERED_CATEGORIES.flatMap((category) => {
-      let data = results.filter((result, index, self) =>
-        result.type === category &&
-        index === self.findIndex(r => r.url === result.url && r.type === result.type)
-      );
-      if (data.length === 0) {
-        return [];
-      }
-      if (category === 'recents') {
-        data = data.slice(0, MAX_RECENTS);
-      }
-      return {
-        category,
-        data,
-      };
-    });
-
-    setResultsByCategory(newResultsByCategory);
-  }, []);
+  /**
+   * Reset the autocomplete results
+   */
+  const reset = useCallback(() => {
+    setFuseResults(initialFuseResults);
+    resetTokenSearch();
+  }, [initialFuseResults, resetTokenSearch]);
 
   const latestSearchTerm = useRef<string | null>(null);
-  const search = useCallback((text: string) => {
-    latestSearchTerm.current = text;
-    if (!text) {
-      updateResults([
-        ...browserHistory,
-        ...bookmarks,
-      ]);
-      return;
-    }
-    const fuseSearchResult = fuseRef.current?.search(text);
-    if (Array.isArray(fuseSearchResult)) {
-      updateResults([...fuseSearchResult]);
-    } else {
-      updateResults([]);
-    }
-  }, [updateResults, browserHistory, bookmarks]);
+  const search = useCallback(
+    (text: string) => {
+      latestSearchTerm.current = text;
+      if (!text) {
+        reset();
+        return;
+      }
+      const fuseSearchResult = fuseRef.current?.search(text);
+      if (Array.isArray(fuseSearchResult)) {
+        setFuseResults(fuseSearchResult);
+      } else {
+        setFuseResults([]);
+      }
+
+      searchTokens(text);
+    },
+    [searchTokens, reset],
+  );
 
   /**
    * Debounce the search function
@@ -106,9 +207,9 @@ const UrlAutocomplete = forwardRef<
   const hide = useCallback(() => {
     // Cancel the search
     debouncedSearch.cancel();
+    reset();
     resultsRef.current?.setNativeProps({ style: { display: 'none' } });
-    setResultsByCategory([]);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, reset]);
 
   const dismissAutocomplete = () => {
     hide();
@@ -148,24 +249,61 @@ const UrlAutocomplete = forwardRef<
     }
   }, [browserHistory, bookmarks, search]);
 
-  const renderSectionHeader = useCallback(({section: {category}}) => (
-    <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
-  ), [styles]);
+  const { goToSwaps: goToSwapsHook, networkModal } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TokenDetails,
+    sourcePage: 'MainView',
+  });
 
-  const renderItem = useCallback(({item}) => (
-    <Result
-      result={item}
-      onPress={() => {
-        hide();
-        onSelect(item.url);
-      }}
-    />
-  ), [hide, onSelect]);
+  const goToSwaps = useCallback(
+    async (result: TokenSearchResult) => {
+      try {
+        await goToSwapsHook(result);
+      } catch (error) {
+        return;
+      }
+    },
+    [goToSwapsHook],
+  );
 
-  if (!hasResults) {
+  const renderSectionHeader = useCallback(
+    ({ section: { category } }: { section: ResultsWithCategory }) => (
+      <View style={styles.categoryWrapper}>
+        <Text style={styles.category}>
+          {strings(`autocomplete.${category}`)}
+        </Text>
+        {category === UrlAutocompleteCategory.Tokens &&
+          isTokenSearchLoading && (
+            <ActivityIndicator testID="loading-indicator" size="small" />
+          )}
+      </View>
+    ),
+    [styles, isTokenSearchLoading],
+  );
+
+  const renderItem: SectionListRenderItem<AutocompleteSearchResult> =
+    useCallback(
+      ({ item }) => (
+        <Result
+          result={item}
+          onPress={() => {
+            if (item.category !== UrlAutocompleteCategory.Tokens) {
+              hide();
+            }
+            onSelect(item);
+          }}
+          onSwapPress={goToSwaps}
+        />
+      ),
+      [hide, onSelect, goToSwaps],
+    );
+
+  if (!hasResults && !isTokenSearchLoading) {
     return (
       <View ref={resultsRef} style={styles.wrapper}>
-        <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
+        <TouchableWithoutFeedback
+          style={styles.bg}
+          onPress={dismissAutocomplete}
+        >
           <View style={styles.bg} />
         </TouchableWithoutFeedback>
       </View>
@@ -174,14 +312,25 @@ const UrlAutocomplete = forwardRef<
 
   return (
     <View ref={resultsRef} style={styles.wrapper}>
-      <SectionList
-        contentContainerStyle={styles.contentContainer}
-        sections={resultsByCategory}
-        keyExtractor={(item) => `${item.type}-${item.url}`}
-        renderSectionHeader={renderSectionHeader}
-        renderItem={renderItem}
-        keyboardShouldPersistTaps="handled"
-    />
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={100}
+      >
+        <SectionList<AutocompleteSearchResult, ResultsWithCategory>
+          contentContainerStyle={styles.contentContainer}
+          sections={resultsByCategory}
+          keyExtractor={(item) =>
+            item.category === UrlAutocompleteCategory.Tokens
+              ? `${item.category}-${item.chainId}-${item.address}`
+              : `${item.category}-${item.url}`
+          }
+          renderSectionHeader={renderSectionHeader}
+          renderItem={renderItem}
+          keyboardShouldPersistTaps="handled"
+        />
+      </KeyboardAvoidingView>
+      {networkModal}
     </View>
   );
 });

@@ -4,7 +4,12 @@ import Text from '../../../component-library/components/Texts/Text';
 import Icon from '../../../component-library/components/Icons/Icon';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import SmartTransactionStatus from '../../Views/transactions/SmartTransactionStatus/SmartTransactionStatus';
-import { View, Text as RNText, ScrollView } from 'react-native';
+import {
+  View,
+  Text as RNText,
+  ScrollView,
+  TouchableHighlight,
+} from 'react-native';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { SnapUIImage } from '../../Snaps/SnapUIImage/SnapUIImage';
 import { SnapAvatar } from '../../Snaps/SnapAvatar/SnapAvatar';
@@ -23,10 +28,14 @@ import { SnapUICheckbox } from '../../Snaps/SnapUICheckbox/SnapUICheckbox';
 import { SnapUIAddress } from '../../Snaps/SnapUIAddress/SnapUIAddress';
 import { SnapUIAvatar } from '../../Snaps/SnapUIAvatar/SnapUIAvatar';
 import { SnapUISelector } from '../../Snaps/SnapUISelector/SnapUISelector';
-import InfoRow from '../../Views/confirmations/components/UI/InfoRow';
 import { SnapUISpinner } from '../../Snaps/SnapUISpinner/SnapUISpinner';
 import { SnapUITooltip } from '../../Snaps/SnapUITooltip/SnapUITooltip';
 import { Skeleton } from '../../../component-library/components/Skeleton';
+import { SnapUIAddressInput } from '../../Snaps/SnapUIAddressInput/SnapUIAddressInput';
+import { SnapUIInfoRow } from '../../Snaps/SnapUIInfoRow/SnapUIInfoRow';
+import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAssetSelector';
+import { SnapUICopyable } from '../../Snaps/SnapUICopyable/SnapUICopyable';
+import { SnapUIAccountSelector } from '../../Snaps/SnapUIAccountSelector/SnapUIAccountSelector';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -44,6 +53,7 @@ export const safeComponentList = {
   AddressElement,
   Box,
   SnapUIInput,
+  SnapUIAddressInput,
   SnapIcon,
   SnapUIIcon,
   SnapUIFooterButton,
@@ -53,13 +63,17 @@ export const safeComponentList = {
   SnapUIAvatar,
   SnapUIAddress,
   SnapUIBanner,
+  SnapUIAssetSelector,
   SnapUISelector,
   SnapUISpinner,
-  InfoRow,
+  SnapUIInfoRow,
+  SnapUIAccountSelector,
   RNText,
   ScrollView,
   SnapUITooltip,
   Skeleton,
+  SnapUICopyable,
+  TouchableHighlight,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;

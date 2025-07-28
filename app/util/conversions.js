@@ -6,6 +6,7 @@ import {
   subtractCurrencies,
 } from './conversion';
 import { formatCurrency } from './confirm-tx.js';
+import { addHexPrefix } from './number';
 
 export function hexToDecimal(hexValue) {
   return conversionUtil(hexValue, {
@@ -229,4 +230,8 @@ export function sumHexWEIsToRenderableEth(hexWEIs) {
 
 export function multiplyHexes(hex1, hex2) {
   return hexToBN(hex1).mul(hexToBN(hex2)).toString(16);
+}
+
+export function decimalToPrefixedHex(decimal) {
+  return addHexPrefix(decimalToHex(decimal));
 }

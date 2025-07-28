@@ -25,6 +25,7 @@ exports[`Banner should render correctly 1`] = `
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -48,9 +49,8 @@ exports[`Banner should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Medium",
+          "fontFamily": "Geist Medium",
           "fontSize": 18,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -63,9 +63,8 @@ exports[`Banner should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -102,6 +101,7 @@ exports[`Banner should render correctly with a close button 1`] = `
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -125,9 +125,8 @@ exports[`Banner should render correctly with a close button 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Medium",
+          "fontFamily": "Geist Medium",
           "fontSize": 18,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -140,9 +139,8 @@ exports[`Banner should render correctly with a close button 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -161,13 +159,14 @@ exports[`Banner should render correctly with a close button 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#3c4d9d1a",
+          "borderColor": "transparent",
           "borderRadius": 0,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": "auto",
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 0,
         }
       }
@@ -176,10 +175,9 @@ exports[`Banner should render correctly with a close button 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
-            "fontFamily": "CentraNo1-Medium",
+            "color": "#121314",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -217,6 +215,7 @@ exports[`Banner should render correctly with a close button 1`] = `
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={16}
         name="Close"
         style={
@@ -260,9 +259,8 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -283,9 +281,8 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Medium",
+          "fontFamily": "Geist Medium",
           "fontSize": 18,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -298,9 +295,8 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -337,6 +333,7 @@ exports[`Banner should render correctly with an action button 1`] = `
   >
     <SvgMock
       color="#ca3542"
+      fill="currentColor"
       height={24}
       name="Danger"
       style={
@@ -360,9 +357,8 @@ exports[`Banner should render correctly with an action button 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Medium",
+          "fontFamily": "Geist Medium",
           "fontSize": 18,
-          "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -375,9 +371,8 @@ exports[`Banner should render correctly with an action button 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -396,13 +391,14 @@ exports[`Banner should render correctly with an action button 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#3c4d9d1a",
+          "borderColor": "transparent",
           "borderRadius": 0,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": "auto",
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 0,
         }
       }
@@ -411,10 +407,9 @@ exports[`Banner should render correctly with an action button 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
-            "fontFamily": "CentraNo1-Medium",
+            "color": "#121314",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }

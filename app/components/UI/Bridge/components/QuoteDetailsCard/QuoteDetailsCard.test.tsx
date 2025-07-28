@@ -1,10 +1,13 @@
+import '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import QuoteDetailsCard from './QuoteDetailsCard';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
+import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -30,7 +33,25 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   })),
 }));
 
-const testState = createBridgeTestState();
+// want to make the source token solana and dest token evm
+const testState = createBridgeTestState({
+  bridgeReducerOverrides: {
+    sourceToken: {
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      address: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      symbol: 'SOL',
+      decimals: 9,
+      name: 'Solana',
+    },
+    destToken: {
+      chainId: 'evm:1',
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      decimals: 18,
+      name: 'Ethereum',
+    },
+  },
+});
 
 describe('QuoteDetailsCard', () => {
   beforeEach(() => {
@@ -151,12 +172,15 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('displays network names', () => {
+    // want to make the source token solana and dest token evm
+    const initialTestState = createBridgeTestState();
+
     const { getByText } = renderScreen(
       QuoteDetailsCard,
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: testState },
+      { state: initialTestState },
     );
 
     expect(getByText('Ethereum Mainnet')).toBeDefined();
@@ -178,5 +202,39 @@ describe('QuoteDetailsCard', () => {
 
     // Verify slippage value
     expect(getByText('0.5%')).toBeDefined();
+  });
+
+  it('displays "Included" fee when gasIncluded is true', () => {
+    // Temporarily replace the mock with one that has gasIncluded = true
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      quoteFetchError: null,
+      activeQuote: mockQuotesGasIncluded[0],
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    const { getByText } = renderScreen(
+      QuoteDetailsCard,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    // Verify "Included" text is displayed
+    expect(getByText('Included')).toBeDefined();
+
+    // Restore original implementation
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 });

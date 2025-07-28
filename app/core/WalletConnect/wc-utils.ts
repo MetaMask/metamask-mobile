@@ -1,4 +1,5 @@
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { RelayerTypes } from '@walletconnect/types';
 import { parseRelayParams } from '@walletconnect/utils';
@@ -6,18 +7,16 @@ import qs from 'qs';
 import Routes from '../../../app/constants/navigation/Routes';
 import { store } from '../../../app/store';
 import {
+  selectEvmNetworkConfigurationsByChainId,
   selectNetworkConfigurations,
-  selectProviderConfig,
+  selectNetworkConfigurationsByCaipChainId,
 } from '../../selectors/networkController';
 import Engine from '../Engine';
 import { getPermittedAccounts, getPermittedChains } from '../Permissions';
-import {
-  findExistingNetwork,
-  switchToNetwork,
-} from '../RPCMethods/lib/ethereum-chain-utils';
+import { findExistingNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
-import { KnownCaipNamespace } from '@metamask/utils';
+import { WalletKitTypes } from '@reown/walletkit';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -158,9 +157,7 @@ export const waitForNetworkModalOnboarding = async ({
   }
 };
 
-export const getApprovedSessionMethods = (_: {
-  origin: string;
-}): string[] => {
+export const getApprovedSessionMethods = (): string[] => {
   const allEIP155Methods = [
     // Standard JSON-RPC methods
     'eth_sendTransaction',
@@ -199,24 +196,34 @@ export const getApprovedSessionMethods = (_: {
   return allEIP155Methods;
 };
 
-export const getScopedPermissions = async ({ origin }: { origin: string }) => {
-  // origin is already normalized by this point - no need to normalize again
-  const approvedAccounts = await getPermittedAccounts(origin);
-  const chains = await getPermittedChains(getHostname(origin));
+export const getScopedPermissions = async ({
+  channelId,
+}: {
+  channelId: string;
+}) => {
+  const approvedAccounts = getPermittedAccounts(channelId);
+  const chains = await getPermittedChains(channelId);
 
   DevLogger.log(
-    `WC::getScopedPermissions for ${origin}, found accounts:`,
+    `WC::getScopedPermissions for ${channelId}, found accounts:`,
     approvedAccounts,
+  );
+
+  DevLogger.log(
+    `WC::getScopedPermissions for ${channelId}, found chains:`,
+    chains,
   );
 
   // Create properly formatted account strings for each chain and account
   const accountsPerChains = chains.flatMap((chain) =>
-    approvedAccounts.map((account) => `${chain}:${account}`),
+    Array.isArray(approvedAccounts)
+      ? approvedAccounts.map((account) => `${chain}:${account}`)
+      : [],
   );
 
   const scopedPermissions = {
     chains,
-    methods: getApprovedSessionMethods({ origin: getHostname(origin) }),
+    methods: getApprovedSessionMethods(),
     events: ['chainChanged', 'accountsChanged'],
     accounts: accountsPerChains,
   };
@@ -232,9 +239,7 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const onRequestUserApproval = (origin: string) => async (args: any) => {
-  await Engine.context.ApprovalController.clear(
-    providerErrors.userRejectedRequest(),
-  );
+  Engine.context.ApprovalController.clear(providerErrors.userRejectedRequest());
   const responseData = await Engine.context.ApprovalController.add({
     origin,
     type: args.type,
@@ -243,13 +248,84 @@ export const onRequestUserApproval = (origin: string) => async (args: any) => {
   return responseData;
 };
 
-export const checkWCPermissions = async ({
-  origin,
-  caip2ChainId,
-}: { origin: string; caip2ChainId: string }) => {
+export const isSwitchingChainRequest = (
+  request: WalletKitTypes.SessionRequest,
+) => {
+  const {
+    params: {
+      request: { method },
+    },
+  } = request;
+  return method === 'wallet_switchEthereumChain';
+};
+
+export const getChainIdForCaipChainId = (caipChainId: CaipChainId) => {
+  const caipNetworkConfiguration = selectNetworkConfigurationsByCaipChainId(
+    store.getState(),
+  );
+  const networkConfig = caipNetworkConfiguration[caipChainId];
+
+  if (!networkConfig) {
+    throw new Error(
+      `No network configuration found for CAIP chain ID: ${caipChainId}`,
+    );
+  }
+
+  const { chainId } = networkConfig;
+
+  if (!chainId) {
+    throw new Error(
+      `No chainId found in network configuration for CAIP chain ID: ${caipChainId}`,
+    );
+  }
+
+  return chainId as Hex;
+};
+
+export const getRequestCaip2ChainId = (
+  request: WalletKitTypes.SessionRequest,
+) => {
+  const isSwitchingChain = isSwitchingChainRequest(request);
+  const hexChainId = isSwitchingChain
+    ? request.params.request.params[0].chainId
+    : getChainIdForCaipChainId(request.params.chainId as CaipChainId);
+  const caip2ChainId = `eip155:${parseInt(hexChainId, 16)}` as CaipChainId;
+  return caip2ChainId;
+};
+
+export const getNetworkClientIdForCaipChainId = (caipChainId: CaipChainId) => {
+  const networkConfigurationsByChainId =
+    selectEvmNetworkConfigurationsByChainId(store.getState());
+  const chainId = getChainIdForCaipChainId(caipChainId);
+  const networkConfig = networkConfigurationsByChainId[chainId as Hex];
+
+  if (!networkConfig) {
+    throw new Error(`No network configuration found for chain ID: ${chainId}`);
+  }
+
+  const { rpcEndpoints } = networkConfig;
+
+  if (!rpcEndpoints || rpcEndpoints.length === 0) {
+    throw new Error(`No RPC endpoints found for chain ID: ${chainId}`);
+  }
+
+  const { networkClientId } = rpcEndpoints[0];
+
+  if (!networkClientId) {
+    throw new Error(
+      `No networkClientId found in RPC endpoint for chain ID: ${chainId}`,
+    );
+  }
+
+  return networkClientId;
+};
+
+export const hasPermissionsToSwitchChainRequest = async (
+  caip2ChainId: CaipChainId,
+  channelId: string,
+) => {
   const networkConfigurations = selectNetworkConfigurations(store.getState());
-  const decimalChainId = caip2ChainId.split(':')[1];
-  const hexChainIdString = `0x${parseInt(decimalChainId, 10).toString(16)}`;
+  const hexChainIdString = getChainIdForCaipChainId(caip2ChainId);
 
   const existingNetwork = findExistingNetwork(
     hexChainIdString,
@@ -263,49 +339,18 @@ export const checkWCPermissions = async ({
     });
   }
 
-  const permittedChains = await getPermittedChains(getHostname(origin));
+  const permittedChains = await getPermittedChains(channelId);
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
+  DevLogger.log(`WC::checkWCPermissions permittedChains: ${permittedChains}`);
 
-  const providerConfig = selectProviderConfig(store.getState());
-  const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(providerConfig.chainId, 16)}`;
-
-  DevLogger.log(
-    `WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`,
-  );
-
-
-  if (!isAllowedChainId) {
-    DevLogger.log(`WC::checkWCPermissions chainId is not permitted`);
-    throw rpcErrors.invalidParams({
-      message: `Invalid parameters: active chainId is different than the one provided.`,
-    });
-  }
-
-  DevLogger.log(
-    `WC::checkWCPermissions switching to network:`,
+  return {
+    allowed: isAllowedChainId,
     existingNetwork,
-  );
-
-  if (caip2ChainId !== activeCaip2ChainId) {
-    try {
-      await switchToNetwork({
-        network: existingNetwork,
-        chainId: hexChainIdString,
-        controllers: Engine.context,
-        requestUserApproval: onRequestUserApproval(origin),
-        analytics: {},
-        origin,
-        isAddNetworkFlow: false,
-      });
-
-    } catch (error) {
-      DevLogger.log(
-        `WC::checkWCPermissions error switching to network:`,
-        error,
-      );
-      return false;
-    }
-  }
-
-  return true;
+    hexChainIdString,
+  };
 };
+
+export const getRequestOrigin = (
+  request: WalletKitTypes.SessionRequest,
+  defaultOrigin: string,
+) => request.verifyContext?.verified?.origin ?? defaultOrigin;

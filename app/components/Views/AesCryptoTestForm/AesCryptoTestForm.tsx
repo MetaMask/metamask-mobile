@@ -20,6 +20,7 @@ import {
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
   accountAddress,
+  responseText,
 } from '../../../../e2e/selectors/Settings/AesCrypto.selectors';
 import Text, {
   TextVariant,
@@ -114,7 +115,7 @@ const AesCryptoTestForm = () => {
         {
           key: args[0],
           lib: ENCRYPTION_LIBRARY.original,
-          exportable: false,
+          exportable: true,
           keyMetadata: DERIVATION_OPTIONS_DEFAULT_OWASP2023,
         },
         args[1],
@@ -166,6 +167,7 @@ const AesCryptoTestForm = () => {
           callback={generateSalt}
           callbackTestId={aesCryptoFormButtons.generateSaltButton}
           responseTestId={aesCryptoFormResponses.saltResponse}
+          responseTextTestId={responseText}
           styles={{ ...styles }}
         />
         <TestForm
@@ -184,6 +186,7 @@ const AesCryptoTestForm = () => {
           callback={generateEncryptionKey}
           callbackTestId={aesCryptoFormButtons.generateEncryptionKeyButton}
           responseTestId={aesCryptoFormResponses.generateEncryptionKeyResponse}
+          responseTextTestId={responseText}
           styles={{ ...styles }}
         />
         <TestForm
@@ -203,6 +206,7 @@ const AesCryptoTestForm = () => {
           callback={encryptWithKey}
           callbackTestId={aesCryptoFormButtons.encryptWithKeyButton}
           responseTestId={aesCryptoFormResponses.encryptionWithKeyResponse}
+          responseTextTestId={responseText}
           styles={{ ...styles }}
         />
         <TestForm
@@ -218,6 +222,7 @@ const AesCryptoTestForm = () => {
           callback={decryptWithKey}
           callbackTestId={aesCryptoFormButtons.decryptWithKeyButton}
           responseTestId={aesCryptoFormResponses.decryptionWithKeyResponse}
+          responseTextTestId={responseText}
           styles={{ ...styles }}
         />
         <TestForm
@@ -236,6 +241,7 @@ const AesCryptoTestForm = () => {
           callback={encrypt}
           callbackTestId={aesCryptoFormButtons.encryptButton}
           responseTestId={aesCryptoFormResponses.encryptionResponse}
+          responseTextTestId={responseText}
           styles={{ ...styles }}
         />
         <TestForm
@@ -250,6 +256,7 @@ const AesCryptoTestForm = () => {
           callback={decrypt}
           callbackTestId={aesCryptoFormButtons.decryptButton}
           responseTestId={aesCryptoFormResponses.decryptionResponse}
+          responseTextTestId={responseText}
           styles={{ ...styles }}
         />
       </SafeAreaView>

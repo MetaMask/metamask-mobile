@@ -1,9 +1,9 @@
+import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTokensWithBalance } from '.';
 import { constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
-import { initialState } from '../../_mocks_/initialState';
 import { SolScope } from '@metamask/keyring-api';
 
 // Mock dependencies
@@ -31,21 +31,29 @@ describe('useTokensWithBalance', () => {
   });
 
   it('should include native token with correct properties', async () => {
-    const { result } = renderHookWithProvider(() => useTokensWithBalance({
-      chainIds: [mockChainId, optimismChainId, solanaChainId],
-    }), {
-      state: initialState,
-    });
+    const { result } = renderHookWithProvider(
+      () =>
+        useTokensWithBalance({
+          chainIds: [mockChainId, optimismChainId, solanaChainId],
+        }),
+      {
+        state: initialState,
+      },
+    );
 
     await waitFor(() => {
-      const nativeToken = result.current.find(token => token.address === constants.AddressZero && token.chainId === mockChainId);
+      const nativeToken = result.current.find(
+        (token) =>
+          token.address === constants.AddressZero &&
+          token.chainId === mockChainId,
+      );
       expect(nativeToken).toMatchObject({
         address: constants.AddressZero,
         symbol: 'ETH',
         name: 'Ethereum',
         decimals: 18,
         chainId: mockChainId,
-        balance: '3',
+        balance: '3.0',
         balanceFiat: '$6000',
         tokenFiatAmount: 6000,
       });
@@ -53,11 +61,15 @@ describe('useTokensWithBalance', () => {
   });
 
   it('should show correct balances and fiat values for tokens', async () => {
-    const { result } = renderHookWithProvider(() => useTokensWithBalance({
-      chainIds: [mockChainId, optimismChainId, solanaChainId],
-    }), {
-      state: initialState,
-    });
+    const { result } = renderHookWithProvider(
+      () =>
+        useTokensWithBalance({
+          chainIds: [mockChainId, optimismChainId, solanaChainId],
+        }),
+      {
+        state: initialState,
+      },
+    );
 
     await waitFor(() => {
       // Ethereum chain tokens
@@ -69,24 +81,28 @@ describe('useTokensWithBalance', () => {
       );
 
       expect(token1).toMatchObject({
-        balance: '1',
+        balance: '1.0',
         balanceFiat: '$20000',
         tokenFiatAmount: 20000,
       });
 
       expect(token2).toMatchObject({
-        balance: '2',
+        balance: '2.0',
         balanceFiat: '$200000',
         tokenFiatAmount: 200000,
       });
 
       // Optimism chain tokens
-      const optimismNative = result.current.find(token => token.address === constants.AddressZero && token.chainId === optimismChainId);
+      const optimismNative = result.current.find(
+        (token) =>
+          token.address === constants.AddressZero &&
+          token.chainId === optimismChainId,
+      );
       expect(optimismNative).toMatchObject({
         address: constants.AddressZero,
         symbol: 'ETH',
         chainId: optimismChainId,
-        balance: '20',
+        balance: '20.0',
         balanceFiat: '$40000',
         tokenFiatAmount: 40000,
       });
@@ -97,7 +113,7 @@ describe('useTokensWithBalance', () => {
         symbol: 'FOO',
         name: 'Foo Token',
         chainId: optimismChainId,
-        balance: '5',
+        balance: '5.0',
         balanceFiat: '$80000',
         tokenFiatAmount: 80000,
       });
@@ -117,17 +133,25 @@ describe('useTokensWithBalance', () => {
 
     await waitFor(() => {
       // Ethereum tokens should be present
-      const ethereumNative = result.current.find(token => token.address === constants.AddressZero && token.chainId === mockChainId);
-      const token1 = result.current.find(t => t.address === token1Address);
-      const token2 = result.current.find(t => t.address === token2Address);
+      const ethereumNative = result.current.find(
+        (token) =>
+          token.address === constants.AddressZero &&
+          token.chainId === mockChainId,
+      );
+      const token1 = result.current.find((t) => t.address === token1Address);
+      const token2 = result.current.find((t) => t.address === token2Address);
 
       expect(ethereumNative).toBeTruthy();
       expect(token1).toBeTruthy();
       expect(token2).toBeTruthy();
 
       // Optimism tokens should not be present
-      const optimismNative = result.current.find(token => token.address === constants.AddressZero && token.chainId === optimismChainId);
-      const token3 = result.current.find(t => t.address === token3Address);
+      const optimismNative = result.current.find(
+        (token) =>
+          token.address === constants.AddressZero &&
+          token.chainId === optimismChainId,
+      );
+      const token3 = result.current.find((t) => t.address === token3Address);
 
       expect(optimismNative).toBeUndefined();
       expect(token3).toBeUndefined();

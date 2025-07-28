@@ -43,8 +43,8 @@ import NetworkImageComponent from '../NetworkImages';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
-    wrapper: {
-      height: '85%',
+    container: {
+      flex: 1,
     },
     base: {
       padding: 16,
@@ -65,7 +65,7 @@ const createStyles = (colors: any) =>
       marginBottom: 15,
     },
     button: {
-      padding: 16,
+      paddingTop: 16,
     },
     searchInput: {
       paddingBottom: 16,
@@ -74,22 +74,16 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
     },
     networkSelectorContainer: {
-      marginHorizontal: 16,
       borderWidth: 1,
       marginTop: 16,
       borderColor: colors.border.default,
-      borderRadius: 2,
+      borderRadius: 8,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 10,
     },
     buttonIconContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    container: {
-      backgroundColor: colors.background.default,
       flexDirection: 'row',
       alignItems: 'center',
     },
@@ -174,7 +168,7 @@ const SearchTokenAutocomplete = ({
   );
 
   const handleSelectAsset = useCallback(
-    (asset) => {
+    (asset: { address: string }) => {
       const assetAddressLower = asset.address.toLowerCase();
 
       const newSelectedAsset = selectedAssets.reduce(
@@ -206,6 +200,13 @@ const SearchTokenAutocomplete = ({
       iconUrl,
       name,
       chainId: networkId,
+    }: {
+      address: Hex;
+      symbol: string;
+      decimals: number;
+      iconUrl: string;
+      name: string;
+      chainId: Hex;
     }) => {
       const networkConfig =
         Engine.context.NetworkController.state
@@ -359,8 +360,8 @@ const SearchTokenAutocomplete = ({
   ]);
 
   return (
-    <View>
-      <ScrollView style={styles.wrapper}>
+    <View style={styles.container}>
+      <ScrollView>
         <View>
           {renderTokenDetectionBanner()}
           <TouchableOpacity
@@ -377,9 +378,7 @@ const SearchTokenAutocomplete = ({
             >
               <Text style={styles.title}>
                 {isAllNetworksEnabled
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
+                  ? strings('wallet.popular_networks')
                   : networkName}
               </Text>
             </TouchableOpacity>

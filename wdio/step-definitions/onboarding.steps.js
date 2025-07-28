@@ -8,6 +8,10 @@ import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
 import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
+import CreatePasswordScreen from '../screen-objects/Onboarding/CreatePasswordScreen.js';
+import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
+import OnboardingSheet from '../screen-objects/Onboarding/OnboardingSheet.js';
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 Then(/^"([^"]*)?" carousel item is displayed/, async (text) => {
   switch (text) {
@@ -34,20 +38,37 @@ When(/^I tap "([^"]*)"/, async (text) => {
     case 'Get started':
       await WelcomeScreen.clickGetStartedButton();
       break;
+    case 'Have an existing wallet':
+      await OnboardingScreen.tapHaveAnExistingWallet();
+      break;
+    case 'Google Login':
+      await OnboardingSheet.tapGoogleLoginButton();
+      break;
+    case 'Apple Login':
+      await OnboardingSheet.tapAppleLoginButton();
+      break;
     case 'Import using Secret Recovery Phrase':
-      await OnboardingScreen.clickImportWalletButton();
+      if (SEEDLESS_ONBOARDING_ENABLED) {
+        await OnboardingSheet.tapImportSeedButton();
+      }
       break;
     case 'I agree':
       await MetaMetricsScreen.tapIAgreeButton();
       break;
-    case 'Import':
-      await ImportFromSeedScreen.clickImportButton();
+    case 'Continue':
+      await ImportFromSeedScreen.tapContinueButton();
+      break;
+    case 'Create Password':
+      await CreatePasswordScreen.tapCreatePasswordButton();
       break;
     case 'No, Thanks':
       await OnboardingWizardModal.tapNoThanksButton();
       break;
     case 'https://uniswap.exchange':
       await AddressBarScreen.tapUniswapSuggestionButton();
+      break;
+    case 'Done':
+      await OnboardingSucessScreen.tapDone();
       break;
     default:
       throw new Error('Condition not found');

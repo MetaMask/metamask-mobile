@@ -5,9 +5,7 @@ import { View } from 'react-native';
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
 import { strings } from '../../../../../locales/i18n';
-import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
-import { switchActiveAccounts } from '../../../../core/Permissions';
 import {
   ToastContext,
   ToastVariants,
@@ -30,6 +28,9 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import Engine from '../../../../core/Engine';
+import CaipAccountSelectorList from '../../../UI/CaipAccountSelectorList';
+import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -37,28 +38,24 @@ const AccountPermissionsConnected = ({
   isLoading,
   selectedAddresses,
   onSetPermissionsScreen,
-  onSetSelectedAddresses,
   onDismissSheet,
   hostname,
   favicon,
   accountAvatarType,
 }: AccountPermissionsConnectedProps) => {
-  const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
   const onConnectMoreAccounts = useCallback(() => {
-    onSetSelectedAddresses([]);
     onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
-  }, [onSetSelectedAddresses, onSetPermissionsScreen]);
+  }, [onSetPermissionsScreen]);
 
   const switchActiveAccount = useCallback(
-    (address: string) => {
-      if (address !== activeAddress) {
-        switchActiveAccounts(hostname, address);
-      }
+    (caipAccountId: CaipAccountId) => {
+      const { address } = parseCaipAccountId(caipAccountId);
+      Engine.setSelectedAddress(address);
       onDismissSheet();
       const activeAccountName = getAccountNameWithENS({
-        accountAddress: address,
+        caipAccountId,
         accounts,
         ensByAccountAddress,
       });
@@ -77,11 +74,9 @@ const AccountPermissionsConnected = ({
       });
     },
     [
-      activeAddress,
       onDismissSheet,
       accounts,
       ensByAccountAddress,
-      hostname,
       toastRef,
       accountAvatarType,
     ],
@@ -89,16 +84,14 @@ const AccountPermissionsConnected = ({
 
   const renderSheetAction = useCallback(
     () => (
-      <View
-        style={styles.sheetActionContainer}
-        testID={ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON}
-      >
+      <View style={styles.sheetActionContainer}>
         <SheetActions
           actions={[
             {
               label: strings('accounts.connect_more_accounts'),
               onPress: onConnectMoreAccounts,
               disabled: isLoading,
+              testID: ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
             },
           ]}
         />
@@ -123,7 +116,7 @@ const AccountPermissionsConnected = ({
           {strings('accounts.connected_accounts_title')}
         </Text>
       </View>
-      <AccountSelectorList
+      <CaipAccountSelectorList
         onSelectAccount={switchActiveAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}

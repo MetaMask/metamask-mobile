@@ -10,7 +10,7 @@ import TransactionsView from '../TransactionsView';
 import MultichainTransactionsView from '../MultichainTransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
-import RampOrdersList from '../../UI/Ramp/Views/OrdersList';
+import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
@@ -24,7 +24,7 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { isTestNet } from '../../../util/networks';
 import {
-  selectEvmChainId,
+  selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
@@ -62,6 +62,7 @@ const createStyles = (params) => {
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+      borderRadius: 20,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
@@ -72,6 +73,7 @@ const createStyles = (params) => {
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
+      borderRadius: 20,
     },
     header: {
       backgroundColor: colors.background.default,
@@ -104,7 +106,7 @@ const ActivityView = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const currentChainId = useSelector(selectEvmChainId);
+  const currentChainId = useSelector(selectChainId);
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -189,9 +191,7 @@ const ActivityView = () => {
             label={
               <Text numberOfLines={1} style={styles.titleText}>
                 {isAllNetworks && isPopularNetwork && isEvmSelected
-                  ? `${strings('app_settings.popular')} ${strings(
-                      'app_settings.networks',
-                    )}`
+                  ? strings('wallet.popular_networks')
                   : networkName ?? strings('wallet.current_network')}
               </Text>
             }
@@ -214,6 +214,7 @@ const ActivityView = () => {
           {selectedAddress && isNonEvmAddress(selectedAddress) ? (
             <MultichainTransactionsView
               tabLabel={strings('transactions_view.title')}
+              chainId={currentChainId}
             />
           ) : (
             <TransactionsView tabLabel={strings('transactions_view.title')} />

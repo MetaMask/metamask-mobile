@@ -57,7 +57,7 @@ const AccountBase = ({
             >
               {accountTypeLabel}
             </Text>
-        </View>
+          </View>
         )}
       </View>
     </View>

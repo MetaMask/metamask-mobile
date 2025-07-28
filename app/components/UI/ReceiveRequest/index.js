@@ -24,8 +24,8 @@ import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
-import { isNetworkRampSupported } from '../Ramp/utils';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { isNetworkRampSupported } from '../Ramp/Aggregator/utils';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
@@ -33,6 +33,8 @@ import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/branding/fox.png';
+import { isEthAddress } from '../../../util/address';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const { height: windowHeight, width: windowWidth } = Dimensions.get('window');
 
@@ -152,6 +154,10 @@ class ReceiveRequest extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that indicates if the evm network is selected
+     */
+    isEvmNetworkSelected: PropTypes.bool,
   };
 
   state = {
@@ -240,6 +246,10 @@ class ReceiveRequest extends PureComponent {
     const theme = this.context || mockTheme;
     const styles = createStyles(theme);
 
+    const qrValue = isEthAddress(this.props.selectedAddress)
+      ? `ethereum:${this.props.selectedAddress}@${this.props.chainId}`
+      : this.props.selectedAddress;
+
     return (
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.body}>
@@ -248,23 +258,25 @@ class ReceiveRequest extends PureComponent {
               logo={PNG_MM_LOGO_PATH}
               logoSize={35}
               logoMargin={5}
-              value={`ethereum:${this.props.selectedAddress}@${this.props.chainId}`}
+              value={qrValue}
               size={windowWidth / 2}
             />
           </View>
 
           <QRAccountDisplay accountAddress={this.props.selectedAddress} />
 
-          <View style={styles.actionRow}>
-            <StyledButton
-              type={'normal'}
-              onPress={this.onReceive}
-              containerStyle={styles.actionButton}
-              testID={RequestPaymentModalSelectorsIDs.REQUEST_BUTTON}
-            >
-              {strings('receive_request.request_payment')}
-            </StyledButton>
-          </View>
+          {this.props.isEvmNetworkSelected && (
+            <View style={styles.actionRow}>
+              <StyledButton
+                type={'normal'}
+                onPress={this.onReceive}
+                containerStyle={styles.actionButton}
+                testID={RequestPaymentModalSelectorsIDs.REQUEST_BUTTON}
+              >
+                {strings('receive_request.request_payment')}
+              </StyledButton>
+            </View>
+          )}
         </View>
 
         <GlobalAlert />
@@ -284,6 +296,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
+  isEvmNetworkSelected: selectIsEvmNetworkSelected(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

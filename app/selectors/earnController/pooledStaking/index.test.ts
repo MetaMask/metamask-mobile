@@ -12,6 +12,7 @@ import {
 import { mockEarnControllerRootState } from '../../../components/UI/Stake/testUtils';
 
 const MOCK_ROOT_STATE_WITH_EARN_CONTROLLER = mockEarnControllerRootState();
+const MOCK_CHAIN_ID = 1; // Using chain ID 1 as an example
 
 describe('Earn Controller Selectors', () => {
   describe('Pooled Staking Selectors', () => {
@@ -25,61 +26,61 @@ describe('Earn Controller Selectors', () => {
       });
     });
 
-    describe('selectVaultMetadata', () => {
-      it('returns selected pooled-staking vault data', () => {
+    describe('selectVaultMetadataForChain', () => {
+      it('returns selected pooled-staking vault data for chain', () => {
         expect(
-          pooledStakingSelectors.selectVaultMetadata(
+          pooledStakingSelectors.selectVaultMetadataForChain(MOCK_CHAIN_ID)(
             MOCK_ROOT_STATE_WITH_EARN_CONTROLLER as RootState,
           ),
         ).toStrictEqual(MOCK_VAULT_DATA);
       });
     });
 
-    describe('selectPoolStakes', () => {
-      it('returns selected pooled-staking pooled stakes data', () => {
+    describe('selectPoolStakesForChain', () => {
+      it('returns selected pooled-staking pooled stakes data for chain', () => {
         expect(
-          pooledStakingSelectors.selectPoolStakes(
+          pooledStakingSelectors.selectPoolStakesForChain(MOCK_CHAIN_ID)(
             MOCK_ROOT_STATE_WITH_EARN_CONTROLLER as RootState,
           ),
         ).toStrictEqual(MOCK_POOLED_STAKES_DATA);
       });
     });
 
-    describe('selectExchangeRate', () => {
-      it('returns selected pooled-staking exchange rate', () => {
+    describe('selectExchangeRateForChain', () => {
+      it('returns selected pooled-staking exchange rate for chain', () => {
         expect(
-          pooledStakingSelectors.selectExchangeRate(
-            MOCK_ROOT_STATE_WITH_EARN_CONTROLLER as RootState,
+          pooledStakingSelectors.selectExchangeRateForChain(MOCK_CHAIN_ID)(
+            MOCK_ROOT_STATE_WITH_EARN_CONTROLLER as unknown as RootState,
           ),
         ).toStrictEqual(MOCK_EXCHANGE_RATE);
       });
     });
 
-    describe('selectVaultDailyApys', () => {
-      it('returns selected pooled-staking vault daily apys', () => {
+    describe('selectVaultDailyApysForChain', () => {
+      it('returns selected pooled-staking vault daily apys for chain', () => {
         expect(
-          pooledStakingSelectors.selectVaultDailyApys(
-            MOCK_ROOT_STATE_WITH_EARN_CONTROLLER as RootState,
+          pooledStakingSelectors.selectVaultDailyApysForChain(MOCK_CHAIN_ID)(
+            MOCK_ROOT_STATE_WITH_EARN_CONTROLLER as unknown as RootState,
           ),
         ).toStrictEqual(MOCK_VAULT_DAILY_APYS);
       });
     });
 
-    describe('selectVaultApyAverages', () => {
-      it('returns selected pooled-staking vault apy averages', () => {
+    describe('selectVaultApyAveragesForChain', () => {
+      it('returns selected pooled-staking vault apy averages for chain', () => {
         expect(
-          pooledStakingSelectors.selectVaultApyAverages(
-            MOCK_ROOT_STATE_WITH_EARN_CONTROLLER as RootState,
+          pooledStakingSelectors.selectVaultApyAveragesForChain(MOCK_CHAIN_ID)(
+            MOCK_ROOT_STATE_WITH_EARN_CONTROLLER as unknown as RootState,
           ),
         ).toStrictEqual(MOCK_VAULT_APY_AVERAGES);
       });
     });
 
-    describe('selectVaultApy', () => {
-      it('returns selected pooled-staking vault daily apy in decimal and percent string formats', () => {
+    describe('selectVaultApyForChain', () => {
+      it('returns selected pooled-staking vault daily apy in decimal and percent string formats for chain', () => {
         expect(
-          pooledStakingSelectors.selectVaultApy(
-            MOCK_ROOT_STATE_WITH_EARN_CONTROLLER as RootState,
+          pooledStakingSelectors.selectVaultApyForChain(MOCK_CHAIN_ID)(
+            MOCK_ROOT_STATE_WITH_EARN_CONTROLLER as unknown as RootState,
           ),
         ).toStrictEqual({
           apyDecimal: 0.03257560263513173,

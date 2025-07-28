@@ -1,10 +1,13 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Image, TouchableHighlight, TextStyle } from 'react-native';
-import { capitalize } from 'lodash';
+import {
+  Image,
+  TouchableHighlight,
+  TextStyle,
+  useColorScheme,
+} from 'react-native';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import { getTransactionIcon } from '../../../util/transaction-icons';
@@ -12,47 +15,52 @@ import { toDateFormat } from '../../../util/date';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import styles from './MultichainTransactionListItem.styles';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../reducers';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
 const MultichainTransactionListItem = ({
   transaction,
-  selectedAddress,
+  chainId,
   navigation,
+  index,
 }: {
   transaction: Transaction;
-  selectedAddress: string;
+  chainId: SupportedCaipChainId;
   navigation: NavigationProp<ParamListBase>;
+  index?: number;
 }) => {
   const { colors, typography } = useTheme();
+  const osColorScheme = useColorScheme();
+  const appTheme = useSelector((state: RootState) => state.user.appTheme);
+
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { type, status, to, from, asset } = useMultichainTransactionDisplay({
-    transaction,
-    userAddress: selectedAddress,
-  });
-
-  let title = capitalize(type);
-
-  if (type === TransactionType.Swap) {
-    const fromAsset = from?.asset;
-    const toAsset = to?.asset;
-
-    const fromUnit = fromAsset?.fungible ? fromAsset.unit : '';
-    const toUnit = toAsset?.fungible ? toAsset.unit : '';
-
-    title = `${strings('transactions.swap')} ${fromUnit} ${strings(
-      'transactions.to',
-    )} ${toUnit}`;
-  }
+  const displayData = useMultichainTransactionDisplay(transaction, chainId);
+  const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
 
   const style = styles(colors, typography);
 
-  const handlePress = () => {
-    setIsModalVisible(true);
+  const renderTxElementIcon = (transactionType: string) => {
+    const isFailedTransaction = transaction.status === 'failed';
+    const icon = getTransactionIcon(
+      transactionType,
+      isFailedTransaction,
+      appTheme,
+      osColorScheme,
+    );
+    return <Image source={icon} style={style.icon} resizeMode="stretch" />;
   };
 
-  const renderTxElementIcon = (transactionType: string) => {
-    const isFailedTransaction = status === 'failed';
-    const icon = getTransactionIcon(transactionType, isFailedTransaction);
-    return <Image source={icon} style={style.icon} resizeMode="stretch" />;
+  const displayAmount = () => {
+    if (isRedeposit) {
+      return `${priorityFee?.amount} ${priorityFee?.unit}`;
+    }
+
+    if (transaction.type === TransactionType.Unknown) {
+      return `${baseFee?.amount} ${baseFee?.unit}`;
+    }
+
+    return `${to?.amount} ${to?.unit}`;
   };
 
   return (
@@ -62,10 +70,10 @@ const MultichainTransactionListItem = ({
           style.itemContainer,
           { borderBottomColor: colors.border.muted },
         ]}
-        onPress={handlePress}
+        onPress={() => setIsModalVisible(true)}
         underlayColor={colors.background.alternative}
         activeOpacity={1}
-        testID={`transaction-list-item-${transaction.id}`}
+        testID={`transaction-item-${index ?? 0}`}
       >
         <ListItem>
           <ListItem.Date style={style.listItemDate}>
@@ -73,7 +81,11 @@ const MultichainTransactionListItem = ({
               toDateFormat(new Date(transaction.timestamp * 1000))}
           </ListItem.Date>
           <ListItem.Content style={style.listItemContent}>
-            <ListItem.Icon>{renderTxElementIcon(type)}</ListItem.Icon>
+            <ListItem.Icon>
+              {renderTxElementIcon(
+                isRedeposit ? 'redeposit' : transaction.type,
+              )}
+            </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title
                 numberOfLines={1}
@@ -83,16 +95,14 @@ const MultichainTransactionListItem = ({
               </ListItem.Title>
               <StatusText
                 testID={`transaction-status-${transaction.id}`}
-                status={status}
+                status={transaction.status}
                 style={style.listItemStatus as TextStyle}
                 context="transaction"
               />
             </ListItem.Body>
-            {Boolean(asset?.amount) && (
-              <ListItem.Amount style={style.listItemAmount as TextStyle}>
-                {asset?.amount} {asset?.unit}
-              </ListItem.Amount>
-            )}
+            <ListItem.Amount style={style.listItemAmount as TextStyle}>
+              {displayAmount()}
+            </ListItem.Amount>
           </ListItem.Content>
         </ListItem>
       </TouchableHighlight>
@@ -100,8 +110,8 @@ const MultichainTransactionListItem = ({
       <MultichainTransactionDetailsModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
+        displayData={displayData}
         transaction={transaction}
-        userAddress={selectedAddress}
         navigation={navigation}
       />
     </>

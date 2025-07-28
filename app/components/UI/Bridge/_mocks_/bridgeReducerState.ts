@@ -1,4 +1,5 @@
 import type { BridgeState } from '../../../../core/redux/slices/bridge';
+import { BridgeViewMode } from '../types';
 
 export const mockBridgeReducerState: BridgeState = {
   sourceAmount: '1000000000000000000',
@@ -23,7 +24,10 @@ export const mockBridgeReducerState: BridgeState = {
     balanceFiat: '$0',
     chainId: '0xa',
   },
+  destAddress: undefined,
   selectedSourceChainIds: ['0x1'],
   selectedDestChainId: '0xa',
   slippage: '0.5',
+  isSubmittingTx: false,
+  bridgeViewMode: BridgeViewMode.Bridge,
 };

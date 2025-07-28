@@ -14,6 +14,7 @@ import fiatOrderReducer, {
   fiatOrdersGetStartedAgg,
   fiatOrdersPaymentMethodSelectorAgg,
   fiatOrdersRegionSelectorAgg,
+  fiatOrdersRegionSelectorDeposit,
   getActivationKeys,
   getAuthenticationUrls,
   getCustomOrderIds,
@@ -32,8 +33,11 @@ import fiatOrderReducer, {
   selectedAddressSelector,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersGetStartedSell,
+  setFiatOrdersGetStartedDeposit,
   setFiatOrdersPaymentMethodAGG,
+  fiatOrdersGetStartedDeposit,
   setFiatOrdersRegionAGG,
+  setFiatOrdersRegionDeposit,
   updateActivationKey,
   updateFiatCustomIdData,
   updateFiatOrder,
@@ -384,6 +388,19 @@ describe('fiatOrderReducer', () => {
     expect(stateWithStartedFalse.getStartedSell).toEqual(false);
   });
 
+  it('should set get started deposit', () => {
+    const stateWithStartedTrue = fiatOrderReducer(
+      initialState,
+      setFiatOrdersGetStartedDeposit(true),
+    );
+    const stateWithStartedFalse = fiatOrderReducer(
+      stateWithStartedTrue,
+      setFiatOrdersGetStartedDeposit(false),
+    );
+    expect(stateWithStartedTrue.getStartedDeposit).toEqual(true);
+    expect(stateWithStartedFalse.getStartedDeposit).toEqual(false);
+  });
+
   it('should set the selected region', () => {
     const testRegion = {
       id: 'test-region',
@@ -400,6 +417,37 @@ describe('fiatOrderReducer', () => {
 
     expect(stateWithSelectedRegion.selectedRegionAgg).toEqual(testRegion);
     expect(stateWithoutSelectedRegion.selectedRegionAgg).toEqual(null);
+  });
+
+  it('should set the selected deposit region', () => {
+    const testDepositRegion = {
+      isoCode: 'US',
+      flag: '🇺🇸',
+      name: 'United States',
+      phone: {
+        prefix: '+1',
+        placeholder: '123 456 7890',
+        template: 'XXX XXX XXXX',
+      },
+      currency: 'USD',
+      supported: true,
+      recommended: true,
+    };
+    const stateWithSelectedDepositRegion = fiatOrderReducer(
+      initialState,
+      setFiatOrdersRegionDeposit(testDepositRegion),
+    );
+    const stateWithoutSelectedDepositRegion = fiatOrderReducer(
+      stateWithSelectedDepositRegion,
+      setFiatOrdersRegionDeposit(null),
+    );
+
+    expect(stateWithSelectedDepositRegion.selectedRegionDeposit).toEqual(
+      testDepositRegion,
+    );
+    expect(stateWithoutSelectedDepositRegion.selectedRegionDeposit).toEqual(
+      null,
+    );
   });
 
   it('should set the selected payment method', () => {
@@ -810,6 +858,41 @@ describe('selectors', () => {
     });
   });
 
+  describe('fiatOrdersRegionSelectorDeposit', () => {
+    it('should return the selected deposit region', () => {
+      const testDepositRegion = {
+        isoCode: 'US',
+        flag: '🇺🇸',
+        name: 'United States',
+        phone: {
+          prefix: '+1',
+          placeholder: '123 456 7890',
+          template: 'XXX XXX XXXX',
+        },
+        currency: 'USD',
+        supported: true,
+        recommended: true,
+      };
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          selectedRegionDeposit: testDepositRegion,
+        },
+      });
+
+      expect(fiatOrdersRegionSelectorDeposit(state)).toEqual(testDepositRegion);
+    });
+
+    it('should return null when no deposit region is selected', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          selectedRegionDeposit: null,
+        },
+      });
+
+      expect(fiatOrdersRegionSelectorDeposit(state)).toEqual(null);
+    });
+  });
+
   describe('fiatOrdersPaymentMethodSelectorAgg', () => {
     it('should return the selected payment method id', () => {
       const state = merge({}, initialRootState, {
@@ -845,6 +928,18 @@ describe('selectors', () => {
       });
 
       expect(fiatOrdersGetStartedSell(state)).toEqual(true);
+    });
+  });
+
+  describe('fiatOrdersGetStartedDeposit', () => {
+    it('should return the get started deposit state', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          getStartedDeposit: true,
+        },
+      });
+
+      expect(fiatOrdersGetStartedDeposit(state)).toEqual(true);
     });
   });
 

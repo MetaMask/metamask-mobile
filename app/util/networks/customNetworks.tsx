@@ -1,4 +1,3 @@
-import { ImageSourcePropType } from 'react-native';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -10,23 +9,6 @@ import { BtcScope, SolScope } from '@metamask/keyring-api';
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
-export interface Network {
-  chainId: Hex;
-  nickname: string;
-  rpcPrefs: {
-    blockExplorerUrl: string;
-    imageSource?: ImageSourcePropType;
-    imageUrl?: string;
-  };
-  rpcUrl: string;
-  failoverRpcUrls: string[];
-  ticker: string;
-  /**
-   * Not supported by Infura
-   */
-  warning?: boolean;
-}
-
 export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'ethereum-mainnet': () => process.env.QUICKNODE_MAINNET_URL,
   'linea-mainnet': () => process.env.QUICKNODE_LINEA_MAINNET_URL,
@@ -35,6 +17,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'optimism-mainnet': () => process.env.QUICKNODE_OPTIMISM_URL,
   'polygon-mainnet': () => process.env.QUICKNODE_POLYGON_URL,
   'base-mainnet': () => process.env.QUICKNODE_BASE_URL,
+  'bsc-mainnet': () => process.env.QUICKNODE_BSC_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -75,8 +58,8 @@ export const PopularList = [
   {
     chainId: toHex('56'),
     nickname: 'BNB Smart Chain Mainnet',
-    rpcUrl: 'https://bsc-dataseed1.binance.org',
-    failoverRpcUrls: [],
+    rpcUrl: `https://bsc-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
     ticker: 'BNB',
     warning: true,
     rpcPrefs: {
@@ -111,11 +94,20 @@ export const PopularList = [
     },
   },
   {
+    chainId: toHex('999'),
+    nickname: 'Hyperliquid',
+    rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
+    ticker: 'HYPE',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.hyperliquid.xyz',
+      imageUrl: 'HL',
+      imageSource: require('../../images/HL_symbol_mint_green.png'),
+    },
+  },
+  {
     chainId: toHex('11297108109'),
     nickname: 'Palm',
     rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
-    // Quicknode does not support Palm at this time
-    failoverRpcUrls: [],
     ticker: 'PALM',
     rpcPrefs: {
       blockExplorerUrl: 'https://explorer.palm.io',
@@ -139,7 +131,6 @@ export const PopularList = [
     chainId: toHex('324'),
     nickname: 'zkSync Mainnet',
     rpcUrl: `https://mainnet.era.zksync.io`,
-    failoverRpcUrls: [],
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -148,23 +139,43 @@ export const PopularList = [
       imageSource: require('../../images/zk-sync.png'),
     },
   },
-] satisfies Network[];
+  {
+    chainId: toHex('1329'),
+    nickname: 'Sei Network',
+    rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [],
+    ticker: 'SEI',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://seitrace.com/',
+      imageUrl: 'SEI',
+      imageSource: require('../../images/sei.png'),
+    },
+  },
+];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
-  if (chainId === SolScope.Mainnet) {
-    return require('../../images/solana-logo.png');
+  switch (chainId) {
+    case SolScope.Mainnet:
+      return require('../../images/solana-logo.png');
+    case BtcScope.Mainnet:
+      return require('../../images/bitcoin-logo.png');
+    case BtcScope.Testnet:
+    case BtcScope.Testnet4:
+    case BtcScope.Regtest:
+      return require('../../images/bitcoin-testnet-logo.png');
+    case BtcScope.Signet:
+      return require('../../images/bitcoin-signet-logo.svg');
+    default:
+      return undefined;
   }
-  if (chainId === BtcScope.Mainnet) {
-    return require('../../images/bitcoin-logo.png');
-  }
-  return undefined;
 };
 
 export const INFURA_TESTNET_CHAIN_IDS = {
   GOERLI: '0x5',
   LINEA_GOERLI: '0xe704',
   SEPOLIA: '0xaa36a7',
-  HOLESKY: '0x4268',
+  HOODI: '0x88bb0',
   LINEA_SEPOLIA: '0xe705',
   AMOY: '0x13882',
   BASE_SEPOLIA: '0x14a34',
@@ -185,7 +196,7 @@ export const infuraChainIdsTestNets: string[] = [
   INFURA_TESTNET_CHAIN_IDS.GOERLI,
   INFURA_TESTNET_CHAIN_IDS.LINEA_GOERLI,
   INFURA_TESTNET_CHAIN_IDS.SEPOLIA,
-  INFURA_TESTNET_CHAIN_IDS.HOLESKY,
+  INFURA_TESTNET_CHAIN_IDS.HOODI,
   INFURA_TESTNET_CHAIN_IDS.LINEA_SEPOLIA,
   INFURA_TESTNET_CHAIN_IDS.AMOY,
   INFURA_TESTNET_CHAIN_IDS.BASE_SEPOLIA,
@@ -245,7 +256,6 @@ export const UnpopularNetworkList = [
     chainId: toHex('250'),
     nickname: 'Fantom Opera',
     rpcUrl: 'https://rpc.ftm.tools/',
-    failoverRpcUrls: [],
     ticker: 'FTM',
     warning: true,
     rpcPrefs: {
@@ -258,7 +268,6 @@ export const UnpopularNetworkList = [
     chainId: toHex('1666600000'),
     nickname: 'Harmony Mainnet Shard 0',
     rpcUrl: 'https://api.harmony.one/',
-    failoverRpcUrls: [],
     ticker: 'ONE',
     warning: true,
     rpcPrefs: {
@@ -272,25 +281,53 @@ export const UnpopularNetworkList = [
 export const NETWORK_CHAIN_ID: {
   readonly FLARE_MAINNET: '0xe';
   readonly SONGBIRD_TESTNET: '0x13';
-  readonly APE_CHAIN_TESTNET: '0x8157';
-  readonly APE_CHAIN_MAINNET: '0x8173';
+  readonly APECHAIN_TESTNET: '0x8157';
+  readonly APECHAIN_MAINNET: '0x8173';
   readonly GRAVITY_ALPHA_MAINNET: '0x659';
   readonly KAIA_MAINNET: '0x2019';
   readonly KAIA_KAIROS_TESTNET: '0x3e9';
   readonly SONEIUM_MAINNET: '0x74c';
   readonly SONEIUM_MINATO_TESTNET: '0x79a';
   readonly XRPLEVM_TESTNET: '0x161c28';
+  readonly SEI_MAINNET: '0x531';
+  readonly MATCHAIN_MAINNET: '0x2ba';
+  readonly FLOW_MAINNET: '0x2eb';
+  readonly LENS: '0xe8';
+  readonly PLUME: '0x18232';
+  readonly GENESYS: '0x407b';
+  readonly KATANA: '0xb67d2';
+  readonly SOPHON: '0xc3b8';
+  readonly SOPHON_TESTNET: '0x1fa72e78';
+  readonly BERACHAIN: '0x138de';
+  readonly EDU: '0xa3c3';
+  readonly ABSTRACT: '0xab5';
+  readonly OMNI: '0xa6';
+  readonly XRPLEVM: '0x15f900';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
-  APE_CHAIN_TESTNET: '0x8157',
-  APE_CHAIN_MAINNET: '0x8173',
+  APECHAIN_TESTNET: '0x8157',
+  APECHAIN_MAINNET: '0x8173',
   GRAVITY_ALPHA_MAINNET: '0x659',
   KAIA_MAINNET: '0x2019',
   KAIA_KAIROS_TESTNET: '0x3e9',
   SONEIUM_MAINNET: '0x74c',
   SONEIUM_MINATO_TESTNET: '0x79a',
   XRPLEVM_TESTNET: '0x161c28',
+  SEI_MAINNET: '0x531',
+  MATCHAIN_MAINNET: '0x2ba',
+  FLOW_MAINNET: '0x2eb',
+  LENS: '0xe8',
+  PLUME: '0x18232',
+  GENESYS: '0x407b',
+  KATANA: '0xb67d2',
+  SOPHON: '0xc3b8',
+  SOPHON_TESTNET: '0x1fa72e78',
+  BERACHAIN: '0x138de',
+  EDU: '0xa3c3',
+  ABSTRACT: '0xab5',
+  OMNI: '0xa6',
+  XRPLEVM: '0x15f900',
   ...CHAIN_IDS,
 };
 
@@ -298,8 +335,8 @@ export const NETWORK_CHAIN_ID: {
 export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/flare-mainnet.png'),
   [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/songbird.png'),
-  [NETWORK_CHAIN_ID.APE_CHAIN_TESTNET]: require('../../images/ape-network.png'),
-  [NETWORK_CHAIN_ID.APE_CHAIN_MAINNET]: require('../../images/ape-network.png'),
+  [NETWORK_CHAIN_ID.APECHAIN_TESTNET]: require('../../images/apechain.png'),
+  [NETWORK_CHAIN_ID.APECHAIN_MAINNET]: require('../../images/apechain.png'),
   [NETWORK_CHAIN_ID.GRAVITY_ALPHA_MAINNET]: require('../../images/gravity.png'),
   [NETWORK_CHAIN_ID.LINEA_MAINNET]: require('../../images/linea-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.KAIA_MAINNET]: require('../../images/kaia.png'),
@@ -307,4 +344,18 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.SONEIUM_MINATO_TESTNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: require('../../images/xrplevm.png'),
+  [NETWORK_CHAIN_ID.SEI_MAINNET]: require('../../images/sei.png'),
+  [NETWORK_CHAIN_ID.MATCHAIN_MAINNET]: require('../../images/matchain.png'),
+  [NETWORK_CHAIN_ID.FLOW_MAINNET]: require('../../images/flow.png'),
+  [NETWORK_CHAIN_ID.LENS]: require('../../images/lens.png'),
+  [NETWORK_CHAIN_ID.PLUME]: require('../../images/plume.png'),
+  [NETWORK_CHAIN_ID.GENESYS]: require('../../images/genesys.png'),
+  [NETWORK_CHAIN_ID.KATANA]: require('../../images/katana.png'),
+  [NETWORK_CHAIN_ID.SOPHON]: require('../../images/sophon.png'),
+  [NETWORK_CHAIN_ID.SOPHON_TESTNET]: require('../../images/sophon-testnet.png'),
+  [NETWORK_CHAIN_ID.BERACHAIN]: require('../../images/berachain.png'),
+  [NETWORK_CHAIN_ID.EDU]: require('../../images/edu.png'),
+  [NETWORK_CHAIN_ID.ABSTRACT]: require('../../images/abstract.png'),
+  [NETWORK_CHAIN_ID.OMNI]: require('../../images/omni.png'),
+  [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
 };

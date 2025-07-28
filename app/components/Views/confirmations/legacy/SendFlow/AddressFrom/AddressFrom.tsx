@@ -131,6 +131,7 @@ const SendFlowAddressFrom = ({
         isSelectOnly: true,
         onSelectAccount,
         disablePrivacyMode: true,
+        isEvmOnly: true,
       },
     });
   };

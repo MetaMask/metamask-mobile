@@ -7,7 +7,15 @@ import { Alert, Severity } from '../Views/confirmations/types/alerts';
  * @returns An object containing various alert confirmation-related states and functions.
  */
 export const useAlertsConfirmed = (alerts: Alert[]) => {
-  const [confirmed, setConfirmed] = useState<{ [key: string]: boolean }>({});
+  const [confirmed, setConfirmed] = useState<{ [key: string]: boolean }>(
+    alerts.reduce(
+      (acc, alertElement) => ({
+        ...acc,
+        [alertElement.key]: alertElement.skipConfirmation === true,
+      }),
+      {},
+    ),
+  );
 
   /**
    * Sets the confirmation status of an alert.
@@ -26,21 +34,37 @@ export const useAlertsConfirmed = (alerts: Alert[]) => {
    * @param key - The key of the alert.
    * @returns True if the alert is confirmed, false otherwise.
    */
-  const isAlertConfirmed = useCallback((key: string) => confirmed[key] ?? false, [confirmed]);
+  const isAlertConfirmed = useCallback(
+    (key: string) => confirmed[key] ?? false,
+    [confirmed],
+  );
 
   /**
    * Unconfirmed danger alerts.
    */
-  const unconfirmedDangerAlerts = useMemo(() => alerts.filter(
-    alertSelected => !isAlertConfirmed(alertSelected.key) && alertSelected.severity === Severity.Danger
-  ), [alerts, isAlertConfirmed]);
+  const unconfirmedDangerAlerts = useMemo(
+    () =>
+      alerts.filter(
+        (alertSelected) =>
+          !isAlertConfirmed(alertSelected.key) &&
+          alertSelected.severity === Severity.Danger,
+      ),
+    [alerts, isAlertConfirmed],
+  );
 
   /**
    * Unconfirmed field danger alerts.
    */
-  const unconfirmedFieldDangerAlerts = useMemo(() => alerts.filter(
-    alertSelected => !isAlertConfirmed(alertSelected.key) && alertSelected.severity === Severity.Danger && alertSelected.field !== undefined
-  ), [alerts, isAlertConfirmed]);
+  const unconfirmedFieldDangerAlerts = useMemo(
+    () =>
+      alerts.filter(
+        (alertSelected) =>
+          !isAlertConfirmed(alertSelected.key) &&
+          alertSelected.severity === Severity.Danger &&
+          alertSelected.field !== undefined,
+      ),
+    [alerts, isAlertConfirmed],
+  );
 
   return {
     isAlertConfirmed,
@@ -48,6 +72,7 @@ export const useAlertsConfirmed = (alerts: Alert[]) => {
     unconfirmedDangerAlerts,
     unconfirmedFieldDangerAlerts,
     hasUnconfirmedDangerAlerts: unconfirmedDangerAlerts.length > 0,
+    hasBlockingAlerts: alerts.some((alertElement) => alertElement.isBlocking),
     hasUnconfirmedFieldDangerAlerts: unconfirmedFieldDangerAlerts.length > 0,
   };
 };

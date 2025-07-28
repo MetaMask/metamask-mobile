@@ -30,10 +30,6 @@ export const HOWTO_MANAGE_METAMETRICS =
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
-// SES
-export const SES_URL =
-  'https://github.com/endojs/endo/blob/master/packages/ses/README.md';
-
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
 export const KEYSTONE_LEARN_MORE =
@@ -50,8 +46,9 @@ export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
 export const LINEA_GOERLI_BLOCK_EXPLORER = 'https://goerli.lineascan.build';
 export const LINEA_SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.lineascan.build';
 export const LINEA_MAINNET_BLOCK_EXPLORER = 'https://lineascan.build';
-export const MAINNET_BLOCK_EXPLORER = 'https://etherscan.com';
+export const MAINNET_BLOCK_EXPLORER = 'https://etherscan.io';
 export const SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.etherscan.io';
+export const BASE_MAINNET_BLOCK_EXPLORER = 'https://basescan.org';
 
 // Rpcs
 export const MAINNET_DEFAULT_RPC_URL = `https://mainnet.infura.io/v3/${infuraProjectId}`;
@@ -104,3 +101,6 @@ export const ETHEREUM_LOGO =
 
 export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS =
   'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';
+
+export const SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE =
+  'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts';

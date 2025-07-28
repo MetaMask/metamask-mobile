@@ -55,14 +55,14 @@ describe('parseDeeplink', () => {
     } as unknown as DeeplinkManager;
   });
 
-  it('should call handleUniversalLinks for HTTP protocol', () => {
+  it('should call handleUniversalLinks for HTTP protocol', async () => {
     const url = 'http://example.com/';
     const browserCallBackMock = jest.fn();
     const onHandledMock = jest.fn();
 
-    const { urlObj, params } = extractURLParams(url);
+    const { urlObj } = extractURLParams(url);
 
-    parseDeeplink({
+    await parseDeeplink({
       deeplinkManager: instance,
       url,
       origin: 'testOrigin',
@@ -70,26 +70,24 @@ describe('parseDeeplink', () => {
       onHandled: onHandledMock,
     });
 
-    expect(mockHandleUniversalLinks).toHaveBeenCalledWith(
-      expect.objectContaining({
-        instance,
-        urlObj,
-        params,
-        browserCallBack: browserCallBackMock,
-        origin: 'testOrigin',
-        wcURL: url,
-      }),
-    );
+    expect(mockHandleUniversalLinks).toHaveBeenCalledWith({
+      instance,
+      handled: expect.any(Function),
+      urlObj,
+      browserCallBack: browserCallBackMock,
+      url,
+      source: 'testOrigin',
+    });
   });
 
-  it('should call handleUniversalLinks for HTTP and HTTPS protocols', () => {
+  it('should call handleUniversalLinks for HTTP and HTTPS protocols', async () => {
     const url = 'https://example.com/';
     const browserCallBackMock = jest.fn();
     const onHandledMock = jest.fn();
 
-    const { urlObj, params } = extractURLParams(url);
+    const { urlObj } = extractURLParams(url);
 
-    parseDeeplink({
+    await parseDeeplink({
       deeplinkManager: instance,
       url,
       origin: 'testOrigin',
@@ -97,22 +95,21 @@ describe('parseDeeplink', () => {
       onHandled: onHandledMock,
     });
 
-    expect(mockHandleUniversalLinks).toHaveBeenCalledWith(
-      expect.objectContaining({
-        instance,
-        urlObj,
-        params,
-        browserCallBack: browserCallBackMock,
-        origin: 'testOrigin',
-        wcURL: url,
-      }),
-    );
+    expect(mockHandleUniversalLinks).toHaveBeenCalledWith({
+      instance,
+      handled: expect.any(Function),
+      urlObj,
+      browserCallBack: browserCallBackMock,
+      url,
+      source: 'testOrigin',
+    });
   });
 
-  it('should call handleWCProtocol for WC protocol', () => {
+  it('should call handleWCProtocol for WC protocol', async () => {
     const url = 'wc://example.com';
+    const { params } = extractURLParams(url);
 
-    parseDeeplink({
+    await parseDeeplink({
       deeplinkManager: instance,
       url,
       origin: 'testOrigin',
@@ -120,13 +117,18 @@ describe('parseDeeplink', () => {
       onHandled: mockOnHandled,
     });
 
-    expect(mockHandleWCProtocol).toHaveBeenCalled();
+    expect(mockHandleWCProtocol).toHaveBeenCalledWith({
+      handled: expect.any(Function),
+      wcURL: url,
+      origin: 'testOrigin',
+      params,
+    });
   });
 
-  it('should handle Ethereum URL', () => {
+  it('should handle Ethereum URL', async () => {
     const url = 'ethereum://example.com';
 
-    parseDeeplink({
+    await parseDeeplink({
       deeplinkManager: instance,
       url,
       origin: 'testOrigin',
@@ -137,10 +139,11 @@ describe('parseDeeplink', () => {
     expect(instance._handleEthereumUrl).toHaveBeenCalledWith(url, 'testOrigin');
   });
 
-  it('should call handleDappProtocol for DAPP protocol', () => {
+  it('should call handleDappProtocol for DAPP protocol', async () => {
     const url = 'dapp://example.com';
+    const { urlObj } = extractURLParams(url);
 
-    parseDeeplink({
+    await parseDeeplink({
       deeplinkManager: instance,
       url,
       origin: 'testOrigin',
@@ -148,13 +151,19 @@ describe('parseDeeplink', () => {
       onHandled: mockOnHandled,
     });
 
-    expect(mockHandleDappProtocol).toHaveBeenCalled();
+    expect(mockHandleDappProtocol).toHaveBeenCalledWith({
+      instance,
+      handled: expect.any(Function),
+      urlObj,
+      browserCallBack: mockBrowserCallBack,
+    });
   });
 
-  it('should call handleMetaMaskProtocol for METAMASK protocol', () => {
+  it('should call handleMetaMaskProtocol for METAMASK protocol', async () => {
     const url = 'metamask://example.com';
+    const { params } = extractURLParams(url);
 
-    parseDeeplink({
+    await parseDeeplink({
       deeplinkManager: instance,
       url,
       origin: 'testOrigin',
@@ -162,13 +171,20 @@ describe('parseDeeplink', () => {
       onHandled: mockOnHandled,
     });
 
-    expect(mockHandleMetaMaskProtocol).toHaveBeenCalled();
+    expect(mockHandleMetaMaskProtocol).toHaveBeenCalledWith({
+      instance,
+      handled: expect.any(Function),
+      wcURL: url,
+      origin: 'testOrigin',
+      params,
+      url,
+    });
   });
 
-  it('should return false if the protocol is not supported', () => {
+  it('should return false if the protocol is not supported', async () => {
     const url = 'unsupported://example.com';
 
-    const result = parseDeeplink({
+    const result = await parseDeeplink({
       deeplinkManager: instance,
       url,
       origin: 'testOrigin',
@@ -179,10 +195,10 @@ describe('parseDeeplink', () => {
     expect(result).toBe(false);
   });
 
-  it('should return true if the protocol is supported', () => {
+  it('should return true if the protocol is supported', async () => {
     const url = 'http://example.com';
 
-    const result = parseDeeplink({
+    const result = await parseDeeplink({
       deeplinkManager: instance,
       url,
       origin: 'testOrigin',
@@ -194,8 +210,8 @@ describe('parseDeeplink', () => {
   });
 
   invalidUrls.forEach((url) => {
-    it(`should log an error and alert the user when an invalid URL is passed => url=${url}`, () => {
-      const result = parseDeeplink({
+    it(`should log an error and alert the user when an invalid URL is passed => url=${url}`, async () => {
+      const result = await parseDeeplink({
         deeplinkManager: instance,
         url,
         origin: 'testOrigin',

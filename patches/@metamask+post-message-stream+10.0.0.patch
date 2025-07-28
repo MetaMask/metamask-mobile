@@ -1,0 +1,67 @@
+diff --git a/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.cjs b/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.cjs
+index 0aaba03..e6eb9ea 100644
+--- a/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.cjs
++++ b/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.cjs
+@@ -1,4 +1,11 @@
+ "use strict";
++/**
++ * ============================== PATCH INFORMATION ==============================
++ * This patch was added for Snaps controller integration. The MessageEvent is not
++ * available in react native so we can simply return undefined here and handle the
++ * origin and source elsewhere.
++ * ===============================================================================
++ */
+ var __rest = (this && this.__rest) || function (s, e) {
+     var t = {};
+     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+@@ -17,11 +24,13 @@ const utils_1 = require("@metamask/utils");
+ const BasePostMessageStream_1 = require("../BasePostMessageStream.cjs");
+ const utils_2 = require("../utils.cjs");
+ /* istanbul ignore next */
+-const getSource = (_a = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'source')) === null || _a === void 0 ? void 0 : _a.get;
+-(0, utils_1.assert)(getSource, 'MessageEvent.prototype.source getter is not defined.');
++// const getSource = (_a = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'source')) === null || _a === void 0 ? void 0 : _a.get;
++// (0, utils_1.assert)(getSource, 'MessageEvent.prototype.source getter is not defined.');
++const getSource = () => undefined;
+ /* istanbul ignore next */
+-const getOrigin = (_b = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'origin')) === null || _b === void 0 ? void 0 : _b.get;
+-(0, utils_1.assert)(getOrigin, 'MessageEvent.prototype.origin getter is not defined.');
++// const getOrigin = (_b = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'origin')) === null || _b === void 0 ? void 0 : _b.get;
++// (0, utils_1.assert)(getOrigin, 'MessageEvent.prototype.origin getter is not defined.');
++const getOrigin = () => undefined;
+ /**
+  * A {@link Window.postMessage} stream.
+  */
+diff --git a/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.mjs b/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.mjs
+index db60ec4..ff6d786 100644
+--- a/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.mjs
++++ b/node_modules/@metamask/post-message-stream/dist/window/WindowPostMessageStream.mjs
+@@ -1,3 +1,10 @@
++/**
++ * ============================== PATCH INFORMATION ==============================
++ * This patch was added for Snaps controller integration. The MessageEvent is not
++ * available in react native so we can simply return undefined here and handle the
++ * origin and source elsewhere.
++ * ===============================================================================
++ */
+ var __rest = (this && this.__rest) || function (s, e) {
+     var t = {};
+     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+@@ -14,11 +21,13 @@ import { assert } from "@metamask/utils";
+ import { BasePostMessageStream } from "../BasePostMessageStream.mjs";
+ import { isValidStreamMessage } from "../utils.mjs";
+ /* istanbul ignore next */
+-const getSource = (_a = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'source')) === null || _a === void 0 ? void 0 : _a.get;
+-assert(getSource, 'MessageEvent.prototype.source getter is not defined.');
++// const getSource = (_a = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'source')) === null || _a === void 0 ? void 0 : _a.get;
++// assert(getSource, 'MessageEvent.prototype.source getter is not defined.');
++const getSource = () => undefined;
+ /* istanbul ignore next */
+-const getOrigin = (_b = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'origin')) === null || _b === void 0 ? void 0 : _b.get;
+-assert(getOrigin, 'MessageEvent.prototype.origin getter is not defined.');
++// const getOrigin = (_b = Object.getOwnPropertyDescriptor(MessageEvent.prototype, 'origin')) === null || _b === void 0 ? void 0 : _b.get;
++// assert(getOrigin, 'MessageEvent.prototype.origin getter is not defined.');
++const getOrigin = () => undefined;
+ /**
+  * A {@link Window.postMessage} stream.
+  */

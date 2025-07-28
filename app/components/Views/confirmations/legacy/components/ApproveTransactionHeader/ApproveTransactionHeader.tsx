@@ -1,7 +1,7 @@
-import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../locales/i18n';
 import AccountBalance from '../../../../../../component-library/components-temp/Accounts/AccountBalance';
@@ -9,12 +9,9 @@ import { BadgeVariant } from '../../../../../../component-library/components/Bad
 import { useStyles } from '../../../../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
 import {
-  selectEvmNetworkImageSource,
-  selectEvmNetworkName,
-} from '../../../../../../selectors/networkInfos';
-import {
   getLabelTextByAddress,
   renderAccountName,
+  toChecksumAddress,
 } from '../../../../../../util/address';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import {
@@ -27,8 +24,11 @@ import { selectInternalAccounts } from '../../../../../../selectors/accountsCont
 import ApprovalTagUrl from '../../../../../UI/ApprovalTagUrl';
 import { RootState } from '../../../../../../reducers';
 import { INTERNAL_ORIGINS } from '../../../../../../constants/transaction';
+import { getNetworkImageSource } from '../../../../../../util/networks';
+import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 
 const ApproveTransactionHeader = ({
+  chainId,
   from,
   origin,
   url,
@@ -36,19 +36,31 @@ const ApproveTransactionHeader = ({
   currentEnsName,
   asset,
   dontWatchAsset,
+  networkClientId,
 }: ApproveTransactionHeaderI) => {
   const [accountName, setAccountName] = useState('');
 
   const [isOriginDeepLink, setIsOriginDeepLink] = useState(false);
   const { styles } = useStyles(stylesheet, {});
-  const { addressBalance } = useAddressBalance(asset, from, dontWatchAsset);
+  const { addressBalance } = useAddressBalance(
+    asset,
+    from,
+    dontWatchAsset,
+    chainId,
+    networkClientId,
+  );
+  const networkConfiguration = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, chainId),
+  );
+
+  const networkImage = getNetworkImageSource({ chainId: chainId as Hex });
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  const networkName = useSelector(selectEvmNetworkName);
+  const networkName = networkConfiguration?.name;
 
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
@@ -66,8 +78,6 @@ const ApproveTransactionHeader = ({
     setIsOriginDeepLink(isOriginDeepLinkVal);
   }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-  const networkImage = useSelector(selectEvmNetworkImageSource);
-
   const accountTypeLabel = getLabelTextByAddress(activeAddress) ?? undefined;
 
   const showOrigin =
@@ -77,7 +87,6 @@ const ApproveTransactionHeader = ({
     <View style={styles.transactionHeader}>
       {showOrigin ? (
         <ApprovalTagUrl
-          from={from}
           origin={origin}
           url={url}
           sdkDappMetadata={sdkDappMetadata}

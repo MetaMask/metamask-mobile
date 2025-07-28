@@ -41,8 +41,8 @@ const styleSheet = (params: {
         opacity: isDisabled ? 0.5 : 1,
         paddingHorizontal: 16,
         backgroundColor: theme.colors.background.default,
-      } as ViewStyle,
-      style,
+      },
+      StyleSheet.flatten(style),
     ) as ViewStyle,
     startAccessory: {
       marginRight: 8,

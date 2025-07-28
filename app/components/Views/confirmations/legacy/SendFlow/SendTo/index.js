@@ -2,7 +2,6 @@ import React, { Fragment, PureComponent } from 'react';
 import { View, ScrollView, Alert, Platform, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddressList from '../AddressList';
@@ -11,12 +10,17 @@ import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
 import StyledButton from '../../../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { getDecimalChainId } from '../../../../../../util/networks';
+import {
+  getDecimalChainId,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../../../../util/networks';
 import { handleNetworkSwitch } from '../../../../../../util/networks/handleNetworkSwitch';
 import {
   isENS,
   isValidHexAddress,
   validateAddressOrENS,
+  areAddressesEqual,
+  toChecksumAddress,
 } from '../../../../../../util/address';
 import { getEther, getTicker } from '../../../../../../util/transactions';
 import {
@@ -53,15 +57,14 @@ import {
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../../UI/AddToAddressBookWrapper';
-import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/utils';
-import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
+import { createBuyNavigationDetails } from '../../../../../UI/Ramp/Aggregator/routes/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
-import { toLowerCaseEquals } from '../../../../../../util/general';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 
 const dummy = () => true;
@@ -224,11 +227,11 @@ class SendFlow extends PureComponent {
     const { toAccount } = this.state;
     const { addressBook, globalChainId, internalAccounts } = this.props;
     const networkAddressBook = addressBook[globalChainId] || {};
-    const checksummedAddress = toChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] ||
       internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, checksummedAddress),
+        areAddressesEqual(account.address, checksummedAddress),
       )
     );
   };
@@ -278,9 +281,9 @@ class SendFlow extends PureComponent {
   };
 
   onTransactionDirectionSet = async () => {
-    const { setRecipient, navigation, providerType } = this.props;
+    const { setRecipient, navigation, providerType, selectedAddress } =
+      this.props;
     const {
-      fromSelectedAddress,
       toAccount,
       toEnsName,
       toSelectedAddressName,
@@ -292,12 +295,7 @@ class SendFlow extends PureComponent {
     }
 
     const toAddress = toEnsAddressResolved || toAccount;
-    setRecipient(
-      fromSelectedAddress,
-      toAddress,
-      toEnsName,
-      toSelectedAddressName,
-    );
+    setRecipient(selectedAddress, toAddress, toEnsName, toSelectedAddressName);
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT)
@@ -379,15 +377,24 @@ class SendFlow extends PureComponent {
     const { addressBook, internalAccounts, globalChainId } = this.props;
     if (!toAccount) return;
 
-    const networkAddressBook = addressBook[globalChainId] || {};
+    let filteredAddressBook = addressBook[globalChainId] || {};
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      filteredAddressBook = Object.values(addressBook).reduce(
+        (acc, networkAddressBook) => ({
+          ...acc,
+          ...networkAddressBook,
+        }),
+        {},
+      );
+    }
 
-    const checksummedAddress = toChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
-      toLowerCaseEquals(account.address, checksummedAddress),
+      areAddressesEqual(account.address, checksummedAddress),
     );
 
-    return networkAddressBook[checksummedAddress]
-      ? networkAddressBook[checksummedAddress].name
+    return filteredAddressBook[checksummedAddress]
+      ? filteredAddressBook[checksummedAddress].name
       : matchingAccount
       ? matchingAccount.metadata.name
       : null;
@@ -481,6 +488,14 @@ class SendFlow extends PureComponent {
     this.setState({ showAmbiguousAcountWarning: false });
   };
 
+  safeChecksumAddress = (address) => {
+    try {
+      return toChecksumAddress(address);
+    } catch (error) {
+      return address;
+    }
+  };
+
   render = () => {
     const { ticker, addressBook, globalChainId } = this.props;
     const {
@@ -499,7 +514,7 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const checksummedAddress = toAccount && toChecksumAddress(toAccount);
+    const checksummedAddress = this.safeChecksumAddress(toAccount);
     const existingAddressName = this.getAddressNameFromBookOrInternalAccounts(
       toEnsAddressResolved || toAccount,
     );

@@ -9,54 +9,46 @@ import {
   AccountSelectorProps,
 } from './AccountSelector.types';
 import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-  expectedUuid2,
+  MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
+  MOCK_KEYRING_CONTROLLER_STATE_WITH_SOLANA,
+  internalAccount1,
+  internalAccount2,
+  internalSolanaAccount1,
 } from '../../../util/test/accountsControllerTestUtils';
 
 const mockAccounts = [
   {
-    address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+    id: internalAccount1.id,
+    address: internalAccount1.address,
     balance: '0x0',
-    name: 'Account 1',
+    name: internalAccount1.metadata.name,
   },
   {
-    address: '0x2B5634C42055806a59e9107ED44D43c426E58258',
+    id: internalSolanaAccount1.id,
+    address: internalSolanaAccount1.address,
     balance: '0x0',
-    name: 'Account 2',
+    name: internalSolanaAccount1.metadata.name,
+  },
+  {
+    id: internalAccount2.id,
+    address: internalAccount2.address,
+    balance: '0x0',
+    name: internalAccount2.metadata.name,
   },
 ];
 
 const mockEnsByAccountAddress = {
-  '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': 'test.eth',
+  [internalAccount2.address]: 'test.eth',
 };
 
 const mockInitialState = {
   engine: {
     backgroundState: {
-      KeyringController: {
-        keyrings: [
-          {
-            type: 'HD Key Tree',
-            accounts: [
-              '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
-              '0x2B5634C42055806a59e9107ED44D43c426E58258',
-            ],
-          },
-        ],
-      },
-      AccountsController: {
-        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-        internalAccounts: {
-          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-          accounts: {
-            ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-            [expectedUuid2]: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
-                expectedUuid2
-              ],
-              methods: [],
-            },
-          },
+      KeyringController: MOCK_KEYRING_CONTROLLER_STATE_WITH_SOLANA,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
+      AccountTreeController: {
+        accountTree: {
+          wallets: {},
         },
       },
       PreferencesController: {
@@ -81,17 +73,34 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: any) => selector(mockInitialState),
 }));
 
-jest.mock('../../../components/hooks/useAccounts', () => ({
-  useAccounts: jest.fn().mockReturnValue({
+jest.mock('../../hooks/useAccounts', () => ({
+  useAccounts: jest.fn(() => ({
     accounts: mockAccounts,
+    evmAccounts: [mockAccounts[0], mockAccounts[2]],
     ensByAccountAddress: mockEnsByAccountAddress,
-    isLoading: false,
-  }),
+  })),
 }));
 
-jest.mock('../../../core/Engine', () => ({
-  setSelectedAddress: jest.fn(),
-}));
+jest.mock('../../../core/Engine', () => {
+  const {
+    MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState,
+    MOCK_KEYRING_CONTROLLER_STATE: KeyringControllerState,
+  } = jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    context: {
+      KeyringController: {
+        state: KeyringControllerState,
+        importAccountWithStrategy: jest.fn(),
+      },
+      AccountsController: {
+        state: {
+          internalAccounts: AccountsControllerState.internalAccounts,
+        },
+      },
+    },
+    setSelectedAddress: jest.fn(),
+  };
+});
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../components/hooks/useMetrics', () => ({
@@ -105,6 +114,7 @@ const mockRoute: AccountSelectorProps['route'] = {
     onSelectAccount: jest.fn((address: string) => address),
     checkBalanceError: (balance: string) => balance,
     disablePrivacyMode: false,
+    isEvmOnly: true,
   } as AccountSelectorParams,
 };
 
@@ -130,8 +140,8 @@ describe('AccountSelector', () => {
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
-  it('should display accounts list', () => {
-    renderScreen(
+  it('includes all accounts', () => {
+    const { queryByText } = renderScreen(
       AccountSelectorWrapper,
       {
         name: Routes.SHEET.ACCOUNT_SELECTOR,
@@ -145,7 +155,33 @@ describe('AccountSelector', () => {
     const accountsList = screen.getByTestId(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
     );
+
     expect(accountsList).toBeDefined();
+    expect(queryByText(internalAccount1.metadata.name)).toBeDefined();
+    expect(queryByText(internalSolanaAccount1.metadata.name)).toBeDefined();
+    expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
+  });
+
+  it('includes only EVM accounts if isEvmOnly', () => {
+    const { queryByText } = renderScreen(
+      AccountSelectorWrapper,
+      {
+        name: Routes.SHEET.ACCOUNT_SELECTOR,
+      },
+      {
+        state: mockInitialState,
+      },
+      { ...mockRoute.params, isEvmOnly: true },
+    );
+
+    const accountsList = screen.getByTestId(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    );
+
+    expect(accountsList).toBeDefined();
+    expect(queryByText(internalAccount1.metadata.name)).toBeDefined();
+    expect(queryByText(internalSolanaAccount1.metadata.name)).toBeNull();
+    expect(queryByText(internalAccount2.metadata.name)).toBeDefined();
   });
 
   it('should display add account button', () => {

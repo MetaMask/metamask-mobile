@@ -20,10 +20,24 @@ const availableFeatures = new Set([
   'keyring-snaps',
   'multi-srp',
   'bitcoin',
+  'solana',
+  'experimental',
 ]);
 
-const mainFeatureSet = new Set(['preinstalled-snaps']);
-const betaFeatureSet = new Set(['beta', 'preinstalled-snaps', 'keyring-snaps']);
+const mainFeatureSet = new Set([
+  'preinstalled-snaps',
+  'keyring-snaps',
+  'multi-srp',
+  'solana',
+]);
+const betaFeatureSet = new Set([
+  'beta',
+  'preinstalled-snaps',
+  'keyring-snaps',
+  'multi-srp',
+  'solana',
+  'bitcoin',
+]);
 const flaskFeatureSet = new Set([
   'flask',
   'preinstalled-snaps',
@@ -31,7 +45,10 @@ const flaskFeatureSet = new Set([
   'keyring-snaps',
   'multi-srp',
   'bitcoin',
+  'solana',
 ]);
+// Experimental feature set includes all main features plus experimental
+const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
 
 /**
  * Gets the features for the current build type, used to determine which code
@@ -41,9 +58,18 @@ const flaskFeatureSet = new Set([
  */
 function getBuildTypeFeatures() {
   const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
+  const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
   switch (buildType) {
+    // TODO: Remove uppercase QA once we've consolidated build types
+    case 'qa':
+    case 'QA':
     case 'main':
-      return mainFeatureSet;
+      // TODO: Refactor this once we've abstracted environment away from build type
+      if (envType === 'exp') {
+        // Only include experimental features in experimental environment
+        return experimentalFeatureSet;
+      }
+      return envType === 'beta' ? betaFeatureSet : mainFeatureSet;
     case 'beta':
       return betaFeatureSet;
     case 'flask':

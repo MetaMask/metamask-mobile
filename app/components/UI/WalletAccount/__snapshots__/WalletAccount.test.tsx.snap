@@ -11,7 +11,8 @@ exports[`WalletAccount renders correctly 1`] = `
     }
   }
 >
-  <View
+  <TouchableOpacity
+    onPress={[Function]}
     style={
       {
         "alignItems": "center",
@@ -20,6 +21,7 @@ exports[`WalletAccount renders correctly 1`] = `
     }
   >
     <TouchableOpacity
+      accountTypeLabel="SRP #1"
       onPress={[Function]}
       style={
         {
@@ -205,9 +207,8 @@ exports[`WalletAccount renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -221,6 +222,7 @@ exports[`WalletAccount renders correctly 1`] = `
       </View>
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={12}
         name="ArrowDown"
         style={
@@ -233,7 +235,7 @@ exports[`WalletAccount renders correctly 1`] = `
         width={12}
       />
     </TouchableOpacity>
-  </View>
+  </TouchableOpacity>
   <View
     style={
       {
@@ -267,12 +269,25 @@ exports[`WalletAccount renders correctly 1`] = `
     >
       <RNGestureHandlerButton
         collapsable={false}
-        onGestureEvent={[Function]}
+        delayLongPress={600}
+        enabled={true}
+        exclusive={true}
+        handlerTag={-1}
+        handlerType="NativeViewGestureHandler"
+        innerRef={null}
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
-        onHandlerStateChange={[Function]}
-        rippleColor={0}
+        rippleColor="transparent"
+        style={
+          [
+            undefined,
+            {
+              "cursor": undefined,
+            },
+          ]
+        }
         testID="wallet-account-copy-button"
+        touchSoundDisabled={false}
       >
         <View
           accessible={true}
@@ -286,6 +301,7 @@ exports[`WalletAccount renders correctly 1`] = `
         >
           <SvgMock
             color="#121314"
+            fill="currentColor"
             height={24}
             name="Copy"
             style={
@@ -320,6 +336,7 @@ exports[`WalletAccount renders correctly 1`] = `
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={16}
         name="MoreHorizontal"
         style={

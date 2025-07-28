@@ -1,8 +1,27 @@
+const ReactCompilerConfig = {
+  target: '18',
+};
+
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
-  ignore: [/\/ses\.cjs/],
+  ignore: [/\/ses\.cjs$/, /\/ses-hermes\.cjs$/],
   presets: ['babel-preset-expo'],
+  // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
   plugins: [
+    [
+      'react-compiler',
+      {
+        target: '18',
+        sources: (filename) => {
+          // Match file paths or directories to include in the React Compiler.
+          const pathsToInclude = [
+            'app/components/Nav',
+            'app/components/UI/DeepLinkModal',
+          ];
+          return pathsToInclude.some((path) => filename.includes(path));
+        },
+      },
+    ],
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
   ],
@@ -22,6 +41,24 @@ module.exports = {
     {
       test: './node_modules/@metamask/bridge-controller',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
+      test: './node_modules/@deeeed/hyperliquid-node20',
+      plugins: [
+        [
+          '@babel/plugin-transform-modules-commonjs',
+          { allowTopLevelThis: true },
+        ],
+      ],
+    },
+    {
+      test: './node_modules/@noble/secp256k1',
+      plugins: [
+        [
+          '@babel/plugin-transform-modules-commonjs',
+          { allowTopLevelThis: true },
+        ],
+      ],
     },
     {
       test: [
@@ -46,6 +83,10 @@ module.exports = {
     },
     {
       test: './app/core/NavigationService/NavigationService.ts',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
+      test: './app/core/OAuthService/OAuthLoginHandlers',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
   ],

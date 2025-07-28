@@ -20,13 +20,13 @@ class WelcomeScreen {
 
   get getStartedButton() {
     return Selectors.getXpathElementByResourceId(
-      'welcome-screen-get-started-button-id',
+      OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
     );
   }
 
   get screen() {
     return Selectors.getXpathElementByResourceId(
-      WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
+      OnboardingCarouselSelectorIDs.CONTAINER_ID,
     );
   }
 
@@ -114,11 +114,9 @@ class WelcomeScreen {
     const element = await this.screen;
     let screenExist = await element.isExisting();
 
-    while (screenExist) {
-      await Gestures.waitAndTap(this.getStartedButton);
-      await driver.pause(7000);
-      screenExist = await element.isExisting();
-    }
+    await Gestures.waitAndTap(this.getStartedButton);
+    await driver.pause(7000);
+    screenExist = await element.isExisting();
   }
 
   async waitForScreenToDisplay() {

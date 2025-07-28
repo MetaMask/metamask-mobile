@@ -11,13 +11,18 @@ import { Hex } from '@metamask/utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
-const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
+const useTokenDetectionPolling = ({
+  chainIds,
+  address,
+}: { chainIds?: Hex[]; address?: Hex } = {}) => {
   const networkConfigurationsPopularNetworks = useSelector(
     selectAllPopularNetworkConfigurations,
   );
   const currentChainId = useSelector(selectEvmChainId);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const useTokenDetection = useSelector(selectUseTokenDetection);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
@@ -31,9 +36,33 @@ const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
       : [currentChainId];
 
   // if portfolio view is enabled, poll all chain ids
-  const chainIdsToPoll = chainIds ?? filteredChainIds;
+  const chainIdsToPoll =
+    useTokenDetection && isEvmSelected
+      ? [
+          {
+            chainIds: filteredChainIds as Hex[],
+            address: selectedAccount?.address as Hex,
+          },
+        ]
+      : [];
 
   const { TokenDetectionController } = Engine.context;
+
+  let providedChainIdsAndAddress;
+
+  if (chainIds && address) {
+    // We don't want to take evmNetwork into account
+    providedChainIdsAndAddress = useTokenDetection
+      ? [
+          {
+            chainIds: chainIds as Hex[],
+            address: address as Hex,
+          },
+        ]
+      : [];
+  }
+
+  const input = providedChainIdsAndAddress ?? chainIdsToPoll;
 
   usePolling({
     startPolling: TokenDetectionController.startPolling.bind(
@@ -43,17 +72,8 @@ const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
       TokenDetectionController.stopPollingByPollingToken.bind(
         TokenDetectionController,
       ),
-    input: useTokenDetection
-      ? [
-          {
-            chainIds: chainIdsToPoll as Hex[],
-            address: selectedAccount?.address as Hex,
-          },
-        ]
-      : [],
+    input,
   });
-
-  return {};
 };
 
 export default useTokenDetectionPolling;

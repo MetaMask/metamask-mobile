@@ -10,10 +10,14 @@ import { SnapKeyringBuilderMessenger } from './types';
 import { SnapId } from '@metamask/snaps-sdk';
 import { assertIsValidSnapId } from '@metamask/snaps-utils';
 import { getUniqueAccountName } from './utils/getUniqueAccountName';
-import { isSnapPreinstalled } from './utils/snaps';
-import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
-import { getTraceTags } from '../../util/sentry/tags';
+import { getSnapName, isSnapPreinstalled } from './utils/snaps';
+import { endTrace, TraceName } from '../../util/trace';
 import { store } from '../../store';
+import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
+import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
+import { endPerformanceTrace } from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../redux/slices/performance/constants';
+import { areAddressesEqual } from '../../util/address';
 
 /**
  * Builder type for the Snap keyring.
@@ -51,7 +55,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     const addresses = await this.#messenger.call(
       'KeyringController:getAccounts',
     );
-    return addresses.includes(address.toLowerCase());
+    return addresses.some((addr) => areAddressesEqual(addr, address));
   }
 
   async saveState() {
@@ -121,9 +125,6 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     skipAccountNameSuggestionDialog: boolean;
   }): Promise<{ accountName?: string }> {
     return await this.withApprovalFlow(async (_) => {
-      endTrace({
-        name: TraceName.CreateSnapAccount,
-      });
       const { success, accountName } = skipAccountNameSuggestionDialog
         ? await this.getAccountNameFromSuggestion(accountNameSuggestion)
         : await this.getAccountNameFromDialog(snapId, accountNameSuggestion);
@@ -140,21 +141,20 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   }
 
   private async addAccountFinalize({
+    address: _address,
+    snapId,
+    skipSetSelectedAccountStep,
     accountName,
     onceSaved,
   }: {
     address: string;
     snapId: SnapId;
+    skipSetSelectedAccountStep: boolean;
     onceSaved: Promise<string>;
     accountName?: string;
   }) {
     await this.withApprovalFlow(async (_) => {
       try {
-        trace({
-          name: TraceName.AddSnapAccount,
-          op: TraceOperation.AddSnapAccount,
-          tags: getTraceTags(store.getState()),
-        });
         // First, wait for the account to be fully saved.
         // NOTE: This might throw, so keep this in the `try` clause.
         const accountId = await onceSaved;
@@ -163,22 +163,40 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
         // state, so we can safely uses this state to run post-processing.
         // (e.g. renaming the account, select the account, etc...)
 
-        // Set the selected account to the new account
-        this.#messenger.call(
-          'AccountsController:setSelectedAccount',
-          accountId,
-        );
+        if (!skipSetSelectedAccountStep) {
+          // Set the selected account to the new account
+          this.#messenger.call(
+            'AccountsController:setSelectedAccount',
+            accountId,
+          );
+        }
 
         if (accountName) {
+          // Set the account name if one is provided
           this.#messenger.call(
             'AccountsController:setAccountName',
             accountId,
             accountName,
           );
         }
+
+        // Track successful account addition
+        const snapName = getSnapName(snapId as SnapId, this.#messenger);
+        trackSnapAccountEvent(
+          MetaMetricsEvents.ACCOUNT_ADDED,
+          snapId,
+          snapName,
+        );
+
         endTrace({
-          name: TraceName.AddSnapAccount,
+          name: TraceName.CreateSnapAccount,
         });
+
+        store.dispatch(
+          endPerformanceTrace({
+            eventName: PerformanceEventNames.AddSnapAccount,
+          }),
+        );
       } catch (e) {
         // Error occurred while naming the account
         const error = e as Error;
@@ -196,6 +214,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     accountNameSuggestion: string = '',
     {
       displayAccountNameSuggestion,
+      setSelectedAccount,
     }: SnapKeyringInternalOptions = getDefaultInternalOptions(),
   ) {
     assertIsValidSnapId(snapId);
@@ -213,6 +232,10 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
       skipAccountNameSuggestionDialog,
     });
 
+    // Only pre-installed Snaps can skip the account from being selected.
+    const skipSetSelectedAccountStep =
+      isSnapPreinstalled(snapId) && !setSelectedAccount;
+
     // The second part is about selecting the newly created account and showing some other
     // confirmation dialogs (or error dialogs if anything goes wrong while persisting the account
     // into the state.
@@ -220,6 +243,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     void this.addAccountFinalize({
       address,
       snapId,
+      skipSetSelectedAccountStep,
       onceSaved,
       accountName,
     });
@@ -231,6 +255,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     handleUserInput: (accepted: boolean) => Promise<void>,
   ) {
     assertIsValidSnapId(snapId);
+
     // TODO: Implement proper snap account confirmations. Currently, we are approving everything for testing purposes.
     Logger.log(
       `SnapKeyring: removeAccount called with \n
@@ -238,10 +263,31 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           - handleUserInput: ${handleUserInput} \n
           - snapId: ${snapId} \n`,
     );
+
     // Approve everything for now because we have not implemented snap account confirmations yet
     await handleUserInput(true);
-    await this.#removeAccountHelper(address);
-    await this.#persistKeyringHelper();
+
+    try {
+      await this.#removeAccountHelper(address);
+      await this.#persistKeyringHelper();
+
+      // Track successful account removal
+      const snapName = getSnapName(snapId as SnapId, this.#messenger);
+      trackSnapAccountEvent(
+        MetaMetricsEvents.ACCOUNT_REMOVED,
+        snapId,
+        snapName,
+      );
+    } catch (error) {
+      Logger.error(error as Error, `Error removing snap account: ${address}`);
+      const snapName = getSnapName(snapId as SnapId, this.#messenger);
+      trackSnapAccountEvent(
+        MetaMetricsEvents.ACCOUNT_REMOVED,
+        snapId,
+        snapName,
+      );
+      throw error;
+    }
   }
 
   async redirectUser(snapId: string, url: string, message: string) {
@@ -266,11 +312,14 @@ export function snapKeyringBuilder(
   helpers: SnapKeyringHelpers,
 ) {
   const builder = (() =>
-    new SnapKeyring(
+    new SnapKeyring({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger,
-      new SnapKeyringImpl(messenger, helpers),
-    )) as SnapKeyringBuilder;
+      callbacks: new SnapKeyringImpl(messenger, helpers),
+      ///: BEGIN:ONLY_INCLUDE_IF(flask)
+      isAnyAccountTypeAllowed: true,
+      ///: END:ONLY_INCLUDE_IF
+    })) as SnapKeyringBuilder;
   builder.type = SnapKeyring.type;
 
   return builder;

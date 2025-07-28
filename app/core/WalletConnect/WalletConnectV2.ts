@@ -15,22 +15,30 @@ import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
-import { getPermittedAccounts } from '../Permissions';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+  updatePermittedChains,
+} from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import WalletConnect from './WalletConnect';
 import {
+  getHostname,
   getScopedPermissions,
   hideWCLoadingState,
   parseWalletConnectUri,
   showWCLoadingState,
-  // normalizeOrigin,
-  getHostname
 } from './wc-utils';
 
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
+import { CaipChainId } from '@metamask/utils';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -98,12 +106,6 @@ export class WC2Manager {
       accountsController.getSelectedAccount().address,
     );
 
-    // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
-    const chainId = selectEvmChainId(store.getState());
-    DevLogger.log(
-      `[WC2Manager::constructor chainId=${chainId} type=${typeof chainId}`,
-      this.navigation,
-    );
     const permissionController = (
       Engine.context as {
         // TODO: Replace 'any' with type
@@ -117,23 +119,25 @@ export class WC2Manager {
     if (activeSessions) {
       activeSessions.forEach(async (session) => {
         const sessionKey = session.topic;
+        const pairingTopic = session.pairingTopic;
         try {
-          this.sessions[sessionKey] = new WalletConnect2Session({
+          const wcSession = new WalletConnect2Session({
             web3Wallet,
-            channelId: sessionKey,
+            channelId: pairingTopic,
             navigation: this.navigation,
             deeplink:
               typeof deeplinkSessions[session.pairingTopic] !== 'undefined',
             session,
           });
+          this.sessions[sessionKey] = wcSession;
 
           // Find approvedAccounts for current sessions
           DevLogger.log(
-            `WC2::init getPermittedAccounts for ${sessionKey} origin=${getHostname(session.peer.metadata.url)}`,
+            `WC2::init getPermittedAccounts for ${sessionKey} origin=${sessionKey}`,
             JSON.stringify(permissionController.state, null, 2),
           );
           const accountPermission = permissionController.getPermission(
-            session.peer.metadata.url,
+            pairingTopic,
             'eth_accounts',
           );
 
@@ -141,29 +145,13 @@ export class WC2Manager {
             `WC2::init accountPermission`,
             JSON.stringify(accountPermission, null, 2),
           );
-          let approvedAccounts =
-            (await getPermittedAccounts((session.peer.metadata.url))) ?? [];
-          const fromOrigin = await getPermittedAccounts(
-            (session.peer.metadata.url),
-          );
+
+          let approvedAccounts = getPermittedAccounts(pairingTopic) ?? [];
 
           DevLogger.log(
             `WC2::init approvedAccounts id ${accountPermission?.id}`,
             approvedAccounts,
           );
-          DevLogger.log(
-            `WC2::init fromOrigin ${session.peer.metadata.url}`,
-            fromOrigin,
-          );
-
-          // fallback to origin from metadata url
-          if (approvedAccounts.length === 0) {
-            DevLogger.log(
-              `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
-            );
-            approvedAccounts =
-              (await getPermittedAccounts(getHostname(session.peer.metadata.url))) ?? [];
-          }
 
           if (approvedAccounts?.length === 0) {
             DevLogger.log(
@@ -175,9 +163,17 @@ export class WC2Manager {
             DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
           }
 
+          updatePermittedChains(
+            pairingTopic,
+            wcSession.getAllowedChainIds,
+            true,
+          );
+
+          const chainId = wcSession.getCurrentChainId();
+
           const nChainId = parseInt(chainId, 16);
           DevLogger.log(
-            `WC2::init updateSession session=${sessionKey} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedInternalAccountChecksummedAddress}`,
+            `WC2::init updateSession session=${pairingTopic} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedInternalAccountChecksummedAddress}`,
             approvedAccounts,
           );
           await this.sessions[sessionKey].updateSession({
@@ -277,7 +273,12 @@ export class WC2Manager {
     try {
       // Add delay before returning instance
       await wait(1000);
-      this.instance = new WC2Manager(web3Wallet, deeplinkSessions, navigation, sessions);
+      this.instance = new WC2Manager(
+        web3Wallet,
+        deeplinkSessions,
+        navigation,
+        sessions,
+      );
     } catch (error) {
       Logger.error(error as Error, `WC2@init() failed to create instance`);
     }
@@ -399,6 +400,7 @@ export class WC2Manager {
     const { id, params } = proposal;
 
     const pairingTopic = proposal.params.pairingTopic;
+    const channelId = `${pairingTopic}`;
     DevLogger.log(
       `WC2::session_proposal id=${id} pairingTopic=${pairingTopic}`,
       params,
@@ -421,26 +423,77 @@ export class WC2Manager {
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
 
-    // Normalize origin once
-    // const origin = normalizeOrigin(url);
-    // Normalizing origin is not working, so we're just using the url as the origin
+    // Extract the hostname to ensure we're consistent with permission checks
+    const hostname = getHostname(url);
+    // Keep the full url for logging and UI display
     const origin = url;
 
     DevLogger.log(
-      `WC2::session_proposal metadata ${url} normalized to ${origin}`,
+      `WC2::session_proposal metadata url=${origin} normalized to hostname=${hostname}`,
     );
 
     // Save Connection info to redux store to be retrieved in ui.
     store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
 
+    // Get the current chain ID to include in permissions
+    const walletChainIdHex = selectEvmChainId(store.getState());
+    const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
+
     try {
-      await permissionsController.requestPermissions(
-        { origin: url },
+      // Create a modified CAIP-25 caveat value that includes the current chain
+      const caveatValue = getDefaultCaip25CaveatValue();
+
+      // Important: Use hostname as the origin for permission request to ensure consistency
+      DevLogger.log(
+        `WC2::session_proposal requestPermissions for hostname and channelId`,
         {
-          eth_accounts: {},
+          hostname,
+          caveatValue,
+          channelId,
         },
       );
+
+      // Request permissions via the permissions controller
+      await permissionsController.requestPermissions(
+        { origin: channelId },
+        {
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: caveatValue,
+              },
+            ],
+          },
+        },
+      );
+
+      // Add a small delay to ensure permission is fully recorded
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Explicitly add the current chain to permissions
+      try {
+        const hexChainId = `0x${walletChainIdDecimal.toString(
+          16,
+        )}` as `0x${string}`;
+        DevLogger.log(
+          `WC2::session_proposal ensuring chain ${hexChainId} is permitted for ${hostname}`,
+        );
+
+        updatePermittedChains(channelId, [`eip155:${walletChainIdDecimal}`]);
+        DevLogger.log(
+          `WC2::session_proposal chain permission added successfully`,
+        );
+      } catch (err) {
+        DevLogger.log(
+          `WC2::session_proposal error adding chain permission`,
+          err,
+        );
+      }
     } catch (err) {
+      DevLogger.log(`WC2::session_proposal requestPermissions error`, {
+        err,
+      });
       await this.web3Wallet.rejectSession({
         id: proposal.id,
         reason: getSdkError('USER_REJECTED_METHODS'),
@@ -449,12 +502,18 @@ export class WC2Manager {
     }
 
     try {
-      const approvedAccounts = await getPermittedAccounts(origin);
-      const walletChainIdHex = selectEvmChainId(store.getState());
-      const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
+      // Use the hostname for consistent permissions
+      const approvedAccounts = getPermittedAccounts(channelId);
+
+      DevLogger.log(`WC2::session_proposal getScopedPermissions`, {
+        hostname,
+        approvedAccounts,
+        walletChainIdHex,
+        walletChainIdDecimal,
+      });
 
       // Use getScopedPermissions to get properly formatted namespaces
-      const namespaces = await getScopedPermissions({ origin });
+      const namespaces = await getScopedPermissions({ channelId });
 
       DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
 
@@ -466,7 +525,7 @@ export class WC2Manager {
       const deeplink = !!this.deeplinkSessions[activeSession.pairingTopic];
       const session = new WalletConnect2Session({
         session: activeSession,
-        channelId: `${proposal.id}`,
+        channelId,
         deeplink,
         web3Wallet: this.web3Wallet,
         navigation: this.navigation,
@@ -474,18 +533,38 @@ export class WC2Manager {
 
       this.sessions[activeSession.topic] = session;
 
+      DevLogger.log(`WC2::session_proposal updateSession`, {
+        chainId: walletChainIdDecimal,
+        accounts: approvedAccounts,
+      });
+
       // Immediately notify dapp of wallet's active chain
       await session.updateSession({
         chainId: walletChainIdDecimal,
         accounts: approvedAccounts,
       });
+
+      // Check if the chain is in the approved chains list before emitting event
+      const caipChainId = `eip155:${walletChainIdDecimal}` as CaipChainId;
+      const approvedChains = namespaces?.eip155?.chains || [];
+
+      DevLogger.log(`WC2::session_proposal emitSessionEvent`, {
+        topic: activeSession.topic,
+        event: {
+          name: 'chainChanged',
+          data: walletChainIdHex,
+        },
+        chainId: caipChainId,
+        approvedChains,
+      });
+
       await this.web3Wallet.emitSessionEvent({
         topic: activeSession.topic,
         event: {
           name: 'chainChanged',
           data: walletChainIdHex,
         },
-        chainId: `eip155:${walletChainIdDecimal}`,
+        chainId: caipChainId,
       });
 
       if (deeplink) {
@@ -579,7 +658,9 @@ export class WC2Manager {
 
         // If the session is not found, we need to create a new session
         // but this should never happen?
-        console.warn(`WC2Manager::connect session not found for sessionTopic=${sessionTopic}`);
+        console.warn(
+          `WC2Manager::connect session not found for sessionTopic=${sessionTopic}`,
+        );
       }
 
       if (params.version === 1) {

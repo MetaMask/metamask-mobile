@@ -1,16 +1,20 @@
 import {
-  toChecksumAddress,
   isValidAddress,
   addHexPrefix,
   isValidChecksumAddress,
-  //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
   isHexPrefixed,
 } from 'ethereumjs-util';
+import {
+  getChecksumAddress,
+  type Hex,
+  isHexString,
+  isStrictHexString,
+} from '@metamask/utils';
 import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
-import { tlc, toLowerCaseEquals } from '../general';
+import { tlc } from '../general';
 import {
   doENSLookup,
   doENSReverseLookup,
@@ -33,18 +37,19 @@ import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AddressBookControllerState } from '@metamask/address-book-controller';
-import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { NetworkClientId, NetworkState } from '@metamask/network-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import {
-  AccountImportStrategy,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  KeyringTypes,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/keyring-controller';
-import { Hex, isHexString } from '@metamask/utils';
+  toChecksumHexAddress,
+  type NetworkType,
+} from '@metamask/controller-utils';
+import type {
+  NetworkClientId,
+  NetworkState,
+} from '@metamask/network-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
+import { EntropySourceId } from '@metamask/keyring-api';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -90,7 +95,39 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
  * @returns {String} - String corresponding to full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  */
 export function toFormattedAddress(address: string) {
-  return isEthAddress(address) ? toChecksumAddress(address) : address;
+  return isEthAddress(address) ? toChecksumHexAddress(address) : address;
+}
+
+/**
+ * Compares two addresses for equality, handling both EVM and non-EVM addresses appropriately.
+ *
+ * @param {string} address1 - The first address to compare
+ * @param {string} address2 - The second address to compare
+ * @returns {boolean} - Returns true if addresses are equal, false otherwise.
+ * For EVM addresses, comparison is case-insensitive. For non-EVM addresses, comparison is case-sensitive.
+ * Returns false if addresses are of different types (one EVM, one non-EVM) or if either address is falsy.
+ */
+export function areAddressesEqual(address1: string, address2: string) {
+  if (!address1 || !address2) {
+    return false;
+  }
+
+  const isAddress1Eth = isEthAddress(address1);
+  const isAddress2Eth = isEthAddress(address2);
+
+  // If one is an ETH address and the other is not, return false
+  if (isAddress1Eth !== isAddress2Eth) {
+    return false;
+  }
+
+  // If both are ETH addresses, do a lowercase comparison
+  if (isAddress1Eth && isAddress2Eth) {
+    return address1.toLowerCase() === address2.toLowerCase();
+  }
+
+  // If both are not ETH addresses, do a raw comparison.
+  // This is important for non-EVM addresses since they are case sensitive.
+  return address1 === address2;
 }
 
 /**
@@ -98,10 +135,10 @@ export function toFormattedAddress(address: string) {
  *
  * @param {String} address - String corresponding to an address
  * @param {Number} chars - Number of characters to show at the end and beginning.
- * Defaults to 4.
+ * Defaults to 5.
  * @returns {String} - String corresponding to short address format
  */
-export function renderShortAddress(address: string, chars = 4) {
+export function renderShortAddress(address: string, chars = 5) {
   if (!address) return address;
   const formattedAddress = toFormattedAddress(address);
   return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
@@ -133,9 +170,9 @@ export function renderAccountName(
   internalAccounts: InternalAccount[],
 ) {
   const chainId = selectChainId(store.getState());
-  address = toChecksumHexAddress(address);
-  const account = internalAccounts.find((acc) =>
-    toLowerCaseEquals(acc.address, address),
+  address = toFormattedAddress(address);
+  const account = internalAccounts.find(
+    (acc) => toFormattedAddress(acc.address) === address,
   );
   if (account) {
     const identityName = account.metadata.name;
@@ -146,30 +183,6 @@ export function renderAccountName(
   }
 
   return renderShortAddress(address);
-}
-
-/**
- * Imports an account from a private key
- *
- * @param {String} private_key - String corresponding to a private key
- * @returns {Promise} - Returns a promise
- */
-
-export async function importAccountFromPrivateKey(private_key: string) {
-  const { KeyringController } = Engine.context;
-  // Import private key
-  let pkey = private_key;
-  // Handle PKeys with 0x
-  if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
-    pkey = pkey.substr(2);
-  }
-  const importedAccountAddress =
-    await KeyringController.importAccountWithStrategy(
-      AccountImportStrategy.privateKey,
-      [pkey],
-    );
-  const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
-  Engine.setSelectedAddress(checksummedAddress);
 }
 
 export function isHDOrFirstPartySnapAccount(account: InternalAccount) {
@@ -210,10 +223,10 @@ export function isQRHardwareAccount(address: string) {
   let qrAccounts: string[] = [];
   for (const qrKeyring of qrKeyrings) {
     qrAccounts = qrAccounts.concat(
-      qrKeyring.accounts.map((account) => account.toLowerCase()),
+      qrKeyring.accounts.map((account) => toFormattedAddress(account)),
     );
   }
-  return qrAccounts.includes(address.toLowerCase());
+  return qrAccounts.includes(toFormattedAddress(address));
 }
 
 /**
@@ -230,8 +243,8 @@ export function getKeyringByAddress(address: string) {
   const { keyrings } = KeyringController.state;
   return keyrings.find((keyring) =>
     keyring.accounts
-      .map((account) => account.toLowerCase())
-      .includes(address.toLowerCase()),
+      .map((account) => toFormattedAddress(account))
+      .includes(toFormattedAddress(address)),
   );
 }
 
@@ -272,6 +285,16 @@ export function isExternalHardwareAccount(address: string) {
 }
 
 /**
+ * judge address is a private key account or not
+ *
+ * @param {InternalAccount} account - InternalAccount object
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isPrivateKeyAccount(account: InternalAccount) {
+  return account.metadata.keyring.type === KeyringTypes.simple;
+}
+
+/**
  * Checks if an address is an ethereum one.
  *
  * @param address - An address.
@@ -291,9 +314,90 @@ export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;
-  return Object.values(accounts).find(
-    (a: InternalAccount) => a.address.toLowerCase() === address.toLowerCase(),
+  return Object.values(accounts).find((a: InternalAccount) =>
+    areAddressesEqual(a.address, address),
   );
+}
+
+/**
+ * gets account label tag text based from an account
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - Returns address's translated label text
+ */
+export function getLabelTextByInternalAccount(
+  internalAccount: InternalAccount,
+) {
+  const { KeyringController } = Engine.context;
+  const { keyrings } = KeyringController.state;
+
+  // Would be better if we have that mapping elsewhere, so we can index keyring by their
+  // entropy source directly?
+  const hdKeyringsIndexByEntropySource: Map<EntropySourceId, number> =
+    new Map();
+  for (const keyring of keyrings) {
+    if (keyring.type === ExtendedKeyringTypes.hd) {
+      // Use the size of the map, so we don't need an extra index variable for this.
+      hdKeyringsIndexByEntropySource.set(
+        keyring.metadata.id,
+        hdKeyringsIndexByEntropySource.size,
+      );
+    }
+  }
+
+  const getSrpLabel = (hdInternalAccount: InternalAccount) => {
+    // We do show pills only if we have multiple SRPs (and thus, multiple HD keyrings).
+    const shouldShowSrpPill = hdKeyringsIndexByEntropySource.size > 1;
+
+    if (shouldShowSrpPill && hdInternalAccount.options.entropySource) {
+      const entropySource = hdInternalAccount.options
+        .entropySource as EntropySourceId;
+
+      const hdKeyringIndex = hdKeyringsIndexByEntropySource.get(entropySource);
+      if (hdKeyringIndex !== undefined) {
+        return strings('accounts.srp_index', { index: hdKeyringIndex + 1 }); // Add 1 to make it 1-indexed.
+      }
+    }
+    return null;
+  };
+
+  switch (internalAccount?.metadata?.keyring?.type) {
+    case ExtendedKeyringTypes.hd: {
+      // Since @metamask/accounts-controller@28.0.0, HD accounts also have their entropy source
+      // within the options bag, so re-use this:
+      const srpLabel = getSrpLabel(internalAccount);
+      if (srpLabel) {
+        return srpLabel;
+      }
+      break;
+    }
+    case ExtendedKeyringTypes.ledger:
+      return strings('accounts.ledger');
+    case ExtendedKeyringTypes.qr:
+      return strings('accounts.qr_hardware');
+    case ExtendedKeyringTypes.simple:
+      return strings('accounts.imported');
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    case KeyringTypes.snap: {
+      // TODO: We should return multiple labels if one day we allow 3rd party Snaps (since they might have 2 pills:
+      // 1. For the SRP (if they provide `options.entropySource`)
+      // 2. For the "Snap tag" (`accounts.snap_account_tag`)
+      const srpLabel = getSrpLabel(internalAccount);
+      if (srpLabel) {
+        return srpLabel;
+      }
+
+      const isPreinstalledSnap = PREINSTALLED_SNAPS.some(
+        (snap) => snap.snapId === internalAccount?.metadata.snap?.id,
+      );
+
+      if (!isPreinstalledSnap) {
+        return strings('accounts.snap_account_tag');
+      }
+    }
+    ///: END:ONLY_INCLUDE_IF
+  }
+  return null;
 }
 
 /**
@@ -304,26 +408,11 @@ export function getInternalAccountByAddress(
  */
 export function getLabelTextByAddress(address: string) {
   if (!address) return null;
+
   const internalAccount = getInternalAccountByAddress(address);
-  const keyring = internalAccount?.metadata?.keyring;
-  if (keyring) {
-    switch (keyring.type) {
-      case ExtendedKeyringTypes.ledger:
-        return strings('accounts.ledger');
-      case ExtendedKeyringTypes.qr:
-        return strings('accounts.qr_hardware');
-      case ExtendedKeyringTypes.simple:
-        return strings('accounts.imported');
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      case KeyringTypes.snap:
-        return (
-          internalAccount?.metadata.snap?.name ||
-          strings('accounts.snap_account_tag')
-        );
-      ///: END:ONLY_INCLUDE_IF
-    }
-  }
-  return null;
+  if (!internalAccount) return null;
+
+  return getLabelTextByInternalAccount(internalAccount);
 }
 
 /**
@@ -341,8 +430,8 @@ export function getAddressAccountType(address: string) {
   const { keyrings } = KeyringController.state;
   const targetKeyring = keyrings.find((keyring) =>
     keyring.accounts
-      .map((account) => account.toLowerCase())
-      .includes(address.toLowerCase()),
+      .map((account) => toFormattedAddress(account))
+      .includes(toFormattedAddress(address)),
   );
   if (targetKeyring) {
     switch (targetKeyring.type) {
@@ -393,9 +482,27 @@ export function resemblesAddress(address: string) {
   return address && address.length === 2 + 20 * 2;
 }
 
-export function safeToChecksumAddress(address: string) {
+export function toChecksumAddress(address: string) {
+  try {
+    return getChecksumAddress(address as Hex);
+  } catch (error) {
+    // This is necessary for backward compatibility with the old behavior of
+    // `ethereumjs-util` which would return the original string if the address
+    // was invalid. This should happen only in tests which uses invalid addresses
+    // like 0x1, 0x2 etc.
+    if (error instanceof Error && error.message === 'Invalid hex address.') {
+      if (isStrictHexString(address)) {
+        return address as Hex;
+      }
+      throw new Error('Invalid hex address.');
+    }
+    throw error;
+  }
+}
+
+export function safeToChecksumAddress(address?: string) {
   if (!address) return undefined;
-  return toChecksumAddress(address) as Hex;
+  return toChecksumAddress(address);
 }
 
 /**
@@ -456,14 +563,14 @@ function checkIfAddressAlreadySaved(
   chainId: Hex,
   internalAccounts: InternalAccount[],
 ) {
-  if (address) {
+  if (address && addressBook && internalAccounts) {
     const networkAddressBook = addressBook[chainId] || {};
 
-    const checksummedResolvedAddress = toChecksumAddress(address);
+    const formattedAddress = toFormattedAddress(address);
     if (
-      networkAddressBook[checksummedResolvedAddress] ||
-      internalAccounts.find((account) =>
-        toLowerCaseEquals(account.address, checksummedResolvedAddress),
+      networkAddressBook[formattedAddress] ||
+      internalAccounts.find(
+        (account) => toFormattedAddress(account.address) === formattedAddress,
       )
     ) {
       return CONTACT_ALREADY_SAVED;
@@ -671,7 +778,7 @@ export const getTokenDetails = async (
     tokenId,
     networkClientId,
   );
-  const { standard, name, symbol, decimals } = tokenData;
+  const { standard, name, symbol, decimals, balance } = tokenData;
   if (standard === ERC721 || standard === ERC1155) {
     return {
       name,
@@ -683,6 +790,7 @@ export const getTokenDetails = async (
     symbol,
     decimals,
     standard,
+    balance,
   };
 };
 

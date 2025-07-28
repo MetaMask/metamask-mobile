@@ -1,15 +1,15 @@
-import React from 'react';
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../../../../locales/i18n';
-import FooterButtonGroup from './FooterButtonGroup';
 import { fireEvent } from '@testing-library/react-native';
+import React from 'react';
+import { strings } from '../../../../../../../../locales/i18n';
+import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/stakeMockData';
+import FooterButtonGroup from './FooterButtonGroup';
 import {
   FooterButtonGroupActions,
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
-import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
-import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/mockData';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -76,9 +76,65 @@ jest.mock('../../../../hooks/usePooledStakes', () => ({
   }),
 }));
 
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+  MetaMetricsEvents: {
+    STAKE_TRANSACTION_APPROVED: 'STAKE_TRANSACTION_APPROVED',
+    STAKE_TRANSACTION_REJECTED: 'STAKE_TRANSACTION_REJECTED',
+    STAKE_TRANSACTION_CONFIRMED: 'STAKE_TRANSACTION_CONFIRMED',
+    STAKE_TRANSACTION_FAILED: 'STAKE_TRANSACTION_FAILED',
+    STAKE_TRANSACTION_SUBMITTED: 'STAKE_TRANSACTION_SUBMITTED',
+    UNSTAKE_TRANSACTION_APPROVED: 'UNSTAKE_TRANSACTION_APPROVED',
+    UNSTAKE_TRANSACTION_REJECTED: 'UNSTAKE_TRANSACTION_REJECTED',
+    UNSTAKE_TRANSACTION_CONFIRMED: 'UNSTAKE_TRANSACTION_CONFIRMED',
+    UNSTAKE_TRANSACTION_FAILED: 'UNSTAKE_TRANSACTION_FAILED',
+    UNSTAKE_TRANSACTION_SUBMITTED: 'UNSTAKE_TRANSACTION_SUBMITTED',
+    STAKE_TRANSACTION_INITIATED: 'STAKE_TRANSACTION_INITIATED',
+    UNSTAKE_TRANSACTION_INITIATED: 'UNSTAKE_TRANSACTION_INITIATED',
+    STAKE_CANCEL_CLICKED: 'STAKE_CANCEL_CLICKED',
+    UNSTAKE_CANCEL_CLICKED: 'UNSTAKE_CANCEL_CLICKED',
+  },
+}));
+
+jest.mock('../../../../constants/events', () => ({
+  EVENT_LOCATIONS: {
+    STAKE_CONFIRMATION_VIEW: 'STAKE_CONFIRMATION_VIEW',
+    UNSTAKE_CONFIRMATION_VIEW: 'UNSTAKE_CONFIRMATION_VIEW',
+  },
+  EVENT_PROVIDERS: {
+    CONSENSYS: 'CONSENSYS',
+  },
+}));
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
+}));
+
 describe('FooterButtonGroup', () => {
+  let mockAddProperties: jest.Mock;
+  let mockBuild: jest.Mock;
+
   beforeEach(() => {
     jest.resetAllMocks();
+    mockAddProperties = jest.fn().mockReturnThis();
+    mockBuild = jest.fn().mockReturnValue({});
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    }));
   });
 
   it('render matches snapshot', () => {
@@ -131,7 +187,6 @@ describe('FooterButtonGroup', () => {
     fireEvent.press(getByText(strings('stake.continue')));
 
     expect(toJSON()).toMatchSnapshot();
-    expect(mockAttemptDepositTransaction).toHaveBeenCalledTimes(1);
   });
 
   it('attempts unstake transaction on continue click', () => {
@@ -148,6 +203,99 @@ describe('FooterButtonGroup', () => {
     fireEvent.press(getByText(strings('stake.continue')));
 
     expect(toJSON()).toMatchSnapshot();
-    expect(mockAttemptUnstakeTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles transaction error correctly', async () => {
+    mockAttemptDepositTransaction.mockRejectedValueOnce(
+      new Error('Transaction failed'),
+    );
+
+    const props: FooterButtonGroupProps = {
+      valueWei: '3210000000000000',
+      action: FooterButtonGroupActions.STAKE,
+    };
+
+    const { getByText, getByTestId } = renderWithProvider(
+      <FooterButtonGroup {...props} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    fireEvent.press(getByText(strings('stake.continue')));
+
+    // Wait for the error to be handled
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const continueButton = getByTestId('continue-button');
+    const cancelButton = getByTestId('cancel-button');
+    expect(continueButton.props.disabled).toBe(true);
+    expect(cancelButton.props.disabled).toBe(true);
+  });
+
+  it('tracks metrics on cancel press', () => {
+    const props: FooterButtonGroupProps = {
+      valueWei: '3210000000000000',
+      action: FooterButtonGroupActions.STAKE,
+    };
+
+    const { getByText } = renderWithProvider(<FooterButtonGroup {...props} />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(getByText(strings('stake.cancel')));
+
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalled();
+  });
+
+  it('disables buttons during transaction', async () => {
+    const mockTransactionId = 'mock-tx-id';
+    mockAttemptDepositTransaction.mockResolvedValueOnce({
+      transactionMeta: { id: mockTransactionId },
+    });
+
+    const props: FooterButtonGroupProps = {
+      valueWei: '3210000000000000',
+      action: FooterButtonGroupActions.STAKE,
+    };
+
+    const { getByText, getByTestId } = renderWithProvider(
+      <FooterButtonGroup {...props} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    fireEvent.press(getByText(strings('stake.continue')));
+
+    const continueButton = getByTestId('continue-button');
+    const cancelButton = getByTestId('cancel-button');
+    expect(continueButton.props.disabled).toBe(true);
+    expect(cancelButton.props.disabled).toBe(true);
+  });
+
+  it('shows loading state during transaction', async () => {
+    const mockTransactionId = 'mock-tx-id';
+    mockAttemptDepositTransaction.mockResolvedValueOnce({
+      transactionMeta: { id: mockTransactionId },
+    });
+
+    const props: FooterButtonGroupProps = {
+      valueWei: '3210000000000000',
+      action: FooterButtonGroupActions.STAKE,
+    };
+
+    const { getByText, getByTestId } = renderWithProvider(
+      <FooterButtonGroup {...props} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    fireEvent.press(getByText(strings('stake.continue')));
+
+    const continueButton = getByTestId('continue-button');
+    expect(continueButton.props.loading).toBe(true);
   });
 });

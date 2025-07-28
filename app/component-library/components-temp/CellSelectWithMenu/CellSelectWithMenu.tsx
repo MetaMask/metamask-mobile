@@ -29,6 +29,7 @@ const CellSelectWithMenu = ({
   style,
   avatarProps,
   title,
+  titleProps,
   secondaryText,
   tertiaryText,
   tagLabel,
@@ -36,29 +37,9 @@ const CellSelectWithMenu = ({
   children,
   withAvatar = true,
   showSecondaryTextIcon = true,
-  onTextClick,
   ...props
 }: CellSelectWithMenuProps) => {
   const { styles } = useStyles(styleSheet, { style });
-
-  const renderSecondaryText = () => (
-    <>
-      <Text
-        numberOfLines={1}
-        variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
-        style={styles.secondaryText}
-      >
-        {secondaryText}
-      </Text>
-      {showSecondaryTextIcon && (
-        <Icon
-          name={IconName.ArrowDown}
-          size={IconSize.Xss}
-          style={styles.arrowStyle}
-        />
-      )}
-    </>
-  );
 
   return (
     <ListItemMultiSelectButton
@@ -79,33 +60,40 @@ const CellSelectWithMenu = ({
         ) : null}
 
         <View style={styles.cellBaseInfo}>
-          {title === undefined ||
-          title === null ||
-          typeof title === 'string' ||
-          typeof title === 'number' ||
-          typeof title === 'boolean' ? (
+          {title === undefined || typeof title === 'string' ? (
             <Text
               numberOfLines={1}
               variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
               testID={CellComponentSelectorsIDs.BASE_TITLE}
+              {...titleProps}
             >
               {title}
             </Text>
           ) : (
             title
           )}
-          {!!secondaryText && onTextClick && (
+          {!!secondaryText && (
             <TouchableWithoutFeedback>
               <TouchableOpacity
                 style={styles.containerRow}
-                onPress={onTextClick}
+                onPress={props.onTextClick}
               >
-                {renderSecondaryText()}
+                <Text
+                  numberOfLines={1}
+                  variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
+                  style={styles.secondaryText}
+                >
+                  {secondaryText}
+                </Text>
+                {showSecondaryTextIcon && (
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Xss}
+                    style={styles.arrowStyle}
+                  />
+                )}
               </TouchableOpacity>
             </TouchableWithoutFeedback>
-          )}
-          {!!secondaryText && !onTextClick && (
-            <View>{renderSecondaryText()}</View>
           )}
           {!!tagLabel && (
             <Tag

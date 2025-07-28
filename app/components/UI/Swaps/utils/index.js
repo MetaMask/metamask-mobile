@@ -7,7 +7,6 @@ import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-import { isBridgeUiEnabled } from '../../Bridge/utils';
 
 const {
   ETH_CHAIN_ID,
@@ -20,6 +19,7 @@ const {
   ZKSYNC_ERA_CHAIN_ID,
   LINEA_CHAIN_ID,
   BASE_CHAIN_ID,
+  SEI_CHAIN_ID,
 } = swapsUtils;
 
 const allowedChainIds = [
@@ -32,6 +32,7 @@ const allowedChainIds = [
   ZKSYNC_ERA_CHAIN_ID,
   LINEA_CHAIN_ID,
   BASE_CHAIN_ID,
+  SEI_CHAIN_ID,
   SWAPS_TESTNET_CHAIN_ID,
 ];
 
@@ -53,7 +54,7 @@ export function isSwapsAllowed(chainId) {
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (chainId === SolScope.Mainnet && isBridgeUiEnabled()) {
+  if (chainId === SolScope.Mainnet) {
     return true;
   }
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)

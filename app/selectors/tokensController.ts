@@ -25,26 +25,26 @@ export const selectTokens = createDeepEqualSelector(
     tokensControllerState: TokensControllerState,
     chainId: Hex,
     selectedAddress: string | undefined,
-  ) => {
-    if (isPortfolioViewEnabled()) {
-      return (
-        tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex] ||
-        []
-      );
-    }
-    return tokensControllerState?.tokens || [];
-  },
+  ) =>
+    tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex] || [],
 );
 
 export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
   selectTokensControllerState,
-  selectEvmChainId,
   selectSelectedInternalAccountAddress,
+  (_state, chainId: Hex) => chainId,
   (
     tokensControllerState: TokensControllerState,
-    chainId: Hex,
     selectedAddress: string | undefined,
-  ) => tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex],
+    chainId: Hex,
+  ) =>
+    tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex]?.reduce(
+      (tokensMap: { [address: string]: Token }, token: Token) => ({
+        ...tokensMap,
+        [token.address]: token,
+      }),
+      {},
+    ),
 );
 
 export const selectTokensByAddress = createSelector(
@@ -63,17 +63,33 @@ export const selectTokensLength = createSelector(
 
 export const selectIgnoreTokens = createSelector(
   selectTokensControllerState,
-  (tokensControllerState: TokensControllerState) =>
-    tokensControllerState?.ignoredTokens,
+  selectEvmChainId,
+  selectSelectedInternalAccountAddress,
+  (
+    tokensControllerState: TokensControllerState,
+    chainId: Hex,
+    selectedAddress: string | undefined,
+  ) =>
+    tokensControllerState?.allIgnoredTokens?.[chainId]?.[
+      selectedAddress as Hex
+    ],
 );
 
 export const selectDetectedTokens = createSelector(
   selectTokensControllerState,
-  (tokensControllerState: TokensControllerState) =>
-    tokensControllerState?.detectedTokens,
+  selectEvmChainId,
+  selectSelectedInternalAccountAddress,
+  (
+    tokensControllerState: TokensControllerState,
+    chainId: Hex,
+    selectedAddress: string | undefined,
+  ) =>
+    tokensControllerState?.allDetectedTokens?.[chainId]?.[
+      selectedAddress as Hex
+    ],
 );
 
-export const selectAllTokens = createSelector(
+export const selectAllTokens = createDeepEqualSelector(
   selectTokensControllerState,
   (tokensControllerState: TokensControllerState) =>
     tokensControllerState?.allTokens,

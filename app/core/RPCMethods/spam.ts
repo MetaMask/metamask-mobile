@@ -4,6 +4,7 @@ import { providerErrors } from '@metamask/rpc-errors';
 
 import { containsUserRejectedError } from '../../util/middlewares';
 import Routes from '../../constants/navigation/Routes';
+import NavigationService from '../NavigationService';
 import { RPC_METHODS } from '../SDKConnect/SDKConnectConstants';
 import {
   selectIsOriginBlockedForRPCRequests,
@@ -21,6 +22,7 @@ export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
   RPC_METHODS.WALLET_WATCHASSET,
   RPC_METHODS.WALLET_ADDETHEREUMCHAIN,
   RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
+  RPC_METHODS.WALLET_SEND_CALLS,
 ]);
 
 // Origin added in the createOriginMiddleware
@@ -57,7 +59,6 @@ export function processOriginThrottlingRejection({
   req,
   error,
   store,
-  navigation,
 }: {
   req: ExtendedJSONRPCRequest;
   error: {
@@ -65,9 +66,6 @@ export function processOriginThrottlingRejection({
     code?: number;
   };
   store: Store;
-  navigation: {
-    navigate: (route: string, params: Record<string, unknown>) => void;
-  };
 }) {
   const isBlockableRPCMethod = BLOCKABLE_SPAM_RPC_METHODS.has(req.method);
 
@@ -82,7 +80,7 @@ export function processOriginThrottlingRejection({
   store.dispatch(onRPCRequestRejectedByUser(req.origin));
 
   if (selectIsOriginBlockedForRPCRequests(store.getState(), req.origin)) {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
       params: { origin: req.origin },
     });

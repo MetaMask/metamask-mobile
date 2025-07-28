@@ -7,7 +7,7 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { SafeAreaView } from 'react-native';
+import { InteractionManager, SafeAreaView } from 'react-native';
 
 // External dependencies
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -105,26 +105,29 @@ const EditAccountName = () => {
   };
 
   const saveAccountName = async () => {
-    if (accountName && accountName.length > 0 && selectedAccount?.address) {
-      Engine.setAccountLabel(selectedAccount?.address, accountName);
-      navigate('WalletView');
+    InteractionManager.runAfterInteractions(async () => {
+      if (accountName && accountName.length > 0 && selectedAccount?.address) {
+        Engine.setAccountLabel(selectedAccount?.address, accountName);
+        navigate('WalletView');
 
-      try {
-        const analyticsProperties = async () => {
-          const accountType = getAddressAccountType(selectedAccount?.address);
-          const account_type = accountType === 'QR' ? 'hardware' : accountType;
-          return { account_type, chain_id: getDecimalChainId(chainId) };
-        };
-        const analyticsProps = await analyticsProperties();
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.ACCOUNT_RENAMED)
-            .addProperties({ ...analyticsProps })
-            .build(),
-        );
-      } catch {
-        return {};
+        try {
+          const analyticsProperties = async () => {
+            const accountType = getAddressAccountType(selectedAccount?.address);
+            const account_type =
+              accountType === 'QR' ? 'hardware' : accountType;
+            return { account_type, chain_id: getDecimalChainId(chainId) };
+          };
+          const analyticsProps = await analyticsProperties();
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.ACCOUNT_RENAMED)
+              .addProperties({ ...analyticsProps })
+              .build(),
+          );
+        } catch {
+          return {};
+        }
       }
-    }
+    });
   };
 
   return (
@@ -150,6 +153,7 @@ const EditAccountName = () => {
               isDisabled
               placeholder={formatAddress(selectedAccount?.address, 'mid')}
               autoFocus
+              testID="input"
             />
           ) : null}
         </View>

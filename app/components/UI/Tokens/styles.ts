@@ -83,9 +83,9 @@ const createStyles = (colors: Colors) =>
       textTransform: 'capitalize',
     },
     ethLogo: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       overflow: 'hidden',
     },
     emptyText: {
@@ -112,9 +112,21 @@ const createStyles = (colors: Colors) =>
     assetName: {
       flexDirection: 'row',
     },
-    stakeButton: {
+    percentageChange: {
       flexDirection: 'row',
       alignItems: 'center',
+      alignContent: 'center',
+    },
+    stakeButton: {
+      flexDirection: 'row',
+    },
+    dot: {
+      marginLeft: 2,
+      marginRight: 2,
+    },
+    sprout: {
+      marginTop: 3,
+      marginLeft: 2,
     },
     portfolioBalance: {
       flexDirection: 'row',
@@ -165,36 +177,30 @@ const createStyles = (colors: Colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingLeft: 8,
-      paddingRight: 8,
-      paddingBottom: 16,
-      paddingTop: 8,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
       width: '100%',
       justifyContent: 'space-between',
+      alignItems: 'center',
     },
     controlButtonInnerWrapper: {
       flexDirection: 'row',
+      gap: 12,
     },
     controlButton: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      marginLeft: 5,
-      marginRight: 5,
+      marginRight: 4,
       maxWidth: '60%',
+      paddingHorizontal: 0,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      marginLeft: 5,
-      marginRight: 5,
+      marginRight: 4,
       maxWidth: '60%',
+      paddingHorizontal: 0,
       opacity: 0.5,
     },
     controlButtonText: {
@@ -202,14 +208,6 @@ const createStyles = (colors: Colors) =>
     },
     controlIconButton: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      marginLeft: 5,
-      marginRight: 5,
-      borderRadius: 50,
-      width: 50,
-      height: 40,
     },
     controlIconButtonDisabled: {
       backgroundColor: colors.background.default,
@@ -239,6 +237,9 @@ const createStyles = (colors: Colors) =>
     networkImageContainer: {
       position: 'absolute',
       right: 0,
+    },
+    badge: {
+      marginTop: 8,
     },
   });
 

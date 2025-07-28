@@ -13,6 +13,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
 import { AssetsContractController } from '@metamask/assets-controllers';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { MOCK_KEYRING_CONTROLLER_STATE } from '../../../util/test/keyringControllerTestUtils';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -22,18 +24,22 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
 
+const NETWORK_NAME_MOCK = 'Ethereum Main Network';
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          [MOCK_ADDRESS_1]: {
-            balance: '200',
-          },
-          [MOCK_ADDRESS_2]: {
-            balance: '200',
+        accountsByChainId: {
+          [CHAIN_IDS.MAINNET]: {
+            [MOCK_ADDRESS_1]: {
+              balance: '200',
+            },
+            [MOCK_ADDRESS_2]: {
+              balance: '200',
+            },
           },
         },
       },
@@ -47,6 +53,11 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      KeyringController: {
+        vault: 'mock-vault',
+        ...MOCK_KEYRING_CONTROLLER_STATE,
+        isUnlocked: true,
+      },
     },
   },
 };
@@ -60,6 +71,8 @@ const mockGetERC20BalanceOf = jest.fn().mockReturnValue(0x0186a0);
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
+
   return {
     context: {
       TokensController: {
@@ -69,11 +82,16 @@ jest.mock('../../../core/Engine', () => {
         state: {
           keyrings: [
             {
+              type: KeyringTypes.hd,
               accounts: [
                 '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
                 '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
                 '0x07Be9763a718C0539017E2Ab6fC42853b4aEeb6B',
               ],
+              metadata: {
+                id: '01JNG71B7GTWH0J1TSJY9891S0',
+                name: '',
+              },
             },
           ],
         },
@@ -88,6 +106,15 @@ jest.mock('../../../core/Engine', () => {
     },
   };
 });
+
+jest.mock('../../Views/confirmations/hooks/useNetworkInfo', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    networkImage: 10,
+    networkName: NETWORK_NAME_MOCK,
+    networkNativeCurrency: 'ETH',
+  })),
+}));
 
 jest.mock('../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../util/ENSUtils'),
@@ -162,7 +189,7 @@ describe('AccountFromToInfoCard', () => {
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
-    expect(await findByText('0x519d...9CC7')).toBeDefined();
+    expect(await findByText('0x519d2...c9CC7')).toBeDefined();
   });
 
   it('should render correct to address for NFT send', async () => {
@@ -189,7 +216,7 @@ describe('AccountFromToInfoCard', () => {
       <AccountFromToInfoCard transactionState={NFTTransaction} />,
       { state: mockInitialState },
     );
-    expect(await findByText('0xF4e8...287B')).toBeDefined();
+    expect(await findByText('0xF4e82...e287B')).toBeDefined();
   });
 
   it('should display ens name', async () => {
@@ -220,5 +247,14 @@ describe('AccountFromToInfoCard', () => {
     );
     expect(await queryByText('test1.eth')).toBeDefined();
     expect(await queryByText('test3.eth')).toBeDefined();
+  });
+
+  it('renders correct network name', async () => {
+    const { findByText } = renderWithProvider(
+      //@ts-expect-error - Rest props are ignored for testing purposes
+      <AccountFromToInfoCard transactionState={transactionState} />,
+      { state: mockInitialState },
+    );
+    expect(await findByText(NETWORK_NAME_MOCK)).toBeDefined();
   });
 });

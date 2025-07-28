@@ -5,7 +5,6 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
   style={
     {
       "paddingBottom": 16,
-      "paddingHorizontal": 15,
     }
   }
 >
@@ -29,6 +28,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={12}
         name="ArrowDown"
         style={
@@ -333,9 +333,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -347,9 +346,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "CentraNo1-Medium",
+                          "fontFamily": "Geist Medium",
                           "fontSize": 16,
-                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -495,9 +493,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -509,9 +506,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "CentraNo1-Medium",
+                          "fontFamily": "Geist Medium",
                           "fontSize": 16,
-                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -653,9 +649,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -667,9 +662,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "CentraNo1-Medium",
+                          "fontFamily": "Geist Medium",
                           "fontSize": 16,
-                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }
@@ -821,9 +815,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "letterSpacing": 0,
                         "lineHeight": 24,
                       }
@@ -835,9 +828,8 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "CentraNo1-Medium",
+                          "fontFamily": "Geist Medium",
                           "fontSize": 16,
-                          "fontWeight": "500",
                           "letterSpacing": 0,
                           "lineHeight": 24,
                         }

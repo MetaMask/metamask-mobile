@@ -5,6 +5,7 @@ import {
   UserActionType,
   authError,
   authSuccess,
+  checkForDeeplink,
   interruptBiometrics,
 } from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
@@ -14,10 +15,14 @@ import {
   appLockStateMachine,
   lockKeyringAndApp,
   startAppServices,
+  handleDeeplinkSaga,
 } from './';
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
+import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
+import Engine from '../../core/Engine';
+import { setCompletedOnboarding } from '../../actions/onboarding';
 
 const mockBioStateMachineId = '123';
 
@@ -41,6 +46,42 @@ jest.mock('../../core/EngineService', () => ({
 jest.mock('../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
     start: jest.fn(),
+  },
+}));
+
+jest.mock('../../core/Engine', () => ({
+  context: {
+    AccountTreeController: {
+      init: jest.fn(),
+    },
+    AccountsController: {
+      updateAccounts: jest.fn(),
+    },
+    RemoteFeatureFlagController: {
+      state: {
+        remoteFeatureFlags: {
+          enableMultichainAccounts: {
+            version: '1',
+            enabled: true,
+          },
+        },
+      },
+    },
+    KeyringController: {
+      isUnlocked: jest.fn().mockReturnValue(false),
+    },
+  },
+}));
+
+jest.mock('../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
+  parse: jest.fn(),
+}));
+
+jest.mock('../../core/AppStateEventListener', () => ({
+  AppStateEventProcessor: {
+    start: jest.fn(),
+    pendingDeeplink: null,
+    clearPendingDeeplink: jest.fn(),
   },
 }));
 
@@ -183,5 +224,151 @@ describe('startAppServices', () => {
     // Verify services are not started
     expect(EngineService.start).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
+  });
+});
+
+describe('handleDeeplinkSaga', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('without deeplink', () => {
+    it('should skip handling deeplink', async () => {
+      // Triggered by CHECK_FOR_DEEPLINK action
+      await expectSaga(handleDeeplinkSaga)
+        .withState({
+          onboarding: { completedOnboarding: false },
+          user: {},
+          engine: { backgroundState: {} },
+          confirmation: {},
+          navigation: {},
+          security: {},
+          sdk: {},
+          inpageProvider: {},
+          confirmationMetrics: {},
+          originThrottling: {},
+          notifications: {},
+          bridge: {},
+          banners: {},
+        })
+        .dispatch(checkForDeeplink())
+        .silentRun();
+
+      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+      expect(
+        AppStateEventProcessor.clearPendingDeeplink,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('with deeplink', () => {
+    describe('when app is locked', () => {
+      it('should skip handling deeplink', async () => {
+        AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
+
+        // Triggered by CHECK_FOR_DEEPLINK action
+        await expectSaga(handleDeeplinkSaga)
+          .withState({
+            onboarding: { completedOnboarding: false },
+            user: {},
+            engine: { backgroundState: {} },
+            confirmation: {},
+            navigation: {},
+            security: {},
+            sdk: {},
+            inpageProvider: {},
+            confirmationMetrics: {},
+            originThrottling: {},
+            notifications: {},
+            bridge: {},
+            banners: {},
+          })
+          .dispatch(checkForDeeplink())
+          .silentRun();
+
+        expect(Engine.context.KeyringController.isUnlocked).toHaveBeenCalled();
+        expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+        expect(
+          AppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
+      });
+    });
+    describe('when app is unlocked', () => {
+      describe('when completed onboarding is false', () => {
+        it('should skip handling deeplink', async () => {
+          AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
+
+          // Triggered by SET_COMPLETED_ONBOARDING action
+          await expectSaga(handleDeeplinkSaga)
+            .dispatch(setCompletedOnboarding(false))
+            .silentRun();
+
+          expect(
+            Engine.context.KeyringController.isUnlocked,
+          ).toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).not.toHaveBeenCalled();
+        });
+      });
+      describe('when completed onboarding is passed in and true', () => {
+        it('should parse deeplink', async () => {
+          AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by SET_COMPLETED_ONBOARDING action
+          await expectSaga(handleDeeplinkSaga)
+            .dispatch(setCompletedOnboarding(true))
+            .silentRun();
+
+          expect(
+            Engine.context.KeyringController.isUnlocked,
+          ).toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).toHaveBeenCalled();
+        });
+      });
+      describe('when completed onboarding is true in Redux state', () => {
+        it('should parse deeplink', async () => {
+          AppStateEventProcessor.pendingDeeplink = 'dummy-deeplink';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          // Triggered by CHECK_FOR_DEEPLINK action
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              onboarding: { completedOnboarding: true },
+              user: {},
+              engine: { backgroundState: {} },
+              confirmation: {},
+              navigation: {},
+              security: {},
+              sdk: {},
+              inpageProvider: {},
+              confirmationMetrics: {},
+              originThrottling: {},
+              notifications: {},
+              bridge: {},
+              banners: {},
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(
+            Engine.context.KeyringController.isUnlocked,
+          ).toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(
+            AppStateEventProcessor.clearPendingDeeplink,
+          ).toHaveBeenCalled();
+        });
+      });
+    });
   });
 });

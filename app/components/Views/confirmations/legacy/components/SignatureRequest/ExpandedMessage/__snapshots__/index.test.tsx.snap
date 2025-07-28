@@ -26,11 +26,11 @@ exports[`ExpandedMessage should render correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      name="ios-arrow-back"
+      name="arrow-back"
       size={30}
       style={
         {
-          "color": "#9ca1af",
+          "color": "#b7bbc8",
           "flex": 1,
         }
       }

@@ -18,6 +18,7 @@ export interface Transaction {
   transactionFromName: string;
   selectedAsset: SelectedAsset;
   ensRecipient?: string;
+  chainId?: string;
 }
 
 export interface AccountFromToInfoCardProps {

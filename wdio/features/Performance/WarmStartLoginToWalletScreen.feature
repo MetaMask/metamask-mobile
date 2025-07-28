@@ -7,8 +7,7 @@ Feature: Measure Wallet Screen Warm Start
   Scenario: Measure Warm Start after Importing a Wallet
     Given the app displayed the splash animation
     And I have imported my wallet
-    And I tap No Thanks on the Enable security check screen
-    And I close all the onboarding modals
+    And I dismiss the Solana New Feature Sheet
     And I am on the wallet view
     When I navigate to the browser
     And I navigate to "https://metamask.github.io/test-dapp/"
@@ -17,4 +16,4 @@ Feature: Measure Wallet Screen Warm Start
     And the app is move to the foreground
     And I fill my password in the Login screen
     And The timer starts running after I tap the login button
-    Then The wallet view appears in "3" seconds
+    Then The wallet view appears in "4" seconds

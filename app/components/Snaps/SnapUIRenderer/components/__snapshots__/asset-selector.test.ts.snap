@@ -1,0 +1,367 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SnapUIAssetSelector should render 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <TouchableHighlight>
+          <View
+            color="Default"
+            flexDirection="column"
+            gap={8}
+            justifyContent="flex-start"
+            style={
+              [
+                {
+                  "color": "Default",
+                  "flexDirection": "column",
+                  "gap": 8,
+                  "justifyContent": "flex-start",
+                },
+                {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              ]
+            }
+          >
+            <View
+              flexDirection="column"
+              style={
+                [
+                  {
+                    "flexDirection": "column",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "stretch",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": "auto",
+                    "justifyContent": "center",
+                    "maxHeight": 58,
+                    "minHeight": 48,
+                    "overflow": "hidden",
+                    "paddingBottom": 8,
+                    "paddingHorizontal": 16,
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "paddingTop": 8,
+                  }
+                }
+                testID="snap-ui-renderer__selector"
+              >
+                <View
+                  alignItems="center"
+                  flexDirection="row"
+                  gap={16}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 16,
+                      },
+                      {
+                        "flex": 1,
+                        "overflow": "hidden",
+                      },
+                    ]
+                  }
+                >
+                  <View
+                    alignItems="center"
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    <View
+                      onLayout={[Function]}
+                      style={
+                        {
+                          "alignSelf": "flex-start",
+                          "position": "relative",
+                        }
+                      }
+                      testID="badge-wrapper-badge"
+                    >
+                      <View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#ffffff",
+                              "borderRadius": 12,
+                              "height": 24,
+                              "overflow": "hidden",
+                              "width": 24,
+                            }
+                          }
+                        >
+                          <Image
+                            onError={[Function]}
+                            resizeMode="contain"
+                            source={
+                              {
+                                "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
+                              }
+                            }
+                            style={
+                              {
+                                "flex": 1,
+                                "height": undefined,
+                                "width": undefined,
+                              }
+                            }
+                            testID="token-avatar-image"
+                          />
+                        </View>
+                      </View>
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "aspectRatio": 1,
+                            "bottom": 0,
+                            "height": 0,
+                            "justifyContent": "center",
+                            "position": "absolute",
+                            "right": 0,
+                            "transform": [
+                              {
+                                "translateX": 0,
+                              },
+                              {
+                                "translateY": 0,
+                              },
+                            ],
+                          }
+                        }
+                      >
+                        <View
+                          onLayout={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "aspectRatio": 1,
+                              "height": "50%",
+                              "justifyContent": "center",
+                              "maxHeight": 24,
+                              "minHeight": 8,
+                              "opacity": 0,
+                            }
+                          }
+                          testID="badgenetwork"
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 8,
+                                "borderWidth": 2,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
+                                },
+                                "shadowOpacity": 1,
+                                "shadowRadius": 4,
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                                "width": 32,
+                              }
+                            }
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 32,
+                                  "width": 32,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  <View
+                    flexDirection="column"
+                    style={
+                      [
+                        {
+                          "flexDirection": "column",
+                        },
+                        {
+                          "flex": 1,
+                          "overflow": "hidden",
+                        },
+                      ]
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      ellipsizeMode="tail"
+                      numberOfLines={1}
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      Solana
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      ellipsizeMode="tail"
+                      numberOfLines={1}
+                      style={
+                        {
+                          "color": "#686e7d",
+                          "fontFamily": "Geist Regular",
+                          "fontSize": 14,
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Solana
+                    </Text>
+                  </View>
+                  <View
+                    alignItems="flex-end"
+                    flexDirection="column"
+                    style={
+                      [
+                        {
+                          "alignItems": "flex-end",
+                          "flexDirection": "column",
+                        },
+                        {
+                          "marginLeft": "auto",
+                          "marginRight": 8,
+                        },
+                      ]
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist Medium",
+                          "fontSize": 14,
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      1
+                       
+                      SOL
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#686e7d",
+                          "fontFamily": "Geist Regular",
+                          "fontSize": 14,
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      $151.36
+                    </Text>
+                  </View>
+                </View>
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={16}
+                  name="ArrowDown"
+                  style={
+                    {
+                      "height": 16,
+                      "marginLeft": 8,
+                      "width": 16,
+                    }
+                  }
+                  width={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <View />
+          </View>
+        </TouchableHighlight>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;

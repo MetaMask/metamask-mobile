@@ -91,4 +91,26 @@ describe('Migration: update currentCurrency in CurrencyController', () => {
     expect(migratedState).toBe(state);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
+
+  it('returns state unchanged if currentCurrency property is missing entirely', async () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: {
+            // no currentCurrency property
+          },
+        },
+      },
+    };
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    expect(migratedState).toBe(state);
+    expect(
+      // @ts-expect-error - currentCurrency is intentionally missing
+      state.engine.backgroundState.CurrencyRateController.currentCurrency,
+    ).toBeUndefined();
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
 });

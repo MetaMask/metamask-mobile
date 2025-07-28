@@ -46,11 +46,6 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       AccountTrackerController: {
-        accounts: {
-          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
-            balance: '0x0',
-          },
-        },
         accountsByChainId: {
           '0x1': {
             '0xd018538C87232FF95acbCe4870629b75640a78E7': {

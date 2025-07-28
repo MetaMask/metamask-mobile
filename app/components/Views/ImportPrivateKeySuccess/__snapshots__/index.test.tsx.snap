@@ -150,7 +150,13 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -234,6 +241,9 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -347,6 +357,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -379,10 +390,11 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
-                                      "color": "#1c7e33",
+                                      "color": "#457a39",
                                       "fontSize": 12,
                                     },
                                     {
@@ -400,7 +412,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <Text
                                 style={

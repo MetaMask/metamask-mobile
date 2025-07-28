@@ -4,6 +4,9 @@ import {
   JSXElement,
   CheckboxElement,
   SelectorElement,
+  AddressInputElement,
+  AssetSelectorElement,
+  AccountSelectorElement,
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
@@ -11,6 +14,8 @@ import { checkbox as checkboxFn } from './checkbox';
 import { selector as selectorFn } from './selector';
 import { UIComponentFactory, UIComponentParams } from './types';
 import { constructInputProps } from './input';
+import { assetSelector as assetSelectorFn } from './asset-selector';
+import { accountSelector as accountSelectorFn } from './account-selector';
 
 export const field: UIComponentFactory<FieldElement> = ({
   element: e,
@@ -32,6 +37,24 @@ export const field: UIComponentFactory<FieldElement> = ({
   };
 
   switch (child?.type) {
+    case 'AddressInput': {
+      const addressInput = child as AddressInputElement;
+      return {
+        element: 'SnapUIAddressInput',
+        props: {
+          name: addressInput.props.name,
+          form,
+          chainId: addressInput.props.chainId,
+          displayAvatar: addressInput.props.displayAvatar,
+          disabled: addressInput.props.disabled,
+          placeholder: addressInput.props.placeholder,
+          label: e.props.label,
+          error: e.props.error,
+          style,
+        },
+      };
+    }
+
     case 'Input': {
       const getLeftAccessory = () =>
         mapToTemplate({
@@ -134,6 +157,46 @@ export const field: UIComponentFactory<FieldElement> = ({
           error: e.props.error,
           disabled: child.props.disabled,
           style,
+        },
+      };
+    }
+
+    case 'AssetSelector': {
+      const assetSelector = child as AssetSelectorElement;
+      const assetSelectorMapped = assetSelectorFn({
+        ...params,
+        element: assetSelector,
+      } as UIComponentParams<AssetSelectorElement>);
+
+      return {
+        ...assetSelectorMapped,
+        element: 'SnapUIAssetSelector',
+        props: {
+          ...assetSelectorMapped.props,
+          label: e.props.label,
+          form,
+          error: e.props.error,
+          compact: params.isParentFlexRow,
+          style,
+        },
+      };
+    }
+
+    case 'AccountSelector': {
+      const accountSelector = child as AccountSelectorElement;
+      const accountSelectorMapped = accountSelectorFn({
+        ...params,
+        element: accountSelector,
+      } as UIComponentParams<AccountSelectorElement>);
+
+      return {
+        ...accountSelectorMapped,
+        element: 'SnapUIAccountSelector',
+        props: {
+          ...accountSelectorMapped.props,
+          label: e.props.label,
+          form,
+          error: e.props.error,
         },
       };
     }

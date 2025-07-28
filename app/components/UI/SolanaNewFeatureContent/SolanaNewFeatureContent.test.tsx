@@ -1,10 +1,13 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
-import { KeyringClient } from '@metamask/keyring-snap-client';
 import SolanaNewFeatureContent from './SolanaNewFeatureContent';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { Linking } from 'react-native';
+import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
+import Routes from '../../../constants/navigation/Routes';
+import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -15,29 +18,28 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
 }));
 
-jest.mock('@metamask/keyring-snap-client', () => ({
-  KeyringClient: jest.fn().mockImplementation(() => ({
-    createAccount: jest.fn(),
-  })),
-}));
-
-jest.mock('../../../core/SnapKeyring/SolanaWalletSnap', () => ({
-  SolanaWalletSnapSender: jest.fn(),
-}));
-
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: jest.fn(),
+  }),
+}));
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+});
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -56,90 +58,94 @@ const renderWithProviders = (component: React.ReactElement) =>
 describe('SolanaNewFeatureContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue(false);
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue('false');
   });
 
-  it('renders correctly', async () => {
-    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
+  it('renders correctly with all main elements', async () => {
+    const { getByText, getByTestId } = renderWithProviders(
+      <SolanaNewFeatureContent />,
+    );
 
     await waitFor(() => {
       expect(getByText('solana_new_feature_content.title')).toBeTruthy();
       expect(
-        getByText('solana_new_feature_content.feature_1_title'),
+        getByText('solana_new_feature_content.title_description'),
       ).toBeTruthy();
+      expect(getByText('solana_new_feature_content.learn_more')).toBeTruthy();
       expect(
-        getByText('solana_new_feature_content.feature_2_title'),
+        getByText('solana_new_feature_content.import_your_wallet'),
       ).toBeTruthy();
-      expect(
-        getByText('solana_new_feature_content.feature_3_title'),
-      ).toBeTruthy();
+      expect(getByText('solana_new_feature_content.not_now')).toBeTruthy();
+      expect(getByTestId('solana-new-feature-sheet')).toBeTruthy();
     });
   });
 
-  it('calls setItem when the "close" button is pressed', async () => {
+  it('handles close button press correctly', async () => {
     const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      const closeButton = getByText('solana_new_feature_content.not_now');
-      fireEvent.press(closeButton);
+      const notNowButton = getByText('solana_new_feature_content.not_now');
+      fireEvent.press(notNowButton);
     });
 
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-      '@MetaMask:solanaFeatureModalShown',
+      SOLANA_FEATURE_MODAL_SHOWN,
       'true',
     );
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
-  it('shows the "create account"  button for new users', async () => {
+  it('handles import wallet button press correctly', async () => {
     const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      expect(
-        getByText('solana_new_feature_content.create_solana_account'),
-      ).toBeTruthy();
-    });
-  });
-
-  it('shows the "got it" button for existing users', async () => {
-    (useSelector as jest.Mock).mockReturnValue(true);
-    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
-
-    await waitFor(() => {
-      expect(getByText('solana_new_feature_content.got_it')).toBeTruthy();
-    });
-  });
-
-  it('creates an account when "create account" button is pressed', async () => {
-    const mockCreateAccount = jest.fn();
-    (KeyringClient as jest.Mock).mockImplementation(() => ({
-      createAccount: mockCreateAccount,
-    }));
-
-    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
-
-    await waitFor(() => {
-      const createButton = getByText(
-        'solana_new_feature_content.create_solana_account',
+      const importButton = getByText(
+        'solana_new_feature_content.import_your_wallet',
       );
-      fireEvent.press(createButton);
+      fireEvent.press(importButton);
     });
 
-    expect(mockCreateAccount).toHaveBeenCalledWith({
-      scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-    });
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-      '@MetaMask:solanaFeatureModalShown',
+      SOLANA_FEATURE_MODAL_SHOWN,
       'true',
     );
+    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MULTI_SRP.IMPORT);
   });
 
-  it('does not render when modal has been shown before', async () => {
-    (StorageWrapper.getItem as jest.Mock).mockResolvedValue('true');
-    const { queryByText } = renderWithProviders(<SolanaNewFeatureContent />);
+  it('opens learn more URL when learn more button is pressed', async () => {
+    const mockOpenURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockImplementation(() => Promise.resolve(true));
+
+    const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      expect(queryByText('solana_new_feature_content.title')).toBeNull();
+      const learnMoreButton = getByText(
+        'solana_new_feature_content.learn_more',
+      );
+      fireEvent.press(learnMoreButton);
+    });
+
+    expect(mockOpenURL).toHaveBeenCalledWith(
+      SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE,
+    );
+
+    mockOpenURL.mockRestore();
+  });
+
+  it('renders LottieView animation', async () => {
+    const { getByTestId } = renderWithProviders(<SolanaNewFeatureContent />);
+
+    await waitFor(() => {
+      expect(getByTestId('solana-new-feature-sheet')).toBeTruthy();
     });
   });
 });

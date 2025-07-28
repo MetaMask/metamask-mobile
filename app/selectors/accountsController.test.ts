@@ -4,7 +4,6 @@ import { Hex, isValidChecksumAddress } from '@metamask/utils';
 import {
   BtcAccountType,
   EthAccountType,
-  EthScope,
   BtcMethod,
   EthMethod,
   SolMethod,
@@ -16,21 +15,20 @@ import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
   selectSelectedInternalAccountFormattedAddress,
-  selectHasCreatedBtcMainnetAccount,
-  hasCreatedBtcTestnetAccount,
   selectCanSignTransactions,
   selectSolanaAccountAddress,
   selectSolanaAccount,
   selectPreviouslySelectedEvmAccount,
+  selectSelectedInternalAccountId,
+  selectInternalEvmAccounts,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
-  expectedUuid,
-  expectedUuid2,
   internalAccount1,
   MOCK_ADDRESS_2,
   createMockInternalAccount,
   createMockUuidFromAddress,
+  internalAccount2,
 } from '../util/test/accountsControllerTestUtils';
 import { RootState } from '../reducers';
 import { AGREED } from '../constants/storage';
@@ -95,33 +93,13 @@ describe('Accounts Controller Selectors', () => {
             },
           },
         } as RootState),
-      ).toEqual({
-        address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
-        id: expectedUuid2,
-        options: {},
-        scopes: [EthScope.Eoa],
-        metadata: {
-          name: 'Account 2',
-          importTime: 1684232000456,
-          keyring: {
-            type: 'HD Key Tree',
-          },
-        },
-        methods: [
-          'personal_sign',
-          'eth_signTransaction',
-          'eth_signTypedData_v1',
-          'eth_signTypedData_v3',
-          'eth_signTypedData_v4',
-        ],
-        type: EthAccountType.Eoa,
-      });
+      ).toEqual(internalAccount2);
     });
     it('throws an error if the selected account ID does not exist', () => {
       const invalidState: AccountsControllerState = {
         internalAccounts: {
           accounts: {
-            [expectedUuid]: internalAccount1,
+            [internalAccount1.id]: internalAccount1,
           },
           selectedAccount: 'non-existent-id',
         },
@@ -206,9 +184,6 @@ describe('Accounts Controller Selectors', () => {
   });
 });
 
-const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
-const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
-
 function getStateWithAccount(account: InternalAccount) {
   return {
     engine: {
@@ -226,46 +201,6 @@ function getStateWithAccount(account: InternalAccount) {
     },
   } as RootState;
 }
-
-const btcMainnetAccount = createMockInternalAccount(
-  MOCK_BTC_MAINNET_ADDRESS,
-  'Bitcoin Account',
-  KeyringTypes.snap,
-  BtcAccountType.P2wpkh,
-);
-
-const btcTestnetAccount = createMockInternalAccount(
-  MOCK_BTC_TESTNET_ADDRESS,
-  'Bitcoin Testnet Account',
-  KeyringTypes.snap,
-  BtcAccountType.P2wpkh,
-);
-
-describe('Bitcoin Account Selectors', () => {
-  describe('hasCreatedBtcMainnetAccount', () => {
-    it('returns true when a BTC mainnet account exists', () => {
-      const state = getStateWithAccount(btcMainnetAccount);
-      expect(selectHasCreatedBtcMainnetAccount(state)).toBe(true);
-    });
-
-    it('returns false when no BTC mainnet account exists', () => {
-      const state = getStateWithAccount(btcTestnetAccount);
-      expect(selectHasCreatedBtcMainnetAccount(state)).toBe(false);
-    });
-  });
-
-  describe('hasCreatedBtcTestnetAccount', () => {
-    it('returns true when a BTC testnet account exists', () => {
-      const state = getStateWithAccount(btcTestnetAccount);
-      expect(hasCreatedBtcTestnetAccount(state)).toBe(true);
-    });
-
-    it('returns false when no BTC testnet account exists', () => {
-      const state = getStateWithAccount(btcMainnetAccount);
-      expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
-    });
-  });
-});
 
 describe('Solana Account Selectors', () => {
   beforeEach(() => {
@@ -744,5 +679,58 @@ describe('selectPreviouslySelectedEvmAccount', () => {
 
     // Should return undefined as there are no EVM accounts
     expect(selectPreviouslySelectedEvmAccount(state)).toBeUndefined();
+  });
+});
+
+describe('selectSelectedInternalAccountId', () => {
+  const arrangeAccount = () =>
+    createMockInternalAccount(
+      '0xAddr1',
+      'Mock Account',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    );
+
+  it('returns the selected accountId from state', () => {
+    const internalAccount = arrangeAccount();
+    const state = getStateWithAccount(internalAccount);
+    const result = selectSelectedInternalAccountId(state);
+    expect(result).toBe(internalAccount.id);
+  });
+
+  it('returns the same result on subsequent calls, does not recompute', () => {
+    const internalAccount = arrangeAccount();
+    const state = getStateWithAccount(internalAccount);
+    const result1 = selectSelectedInternalAccountId(state);
+    const result2 = selectSelectedInternalAccountId(state);
+    expect(result1).toBe(result2);
+    expect(selectSelectedInternalAccountId.recomputations()).toBe(1);
+  });
+});
+
+describe('selectInternalEvmAccounts', () => {
+  it(`returns internal accounts with evm account type`, () => {
+    const mockAccountsControllerReversed =
+      MOCK_GENERATED_ACCOUNTS_CONTROLLER_REVERSED();
+
+    const stateAccountsList = Object.values(
+      mockAccountsControllerReversed.internalAccounts.accounts,
+    );
+
+    expect(stateAccountsList).toHaveLength(6);
+
+    stateAccountsList[0].type = 'solana:data-account';
+    stateAccountsList[1].type = 'bip122:p2pkh';
+
+    const result = selectInternalEvmAccounts({
+      engine: {
+        backgroundState: {
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+          AccountsController: mockAccountsControllerReversed,
+        },
+      },
+    } as RootState);
+
+    expect(result).toHaveLength(4);
   });
 });

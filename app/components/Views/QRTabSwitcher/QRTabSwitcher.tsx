@@ -14,6 +14,7 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import HeaderBase from '../../../component-library/components/HeaderBase';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 export enum QRTabSwitcherScreens {
   Scanner,
@@ -55,6 +56,13 @@ export const createQRScannerNavDetails =
   createNavigationDetails<QRTabSwitcherParams>(Routes.QR_TAB_SWITCHER);
 
 const QRTabSwitcher = () => {
+  // Start tracing component loading
+  const isFirstRender = useRef(true);
+
+  if (isFirstRender.current) {
+    trace({ name: TraceName.QRTabSwitcher });
+  }
+
   const route = useRoute();
   const {
     onScanError,
@@ -74,6 +82,12 @@ const QRTabSwitcher = () => {
   const styles = createStyles(theme);
 
   const animatedValue = useRef(new Animated.Value(selectedIndex)).current;
+
+  // End trace when component has finished initial loading
+  useEffect(() => {
+    endTrace({ name: TraceName.QRTabSwitcher });
+    isFirstRender.current = false;
+  }, []);
 
   useEffect(() => {
     Animated.timing(animatedValue, {
@@ -132,6 +146,7 @@ const QRTabSwitcher = () => {
           }
         >
           {selectedIndex === QRTabSwitcherScreens.Receive ? (
+            // @ts-expect-error proptypes components requires ts-expect-error
             <NavbarTitle
               // @ts-expect-error proptypes components requires ts-expect-error
               title={strings(`receive.title`)}

@@ -23,16 +23,15 @@ export default function migrate(state: unknown) {
   const currencyController =
     state.engine.backgroundState.CurrencyRateController;
 
-  if (
-    !isObject(currencyController) ||
-    !hasProperty(currencyController, 'currentCurrency')
-  ) {
+  if (!isObject(currencyController)) {
     captureException(
       new Error(
         `Migration: Invalid CurrencyController state type '${typeof currencyController}'`,
       ),
     );
 
+    return state;
+  } else if (!hasProperty(currencyController, 'currentCurrency')) {
     return state;
   }
 

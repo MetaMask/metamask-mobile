@@ -4,13 +4,21 @@ import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { v4 as uuidv4 } from 'uuid';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectSelectedInternalAccount,
+  ///: END:ONLY_INCLUDE_IF
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../../../selectors/accountsController';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { isSolanaChainId } from '@metamask/bridge-controller';
-import { selectMultichainTokenList } from '../../../../../selectors/multichain/multichain';
+import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
+import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain/multichain';
+import { RootState } from '../../../../../reducers';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 ///: END:ONLY_INCLUDE_IF
 
 export async function fetchAtomicTokenBalance(
@@ -35,7 +43,11 @@ export const fetchEvmAtomicBalance = async (
     if (tokenAddress === constants.AddressZero) {
       return await web3Provider.getBalance(getAddress(selectedAddress));
     }
-    return await fetchAtomicTokenBalance(tokenAddress, selectedAddress, web3Provider);
+    return await fetchAtomicTokenBalance(
+      tokenAddress,
+      selectedAddress,
+      web3Provider,
+    );
   }
   return undefined;
 };
@@ -54,22 +66,25 @@ interface Balance {
  * @param token.balance - The cached token balance as a non-atomic decimal string, e.g. "1.23456".
  * @returns An object containing the the balance as a non-atomic decimal string and the atomic balance as a BigNumber.
  */
-export const useLatestBalance = (
-  token: {
-    address?: string;
-    decimals?: number;
-    chainId?: Hex | CaipChainId;
-    balance?: string
-  },
-) => {
+export const useLatestBalance = (token: {
+  address?: string;
+  decimals?: number;
+  chainId?: Hex | CaipChainId;
+  balance?: string;
+}) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
-  const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const previousToken = usePrevious(token);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Returns native SOL and SPL tokens, contains balance and fiat values
   // Balance and fiat values are not truncated
-  const nonEvmTokens = useSelector(selectMultichainTokenList);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const nonEvmTokens = useSelector((state: RootState) =>
+    selectMultichainTokenListForAccountId(state, selectedAccount?.id),
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const chainId = token.chainId;
@@ -78,20 +93,40 @@ export const useLatestBalance = (
     if (
       token.address &&
       token.decimals &&
-      chainId && !isCaipChainId(chainId) &&
+      chainId &&
+      !isCaipChainId(chainId) &&
       selectedAddress
     ) {
-      const web3Provider = getProviderByChainId(chainId);
-      const atomicBalance = await fetchEvmAtomicBalance(
-        web3Provider,
-        selectedAddress,
-        token.address,
-        chainId,
-      );
-      if (atomicBalance && token.decimals) {
-        setBalance({
-          displayBalance: formatUnits(atomicBalance, token.decimals),
-          atomicBalance,
+      // Create a unique UUID for this trace to prevent collisions
+      const traceId = uuidv4();
+      try {
+        trace({
+          name: TraceName.BridgeBalancesUpdated,
+          id: traceId,
+          data: {
+            srcChainId: chainId,
+            isNative: isNativeAddress(token?.address),
+          },
+          startTime: Date.now(),
+        });
+        const web3Provider = getProviderByChainId(chainId);
+        const atomicBalance = await fetchEvmAtomicBalance(
+          web3Provider,
+          selectedAddress,
+          token.address,
+          chainId,
+        );
+        if (atomicBalance && token.decimals) {
+          setBalance({
+            displayBalance: formatUnits(atomicBalance, token.decimals),
+            atomicBalance,
+          });
+        }
+      } finally {
+        endTrace({
+          name: TraceName.BridgeBalancesUpdated,
+          id: traceId,
+          timestamp: Date.now(),
         });
       }
     }
@@ -104,12 +139,15 @@ export const useLatestBalance = (
     if (
       token.address &&
       token.decimals &&
-      chainId && isSolanaChainId(chainId) &&
+      chainId &&
+      isSolanaChainId(chainId) &&
       selectedAddress
     ) {
-      const displayBalance = nonEvmTokens.find((nonEvmToken) =>
-        nonEvmToken.address === token.address
-        && nonEvmToken.chainId === chainId)?.balance;
+      const displayBalance = nonEvmTokens.find(
+        (nonEvmToken) =>
+          nonEvmToken.address === token.address &&
+          nonEvmToken.chainId === chainId,
+      )?.balance;
 
       if (displayBalance && token.decimals) {
         setBalance({

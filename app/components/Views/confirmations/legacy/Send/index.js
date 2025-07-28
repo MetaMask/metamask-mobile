@@ -17,7 +17,6 @@ import {
   fromWei,
   fromTokenMinimalUnit,
 } from '../../../../../util/number';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -36,7 +35,11 @@ import {
   generateTransferData,
 } from '../../../../../util/transactions';
 import Logger from '../../../../../util/Logger';
-import { getAddress } from '../../../../../util/address';
+import {
+  getAddress,
+  areAddressesEqual,
+  toChecksumAddress,
+} from '../../../../../util/address';
 import { MAINNET } from '../../../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
@@ -60,7 +63,6 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
-import { toLowerCaseEquals } from '../../../../../util/general';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import TransactionTypes from '../../../../../core/TransactionTypes';
 import {
@@ -428,7 +430,7 @@ class Send extends PureComponent {
 
     newTxMeta.from = selectedAddress;
     const fromAccount = internalAccounts.find((account) =>
-      toLowerCaseEquals(account.address, selectedAddress),
+      areAddressesEqual(account.address, selectedAddress),
     );
     newTxMeta.transactionFromName = fromAccount.metadata.name;
     this.props.setTransactionObject(newTxMeta);
@@ -820,7 +822,10 @@ const mapStateToProps = (state) => {
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
     tokenList: selectTokenList(state),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+      state,
+      state.transaction?.chainId,
+    ),
   };
 };
 

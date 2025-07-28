@@ -24,23 +24,47 @@ import BadgeWrapper, {
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import { TokenI } from '../../../Tokens/types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
+import useEarnTokens from '../../hooks/useEarnTokens';
+import { EarnTokenDetails } from '../../types/lending.types';
+import { trace, TraceName } from '../../../../../util/trace';
 
 interface EarnTokenSelectorProps {
   token: TokenI;
+  action: EARN_INPUT_VIEW_ACTIONS;
 }
 
-const EarnTokenSelector = ({ token }: EarnTokenSelectorProps) => {
+const EarnTokenSelector = ({
+  token: someEarnToken,
+  action,
+}: EarnTokenSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkName = useSelector(selectNetworkName);
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-  const tokenDetails = getTokenWithBalanceAndApr(token);
+  const { getEarnToken, getOutputToken } = useEarnTokens();
+  const earnToken = getEarnToken(someEarnToken);
+  const outputToken = getOutputToken(someEarnToken);
+  const token = (earnToken || outputToken) as EarnTokenDetails;
+  const apr = parseFloat(token?.experience?.apr ?? '0').toFixed(1);
 
   const handlePress = () => {
+    trace({ name: TraceName.EarnTokenList });
+
+    const tokenFilter = {
+      includeReceiptTokens: false,
+    };
+
+    if (action === EARN_INPUT_VIEW_ACTIONS.WITHDRAW) {
+      tokenFilter.includeReceiptTokens = true;
+    }
+
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+      params: {
+        tokenFilter,
+        onItemPressScreen: action,
+      },
     });
   };
 
@@ -51,7 +75,7 @@ const EarnTokenSelector = ({ token }: EarnTokenSelectorProps) => {
           chainId={token.chainId ?? ''}
           ticker={token.ticker ?? ''}
           big={false}
-          biggest={false}
+          biggest
           testID={`earn-token-selector-${token.symbol}-${token.chainId}`}
           style={styles.networkAvatar}
         />
@@ -82,7 +106,11 @@ const EarnTokenSelector = ({ token }: EarnTokenSelectorProps) => {
       >
         {renderTokenAvatar()}
       </BadgeWrapper>
-      <Text variant={TextVariant.BodyMDMedium} style={styles.tokenText}>
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        style={styles.tokenText}
+        numberOfLines={1}
+      >
         {token.name}
       </Text>
     </View>
@@ -90,12 +118,23 @@ const EarnTokenSelector = ({ token }: EarnTokenSelectorProps) => {
 
   const renderEndAccessory = () => (
     <View style={styles.endAccessoryContainer}>
-      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
-        {`${tokenDetails.apr}% APR`}
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        color={TextColor.Success}
+        numberOfLines={1}
+      >
+        {`${apr}% APR`}
       </Text>
-      {tokenDetails.balanceFormatted !== undefined && (
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {tokenDetails.balanceFormatted}
+
+      {token?.balanceFormatted !== undefined && (
+        <Text
+          style={styles.balanceText}
+          variant={TextVariant.BodySMMedium}
+          color={TextColor.Alternative}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {token?.balanceFormatted}
         </Text>
       )}
     </View>

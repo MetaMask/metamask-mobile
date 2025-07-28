@@ -1,4 +1,7 @@
-import { AccountsControllerState } from '@metamask/accounts-controller';
+import {
+  AccountId,
+  AccountsControllerState,
+} from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
@@ -14,12 +17,13 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
-  isBtcAccount,
-  isBtcMainnetAddress,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  isBtcTestnetAddress,
-  ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
+import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
+import { areAddressesEqual, toFormattedAddress } from '../util/address';
+
+export type InternalAccountWithCaipAccountId = InternalAccount & {
+  caipAccountId: CaipAccountId;
+};
 
 /**
  *
@@ -30,6 +34,15 @@ const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
 
 /**
+ * A memoized selector that returns internal accounts from the AccountsController.
+ */
+export const selectInternalAccountsById = createDeepEqualSelector(
+  selectAccountsControllerState,
+  (accountControllerState): Record<AccountId, InternalAccount> =>
+    accountControllerState.internalAccounts.accounts,
+);
+
+/**
  * A memoized selector that returns internal accounts from the AccountsController, sorted by the order of KeyringController's keyring accounts
  */
 export const selectInternalAccounts = createDeepEqualSelector(
@@ -38,7 +51,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
   (accountControllerState, orderedKeyringAccounts): InternalAccount[] => {
     const keyringAccountsMap = new Map(
       orderedKeyringAccounts.map((account, index) => [
-        account.toLowerCase(),
+        toFormattedAddress(account),
         index,
       ]),
     );
@@ -46,11 +59,33 @@ export const selectInternalAccounts = createDeepEqualSelector(
       accountControllerState.internalAccounts.accounts,
     ).sort(
       (a, b) =>
-        (keyringAccountsMap.get(a.address.toLowerCase()) || 0) -
-        (keyringAccountsMap.get(b.address.toLowerCase()) || 0),
+        (keyringAccountsMap.get(toFormattedAddress(a.address)) || 0) -
+        (keyringAccountsMap.get(toFormattedAddress(b.address)) || 0),
     );
     return sortedAccounts;
   },
+);
+
+export const selectInternalEvmAccounts = createSelector(
+  selectInternalAccounts,
+  (accounts) => accounts.filter((account) => isEvmAccountType(account.type)),
+);
+
+/**
+ * A memoized selector that returns internal accounts from the AccountsController,
+ * sorted by the order of KeyringController's keyring accounts,
+ * with an additional caipAccountId property
+ */
+export const selectInternalAccountsWithCaipAccountId = createDeepEqualSelector(
+  selectInternalAccounts,
+  (accounts): InternalAccountWithCaipAccountId[] =>
+    accounts.map((account) => {
+      const { namespace, reference } = parseCaipChainId(account.scopes[0]);
+      return {
+        ...account,
+        caipAccountId: `${namespace}:${reference}:${account.address}`,
+      };
+    }),
 );
 
 /**
@@ -58,7 +93,9 @@ export const selectInternalAccounts = createDeepEqualSelector(
  */
 export const selectSelectedInternalAccount = createDeepEqualSelector(
   selectAccountsControllerState,
-  (accountsControllerState: AccountsControllerState) => {
+  (
+    accountsControllerState: AccountsControllerState,
+  ): InternalAccount | undefined => {
     const accountId = accountsControllerState.internalAccounts.selectedAccount;
     const account =
       accountsControllerState.internalAccounts.accounts[accountId];
@@ -72,6 +109,14 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
     }
     return account;
   },
+);
+
+/**
+ * A memoized selector that returns the selected internal account id
+ */
+export const selectSelectedInternalAccountId = createSelector(
+  selectSelectedInternalAccount,
+  (account): string | undefined => account?.id,
 );
 
 /**
@@ -93,6 +138,14 @@ export const selectOrderedInternalAccountsByLastSelected = createSelector(
   },
 );
 
+export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
+  [selectInternalAccounts, (_state, address) => address],
+  (internalAccounts, address) =>
+    internalAccounts.find((account) =>
+      areAddressesEqual(account.address, address),
+    ),
+);
+
 /**
  * A memoized selector that returns the last selected EVM account
  */
@@ -106,7 +159,8 @@ export const selectLastSelectedEvmAccount = createSelector(
  */
 export const selectLastSelectedSolanaAccount = createSelector(
   selectOrderedInternalAccountsByLastSelected,
-  (accounts) => accounts.find((account) => account.type === 'solana:data-account'),
+  (accounts) =>
+    accounts.find((account) => account.type === 'solana:data-account'),
 );
 
 /**
@@ -177,29 +231,7 @@ export const selectHasCreatedSolanaMainnetAccount = createSelector(
   (accounts) => accounts.some((account) => isSolanaAccount(account)),
 );
 
-/**
- * A selector that returns whether the user has already created a Bitcoin mainnet account
- */
-export const selectHasCreatedBtcMainnetAccount = createSelector(
-  selectInternalAccounts,
-  (accounts) =>
-    accounts.some(
-      (account) =>
-        isBtcAccount(account) && isBtcMainnetAddress(account.address),
-    ),
-);
-
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
-/**
- * A selector that returns whether the user has already created a Bitcoin testnet account
- */
-export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
-  const accounts = selectInternalAccounts(state);
-  return accounts.some(
-    (account) => isBtcAccount(account) && isBtcTestnetAddress(account.address),
-  );
-}
 
 /**
  * A selector that returns the solana account address

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Device from '../../../util/device';
@@ -11,7 +11,10 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { useTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectSelectedNetworkClientId,
+} from '../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import Icon, {
   IconName,
@@ -30,7 +33,6 @@ const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 const createStyles = (colors, brandColors) =>
   StyleSheet.create({
     itemWrapper: {
-      paddingHorizontal: 15,
       paddingBottom: 16,
     },
     collectibleContractIcon: { width: 30, height: 30 },
@@ -105,6 +107,7 @@ function CollectibleContractElement({
   const { colors, themeAppearance, brandColors } = useTheme();
   const styles = createStyles(colors, brandColors);
   const { trackEvent, createEventBuilder } = useMetrics();
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   const toggleCollectibles = useCallback(() => {
     setCollectiblesVisible(!collectiblesVisible);
@@ -132,6 +135,7 @@ function CollectibleContractElement({
     NftController.removeAndIgnoreNft(
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
+      selectedNetworkClientId,
     );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
@@ -152,6 +156,7 @@ function CollectibleContractElement({
     NftController.addNft(
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
+      selectedNetworkClientId,
     );
   };
 

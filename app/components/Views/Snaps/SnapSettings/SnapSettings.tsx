@@ -33,6 +33,7 @@ import { getAccountsBySnapId } from '../../../../core/SnapKeyring/utils/getAccou
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Logger from '../../../../util/Logger';
+import { areAddressesEqual } from '../../../../util/address';
 interface SnapSettingsProps {
   snap: Snap;
 }
@@ -89,7 +90,9 @@ const SnapSettings = () => {
         const addresses = await getAccountsBySnapId(snap.id);
         const snapIdentities = Object.values(internalAccounts).filter(
           (internalAccount) =>
-            addresses.includes(internalAccount.address.toLowerCase()),
+            addresses.some((address) =>
+              areAddressesEqual(address, internalAccount.address),
+            ),
         );
         setKeyringAccounts(snapIdentities);
       })();

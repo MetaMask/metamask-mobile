@@ -1,20 +1,24 @@
+import { CaipChainId } from '@metamask/utils';
 import { ImageSourcePropType } from 'react-native';
 export interface Network {
   id: string;
   name: string;
-  rpcUrl: string;
   isSelected: boolean;
   yOffset?: number;
   imageSource: ImageSourcePropType;
+  caipChainId: CaipChainId;
 }
 
 export interface NetworkConnectMultiSelectorProps {
-  onSelectNetwork?: (id: string, isSelected: boolean) => void;
+  onSelectNetwork?: (caipChainId: CaipChainId, isSelected: boolean) => void;
   networks?: Network[];
   isLoading?: boolean;
-  selectedChainIds?: string[];
+  selectedChainIds?: CaipChainId[];
   isMultiSelect?: boolean;
-  renderRightAccessory?: (id: string, name: string) => React.ReactNode;
+  renderRightAccessory?: (
+    caipChainId: CaipChainId,
+    name: string,
+  ) => React.ReactNode;
   isSelectionDisabled?: boolean;
   isAutoScrollEnabled?: boolean;
 }

@@ -41,6 +41,9 @@ jest.mock('../../../core/Engine', () => ({
       maybeUpdateState: jest.fn(),
       test: () => ({ result: true, name: 'test' }),
     },
+    AccountsController: {
+      listMultichainAccounts: () => [],
+    },
   },
 }));
 

@@ -35,6 +35,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={20}
         name="Activity"
         style={
@@ -58,9 +59,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -91,6 +91,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={20}
         name="Add"
         style={
@@ -114,9 +115,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -166,6 +166,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={20}
         name="Activity"
         style={
@@ -189,9 +190,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -221,7 +221,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           }
         >
           <SvgMock
-            color="#9ca1af"
+            color="#b7bbc8"
+            fill="currentColor"
             height={20}
             name="Question"
             style={
@@ -255,6 +256,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
     >
       <SvgMock
         color="#121314"
+        fill="currentColor"
         height={20}
         name="Add"
         style={
@@ -278,9 +280,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -310,7 +311,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           }
         >
           <SvgMock
-            color="#9ca1af"
+            color="#b7bbc8"
+            fill="currentColor"
             height={20}
             name="Question"
             style={
@@ -374,9 +376,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -406,7 +407,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           }
         >
           <SvgMock
-            color="#9ca1af"
+            color="#b7bbc8"
+            fill="currentColor"
             height={20}
             name="Question"
             style={
@@ -451,9 +453,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -483,7 +484,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           }
         >
           <SvgMock
-            color="#9ca1af"
+            color="#b7bbc8"
+            fill="currentColor"
             height={20}
             name="Question"
             style={
@@ -547,9 +549,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -591,9 +592,8 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Medium",
+              "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }

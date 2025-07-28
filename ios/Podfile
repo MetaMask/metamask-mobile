@@ -1,11 +1,19 @@
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
-require_relative '../node_modules/react-native/scripts/react_native_pods'
-require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
-platform :ios, '13.0'
+require 'json'
+podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
+
+ENV['RCT_NEW_ARCH_ENABLED'] = podfile_properties['newArchEnabled'] == 'true' ? '1' : '0'
+ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
+
+platform :ios, '15.1'
 prepare_react_native_project!
 # Ensures that versions from Gemfile is respected
 ensure_bundler!
+
+install! 'cocoapods',
+  :deterministic_uuids => false
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -49,50 +57,36 @@ end
 # end
 
 def common_target_logic
+  podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
+
   use_expo_modules!
-	config = use_native_modules!
+	# config = use_native_modules!
 
-  # Flags change depending on the env values.
-  flags = get_default_flags()
+  if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
+    config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
+  else
+    config_command = [
+      'node',
+      '--no-warnings',
+      '--eval',
+      'require(require.resolve(\'expo-modules-autolinking\', { paths: [require.resolve(\'expo/package.json\')] }))(process.argv.slice(1))',
+      'react-native-config',
+      '--json',
+      '--platform',
+      'ios'
+    ]
+  end
 
-  # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
-  # because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
-  #
-  # To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
-  # ```js
-  # module.exports = {
-  #   dependencies: {
-  #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
-  # ```
-  flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
-  use_react_native!(
-    :path => config[:reactNativePath],
-    # to enable hermes on iOS, change `false` to `true` and then install pods
-    # Hermes is now enabled by default. Disable by setting this flag to false.
-    # Upcoming versions of React Native may rely on get_default_flags(), but
-    # we make it explicit here to aid in the React Native upgrade process.
-    #:hermes_enabled => flags[:hermes_enabled],
-    :hermes_enabled => false,
-    :fabric_enabled => flags[:fabric_enabled],
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
-    :flipper_configuration => flipper_config,
-    # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/..",
-  )
+  config = use_native_modules!(config_command)
+
+  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
 
   # Pods for MetaMask
-  pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
   pod 'ReactNativePayments', :path => '../node_modules/@metamask/react-native-payments/lib/ios/'
 
-    # Pods for Push Notifications
-  pod 'Firebase', :modular_headers => true
-  pod 'FirebaseCoreInternal', :modular_headers => true
-  pod 'GoogleUtilities', :modular_headers => true
+  # Pods for Push Notifications
   pod 'FirebaseCore', :modular_headers => true
-
+  pod 'GoogleUtilities/NSData+zlib', :modular_headers => true
 
    # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!
@@ -101,14 +95,13 @@ def common_target_logic
 
   # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
   pod 'OpenSSL-Universal', :modular_headers => true
-end
 
-post_integrate do |installer|
-  begin
-    expo_patch_react_imports!(installer)
-  rescue => e
-    Pod::UI.warn e
-  end
+  use_react_native!(
+    :path => config[:reactNativePath],
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
+  )
 end
 
 target 'MetaMask' do
@@ -123,27 +116,62 @@ target 'MetaMask-Flask' do
 	common_target_logic
 end
 
+if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
+  config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
+else
+  config_command = [
+    'node',
+    '--no-warnings',
+    '--eval',
+    'require(require.resolve(\'expo-modules-autolinking\', { paths: [require.resolve(\'expo/package.json\')] }))(process.argv.slice(1))',
+    'react-native-config',
+    '--json',
+    '--platform',
+    'ios'
+  ]
+end
+
+config = use_native_modules!(config_command)
+
 post_install do |installer|
-  # fix flipper with pika 15.3 toolchain
-  installer.pods_project.targets.each do |target|
-    if target.name == 'Flipper'
-      file_path = 'ios/Pods/Flipper/xplat/Flipper/FlipperTransportTypes.h'
-      system("chmod +w " + file_path)
-      contents = File.read(file_path)
-      unless contents.include?('#include <functional>')
-        File.open(file_path, 'w') do |file|
-          file.puts('#include <functional>')
-          file.puts(contents)
-        end
+  react_native_post_install(
+    installer,
+    config[:reactNativePath],
+    :mac_catalyst_enabled => false,
+    :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
+  )
+
+  # Modify RCT-Folly Portability.h to disable coroutines
+  Dir.glob(installer.sandbox.root + "RCT-Folly/folly/Portability.h") do |file|
+    begin
+      # First try to make the file writable
+      system "chmod +w #{file}"
+
+      contents = File.read(file)
+      modified_contents = contents.gsub(/#define FOLLY_HAS_COROUTINES 1/, '#define FOLLY_HAS_COROUTINES 0')
+
+      # Try writing with elevated privileges if needed
+      if !File.writable?(file)
+        system "sudo chmod +w #{file}"
       end
+
+      File.write(file, modified_contents)
+
+      # Optionally restore original permissions
+      system "chmod -w #{file}"
+    rescue => e
+      Pod::UI.warn "Failed to modify Portability.h: #{e.message}"
     end
   end
 
-  react_native_post_install(
-    installer,
-    # Set `mac_catalyst_enabled` to `true` in order to apply patches
-    # necessary for Mac Catalyst builds
-    :mac_catalyst_enabled => false
-  )
-  __apply_Xcode_12_5_M1_post_install_workaround(installer)
+  # This is necessary for Xcode 14, because it signs resource bundles by default
+  # when building for devices.
+  installer.target_installation_results.pod_target_installation_results
+    .each do |pod_name, target_installation_result|
+    target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
+      resource_bundle_target.build_configurations.each do |config|
+        config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+      end
+    end
+  end
 end

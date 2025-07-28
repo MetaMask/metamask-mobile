@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, ImageSourcePropType } from 'react-native';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import { StyleSheet, ImageSourcePropType, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
@@ -12,25 +12,52 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
-import {
-  renderNumber,
-  addCurrencySymbol,
-  balanceToFiatNumber,
-} from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import Button, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
+import {
+  selectIsUnifiedSwapsEnabled,
+  setDestTokenExchangeRate,
+  setSourceTokenExchangeRate,
+} from '../../../../../core/redux/slices/bridge';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
+import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
+import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { renderShortAddress } from '../../../../../util/address';
+import { FlexDirection } from '../../../Box/box.types';
 
-const createStyles = () =>
+const MAX_DECIMALS = 5;
+export const MAX_INPUT_LENGTH = 36;
+
+/**
+ * Calculates font size based on input length
+ */
+export const calculateFontSize = (length: number): number => {
+  if (length <= 10) return 40;
+  if (length <= 15) return 35;
+  if (length <= 20) return 30;
+  if (length <= 25) return 25;
+  return 20;
+};
+
+const createStyles = ({ vars }: { vars: { fontSize: number } }) =>
   StyleSheet.create({
-    container: {
-      paddingHorizontal: 24,
-    },
     content: {
-      padding: 16,
+      paddingVertical: 16,
     },
     row: {
       flexDirection: 'row',
@@ -41,172 +68,278 @@ const createStyles = () =>
       flex: 1,
     },
     input: {
-      fontSize: 40,
       borderWidth: 0,
-      lineHeight: 40,
-      height: 40,
+      lineHeight: 50,
+      height: 50,
+      fontSize: vars.fontSize,
+    },
+    currencyContainer: {
+      flex: 1,
     },
   });
-
-const formatAddress = (address?: string) =>
-  address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
-
-interface GetDisplayFiatValueParams {
-  token: BridgeToken | undefined;
-  amount: string | undefined;
-  multiChainMarketData:
-    | Record<Hex, Record<Hex, { price: number | undefined }>>
-    | undefined;
-  networkConfigurationsByChainId: Record<Hex, { nativeCurrency: string }>;
-  multiChainCurrencyRates:
-    | Record<string, { conversionRate: number | null }>
-    | undefined;
-  currentCurrency: string;
-}
-
-export const getDisplayFiatValue = ({
-  token,
-  amount,
-  multiChainMarketData,
-  networkConfigurationsByChainId,
-  multiChainCurrencyRates,
-  currentCurrency,
-}: GetDisplayFiatValueParams): string => {
-  if (!token || !amount) {
-    return addCurrencySymbol('0', currentCurrency);
-  }
-
-  const chainId = token.chainId as Hex;
-  const multiChainExchangeRates = multiChainMarketData?.[chainId];
-  const tokenMarketData = multiChainExchangeRates?.[token.address as Hex];
-
-  const nativeCurrency =
-    networkConfigurationsByChainId[chainId]?.nativeCurrency;
-  const multiChainConversionRate =
-    multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
-
-  const balanceFiatCalculation = Number(
-    balanceToFiatNumber(
-      amount,
-      multiChainConversionRate,
-      tokenMarketData?.price ?? 0,
-    ),
-  );
-
-  if (balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0) {
-    return addCurrencySymbol(balanceFiatCalculation, currentCurrency);
-  }
-
-  return `< ${addCurrencySymbol('0.01', currentCurrency)}`;
-};
 
 export enum TokenInputAreaType {
   Source = 'source',
   Destination = 'destination',
 }
+
+const formatAddress = (address?: string) => {
+  if (!address) return undefined;
+
+  if (isCaipAssetType(address)) {
+    const { assetReference } = parseCaipAssetType(address);
+    return renderShortAddress(assetReference, 4);
+  }
+  return renderShortAddress(address, 4);
+};
+
+export const getDisplayAmount = (
+  amount?: string,
+  tokenType?: TokenInputAreaType,
+) => {
+  if (amount === undefined) return amount;
+
+  const displayAmount =
+    tokenType === TokenInputAreaType.Source
+      ? amount
+      : parseAmount(amount, MAX_DECIMALS);
+
+  return displayAmount;
+};
+
+export interface TokenInputAreaRef {
+  blur: () => void;
+}
+
 interface TokenInputAreaProps {
   amount?: string;
   token?: BridgeToken;
   tokenBalance?: string;
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
-  autoFocus?: boolean;
-  isReadonly?: boolean;
   testID?: string;
   tokenType?: TokenInputAreaType;
   onTokenPress?: () => void;
   isLoading?: boolean;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  onInputPress?: () => void;
+  onMaxPress?: () => void;
 }
 
-export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
-  amount,
-  token,
-  tokenBalance,
-  networkImageSource,
-  networkName,
-  autoFocus,
-  isReadonly = false,
-  testID,
-  tokenType,
-  onTokenPress,
-  isLoading = false,
-}) => {
-  const { styles } = useStyles(createStyles, {});
+export const TokenInputArea = forwardRef<
+  TokenInputAreaRef,
+  TokenInputAreaProps
+>(
+  (
+    {
+      amount,
+      token,
+      tokenBalance,
+      networkImageSource,
+      networkName,
+      testID,
+      tokenType,
+      onTokenPress,
+      isLoading = false,
+      onFocus,
+      onBlur,
+      onInputPress,
+      onMaxPress,
+    },
+    ref,
+  ) => {
+    const currentCurrency = useSelector(selectCurrentCurrency);
 
-  // Data for fiat value calculation
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const multiChainMarketData = useSelector(selectTokenMarketData);
-  const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-  const networkConfigurationsByChainId = useSelector(
-    selectNetworkConfigurations,
-  );
+    const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
-  const fiatValue = getDisplayFiatValue({
-    token,
-    amount,
-    multiChainMarketData,
-    networkConfigurationsByChainId,
-    multiChainCurrencyRates,
-    currentCurrency,
-  });
+    // Need to fetch the exchange rate for the token if we don't have it already
+    useBridgeExchangeRates({
+      token,
+      currencyOverride: currentCurrency,
+      action:
+        tokenType === TokenInputAreaType.Source
+          ? setSourceTokenExchangeRate
+          : setDestTokenExchangeRate,
+    });
 
-  // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
-  const formattedBalance =
-    token?.symbol && tokenBalance
-      ? `${renderNumber(tokenBalance)} ${token?.symbol}`
-      : undefined;
-  const formattedAddress =
-    token?.address && token.address !== ethers.constants.AddressZero
-      ? formatAddress(token?.address)
-      : undefined;
+    const inputRef = useRef<TextInput>(null);
 
-  const subtitle =
-    tokenType === TokenInputAreaType.Source
-      ? formattedBalance
-      : formattedAddress;
+    useImperativeHandle(ref, () => ({
+      blur: () => {
+        if (inputRef.current) {
+          inputRef.current.blur();
+          onBlur?.();
+        }
+      },
+    }));
 
-  return (
-    <Box style={styles.container}>
-      <Box style={styles.content} gap={4}>
-        <Box style={styles.row}>
-          <Box style={styles.amountContainer}>
-            {isLoading ? (
-              <Skeleton width={100} height={40} style={styles.input} />
+    const navigation = useNavigation();
+
+    const navigateToDestNetworkSelector = () => {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
+        params: {
+          shouldGoToTokens: true,
+        } as BridgeDestNetworkSelectorRouteParams,
+      });
+    };
+
+    // // Data for fiat value calculation
+    const evmMultiChainMarketData = useSelector(selectTokenMarketData);
+    const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
+    const networkConfigurationsByChainId = useSelector(
+      selectNetworkConfigurations,
+    );
+
+    const isInsufficientBalance = useIsInsufficientBalance({ amount, token });
+
+    let nonEvmMultichainAssetRates = {};
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
+    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
+    const currencyValue = getDisplayCurrencyValue({
+      token,
+      amount,
+      evmMultiChainMarketData,
+      networkConfigurationsByChainId,
+      evmMultiChainCurrencyRates,
+      currentCurrency,
+      nonEvmMultichainAssetRates,
+    });
+
+    // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
+    const formattedBalance =
+      token?.symbol && tokenBalance
+        ? `${parseFloat(tokenBalance)
+            .toFixed(3)
+            .replace(/\.?0+$/, '')} ${token?.symbol}`
+        : undefined;
+    const formattedAddress =
+      token?.address && token.address !== ethers.constants.AddressZero
+        ? formatAddress(token?.address)
+        : undefined;
+
+    const subtitle =
+      tokenType === TokenInputAreaType.Source
+        ? formattedBalance
+        : formattedAddress;
+
+    const displayedAmount = getDisplayAmount(amount, tokenType);
+    const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
+    const { styles } = useStyles(createStyles, { fontSize });
+
+    // TODO come up with a more robust way to check if the asset is native
+    // Maybe a util in BridgeController
+    const isNativeAsset =
+      token?.address === ethers.constants.AddressZero ||
+      token?.address === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
+    return (
+      <Box>
+        <Box style={styles.content} gap={4}>
+          <Box style={styles.row}>
+            <Box style={styles.amountContainer}>
+              {isLoading ? (
+                <Skeleton width="50%" height="80%" style={styles.input} />
+              ) : (
+                <Input
+                  ref={inputRef}
+                  value={displayedAmount}
+                  style={styles.input}
+                  isDisabled={false}
+                  isReadonly={tokenType === TokenInputAreaType.Destination}
+                  showSoftInputOnFocus={false}
+                  caretHidden={false}
+                  autoFocus
+                  placeholder="0"
+                  testID={`${testID}-input`}
+                  onFocus={() => {
+                    onFocus?.();
+                    onInputPress?.();
+                  }}
+                  onBlur={() => {
+                    onBlur?.();
+                  }}
+                  // Android only issue, for long numbers, the input field will focus on the right hand side
+                  // Force it to focus on the left hand side
+                  selection={
+                    tokenType === TokenInputAreaType.Destination
+                      ? { start: 0, end: 0 }
+                      : undefined
+                  }
+                />
+              )}
+            </Box>
+            {token ? (
+              <TokenButton
+                symbol={token?.symbol}
+                iconUrl={token?.image}
+                networkImageSource={networkImageSource}
+                networkName={networkName}
+                testID={testID}
+                onPress={onTokenPress}
+              />
             ) : (
-              <Input
-                value={amount}
-                style={styles.input}
-                isReadonly={isReadonly}
-                autoFocus={autoFocus}
-                placeholder="0"
-                testID={`${testID}-input`}
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings(
+                  isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to',
+                )}
+                onPress={navigateToDestNetworkSelector}
               />
             )}
           </Box>
-          <TokenButton
-            symbol={token?.symbol}
-            iconUrl={token?.image}
-            networkImageSource={networkImageSource}
-            networkName={networkName}
-            testID={testID}
-            onPress={onTokenPress}
-          />
-        </Box>
-        <Box style={styles.row}>
-          {isLoading ? (
-            <Skeleton width={100} height={10} />
-          ) : (
-            <>
-              {fiatValue ? (
-                <Text color={TextColor.Alternative}>{fiatValue}</Text>
-              ) : null}
-              {subtitle ? (
-                <Text color={TextColor.Alternative}>{subtitle}</Text>
-              ) : null}
-            </>
-          )}
+          <Box style={styles.row}>
+            {isLoading ? (
+              <Skeleton width={80} height={24} />
+            ) : (
+              <>
+                <Box style={styles.currencyContainer}>
+                  {token && amount && Number(amount) > 0 && currencyValue ? (
+                    <Text color={TextColor.Alternative}>{currencyValue}</Text>
+                  ) : null}
+                </Box>
+                {subtitle ? (
+                  tokenType === TokenInputAreaType.Source &&
+                  tokenBalance &&
+                  onMaxPress &&
+                  !isNativeAsset ? (
+                    <Box flexDirection={FlexDirection.Row} gap={4}>
+                      <Text
+                        color={
+                          isInsufficientBalance
+                            ? TextColor.Error
+                            : TextColor.Alternative
+                        }
+                      >
+                        {subtitle}
+                      </Text>
+                      <Button
+                        variant={ButtonVariants.Link}
+                        label={strings('bridge.max')}
+                        onPress={onMaxPress}
+                      />
+                    </Box>
+                  ) : (
+                    <Text
+                      color={
+                        tokenType === TokenInputAreaType.Source &&
+                        isInsufficientBalance
+                          ? TextColor.Error
+                          : TextColor.Alternative
+                      }
+                    >
+                      {subtitle}
+                    </Text>
+                  )
+                ) : null}
+              </>
+            )}
+          </Box>
         </Box>
       </Box>
-    </Box>
-  );
-};
+    );
+  },
+);

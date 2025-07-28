@@ -1,0 +1,161 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SuccessErrorSheet render matches snapshot 1`] = `
+<div
+  data-testid="mock-bottom-sheet"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "column",
+        "gap": 16,
+        "justifyContent": "center",
+        "padding": 16,
+        "width": "100%",
+      }
+    }
+  >
+    <SvgMock
+      color="#457a39"
+      fill="currentColor"
+      height={32}
+      name="Confirmation"
+      style={
+        {
+          "height": 32,
+          "width": 32,
+        }
+      }
+      width={32}
+    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "alignSelf": "center",
+          "color": "#121314",
+          "fontFamily": "Geist Bold",
+          "fontSize": 18,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "marginHorizontal": "auto",
+          "textAlign": "center",
+          "width": "70%",
+        }
+      }
+    >
+      Test Title
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "alignSelf": "center",
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "textAlign": "center",
+          "width": "100%",
+        }
+      }
+    >
+      Test Description
+    </Text>
+    <View
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+            "marginTop": 16,
+            "width": "100%",
+          },
+          {
+            "flexDirection": "row-reverse",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#3c4d9d1a",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Secondary
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Primary
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</div>
+`;

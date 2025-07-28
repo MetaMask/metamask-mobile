@@ -39,8 +39,7 @@ export const getSwapsLiveness = (
   const featureFlagKey = getFeatureFlagDeviceKey();
 
   const liveness =
-    // @ts-expect-error interface mismatch
-    typeof featureFlagsByChainId === 'boolean'
+    typeof chainFeatureFlags === 'boolean'
       ? chainFeatureFlags
       : chainFeatureFlags?.[featureFlagKey] ?? false;
 

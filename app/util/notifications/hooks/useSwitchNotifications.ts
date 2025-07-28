@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   assertIsFeatureEnabled,
-  createNotificationsForAccount,
-  deleteNotificationsForAccount,
+  enableAccounts,
+  disableAccounts,
   fetchAccountNotificationSettings,
   toggleFeatureAnnouncements,
 } from '../../../actions/notification/helpers';
@@ -141,9 +141,9 @@ export function useAccountNotificationsToggle() {
 
       try {
         if (state) {
-          await createNotificationsForAccount(addresses);
+          await enableAccounts(addresses);
         } else {
-          await deleteNotificationsForAccount(addresses);
+          await disableAccounts(addresses);
         }
       } catch (e) {
         const errorMessage =

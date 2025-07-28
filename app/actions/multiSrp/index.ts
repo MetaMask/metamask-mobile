@@ -3,9 +3,47 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import {
+  MultichainWalletSnapFactory,
+  WalletClientType,
+} from '../../core/SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  SolScope,
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BtcScope,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
+import {
+  endPerformanceTrace,
+  startPerformanceTrace,
+} from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
+import { store } from '../../store';
+import { getTraceTags } from '../../util/sentry/tags';
 
-export async function importNewSecretRecoveryPhrase(mnemonic: string) {
+import ReduxService from '../../core/redux';
+import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
+import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { SecretType } from '@metamask/seedless-onboarding-controller';
+import Logger from '../../util/Logger';
+
+interface ImportNewSecretRecoveryPhraseOptions {
+  shouldSelectAccount: boolean;
+}
+
+export async function importNewSecretRecoveryPhrase(
+  mnemonic: string,
+  options: ImportNewSecretRecoveryPhraseOptions = {
+    shouldSelectAccount: true,
+  },
+) {
   const { KeyringController } = Engine.context;
+  const { shouldSelectAccount } = options;
 
   // Convert input mnemonic to codepoints
   const mnemonicWords = mnemonic.toLowerCase().split(' ');
@@ -52,7 +90,83 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     async ({ keyring }) => keyring.getAccounts(),
   );
 
-  return Engine.setSelectedAddress(newAccountAddress);
+  const { SeedlessOnboardingController } = Engine.context;
+
+  // TODO: to use loginCompleted
+  if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+    // on Error, wallet should notify user that the newly added seed phrase is not synced properly
+    // user can try manual sync again (phase 2)
+    const seed = new Uint8Array(inputCodePoints.buffer);
+    let addSeedPhraseSuccess = false;
+    try {
+      trace({
+        name: TraceName.OnboardingAddSrp,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      await SeedlessOnboardingController.addNewSecretData(
+        seed,
+        SecretType.Mnemonic,
+        {
+          keyringId: newKeyring.id,
+        },
+      );
+      addSeedPhraseSuccess = true;
+    } catch (error) {
+      // handle seedless controller import error by reverting keyring controller mnemonic import
+      // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+      await KeyringController.removeAccount(newAccountAddress);
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      // Log the error but don't let it crash the import process
+      Logger.error(new Error(`Failed to backup seed phrase: ${errorMessage}`));
+
+      trace({
+        name: TraceName.OnboardingAddSrpError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+      });
+      endTrace({
+        name: TraceName.OnboardingAddSrpError,
+      });
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingAddSrp,
+        data: { success: addSeedPhraseSuccess },
+      });
+    }
+  }
+
+  let discoveredAccountsCount = 0;
+
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const bitcoinMultichainClient = MultichainWalletSnapFactory.createClient(
+    WalletClientType.Bitcoin,
+  );
+  discoveredAccountsCount +=
+    await bitcoinMultichainClient.addDiscoveredAccounts(
+      newKeyring.id,
+      BtcScope.Mainnet,
+    );
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  const solanaMultichainClient = MultichainWalletSnapFactory.createClient(
+    WalletClientType.Solana,
+  );
+  discoveredAccountsCount += await solanaMultichainClient.addDiscoveredAccounts(
+    newKeyring.id,
+    SolScope.Mainnet,
+  );
+  ///: END:ONLY_INCLUDE_IF
+
+  if (shouldSelectAccount) {
+    Engine.setSelectedAddress(newAccountAddress);
+  }
+
+  return { address: newAccountAddress, discoveredAccountsCount };
 }
 
 export async function createNewSecretRecoveryPhrase() {
@@ -74,8 +188,20 @@ export async function createNewSecretRecoveryPhrase() {
 export async function addNewHdAccount(
   keyringId?: string,
   name?: string,
-): Promise<void> {
-  const { KeyringController } = Engine.context;
+): Promise<InternalAccount> {
+  store.dispatch(
+    startPerformanceTrace({
+      eventName: PerformanceEventNames.AddHdAccount,
+    }),
+  );
+
+  trace({
+    name: TraceName.CreateHdAccount,
+    op: TraceOperation.CreateAccount,
+    tags: getTraceTags(store.getState()),
+  });
+
+  const { KeyringController, AccountsController } = Engine.context;
   const keyringSelector: KeyringSelector = keyringId
     ? {
         id: keyringId,
@@ -93,4 +219,25 @@ export async function addNewHdAccount(
   if (name) {
     Engine.setAccountLabel(addedAccountAddress, name);
   }
+
+  const account = AccountsController.getAccountByAddress(addedAccountAddress);
+
+  // This should always be true. If it's not, we have a bug.
+  // We query the account that was newly created and return it.
+  if (!account) {
+    throw new Error('Account not found after creation');
+  }
+
+  // We consider the account to be created once it got selected and renamed.
+  endTrace({
+    name: TraceName.CreateHdAccount,
+  });
+
+  store.dispatch(
+    endPerformanceTrace({
+      eventName: PerformanceEventNames.AddHdAccount,
+    }),
+  );
+
+  return account;
 }

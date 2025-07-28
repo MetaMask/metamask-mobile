@@ -34,7 +34,7 @@ exports[`QuoteInfoModal renders correctly 1`] = `
       style={
         [
           {
-            "backgroundColor": "#00000066",
+            "backgroundColor": "#3f434a66",
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -74,6 +74,9 @@ exports[`QuoteInfoModal renders correctly 1`] = `
     >
       <View
         collapsable={false}
+        enabled={true}
+        handlerTag={-1}
+        handlerType="PanGestureHandler"
         onGestureHandlerEvent={[Function]}
         onGestureHandlerStateChange={[Function]}
         onLayout={[Function]}
@@ -85,7 +88,7 @@ exports[`QuoteInfoModal renders correctly 1`] = `
               "borderTopLeftRadius": 8,
               "borderTopRightRadius": 8,
               "borderWidth": 1,
-              "maxHeight": 1334,
+              "maxHeight": 640,
               "overflow": "hidden",
               "paddingBottom": 0,
               "shadowColor": "#0000001a",
@@ -99,7 +102,7 @@ exports[`QuoteInfoModal renders correctly 1`] = `
             {
               "transform": [
                 {
-                  "translateY": 1334,
+                  "translateY": 640,
                 },
               ],
             },
@@ -164,9 +167,8 @@ exports[`QuoteInfoModal renders correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 18,
-                  "fontWeight": "700",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -205,6 +207,7 @@ exports[`QuoteInfoModal renders correctly 1`] = `
               >
                 <SvgMock
                   color="#121314"
+                  fill="currentColor"
                   height={16}
                   name="Close"
                   style={
@@ -222,8 +225,8 @@ exports[`QuoteInfoModal renders correctly 1`] = `
         <View
           style={
             {
-              "gap": 16,
               "paddingHorizontal": 16,
+              "paddingVertical": 16,
             }
           }
         >
@@ -232,9 +235,8 @@ exports[`QuoteInfoModal renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -242,59 +244,6 @@ exports[`QuoteInfoModal renders correctly 1`] = `
           >
             This quote offers the best return from our search. It’s based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.
           </Text>
-          <View
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "flexDirection": "row",
-                "paddingBottom": 16,
-                "paddingHorizontal": 0,
-                "paddingVertical": 0,
-              }
-            }
-            testID="bottomsheetfooter"
-          >
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "alignSelf": "flex-start",
-                  "backgroundColor": "transparent",
-                  "borderColor": "#4459ff",
-                  "borderRadius": 24,
-                  "borderWidth": 1,
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "paddingHorizontal": 16,
-                }
-              }
-              testID="bottomsheetfooter-button"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#4459ff",
-                    "fontFamily": "CentraNo1-Medium",
-                    "fontSize": 16,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                See other quotes
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </View>
     </View>

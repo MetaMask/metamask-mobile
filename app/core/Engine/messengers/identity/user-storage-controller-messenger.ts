@@ -20,11 +20,11 @@ export function getUserStorageControllerMessenger(
       // Accounts Controller Requests
       'AccountsController:listAccounts',
       'AccountsController:updateAccountMetadata',
-      // Network Controller Requests
-      'NetworkController:getState',
-      'NetworkController:addNetwork',
-      'NetworkController:removeNetwork',
-      'NetworkController:updateNetwork',
+      'AccountsController:updateAccounts',
+      // Address Book Controller Requests
+      'AddressBookController:list',
+      'AddressBookController:set',
+      'AddressBookController:delete',
     ],
     allowedEvents: [
       // Keyring Controller Events
@@ -33,8 +33,9 @@ export function getUserStorageControllerMessenger(
       // Accounts Controller Events
       'AccountsController:accountAdded',
       'AccountsController:accountRenamed',
-      // Network Controller Events
-      'NetworkController:networkRemoved',
+      // Address Book Controller Events
+      'AddressBookController:contactUpdated',
+      'AddressBookController:contactDeleted',
     ],
   });
 }

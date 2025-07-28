@@ -150,7 +150,13 @@ exports[`Network Selector renders correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`Network Selector renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -234,6 +241,9 @@ exports[`Network Selector renders correctly 1`] = `
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -317,7 +327,7 @@ exports[`Network Selector renders correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -332,6 +342,9 @@ exports[`Network Selector renders correctly 1`] = `
                       />
                       <View
                         collapsable={false}
+                        enabled={true}
+                        handlerTag={-1}
+                        handlerType="PanGestureHandler"
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                         style={
@@ -402,9 +415,8 @@ exports[`Network Selector renders correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Bold",
+                                "fontFamily": "Geist Bold",
                                 "fontSize": 18,
-                                "fontWeight": "700",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "marginBottom": 8,
@@ -440,6 +452,7 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -456,7 +469,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <TextInput
                                 onChangeText={[Function]}
@@ -487,6 +500,8 @@ exports[`Network Selector renders correctly 1`] = `
                           >
                             <RCTScrollView
                               collapsable={false}
+                              handlerTag={-1}
+                              handlerType="NativeViewGestureHandler"
                               keyboardShouldPersistTaps="handled"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -579,9 +594,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -701,9 +715,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -798,9 +811,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -895,9 +907,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -992,9 +1003,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1068,9 +1078,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1093,9 +1102,8 @@ exports[`Network Selector renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
@@ -1190,16 +1198,111 @@ exports[`Network Selector renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
                                             testID="cellbase-avatar-title"
                                           >
-                                            Solana Mainnet
+                                            Bitcoin
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="cellselect"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Solana
                                           </Text>
                                         </View>
                                       </View>
@@ -1222,9 +1325,8 @@ exports[`Network Selector renders correctly 1`] = `
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1270,15 +1372,16 @@ exports[`Network Selector renders correctly 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "transparent",
-                                  "borderColor": "#4459ff",
-                                  "borderRadius": 24,
+                                  "backgroundColor": "#3c4d9d1a",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
                                   "marginBottom": 0,
                                   "marginHorizontal": 16,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1288,10 +1391,9 @@ exports[`Network Selector renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#4459ff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1466,7 +1568,13 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1474,6 +1582,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1550,6 +1659,9 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
           >
             <View
               collapsable={false}
+              enabled={false}
+              handlerTag={-1}
+              handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
@@ -1633,7 +1745,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1648,6 +1760,9 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                       />
                       <View
                         collapsable={false}
+                        enabled={true}
+                        handlerTag={-1}
+                        handlerType="PanGestureHandler"
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                         style={
@@ -1718,9 +1833,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Bold",
+                                "fontFamily": "Geist Bold",
                                 "fontSize": 18,
-                                "fontWeight": "700",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "marginBottom": 8,
@@ -1756,6 +1870,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -1772,7 +1887,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <TextInput
                                 onBlur={[Function]}
@@ -1806,6 +1921,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                           >
                             <RCTScrollView
                               collapsable={false}
+                              handlerTag={-1}
+                              handlerType="NativeViewGestureHandler"
                               keyboardShouldPersistTaps="handled"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -1833,9 +1950,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1857,6 +1973,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
+                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -1943,9 +2060,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1989,9 +2105,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 style={
                                                   {
                                                     "color": "#686e7d",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -2001,6 +2116,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2076,6 +2192,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2102,6 +2219,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
+                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2188,9 +2306,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2234,9 +2351,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 style={
                                                   {
                                                     "color": "#686e7d",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -2246,6 +2362,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2293,6 +2410,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2319,6 +2437,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
+                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2405,9 +2524,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2451,9 +2569,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 style={
                                                   {
                                                     "color": "#686e7d",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -2463,6 +2580,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2510,6 +2628,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2536,6 +2655,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
+                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2622,9 +2742,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2668,9 +2787,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 style={
                                                   {
                                                     "color": "#686e7d",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -2680,6 +2798,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2727,6 +2846,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2753,6 +2873,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
+                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2839,9 +2960,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2885,9 +3005,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 style={
                                                   {
                                                     "color": "#686e7d",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -2897,6 +3016,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -2944,6 +3064,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -2970,6 +3091,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
+                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -3035,9 +3157,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3060,9 +3181,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "fontWeight": "400",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3106,9 +3226,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                 style={
                                                   {
                                                     "color": "#686e7d",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 16,
-                                                    "fontWeight": "400",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -3118,6 +3237,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               </Text>
                                               <SvgMock
                                                 color="#121314"
+                                                fill="currentColor"
                                                 height={10}
                                                 name="ArrowDown"
                                                 style={
@@ -3165,6 +3285,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     >
                                       <SvgMock
                                         color="#121314"
+                                        fill="currentColor"
                                         height={16}
                                         name="MoreVertical"
                                         style={
@@ -3259,16 +3380,111 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "CentraNo1-Book",
+                                                "fontFamily": "Geist Regular",
                                                 "fontSize": 16,
-                                                "fontWeight": "400",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
                                               }
                                             }
                                             testID="cellbase-avatar-title"
                                           >
-                                            Solana Mainnet
+                                            Bitcoin
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="cellselect"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "height": 24,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 24,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 24,
+                                                "width": 24,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#121314",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 16,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Solana
                                           </Text>
                                         </View>
                                       </View>
@@ -3291,9 +3507,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3320,6 +3535,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   >
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -3338,7 +3554,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         ]
                                       }
                                     >
-                                      
+                                      󰋼
                                     </Text>
                                   </TouchableOpacity>
                                 </View>
@@ -3883,6 +4099,153 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           ]
                                         }
                                       >
+                                        Hyperliquid
+                                      </Text>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        style={
+                                          [
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 30,
+                                              "fontWeight": "400",
+                                              "marginVertical": 2,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "color": "#4459ff",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        Add
+                                      </Text>
+                                    </View>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "justifyContent": "space-between",
+                                        "marginVertical": 12,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "borderRadius": 10,
+                                            "height": 20,
+                                            "marginRight": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "height": 24,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "width": 24,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 24,
+                                                "width": 24,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                      <Text
+                                        style={
+                                          [
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 30,
+                                              "fontWeight": "400",
+                                              "marginVertical": 2,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            false,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
+                                        }
+                                      >
                                         Palm
                                       </Text>
                                     </View>
@@ -4084,6 +4447,153 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       </Text>
                                     </View>
                                   </TouchableOpacity>
+                                  <TouchableOpacity
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "justifyContent": "space-between",
+                                        "marginVertical": 12,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "borderRadius": 10,
+                                            "height": 20,
+                                            "marginRight": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 8,
+                                              "height": 24,
+                                              "justifyContent": "center",
+                                              "overflow": "hidden",
+                                              "width": 24,
+                                            }
+                                          }
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={1}
+                                            style={
+                                              {
+                                                "height": 24,
+                                                "width": 24,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                      </View>
+                                      <Text
+                                        style={
+                                          [
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 30,
+                                              "fontWeight": "400",
+                                              "marginVertical": 2,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            false,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        Sei Network
+                                      </Text>
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        style={
+                                          [
+                                            {
+                                              "color": "#121314",
+                                              "fontFamily": "CentraNo1-Book",
+                                              "fontSize": 30,
+                                              "fontWeight": "400",
+                                              "marginVertical": 2,
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            {
+                                              "color": "#4459ff",
+                                            },
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                            undefined,
+                                          ]
+                                        }
+                                      >
+                                        Add
+                                      </Text>
+                                    </View>
+                                  </TouchableOpacity>
                                 </View>
                                 <View
                                   style={
@@ -4101,9 +4611,8 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     style={
                                       {
                                         "color": "#686e7d",
-                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontFamily": "Geist Medium",
                                         "fontSize": 18,
-                                        "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -4149,15 +4658,16 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "transparent",
-                                  "borderColor": "#4459ff",
-                                  "borderRadius": 24,
+                                  "backgroundColor": "#3c4d9d1a",
+                                  "borderColor": "transparent",
+                                  "borderRadius": 12,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
                                   "marginBottom": 12,
                                   "marginHorizontal": 16,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -4167,10 +4677,9 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#4459ff",
-                                    "fontFamily": "CentraNo1-Medium",
+                                    "color": "#121314",
+                                    "fontFamily": "Geist Medium",
                                     "fontSize": 16,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }

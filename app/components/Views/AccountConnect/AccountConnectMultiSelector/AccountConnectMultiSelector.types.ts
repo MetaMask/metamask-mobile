@@ -1,6 +1,3 @@
-// Third party dependencies.
-import { ImageSourcePropType } from 'react-native';
-
 /**
  * Enum to track states of the account connect multi selector screen.
  */
@@ -10,25 +7,21 @@ export enum AccountConnectMultiSelectorScreens {
 }
 
 // External dependencies.
+import { CaipAccountId, CaipChainId } from '@metamask/utils';
 import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
 import { UseAccounts } from '../../../hooks/useAccounts';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { USER_INTENT } from '../../../../constants/permissions';
+import { WalletClientType } from '../../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 /**
  * AccountConnectMultiSelector props.
  */
 export interface AccountConnectMultiSelectorProps
   extends Omit<UseAccounts, 'evmAccounts'> {
-  selectedAddresses: string[];
-  onSelectAddress: (addresses: string[]) => void;
+  defaultSelectedAddresses: CaipAccountId[];
+  onSubmit: (addresses: CaipAccountId[]) => void;
+  onCreateAccount: (clientType?: WalletClientType, scope?: CaipChainId) => void;
   isLoading?: boolean;
-  onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
-  onPrimaryActionButtonPress?: () => void;
-  urlWithProtocol: string;
   hostname: string;
-  favicon: ImageSourcePropType;
-  secureIcon: IconName;
   isAutoScrollEnabled?: boolean;
   onBack: () => void;
   connection?: ConnectionProps;

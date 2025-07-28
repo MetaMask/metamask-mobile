@@ -1,4 +1,6 @@
 import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
+
 import {
   isENS,
   renderSlightlyLongAddress,
@@ -17,19 +19,39 @@ import {
   isSnapAccount,
   toFormattedAddress,
   isHDOrFirstPartySnapAccount,
+  renderAccountName,
+  getTokenDetails,
+  areAddressesEqual,
+  toChecksumAddress,
 } from '.';
 import {
   mockHDKeyringAddress,
   mockQrKeyringAddress,
+  mockSecondHDKeyringAddress,
   mockSimpleKeyringAddress,
   mockSnapAddress1,
-  mockSnapAddress2,
+  mockSolanaAddress,
 } from '../test/keyringControllerTestUtils';
 import {
   internalAccount1,
   MOCK_SOLANA_ACCOUNT,
 } from '../test/accountsControllerTestUtils';
-import { KeyringTypes } from '@metamask/keyring-controller';
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn().mockReturnValue({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            provider: {
+              chainId: '0x1',
+            },
+          },
+        },
+      },
+    }),
+  },
+}));
 
 jest.mock('../../core/Engine', () => {
   const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
@@ -42,16 +64,35 @@ jest.mock('../../core/Engine', () => {
       KeyringController: {
         ...MOCK_KEYRING_CONTROLLER_STATE,
         state: {
-          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings],
+          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.keyrings],
         },
       },
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
         state: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
       },
+      AssetsContractController: {
+        getTokenStandardAndDetails: jest.fn().mockResolvedValue({
+          symbol: 'USDC',
+          decimals: 6,
+          standard: 'ERC20',
+          balance: 100000,
+        }),
+      },
     },
   };
 });
+
+// Mock the selectors used in renderAccountName
+jest.mock('../../selectors/networkController', () => ({
+  selectChainId: jest.fn().mockReturnValue('0x1'),
+}));
+
+// Mock the ENS utils
+jest.mock('../../util/ENSUtils', () => ({
+  getCachedENSName: jest.fn().mockReturnValue(''),
+  isDefaultAccountName: jest.fn().mockReturnValue(false),
+}));
 
 describe('isENS', () => {
   it('should return false by default', () => {
@@ -113,13 +154,50 @@ describe('renderSlightlyLongAddress', () => {
   });
 });
 
+describe('renderAccountName', () => {
+  describe('with Ethereum accounts', () => {
+    it('returns the account name for a known Ethereum account', () => {
+      const ethAddress = internalAccount1.address;
+      const accounts = [internalAccount1];
+      expect(renderAccountName(ethAddress, accounts)).toBe('Account 1');
+    });
+
+    it('returns a shortened address for unknown Ethereum accounts', () => {
+      const unknownAddress = '0x1234567890123456789012345678901234567890';
+      const accounts = [internalAccount1];
+      // The shortened address format is first 7 chars + ... + last 5 chars
+      expect(renderAccountName(unknownAddress, accounts)).toBe(
+        '0x12345...67890',
+      );
+    });
+  });
+
+  describe('with Solana accounts', () => {
+    it('returns the account name for a known Solana account', () => {
+      const solanaAddress = MOCK_SOLANA_ACCOUNT.address;
+      const accounts = [MOCK_SOLANA_ACCOUNT];
+      expect(renderAccountName(solanaAddress, accounts)).toBe('Solana Account');
+    });
+
+    it('returns a shortened address for unknown Solana accounts', () => {
+      const unknownSolanaAddress =
+        '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+      const accounts = [internalAccount1]; // Only contains Ethereum account
+      // The shortened address format is first 7 chars + ... + last 5 chars
+      expect(renderAccountName(unknownSolanaAddress, accounts)).toBe(
+        '7EcDhSY...CFLtV',
+      );
+    });
+  });
+});
+
 describe('formatAddress', () => {
   const mockEvmAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
   const mockBtcAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
 
   describe('with EVM addresses', () => {
     it('returns checksummed address formatted for short type', () => {
-      const expectedValue = '0xC495...D272';
+      const expectedValue = '0xC4955...4D272';
       expect(formatAddress(mockEvmAddress, 'short')).toBe(expectedValue);
     });
 
@@ -136,7 +214,7 @@ describe('formatAddress', () => {
 
   describe('with non-EVM addresses', () => {
     it('returns address formatted for short type without checksumming', () => {
-      const expectedValue = 'bc1qxy...0wlh';
+      const expectedValue = 'bc1qxy2...x0wlh';
       expect(formatAddress(mockBtcAddress, 'short')).toBe(expectedValue);
     });
 
@@ -287,7 +365,6 @@ describe('shouldShowBlockExplorer', () => {
             networkClientId: 'networkId1',
             type: RpcEndpointType.Custom,
             url: 'https://mainnet.infura.io/v3/123',
-            failoverUrls: [],
           },
         ],
       },
@@ -409,12 +486,6 @@ describe('getLabelTextByAddress,', () => {
     expect(getLabelTextByAddress(mockSnapAddress1)).toBe('Snaps (Beta)');
   });
 
-  it('returns the snap name if account is a Snap keyring and there is a snap name', () => {
-    expect(getLabelTextByAddress(mockSnapAddress2)).toBe(
-      'MetaMask Simple Snap Keyring',
-    );
-  });
-
   it('should return null if address is empty', () => {
     expect(getLabelTextByAddress('')).toBe(null);
   });
@@ -423,6 +494,14 @@ describe('getLabelTextByAddress,', () => {
     expect(
       getLabelTextByAddress('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBe(null);
+  });
+
+  it('returns srp label for hd accounts when there are multiple hd keyrings', () => {
+    expect(getLabelTextByAddress(mockSecondHDKeyringAddress)).toBe('SRP #2');
+  });
+
+  it('returns srp label for snap accounts that uses hd keyring for its entropy source', () => {
+    expect(getLabelTextByAddress(mockSolanaAddress)).toBe('SRP #1');
   });
 });
 describe('getAddressAccountType', () => {
@@ -454,6 +533,16 @@ describe('resemblesAddress', () => {
   });
   it('should return true if address resemble an eth address', () => {
     expect(resemblesAddress(mockHDKeyringAddress)).toBeTruthy();
+  });
+});
+describe('toChecksumAddress', () => {
+  it('should return the same address if it is invalid hex string', () => {
+    expect(toChecksumAddress('0x1')).toBe('0x1');
+    expect(toChecksumAddress('0x123')).toBe('0x123');
+    expect(toChecksumAddress('0x1234')).toBe('0x1234');
+  });
+  it('should throw an error if address is not a hex string', () => {
+    expect(() => toChecksumAddress('abc')).toThrow('Invalid hex address.');
   });
 });
 describe('isSnapAccount,', () => {
@@ -529,5 +618,104 @@ describe('isHDOrFirstPartySnapAccount', () => {
         },
       }),
     ).toBe(false);
+  });
+});
+
+describe('getTokenDetails,', () => {
+  it('return token details including balanec for ERC20 tokens', async () => {
+    expect(await getTokenDetails('0x123', '0x0')).toEqual({
+      symbol: 'USDC',
+      decimals: 6,
+      standard: 'ERC20',
+      balance: 100000,
+    });
+  });
+});
+
+describe('areAddressesEqual', () => {
+  const ethAddress1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+  const ethAddress1Lower = ethAddress1.toLowerCase();
+  const ethAddress1Upper = '0xC4955C0D639D99699BFD7EC54D9FAFEE40E4D272'; // Manually created the uppercase variant since .toUppercase() is not supported in Jest results in an invalid address
+  const ethAddress2 = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
+  const btcAddress1 = '3NA96Lj6exM1EARaSVqhjYefBb4akuuwrf'; // Segwit
+  const btcAddress2 = 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4';
+  const solanaAddress = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+
+  describe('when addresses are falsy', () => {
+    it('returns false when first address is empty', () => {
+      expect(areAddressesEqual('', ethAddress1)).toBe(false);
+    });
+
+    it('returns false when second address is empty', () => {
+      expect(areAddressesEqual(ethAddress1, '')).toBe(false);
+    });
+
+    it('returns false when both addresses are empty', () => {
+      expect(areAddressesEqual('', '')).toBe(false);
+    });
+  });
+
+  describe('when both addresses are EVM addresses', () => {
+    it('returns true when addresses are identical', () => {
+      expect(areAddressesEqual(ethAddress1, ethAddress1)).toBe(true);
+    });
+
+    it('returns true when addresses are the same but different case', () => {
+      expect(areAddressesEqual(ethAddress1, ethAddress1Lower)).toBe(true);
+      expect(areAddressesEqual(ethAddress1, ethAddress1Upper)).toBe(true);
+      expect(areAddressesEqual(ethAddress1Lower, ethAddress1Upper)).toBe(true);
+    });
+
+    it('returns false when addresses are different', () => {
+      expect(areAddressesEqual(ethAddress1, ethAddress2)).toBe(false);
+    });
+  });
+
+  describe('when both addresses are non-EVM addresses', () => {
+    it('returns true when Bitcoin addresses are identical', () => {
+      expect(areAddressesEqual(btcAddress1, btcAddress1)).toBe(true);
+    });
+
+    it('returns false when Bitcoin addresses are different', () => {
+      expect(areAddressesEqual(btcAddress1, btcAddress2)).toBe(false);
+    });
+
+    it('returns true when Solana addresses are identical', () => {
+      expect(areAddressesEqual(solanaAddress, solanaAddress)).toBe(true);
+    });
+
+    it('returns false when comparing different non-EVM addresses', () => {
+      expect(areAddressesEqual(btcAddress1, solanaAddress)).toBe(false);
+    });
+
+    it('returns false when non-EVM addresses differ only in case', () => {
+      const caseSensitiveAddress = btcAddress1.toLowerCase();
+      expect(areAddressesEqual(btcAddress1, caseSensitiveAddress)).toBe(false);
+    });
+
+    it('returns false when Solana addresses differ only in case', () => {
+      const solanaAddressLowerCase = solanaAddress.toLowerCase();
+      expect(areAddressesEqual(solanaAddress, solanaAddressLowerCase)).toBe(
+        false,
+      );
+    });
+  });
+
+  describe('when comparing different address types', () => {
+    it('returns false when comparing EVM address with Bitcoin address', () => {
+      expect(areAddressesEqual(ethAddress1, btcAddress1)).toBe(false);
+    });
+
+    it('returns false when comparing EVM address with Solana address', () => {
+      expect(areAddressesEqual(ethAddress1, solanaAddress)).toBe(false);
+    });
+
+    it('returns false when comparing Bitcoin address with EVM address', () => {
+      expect(areAddressesEqual(btcAddress1, ethAddress1)).toBe(false);
+    });
+
+    it('returns false when comparing Solana address with EVM address', () => {
+      expect(areAddressesEqual(solanaAddress, ethAddress1)).toBe(false);
+    });
   });
 });

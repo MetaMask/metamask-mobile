@@ -8,12 +8,13 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
 import { act } from '@testing-library/react-hooks';
+import { PreferencesState } from '@metamask/preferences-controller';
 
 // eslint-disable-next-line import/no-namespace
 import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
 // eslint-disable-next-line import/no-namespace
 import * as networkSelectors from '../../../selectors/networkController';
-import { cleanup, waitFor } from '@testing-library/react-native';
+import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 
 import TestHelpers from '../../../../e2e/helpers';
@@ -21,6 +22,33 @@ import { createMockAccountsControllerState } from '../../../util/test/accountsCo
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useMetrics } from '../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+
+// eslint-disable-next-line import/no-namespace
+import * as assetUtils from '../../../util/assets';
+
+const MOCK_ADDRESS = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS,
+]);
+
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../components/hooks/useMetrics');
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  enable: jest.fn(),
+  addTraitsToUser: jest.fn(),
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -37,10 +65,23 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
+// Engine.context.NftController.state
 jest.mock('../../../core/Engine', () => ({
   context: {
     NftController: {
+      state: {
+        allNfts: {
+          [MOCK_ADDRESS]: {
+            '0x1': [],
+          },
+        },
+        allNftContracts: {
+          [MOCK_ADDRESS]: {
+            '0x1': [],
+          },
+        },
+        ignoredNfts: [],
+      },
       addNft: jest.fn(),
       updateNftMetadata: jest.fn(),
       checkAndUpdateAllNftsOwnershipStatus: jest.fn(),
@@ -63,13 +104,9 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
-const MOCK_ADDRESS = '0xd018538C87232FF95acbCe4870629b75640a78E7';
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
-  MOCK_ADDRESS,
-]);
-
 describe('CollectibleContracts', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     jest.spyOn(networkSelectors, 'selectIsAllNetworks').mockReturnValue(false);
   });
   afterEach(cleanup);
@@ -80,6 +117,67 @@ describe('CollectibleContracts', () => {
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
+  });
+
+  it('does not call updateNftMetadata when isIpfsGatewayEnabled and displayNftMedia are false', async () => {
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
+          },
+          PreferencesController: {
+            displayNftMedia: false,
+            isIpfsGatewayEnabled: false,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          } as unknown as PreferencesState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          NftController: {
+            allNfts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+    const spyOnUpdateNftMetadata = jest
+      .spyOn(Engine.context.NftController, 'updateNftMetadata')
+      .mockImplementation(async () => undefined);
+
+    renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    await waitFor(() => {
+      expect(spyOnUpdateNftMetadata).not.toHaveBeenCalled();
+    });
+
+    spyOnUpdateNftMetadata.mockRestore();
   });
 
   it('UI refresh changes NFT image when metadata image changes - detection disabled', async () => {
@@ -139,11 +237,18 @@ describe('CollectibleContracts', () => {
             }),
           },
           AccountTrackerController: {
-            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
           },
           PreferencesController: {
             displayNftMedia: true,
-          },
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          } as unknown as PreferencesState,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             allNfts: {
@@ -186,7 +291,7 @@ describe('CollectibleContracts', () => {
     await waitFor(() => {
       expect(spyOnUpdateNftMetadata).toHaveBeenCalled();
       const nftImageAfter = queryByTestId('nft-image');
-      expect(nftImageAfter.props.source.uri).toEqual(
+      expect(nftImageAfter?.props.source.uri).toEqual(
         nftItemDataUpdated[0].image,
       );
     });
@@ -251,12 +356,19 @@ describe('CollectibleContracts', () => {
             }),
           },
           AccountTrackerController: {
-            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
           },
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
-          },
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          } as unknown as PreferencesState,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             allNfts: {
@@ -298,7 +410,7 @@ describe('CollectibleContracts', () => {
     await waitFor(() => {
       expect(spyOnUpdateNftMetadata).toHaveBeenCalledTimes(0);
       const nftImageAfter = queryByTestId('nft-image');
-      expect(nftImageAfter.props.source.uri).toEqual(
+      expect(nftImageAfter?.props.source.uri).toEqual(
         nftItemDataUpdated[0].image,
       );
     });
@@ -363,12 +475,20 @@ describe('CollectibleContracts', () => {
             }),
           },
           AccountTrackerController: {
-            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
           },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
-          },
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          } as unknown as PreferencesState,
           NftController: {
             allNfts: {
               [MOCK_ADDRESS]: {
@@ -437,11 +557,18 @@ describe('CollectibleContracts', () => {
             }),
           },
           AccountTrackerController: {
-            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+            accountsByChainId: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: { balance: '0' },
+              },
+            },
           },
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
             selectedAddress: CURRENT_ACCOUNT,
             identities: {
               [CURRENT_ACCOUNT]: {
@@ -449,7 +576,7 @@ describe('CollectibleContracts', () => {
                 name: 'Account 1',
               },
             },
-          },
+          } as unknown as PreferencesState,
           NftController: {
             allNfts: {
               [CURRENT_ACCOUNT]: {
@@ -491,11 +618,18 @@ describe('CollectibleContracts', () => {
             }),
           },
           AccountTrackerController: {
-            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+            accountsByChainId: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: { balance: '0' },
+              },
+            },
           },
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
             selectedAddress: CURRENT_ACCOUNT,
             identities: {
               [CURRENT_ACCOUNT]: {
@@ -503,7 +637,7 @@ describe('CollectibleContracts', () => {
                 name: 'Account 1',
               },
             },
-          },
+          } as unknown as PreferencesState,
           NftController: {
             allNfts: {
               [CURRENT_ACCOUNT]: {
@@ -526,5 +660,468 @@ describe('CollectibleContracts', () => {
 
     const spinner = queryByTestId('spinner');
     expect(spinner).toBeNull();
+  });
+
+  it('should handle refresh and detect new NFTs', async () => {
+    const collectibleData = [
+      {
+        address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
+        name: 'MyToken',
+        symbol: 'MTK',
+      },
+    ];
+    const nftItemData = [
+      {
+        address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
+        description: 'Test NFT',
+        favorite: false,
+        image: 'https://image.url',
+        isCurrentlyOwned: true,
+        name: 'Test NFT #1',
+        standard: 'ERC721',
+        tokenId: '1',
+        tokenURI: 'https://token.uri/1',
+        chainId: 1,
+      },
+    ];
+
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': { [MOCK_ADDRESS]: { balance: '0' } },
+            },
+          },
+          PreferencesController: {
+            useNftDetection: true,
+            displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': 'true',
+            },
+          },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          NftController: {
+            allNfts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    jest
+      .spyOn(allSelectors, 'multichainCollectiblesSelector')
+      .mockReturnValue({ '0x1': nftItemData });
+    jest
+      .spyOn(allSelectors, 'multichainCollectibleContractsSelector')
+      .mockReturnValue({ '0x1': collectibleData });
+
+    const spyOnDetectNfts = jest
+      .spyOn(Engine.context.NftDetectionController, 'detectNfts')
+      .mockImplementation(async () => undefined);
+
+    const spyOnCheckOwnership = jest
+      .spyOn(
+        Engine.context.NftController,
+        'checkAndUpdateAllNftsOwnershipStatus',
+      )
+      .mockImplementation(async () => undefined);
+
+    const { getByTestId } = renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    const scrollView = getByTestId('refreshControl');
+    expect(scrollView).toBeDefined();
+
+    const { refreshControl } = scrollView.props;
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
+
+    await TestHelpers.delay(1000);
+
+    expect(spyOnDetectNfts).toHaveBeenCalledTimes(1);
+    expect(spyOnCheckOwnership).toHaveBeenCalledTimes(1);
+
+    spyOnDetectNfts.mockRestore();
+    spyOnCheckOwnership.mockRestore();
+  });
+
+  it('should track analytics when new NFTs are detected during refresh', async () => {
+    const collectibleData = [
+      {
+        address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
+        name: 'MyToken',
+        symbol: 'MTK',
+      },
+    ];
+    const nftItemData = [
+      {
+        address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
+        description: 'Test NFT',
+        favorite: false,
+        image: 'https://image.url',
+        isCurrentlyOwned: true,
+        name: 'Test NFT #1',
+        standard: 'ERC721',
+        tokenId: '1',
+        tokenURI: 'https://token.uri/1',
+        chainId: 1,
+      },
+    ];
+
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': { [MOCK_ADDRESS]: { balance: '0' } },
+            },
+          },
+          PreferencesController: {
+            useNftDetection: true,
+            displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': 'true',
+            },
+          },
+
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          NftController: {
+            allNfts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    // Before your tests, add this jest.spyOn
+    const mockPrepareNftDetectionEvents = jest.spyOn(
+      assetUtils,
+      'prepareNftDetectionEvents',
+    );
+    jest
+      .spyOn(allSelectors, 'multichainCollectiblesSelector')
+      .mockReturnValue({ '0x1': nftItemData });
+    jest
+      .spyOn(allSelectors, 'multichainCollectibleContractsSelector')
+      .mockReturnValue({ '0x1': collectibleData });
+
+    const mockEvents = [
+      { chain_id: 1, source: 'detected' as const },
+      { chain_id: 1, source: 'detected' as const },
+    ];
+    mockPrepareNftDetectionEvents.mockReturnValue(mockEvents);
+
+    const spyOnDetectNfts = jest
+      .spyOn(Engine.context.NftDetectionController, 'detectNfts')
+      .mockImplementation(async () => undefined);
+
+    const spyOnCheckOwnership = jest
+      .spyOn(
+        Engine.context.NftController,
+        'checkAndUpdateAllNftsOwnershipStatus',
+      )
+      .mockImplementation(async () => undefined);
+
+    const { getByTestId } = renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    const scrollView = getByTestId('refreshControl');
+    const { refreshControl } = scrollView.props;
+
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
+
+    await TestHelpers.delay(1000);
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+
+    spyOnDetectNfts.mockRestore();
+    spyOnCheckOwnership.mockRestore();
+  });
+
+  it('should not track analytics when no new NFTs are detected during refresh', async () => {
+    const collectibleData = [
+      {
+        address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
+        name: 'MyToken',
+        symbol: 'MTK',
+      },
+    ];
+    const nftItemData = [
+      {
+        address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
+        description: 'Test NFT',
+        favorite: false,
+        image: 'https://image.url',
+        isCurrentlyOwned: true,
+        name: 'Test NFT #1',
+        standard: 'ERC721',
+        tokenId: '1',
+        tokenURI: 'https://token.uri/1',
+        chainId: 1,
+      },
+    ];
+
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': { [MOCK_ADDRESS]: { balance: '0' } },
+            },
+          },
+          PreferencesController: {
+            useNftDetection: true,
+            displayNftMedia: true,
+            tokenNetworkFilter: {
+              '0x1': 'true',
+            },
+          },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          NftController: {
+            allNfts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const mockPrepareNftDetectionEvents = jest.spyOn(
+      assetUtils,
+      'prepareNftDetectionEvents',
+    );
+    jest
+      .spyOn(allSelectors, 'multichainCollectiblesSelector')
+      .mockReturnValue({ '0x1': nftItemData });
+    jest
+      .spyOn(allSelectors, 'multichainCollectibleContractsSelector')
+      .mockReturnValue({ '0x1': collectibleData });
+
+    // Mock to return empty array - no new NFTs detected
+    mockPrepareNftDetectionEvents.mockReturnValue([]);
+
+    const spyOnDetectNfts = jest
+      .spyOn(Engine.context.NftDetectionController, 'detectNfts')
+      .mockImplementation(async () => undefined);
+
+    const spyOnCheckOwnership = jest
+      .spyOn(
+        Engine.context.NftController,
+        'checkAndUpdateAllNftsOwnershipStatus',
+      )
+      .mockImplementation(async () => undefined);
+
+    const { getByTestId } = renderWithProvider(<CollectibleContracts />, {
+      state: mockState,
+    });
+
+    const scrollView = getByTestId('refreshControl');
+    const { refreshControl } = scrollView.props;
+
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
+
+    await TestHelpers.delay(1000);
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    spyOnDetectNfts.mockRestore();
+    spyOnCheckOwnership.mockRestore();
+  });
+
+  it('navigates to add collectible screen', () => {
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
+          },
+          PreferencesController: {
+            displayNftMedia: false,
+            isIpfsGatewayEnabled: false,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          } as unknown as PreferencesState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          NftController: {
+            allNfts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+    const mockNavigation = {
+      navigate: jest.fn(),
+      push: jest.fn(),
+    };
+    const { getByTestId } = renderWithProvider(
+      <CollectibleContracts navigation={mockNavigation} />,
+      {
+        state: mockState,
+      },
+    );
+
+    const addCollectibleButton = getByTestId('import-collectible-button');
+    fireEvent.press(addCollectibleButton);
+
+    expect(mockNavigation.push).toHaveBeenCalledTimes(1);
+
+    expect(mockNavigation.push).toHaveBeenCalledWith('AddAsset', {
+      assetType: 'collectible',
+    });
+  });
+
+  it('shows filter controls when evm is selected', () => {
+    const mockState: DeepPartial<RootState> = {
+      collectibles: {
+        favorites: {},
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                [MOCK_ADDRESS]: { balance: '0' },
+              },
+            },
+          },
+          PreferencesController: {
+            displayNftMedia: false,
+            isIpfsGatewayEnabled: false,
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          } as unknown as PreferencesState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          NftController: {
+            allNfts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+            allNftContracts: {
+              [MOCK_ADDRESS]: {
+                '0x1': [],
+              },
+            },
+          },
+        },
+      },
+    };
+    const mockNavigation = {
+      navigate: jest.fn(),
+      push: jest.fn(),
+    };
+    const { getByTestId } = renderWithProvider(
+      <CollectibleContracts navigation={mockNavigation} />,
+      {
+        state: mockState,
+      },
+    );
+
+    const filterControlersButton = getByTestId('token-network-filter');
+    fireEvent.press(filterControlersButton);
+
+    expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
   });
 });

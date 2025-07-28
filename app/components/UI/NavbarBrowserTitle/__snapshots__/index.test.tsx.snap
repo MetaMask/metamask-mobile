@@ -41,6 +41,7 @@ exports[`NavbarBrowserTitle should render correctly 1`] = `
     </Text>
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {

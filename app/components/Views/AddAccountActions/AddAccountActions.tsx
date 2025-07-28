@@ -1,9 +1,7 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { useSelector } from 'react-redux';
-///: END:ONLY_INCLUDE_IF
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -13,11 +11,6 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
-import { getTraceTags } from '../../../util/sentry/tags';
-import { store } from '../../../store';
-///: END:ONLY_INCLUDE_IF
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
@@ -35,41 +28,19 @@ import Text, {
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
-import { KeyringClient } from '@metamask/keyring-snap-client';
-import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
-// eslint-disable-next-line import/no-duplicates
-import { SolScope } from '@metamask/keyring-api';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { SolScope, BtcScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { selectHDKeyrings } from '../../../selectors/keyringController';
-///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-import {
-  selectHasCreatedBtcMainnetAccount,
-  hasCreatedBtcTestnetAccount,
-} from '../../../selectors/accountsController';
-import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
-// eslint-disable-next-line no-duplicate-imports, import/no-duplicates
-import { BtcScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
-const AddAccountActions = (props: AddAccountActionsProps) => {
-  // The props is destructured here because of prettier
-  // causing the fence to be at the ending curly brace.
-  const {
-    onBack,
-    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-    onAddHdAccount,
-    ///: END:ONLY_INCLUDE_IF
-  } = props;
-
+const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const hdKeyrings = useSelector(selectHDKeyrings);
-  ///: END:ONLY_INCLUDE_IF
+  const hasMultipleSRPs = hdKeyrings.length > 1;
 
   const openImportAccount = useCallback(() => {
     navigate('ImportPrivateKeyView');
@@ -88,27 +59,32 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
       createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET).build(),
     );
   }, [onBack, navigate, trackEvent, createEventBuilder]);
-  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const openImportSrp = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
+      ).build(),
+    );
     navigate(Routes.MULTI_SRP.IMPORT);
     onBack();
-  }, [onBack, navigate]);
-  ///: END:ONLY_INCLUDE_IF
+  }, [onBack, navigate, trackEvent, createEventBuilder]);
+
+  const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
+    onFirstLoad: false,
+    onTransactionComplete: false,
+  });
 
   const createNewAccount = useCallback(async () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-    const hasMultipleHdKeyrings = hdKeyrings.length > 1;
-
-    if (hasMultipleHdKeyrings) {
-      onAddHdAccount?.();
+    if (hasMultipleSRPs) {
+      navigate(Routes.SHEET.ADD_ACCOUNT, {});
       return;
     }
-    ///: END:ONLY_INCLUDE_IF
 
     try {
       setIsLoading(true);
 
       await addNewHdAccount();
+      fetchAccountsWithActivity();
 
       trackEvent(
         createEventBuilder(
@@ -125,62 +101,29 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
       setIsLoading(false);
     }
   }, [
-    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-    hdKeyrings.length,
-    onAddHdAccount,
-    ///: END:ONLY_INCLUDE_IF
+    hasMultipleSRPs,
+    navigate,
     trackEvent,
     createEventBuilder,
     onBack,
+    fetchAccountsWithActivity,
   ]);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  const isBtcMainnetAccountAlreadyCreated = useSelector(
-    selectHasCreatedBtcMainnetAccount,
-  );
-  const isBtcTestnetAccountAlreadyCreated = useSelector(
-    hasCreatedBtcTestnetAccount,
-  );
-
-  const createBitcoinAccount = async (scope: CaipChainId) => {
-    try {
-      setIsLoading(true);
-      // Client to create the account using the Bitcoin Snap
-      const client = new KeyringClient(new BitcoinWalletSnapSender());
-
-      // This will trigger the Snap account creation flow (+ account renaming)
-      await client.createAccount({
-        scope,
-      });
-    } catch (error) {
-      Logger.error(error as Error, 'Bitcoin account creation failed');
-    } finally {
-      onBack();
-      setIsLoading(false);
-    }
-  };
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const createSolanaAccount = async (scope: CaipChainId) => {
-    try {
-      setIsLoading(true);
-      trace({
-        name: TraceName.CreateSnapAccount,
-        op: TraceOperation.CreateSnapAccount,
-        tags: getTraceTags(store.getState()),
-      });
-      // Client to create the account using the Solana Snap
-      const client = new KeyringClient(new SolanaWalletSnapSender());
-      // This will trigger the Snap account creation flow (+ account renaming)
-      await client.createAccount({
-        scope,
-      });
-    } catch (error) {
-      Logger.error(error as Error, 'Solana account creation failed');
-    } finally {
-      onBack();
-      setIsLoading(false);
+  const createNonEvmAccount = async (scope: CaipChainId) => {
+    let clientType: WalletClientType;
+    if (Object.values(BtcScope).includes(scope as BtcScope)) {
+      clientType = WalletClientType.Bitcoin;
+    } else if (Object.values(SolScope).includes(scope as SolScope)) {
+      clientType = WalletClientType.Solana;
+    } else {
+      throw new Error(`Unsupported scope: ${scope}`);
     }
+
+    navigate(Routes.SHEET.ADD_ACCOUNT, {
+      scope,
+      clientType,
+    });
   };
   ///: END:ONLY_INCLUDE_IF
 
@@ -204,7 +147,9 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
             iconName={IconName.Add}
             onPress={createNewAccount}
             disabled={isLoading}
-            testID={AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON
+            }
           />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -213,7 +158,7 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
             actionTitle={strings('account_actions.add_solana_account')}
             iconName={IconName.Add}
             onPress={async () => {
-              await createSolanaAccount(SolScope.Mainnet);
+              await createNonEvmAccount(SolScope.Mainnet);
             }}
             disabled={isLoading}
             testID={AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON}
@@ -225,25 +170,14 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
             ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
           }
           <AccountAction
-            actionTitle={strings('account_actions.add_bitcoin_account_mainnet')}
+            actionTitle={strings('account_actions.add_bitcoin_account')}
             iconName={IconName.Add}
             onPress={async () => {
-              await createBitcoinAccount(BtcScope.Mainnet);
+              await createNonEvmAccount(BtcScope.Mainnet);
             }}
-            disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
+            disabled={isLoading}
             testID={
               AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON
-            }
-          />
-          <AccountAction
-            actionTitle={strings('account_actions.add_bitcoin_account_testnet')}
-            iconName={IconName.Add}
-            onPress={async () => {
-              await createBitcoinAccount(BtcScope.Testnet);
-            }}
-            disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
-            testID={
-              AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON
             }
           />
           {
@@ -257,7 +191,6 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
             {strings('account_actions.import_wallet_or_account')}
           </Text>
           {
-            ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
             <AccountAction
               actionTitle={strings('account_actions.import_srp')}
               iconName={IconName.Wallet}
@@ -265,7 +198,6 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
               disabled={isLoading}
               testID={AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON}
             />
-            ///: END:ONLY_INCLUDE_IF
           }
           <AccountAction
             actionTitle={strings('account_actions.import_account')}

@@ -19,6 +19,7 @@ import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { isEthAddress } from '../../../util/address';
 
 const WIDTH = Dimensions.get('window').width - 88;
 
@@ -138,6 +139,10 @@ class AddressQRCode extends PureComponent {
     const colors = theme.colors;
     const styles = createStyles(theme);
 
+    const qrValue = isEthAddress(this.props.selectedAddress)
+      ? `ethereum:${this.props.selectedAddress}`
+      : this.props.selectedAddress;
+
     return (
       <View style={styles.root}>
         <View style={styles.wrapper}>
@@ -146,7 +151,7 @@ class AddressQRCode extends PureComponent {
             onPress={this.closeQrModal}
           >
             <IonicIcon
-              name={'ios-close'}
+              name={'close'}
               size={38}
               color={colors.primary.inverse}
             />
@@ -154,7 +159,7 @@ class AddressQRCode extends PureComponent {
           <View style={styles.qrCodeContainer}>
             <View style={styles.qrCode}>
               <QRCode
-                value={`ethereum:${this.props.selectedAddress}`}
+                value={qrValue}
                 size={Dimensions.get('window').width - 160}
               />
             </View>

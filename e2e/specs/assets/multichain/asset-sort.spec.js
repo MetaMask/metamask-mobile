@@ -1,4 +1,4 @@
-import { SmokeAssets } from '../../../tags';
+import { SmokeNetworkAbstractions } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import SortModal from '../../../pages/wallet/TokenSortBottomSheet';
 import FixtureBuilder, {
@@ -21,7 +21,7 @@ import ImportTokensView from '../../../pages/wallet/ImportTokenFlow/ImportTokens
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeAssets('Import Tokens'), () => {
+describe(SmokeNetworkAbstractions('Import Tokens'), () => {
   beforeAll(async () => {
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,

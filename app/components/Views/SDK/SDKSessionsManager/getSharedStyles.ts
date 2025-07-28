@@ -19,8 +19,8 @@ const getSharedStyles = (
       borderWidth: 1,
     },
     iconText: {
-      ...typography.sHeadingSMRegular,
-      fontFamily: getFontFamily(TextVariant.HeadingSMRegular),
+      ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       textAlign: 'center',
     } as TextStyle,
     dappName: {
@@ -39,8 +39,8 @@ const getSharedStyles = (
       paddingRight: 10,
     },
     disconnectFont: {
-      ...typography.sHeadingSMRegular,
-      fontFamily: getFontFamily(TextVariant.HeadingSMRegular),
+      ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.error.default,
     } as TextStyle,
   } as const);

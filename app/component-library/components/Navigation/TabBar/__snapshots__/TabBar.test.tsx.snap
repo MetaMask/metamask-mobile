@@ -7,7 +7,7 @@ exports[`TabBar renders correctly 1`] = `
       {
         "backgroundColor": "#ffffff",
         "flexBasis": 1,
-        "shadowColor": "#00000066",
+        "shadowColor": "#3f434a66",
         "shadowOffset": {
           "height": 4,
           "width": 0,
@@ -54,6 +54,7 @@ exports[`TabBar renders correctly 1`] = `
       >
         <SvgMock
           color="#4459ff"
+          fill="currentColor"
           height={24}
           name="Wallet"
           style={
@@ -90,7 +91,8 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#9ca1af"
+          color="#b7bbc8"
+          fill="currentColor"
           height={24}
           name="Activity"
           style={
@@ -128,6 +130,7 @@ exports[`TabBar renders correctly 1`] = `
       >
         <SvgMock
           color="#ffffff"
+          fill="currentColor"
           height={20}
           name="SwapVertical"
           style={
@@ -164,7 +167,8 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#9ca1af"
+          color="#b7bbc8"
+          fill="currentColor"
           height={24}
           name="Explore"
           style={
@@ -201,7 +205,8 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#9ca1af"
+          color="#b7bbc8"
+          fill="currentColor"
           height={24}
           name="Setting"
           style={

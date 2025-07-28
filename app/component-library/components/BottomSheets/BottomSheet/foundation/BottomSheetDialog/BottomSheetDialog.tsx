@@ -11,7 +11,6 @@ import React, {
 } from 'react';
 import {
   LayoutChangeEvent,
-  useWindowDimensions,
   View,
   Platform,
   KeyboardAvoidingView,
@@ -57,6 +56,7 @@ const BottomSheetDialog = forwardRef<
       children,
       isFullscreen = false,
       isInteractable = true,
+      keyboardAvoidingViewEnabled = true,
       onClose,
       onOpen,
       style,
@@ -66,8 +66,8 @@ const BottomSheetDialog = forwardRef<
   ) => {
     const { top: screenTopPadding, bottom: screenBottomPadding } =
       useSafeAreaInsets();
-    const { y: frameY } = useSafeAreaFrame();
-    const { height: screenHeight } = useWindowDimensions();
+    const { y: frameY, height: screenHeight } = useSafeAreaFrame();
+
     const maxSheetHeight = screenHeight - screenTopPadding;
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
@@ -233,6 +233,7 @@ const BottomSheetDialog = forwardRef<
         keyboardVerticalOffset={
           Platform.OS === 'ios' ? -screenBottomPadding : frameY
         }
+        enabled={keyboardAvoidingViewEnabled}
         {...props}
       >
         <PanGestureHandler

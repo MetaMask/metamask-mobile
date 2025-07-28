@@ -24,6 +24,7 @@ import {
 import {
   getLabelTextByAddress,
   renderAccountName,
+  areAddressesEqual,
 } from '../../../util/address';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -44,7 +45,6 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { isPortfolioUrl } from '../../../util/url';
-import { toLowerCaseEquals } from '../../../util/general';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -247,7 +247,7 @@ class AccountOverview extends PureComponent {
     const { accountLabel } = this.state;
 
     const accountWithMatchingToAddress = internalAccounts.find((account) =>
-      toLowerCaseEquals(account.address, selectedAddress),
+      areAddressesEqual(account.address, selectedAddress),
     );
 
     Engine.setAccountLabel(

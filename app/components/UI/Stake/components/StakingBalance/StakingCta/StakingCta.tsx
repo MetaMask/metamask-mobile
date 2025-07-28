@@ -14,19 +14,32 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../constants/events';
+import { Hex } from 'viem/_types/types/misc';
+import { trace, TraceName } from '../../../../../../util/trace';
+import { EARN_EXPERIENCES } from '../../../../Earn/constants/experiences';
 
 interface StakingCtaProps extends Pick<ViewProps, 'style'> {
   estimatedRewardRate: string;
+  chainId: Hex;
 }
 
-const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
+const StakingCta = ({
+  estimatedRewardRate,
+  style,
+  chainId,
+}: StakingCtaProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const navigateToLearnMoreModal = () => {
+    trace({
+      name: TraceName.EarnFaq,
+      data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+    });
     navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: { chainId },
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)

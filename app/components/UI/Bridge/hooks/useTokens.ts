@@ -1,8 +1,9 @@
 import { useTokensWithBalance } from './useTokensWithBalance';
 import { Hex, CaipChainId } from '@metamask/utils';
-import { useMemo } from 'react';
 import { useTopTokens } from './useTopTokens';
 import { BridgeToken } from '../types';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { normalizeToCaipAssetType } from '../utils';
 
 interface UseTokensProps {
   topTokensChainId?: Hex | CaipChainId;
@@ -21,38 +22,50 @@ interface UseTokensProps {
 export function useTokens({
   topTokensChainId,
   balanceChainIds,
-  tokensToExclude
-}: UseTokensProps): { tokens: BridgeToken[], pending: boolean } {
+  tokensToExclude,
+}: UseTokensProps): { tokens: BridgeToken[]; pending: boolean } {
   const tokensWithBalance = useTokensWithBalance({
-    chainIds: balanceChainIds
+    chainIds: balanceChainIds,
   });
 
-  const { topTokens, pending } = useTopTokens({ chainId: topTokensChainId });
+  const { topTokens, remainingTokens, pending } = useTopTokens({
+    chainId: topTokensChainId,
+  });
 
-  const topTokensFiltered = useMemo(() =>
-    topTokens
-      // filter out tokens that are already in the tokensWithBalance array
-      ?.filter((token) => !tokensWithBalance.some(
-        (t) => t.address === token.address && t.chainId === token.chainId
-      )) ?? [],
-    [topTokens, tokensWithBalance]
+  const getTokenKey = (token: {
+    address: string;
+    chainId: Hex | CaipChainId;
+  }) => {
+    // Use the shared utility for Solana normalization to ensure consistent deduplication
+    const normalizedAddress = isSolanaChainId(token.chainId)
+      ? normalizeToCaipAssetType(token.address, token.chainId)
+      : token.address;
+    return `${normalizedAddress}-${token.chainId}`;
+  };
+
+  // Create Sets for O(1) lookups
+  const tokensWithBalanceSet = new Set(
+    tokensWithBalance.map((token) => getTokenKey(token)),
+  );
+  const excludedTokensSet = new Set(
+    tokensToExclude?.map((token) => getTokenKey(token)) ?? [],
   );
 
-  const uniqueTokens = useMemo(
-    () => [...tokensWithBalance, ...topTokensFiltered],
-    [tokensWithBalance, topTokensFiltered]
-  );
+  // Combine and filter tokens in a single pass
+  const tokensWithoutBalance = (topTokens ?? [])
+    .concat(remainingTokens ?? [])
+    .filter((token) => {
+      const tokenKey = getTokenKey(token);
+      return !tokensWithBalanceSet.has(tokenKey);
+    });
 
-  const filteredTokens = useMemo(
-    () => uniqueTokens.filter((token) => {
-      // filter out tokens that are in the tokensToExclude array
-      const isSelectedToken = tokensToExclude?.some(
-        (t) => t.address === token.address && t.chainId === token.chainId
-      );
-      return !isSelectedToken;
-    }),
-    [uniqueTokens, tokensToExclude]
-  );
+  // Combine tokens with balance and filtered tokens and filter out excluded tokens
+  const tokens = tokensWithBalance
+    .concat(tokensWithoutBalance)
+    .filter((token) => {
+      const tokenKey = getTokenKey(token);
+      return !excludedTokensSet.has(tokenKey);
+    });
 
-  return { tokens: filteredTokens, pending };
+  return { tokens, pending };
 }

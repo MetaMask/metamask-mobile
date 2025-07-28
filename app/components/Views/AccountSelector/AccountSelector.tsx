@@ -3,22 +3,24 @@ import React, {
   Fragment,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 // External dependencies.
-import AccountSelectorList from '../../UI/AccountSelectorList';
+import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import UntypedEngine from '../../../core/Engine';
+import Engine from '../../../core/Engine';
+import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
-import Button, {
+import {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
@@ -28,44 +30,70 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wa
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 
 // Internal dependencies.
+import { useStyles } from '../../../component-library/hooks';
 import {
   AccountSelectorProps,
   AccountSelectorScreens,
 } from './AccountSelector.types';
-import styles from './AccountSelector.styles';
+import styleSheet from './AccountSelector.styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { TraceName, endTrace } from '../../../util/trace';
-import AddNewHdAccount from '../AddNewHdAccount';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  const { height: screenHeight } = useWindowDimensions();
+
+  const { styles } = useStyles(styleSheet, { screenHeight });
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const routeParams = useMemo(() => route?.params, [route?.params]);
   const {
     onSelectAccount,
     checkBalanceError,
     disablePrivacyMode,
     navigateToAddAccountActions,
-  } = route.params || {};
+    isEvmOnly,
+  } = routeParams || {};
 
-  const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Engine = UntypedEngine as any;
+  const reloadAccounts = useSelector(
+    (state: RootState) => state.accounts.reloadAccounts,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { accounts, ensByAccountAddress } = useAccounts({
-    checkBalanceError,
-    isLoading: reloadAccounts,
-  });
-  const [screen, setScreen] = useState<AccountSelectorScreens>(
-    navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
+
+  useSyncSRPs();
+
+  // Memoize useAccounts parameters to prevent unnecessary recalculations
+  const accountsParams = useMemo(
+    () => ({
+      checkBalanceError,
+      isLoading: reloadAccounts,
+    }),
+    [checkBalanceError, reloadAccounts],
   );
-  useEffect(() => {
-    endTrace({ name: TraceName.AccountList });
-  }, []);
+
+  const {
+    accounts: allAccounts,
+    ensByAccountAddress,
+    evmAccounts,
+  } = useAccounts(accountsParams);
+
+  const accounts = isEvmOnly ? evmAccounts : allAccounts;
+
+  const [screen, setScreen] = useState<AccountSelectorScreens>(
+    () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
+  );
   useEffect(() => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));
@@ -88,21 +116,69 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           .build(),
       );
     },
-    [Engine, accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
+    [accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
+
+  // Handler for adding accounts
+  const handleAddAccount = useCallback(() => {
+    setScreen(AccountSelectorScreens.AddAccountActions);
+  }, []);
+
+  // Handler for returning from add accounts screen
+  const handleBackToSelector = useCallback(() => {
+    setScreen(AccountSelectorScreens.AccountSelector);
+  }, []);
 
   const onRemoveImportedAccount = useCallback(
     ({ nextActiveAddress }: { nextActiveAddress: string }) => {
       nextActiveAddress && Engine.setSelectedAddress(nextActiveAddress);
     },
-    [Engine],
+    [],
+  );
+
+  // Tracing for the account list rendering:
+  const isAccountSelector = useMemo(
+    () => screen === AccountSelectorScreens.AccountSelector,
+    [screen],
+  );
+  useEffect(() => {
+    if (isAccountSelector) {
+      trace({
+        name: TraceName.AccountList,
+        op: TraceOperation.AccountList,
+        tags: getTraceTags(store.getState()),
+      });
+    }
+  }, [isAccountSelector]);
+  // We want to track the full render of the account list, meaning when the full animation is done, so
+  // we hook the open animation and end the trace there.
+  const onOpen = useCallback(() => {
+    if (isAccountSelector) {
+      endTrace({
+        name: TraceName.AccountList,
+      });
+    }
+  }, [isAccountSelector]);
+
+  const addAccountButtonProps: ButtonProps[] = useMemo(
+    () => [
+      {
+        variant: ButtonVariants.Secondary,
+        label: strings('account_actions.add_account_or_hardware_wallet'),
+        size: ButtonSize.Lg,
+        width: ButtonWidthTypes.Full,
+        onPress: handleAddAccount,
+        testID: AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      },
+    ],
+    [handleAddAccount],
   );
 
   const renderAccountSelector = useCallback(
     () => (
       <Fragment>
         <SheetHeader title={strings('accounts.accounts_title')} />
-        <AccountSelectorList
+        <EvmAccountSelectorList
           onSelectAccount={_onSelectAccount}
           onRemoveImportedAccount={onRemoveImportedAccount}
           accounts={accounts}
@@ -111,18 +187,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           privacyMode={privacyMode && !disablePrivacyMode}
           testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
         />
-        <View style={styles.sheet}>
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('account_actions.add_account_or_hardware_wallet')}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            onPress={() => setScreen(AccountSelectorScreens.AddAccountActions)}
-            testID={
-              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-            }
-          />
-        </View>
+        <BottomSheetFooter
+          buttonPropsArray={addAccountButtonProps}
+          style={styles.sheet}
+        />
       </Fragment>
     ),
     [
@@ -132,28 +200,14 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onRemoveImportedAccount,
       privacyMode,
       disablePrivacyMode,
+      styles.sheet,
+      addAccountButtonProps,
     ],
   );
 
   const renderAddAccountActions = useCallback(
-    () => (
-      <AddAccountActions
-        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
-        onAddHdAccount={() =>
-          setScreen(AccountSelectorScreens.AddHdAccountSelector)
-        }
-      />
-    ),
-    [],
-  );
-
-  const renderAddHdAccountSelector = useCallback(
-    () => (
-      <AddNewHdAccount
-        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
-      />
-    ),
-    [],
+    () => <AddAccountActions onBack={handleBackToSelector} />,
+    [handleBackToSelector],
   );
 
   const renderAccountScreens = useCallback(() => {
@@ -162,19 +216,20 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         return renderAccountSelector();
       case AccountSelectorScreens.AddAccountActions:
         return renderAddAccountActions();
-      case AccountSelectorScreens.AddHdAccountSelector:
-        return renderAddHdAccountSelector();
       default:
         return renderAccountSelector();
     }
-  }, [
-    screen,
-    renderAccountSelector,
-    renderAddAccountActions,
-    renderAddHdAccountSelector,
-  ]);
+  }, [screen, renderAccountSelector, renderAddAccountActions]);
 
-  return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
+  return (
+    <BottomSheet
+      style={styles.bottomSheetContent}
+      ref={sheetRef}
+      onOpen={onOpen}
+    >
+      {renderAccountScreens()}
+    </BottomSheet>
+  );
 };
 
-export default AccountSelector;
+export default React.memo(AccountSelector);

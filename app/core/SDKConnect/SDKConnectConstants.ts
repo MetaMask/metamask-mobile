@@ -24,6 +24,7 @@ export const RPC_METHODS = {
   WALLET_REQUESTPERMISSIONS: 'wallet_requestPermissions',
   WALLET_GETPERMISSIONS: 'wallet_getPermissions',
   WALLET_REVOKEPERMISSIONS: 'wallet_revokePermissions',
+  WALLET_SEND_CALLS: 'wallet_sendCalls',
   ETH_ACCOUNTS: 'eth_accounts',
   ETH_CHAINID: 'eth_chainId',
 };

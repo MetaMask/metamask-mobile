@@ -36,7 +36,6 @@ import {
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
-import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
 
@@ -53,7 +52,6 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { useEnableAutomaticSecurityChecks } from '../../hooks/EnableAutomaticSecurityChecks';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
@@ -68,10 +66,7 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
-import {
-  selectShowIncomingTransactionNetworks,
-  selectTokenNetworkFilter,
-} from '../../../selectors/preferencesController';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 import useNotificationHandler from '../../../util/notifications/hooks';
 import {
@@ -91,6 +86,14 @@ import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
+import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
+import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import { Authentication } from '../../../core';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import Routes from '../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 
 const Stack = createStackNavigator();
 
@@ -109,8 +112,6 @@ const createStyles = (colors) =>
 
 const Main = (props) => {
   const [forceReload, setForceReload] = useState(false);
-  const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
-  const [skipCheckbox, setSkipCheckbox] = useState(false);
   const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -118,15 +119,56 @@ const Main = (props) => {
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+
+  useEffect(() => {
+    const checkIsSeedlessPasswordOutdated = async () => {
+      if (isSeedlessPasswordOutdated) {
+        // Check for latest seedless password outdated state
+        // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
+        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
+          false,
+        );
+        if (!isOutdated) {
+          return;
+        }
+
+        // show seedless password outdated modal and force user to lock app
+        props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings('login.seedless_password_outdated_modal_title'),
+            description: strings(
+              'login.seedless_password_outdated_modal_content',
+            ),
+            primaryButtonLabel: strings(
+              'login.seedless_password_outdated_modal_confirm',
+            ),
+            type: 'error',
+            icon: IconName.Danger,
+            isInteractable: false,
+            onPrimaryButtonPress: async () => {
+              await Authentication.lockApp({ locked: true });
+            },
+            closeOnPrimaryButtonPress: true,
+          },
+        });
+      }
+    };
+    checkIsSeedlessPasswordOutdated();
+  }, [isSeedlessPasswordOutdated, props.navigation]);
+
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
+  useCompletedOnboardingEffect();
   useNotificationHandler();
   useIdentityEffects();
-  useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
-  const { chainId, networkClientId, showIncomingTransactionsNetworks } = props;
+  const { chainId, networkClientId } = props;
 
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
@@ -139,12 +181,7 @@ const Main = (props) => {
   useEffect(() => {
     stopIncomingTransactionPolling();
     startIncomingTransactionPolling();
-  }, [
-    chainId,
-    networkClientId,
-    showIncomingTransactionsNetworks,
-    props.networkConfigurations,
-  ]);
+  }, [chainId, networkClientId, props.networkConfigurations]);
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
@@ -207,25 +244,23 @@ const Main = (props) => {
       <ActivityIndicator size="small" />
     </View>
   );
-
-  const toggleRemindLater = () => {
-    setShowRemindLaterModal(!showRemindLaterModal);
-  };
-
-  const toggleSkipCheckbox = () => {
-    setSkipCheckbox(!skipCheckbox);
-  };
-
   const skipAccountModalSecureNow = () => {
-    toggleRemindLater();
-    props.navigation.navigate('SetPasswordFlow', {
-      screen: 'AccountBackupStep1B',
-      params: { ...props.route.params },
+    props.navigation.navigate(Routes.SET_PASSWORD_FLOW.ROOT, {
+      screen: Routes.SET_PASSWORD_FLOW.MANUAL_BACKUP_STEP_1,
+      params: { backupFlow: true },
     });
   };
 
-  const skipAccountModalSkip = () => {
-    if (skipCheckbox) toggleRemindLater();
+  const navigation = useNavigation();
+
+  const toggleRemindLater = () => {
+    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
+      params: {
+        onConfirm: () => navigation.goBack(),
+        onCancel: skipAccountModalSecureNow,
+      },
+    });
   };
 
   /**
@@ -443,15 +478,10 @@ const Main = (props) => {
           props.chainId,
           props.backUpSeedphraseVisible,
         )}
-        <SkipAccountSecurityModal
-          modalVisible={showRemindLaterModal}
-          onCancel={skipAccountModalSecureNow}
-          onConfirm={skipAccountModalSkip}
-          skipCheckbox={skipCheckbox}
-          toggleSkipCheckbox={toggleSkipCheckbox}
-        />
         <ProtectYourWalletModal navigation={props.navigation} />
+        <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
+        <ProtectWalletMandatoryModal />
       </View>
     </React.Fragment>
   );
@@ -478,10 +508,6 @@ Main.propTypes = {
   hideCurrentNotification: PropTypes.func,
   removeNotificationById: PropTypes.func,
   /**
-   * Indicates whether networks allows incoming transactions
-   */
-  showIncomingTransactionsNetworks: PropTypes.object,
-  /**
    * Network provider type
    */
   providerType: PropTypes.string,
@@ -497,10 +523,6 @@ Main.propTypes = {
    * Remove not visible notifications from state
    */
   removeNotVisibleNotifications: PropTypes.func,
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
   /**
    * Current chain id
    */
@@ -520,8 +542,6 @@ Main.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  showIncomingTransactionsNetworks:
-    selectShowIncomingTransactionNetworks(state),
   providerType: selectProviderType(state),
   chainId: selectChainId(state),
   networkClientId: selectNetworkClientId(state),

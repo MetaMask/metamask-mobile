@@ -50,6 +50,7 @@ import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -65,15 +66,12 @@ const createStyles = (colors) =>
       right: 0,
     },
     addressWrapper: {
-      paddingHorizontal: 16,
       paddingTop: 16,
     },
     rowWrapper: {
       paddingHorizontal: 16,
     },
-    buttonWrapper: {
-      paddingVertical: 20,
-    },
+    buttonWrapper: {},
     textInput: {
       borderWidth: 1,
       borderRadius: 8,
@@ -112,7 +110,7 @@ const createStyles = (colors) =>
       color: colors.error.default,
       paddingBottom: 8,
     },
-    tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20 },
+    tokenDetectionBanner: { marginTop: 20 },
     tokenDetectionDescription: { color: colors.text.default },
     tokenDetectionLink: { color: colors.primary.default },
     tokenDetectionIcon: {
@@ -124,7 +122,7 @@ const createStyles = (colors) =>
       color: colors.primary.default,
       ...fontStyles.normal,
       position: 'relative',
-      width: '90%',
+      width: '100%',
       alignSelf: 'center',
     },
     textWrapper: {
@@ -135,7 +133,7 @@ const createStyles = (colors) =>
       marginBottom: 16,
       marginTop: 4,
       borderColor: colors.border.default,
-      borderRadius: 2,
+      borderRadius: 8,
       flexDirection: 'row',
       alignItems: 'center',
       padding: 16,
@@ -232,6 +230,8 @@ class AddCustomToken extends PureComponent {
     const { address, symbol, decimals, name } = this.state;
     const { chainId } = this.props;
     const networkClientId = this.props.networkClientId;
+
+    trace({ name: TraceName.ImportTokens });
     await TokensController.addToken({
       address,
       symbol,
@@ -240,6 +240,7 @@ class AddCustomToken extends PureComponent {
       chainId,
       networkClientId,
     });
+    endTrace({ name: TraceName.ImportTokens });
 
     const analyticsParams = this.getTokenAddedAnalyticsParams();
 
@@ -253,28 +254,21 @@ class AddCustomToken extends PureComponent {
     }
 
     // Clear state before closing
-    this.setState(
-      {
-        address: '',
-        symbol: '',
-        decimals: '',
-        warningAddress: '',
-        warningSymbol: '',
-        warningDecimals: '',
-      },
-      () => {
-        InteractionManager.runAfterInteractions(() => {
-          this.props.navigation.goBack();
-          this.props.navigation.goBack();
-          NotificationManager.showSimpleNotification({
-            status: `import_success`,
-            duration: 5000,
-            title: strings('wallet.token_toast.token_imported_title'),
-            description: strings('wallet.token_toast.token_imported_desc_1'),
-          });
-        });
-      },
-    );
+    this.setState({
+      address: '',
+      symbol: '',
+      decimals: '',
+      warningAddress: '',
+      warningSymbol: '',
+      warningDecimals: '',
+    });
+
+    NotificationManager.showSimpleNotification({
+      status: `import_success`,
+      duration: 5000,
+      title: strings('wallet.token_toast.token_imported_title'),
+      description: strings('wallet.token_toast.token_imported_desc_1'),
+    });
   };
 
   cancelAddToken = () => {
@@ -733,17 +727,15 @@ class AddCustomToken extends PureComponent {
             </View>
           ) : null}
         </ScrollView>
-        <View style={styles.buttonWrapper}>
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            label={strings('transaction.next')}
-            style={styles.import}
-            onPress={this.goToConfirmAddToken}
-            isDisabled={isDisabled}
-            testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
-          />
-        </View>
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          label={strings('transaction.next')}
+          style={styles.import}
+          onPress={this.goToConfirmAddToken}
+          isDisabled={isDisabled}
+          testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
+        />
       </View>
     );
   };

@@ -3,11 +3,19 @@ import { useState } from 'react';
 import { pooledStakingSelectors } from '../../../../selectors/earnController';
 import Engine from '../../../../core/Engine';
 
-const useVaultMetadata = () => {
-  const { selectVaultMetadata, selectVaultApy } = pooledStakingSelectors;
-
-  const vaultMetadata = useSelector(selectVaultMetadata);
-  const { apyDecimal, apyPercentString } = useSelector(selectVaultApy);
+const useVaultMetadata = (chainId: number) => {
+  const { selectVaultMetadataForChain, selectVaultApyForChain } =
+    pooledStakingSelectors;
+  const vaultMetadata = useSelector(selectVaultMetadataForChain(chainId));
+  let { apyDecimal, apyPercentString } = {
+    apyDecimal: 0,
+    apyPercentString: '',
+  };
+  const vaultApy = useSelector(selectVaultApyForChain(chainId));
+  if (vaultApy) {
+    apyDecimal = vaultApy.apyDecimal;
+    apyPercentString = vaultApy.apyPercentString;
+  }
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

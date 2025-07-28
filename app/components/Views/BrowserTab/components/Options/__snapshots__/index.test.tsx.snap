@@ -103,6 +103,7 @@ exports[`Options should render homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -124,7 +125,7 @@ exports[`Options should render homepage options correctly 1`] = `
             ]
           }
         >
-          
+          󰐕
         </Text>
       </View>
       <Text
@@ -143,91 +144,6 @@ exports[`Options should render homepage options correctly 1`] = `
         testID="browser-options-menu-new-tab"
       >
         New tab
-      </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      delayPressIn={50}
-      onPress={[Function]}
-      style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 4,
-            "flex": 1,
-            "height": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "flexDirection": "row",
-            "height": "auto",
-            "justifyContent": "flex-start",
-            "marginTop": -5,
-            "minHeight": 44,
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignSelf": "center",
-            "backgroundColor": "#4459ff1a",
-            "borderRadius": 5,
-            "flex": 0,
-            "marginRight": 10,
-            "padding": 3,
-          }
-        }
-      >
-        <Text
-          allowFontScaling={false}
-          style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 16,
-              },
-              {
-                "alignSelf": "center",
-                "color": "#4459ff",
-                "fontSize": 18,
-                "textAlign": "center",
-              },
-              {
-                "fontFamily": "FontAwesome",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
-          }
-        >
-          
-        </Text>
-      </View>
-      <Text
-        numberOfLines={2}
-        style={
-          {
-            "alignSelf": "center",
-            "color": "#4459ff",
-            "flex": 1,
-            "fontSize": 16,
-            "justifyContent": "center",
-            "lineHeight": 16,
-            "marginTop": 3,
-          }
-        }
-        testID="browser-options-menu-open-favorites"
-      >
-        Go to Favorites
       </Text>
     </TouchableOpacity>
   </View>
@@ -337,6 +253,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -358,7 +275,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
             ]
           }
         >
-          
+          󰐕
         </Text>
       </View>
       <Text
@@ -422,6 +339,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -507,6 +425,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -592,91 +511,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
-          style={
-            [
-              {
-                "color": undefined,
-                "fontSize": 16,
-              },
-              {
-                "alignSelf": "center",
-                "color": "#4459ff",
-                "fontSize": 18,
-                "textAlign": "center",
-              },
-              {
-                "fontFamily": "FontAwesome",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              {},
-            ]
-          }
-        >
-          
-        </Text>
-      </View>
-      <Text
-        numberOfLines={2}
-        style={
-          {
-            "alignSelf": "center",
-            "color": "#4459ff",
-            "flex": 1,
-            "fontSize": 16,
-            "justifyContent": "center",
-            "lineHeight": 16,
-            "marginTop": 3,
-          }
-        }
-        testID="browser-options-menu-open-favorites"
-      >
-        Go to Favorites
-      </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      delayPressIn={50}
-      onPress={[Function]}
-      style={
-        [
-          {
-            "alignItems": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 4,
-            "flex": 1,
-            "height": 40,
-            "justifyContent": "center",
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "flexDirection": "row",
-            "height": "auto",
-            "justifyContent": "flex-start",
-            "marginTop": -5,
-            "minHeight": 44,
-            "paddingHorizontal": 15,
-            "paddingVertical": 10,
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignSelf": "center",
-            "backgroundColor": "#4459ff1a",
-            "borderRadius": 5,
-            "flex": 0,
-            "marginRight": 10,
-            "padding": 3,
-          }
-        }
-      >
-        <Text
-          allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -762,6 +597,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {

@@ -1,5 +1,6 @@
 import Clipboard from '@react-native-clipboard/clipboard';
 import Device from '../util/device';
+import Logger from '../util/Logger';
 
 const EXPIRE_TIME_MS = 60000;
 
@@ -13,7 +14,16 @@ const ClipboardManager = {
   expireTime: null,
   async setStringExpire(string) {
     if (Device.isIos()) {
-      await Clipboard.setStringExpire(string);
+      try {
+        await Clipboard.setStringExpire(string);
+      } catch (error) {
+        // Fallback to regular setString if setStringExpire fails
+        Logger.error(
+          error,
+          'setStringExpire failed, falling back to setString',
+        );
+        await this.setString(string);
+      }
     } else {
       await this.setString(string);
       if (this.expireTime) {
@@ -24,7 +34,11 @@ const ClipboardManager = {
 
         if (!string) return;
 
-        await Clipboard.clearString();
+        try {
+          await Clipboard.clearString();
+        } catch (_) {
+          //Fail silently
+        }
       }, EXPIRE_TIME_MS);
     }
   },

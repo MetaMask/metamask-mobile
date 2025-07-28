@@ -14,12 +14,14 @@ import AppConstants from '../../../AppConstants';
 const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
   switch (env) {
-    case 'local':
-      return EnvironmentType.Development;
     case 'pre-release':
+    case 'rc':
       return EnvironmentType.ReleaseCandidate;
     case 'production':
+    case 'beta':
       return EnvironmentType.Production;
+    case 'local':
+    case 'exp':
     default:
       return EnvironmentType.Development;
   }
@@ -27,9 +29,10 @@ const getFeatureFlagAppEnvironment = () => {
 
 const getFeatureFlagAppDistribution = () => {
   const dist = process.env.METAMASK_BUILD_TYPE;
+  const env = process.env.METAMASK_ENVIRONMENT;
   switch (dist) {
     case 'main':
-      return DistributionType.Main;
+      return env === 'beta' ? DistributionType.Beta : DistributionType.Main;
     case 'flask':
       return DistributionType.Flask;
     case 'beta':
@@ -39,7 +42,8 @@ const getFeatureFlagAppDistribution = () => {
   }
 };
 
-export const isRemoteFeatureFlagOverrideActivated = process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
+export const isRemoteFeatureFlagOverrideActivated =
+  process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
 
 export const createRemoteFeatureFlagController = ({
   state,
@@ -69,9 +73,12 @@ export const createRemoteFeatureFlagController = ({
   } else if (isRemoteFeatureFlagOverrideActivated) {
     Logger.log('Remote feature flags override activated');
   } else {
-    remoteFeatureFlagController.updateRemoteFeatureFlags().then(() => {
-      Logger.log('Feature flags updated');
-    });
+    remoteFeatureFlagController
+      .updateRemoteFeatureFlags()
+      .then(() => {
+        Logger.log('Feature flags updated');
+      })
+      .catch((error) => Logger.log(error));
   }
   return remoteFeatureFlagController;
 };

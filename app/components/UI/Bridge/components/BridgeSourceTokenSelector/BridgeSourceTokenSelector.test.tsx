@@ -1,9 +1,9 @@
+import { initialState } from '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeSourceTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { setSourceToken } from '../../../../../core/redux/slices/bridge';
-import { initialState } from '../../_mocks_/initialState';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -23,6 +23,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     ...actual,
     default: actual.default,
     setSourceToken: jest.fn(actual.setSourceToken),
+    selectBridgeViewMode: jest.fn().mockReturnValue('Bridge'),
   };
 });
 
@@ -126,7 +127,7 @@ describe('BridgeSourceTokenSelector', () => {
 
     expect(setSourceToken).toHaveBeenCalledWith({
       address: '0x0000000000000000000000000000000000000001',
-      balance: '1',
+      balance: '1.0',
       balanceFiat: '$20000',
       chainId: '0x1',
       decimals: 18,
@@ -188,6 +189,7 @@ describe('BridgeSourceTokenSelector', () => {
   });
 
   it('displays empty state when no tokens match search', async () => {
+    jest.useFakeTimers();
     const { getByTestId, getByText } = renderScreen(
       BridgeSourceTokenSelector,
       {

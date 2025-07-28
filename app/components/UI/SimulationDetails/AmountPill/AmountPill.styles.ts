@@ -4,19 +4,22 @@ import sharedStyles from '../shared.styles';
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { isNegative: boolean };
+  vars: { isApproval: boolean; isNegative: boolean };
 }) => {
   const { theme, vars } = params;
   const { colors } = theme;
-  const { isNegative } = vars;
+  const { isNegative, isApproval } = vars;
 
-  const backgroundColor = isNegative
-    ? colors.error.muted
-    : colors.success.muted;
+  let backgroundColor: string | undefined;
+  let textColor: string | undefined;
 
-  const textColor = isNegative
-    ? colors.error.alternative
-    : colors.success.default;
+  if (isApproval) {
+    backgroundColor = colors.background.muted;
+    textColor = colors.text.default;
+  } else {
+    backgroundColor = isNegative ? colors.error.muted : colors.success.muted;
+    textColor = isNegative ? colors.error.alternative : colors.success.default;
+  }
 
   return StyleSheet.create({
     base: {

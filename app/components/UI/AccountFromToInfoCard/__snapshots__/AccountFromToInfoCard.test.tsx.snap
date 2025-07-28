@@ -288,7 +288,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                   <Image
                     onError={[Function]}
                     resizeMode="contain"
-                    source={1}
+                    source={10}
                     style={
                       {
                         "height": 32,
@@ -307,9 +307,8 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 14,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 22,
                 }
@@ -331,9 +330,8 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 16,
-                    "fontWeight": "700",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -350,9 +348,8 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 14,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "marginLeft": "auto",
@@ -366,9 +363,8 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 16,
-                "fontWeight": "700",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -574,7 +570,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                   }
                 }
               >
-                0x519d...9CC7
+                0x519d2...c9CC7
               </Text>
               <View
                 style={
@@ -585,10 +581,11 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
-                        "color": "#1c7e33",
+                        "color": "#457a39",
                         "fontSize": 15,
                       },
                       undefined,
@@ -610,35 +607,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
       </View>
     </View>
   </View>
-  <Modal
-    animationType="none"
-    deviceHeight={null}
-    deviceWidth={null}
-    hardwareAccelerated={false}
-    hideModalContentWhileAnimating={false}
-    onBackdropPress={[Function]}
-    onModalHide={[Function]}
-    onModalWillHide={[Function]}
-    onModalWillShow={[Function]}
-    onRequestClose={[Function]}
-    onSwipeComplete={[Function]}
-    panResponderThreshold={4}
-    scrollHorizontal={false}
-    scrollOffset={0}
-    scrollOffsetMax={0}
-    scrollTo={null}
-    statusBarTranslucent={false}
-    supportedOrientations={
-      [
-        "portrait",
-        "landscape",
-      ]
-    }
-    swipeDirection="down"
-    swipeThreshold={100}
-    transparent={true}
-    visible={false}
-  />
+  <View />
 </View>
 `;
 

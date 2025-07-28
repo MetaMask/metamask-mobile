@@ -11,6 +11,11 @@ const selectTransactionsStrict = createSelector(
   (transactionControllerState) => transactionControllerState.transactions,
 );
 
+const selectTransactionBatchesStrict = createSelector(
+  selectTransactionControllerState,
+  (transactionControllerState) => transactionControllerState.transactionBatches,
+);
+
 export const selectTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
   (transactions) => transactions,
@@ -44,4 +49,10 @@ export const selectTransactionMetadataById = createDeepEqualSelector(
   selectTransactionsStrict,
   (_: RootState, id: string) => id,
   (transactions, id) => transactions.find((tx) => tx.id === id),
+);
+
+export const selectTransactionBatchMetadataById = createDeepEqualSelector(
+  selectTransactionBatchesStrict,
+  (_: RootState, id: string) => id,
+  (transactionBatches, id) => transactionBatches?.find((tx) => tx.id === id),
 );

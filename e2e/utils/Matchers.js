@@ -7,9 +7,9 @@ class Matchers {
   /**
    * Get element by ID.
    *
-   * @param {string} elementId - Match elements with the specified testID
+   * @param {string | RegExp } elementId - Match elements with the specified testID
    * @param {number} [index] - Index of the element (default: 0)
-   * @return {Promise<Detox.IndexableNativeElement | Detox.NativeElement>} - Resolves to the located element
+   * @return {Promise<Detox.IndexableNativeElement | Detox.NativeElement | Detox.IndexableSystemElement>} - Resolves to the located element
    */
   static async getElementByID(elementId, index) {
     if (index) {
@@ -87,9 +87,12 @@ class Matchers {
    * @returns {Detox.WebViewElement} WebView element
    */
   static getWebViewByID(elementId) {
-    return device.getPlatform() === 'ios'
-      ? web(by.id(elementId))
-      : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
+    if (process.env.CI) {
+      return device.getPlatform() === 'ios'
+        ? web(by.id(elementId))
+        : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
+    }
+    return web(by.id(elementId));
   }
 
   /**
@@ -110,9 +113,8 @@ class Matchers {
    * @param {string} selector - CSS selector to locate the element
    * @return {Promise<Detox.WebElement>} - Resolves to the located element
    */
-
   static async getElementByCSS(webviewID, selector) {
-    const myWebView = web(by.id(webviewID));
+    const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.cssSelector(selector)).atIndex(0);
   }
 
@@ -120,12 +122,13 @@ class Matchers {
    * Get element by XPath.
    * @param {string} webviewID - The web ID of the browser webview
    * @param {string} xpath - XPath expression to locate the element
-   * @return {Promise<Detox.IndexableWebElement | Detox.SecuredWebElementFacade>} - Resolves to the located element
+   * @return {Promise<Detox.IndexableWebElement & Detox.SecuredWebElementFacade>} - Resolves to the located element
    */
   static async getElementByXPath(webviewID, xpath) {
     const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.xpath(xpath));
   }
+
   /**
    * Get element by href.
    * @param {string} webviewID - The web ID of the browser webview
@@ -153,7 +156,6 @@ class Matchers {
   static async getIdentifier(selectorString) {
     return by.id(selectorString);
   }
-
 
   /**
    * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text.

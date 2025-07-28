@@ -5,7 +5,6 @@ import Engine from '../../../../core/Engine';
 
 const useStakingEligibility = () => {
   const isEligible = useSelector(pooledStakingSelectors.selectEligibility);
-
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,7 +12,7 @@ const useStakingEligibility = () => {
     try {
       setIsLoading(true);
       setError(null);
-      await Engine.context.EarnController.refreshStakingEligibility();
+      await Engine.context.EarnController.refreshEarnEligibility();
     } catch (err) {
       setError('Failed to fetch pooled staking eligibility');
     } finally {

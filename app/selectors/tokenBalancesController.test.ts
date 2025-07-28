@@ -1,9 +1,13 @@
 import { Hex } from '@metamask/utils';
+import { cloneDeep } from 'lodash';
 import { RootState } from '../reducers';
 import {
   selectContractBalances,
   selectAllTokenBalances,
   selectTokensBalances,
+  selectAddressHasTokenBalances,
+  selectHasAnyBalance,
+  selectSingleTokenBalance,
 } from './tokenBalancesController';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
 
@@ -135,6 +139,157 @@ describe('TokenBalancesController Selectors', () => {
     it('returns the same as selectAllTokenBalances', () => {
       const result = selectTokensBalances(mockRootState);
       expect(result).toEqual(mockTokenBalancesControllerState.tokenBalances);
+    });
+  });
+
+  describe('selectAddressHasTokenBalances', () => {
+    const arrange = () => {
+      // Deep clone for isolated test
+      const mockState: RootState = JSON.parse(JSON.stringify(mockRootState));
+      mockState.settings = { showFiatOnTestnets: true };
+
+      return { mockState };
+    };
+
+    it('returns true if the selected account has balance', () => {
+      const { mockState } = arrange();
+      expect(selectAddressHasTokenBalances(mockState)).toBe(true);
+    });
+
+    it('returns false when an account does not have any balance for tokens', () => {
+      const { mockState } = arrange();
+      // account has no tokens
+      mockState.engine.backgroundState.TokenBalancesController.tokenBalances[
+        '0xAccount1'
+      ] = {};
+
+      expect(selectAddressHasTokenBalances(mockState)).toBe(false);
+    });
+
+    it('returns false when account is not found', () => {
+      const { mockState } = arrange();
+      // account has no tokens
+      mockState.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
+        'Account Does Not Exist';
+
+      expect(selectAddressHasTokenBalances(mockState)).toBe(false);
+    });
+
+    it('returns true when showing fiat for testnets', () => {
+      const { mockState } = arrange();
+      // account with testnet balance
+      mockState.engine.backgroundState.TokenBalancesController.tokenBalances[
+        '0xAccount1'
+      ] = {
+        '0x5': {
+          '0xToken': '0x1337',
+        },
+      };
+
+      expect(selectAddressHasTokenBalances(mockState)).toBe(true);
+    });
+  });
+
+  describe('selectHasAnyBalance', () => {
+    const arrange = () => {
+      const mockState = cloneDeep(mockRootState);
+      return { mockState };
+    };
+
+    it('returns true when there any balances', () => {
+      const { mockState } = arrange();
+      const result = selectHasAnyBalance(mockState);
+      expect(result).toBe(true);
+    });
+
+    it('returns false when there are not any balances', () => {
+      const { mockState } = arrange();
+      mockState.engine.backgroundState.TokenBalancesController.tokenBalances =
+        {};
+      const result = selectHasAnyBalance(mockState);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectSingleTokenBalance', () => {
+    const arrange = () => {
+      const mockState = cloneDeep(mockRootState);
+      return { mockState };
+    };
+
+    it('returns single token balance object for valid input parameters', () => {
+      const { mockState } = arrange();
+      const result = selectSingleTokenBalance(
+        mockState,
+        '0xAccount1',
+        '0x1',
+        '0xToken1',
+      );
+      expect(result).toStrictEqual({ '0xToken1': '0x100' });
+    });
+
+    it('returns an empty object when passing invalid input parameters', () => {
+      const { mockState } = arrange();
+      const actAssert = (
+        override: (mockParams: {
+          account: Hex;
+          chain: Hex;
+          token: Hex;
+        }) => void,
+      ) => {
+        const params = {
+          account: '0xAccount1',
+          chain: '0x1',
+          token: '0xToken1',
+        } as const;
+
+        override(params);
+
+        expect(
+          selectSingleTokenBalance(
+            mockState,
+            params.account,
+            params.chain,
+            params.token,
+          ),
+        ).toStrictEqual({});
+      };
+
+      actAssert((params) => (params.account = '0xMissingAccount'));
+      actAssert((params) => (params.chain = '0xMissingChain'));
+      actAssert((params) => (params.token = '0xMissingToken'));
+    });
+
+    it('memoizes selector parameters', () => {
+      const { mockState } = arrange();
+      const result1 = selectSingleTokenBalance(
+        mockState,
+        '0xAccount1',
+        '0x1',
+        '0xToken1',
+      );
+      const result2 = selectSingleTokenBalance(
+        mockState,
+        '0xAccount1',
+        '0x1',
+        '0xToken2',
+      );
+      const result3 = selectSingleTokenBalance(
+        mockState,
+        '0xAccount1',
+        '0x1',
+        '0xToken1',
+      );
+      const result4 = selectSingleTokenBalance(
+        mockState,
+        '0xAccount1',
+        '0x1',
+        '0xToken2',
+      );
+
+      // Assert - selectors with same parameters are same reference
+      expect(result1).toBe(result3);
+      expect(result2).toBe(result4);
     });
   });
 });

@@ -1,3 +1,4 @@
+import '../../UI/Bridge/_mocks_/initialState';
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { zeroAddress } from 'ethereumjs-util';
@@ -8,8 +9,9 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
+  createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
-import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 // eslint-disable-next-line import/no-namespace
@@ -17,11 +19,13 @@ import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
+import { swapsUtils } from '@metamask/swaps-controller';
 import {
   BALANCE_TEST_ID,
   SECONDARY_BALANCE_TEST_ID,
 } from '../AssetElement/index.constants';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, SolAccountType } from '@metamask/keyring-api';
+import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -40,9 +44,13 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        providerConfig: {
+        ...mockNetworkState({
           chainId: MOCK_CHAIN_ID,
-        },
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+          blockExplorerUrl: 'https://etherscan.io',
+        }),
       } as unknown as NetworkController['state'],
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
@@ -61,6 +69,20 @@ const mockInitialState = {
           usdConversionRate: 3432.53,
         },
       },
+    },
+    TokenSearchDiscoveryDataController: {
+      tokenDisplayData: [
+        {
+          chainId: MOCK_CHAIN_ID,
+          address: '0x123',
+          currency: 'ETH',
+          found: true,
+          logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
+          name: 'Ethereum',
+          symbol: 'ETH',
+          price: {},
+        },
+      ],
     },
   },
   settings: {
@@ -107,11 +129,41 @@ jest.mock('../../../core/Engine', () => ({
         .fn()
         .mockReturnValue(mockNetworkConfiguration),
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+      getNetworkClientById: jest.fn().mockReturnValue({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3/123',
+          ticker: 'ETH',
+        },
+      }),
     },
     MultichainNetworkController: {
       setActiveNetwork: jest.fn().mockResolvedValue(undefined),
     },
   },
+}));
+
+jest.mock('../../../core/SnapKeyring/utils/snaps', () => ({
+  isMultichainWalletSnap: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
+  sendMultichainTransaction: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../hooks/useSendNonEvmAsset', () => ({
+  useSendNonEvmAsset: jest.fn(),
+}));
+
+const mockAddPopularNetwork = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve());
+jest.mock('../../../components/hooks/useAddNetwork', () => ({
+  useAddNetwork: jest.fn().mockImplementation(() => ({
+    addPopularNetwork: mockAddPopularNetwork,
+    networkModal: null,
+  })),
 }));
 
 const asset = {
@@ -129,7 +181,23 @@ const asset = {
   image: '',
 };
 
+const assetFromSearch = {
+  ...asset,
+  isFromSearch: true,
+};
+
 describe('AssetOverview', () => {
+  const mockSendNonEvmAsset = jest.fn();
+
+  beforeEach(() => {
+    // Default mock setup for the hook - return false to continue with EVM flow
+    mockSendNonEvmAsset.mockResolvedValue(false);
+    (useSendNonEvmAsset as jest.Mock).mockReturnValue({
+      sendNonEvmAsset: mockSendNonEvmAsset,
+      isNonEvmAccount: false,
+    });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -139,6 +207,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         swapsIsLive
         networkName="Ethereum Mainnet"
       />,
@@ -153,6 +222,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         swapsIsLive
         networkName="Ethereum Mainnet"
       />,
@@ -176,6 +246,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         swapsIsLive
         networkName="Ethereum Mainnet"
       />,
@@ -184,6 +255,9 @@ describe('AssetOverview', () => {
 
     const sendButton = getByTestId('token-send-button');
     fireEvent.press(sendButton);
+
+    // Wait for async operations to complete
+    await Promise.resolve();
 
     expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
   });
@@ -213,6 +287,7 @@ describe('AssetOverview', () => {
         asset={nativeAsset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         swapsIsLive
       />,
       {
@@ -254,6 +329,10 @@ describe('AssetOverview', () => {
 
     const sendButton = getByTestId('token-send-button');
     fireEvent.press(sendButton);
+
+    // Wait for async operations to complete
+    await Promise.resolve();
+
     expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
     expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
   });
@@ -264,6 +343,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         swapsIsLive
       />,
       { state: mockInitialState },
@@ -291,6 +371,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         swapsIsLive
       />,
       { state: mockInitialState },
@@ -313,6 +394,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         swapsIsLive
       />,
       { state: mockInitialState },
@@ -338,6 +420,7 @@ describe('AssetOverview', () => {
         asset={asset}
         displayBuyButton
         displaySwapsButton={false}
+        displayBridgeButton
       />,
       { state: mockInitialState },
     );
@@ -346,12 +429,28 @@ describe('AssetOverview', () => {
     expect(swapButton).toBeNull();
   });
 
+  it('should not render bridge button if displayBridgeButton is false', async () => {
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        displayBridgeButton={false}
+      />,
+      { state: mockInitialState },
+    );
+
+    const bridgeButton = queryByTestId('token-bridge-button');
+    expect(bridgeButton).toBeNull();
+  });
+
   it('should not render buy button if displayBuyButton is false', async () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
         displayBuyButton={false}
         displaySwapsButton
+        displayBridgeButton
         swapsIsLive
       />,
       { state: mockInitialState },
@@ -371,6 +470,7 @@ describe('AssetOverview', () => {
         }}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         swapsIsLive
       />,
       { state: mockInitialState },
@@ -384,11 +484,13 @@ describe('AssetOverview', () => {
       <AssetOverview
         asset={{
           ...asset,
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
           chainId: SolScope.Mainnet,
           isNative: true,
         }}
         displayBuyButton
         displaySwapsButton
+        displayBridgeButton
         swapsIsLive
       />,
       {
@@ -401,6 +503,13 @@ describe('AssetOverview', () => {
               MultichainNetworkController: {
                 selectedMultichainNetworkChainId: SolScope.Mainnet,
               },
+              MultichainAssetsRatesController: {
+                conversionRates: {
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+                    rate: '151.23',
+                  },
+                },
+              },
             },
           },
         },
@@ -408,6 +517,62 @@ describe('AssetOverview', () => {
     );
 
     expect(container).toMatchSnapshot();
+  });
+
+  it('should swap into the asset when coming from search', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={assetFromSearch}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      { state: mockInitialState },
+    );
+
+    const swapButton = getByTestId('token-swap-button');
+    fireEvent.press(swapButton);
+
+    // Wait for all promises to resolve
+    await Promise.resolve();
+
+    expect(navigate).toHaveBeenCalledWith('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        destinationToken: assetFromSearch.address,
+        sourcePage: 'MainView',
+        chainId: assetFromSearch.chainId,
+      },
+    });
+  });
+
+  it('should prompt to add the network if coming from search and on a different chain', async () => {
+    (
+      Engine.context.NetworkController
+        .getNetworkConfigurationByChainId as jest.Mock
+    ).mockReturnValueOnce(null);
+    const differentChainAssetFromSearch = {
+      ...assetFromSearch,
+      chainId: '0xa',
+    };
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={differentChainAssetFromSearch}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      { state: mockInitialState },
+    );
+
+    const swapButton = getByTestId('token-swap-button');
+    fireEvent.press(swapButton);
+
+    // Wait for all promises to resolve
+    await Promise.resolve();
+
+    expect(mockAddPopularNetwork).toHaveBeenCalled();
   });
 
   describe('Portfolio view network switching', () => {
@@ -418,7 +583,7 @@ describe('AssetOverview', () => {
     });
 
     afterEach(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
 
     it('should switch networks before sending when on different chain', async () => {
@@ -432,6 +597,7 @@ describe('AssetOverview', () => {
           asset={differentChainAsset}
           displayBuyButton
           displaySwapsButton
+          displayBridgeButton
           swapsIsLive
         />,
         { state: mockInitialState },
@@ -462,6 +628,7 @@ describe('AssetOverview', () => {
           asset={differentChainAsset}
           displayBuyButton
           displaySwapsButton
+          displayBridgeButton
           swapsIsLive
         />,
         { state: mockInitialState },
@@ -508,6 +675,7 @@ describe('AssetOverview', () => {
           asset={sameChainAsset}
           displayBuyButton
           displaySwapsButton
+          displayBridgeButton
           swapsIsLive
         />,
         { state: mockInitialState },
@@ -537,6 +705,233 @@ describe('AssetOverview', () => {
 
       expect(mainBalance.props.children).toBe('1500');
       expect(secondaryBalance.props.children).toBe('0 ETH');
+    });
+
+    it('should handle multichain send for Solana assets', async () => {
+      const solanaAsset = {
+        ...asset,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: SolScope.Mainnet,
+        isNative: true,
+      };
+
+      // Mock the hook to handle non-EVM transaction
+      mockSendNonEvmAsset.mockResolvedValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={solanaAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      await Promise.resolve();
+
+      // Verify hook was called with correct parameters
+      expect(useSendNonEvmAsset).toHaveBeenCalledWith({
+        asset: {
+          chainId: SolScope.Mainnet,
+          address: solanaAsset.address,
+        },
+      });
+
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
+
+      expect(
+        Engine.context.NetworkController.getNetworkConfigurationByChainId,
+      ).not.toHaveBeenCalled();
+      expect(
+        Engine.context.MultichainNetworkController.setActiveNetwork,
+      ).not.toHaveBeenCalled();
+
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('should handle error in multichain send for Solana assets', async () => {
+      const solanaAsset = {
+        ...asset,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: SolScope.Mainnet,
+        isNative: true,
+      };
+
+      // Mock the hook to return true (handled) even when there's an internal error
+      // The hook implementation handles errors gracefully and never throws
+      mockSendNonEvmAsset.mockResolvedValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={solanaAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      await Promise.resolve();
+
+      // Should still call the hook
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
+
+      // Should not navigate to traditional send flow since hook handled it
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('should handle non-EVM account validation through hook', async () => {
+      const solanaAsset = {
+        ...asset,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: SolScope.Mainnet,
+        isNative: true,
+      };
+
+      // Mock the hook to handle validation errors internally
+      mockSendNonEvmAsset.mockResolvedValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={solanaAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      await Promise.resolve();
+
+      // Hook should be called and handle validation
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('should delegate snap validation to hook', async () => {
+      const solanaAsset = {
+        ...asset,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: SolScope.Mainnet,
+        isNative: true,
+      };
+
+      // Mock the hook to handle snap validation internally
+      mockSendNonEvmAsset.mockResolvedValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={solanaAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      await Promise.resolve();
+
+      // Hook should handle all snap validation
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('should use traditional EVM send flow for EVM accounts', async () => {
+      const evmAsset = {
+        ...asset,
+        chainId: MOCK_CHAIN_ID,
+        isETH: true,
+      };
+
+      // Mock the hook to indicate it didn't handle the transaction (EVM account)
+      mockSendNonEvmAsset.mockResolvedValue(false);
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview
+          asset={evmAsset}
+          displayBuyButton
+          displaySwapsButton
+          displayBridgeButton
+          swapsIsLive
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId('token-send-button');
+      await fireEvent.press(sendButton);
+
+      await Promise.resolve();
+
+      // Hook should be called but return false for EVM accounts
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
+
+      // Should navigate to traditional send flow
+      expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('should display Solana balance correctly for non-EVM assets', async () => {
+      const solanaAssetWithBalance = {
+        ...asset,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: SolScope.Mainnet,
+        balance: '123.456789',
+        symbol: 'SOL',
+        isNative: true,
+      };
+
+      const mockSolanaAccount = createMockSnapInternalAccount(
+        'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH',
+        'Solana Account 1',
+        SolAccountType.DataAccount,
+      );
+
+      const solanaAccountState = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                selectedAccount: mockSolanaAccount.id,
+                accounts: {
+                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                  [mockSolanaAccount.id]: mockSolanaAccount,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverview asset={solanaAssetWithBalance} />,
+        { state: solanaAccountState },
+      );
+
+      const secondaryBalance = getByTestId(SECONDARY_BALANCE_TEST_ID);
+
+      // Should display formatted Solana balance
+      expect(secondaryBalance.props.children).toBe('123.45679 SOL');
     });
   });
 });

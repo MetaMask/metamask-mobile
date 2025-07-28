@@ -144,9 +144,8 @@ exports[`AccountOverview should render correctly 1`] = `
                       "borderColor": "#ffffff",
                     },
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -181,7 +180,7 @@ exports[`AccountOverview should render correctly 1`] = `
               }
             }
           >
-            0xe7E1...B0a1
+            0xe7E12...6B0a1
           </Text>
         </TouchableOpacity>
       </View>

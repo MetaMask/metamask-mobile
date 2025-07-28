@@ -28,7 +28,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
-        "accounts": "object",
         "accountsByChainId": "object",
       },
       "AccountsController": {
@@ -156,7 +155,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
         "lostIdentities": "object",
         "securityAlertsEnabled": "boolean",
         "selectedAddress": "string",
-        "showIncomingTransactions": "object",
         "showTestNetworks": "boolean",
         "smartTransactionsOptInStatus": "boolean",
         "useNftDetection": true,
@@ -239,10 +237,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
   },
   "security": {
     "allowLoginWithRememberMe": false,
-    "automaticSecurityChecksEnabled": false,
     "dataCollectionForMarketing": null,
-    "hasUserSelectedAutomaticSecurityCheckOption": false,
-    "isAutomaticSecurityChecksModalOpen": false,
     "isNFTAutoDetectionModalViewed": false,
   },
   "settings": {

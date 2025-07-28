@@ -1,18 +1,19 @@
 import React from 'react';
 import { TouchableOpacity, Image as ImageRN, Platform } from 'react-native';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../../util/theme';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { createStyles } from './styles';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/no-commonjs */
-const iosFaceId = require('../../../images/ios-face-id.png');
-const androidFaceRecognition = require('../../../images/android-face-recognition.png');
 const androidIris = require('../../../images/android-iris.png');
 
 type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null;
@@ -35,29 +36,31 @@ const BiometryButton = ({
     if (Platform.OS === 'ios') {
       if (type === BIOMETRY_TYPE.TOUCH_ID) {
         return (
-          <Ionicons
-            color={colors.text.default}
-            size={28}
+          <Icon
+            color={IconColor.Default}
+            size={IconSize.Lg}
             style={styles.fixCenterIcon}
-            name="ios-finger-print"
+            name={IconName.Fingerprint}
             testID={LoginViewSelectors.IOS_TOUCH_ID_ICON}
           />
         );
       } else if (type?.includes(AUTHENTICATION_TYPE.PASSCODE)) {
         return (
-          <Ionicons
-            color={colors.text.default}
-            size={28}
+          <Icon
+            color={IconColor.Default}
+            size={IconSize.Lg}
             style={styles.fixCenterIcon}
-            name="ios-lock"
+            name={IconName.Lock}
             testID={LoginViewSelectors.IOS_PASSCODE_ICON}
           />
         );
       }
       return (
-        <ImageRN
-          style={styles.image}
-          source={iosFaceId}
+        <Icon
+          color={IconColor.Default}
+          size={IconSize.Lg}
+          style={styles.fixCenterIcon}
+          name={IconName.FaceId}
           testID={LoginViewSelectors.IOS_FACE_ID_ICON}
         />
       );
@@ -66,19 +69,21 @@ const BiometryButton = ({
     if (Platform.OS === 'android') {
       if (type === BIOMETRY_TYPE.FINGERPRINT) {
         return (
-          <MaterialIcon
-            color={colors.text.default}
+          <Icon
+            color={IconColor.Default}
             style={styles.fixCenterIcon}
-            size={28}
-            name="fingerprint"
+            size={IconSize.Lg}
+            name={IconName.Fingerprint}
             testID={LoginViewSelectors.ANDROID_FINGERPRINT_ICON}
           />
         );
       } else if (type === BIOMETRY_TYPE.FACE) {
         return (
-          <ImageRN
-            style={styles.image}
-            source={androidFaceRecognition}
+          <Icon
+            color={IconColor.Default}
+            style={styles.fixCenterIcon}
+            size={IconSize.Lg}
+            name={IconName.FaceId}
             testID={LoginViewSelectors.ANDROID_FACE_ID_ICON}
           />
         );
@@ -92,11 +97,11 @@ const BiometryButton = ({
         );
       } else if (type?.includes(AUTHENTICATION_TYPE.PASSCODE)) {
         return (
-          <MaterialIcon
-            color={colors.text.default}
+          <Icon
+            color={IconColor.Default}
             style={styles.fixCenterIcon}
-            size={28}
-            name="lock"
+            size={IconSize.Lg}
+            name={IconName.Lock}
             testID={LoginViewSelectors.ANDROID_PASSCODE_ICON}
           />
         );
@@ -104,11 +109,11 @@ const BiometryButton = ({
     }
 
     return (
-      <Ionicons
-        color={colors.text.default}
+      <Icon
+        color={IconColor.Default}
         style={styles.fixCenterIcon}
-        size={28}
-        name="ios-finger-print"
+        size={IconSize.Lg}
+        name={IconName.Fingerprint}
         testID={LoginViewSelectors.FALLBACK_FINGERPRINT_ICON}
       />
     );

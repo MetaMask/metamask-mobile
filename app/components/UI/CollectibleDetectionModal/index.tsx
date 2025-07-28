@@ -22,6 +22,7 @@ import {
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 const styles = StyleSheet.create({
   alertBar: {
@@ -58,11 +59,18 @@ const CollectibleDetectionModal = () => {
     // Call detect nfts
     showNftFetchingLoadingIndicator();
     try {
+      trace({ name: TraceName.DetectNfts });
       await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
+      endTrace({ name: TraceName.DetectNfts });
     } finally {
       hideNftFetchingLoadingIndicator();
     }
-  }, [colors.primary.inverse, toastRef, addTraitsToUser, chainIdsToDetectNftsFor]);
+  }, [
+    colors.primary.inverse,
+    toastRef,
+    addTraitsToUser,
+    chainIdsToDetectNftsFor,
+  ]);
 
   return (
     <View style={styles.alertBar}>

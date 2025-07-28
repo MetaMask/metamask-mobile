@@ -1,13 +1,14 @@
 import generateUserProfileAnalyticsMetaData from './generateUserProfileAnalyticsMetaData';
 import { UserProfileProperty } from './UserProfileAnalyticsMetaData.types';
-import {Appearance} from 'react-native';
+import { Appearance } from 'react-native';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const mockGetState = jest.fn();
 jest.mock('../../../store', () => ({
-    store: {
-      getState: jest.fn(() => mockGetState()),
-    },
-  }));
+  store: {
+    getState: jest.fn(() => mockGetState()),
+  },
+}));
 
 const mockIsMetricsEnabled = jest.fn();
 jest.mock('../../../core/Analytics', () => ({
@@ -16,9 +17,22 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
-jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+const mockGetConfiguredCaipChainIds = jest.fn();
+jest.mock('../MultichainAPI/networkMetricUtils', () => ({
+  getConfiguredCaipChainIds: jest.fn(() => mockGetConfiguredCaipChainIds()),
+}));
 
 describe('generateUserProfileAnalyticsMetaData', () => {
+  beforeEach(() => {
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+
+    mockGetConfiguredCaipChainIds.mockReturnValue(['eip155:1']);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   const mockState = {
     engine: {
       backgroundState: {
@@ -28,6 +42,18 @@ describe('generateUserProfileAnalyticsMetaData', () => {
           useTokenDetection: true,
           isMultiAccountBalancesEnabled: false,
           securityAlertsEnabled: true,
+        },
+        KeyringController: {
+          keyrings: [
+            {
+              type: ExtendedKeyringTypes.hd,
+              accounts: ['0x1', '0x2'],
+              metadata: {
+                id: '01JPM6NFVGW8V8KKN34053JVFT',
+                name: '',
+              },
+            },
+          ],
         },
       },
     },
@@ -48,6 +74,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: 'blockaid',
       [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+      [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 
@@ -55,14 +82,28 @@ describe('generateUserProfileAnalyticsMetaData', () => {
     [UserProfileProperty.ON, true],
     [UserProfileProperty.OFF, false],
   ])('returns marketing consent "%s"', (expected, stateConsentValue) => {
-    mockGetState.mockReturnValue({ ...mockState, security: { dataCollectionForMarketing: stateConsentValue } });
+    mockGetState.mockReturnValue({
+      ...mockState,
+      security: { dataCollectionForMarketing: stateConsentValue },
+    });
 
     const metadata = generateUserProfileAnalyticsMetaData();
-    expect(metadata[UserProfileProperty.HAS_MARKETING_CONSENT]).toEqual(expected);
+    expect(metadata[UserProfileProperty.HAS_MARKETING_CONSENT]).toEqual(
+      expected,
+    );
   });
 
   it('returns default metadata when missing preferences controller', () => {
-    mockGetState.mockReturnValue({ ...mockState, engine: {} });
+    mockGetState.mockReturnValue({
+      ...mockState,
+      engine: {
+        backgroundState: {
+          KeyringController: {
+            keyrings: [],
+          },
+        },
+      },
+    });
 
     const metadata = generateUserProfileAnalyticsMetaData();
     expect(metadata).toMatchObject({
@@ -71,6 +112,7 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.TOKEN_DETECTION]: UserProfileProperty.OFF,
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: '',
+      [UserProfileProperty.CHAIN_IDS]: ['eip155:1'],
     });
   });
 

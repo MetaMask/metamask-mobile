@@ -4,6 +4,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import {
   CommunicationLayerMessage,
+  isAnalyticsTrackedRpcMethod,
   MessageType,
   SendAnalytics,
   TrackingEvents,
@@ -22,6 +23,7 @@ import {
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
+import { analytics } from '@metamask/sdk-analytics';
 // eslint-disable-next-line
 const { version } = require('../../../../package.json');
 
@@ -51,7 +53,9 @@ export const handleConnectionMessage = async ({
   // Check if message has already been processed
   const rpcQueueManager = connection.rpcQueueManager;
   if (message.id && rpcQueueManager.getId(message.id)) {
-    DevLogger.log(`Connection::onMessage rpcId=${message.id} already processed`);
+    DevLogger.log(
+      `Connection::onMessage rpcId=${message.id} already processed`,
+    );
     return;
   }
 
@@ -75,6 +79,15 @@ export const handleConnectionMessage = async ({
   DevLogger.log(
     `Connection::onMessage id=${connection.channelId} method=${message.method}`,
   );
+
+  const anonId = connection.originatorInfo?.anonId;
+
+  if (anonId && isAnalyticsTrackedRpcMethod(message.method)) {
+    DevLogger.log(
+      `[MM SDK Analytics] event=wallet_action_received anonId=${anonId}`,
+    );
+    analytics.track('wallet_action_received', { anon_id: anonId });
+  }
 
   connection.setLoading(false);
 
@@ -208,7 +221,7 @@ export const handleConnectionMessage = async ({
     // wait for accounts to be loaded
     await waitForAsyncCondition({
       fn: async () => {
-        const accounts = await getPermittedAccounts(connection.channelId);
+        const accounts = getPermittedAccounts(connection.channelId);
         DevLogger.log(
           `handleConnectionMessage::waitForAsyncCondition channelId=${connection.channelId} accounts`,
           accounts,
