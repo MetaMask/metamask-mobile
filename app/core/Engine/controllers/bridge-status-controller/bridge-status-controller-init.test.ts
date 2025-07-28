@@ -1,0 +1,324 @@
+import { BridgeStatusController } from '@metamask/bridge-status-controller';
+import { BridgeClientId } from '@metamask/bridge-controller';
+import { TransactionController } from '@metamask/transaction-controller';
+import { handleFetch } from '@metamask/controller-utils';
+
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { getBridgeStatusControllerMessenger } from '../../messengers/bridge-status-controller-messenger';
+import type { BridgeStatusControllerMessenger } from '@metamask/bridge-status-controller';
+import { ControllerInitRequest } from '../../types';
+import { BridgeStatusControllerInit } from './bridge-status-controller-init';
+import { trace } from '../../../../util/trace';
+import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
+
+jest.mock('@metamask/bridge-status-controller');
+jest.mock('../../../../util/trace');
+jest.mock('@metamask/controller-utils');
+
+/**
+ * Build a mock TransactionController.
+ *
+ * @param partialMock - A partial mock object for the TransactionController
+ * @returns A mock TransactionController
+ */
+function buildTransactionControllerMock(
+  partialMock?: Partial<TransactionController>,
+): TransactionController {
+  const defaultMocks = {
+    addTransaction: jest.fn().mockResolvedValue('txId'),
+    estimateGasFee: jest.fn().mockResolvedValue({ gasLimit: '0x5208' }),
+    addTransactionBatch: jest.fn().mockResolvedValue(['txId1', 'txId2']),
+    updateTransaction: jest.fn().mockResolvedValue(undefined),
+  };
+
+  // @ts-expect-error Incomplete mock, just includes properties used by code-under-test
+  return {
+    ...defaultMocks,
+    ...partialMock,
+  };
+}
+
+function buildInitRequestMock(
+  initRequestProperties: Record<string, unknown> = {},
+): jest.Mocked<ControllerInitRequest<BridgeStatusControllerMessenger>> {
+  const baseControllerMessenger = new ExtendedControllerMessenger();
+  const requestMock = {
+    ...buildControllerInitRequestMock(baseControllerMessenger),
+    controllerMessenger:
+      getBridgeStatusControllerMessenger(baseControllerMessenger),
+    persistedState: {
+      BridgeStatusController: {
+        txHistory: {},
+        bridgeFeatureFlags: {},
+      },
+    },
+    ...initRequestProperties,
+  };
+
+  if (!initRequestProperties.getController) {
+    requestMock.getController = jest
+      .fn()
+      .mockReturnValue(buildTransactionControllerMock());
+  }
+
+  return requestMock;
+}
+
+describe('BridgeStatusController Init', () => {
+  const bridgeStatusControllerClassMock = jest.mocked(BridgeStatusController);
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+    (handleFetch as jest.Mock).mockResolvedValue({ ok: true });
+    (trace as jest.Mock).mockImplementation((label, fn) => fn());
+  });
+
+  it('returns controller instance', () => {
+    // Arrange
+    const requestMock = buildInitRequestMock();
+
+    // Act
+    const result = BridgeStatusControllerInit(requestMock);
+
+    // Assert
+    expect(result.controller).toBeInstanceOf(BridgeStatusController);
+  });
+
+  it('throws error if TransactionController is not found', () => {
+    // Arrange
+    const requestMock = buildInitRequestMock({
+      getController: jest.fn().mockImplementation(() => {
+        throw new Error('TransactionController not found');
+      }),
+    });
+
+    // Act & Assert
+    expect(() => BridgeStatusControllerInit(requestMock)).toThrow(
+      'TransactionController not found',
+    );
+  });
+
+  it('throws error if controller initialization fails', () => {
+    // Arrange
+    bridgeStatusControllerClassMock.mockImplementationOnce(() => {
+      throw new Error('Controller initialization failed');
+    });
+    const requestMock = buildInitRequestMock();
+
+    // Act & Assert
+    expect(() => BridgeStatusControllerInit(requestMock)).toThrow(
+      'Controller initialization failed',
+    );
+  });
+
+  describe('BridgeStatusController constructor options', () => {
+    it('correctly sets up messenger and state', () => {
+      // Arrange
+      const mockState = {
+        txHistory: { '0x123': { status: 'pending' } },
+        bridgeFeatureFlags: { enabled: true },
+      };
+      const requestMock = buildInitRequestMock({
+        persistedState: {
+          BridgeStatusController: mockState,
+        },
+      });
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      expect(constructorOptions.messenger).toBe(
+        requestMock.controllerMessenger,
+      );
+      expect(constructorOptions.state).toEqual(mockState);
+    });
+
+    it('correctly sets up clientId', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock();
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      expect(constructorOptions.clientId).toBe(BridgeClientId.MOBILE);
+    });
+
+    it('correctly sets up fetchFn', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock();
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      expect(constructorOptions.fetchFn).toBe(handleFetch);
+    });
+
+    it('correctly sets up traceFn', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock();
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      expect(constructorOptions.traceFn).toBe(trace);
+    });
+
+    it('correctly sets up config with API base URL', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock();
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      expect(constructorOptions.config).toEqual({
+        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
+      });
+    });
+
+    it('correctly sets up addTransactionFn', () => {
+      // Arrange
+      const mockTransactionController = buildTransactionControllerMock({
+        addTransaction: jest.fn().mockResolvedValue('newTxId'),
+      });
+      const requestMock = buildInitRequestMock({
+        getController: jest.fn().mockReturnValue(mockTransactionController),
+      });
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const addTransactionFn = constructorOptions.addTransactionFn;
+      const mockTxParams = { to: '0x123', value: '0x0' };
+      const mockOrigin = 'test-origin';
+      
+      addTransactionFn(mockTxParams, { origin: mockOrigin });
+      expect(mockTransactionController.addTransaction).toHaveBeenCalledWith(
+        mockTxParams,
+        { origin: mockOrigin },
+      );
+    });
+
+    it('correctly sets up estimateGasFeeFn', () => {
+      // Arrange
+      const mockTransactionController = buildTransactionControllerMock({
+        estimateGasFee: jest.fn().mockResolvedValue({ gasLimit: '0x7530' }),
+      });
+      const requestMock = buildInitRequestMock({
+        getController: jest.fn().mockReturnValue(mockTransactionController),
+      });
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const estimateGasFeeFn = constructorOptions.estimateGasFeeFn;
+      const mockTxParams = {
+        transactionParams: { to: '0x123', value: '0x0' },
+        chainId: '0x1',
+      };
+      
+      estimateGasFeeFn(mockTxParams);
+      expect(mockTransactionController.estimateGasFee).toHaveBeenCalledWith(
+        mockTxParams,
+      );
+    });
+
+    it('correctly sets up addTransactionBatchFn', () => {
+      // Arrange
+      const mockTransactionController = buildTransactionControllerMock({
+        addTransactionBatch: jest.fn().mockResolvedValue(['txId1', 'txId2']),
+      });
+      const requestMock = buildInitRequestMock({
+        getController: jest.fn().mockReturnValue(mockTransactionController),
+      });
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const addTransactionBatchFn = constructorOptions.addTransactionBatchFn;
+      const mockTxBatch = {
+        from: '0xabc',
+        networkClientId: 'mainnet',
+        transactions: [{ to: '0x123' }, { to: '0x456' }],
+      };
+      
+      addTransactionBatchFn(mockTxBatch);
+      expect(mockTransactionController.addTransactionBatch).toHaveBeenCalledWith(
+        mockTxBatch,
+      );
+    });
+
+    it('correctly sets up updateTransactionFn', () => {
+      // Arrange
+      const mockTransactionController = buildTransactionControllerMock({
+        updateTransaction: jest.fn().mockResolvedValue(undefined),
+      });
+      const requestMock = buildInitRequestMock({
+        getController: jest.fn().mockReturnValue(mockTransactionController),
+      });
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      const updateTransactionFn = constructorOptions.updateTransactionFn;
+      const mockTxUpdate = { id: 'txId', status: 'confirmed' };
+      const mockNote = 'test note';
+      
+      updateTransactionFn(mockTxUpdate, mockNote);
+      expect(mockTransactionController.updateTransaction).toHaveBeenCalledWith(
+        mockTxUpdate,
+        mockNote,
+      );
+    });
+
+    it('handles undefined persistedState', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock({
+        persistedState: {},
+      });
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions = bridgeStatusControllerClassMock.mock.calls[0][0];
+      expect(constructorOptions.state).toBeUndefined();
+    });
+  });
+
+  describe('getControllers helper', () => {
+    it('correctly retrieves TransactionController', () => {
+      // Arrange
+      const mockTransactionController = buildTransactionControllerMock();
+      const requestMock = buildInitRequestMock({
+        getController: jest.fn().mockReturnValue(mockTransactionController),
+      });
+
+      // Act
+      BridgeStatusControllerInit(requestMock);
+
+      // Assert
+      expect(requestMock.getController).toHaveBeenCalledWith(
+        'TransactionController',
+      );
+    });
+  });
+});
