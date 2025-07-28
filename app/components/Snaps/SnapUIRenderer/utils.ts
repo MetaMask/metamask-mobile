@@ -113,7 +113,7 @@ const generateHash = memoize((component: JSXElement) => {
   const { type, props } = component;
   const { name } = props as { name?: string };
   const children = getChildrenForHash(component);
-  return [type, name ?? null, children].join(',');
+  return JSON.stringify({ type, name: name ?? null, children });
 });
 
 /**
