@@ -141,6 +141,22 @@ describe('Send', () => {
     expect(getByText('Insufficient funds')).toBeTruthy();
   });
 
+  it('when confirm is clicked create transaction for ERC20 token', async () => {
+    const mockAddTransaction = jest
+      .spyOn(TransactionUtils, 'addTransaction')
+      .mockImplementation(() =>
+        Promise.resolve({
+          result: Promise.resolve('123'),
+          transactionMeta: { id: '123' } as TransactionMeta,
+        }),
+      );
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_to_address'), '0x123');
+    fireEvent.changeText(getByTestId('send_amount'), '.01');
+    fireEvent.press(getByText('Confirm'));
+    expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+  });
+
   it('display error if amount is greater than balance for ERC20 token', async () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
@@ -154,22 +170,6 @@ describe('Send', () => {
     const { getByText, getByTestId } = renderComponent();
     fireEvent.changeText(getByTestId('send_amount'), '100');
     expect(getByText('Insufficient funds')).toBeTruthy();
-  });
-
-  it('when confirm is clicked create transaction for ERC20 token', async () => {
-    const mockAddTransaction = jest
-      .spyOn(TransactionUtils, 'addTransaction')
-      .mockImplementation(() =>
-        Promise.resolve({
-          result: Promise.resolve('123'),
-          transactionMeta: { id: '123' } as TransactionMeta,
-        }),
-      );
-    const { getByText, getByTestId } = renderComponent();
-    fireEvent.changeText(getByTestId('send_to_address'), '0x123');
-    fireEvent.changeText(getByTestId('send_amount'), '1');
-    fireEvent.press(getByText('Confirm'));
-    expect(mockAddTransaction).toHaveBeenCalledTimes(1);
   });
 
   it('when confirm is clicked create transaction for native token', async () => {
