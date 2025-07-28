@@ -41,7 +41,7 @@ export interface DepositSDK {
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
-  logoutFromProvider: () => Promise<void>;
+  logoutFromProvider: (requireServerInvalidation?: boolean) => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
   getStarted: boolean;
   setGetStarted: (seen: boolean) => void;
@@ -193,18 +193,31 @@ export const DepositSDKProvider = ({
     [sdk],
   );
 
-  const logoutFromProvider = useCallback(async () => {
-    if (sdk) {
-      await sdk.logout();
+  const logoutFromProvider = useCallback(
+    async (requireServerInvalidation = true) => {
+      if (!sdk) {
+        throw new Error(
+          strings('deposit.configuration_modal.error_sdk_not_initialized'),
+        );
+      }
+
+      requireServerInvalidation
+        ? await sdk.logout()
+        : await sdk
+            .logout()
+            .catch((error) =>
+              Logger.error(
+                error as Error,
+                'SDK logout failed but invalidation was not required. Error:',
+              ),
+            );
+
       await resetProviderToken();
       setAuthToken(undefined);
       setIsAuthenticated(false);
-    } else {
-      throw new Error(
-        strings('deposit.configuration_modal.error_sdk_not_initialized'),
-      );
-    }
-  }, [sdk]);
+    },
+    [sdk],
+  );
 
   const contextValue = useMemo(
     (): DepositSDK => ({
