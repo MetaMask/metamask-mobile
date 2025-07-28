@@ -45,6 +45,7 @@ describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withTokens(USDC_TOKEN).build(),
+        restartDevice: true,
         localNodeOptions: [
           {
             type: LocalNodeType.ganache,
