@@ -25,11 +25,11 @@ describe(Regression('Import custom token'), () => {
     await ImportTokensView.switchToCustomTab();
     await ImportTokensView.tapOnNetworkInput();
     await ImportTokensView.tapNetworkOption('Base Mainnet');
-    await ImportTokensView.replaceTextInFieldTokenAddress(TOKEN_ADDRESS);
-    await TestHelpers.delay(5000); // Wait for token details to load automatically
-    await ImportTokensView.scrollDownOnAddressInput();
+    await ImportTokensView.typeTokenAddress(TOKEN_ADDRESS);
+    await ImportTokensView.tapSymbolInput();
+    await ImportTokensView.tapTokenSymbolText();
+    await ImportTokensView.scrollDownOnImportCustomTokens();
     await ImportTokensView.tapOnNextButton();
-    await Assertions.checkIfVisible(ConfirmAddAssetView.container);
     await ConfirmAddAssetView.tapOnConfirmButton();
     await Assertions.checkIfVisible(WalletView.container);
   });
