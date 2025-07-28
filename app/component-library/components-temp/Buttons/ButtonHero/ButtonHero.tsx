@@ -23,7 +23,9 @@ const ButtonHeroInner = ({
   const tw = useTailwind(); // Now this gets the light theme from ThemeProvider
 
   // Pressed color is the same as default state
-  // TODO: @MetaMask/design-system-engineers we should change the type e.g. textClassName?: string | ((pressed: boolean) => string)
+  // TODO: @MetaMask/design-system-engineers: The current type of textClassName in ButtonBaseProps requires a function,
+  // even when the value is static. This forces unnecessary function creation. We should change the type to
+  // textClassName?: string | ((pressed: boolean) => string) to allow static strings and improve efficiency.
   const getTextClassName = useCallback(() => 'text-primary-inverse', []);
 
   const getStyle = useCallback(
