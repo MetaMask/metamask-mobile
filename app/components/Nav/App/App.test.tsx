@@ -204,8 +204,6 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   removeEventListener: jest.fn(),
 }));
 
-const mockLinking = jest.mocked(Linking);
-
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 describe('App', () => {
