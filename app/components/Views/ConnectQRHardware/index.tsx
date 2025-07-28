@@ -325,6 +325,12 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const onForget = useCallback(async () => {
     resetError();
+    // Permissions need to be updated before the hardware wallet is forgotten.
+    // This is because `removeAccountsFromPermissions` relies on the account
+    // existing in AccountsController in order to resolve a hex address
+    // back into CAIP Account Id. Hex addresses are used in
+    // `removeAccountsFromPermissions` because too many places in the UI still
+    // operate on hex addresses rather than CAIP Account Id.
     await Engine.context.KeyringController.withKeyring(
       { type: ExtendedKeyringTypes.qr },
       ({ keyring }: { keyring: QRKeyring }) => {
