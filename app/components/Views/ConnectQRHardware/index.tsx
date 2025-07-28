@@ -33,7 +33,6 @@ import ExtendedKeyringTypes, {
 } from '../../../constants/keyringTypes';
 import { ThemeColors } from '@metamask/design-tokens';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
-import { Hex } from '@metamask/utils';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -333,8 +332,9 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     // operate on hex addresses rather than CAIP Account Id.
     await Engine.context.KeyringController.withKeyring(
       { type: ExtendedKeyringTypes.qr },
-      ({ keyring }: { keyring: QRKeyring }) => {
-        removeAccountsFromPermissions(keyring.accounts as Hex[]);
+      async ({ keyring }) => {
+        const keyringAccounts = await keyring.getAccounts();
+        removeAccountsFromPermissions(keyringAccounts);
       },
     );
     const { remainingAccounts } = await KeyringController.forgetQRDevice();

@@ -18,7 +18,6 @@ import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
 import { removeAccountsFromPermissions } from '../Permissions';
-import { Hex } from '@metamask/utils';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -102,7 +101,8 @@ export const forgetLedger = async (): Promise<void> => {
     // back into CAIP Account Id. Hex addresses are used in
     // `removeAccountsFromPermissions` because too many places in the UI still
     // operate on hex addresses rather than CAIP Account Id.
-    removeAccountsFromPermissions(keyring.accounts as Hex[]);
+    const accounts = await keyring.getAccounts();
+    removeAccountsFromPermissions(accounts);
     keyring.forgetDevice();
   });
 };
