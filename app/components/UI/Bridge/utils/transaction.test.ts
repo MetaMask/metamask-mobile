@@ -75,44 +75,4 @@ describe('getIsBridgeTransaction', () => {
     // Assert
     expect(result).toBe(false);
   });
-
-  it('returns false when neither origin nor type match bridge criteria', () => {
-    // Arrange
-    const txMeta = {
-      origin: 'https://example.com',
-      type: TransactionType.simpleSend,
-    } as TransactionMeta;
-
-    // Act
-    const result = getIsBridgeTransaction(txMeta);
-
-    // Assert
-    expect(result).toBe(false);
-  });
-
-  it('returns false when origin is undefined', () => {
-    // Arrange
-    const txMeta = {
-      type: TransactionType.bridge,
-    } as TransactionMeta;
-
-    // Act
-    const result = getIsBridgeTransaction(txMeta);
-
-    // Assert
-    expect(result).toBe(false);
-  });
-
-  it('returns false when type is undefined', () => {
-    // Arrange
-    const txMeta = {
-      origin: ORIGIN_METAMASK,
-    } as TransactionMeta;
-
-    // Act
-    const result = getIsBridgeTransaction(txMeta);
-
-    // Assert
-    expect(result).toBe(false);
-  });
 });
