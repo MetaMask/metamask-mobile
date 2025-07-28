@@ -121,16 +121,16 @@ class ImportTokensView {
 
   async tapOnNextButtonWithFallback() {
     try {
-      await Gestures.tapAtIndex(this.nextButtonByText, 0, {
+      await Gestures.tapAtIndex(this.nextButton, 0, {
         elemDescription: 'Next Button by Text',
       });
     } catch (error) {
       try {
-        await Gestures.tapAtIndex(this.nextButtonByText, 1, {
+        await Gestures.tapAtIndex(this.nextButton, 1, {
           elemDescription: 'Next Button by Text - Fallback',
         });
       } catch (secondError) {
-        await Gestures.waitAndTap(this.nextButtonByText, {
+        await Gestures.waitAndTap(this.nextButton, {
           elemDescription: 'Next Button by Text - Fallback 2',
         });
       }

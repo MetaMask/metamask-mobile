@@ -29,7 +29,7 @@ describe(Regression('Import custom token'), () => {
     await ImportTokensView.tapSymbolInput();
     await ImportTokensView.tapTokenSymbolText();
     await ImportTokensView.scrollDownOnImportCustomTokens();
-    await ImportTokensView.tapOnNextButton();
+    await ImportTokensView.tapOnNextButtonWithFallback();
     await ConfirmAddAssetView.tapOnConfirmButton();
     await Assertions.checkIfVisible(WalletView.container);
   });
