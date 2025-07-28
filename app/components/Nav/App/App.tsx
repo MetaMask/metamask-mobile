@@ -138,7 +138,6 @@ import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPh
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import NavigationService from '../../../core/NavigationService';
 import AccountStatus from '../../Views/AccountStatus';
-import { useCardholderCheck } from '../../UI/Card/hooks/useCardholderCheck';
 import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
@@ -921,8 +920,6 @@ const App: React.FC = () => {
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
-
-  useCardholderCheck();
 
   if (isFirstRender.current) {
     trace({

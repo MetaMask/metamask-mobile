@@ -116,7 +116,7 @@ import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-import { selectIsCardholder } from '../../../selectors/card';
+import { selectIsCardholder } from '../../../core/redux/slices/card';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({

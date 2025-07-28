@@ -34,7 +34,7 @@ import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
-import cardReducer, { CardState } from './card';
+import cardReducer from '../core/redux/slices/card';
 import { isTest } from '../util/test/utils';
 
 /**
@@ -124,7 +124,7 @@ export interface RootState {
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
   banners: BannersState;
-  card: CardState;
+  card: StateFromReducer<typeof cardReducer>;
   performance?: PerformanceState;
 }
 
