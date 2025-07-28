@@ -6,6 +6,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
 import Assertions from '../../framework/Assertions';
+import TestHelpers from '../../helpers';
 
 describe(Regression('Import Tokens'), () => {
   it('should add and remove a token via token autocomplete', async () => {
@@ -66,5 +67,23 @@ describe(Regression('Import Tokens'), () => {
         );
       },
     );
+  });
+
+  it('allows importing multiple tokens from search', async () => {
+    await WalletView.tapImportTokensButton();
+    await ImportTokensView.searchToken('CHAIN');
+    await ImportTokensView.tapOnToken();
+    await ImportTokensView.searchToken('CHANGE');
+    await ImportTokensView.tapOnToken();
+    await ImportTokensView.tapOnNextButton();
+
+    await TestHelpers.delay(500);
+    await Assertions.checkIfVisible(ConfirmAddAssetView.container);
+
+    await ConfirmAddAssetView.tapOnConfirmButton();
+
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfVisible(WalletView.tokenInWallet('0 LINK'));
+    await Assertions.checkIfVisible(WalletView.tokenInWallet('0 CNG'));
   });
 });
