@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   android-build:
+    name: Test Android Build QA App
     runs-on: ubuntu-latest
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
