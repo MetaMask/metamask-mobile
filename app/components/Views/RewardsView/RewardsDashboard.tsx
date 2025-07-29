@@ -2,6 +2,10 @@ import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import type { Colors } from '../../../util/theme/models';
+import { useRewardsSeason } from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsSeason';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
+import { useRewardsSubscription } from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsSubscription';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -75,6 +79,13 @@ const RewardsDashboard: React.FC<RewardsDashboardProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { seasonData } = useRewardsSeason();
+  const { subscription, accounts } = useRewardsSubscription();
+  const address = useSelector(selectSelectedInternalAccountAddress);
+  console.log('seasonData:', seasonData);
+  console.log('currentAddress', address);
+  console.log('subscription', subscription);
+  console.log('accounts', accounts);
 
   return (
     <View style={styles.container}>
@@ -92,7 +103,9 @@ const RewardsDashboard: React.FC<RewardsDashboardProps> = ({
         </View>
       </View>
       <View style={styles.signedInContainer}>
-        <Text style={styles.signedInText}>✓ You&apos;re signed in to rewards!</Text>
+        <Text style={styles.signedInText}>
+          ✓ You&apos;re signed in to rewards!
+        </Text>
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
           <Text style={styles.signOutButtonText}>Sign Out</Text>
         </TouchableOpacity>
