@@ -231,6 +231,7 @@ import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
+import { perpsControllerInit } from './controllers/perps-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -981,6 +982,8 @@ export class Engine {
       messenger: userStorageControllerMessenger,
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
+      // @ts-expect-error Controller uses string for names rather than enum
+      trace,
       config: {
         accountSyncing: {
           onAccountAdded: (profileId) => {
@@ -1192,6 +1195,7 @@ export class Engine {
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:stopPollingForQuotes',
           'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',
@@ -1214,11 +1218,14 @@ export class Engine {
       estimateGasFeeFn: (
         ...args: Parameters<typeof this.transactionController.estimateGasFee>
       ) => this.transactionController.estimateGasFee(...args),
-      addUserOperationFromTransactionFn: (...args: unknown[]) =>
-        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
-        this.userOperationController?.addUserOperationFromTransaction?.(
-          ...args,
-        ),
+      addTransactionBatchFn: (
+        ...args: Parameters<
+          typeof this.transactionController.addTransactionBatch
+        >
+      ) => this.transactionController.addTransactionBatch(...args),
+      updateTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.updateTransaction>
+      ) => this.transactionController.updateTransaction(...args),
       traceFn: trace as TraceCallback,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
@@ -1267,6 +1274,7 @@ export class Engine {
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        PerpsController: perpsControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1282,6 +1290,7 @@ export class Engine {
     const transactionController = controllersByName.TransactionController;
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
+    const perpsController = controllersByName.PerpsController;
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1637,6 +1646,7 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
+      PerpsController: perpsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2357,6 +2367,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
     } = instance.datamodel.state;
@@ -2411,6 +2422,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
     };

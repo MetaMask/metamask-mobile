@@ -5732,6 +5732,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "flexShrink": 1,
                                     }
                                   }
+                                  testID="ramps-account-picker"
                                 >
                                   <View
                                     style={
@@ -6619,8 +6620,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         >
                                           <Text
                                             accessibilityRole="text"
-                                            adjustsFontSizeToFit={true}
-                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#121314",
@@ -7121,7 +7120,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     "backgroundColor": "#f3f5f9",
                                     "paddingHorizontal": 24,
                                   },
-                                  undefined,
                                 ],
                               ]
                             }
@@ -11242,6 +11240,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "flexShrink": 1,
                                     }
                                   }
+                                  testID="ramps-account-picker"
                                 >
                                   <View
                                     style={
@@ -12129,8 +12128,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         >
                                           <Text
                                             accessibilityRole="text"
-                                            adjustsFontSizeToFit={true}
-                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#121314",
@@ -12677,7 +12674,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     "backgroundColor": "#f3f5f9",
                                     "paddingHorizontal": 24,
                                   },
-                                  undefined,
                                 ],
                               ]
                             }
@@ -14253,6 +14249,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "flexShrink": 1,
                                     }
                                   }
+                                  testID="ramps-account-picker"
                                 >
                                   <View
                                     style={
@@ -15053,8 +15050,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         >
                                           <Text
                                             accessibilityRole="text"
-                                            adjustsFontSizeToFit={true}
-                                            numberOfLines={1}
                                             style={
                                               {
                                                 "color": "#121314",
@@ -15666,7 +15661,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     "backgroundColor": "#f3f5f9",
                                     "paddingHorizontal": 24,
                                   },
-                                  undefined,
                                 ],
                               ]
                             }

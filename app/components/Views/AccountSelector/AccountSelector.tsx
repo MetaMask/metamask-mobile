@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { InteractionManager, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 // External dependencies.
 import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
@@ -49,6 +49,7 @@ import {
 import { getTraceTags } from '../../../util/sentry/tags';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { height: screenHeight } = useWindowDimensions();
@@ -70,6 +71,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
   const privacyMode = useSelector(selectPrivacyMode);
   const sheetRef = useRef<BottomSheetRef>(null);
+
+  useSyncSRPs();
 
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(
@@ -99,21 +102,19 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const _onSelectAccount = useCallback(
     (address: string) => {
-      InteractionManager.runAfterInteractions(() => {
-        Engine.setSelectedAddress(address);
-        sheetRef.current?.onCloseBottomSheet();
-        onSelectAccount?.(address);
+      Engine.setSelectedAddress(address);
+      sheetRef.current?.onCloseBottomSheet();
+      onSelectAccount?.(address);
 
-        // Track Event: "Switched Account"
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
-            .addProperties({
-              source: 'Wallet Tab',
-              number_of_accounts: accounts?.length,
-            })
-            .build(),
-        );
-      });
+      // Track Event: "Switched Account"
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+          .addProperties({
+            source: 'Wallet Tab',
+            number_of_accounts: accounts?.length,
+          })
+          .build(),
+      );
     },
     [accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );

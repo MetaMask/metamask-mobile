@@ -5,10 +5,12 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    subtitle: {
-      fontSize: 14,
+    title: {
       marginTop: 24,
-      marginBottom: 20,
+    },
+    subtitle: {
+      marginBottom: 16,
+      color: theme.colors.text.muted,
     },
     nameInputRow: {
       flexDirection: 'row',
@@ -22,6 +24,11 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.icon.default,
     },
     footerContent: {
+      gap: 8,
+    },
+    ssnLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 8,
     },
   });

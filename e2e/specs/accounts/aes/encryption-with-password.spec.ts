@@ -1,26 +1,16 @@
-import { SmokeNetworkExpansion } from '../../../tags';
+import { SmokeAccounts } from '../../../tags';
 import TestHelpers from '../../../helpers';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import type { IndexableNativeElement } from 'detox/detox';
-
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import { loginToApp } from '../../../viewHelper';
 import AesCryptoTestForm from '../../../pages/Settings/AesCryptoTestForm';
-
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import {
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
-} from '../../../fixtures/fixture-helper';
-import { getFixturesServerPort } from '../../../fixtures/utils';
-import FixtureServer from '../../../fixtures/fixture-server';
-
-const fixtureServer = new FixtureServer();
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
 describe(
-  SmokeNetworkExpansion('AES Crypto - Encryption and decryption with password'),
+  SmokeAccounts('AES Crypto - Encryption and decryption with password'),
   (): void => {
     const PASSWORD_ONE: string = '123123123';
     const PASSWORD_TWO: string = '456456456';
@@ -30,38 +20,39 @@ describe(
     beforeAll(async (): Promise<void> => {
       jest.setTimeout(150000);
       await TestHelpers.reverseServerPort();
-      const fixture = new FixtureBuilder().build();
-      await startFixtureServer(fixtureServer);
-      await loadFixture(fixtureServer, { fixture });
-      await TestHelpers.launchApp({
-        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-      });
-      await loginToApp();
-    });
-
-    afterAll(async (): Promise<void> => {
-      await stopFixtureServer(fixtureServer);
     });
 
     it('encrypts and decrypts using password', async (): Promise<void> => {
-      await TabBarComponent.tapSettings();
-      await SettingsView.scrollToAesCryptoButton();
-      await SettingsView.tapAesCryptoTestForm();
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          restartDevice: true,
+        },
+        async () => {
+          await loginToApp();
+          await TabBarComponent.tapSettings();
+          await SettingsView.scrollToAesCryptoButton();
+          await SettingsView.tapAesCryptoTestForm();
 
-      await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_ONE, PASSWORD_ONE);
-      await AesCryptoTestForm.decrypt(PASSWORD_ONE);
-      await Assertions.checkIfElementHasLabel(
-        AesCryptoTestForm.decryptResponse as Promise<IndexableNativeElement>,
-        DATA_TO_ENCRYPT_ONE,
-      );
+          await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_ONE, PASSWORD_ONE);
+          await Assertions.expectElementToBeVisible(
+            AesCryptoTestForm.responseText,
+          );
+          await AesCryptoTestForm.decrypt(PASSWORD_ONE);
+          await Assertions.expectElementToHaveLabel(
+            AesCryptoTestForm.decryptResponse as Promise<IndexableNativeElement>,
+            DATA_TO_ENCRYPT_ONE,
+          );
 
-      // encrypt and decrypt with password second piece of data
-      await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_TWO, PASSWORD_TWO);
-      await AesCryptoTestForm.decrypt(PASSWORD_TWO);
-      await Assertions.checkIfElementHasLabel(
-        AesCryptoTestForm.decryptResponse as Promise<IndexableNativeElement>,
-        DATA_TO_ENCRYPT_TWO,
+          // encrypt and decrypt with password second piece of data
+          await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_TWO, PASSWORD_TWO);
+          await AesCryptoTestForm.decrypt(PASSWORD_TWO);
+          await Assertions.expectElementToHaveLabel(
+            AesCryptoTestForm.decryptResponse as Promise<IndexableNativeElement>,
+            DATA_TO_ENCRYPT_TWO,
+          );
+        },
       );
     });
   },
-); 
+);

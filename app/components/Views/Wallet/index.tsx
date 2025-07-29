@@ -9,19 +9,19 @@ import {
   ActivityIndicator,
   StyleSheet as RNStyleSheet,
   View,
-  TextStyle,
   Linking,
+  TextStyle,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
 import ScrollableTabView, {
   ChangeTabProperties,
 } from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
+import TabBar from '../../../component-library/components-temp/TabBar';
 import {
   isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
@@ -29,6 +29,9 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
 } from '../../../reducers/legalNotices';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+
 import {
   ToastContext,
   ToastVariants,
@@ -68,8 +71,6 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
-  getFontFamily,
-  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
@@ -106,9 +107,6 @@ import { Hex } from '@metamask/utils';
 import { Nft, Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
-///: END:ONLY_INCLUDE_IF
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
@@ -119,8 +117,10 @@ import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 
-const createStyles = ({ colors, typography }: Theme) =>
+const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
     base: {
       paddingHorizontal: 16,
@@ -130,22 +130,12 @@ const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.background.default,
     },
     walletAccount: { marginTop: 28 },
-    tabUnderlineStyle: {
-      height: 2,
-      backgroundColor: colors.primary.default,
-    },
-    tabStyle: {
-      paddingBottom: 8,
-      paddingVertical: 8,
-    },
     tabBar: {
-      borderColor: colors.background.default,
       marginBottom: 8,
     },
-    textStyle: {
-      ...(typography.sBodyMD as TextStyle),
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-      fontWeight: '500',
+    tabContainer: {
+      paddingHorizontal: 16,
+      flex: 1,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -159,6 +149,10 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     carouselContainer: {
       marginTop: 12,
+    },
+    tabStyle: {
+      paddingBottom: 8,
+      paddingVertical: 8,
     },
   });
 
@@ -179,35 +173,39 @@ const WalletTokensTabView = React.memo(
     defiEnabled: boolean;
     collectiblesEnabled: boolean;
   }) => {
+    const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
 
     const theme = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
-    const { colors } = theme;
 
     const renderTabBar = useCallback(
       (tabBarProps: Record<string, unknown>) => (
-        <View style={styles.base}>
-          <DefaultTabBar
-            underlineStyle={styles.tabUnderlineStyle}
-            activeTextColor={colors.primary.default}
-            inactiveTextColor={colors.text.default}
-            backgroundColor={colors.background.default}
-            tabStyle={styles.tabStyle}
-            textStyle={styles.textStyle}
-            tabPadding={16}
-            style={styles.tabBar}
-            {...tabBarProps}
-          />
-        </View>
+        <TabBar
+          style={styles.tabBar}
+          {...tabBarProps}
+          tabStyle={styles.tabStyle}
+          textStyle={{
+            ...(theme.typography.sBodySMBold as TextStyle),
+          }}
+        />
       ),
-      [styles, colors],
+      [styles, theme],
     );
 
     const tokensTabProps = useMemo(
       () => ({
         key: 'tokens-tab',
         tabLabel: strings('wallet.tokens'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    const perpsTabProps = useMemo(
+      () => ({
+        key: 'perps-tab',
+        tabLabel: strings('wallet.perps'),
         navigation,
       }),
       [navigation],
@@ -232,13 +230,19 @@ const WalletTokensTabView = React.memo(
     );
 
     return (
-      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
-        <Tokens {...tokensTabProps} />
-        {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
-        {collectiblesEnabled && (
-          <CollectibleContracts {...collectibleContractsTabProps} />
-        )}
-      </ScrollableTabView>
+      <View style={styles.tabContainer}>
+        <ScrollableTabView
+          renderTabBar={renderTabBar}
+          onChangeTab={onChangeTab}
+        >
+          <Tokens {...tokensTabProps} />
+          {isPerpsEnabled && <PerpsTabView {...perpsTabProps} />}
+          {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
+          {collectiblesEnabled && (
+            <CollectibleContracts {...collectibleContractsTabProps} />
+          )}
+        </ScrollableTabView>
+      </View>
     );
   },
 );
@@ -335,6 +339,22 @@ const Wallet = ({
     isParticipatingInMetaMetrics,
     navigate,
   ]);
+
+  const checkAndNavigateToSolanaFeature = useCallback(async () => {
+    const hasSeenModal = await StorageWrapper.getItem(
+      SOLANA_FEATURE_MODAL_SHOWN,
+    );
+
+    if (hasSeenModal !== 'true') {
+      navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
+    }
+  }, [navigate]);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  useEffect(() => {
+    checkAndNavigateToSolanaFeature();
+  }, [checkAndNavigateToSolanaFeature]);
+  ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
     addTraitsToUser({
@@ -743,11 +763,6 @@ const Wallet = ({
             defiEnabled={defiEnabled}
             collectiblesEnabled={isEvmSelected}
           />
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-            <SolanaNewFeatureContent />
-            ///: END:ONLY_INCLUDE_IF
-          }
         </>
       </View>
     ),

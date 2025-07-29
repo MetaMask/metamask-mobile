@@ -388,7 +388,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               }
                             >
                               <SvgMock
-                                color="#1c7e33"
+                                color="#457a39"
                                 fill="currentColor"
                                 height={24}
                                 name="CheckBold"
@@ -454,7 +454,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               }
                             >
                               <SvgMock
-                                color="#1c7e33"
+                                color="#457a39"
                                 fill="currentColor"
                                 height={24}
                                 name="CheckBold"
@@ -520,7 +520,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               }
                             >
                               <SvgMock
-                                color="#1c7e33"
+                                color="#457a39"
                                 fill="currentColor"
                                 height={24}
                                 name="CheckBold"
@@ -678,15 +678,10 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                       </RCTScrollView>
                       <View
                         style={
-                          [
-                            {
-                              "flexDirection": "row",
-                              "padding": 16,
-                            },
-                            {
-                              "opacity": 0.3,
-                            },
-                          ]
+                          {
+                            "flexDirection": "row",
+                            "padding": 16,
+                          }
                         }
                       >
                         <TouchableOpacity

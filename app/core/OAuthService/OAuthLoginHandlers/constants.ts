@@ -28,9 +28,14 @@ const buildTypeMapping = (buildType: string, isDev: boolean) => {
   if (process.env.DEV_OAUTH_CONFIG === 'true' && isDev) {
     return 'development';
   }
-  const IS_QA = process.env.METAMASK_ENVIRONMENT === 'qa';
+  // exp build as QA build
+  const IS_QA =
+    process.env.METAMASK_ENVIRONMENT === 'qa' ||
+    process.env.METAMASK_ENVIRONMENT === 'exp';
 
   switch (buildType) {
+    case 'QA':
+      return 'main_uat';
     case 'main':
       return IS_QA ? 'main_uat' : isDev ? 'main_dev' : 'main_prod';
     case 'flask':

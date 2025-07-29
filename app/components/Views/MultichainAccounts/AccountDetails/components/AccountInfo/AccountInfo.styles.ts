@@ -19,7 +19,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     copyAddress: {
       marginBottom: 16,
-      padding: 8,
+      paddingTop: 4,
+      paddingBottom: 4,
+      paddingLeft: 12,
+      paddingRight: 12,
       gap: 4,
       borderRadius: 999,
       backgroundColor: colors.primary.muted,

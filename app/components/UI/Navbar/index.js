@@ -1402,7 +1402,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
       elevation: 0,
     },
     headerIcon: {
-      color: themeColors.default,
+      color: themeColors.icon.default,
     },
   });
 
@@ -1774,7 +1774,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
   };
 }
 
-export function getBridgeNavbar(navigation, route, themeColors) {
+export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
       color: themeColors.primary.default,
@@ -1789,9 +1789,12 @@ export function getBridgeNavbar(navigation, route, themeColors) {
   });
 
   let title = `${strings('swaps.title')}/${strings('bridge.title')}`;
-  if (route.params?.bridgeViewMode === BridgeViewMode.Bridge) {
+  if (bridgeViewMode === BridgeViewMode.Bridge) {
     title = strings('bridge.title');
-  } else if (route.params?.bridgeViewMode === BridgeViewMode.Swap) {
+  } else if (
+    bridgeViewMode === BridgeViewMode.Swap ||
+    bridgeViewMode === BridgeViewMode.Unified
+  ) {
     title = strings('swaps.title');
   }
 
@@ -1857,7 +1860,13 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
  */
 export function getDepositNavbarOptions(
   navigation,
-  { title, showBack = true, showClose = true },
+  {
+    title,
+    showBack = true,
+    showClose = true,
+    showConfiguration = false,
+    onConfigurationPress,
+  },
   theme,
   onClose = undefined,
 ) {
@@ -1886,7 +1895,21 @@ export function getDepositNavbarOptions(
     headerLeft: showBack
       ? () => (
           <TouchableOpacity onPress={leftAction} style={styles.backButton}>
-            <Icon name={IconName.ArrowLeft} />
+            <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
+          </TouchableOpacity>
+        )
+      : showConfiguration
+      ? () => (
+          <TouchableOpacity
+            onPress={() => onConfigurationPress?.()}
+            style={styles.backButton}
+            testID="deposit-configuration-menu-button"
+          >
+            <Icon
+              name={IconName.MoreHorizontal}
+              size={IconSize.Lg}
+              color={theme.colors.icon.default}
+            />
           </TouchableOpacity>
         )
       : null,
