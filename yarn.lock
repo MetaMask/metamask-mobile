@@ -1444,10 +1444,10 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/native-ramps-sdk@^1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.1.2.tgz#fd03246308ee27b74d45a78bfb798f4519ab7823"
-  integrity sha512-6kH3QkWcuV5LZjKIHWngttgK5wXARyi5EHsyeRkGBqLxZQuHNt8grorHR5OrOSEEzdFyO+iv1z2YF6VYnVkSyQ==
+"@consensys/native-ramps-sdk@^1.1.4":
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.1.4.tgz#b248f658047c91d629f59384db96ec676cd0c791"
+  integrity sha512-4isXxCuGK7GYUxyKtDU6uc3+rGQQdUb90GIia/9ThlkgiQoh4dfgSrITykp/inv8VFgNc/omcT8EvPJNvQPCnw==
   dependencies:
     async "^3.2.3"
     axios "^1.10.0"
@@ -5817,6 +5817,13 @@
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.10.0"
+
+"@metamask/preinstalled-example-snap@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preinstalled-example-snap/-/preinstalled-example-snap-0.6.0.tgz#eb5932f0d9df0e36e17b360bdcefa1d0ee92c467"
+  integrity sha512-4m+nxSjBAu7V8XqCos8fYFgBNdnXLgcbfUGDnDewPwRP6z1HgTJ46V/wEwYUEXdLT9uRWULzWeABMQVOJrRCbA==
+  dependencies:
+    "@metamask/snaps-sdk" "^9.1.0"
 
 "@metamask/profile-sync-controller@^21.0.0":
   version "21.0.0"
