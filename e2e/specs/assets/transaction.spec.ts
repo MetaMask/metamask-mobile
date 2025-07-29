@@ -1,4 +1,3 @@
-'use strict';
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import AmountView from '../../pages/Send/AmountView';
@@ -7,12 +6,9 @@ import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import enContent from '../../../locales/languages/en.json';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
@@ -34,7 +30,6 @@ describe(Regression('Transaction'), () => {
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
         testSpecificMock: {
           GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
         },
@@ -46,9 +41,9 @@ describe(Regression('Transaction'), () => {
 
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
-        if (device.getPlatform() === 'ios') {
-          await NetworkEducationModal.tapNetworkName(ETHEREUM_NAME);
-        }
+        // if (device.getPlatform() === 'ios') {
+        //   await NetworkEducationModal.tapNetworkName(ETHEREUM_NAME);
+        // }
         await NetworkEducationModal.tapGotItButton();
 
         await SendView.inputAddress(RECIPIENT);
