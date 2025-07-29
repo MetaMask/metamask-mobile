@@ -268,7 +268,6 @@
     "@metamask/transaction-controller": "^59.0.0",
     "@metamask/utils": "^11.4.2",
     "@ngraveio/bc-ur": "^1.1.6",
-    "@noble/hashes": "^1.7.1",
     "@notifee/react-native": "^9.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-clipboard/clipboard": "^1.16.1",

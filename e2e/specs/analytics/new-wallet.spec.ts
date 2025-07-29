@@ -87,9 +87,13 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           (event) => event.event === 'Wallet Setup Completed',
         );
 
+        const walletSecurityReminderDismissedEvent = events.find(
+          (event) => event.event === 'Wallet Security Reminder Dismissed',
+        );
+
         const checkEventCount = softAssert.checkAndCollect(
-          () => Assertions.checkIfArrayHasLength(events, 7),
-          'Expected 6 events for new wallet onboarding',
+          () => Assertions.checkIfArrayHasLength(events, 8),
+          'Expected 8 events for new wallet onboarding',
         );
 
         const checkAnalyticsPreferenceSelected = softAssert.checkAndCollect(
@@ -170,6 +174,22 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           'Wallet Setup Completed: Should be present with correct properties',
         );
 
+        const checkWalletSecurityReminderDismissed = softAssert.checkAndCollect(
+          async () => {
+            Assertions.checkIfValueIsDefined(
+              walletSecurityReminderDismissedEvent,
+            );
+            Assertions.checkIfObjectsMatch(
+              walletSecurityReminderDismissedEvent!.properties,
+              {
+                wallet_protection_required: false,
+                source: 'Backup Alert',
+              },
+            );
+          },
+          'Wallet Security Reminder Dismissed: Should be present with correct properties',
+        );
+
         await Promise.all([
           checkEventCount,
           checkAnalyticsPreferenceSelected,
@@ -179,6 +199,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           checkWalletCreationAttempted,
           checkWalletCreated,
           checkWalletSetupCompleted,
+          checkWalletSecurityReminderDismissed,
         ]);
 
         softAssert.throwIfErrors();
