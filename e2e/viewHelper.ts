@@ -293,7 +293,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
-
 };
 
 /**
