@@ -33,7 +33,7 @@ export const withMultichainAccountDetailsEnabled = async (
   testFn: () => Promise<void>,
 ) => {
   const testSpecificMock = {
-    GET: [mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails],
+    GET: [mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails()],
   };
   return await withFixtures(
     {
