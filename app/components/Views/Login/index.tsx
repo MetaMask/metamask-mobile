@@ -114,7 +114,6 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
-import Rive, { RiveRef } from 'rive-react-native';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -164,7 +163,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
-  const riveRef = useRef<RiveRef>(null);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
@@ -689,27 +687,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 resizeMode="contain"
               />
             </TouchableOpacity>
-
-            <Rive
-              ref={riveRef}
-              resourceName={'rating_animation'}
-              stateMachineName="State Machine 1"
-              style={{ width: 400, height: 400 }}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              onPress={() => {
-                riveRef.current?.setInputState('State Machine 1', 'Rating', 0);
-              }}
-              label={'Rating 0'}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              onPress={() => {
-                riveRef.current?.setInputState('State Machine 1', 'Rating', 1);
-              }}
-              label={'Rating 1'}
-            />
 
             <Text
               variant={TextVariant.DisplayMD}
