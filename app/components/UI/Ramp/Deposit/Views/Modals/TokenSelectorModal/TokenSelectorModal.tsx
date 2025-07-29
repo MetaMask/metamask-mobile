@@ -27,7 +27,7 @@ import { useStyles } from '../../../../../../hooks/useStyles';
 import useSupportedTokens from '../../../hooks/useSupportedTokens';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 
-import { selectNetworkConfigurations } from '../../../../../../../selectors/networkController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -36,6 +36,8 @@ import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { DepositCryptoCurrency } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
+import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
+import { useTheme } from '../../../../../../../util/theme';
 
 interface TokenSelectorModalNavigationDetails {
   selectedAssetId?: string;
@@ -60,13 +62,17 @@ function TokenSelectorModal() {
     screenHeight,
   });
 
+  const { colors } = useTheme();
+
   const supportedTokens = useSupportedTokens();
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens,
     searchString,
   });
 
-  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+  const allNetworkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
@@ -105,6 +111,8 @@ function TokenSelectorModal() {
       const networkImageSource = getNetworkImageSource({
         chainId: token.chainId,
       });
+      const depositNetworkName =
+        DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
       return (
         <ListItemSelect
           isSelected={selectedAssetId === token.assetId}
@@ -130,13 +138,20 @@ function TokenSelectorModal() {
             </BadgeWrapper>
           </ListItemColumn>
           <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLGMedium}>{token.name}</Text>
-            <Text variant={TextVariant.BodySM}>{token.symbol}</Text>
+            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+            <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
+              {depositNetworkName ?? networkName}
+            </Text>
           </ListItemColumn>
         </ListItemSelect>
       );
     },
-    [allNetworkConfigurations, handleSelectAssetIdCallback, selectedAssetId],
+    [
+      allNetworkConfigurations,
+      colors.text.alternative,
+      handleSelectAssetIdCallback,
+      selectedAssetId,
+    ],
   );
 
   const renderEmptyList = useCallback(

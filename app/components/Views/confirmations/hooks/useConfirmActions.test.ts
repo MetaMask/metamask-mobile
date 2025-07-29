@@ -200,6 +200,18 @@ describe('useConfirmAction', () => {
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('does not navigate back when onReject is called with skipNavigation as true', async () => {
+    const goBackSpy = jest.fn();
+    useNavigationMock.mockReturnValue({
+      goBack: goBackSpy,
+    } as unknown as ReturnType<typeof useNavigation>);
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+    result?.current?.onReject(undefined, true);
+    expect(goBackSpy).not.toHaveBeenCalled();
+  });
+
   it('navigates to transactions view if confirmation is standalone confirmation', async () => {
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,

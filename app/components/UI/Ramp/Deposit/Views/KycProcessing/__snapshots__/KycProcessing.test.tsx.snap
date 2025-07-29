@@ -54,15 +54,16 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -105,27 +106,134 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                KYC Processing
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Verify your identity
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -466,6 +574,7 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -474,8 +583,7 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                                   }
                                 }
                               >
-                                Hang tight!
-We’re verifying your identity now.
+                                Hang tight...
                               </Text>
                               <Text
                                 accessibilityRole="text"
@@ -490,7 +598,7 @@ We’re verifying your identity now.
                                   }
                                 }
                               >
-                                You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.
+                                This should only take about 2 minutes.
                               </Text>
                             </View>
                           </View>
@@ -509,41 +617,6 @@ We’re verifying your identity now.
                               ]
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "paddingHorizontal": 16,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Browse tokens
-                              </Text>
-                            </TouchableOpacity>
                             <SvgMock
                               fill="currentColor"
                               name="powered-by-transak-logo"
@@ -624,15 +697,16 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -675,27 +749,134 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                KYC Processing
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Verify your identity
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -1028,7 +1209,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#1c7e331a",
+                                    "backgroundColor": "#457a391a",
                                     "borderRadius": 40,
                                     "height": 40,
                                     "justifyContent": "center",
@@ -1038,7 +1219,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#1c7e33"
+                                  color="#457a39"
                                   fill="currentColor"
                                   height={32}
                                   name="CheckBold"
@@ -1058,6 +1239,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -1066,7 +1248,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Identity successfully verified!
+                                You're verified
                               </Text>
                               <Text
                                 accessibilityRole="text"
@@ -1081,7 +1263,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                   }
                                 }
                               >
-                                You can now enter your payment info and complete your deposit.
+                                Now you can complete your deposit.
                               </Text>
                             </View>
                           </View>
@@ -1111,11 +1293,12 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1215,15 +1398,16 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -1266,27 +1450,134 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                KYC Processing
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Verify your identity
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -1635,6 +1926,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -1658,7 +1950,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Try uploading your documents again and resubmit for verification.
+                                Network error
                               </Text>
                             </View>
                           </View>
@@ -1688,11 +1980,12 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1792,15 +2085,16 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -1843,27 +2137,134 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                KYC Processing
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Verify your identity
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -2204,6 +2605,7 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -2212,8 +2614,7 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Hang tight!
-We’re verifying your identity now.
+                                Hang tight...
                               </Text>
                               <Text
                                 accessibilityRole="text"
@@ -2228,7 +2629,7 @@ We’re verifying your identity now.
                                   }
                                 }
                               >
-                                You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.
+                                This should only take about 2 minutes.
                               </Text>
                             </View>
                           </View>
@@ -2247,41 +2648,6 @@ We’re verifying your identity now.
                               ]
                             }
                           >
-                            <TouchableOpacity
-                              accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "paddingHorizontal": 16,
-                                }
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Browse tokens
-                              </Text>
-                            </TouchableOpacity>
                             <SvgMock
                               fill="currentColor"
                               name="powered-by-transak-logo"
@@ -2362,15 +2728,16 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -2413,27 +2780,134 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                KYC Processing
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Verify your identity
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -2782,6 +3256,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -2835,11 +3310,12 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -2939,15 +3415,16 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -2990,27 +3467,134 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                KYC Processing
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Verify your identity
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -3359,6 +3943,7 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Bold",
                                     "fontSize": 16,
+                                    "fontWeight": "bold",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginBottom": 16,
@@ -3412,11 +3997,12 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }

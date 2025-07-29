@@ -13,7 +13,7 @@ import {
   selectChainId,
   selectEvmTicker,
 } from '../../../selectors/networkController';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { swapsLivenessMultichainSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
@@ -54,13 +54,16 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
+import useDepositEnabled from '../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
-import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import Engine from '../../../core/Engine';
 import { selectMultichainTokenListForAccountId } from '../../../selectors/multichain/multichain';
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { isSendRedesignEnabled } from '../confirmations/utils/confirm';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -71,21 +74,21 @@ const WalletActions = () => {
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector(swapsLivenessMultichainSelector);
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
-  const isDepositWalletActionEnabled = useSelector(
-    selectDepositEntrypointWalletActions,
-  );
+  const { isDepositEnabled } = useDepositEnabled();
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   ///: END:ONLY_INCLUDE_IF
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
   const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } =
     useSwapBridgeNavigation({
       location: SwapBridgeNavigationLocation.TabBar,
@@ -294,6 +297,15 @@ const WalletActions = () => {
       );
     }
 
+    if (isSendRedesignEnabled()) {
+      closeBottomSheetAndNavigate(() => {
+        navigate(Routes.SEND.DEFAULT, {
+          screen: Routes.SEND.ROOT,
+        });
+      });
+      return;
+    }
+
     closeBottomSheetAndNavigate(() => {
       if (
         !assetToSend ||
@@ -349,6 +361,20 @@ const WalletActions = () => {
     });
   }, [closeBottomSheetAndNavigate, goToBridgeBase]);
 
+  const onPerps = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
+  const onPerpsSandbox = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.PERPS.ROOT);
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
   const sendIconStyle = useMemo(
     () => ({
       transform: [{ rotate: '-45deg' }],
@@ -392,7 +418,7 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
-        {isDepositWalletActionEnabled && (
+        {isDepositEnabled && (
           <WalletAction
             actionType={WalletActionType.Deposit}
             iconName={IconName.Cash}
@@ -413,13 +439,37 @@ const WalletActions = () => {
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        {AppConstants.BRIDGE.ACTIVE && isBridgeAllowed(chainId) && (
+        {AppConstants.BRIDGE.ACTIVE &&
+          isBridgeAllowed(chainId) &&
+          !isUnifiedSwapsEnabled && (
+            <WalletAction
+              actionType={WalletActionType.Bridge}
+              iconName={IconName.Bridge}
+              onPress={goToBridge}
+              actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
+              iconStyle={styles.icon}
+              iconSize={AvatarSize.Md}
+              disabled={!canSignTransactions}
+            />
+          )}
+        {isPerpsEnabled && (
           <WalletAction
-            actionType={WalletActionType.Bridge}
-            iconName={IconName.Bridge}
-            onPress={goToBridge}
-            actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
+            actionType={WalletActionType.Perps}
+            iconName={IconName.TrendUp}
+            onPress={onPerps}
+            actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
             iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
+        {isPerpsEnabled && (
+          <WalletAction
+            actionType={WalletActionType.PerpsSandbox}
+            iconName={IconName.Arrow2Right}
+            onPress={onPerpsSandbox}
+            iconStyle={sendIconStyle}
+            actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_SANDBOX_BUTTON}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
           />

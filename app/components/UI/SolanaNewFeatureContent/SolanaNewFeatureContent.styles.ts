@@ -2,7 +2,8 @@ import { StyleSheet } from 'react-native';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 
-const createStyles = () => StyleSheet.create({
+const createStyles = () =>
+  StyleSheet.create({
     scroll: {
       flex: 1,
     },
@@ -63,4 +64,4 @@ const createStyles = () => StyleSheet.create({
     },
   });
 
-  export default createStyles;
+export default createStyles;

@@ -93,8 +93,12 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     // getting the proper type, but it results in a functional difference. In order to
     // cast, you have to first cast view to unknown then cast the unknown value to number[]
     // TypeScript ftw: double opt in to write potentially type-mismatched code.
-     btoa(String.fromCharCode.apply(null, getRandomBytes(size) as unknown as number[]))
-  ;
+    btoa(
+      String.fromCharCode.apply(
+        null,
+        getRandomBytes(size) as unknown as number[],
+      ),
+    );
 
   /**
    * Generate an encryption key from a password and random salt, specifying
@@ -160,7 +164,11 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     key: EncryptionKey,
     payload: EncryptionResult,
   ): Promise<unknown> => {
-    const result = await QuickCryptoLib.decrypt(payload.cipher, key.key, payload.iv);
+    const result = await QuickCryptoLib.decrypt(
+      payload.cipher,
+      key.key,
+      payload.iv,
+    );
 
     return JSON.parse(result);
   };
@@ -295,7 +303,13 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const payload = JSON.parse(text);
 
     const { salt, keyMetadata } = payload;
-    const key = await this.keyFromPassword(password, salt, true, keyMetadata ?? LEGACY_DERIVATION_OPTIONS, payload.lib);
+    const key = await this.keyFromPassword(
+      password,
+      salt,
+      true,
+      keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
+      payload.lib,
+    );
     const exportedKeyString = await this.exportKey(key);
     const vault = await this.decryptWithKey(key, payload);
 
@@ -322,7 +336,13 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     salt = this.generateSalt(),
     keyDerivationOptions = this.keyDerivationOptions,
   ): Promise<DetailedEncryptionResult> => {
-    const key = await this.keyFromPassword(password, salt, true, keyDerivationOptions, ENCRYPTION_LIBRARY.original);
+    const key = await this.keyFromPassword(
+      password,
+      salt,
+      true,
+      keyDerivationOptions,
+      ENCRYPTION_LIBRARY.original,
+    );
     const exportedKeyString = await this.exportKey(key);
 
     const result = await this.encryptWithKey(key, dataObj);

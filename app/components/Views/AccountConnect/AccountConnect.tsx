@@ -298,7 +298,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         channelIdOrHostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, ''),
       ).origin;
     } else if (isOriginWalletConnect) {
-      title = wc2Metadata?.lastVerifiedUrl ?? wc2Metadata?.url ?? channelIdOrHostname;
+      title =
+        wc2Metadata?.lastVerifiedUrl ?? wc2Metadata?.url ?? channelIdOrHostname;
       dappHostname = title;
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
@@ -320,8 +321,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? prefixUrlWithProtocol(getHost(hostname))
       : domainTitle;
 
-  const { hostname: hostnameFromUrlObj } =
-    getUrlObj(urlWithProtocol);
+  const { hostname: hostnameFromUrlObj } = getUrlObj(urlWithProtocol);
 
   useEffect(() => {
     let url = dappUrl || channelIdOrHostname || '';
@@ -712,7 +712,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     cancelPermissionRequest(permissionRequestId);
   };
-
 
   const renderPermissionsSummaryScreen = useCallback(() => {
     const permissionsSummaryProps: PermissionsSummaryProps = {

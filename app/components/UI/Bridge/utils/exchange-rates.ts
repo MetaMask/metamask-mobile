@@ -115,55 +115,54 @@ export const fetchTokenExchangeRates = async (
   ...tokenAddresses: string[]
 ) => {
   try {
+    let exchangeRates: Record<string, number | undefined> = {};
 
-  let exchangeRates: Record<string, number | undefined> = {};
+    // Solana
+    if (isSolanaChainId(chainId)) {
+      const queryParams = new URLSearchParams({
+        assetIds: tokenAddresses
+          .map((address) => toAssetId(address, SolScope.Mainnet))
+          .join(','),
+        includeMarketData: 'true',
+        vsCurrency: currency,
+      });
+      const url = `https://price.api.cx.metamask.io/v3/spot-prices?${queryParams}`;
+      const tokenV3PriceResponse = (await handleFetch(url)) as Record<
+        string,
+        { price: number }
+      >;
 
-  // Solana
-  if (isSolanaChainId(chainId)) {
-    const queryParams = new URLSearchParams({
-      assetIds: tokenAddresses
-        .map((address) => toAssetId(address, SolScope.Mainnet))
-        .join(','),
-      includeMarketData: 'true',
-      vsCurrency: currency,
+      exchangeRates = Object.entries(tokenV3PriceResponse).reduce(
+        (acc, [k, curr]) => {
+          acc[k] = curr.price;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+      return exchangeRates;
+    }
+
+    // EVM chains
+    const checksumAddresses = tokenAddresses.map((address) =>
+      safeToChecksumAddress(address),
+    );
+    if (checksumAddresses.some((address) => !address)) {
+      return {};
+    }
+
+    exchangeRates = await fetchTokenContractExchangeRates({
+      tokenPricesService: new CodefiTokenPricesServiceV2(),
+      nativeCurrency: currency,
+      tokenAddresses: checksumAddresses as Hex[],
+      chainId: formatChainIdToHex(chainId),
     });
-    const url = `https://price.api.cx.metamask.io/v3/spot-prices?${queryParams}`;
-    const tokenV3PriceResponse = (await handleFetch(url)) as Record<
-      string,
-      { price: number }
-    >;
 
-    exchangeRates = Object.entries(tokenV3PriceResponse).reduce(
-      (acc, [k, curr]) => {
-        acc[k] = curr.price;
+    return Object.keys(exchangeRates).reduce(
+      (acc: Record<string, number | undefined>, address) => {
+        acc[address] = exchangeRates[address];
         return acc;
       },
-      {} as Record<string, number>,
-    );
-    return exchangeRates;
-  }
-
-  // EVM chains
-  const checksumAddresses = tokenAddresses.map((address) =>
-    safeToChecksumAddress(address),
-  );
-  if (checksumAddresses.some((address) => !address)) {
-    return {};
-  }
-
-  exchangeRates = await fetchTokenContractExchangeRates({
-    tokenPricesService: new CodefiTokenPricesServiceV2(),
-    nativeCurrency: currency,
-    tokenAddresses: checksumAddresses as Hex[],
-    chainId: formatChainIdToHex(chainId),
-  });
-
-  return Object.keys(exchangeRates).reduce(
-    (acc: Record<string, number | undefined>, address) => {
-      acc[address] = exchangeRates[address];
-      return acc;
-    },
-    {},
+      {},
     );
   } catch (error) {
     return {};

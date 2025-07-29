@@ -1,13 +1,15 @@
+import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+
+import Routes from '../../../constants/navigation/Routes';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetActionButton from '../AssetOverview/AssetActionButton';
 import Device from '../../../util/device';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
-import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { areAddressesEqual } from '../../../util/address';
@@ -15,6 +17,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -97,7 +100,16 @@ class CollectibleContractOverview extends PureComponent {
       areAddressesEqual(collectible.address, collectibleContract.address),
     );
     this.props.newAssetTransaction(collectible);
-    this.props.navigation.navigate('SendFlowView');
+    if (isSendRedesignEnabled()) {
+      this.props.navigation.navigate(Routes.SEND.DEFAULT, {
+        screen: Routes.SEND.ROOT,
+        params: {
+          asset: collectible,
+        },
+      });
+    } else {
+      this.props.navigation.navigate('SendFlowView');
+    }
   };
 
   onInfo = () => this.props.toggleCollectibleContractModal();

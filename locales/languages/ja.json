@@ -145,16 +145,25 @@
     "scan_step_3": "「モバイルと同期」をクリックします",
     "scan_step_4": "QRコードをスキャンして同期を開始します",
     "success": "成功",
-    "your_wallet": "Your wallet was successfully reset",
-    "delete_current": "Reset current wallet",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
+    "or": "OR",
+    "import_existing_wallet": "Import existing wallet",
+    "bottom_sheet_title": "Choose an option to continue",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "import_srp": "Import using Secret Recovery Phrase",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_in_with_apple": "Sign in with Apple",
+    "your_wallet": "You successfully reset your wallet!",
+    "delete_current": "現在のウォレットをリセットする",
     "have_existing_wallet": "既存のウォレットがあります",
-    "import_using_srp": "Import using Secret Recovery Phrase"
+    "import_using_srp": "シークレットリカバリーフレーズを使用してインポートする"
   },
   "onboarding_success": {
-    "title": "Keep your Secret Recovery Phrase safe!",
-    "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
+    "title": "シークレットリカバリーフレーズは安全に保管してください。",
+    "description": "このシークレットリカバリーフレーズは、パスワードを忘れた場合やログイン情報にアクセスできなくなった場合に、アクセスを回復するのに役立ちます。",
     "description_bold": "「設定」>「セキュリティとプライバシー」で確認できます。",
-    "description_continued": " you can keep this phrase safe so you never lose access to your money.",
+    "description_continued": "ご自身の資金にアクセスできなくなることを防ぐため、このフレーズは安全に保管しましょう。",
     "learn_more": "詳細",
     "learn_how": "方法",
     "leave_hint": "ヒントを残しますか？",
@@ -163,22 +172,22 @@
     "default_settings_footer": "設定は使いやすさとセキュリティを確保するために最適化されています。\nこれらはいつでも変更できます。",
     "no_srp_title": "リマインダーが設定されました！",
     "no_srp_description": "アプリからロックアウトされてしまったり、新しいデバイスを入手した場合、資金が失われます。シークレットリカバリーフレーズを次の場所にバックアップしてください:",
-    "import_title": "Your Wallet is ready!",
-    "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
-    "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "import_title": "ウォレットの準備ができました！",
+    "import_description": "シークレットリカバリーフレーズを紛失した場合、ウォレットを利用できなくなります。",
+    "import_description2": "ご自身の資金にアクセスできなくなることを防ぐため、このフレーズは安全に保管しましょう。",
     "done": "完了",
-    "create_hint": "Create a password hint",
-    "hint_title": "Password hint",
-    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
-    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
-    "hint_button": "Create hint",
-    "hint_placeholder": "e.g. mom’s home",
-    "hint_saved": "Save",
-    "hint_saved_toast": "Password hint saved",
-    "remind_later": "We’ll remind you later",
-    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
-    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
-    "setting_security_privacy": "Settings > Security & Privacy"
+    "create_hint": "パスワードのヒントの作成",
+    "hint_title": "パスワードのヒント",
+    "hint_description": "パスワードを思い出すためのヒントを自分用に作成します。このヒントはご利用のデバイスに保存され、共有されることはありません。",
+    "hint_description2": "注意: パスワードを紛失した場合、ウォレットを利用できなくなります。",
+    "hint_button": "ヒントを作成",
+    "hint_placeholder": "例: 母親の実家",
+    "hint_saved": "保存",
+    "hint_saved_toast": "パスワードのヒントが保存されました",
+    "remind_later": "後で通知します",
+    "remind_later_description": "シークレットリカバリーフレーズをバックアップしなかった場合、アプリにログインできなくなったり、新しいデバイスに変更した際に、資金にアクセスできなくなります。",
+    "remind_later_description2": "ウォレットのバックアップやシークレットリカバリーフレーズの確認は、",
+    "setting_security_privacy": "「設定」>「セキュリティとプライバシー」から行うことができます。"
   },
   "onboarding_carousel": {
     "title1": "MetaMaskへようこそ",
@@ -281,20 +290,20 @@
   "login": {
     "title": "お帰りなさい！",
     "password": "パスワード",
-    "password_placeholder": "Enter password",
-    "unlock_button": "Unlock",
+    "password_placeholder": "パスワードを入力してください",
+    "unlock_button": "ロックを解除",
     "go_back": "ウォレットのロックが解除されない場合は、現在のウォレットを消去して新しいウォレットをセットアップできます",
-    "forgot_password": "Forgot password?",
+    "forgot_password": "パスワードを忘れた場合",
     "cant_proceed": "「Delete」と入力するまで先に進めません。これにより、現在のウォレットが消去されます。",
-    "invalid_password": "Password is incorrect, try again.",
-    "type_delete": "Type ‘%{erase}’ to confirm",
-    "erase_my": "Yes, reset wallet",
-    "cancel": "Cancel",
-    "are_you_sure": "Are you sure?",
-    "your_current_wallet": "Your wallet, accounts, and assets will be",
-    "removed_from": " permanently removed from this app",
+    "invalid_password": "パスワードが正しくありません。もう一度お試しください。",
+    "type_delete": "確認のため「%{erase}」と入力してください",
+    "erase_my": "はい、ウォレットをリセットします",
+    "cancel": "キャンセル",
+    "are_you_sure": "よろしいですか？",
+    "your_current_wallet": "ご利用のウォレット、アカウント、資産が",
+    "removed_from": "このアプリから完全に削除されます",
     "this_action": "この操作は元に戻せません。",
-    "you_can_only": "You can only get this wallet back with the info used when creating it, such as your Secret Recovery Phrase, Google account, or Apple account. MetaMask doesn’t have this info.",
+    "you_can_only": "このウォレットは、シークレットリカバリーフレーズやGoogleアカウント、Appleアカウントなど、ウォレット作成時に使用した情報でのみ復元することができ、MetaMaskはこの情報を保持していません。",
     "recovery_phrase": "シークレットリカバリーフレーズを使用するしかありません",
     "metamask_does_not": "MetaMaskはお客様のシークレットリカバリーフレーズを把握していません。",
     "i_understand": "理解したうえで続けます",
@@ -303,22 +312,30 @@
     "wrong_password_error_android": "エラー: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "エラー: 以前のボールトなしにロックを解除できません。",
     "clean_vault_error": "ストレージの制限に達したためMetaMaskでエラーが発生しました。ローカルデータが破損しています。MetaMaskを再インストールして、シークレットリカバリーフレーズで復元してください。",
+    "seedless_password_outdated": "Your password was changed recently.",
+    "seedless_password_outdated_modal_title": "Your password was changed",
+    "seedless_password_outdated_modal_content": "Your password was recently changed, so you need to enter your new password to stay logged into MetaMask.",
+    "seedless_password_outdated_modal_confirm": "Continue",
     "security_alert_title": "セキュリティアラート",
     "security_alert_desc": "先に進むには、パスコードもしくはデバイスが対応している生体認証方法 (FaceID、TouchID、または指紋) をオンにする必要があります",
-    "forgot_password_desc": "Forgot your password?",
-    "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
-    "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
-    "forgot_password_point_1_bold": "biometrics turned on",
-    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
-    "forgot_password_point_2": "If you have your",
-    "forgot_password_point_2_bold": "Secret Recovery Phrase,",
-    "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
-    "reset_wallet": "Reset wallet",
-    "reset_wallet_desc": "Your wallet data will be",
-    "reset_wallet_desc_bold": "permanently erased",
-    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
-    "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
-    "reset_wallet_desc_srp": "To restore your wallet, you can use your Secret Recovery Phrase. MetaMask doesn’t have this information."
+    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
+    "apple_button": "Sign in with Apple",
+    "google_button": "Sign in with Google",
+    "other_methods": "Use another method",
+    "forgot_password_desc": "パスワードをお忘れですか？",
+    "forgot_password_desc_2": "MetaMask側ではパスワードを復元することができません。",
+    "forgot_password_point_1": "",
+    "forgot_password_point_1_bold": "生体認証 (Face IDなど) が有効な",
+    "forgot_password_point_1_1": "デバイスでMetaMaskにログインしている場合は、そのデバイス上でパスワードをリセットすることができます。",
+    "forgot_password_point_2": "",
+    "forgot_password_point_2_bold": "シークレットリカバリーフレーズ",
+    "forgot_password_point_2_1": "をお持ちの場合は、シークレットリカバリーフレーズを使って現在のウォレットをリセットし、再インポートすることができます。",
+    "reset_wallet": "ウォレットのリセット",
+    "reset_wallet_desc": "ウォレットのデータは、このデバイスのMetaMaskから",
+    "reset_wallet_desc_bold": "完全に消去されます",
+    "reset_wallet_desc_2": "。この操作は元に戻せません。",
+    "reset_wallet_desc_login": "ウォレットの復元には、シークレットリカバリーフレーズか、GoogleまたはAppleアカウントのパスワードを利用できます。MetaMaskはこの情報を保持していません。",
+    "reset_wallet_desc_srp": "ウォレットの復元には、シークレットリカバリーフレーズを利用できます。MetaMaskはこの情報を保持していません。"
   },
   "connect_hardware": {
     "title_select_hardware": "ハードウェアウォレットの接続",
@@ -332,10 +349,10 @@
     "error": "エラー"
   },
   "choose_password": {
-    "title": "MetaMask password",
-    "description": "Unlocks MetaMask on this device only.",
+    "title": "MetaMaskのパスワード",
+    "description": "このデバイスでのみMetaMaskのロックが解除されます。",
     "subtitle": "このパスワードはこのデバイスでのみMetaMaskウォレットのロックを解除します。",
-    "password": "Create new password",
+    "password": "新規パスワードの作成",
     "confirm_password": "パスワードの確認",
     "create_button": "パスワードを作成",
     "import_with_seed_phrase": "シークレットリカバリーフレーズでインポート",
@@ -357,14 +374,14 @@
     "secure": "ウォレットの安全を確保",
     "confirm": "シークレットリカバリーフレーズの確認",
     "disable_biometric_error": "アプリの生体認証が無効になっています。認証情報の保存設定を更新してもう一度お試しください。",
-    "create_password_cta": "Create password",
+    "create_password_cta": "パスワードを作成",
     "steps": "ステップ{{currentStep}}/{{totalSteps}}",
     "password_error": "パスワードが一致しません。もう一度お試しください。"
   },
   "reset_password": {
     "title": "パスワードを変更",
     "subtitle": "このパスワードはこのデバイスでのみMetaMaskウォレットのロックを解除します。",
-    "password": "新しいパスワード",
+    "password": "New password",
     "confirm_password": "パスワードの確認",
     "reset_button": "パスワードをリセット",
     "import_with_seed_phrase": "シークレットリカバリーフレーズでインポート",
@@ -385,13 +402,23 @@
     "learn_more": "詳細。",
     "secure": "ウォレットの安全を確保",
     "confirm": "シークレットリカバリーフレーズの確認",
-    "password_updated": "パスワードが更新されました",
-    "successfully_changed": "パスワードが変更されました"
+    "password_updated": "New password saved",
+    "successfully_changed": "パスワードが変更されました",
+    "new_password_placeholder": "Use at least 8 characters",
+    "confirm_password_placeholder": "Re-enter your password",
+    "confirm_btn": "Save",
+    "warning_password_change_title": "Are you sure?",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
+    "warning_password_change_button": "Confirm",
+    "warning_password_cancel_button": "Cancel",
+    "changing_password": "Changing password...",
+    "changing_password_subtitle": "This shouldn’t take long",
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
   },
   "import_from_seed": {
     "title": "ウォレットをインポート",
     "seed_phrase_placeholder": "シークレットリカバリーフレーズを入力してください",
-    "create_new_password": "Create new password",
+    "create_new_password": "新規パスワードの作成",
     "confirm_password": "パスワードの確認",
     "import_button": "インポート",
     "cancel_button": "キャンセル",
@@ -403,13 +430,14 @@
     "invalid_qr_code_title": "無効なQRコード",
     "invalid_qr_code_message": "QRコードが有効なシークレットリカバリーフレーズを表していません",
     "enter_your_secret_recovery_phrase": "シークレットリカバリーフレーズを入力",
-    "metamask_password": "MetaMask password",
-    "metamask_password_description": "Unlocks MetaMask on this device only.",
+    "metamask_password": "MetaMaskのパスワード",
+    "metamask_password_description": "このデバイスでのみMetaMaskのロックが解除されます。",
     "seed_phrase_required": "シークレットリカバリーフレーズは必須です",
     "re_enter_password": "パスワードを再入力してください",
     "use_at_least_8_characters": "8文字以上使用してください",
     "unlock_with_face_id": "Face IDでロックを解除しますか？",
-    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
+    "learn_more": "このパスワードを忘れた場合、MetaMask側でパスワードを復元することはできません。",
+    "learn_more_social_login": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
     "seed_phrase_length_error": "シークレットリカバリーフレーズは12、15、18、21、または24個の単語で構成されている必要があります",
     "continue": "続行",
     "clear_all": "すべて消去",
@@ -417,13 +445,13 @@
     "paste": "貼り付け",
     "hide_all": "すべて非表示",
     "srp": "シークレットリカバリーフレーズ",
-    "srp_placeholder": "各単語の間に半角スペースを入れ、誰にも見られないようにご注意ください 👀",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching.",
     "learn_more_link": "詳細",
-    "create_password_cta": "Create password",
+    "create_password_cta": "パスワードを作成",
     "pass_flow": "Flowで続行",
     "steps": "ステップ{{currentStep}}/{{totalSteps}}",
     "password_error": "パスワードが一致しません。もう一度お試しください。",
-    "spellcheck_error": "Use only lowercase letters, check your spelling, and put the words in the original order.",
+    "spellcheck_error": "小文字のみを使用し、スペルを確認して、単語を元の順番どおりに並べてください。",
     "enter_strong_password": "強力なパスワードを入力してください"
   },
   "bottom_tab_bar": {
@@ -471,78 +499,372 @@
   },
   "deposit": {
     "title": "入金",
-    "selectRegion": "Select Region",
-    "chooseYourRegionToContinue": "Choose your region to continue",
+    "selectRegion": "地域の選択",
+    "chooseYourRegionToContinue": "続行するには地域を選択してください",
     "buildQuote": {
-      "payWith": "Pay with",
-      "unexpectedError": "An unexpected error occurred.",
-      "quoteFetchError": "Failed to fetch quote.",
-      "kycFormsFetchError": "Failed to fetch KYC forms."
+      "payWith": "支払方法:",
+      "unexpectedError": "予期せぬエラーが発生しました。",
+      "quoteFetchError": "クォートを取得できませんでした。",
+      "kycFormsFetchError": "KYCフォームを取得できませんでした。",
+      "title": "Deposit"
+    },
+    "token_modal": {
+      "select_a_token": "トークンを選択",
+      "search_by_name_or_address": "トークンを名前またはアドレスで検索",
+      "no_tokens_found": "「{{searchString}}」に一致するトークンがありません"
+    },
+    "region_modal": {
+      "select_a_region": "地域を選択",
+      "search_by_country": "国で検索",
+      "no_regions_found": "「{{searchString}}」に一致する地域がありません"
+    },
+    "state_modal": {
+      "select_a_state": "Select a state",
+      "search_by_state": "Search by state",
+      "no_state_results": "No states match \"{{searchString}}\""
+    },
+    "payment_modal": {
+      "select_a_payment_method": "支払方法を選択"
+    },
+    "payment_duration": {
+      "instant": "即時",
+      "1_to_2_days": "1～2日"
+    },
+    "unsupported_region_modal": {
+      "title": "未対応の地域です",
+      "location_prefix": "It looks like you're in:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "change_region": "Change region",
+      "buy_crypto": "Buy Crypto"
     },
     "get_started": {
-      "title": "Top up your wallet with USDC",
-      "bullet_1_title": "Value-backed by the US dollar",
-      "bullet_1_description": "1:1 ratio backing with US dollars.",
-      "bullet_2_title": "Low volatility",
-      "bullet_2_description": "Maintains stable value for reliable transactions.",
-      "bullet_3_title": "Faster than banks",
-      "bullet_3_description": "Quick blockchain transfers beat traditional banking.",
-      "button": "Get started"
+      "navbar_title": "Deposit",
+      "title": "Starting is easy with USDC",
+      "bullet_1_title": "米ドルによる価値の裏付け",
+      "bullet_1_description": "USDC is a digital dollar, backed by U.S. dollars, so you always know what it’s worth.",
+      "bullet_2_title": "低ボラティリティ",
+      "bullet_2_description": "USDC is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title": "銀行よりも高速",
+      "bullet_3_description": "Send and receive in minutes, no waiting for bank hours or international delays.",
+      "button": "開始"
     },
     "enter_email": {
+      "navbar_title": "Verify your identity",
       "title": "メールアドレスの入力",
-      "description": "メールで6桁のコードを送り、本人確認を行います。",
-      "input_label": "メールアドレス",
+      "description": "We'll email you a six-digit verification code to securely log in or create an account with Transak.",
       "input_placeholder": "name@domain.com",
       "submit_button": "メールを送信",
       "loading": "メールを送信しています…",
-      "validation_error": "有効なメールアドレスを入力してください"
+      "validation_error": "有効なメールアドレスを入力してください",
+      "error": "An error occurred while sending the email"
     },
     "otp_code": {
+      "navbar_title": "Verify your identity",
       "title": "6桁のコードの入力",
-      "description": "{{email}}に送られた6桁のコードを入力してください。受信箱に見当たらない場合、スパムフォルダを確認してください。",
+      "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
       "submit_button": "送信",
       "loading": "コードを確認しています...",
       "invalid_code_error": "無効なコード",
-      "validation_error": "有効なコードを入力してください"
+      "validation_error": "有効なコードを入力してください",
+      "need_help": "お手伝いが必要ですか？",
+      "resend_code_description": "コードが届きませんか？",
+      "resend_code_error": "コードの再送信でエラーが発生しました。",
+      "resend_code_button": "コードを再送信",
+      "resend_cooldown": "{{seconds}}秒後にコードを再送信できます",
+      "contact_support": "サポートへのお問い合わせ",
+      "error": "An error occurred while verifying the code"
     },
     "verify_identity": {
       "title": "本人確認を行う",
-      "description": "現金を入金するにはご本人確認が必要となります。これは、アカウントのセキュリティ確保と個人情報の保護に役立ちます。",
-      "privacy_policy_link": "当社のプライバシー保護の方法については、プライバシーポリシーをご覧ください。",
-      "button": "開始"
+      "navbar_title": "Deposit",
+      "description_1": "To deposit cash for the first time, your identity must be verified.",
+      "description_2_transak": "Transak",
+      "description_2_rest": " will facilitate your deposit, and we work with them to ensure your privacy. We never store your data, and Transak never sells your data.",
+      "description_3_part1": "Check out our ",
+      "description_3_privacy_policy": "privacy policy",
+      "description_3_part2": " to learn more.",
+      "agreement_text_part1": "By clicking the button below, you agree to ",
+      "agreement_text_transak_terms": "Transak's Terms of Use",
+      "agreement_text_and": " and ",
+      "agreement_text_privacy_policy": "Privacy Policy",
+      "agreement_text_part2": ".",
+      "button": "Agree and continue"
+    },
+    "additional_verification": {
+      "title": "Additional Verification",
+      "paragraph_1": "For larger deposits, you’ll need a valid ID (like a driver’s license) and a real-time selfie.",
+      "paragraph_2": "In order to complete your verification, you’ll need to enable access to your camera.",
+      "button": "Continue"
     },
     "basic_info": {
+      "navbar_title": "Verify your identity",
       "title": "基本情報を入力してください",
       "continue": "続行",
-      "subtitle": "ご本人確認を始めるにあたり、基本情報がいくつか必要です。"
+      "subtitle": "Next, we need some basic information about you.",
+      "first_name": "名",
+      "last_name": "姓",
+      "phone_number": "電話番号",
+      "date_of_birth": "Date of birth",
+      "social_security_number": "社会保障番号",
+      "enter_phone_number": "電話番号を入力してください",
+      "select_region": "地域を選択してください",
+      "first_name_required": "First name is required",
+      "first_name_invalid": "Please enter a valid first name",
+      "last_name_required": "Last name is required",
+      "last_name_invalid": "Please enter a valid last name",
+      "mobile_number_required": "Phone number is required",
+      "mobile_number_invalid": "Please enter a valid phone number",
+      "dob_required": "Date of birth is required",
+      "dob_invalid": "Please enter a valid date of birth",
+      "ssn_required": "Social security number is required"
     },
     "enter_address": {
+      "navbar_title": "Verify your identity",
       "title": "住所を入力",
-      "subtitle": "最新の住所を入力してください。",
+      "subtitle": "Use your most recent permanent address.",
       "continue": "続行",
       "address_line_1": "住所1",
       "address_line_2": "住所2（任意）",
       "state": "州/地域",
       "city": "市",
       "postal_code": "郵便番号",
-      "country": "国"
+      "country": "国",
+      "select_state": "Select state",
+      "address_line_1_required": "Address line 1 is required",
+      "address_line_1_invalid": "Please enter a valid address",
+      "address_line_2_invalid": "Please enter a valid address",
+      "city_required": "City is required",
+      "city_invalid": "Please enter a valid city",
+      "state_required": "State/Region is required",
+      "state_invalid": "Please enter a valid state",
+      "postal_code_required": "Postal/Zip Code is required",
+      "postal_code_invalid": "Please enter a valid postal code",
+      "unexpected_error": "Unexpected error."
+    },
+    "privacy_section": {
+      "transak": "Transak encrypts and stores this information.",
+      "metamask": "MetaMask never receives or uses your data."
     },
     "kyc_processing": {
-      "title": "Verifying your identity",
-      "heading": "Hang tight!\nWe’re verifying your identity now.",
-      "description": "You can browse tokens while you wait and we’ll let you know when your verification is complete. It shouldn’t take more than a few minutes.",
-      "button": "Browse tokens",
-      "error_heading": "We were unable to verify your identity.",
-      "error_description": "Try uploading your documents again and resubmit for verification.",
-      "error_button": "Retry verification",
-      "success_heading": "Identity successfully verified!",
-      "success_description": "You can now enter your payment info and complete your deposit.",
-      "success_button": "Complete your order"
+      "navbar_title": "Verify your identity",
+      "heading": "Hang tight...",
+      "description": "This should only take about 2 minutes.",
+      "error_heading": "お客様の本人確認ができませんでした。",
+      "error_description": "もう一度書類をアップロードして、本人確認を再申請してください。",
+      "error_button": "本人確認をやり直す",
+      "success_heading": "You're verified",
+      "success_description": "Now you can complete your deposit.",
+      "success_button": "注文を完了する"
+    },
+    "provider_webview": {
+      "title": "デポジット"
     },
     "kyc_webview": {
-      "title": "Verifying your identity",
-      "webview_received_error": "WebView received error status code: {{code}}"
+      "title": "本人確認を行っています",
+      "webview_received_error": "WebViewがエラーステータスコード {{code}} を受信しました"
+    },
+    "order_processing": {
+      "title": "デポジットを処理しています",
+      "button": "閉じる",
+      "description": "カードでの購入には通常数分かかります",
+      "bank_transfer_description": "Bank transfers typically take a few business days",
+      "success_title": "デポジット完了",
+      "success_description": "{{amount}}{{currency}}のデポジットが完了しました",
+      "error_title": "デポジット失敗",
+      "error_description": "デポジットを完了できませんでした",
+      "cancel_order_description": "You requested a cancellation of your deposit.",
+      "error_button": "再試行",
+      "contact_support_button": "サポートにお問い合わせ",
+      "account": "アカウント",
+      "network": "ネットワーク",
+      "order_id": "注文ID",
+      "fees": "手数料",
+      "total": "合計",
+      "view_order_details_in_transak": "Transakで注文の詳細を見る",
+      "no_order_found": "注文が見つかりません",
+      "back_to_wallet": "ウォレットに戻る",
+      "cancel_order_button": "Cancel order"
+    },
+    "order_details": {
+      "title": "デポジットの注文",
+      "error_title": "There was an error with your deposit order",
+      "error_message": "An unexpected error occurred."
+    },
+    "bank_details": {
+      "navbar_title": "{{paymentMethod}} bank transfer",
+      "button": "Bank transfer sent",
+      "button_cancel": "Cancel order",
+      "main_title": "To complete your order",
+      "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
+      "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
+      "show_bank_info": "Show bank information",
+      "hide_bank_info": "Hide bank information",
+      "transfer_amount": "Transfer amount",
+      "account_holder_name": "Account holder name",
+      "beneficiary_name": "Beneficiary name",
+      "routing_number": "Routing number",
+      "account_number": "Account number",
+      "iban": "IBAN",
+      "bic": "BIC",
+      "account_type": "Account type",
+      "bank_name": "Bank name",
+      "bank_address": "Bank address",
+      "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
+      "error_message": "We were unable to confirm your bank transfer. Please try again.",
+      "cancel_order_error": "We were unable to cancel your order. Please try again."
+    },
+    "webview_modal": {
+      "error": "Webview received error: %{code}"
+    },
+    "notifications": {
+      "deposit_failed_title": "{{currency}}のデポジットに失敗しました。もう一度お試しください。ご不便をおかけし、申し訳ございません。",
+      "deposit_failed_description": "支払方法とカードの対応状況を確認してください",
+      "deposit_cancelled_title": "デポジットがキャンセルされました",
+      "deposit_cancelled_description": "You requested a cancellation of your deposit.",
+      "deposit_completed_title": "{{amount}}{{currency}}のデポジットが完了しました。",
+      "deposit_completed_description": "{{currency}}がウォレット内で利用可能になりました",
+      "deposit_pending_title": "{{currency}}のデポジット処理を行っています",
+      "deposit_pending_description": "この処理はほんの数分で完了する予定です..."
+    },
+    "error_view": {
+      "title": "There was an error",
+      "description": "There was an error processing your deposit. Please contact support if the problem persists.",
+      "try_again": "Try again"
+    }
+  },
+  "perps": {
+    "title": "Perps Trading",
+    "deposit": {
+      "title": "Deposit",
+      "preview": {
+        "title": "Deposit Preview"
+      },
+      "processing": {
+        "title": "Processing Deposit"
+      },
+      "success": {
+        "title": "Deposit Success"
+      }
+    },
+    "order": {
+      "title": "New Order",
+      "success": {
+        "title": "Order Placed Successfully",
+        "subtitle": "Your {{direction}} position for {{asset}} has been created",
+        "order_placed": "Order placed successfully",
+        "asset": "Asset",
+        "direction": "Direction",
+        "amount": "Amount",
+        "order_id": "Order ID",
+        "view_positions": "View Positions",
+        "place_another": "Place Another Order"
+      },
+      "details": {
+        "title": "Order Details"
+      },
+      "history": {
+        "title": "Order History"
+      },
+      "long_title": "Long {{asset}}",
+      "short_title": "Short {{asset}}",
+      "market": "Market",
+      "margin_required": "Margin required",
+      "leverage": "Leverage",
+      "liquidation_price": "Liquidation price",
+      "take_profit_stop_loss": "Take profit/Stop loss",
+      "add_tpsl": "Add",
+      "balance": "Balance",
+      "fees": "Fees",
+      "place_order": "Place order",
+      "cannot_place_order": "Cannot place order ({{count}} errors)",
+      "tpsl_modal": {
+        "title": "Set take profit/stop loss",
+        "mark_price": "Mark price",
+        "set_limit": "Set limit",
+        "take_profit_short": "TP",
+        "stop_loss_short": "SL",
+        "add_tp": "+ TP",
+        "remove_tp": "✕ TP",
+        "add_sl": "+ SL",
+        "remove_sl": "✕ SL"
+      },
+      "validation": {
+        "failed": "Order validation failed",
+        "amount_required": "Order amount must be greater than 0",
+        "minimum_amount": "Minimum order size is ${{amount}}",
+        "maximum_amount": "Maximum order size is ${{amount}}",
+        "insufficient_balance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
+        "invalid_leverage": "Leverage must be between {{min}}x and {{max}}x",
+        "high_leverage_warning": "High leverage increases liquidation risk",
+        "invalid_take_profit": "Take profit must be {{direction}} current price for {{positionType}} positions",
+        "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
+        "liquidation_warning": "Position is close to liquidation price"
+      },
+      "error": {
+        "placement_failed": "Order placement failed",
+        "network_error": "Network error",
+        "unknown": "Unknown error occurred",
+        "dismiss": "Dismiss"
+      }
+    },
+    "position": {
+      "title": "Positions",
+      "details": {
+        "error_message": "Position data not found. Please go back and try again.",
+        "section_title": "Position"
+      },
+      "card": {
+        "entry_price": "Entry Price",
+        "market_price": "Market Price",
+        "liquidity_price": "Liquidity Price",
+        "take_profit": "Take Profit",
+        "stop_loss": "Stop Loss",
+        "margin": "Margin",
+        "not_set": "Not Set",
+        "edit_tpsl": "Edit TP/SL",
+        "close_position": "Close Position"
+      },
+      "list": {
+        "loading": "Loading positions...",
+        "error_title": "Error Loading Positions",
+        "empty_title": "No Open Positions",
+        "empty_description": "You don't have any open positions yet.\nStart trading to see your positions here.",
+        "open_positions": "Open Positions",
+        "position_count": "{{count}} position",
+        "position_count_plural": "{{count}} positions"
+      },
+      "account": {
+        "summary_title": "Account Summary",
+        "total_balance": "Total Balance",
+        "available_balance": "Available Balance",
+        "margin_used": "Margin Used",
+        "total_unrealized_pnl": "Total Unrealized P&L"
+      }
+    },
+    "trading": {
+      "title": "Perps Trading (Minimal)",
+      "subtitle": "Core Controller & Services Testing",
+      "network": "Network:",
+      "cached_balance": "Cached Balance:",
+      "loading_balance": "Loading balance...",
+      "balance_auto_load": "Balance will load automatically",
+      "get_account_balance": "Get Account Balance",
+      "switch_to_mainnet": "Switch to Mainnet",
+      "switch_to_testnet": "Switch to Testnet",
+      "positions": "Positions",
+      "result": "Result:"
+    },
+    "connection": {
+      "connecting": "Connecting to Perps...",
+      "initializing": "Initializing Perps controller...",
+      "connecting_to_trading": "Connecting to Perps trading...",
+      "failed": "Connection Failed",
+      "error_message": "Unable to connect to Perps trading service.",
+      "retry_connection": "Retry Connection",
+      "retrying_connection": "Connecting..."
+    },
+    "chart": {
+      "no_data": "No chart data available"
     }
   },
   "receive": {
@@ -597,6 +919,10 @@
     "solana": {
       "title": "Solanaのサポート開始",
       "subtitle": "さっそくSolanaアカウントを作成しましょう"
+    },
+    "smartAccount": {
+      "title": "Start using smart accounts",
+      "subtitle": "Same address, smarter features"
     },
     "backupAndSync": {
       "title": "バックアップと同期のご紹介",
@@ -775,7 +1101,6 @@
   },
   "defi_positions": {
     "loading_positions": "DeFiポジションを読み込んでいます...",
-    "no_positions": "まだポジションがありません",
     "error_cannot_load_page": "このページを読み込めませんでした。",
     "error_visit_again": "後でまたアクセスしてみてください。",
     "single_token": "{{symbol}}のみ",
@@ -806,9 +1131,9 @@
     "action_description_1_prefix": "非公開:",
     "action_description_2_prefix": "一般:",
     "action_description_3_prefix": "任意:",
-    "action_description_1_description": "Clicks and views on the app are stored, but other details (like your public address) are not.",
-    "action_description_2_description": "We temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
-    "action_description_3_description": "You decide if you want to share or delete your usage data via settings any time.",
+    "action_description_1_description": "アプリのクリックやビューは保存されますが、その他の詳細 (ユーザーのパブリックアドレスなど) は保存されません。",
+    "action_description_2_description": "大まかな位置情報 (国や地域など) の検出にユーザーのIPアドレスが一時的に使用されますが、保存されることはありません。",
+    "action_description_3_description": "使用状況データを共有するか削除するかは、設定でいつでも指定できます。",
     "cta_no_thanks": "いいえ、結構です",
     "cta_i_agree": "同意します",
     "fine_print_1_legacy": "一般データ保護規則 (EU) 2016/679の目的に従い、このデータは集約され匿名化されます。",
@@ -1084,9 +1409,11 @@
     "clear_browser_cookies_desc": "ブラウザのcookieを消去",
     "clear": "消去",
     "protect_cta": "保護",
-    "protect_title": "Wallet recovery",
+    "protect_title": "Wallet Recovery",
+    "banner_social_login_enabled": "Log in with {{authConnection}}",
+    "manage_recovery_method": "Manage recovery methods",
     "video_failed": "動画を読み込めませんでした。",
-    "protect_desc": "Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.",
+    "protect_desc": "ウォレットへのアクセスを失わないよう、シークレットリカバリーフレーズをバックアップしましょう。自分だけがアクセスできて、絶対に忘れないような安全な場所に保管するようにしてください。",
     "protect_desc_no_backup": "これは12の単語からなるウォレット専用のフレーズです。このフレーズはウォレットの資金の送金を含む、現在と未来のすべてのアカウントのコントロールに使用できます。このフレーズを安全に保管し、他人に絶対に教えないでください。MetaMaskはこのキーの復元をお手伝いできません。",
     "learn_more": "詳細。",
     "seedphrase_not_backed_up": "重要！シークレットリカバリーフレーズがバックアップされていません",
@@ -1147,7 +1474,7 @@
     "no_permissions_desc": "サイトまたはアプリにアカウントを接続すると、ここに表示されます。",
     "security_title": "セキュリティとプライバシー",
     "back": "戻る",
-    "security_desc": "Privacy settings, MetaMetrics, private key, and Secret Recovery Phrase.",
+    "security_desc": "プライバシー設定、MetaMetrics、秘密鍵、シークレットリカバリーフレーズ。",
     "networks_title": "ネットワーク",
     "networks_default_title": "デフォルトのネットワーク",
     "network_delete": "このネットワークを削除した場合、このネットワーク内の資産を見るには、再度ネットワークの追加が必要になります。",
@@ -1212,9 +1539,6 @@
     "invalid_password": "無効なパスワード",
     "invalid_password_message": "パスワードが正しくありませんでした。もう一度お試しください。",
     "security_heading": "セキュリティ",
-    "ses_heading": "コードロックダウン",
-    "ses_description": "これは、アプリのJavaScriptコードを許可なく変更できないようにするテスト機能です。",
-    "ses_link": "詳細",
     "general_heading": "一般",
     "privacy_heading": "プライバシー",
     "failed_to_fetch_chain_id": "チェーンIDを取得できませんでした。正しいRPC URLか確認してください。",
@@ -1264,9 +1588,9 @@
     "check_status_button": "ステータスを確認",
     "delete_metrics_confirm_modal_title": "MetaMetricsデータを削除しますか？",
     "delete_metrics_confirm_modal_description": "すべてのMetaMetricsデータを削除しようとしています。よろしいですか？",
-    "delete_wallet_data_title": "ウォレットを削除",
+    "delete_wallet_data_title": "Reset wallet",
     "delete_wallet_data_description": "これにより、デバイスからウォレット関連のデータがすべて削除されます。アカウントはブロックチェーン上に存在し、MetaMaskとは関係ありません。シークレットリカバリーフレーズを使用すればいつでもアカウントを復元できます。",
-    "delete_wallet_data_button": "ウォレットを削除",
+    "delete_wallet_data_button": "Reset wallet",
     "delete_data_status_title": "削除タスクステータス",
     "delete_data_status_description": "現在のステータス:",
     "delete_metrics_error_title": "現在このデータを削除できません。",
@@ -1294,16 +1618,14 @@
       "add": "追加",
       "update": "更新",
       "cancel": "キャンセル",
-      "deposit_provider_logout_button": "Log out of {{depositProviderName}}",
-      "deposit_provider_logged_out": "Logged out of {{depositProviderName}}"
+      "deposit_provider_logout_button": "{{depositProviderName}}からログアウトする",
+      "deposit_provider_logged_out": "{{depositProviderName}}からログアウトしました"
     },
     "request_feature": "機能のリクエスト",
     "contact_support": "サポートへのお問い合わせ",
     "display_nft_media": "NFTメディアの表示",
     "display_nft_media_desc": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、この設定を無効にすると利用できなくなります。",
     "autodetect_nft_desc": "MetaMaskが、サードパーティサービス (例: OpenSea) を使って、ユーザーが所有するNFTを追加することを許可します。NFTの自動検出機能を利用すると、ユーザーのIPとアカウントアドレスがこれらのサービスに公開されます。この機能を有効にした場合、ユーザーのIPアドレスとイーサリアムアドレスが紐付けられ、詐欺師によりエアドロップされた偽のNFTが表示される可能性があります。このリスクを回避するため、手動でトークンを追加することもできます。",
-    "incoming_transactions_title": "受信トランザクションを表示",
-    "incoming_transactions_content": "これは、ユーザーの選択するネットワークに依存し、イーサリアムアドレスおよびIPアドレスが公開されます。",
     "display_nft_media_desc_new": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、無効にすると利用できなくなります。NFTメディアがIPFSに完全に保管されている場合は、この機能が無効になっていても表示されます。",
     "use_safe_chains_list_validation_desc_1": "MetaMaskは",
     "use_safe_chains_list_validation_desc_2": "というサードパーティサービスを利用して、正確かつ標準化されたネットワーク情報を表示しています。これにより、悪質なネットワークや正しくないネットワークに接続してしまう可能性が減ります。この機能を使用すると、ユーザーのIPアドレスが次の相手に公開されます:  ",
@@ -1393,6 +1715,9 @@
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
     "dismiss_smart_account_update_heading": "「スマートアカウントに切り替える」の提案を却下",
     "dismiss_smart_account_update_desc": "これをオンにすると、どのアカウントでも「スマートアカウントに切り替える」の提案が表示されなくなります。スマートアカウントにより、トランザクションのスピードアップ、ネットワーク手数料の節約、より柔軟な支払いが可能になります。",
+    "use_smart_account_heading": "Use smart account",
+    "use_smart_account_desc": "Keep this on to automatically switch accounts created within MetaMask to smart accounts whenever relevant features are available, such as faster transactions, lower network fees and payment flexibility on payment for those.",
+    "use_smart_account_learn_more": "Learn more.",
     "smart_transactions_opt_in_heading": "スマートトランザクション",
     "smart_transactions_opt_in_desc_supported_networks": "スマートトランザクションをオンにして、サポートされているネットワーク上でのトランザクションの信頼性と安全性を高めましょう。",
     "smart_transactions_learn_more": "詳細。",
@@ -1477,14 +1802,14 @@
     "done": "完了",
     "confirm": "次へ",
     "seed_phrase_explanation": [
-      "The",
-      "シークレットリカバリーフレーズ (SRP)",
+      "お客様の",
+      "シークレットリカバリーフレーズ",
       "gives",
       "ウォレット、資金、アカウントへのフルアクセスを可能にします。\n\n",
       "MetaMaskは",
       "ノンカストディアルウォレットです",
       "そのため、",
-      "ユーザーがSRPの唯一の所有者となります。"
+      "お客様自身がシークレットリカバリーフレーズの所有者です。"
     ],
     "private_key_explanation": "安全な秘密の場所に保管してください。",
     "private_key_warning": "これは現在選択されたアカウント {{accountName}} の秘密鍵です。この鍵は絶対に開示しないでください。資金の送金を含め、秘密鍵を持っていれば誰でもアカウントを完全にコントロールできます。",
@@ -1537,7 +1862,7 @@
     "password_desc": "デバイスでMetaMaskアプリのロックを解除するための強いパスワードを選択してください。このパスワードを紛失した場合、ウォレットを再インポートするのにシークレットリカバリーフレーズが必要になります。",
     "password_learn_more": "詳細。",
     "change_password": "パスワードを変更",
-    "password_hint": "Password hint"
+    "password_hint": "パスワードのヒント"
   },
   "asset_overview": {
     "send_button": "送信",
@@ -1547,6 +1872,7 @@
     "receive_button": "受取",
     "portfolio_button": "Portfolio",
     "earn_button": "獲得",
+    "perps_button": "Perpetuals",
     "add_collectible_button": "追加",
     "info": "情報",
     "swap": "スワップ",
@@ -1559,7 +1885,8 @@
       "bridge": "このアカウントではブリッジはサポートされていません",
       "send": "このアカウントでは送金はサポートされていません",
       "action": "このアカウントではこの操作はサポートされていません",
-      "earn": "このアカウントでは獲得はサポートされていません"
+      "earn": "このアカウントでは獲得はサポートされていません",
+      "perps": "Perpetuals trading not supported for this account"
     },
     "description": "説明",
     "totalSupply": "合計供給量",
@@ -1576,6 +1903,7 @@
     "send_description": "仮想通貨を任意のアカウントに送金します",
     "receive_description": "仮想通貨を受け取ります",
     "earn_description": "トークンに対してリワードを獲得します",
+    "perps_description": "Trade perpetual contracts",
     "chart_time_period": {
       "1d": "今日",
       "7d": "過去7日間",
@@ -1666,7 +1994,8 @@
     "url_redirection_alert_title": "外部リンクにアクセスしようとしています。",
     "url_redirection_alert_desc": "リンクは詐欺やフィッシングに利用される場合があるため、信頼できるWebサイトにのみアクセスするようにしてください。",
     "label": "QRコードをスキャン",
-    "open_settings": "設定"
+    "open_settings": "設定",
+    "camera_not_available": "Camera not available"
   },
   "action_view": {
     "cancel": "キャンセル",
@@ -1949,8 +2278,8 @@
     "tx_review_staking_claim": "ステーキングの請求",
     "tx_review_staking_deposit": "ステーキングのデポジット",
     "tx_review_staking_unstake": "ステーキングを解除",
-    "tx_review_lending_deposit": "Lending Deposit",
-    "tx_review_lending_withdraw": "Lending Withdrawal",
+    "tx_review_lending_deposit": "貸付金のデポジット",
+    "tx_review_lending_withdraw": "貸付金の引き出し",
     "sent_ether": "送信されたイーサ",
     "self_sent_ether": "自分に送信されたイーサ",
     "received_ether": "受け取ったイーサ",
@@ -2097,7 +2426,8 @@
     "add_input_placeholder": "パブリックアドレス (0x) または ENS",
     "between_account": "自分のアカウント間の送金",
     "others": "その他",
-    "memo": "メモ"
+    "memo": "メモ",
+    "network": "Network"
   },
   "duplicate_address": {
     "title": "このアドレスは重複しています",
@@ -2349,21 +2679,21 @@
     "info_text_1_2": "シークレットリカバリーフレーズ",
     "info_text_1_3": "を信頼できる場所に保管して、ウォレットを保護してください。",
     "info_text_1_4": "これは、アプリにログインできなくなったり、新しいデバイスに変えた場合にウォレットを復元できる唯一の方法です。",
-    "cta_text": "Get started",
+    "cta_text": "開始",
     "cta_subText": "強く推奨",
     "skip_button_cancel": "今すぐ安全を確保",
     "skip_button_confirm": "スキップ",
     "skip_title": "アカウントのセキュリティをスキップしますか？",
-    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
-    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
-    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
+    "skip_check": "このシークレットリカバリーフレーズを紛失した場合、このウォレットにアクセスできなくなります。",
+    "what_is_seedphrase_title": "シークレットリカバリーフレーズとは？",
+    "what_is_seedphrase_text_1": "シークレットリカバリーフレーズとは、暗号資産ウォレットへのアクセスや管理を可能にする一連の単語のことで、シードフレーズまたはニーモニックとも呼ばれます。お持ちのウォレットをMetaMaskに移行するには、このフレーズが必要です。",
     "what_is_seedphrase_text_2": "シークレットリカバリーフレーズは、極秘かつ安全に保管する必要があります。シークレットリカバリーフレーズが他人に知られると、アカウントをコントロールされます。",
     "what_is_seedphrase_text_3": "自分だけがアクセスできる場所に保管してください。紛失すると、MetaMaskでも復元できません。",
-    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
-    "seedPhrase_point_1": "Take all your money",
-    "seedPhrase_point_2": "Confirm transactions",
-    "seedPhrase_point_3": "Change your login information",
-    "what_is_seedphrase_confirm": "Got it"
+    "what_is_seedphrase_text_4": "シークレットリカバリーフレーズがあれば、誰でも次のことができてしまいます。",
+    "seedPhrase_point_1": "全資産の窃取",
+    "seedPhrase_point_2": "トランザクションの確定",
+    "seedPhrase_point_3": "ログイン情報の変更",
+    "what_is_seedphrase_confirm": "了解"
   },
   "account_backup_step_1B": {
     "title": "ウォレットの安全を確保",
@@ -2454,40 +2784,40 @@
     "progressThree": "シークレットリカバリーフレーズの確認"
   },
   "manual_backup_step_1": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Save your Secret Recovery Phrase",
-    "info-1": "This is your",
-    "info-2": "Secret Recovery Phrase",
-    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
-    "info-4": "Don’t share it with anyone, ever.",
+    "steps": "ステップ{{currentStep}}/{{totalSteps}}",
+    "action": "シークレットリカバリーフレーズを保存します",
+    "info-1": "これがお客様の",
+    "info-2": "シークレットリカバリーフレーズです。",
+    "info-3": "正しい順番で書き留め、安全に保管してください。誰かがシークレットリカバリーフレーズを入手した場合、ウォレットへのアクセスが可能となってしまいます。",
+    "info-4": "絶対に誰とも共有しないでください。",
     "continue": "続行",
-    "reveal": "Tap to reveal",
+    "reveal": "タップして確認",
     "watching": "誰にも画面を見られていないことを確認してください。",
     "view": "表示",
     "confirm_password": "パスワードの確認",
     "before_continiuing": "続行する前にパスワードの確認が必要です",
-    "enter_current_password": "Enter your current password",
-    "confirm": "Confirm",
+    "enter_current_password": "現在のパスワードを入力します",
+    "confirm": "確認",
     "got_it": "了解",
     "learn_more": "詳細",
-    "password": "Password"
+    "password": "パスワード"
   },
   "manual_backup_step_2": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "action": "Confirm your Secret Recovery Phrase",
-    "info": "Select the missing words in the correct order.",
+    "steps": "ステップ{{currentStep}}/{{totalSteps}}",
+    "action": "シークレットリカバリーフレーズを確認します",
+    "info": "欠けている単語を正しい順番で選択してください。",
     "complete": "バックアップを完了",
     "success": "成功",
-    "error-title": "Not quite right",
-    "error-description": "Double-check your Secret Recovery Phrase and try again.",
-    "success-title": "Perfect!",
-    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
-    "success-button": "Got it",
-    "error-button": "Try again",
-    "continue": "Continue"
+    "error-title": "間違っている部分があります",
+    "error-description": "シークレットリカバリフレーズを再確認して、もう一度お試しください。",
+    "success-title": "完璧です！",
+    "success-description": "正解です！繰り返しますが、このフレーズは絶対に誰にも教えないでください。",
+    "success-button": "了解",
+    "error-button": "再試行",
+    "continue": "続行"
   },
   "manual_backup_step_3": {
-    "steps": "Step {{currentStep}} of {{totalSteps}}",
+    "steps": "ステップ{{currentStep}}/{{totalSteps}}",
     "congratulations": "おめでとうございます",
     "success": "ウォレットが保護されました。シークレットリカバリーフレーズを安全に保管するのは、ユーザーの責任であることをお忘れなく。",
     "hint": "ヒントを残しますか？",
@@ -3106,7 +3436,7 @@
       "sale_pending_description": "ただ今注文を処理しています。",
       "no_date": "不明"
     },
-    "deposit_order_title": "{{currency}} Deposit"
+    "deposit_order_title": "{{currency}}のデポジット"
   },
   "swaps": {
     "title": "スワップ",
@@ -3777,17 +4107,12 @@
     "show_display_nft_media_content_5": "「設定」>「セキュリティとプライバシー」"
   },
   "solana_new_feature_content": {
-    "title": "MetaMaskでSolana",
-    "create_solana_account": "Solanaアカウントを作成",
+    "title": "solana is here",
+    "title_description": "Import your wallet, explore, trade and send it. Native Solana support is now live on MetaMask.",
     "not_now": "後で",
     "view_solana_account": "Solanaアカウントを表示",
-    "feature_1_title": "トークンの送金、受取、スワップ",
-    "feature_1_description": "SOLやUSDCなどのトークンの送金や取引を行います。",
-    "feature_2_title": "Solanaアカウントのインポート",
-    "feature_2_description": "シークレットリカバリーフレーズをインポートして、他のウォレットからSolanaアカウントを移行します。",
-    "feature_3_title": "他の機能も近日追加予定",
-    "feature_3_description": "Solana DApp、NFT、ハードウェアウォレットのサポート、その他機能も近日追加予定。",
-    "learn_more": "Solanaアカウントの詳細"
+    "learn_more": "Solanaアカウントの詳細",
+    "import_your_wallet": "Import your wallet"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFSゲートウェイ",
@@ -3818,10 +4143,10 @@
   "earn": {
     "empty_state_cta": {
       "heading": "{{tokenSymbol}}を貸して収益化",
-      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
-      "annually": "annually.",
-      "learn_more": "Learn more.",
-      "earn": "Earn"
+      "body": "{{protocol}}で{{tokenSymbol}}を貸し付けて、",
+      "annually": "毎年",
+      "learn_more": "報酬を獲得しましょう。詳しくはこちら。",
+      "earn": "獲得"
     },
     "service_interruption_banner": {
       "maintenance_message": "メンテナンス中のためご利用いただけません。再開まで今しばらくお待ちください。"
@@ -3849,50 +4174,51 @@
       "withdrawal_time": "プロトコルからトークンを引き出してウォレットに戻すのにかかる時間です",
       "receive": "このトークンは資産と報酬を追跡するのに使用されます。資産が引き出せなくなるため、このトークンを送金したり取引したりしないでください。",
       "health_factor": {
-        "your_health_factor_measures_liquidation_risk": "Your Health Factor measures liquidation risk",
-        "above_two_dot_zero": "Above 2.0",
-        "safe_position": "Safe position",
-        "between_one_dot_five_and_2_dot_zero": "Between 1.5-2.0",
-        "medium_liquidation_risk": "Medium Liquidation risk",
-        "below_one_dot_five": "Below 1.5",
-        "higher_liquidation_risk": "Higher liquidation risk"
+        "your_health_factor_measures_liquidation_risk": "健全性指標とは清算リスクを計測するものです",
+        "above_two_dot_zero": "2.0超",
+        "safe_position": "安全なポジション",
+        "between_one_dot_five_and_2_dot_zero": "1.5～2.0の間",
+        "medium_liquidation_risk": "清算リスクは中程度",
+        "below_one_dot_five": "1.5未満",
+        "higher_liquidation_risk": "清算リスクが高め"
       },
       "lending_risk_aware_withdrawal_tooltip": {
-        "why_cant_i_withdraw_full_balance": "Why can't I withdraw my full balance?",
-        "your_withdrawal_amount_may_be_limited_by": "Your withdrawal amount may be limited by",
-        "pool_liquidity": "Pool Liquidity",
-        "not_enough_funds_available_in_the_lending_pool_right_now": "Not enough funds available in the lending pool right now.",
-        "existing_borrow_positions": "Existing Borrow Positions",
-        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Withdrawing could put your existing loan positions at risk of liquidation."
+        "why_cant_i_withdraw_full_balance": "残高を全額引き出せないのはなぜですか？",
+        "your_withdrawal_amount_may_be_limited_by": "引き出し額は",
+        "pool_liquidity": "プールの流動性",
+        "not_enough_funds_available_in_the_lending_pool_right_now": "によって制限される場合があります。現在、レンディングプールに十分な資金がありません。",
+        "existing_borrow_positions": "既存の借入ポジション",
+        "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "引き出しを行うと、既存の貸借ポジションが清算のリスクに晒される可能性があります。"
       }
     },
     "withdraw": "出金",
     "deposit_more": "デポジットを続ける",
-    "earning": "Earning",
-    "withdrawal_time": "Withdrawal time",
-    "withdrawing_to": "Withdrawing to",
-    "network": "Network",
-    "health_factor": "Health factor",
-    "liquidation_risk": "Liquidation risk",
-    "insufficient_pool_liquidity": "Insufficient Pool Liquidity",
-    "available_to_withdraw": "available to withdraw",
-    "unknown": "unknown",
-    "how_it_works": "How it works",
+    "earning": "収益",
+    "withdrawal_time": "引き出し時刻",
+    "withdrawing_to": "引き出し先",
+    "network": "ネットワーク",
+    "health_factor": "健全性指標",
+    "liquidation_risk": "清算リスク",
+    "insufficient_pool_liquidity": "プールの流動性不足",
+    "available_to_withdraw": "引き出し可能額",
+    "unknown": "不明",
+    "how_it_works": "報酬獲得の仕組み",
     "market_historic_apr_modal": {
-      "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
-      "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
-      "withdraw_whenever_you_want": "Withdraw whenever you want",
-      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+      "earn_rewards_on_your_token": "{{tokenSymbol}}に対して報酬を獲得",
+      "lend_and_earn_daily_rewards": "{{protocol}}で{{tokenSymbol}}を貸し付けて、毎日報酬を獲得しましょう。報酬は時間と共に増え続け、APRは変動します。",
+      "withdraw_whenever_you_want": "いつでも好きなときに引き出し可能",
+      "get_asset_back_in_your_wallet_instantly": "{{tokenSymbol}}は即座にウォレットに戻すことができます。"
     },
-    "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
+    "amount_exceeds_safe_withdrawal_limit": "金額が安全な引き出し限度額を超えています",
     "view_earnings_history": {
-      "lending": "View position history",
-      "staking": "View earnings history"
+      "lending": "ポジション履歴を表示",
+      "staking": "収益履歴を表示"
     },
     "earnings_history_list_title": {
-      "lending": "Position history",
-      "staking": "Payout history"
-    }
+      "lending": "ポジション履歴",
+      "staking": "払出履歴"
+    },
+    "allowance_reset": "許容額のリセット"
   },
   "stake": {
     "stake": "ステーク",
@@ -3992,8 +4318,9 @@
     "estimated_unstaking_time": "1～11日",
     "proceed_anyway": "承知の上で続ける",
     "gas_cost_impact": "ガス代の影響",
-    "select_a_token": "トークンを選択",
-    "you_could_earn_up_to": "You could earn up to",
+    "select_a_token_to_deposit": "Select a token to deposit",
+    "select_a_token_to_withdraw": "Select a token to withdraw",
+    "you_could_earn_up_to": "最大獲得可能額",
     "per_year_on_your_tokens": "獲得できる可能性があります",
     "deposit": "デポジット",
     "gas_cost_impact_warning": "警告：トランザクションのガス代がデポジットの{{percentOverDeposit}}%を超えます。",
@@ -4109,6 +4436,8 @@
       "part3": "に同意したものとみなされます。"
     },
     "label": {
+      "amount": "金額",
+      "value": "価値",
       "account": "アカウント",
       "balance": "残高",
       "interacting_with": "相手",
@@ -4127,19 +4456,29 @@
       "permit_NFTs": "出金リクエスト",
       "signature_siwe": "サインイン要求",
       "contract_interaction": "トランザクション要求",
+      "contract_deployment": "コントラクトのデプロイ",
       "transfer": "送金リクエスト",
       "switch_account_type": "アカウントのアップデート",
-      "approve": "Approve request"
+      "approve": "要求の承認"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
+      "permit_revoke": "アカウントのトークンの使用許可を取り消そうとしています。",
       "permit_NFTs": "このサイトがNFTの引き出し許可を求めています。",
+      "permit_revoke_NFTs": "このサイトはNFTの引き出し限度額のリセットを求めています",
       "signature": "確定する前にリクエストの詳細を確認してください。",
       "signature_siwe": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。",
       "contract_interaction": "確定する前に要求の詳細を確認してください。",
       "switch_to_smart_account": "スマートアカウントに切り替えようとしています。",
-      "switch_to_standard_account": "スタンダードアカウント (EOA) に戻そうとしています。"
+      "switch_to_standard_account": "スタンダードアカウント (EOA) に戻そうとしています。",
+      "contract_deployment": "このサイトはコントラクトのデプロイを求めています",
+      "decrease_allowance": "このサイトはトークンの使用上限の引き下げを求めています。"
     },
+    "spending_cap": "使用上限",
+    "withdraw": "出金",
+    "nfts": "NFT",
+    "permission_from": "承認元",
+    "spender": "使用者",
     "request_from": "要求元",
     "staking_from": "ステーキング元",
     "signing_in_with": "サインイン方法",
@@ -4192,6 +4531,7 @@
       "smartAccountLabel": "スマートアカウント",
       "standardAccountLabel": "スタンダードアカウント",
       "switch": "切り替える",
+      "switchBack": "元に戻す",
       "splashpage": {
         "accept": "はい",
         "betterTransaction": "より高速なトランザクションで低い手数料",
@@ -4200,13 +4540,21 @@
         "payToken": "いつでもあらゆるトークンで支払いが行えます",
         "payTokenDescription": "すでに持っているトークンを使ってネットワーク手数料を支払います。",
         "reject": "いいえ",
-        "requestFor": "要求内容",
         "sameAccount": "同じアカウントでよりスマートな機能。",
-        "splashTitle": "スマートアカウントを使いますか？",
-        "upgradeBannerDescription": "同じアドレスでよりスマートな機能。",
-        "upgradeBannerTitle": "スマートアカウントへの切り替え"
+        "splashTitle": "スマートアカウントを使いますか？"
       },
-      "includes_transaction": "{{transactionCount}}件のトランザクションを含む"
+      "includes_transaction": "{{transactionCount}}件のトランザクションを含む",
+      "useSmartAccount": "Use smart account",
+      "successful": "Successful!",
+      "success_message": "Your account will be updated to smart account with your next transaction."
+    },
+    "edit_spending_cap_modal": {
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_empty_error": "Spending cap cannot be empty",
+      "invalid_number_error": "Spending cap must be a number",
+      "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
     },
     "unlimited": "無制限",
     "all": "すべて",
@@ -4217,7 +4565,7 @@
     "review": "確認",
     "transferRequest": "送金リクエスト",
     "nested_transaction_heading": "トランザクション {{index}}",
-    "transaction": "Transaction"
+    "transaction": "トランザクション"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",
@@ -4253,6 +4601,7 @@
     "slippage": "スリッページ",
     "slippage_info": "発注から確定までの間に価格が変わることを「スリッページ」といいます。スリッページがここで設定された許容範囲を超えた場合、スワップは自動的にキャンセルされます。",
     "network_fee": "ネットワーク手数料",
+    "included": "Included",
     "estimated_time": "予想時間",
     "quote": "クォート",
     "quote_details": "クォートの詳細",
@@ -4266,17 +4615,24 @@
     "insufficient_funds": "資金不足",
     "select_amount": "アカウントを選択",
     "bridge_to": "ブリッジ先:",
+    "swap_to": "Swap to",
     "title": "ブリッジ",
     "submitting_transaction": "送信中",
     "fetching_quote": "クォートを取得中",
     "fee_disclaimer": "0.875% のMM手数料込み",
     "hardware_wallet_not_supported": "まだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
-    "hardware_wallet_not_supported_solana": "Solanaはまだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。"
+    "hardware_wallet_not_supported_solana": "Solanaはまだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
+    "max": "Max"
   },
   "quote_expired_modal": {
     "title": "新しい価格が利用可能です",
     "description": "レートは{{refreshRate}}秒ごとに更新されます。準備ができたら「新しいクォートを取得」をタップしてください。",
     "get_new_quote": "新しい価格を取得"
+  },
+  "blockaid_modal": {
+    "simulation_title": "シミュレーションでトランザクションが失敗しました",
+    "validation_title": "トランザクションの検証に失敗しました",
+    "go_back": "戻る"
   },
   "bridge_transaction_details": {
     "status": "ステータス",
@@ -4293,6 +4649,54 @@
     "bridge_to_chain": "{{chainName}}へのブリッジ",
     "recipient": "受取人"
   },
+  "account_status": {
+    "account_already_exists": "Wallet already exists",
+    "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
+    "log_in": "Log in",
+    "account_not_found": "Wallet not found",
+    "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
+    "create_new_wallet": "Create a new wallet",
+    "use_different_login_method": "Use a different login method"
+  },
+  "error_sheet": {
+    "still_there_title": "Still there?",
+    "still_there_description": "Your login timed out due to inactivity. Try again when you’re ready.",
+    "unable_to_login_title": "Unable to connect",
+    "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
+    "something_went_wrong_title": "Something went wrong",
+    "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
+    "support_button": "MetaMask Support.",
+    "error_button": "Try again",
+    "user_cancelled_title": "Login cancelled",
+    "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
+    "user_cancelled_button": "Try again",
+    "oauth_error_title": "Login failed",
+    "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
+    "oauth_error_button": "Try again"
+  },
+  "password_hint": {
+    "title": "Password hint",
+    "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
+    "button": "Create hint",
+    "placeholder": "e.g. mom’s home",
+    "saved": "Save",
+    "saved_toast": "Password hint updated",
+    "error_matches_password": "You cannot use your password as a hint"
+  },
+  "protect_your_wallet": {
+    "title": "Wallet Recovery",
+    "login_with_social": "Log in with Social Accounts",
+    "setup": "Set Up",
+    "secret_recovery_phrase": "Secret recovery phrase {{num}}",
+    "back_up": "Back up",
+    "reveal": "Reveal",
+    "social_recovery_title": "{{authConnection}} RECOVERY",
+    "social_recovery_enable": "Enabled",
+    "social_login_description": "Use your {{authConnection}} login and MetaMask password to recover your account and secret recovery phrases.",
+    "srps_title": "SECRET RECOVERY PHRASES",
+    "srps_description": "Your wallet is most protected when both recovery methods are set up. If one fail, the other helps you recover your wallet."
+  },
   "backupAndSync": {
     "title": "バックアップと同期",
     "description": "アカウントをバックアップして設定を同期します。",
@@ -4308,7 +4712,7 @@
     "privacyLink": "当社がどのようにユーザーのプライバシーを保護するのか、ご覧ください",
     "features": {
       "accounts": "アカウント",
-      "contacts": "Contacts"
+      "contacts": "連絡先"
     },
     "manageWhatYouSync": {
       "title": "同期する項目の管理",
@@ -4340,11 +4744,18 @@
       "private_key": "秘密鍵"
     },
     "accounts_list": {
-      "details": "Details"
+      "details": "詳細"
+    },
+    "wallet_details": {
+      "wallet_name": "ウォレット名",
+      "balance": "残高",
+      "create_account": "Create account",
+      "back_up": "バックアップ",
+      "reveal_recovery_phrase_with_index": "リカバリーフレーズ{{index}}を確認"
     },
     "smart_account": {
       "title": "スマートアカウントを有効にする",
-      "description": "You can enable smart account features on supported networks.",
+      "description": "サポートされているネットワークでスマートアカウント機能を有効にすることができます。",
       "learn_more": "詳細"
     },
     "edit_account_name": {
@@ -4394,19 +4805,19 @@
   },
   "deep_link_modal": {
     "private_link": {
-      "title": "Redirecting you to MetaMask",
-      "description": "You'll open {{pageTitle}} if you continue.",
-      "checkbox_label": "Don't remind me again"
+      "title": "MetaMaskにリダイレクトしています",
+      "description": "続行すると{{pageTitle}}が開きます。",
+      "checkbox_label": "今後このメッセージを表示しない"
     },
     "public_link": {
-      "title": "Proceed with caution",
-      "description": "You were sent here by a third party, not MetaMask. You'll open {{pageTitle}} if you continue."
+      "title": "慎重に進めてください",
+      "description": "お客様をこのページに誘導したのはMetaMask以外の第三者です。続行すると{{pageTitle}}が開きます。"
     },
     "invalid": {
-      "title": "This page doesn't exist",
-      "description": "We can't find the page you're looking for."
+      "title": "このページは存在しません",
+      "description": "お探しのページが見つかりません。"
     },
-    "back_button": "Back",
-    "continue_button": "Continue"
+    "back_button": "戻る",
+    "continue_button": "続行"
   }
 }

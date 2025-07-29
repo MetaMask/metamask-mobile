@@ -35,7 +35,10 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { processFiatOrder } from '../../../index';
 import { useTheme } from '../../../../../../util/theme';
 import { RootState } from '../../../../../../reducers';
-import { hasDepositOrderField } from '../../utils';
+import {
+  getCryptoCurrencyFromTransakId,
+  hasDepositOrderField,
+} from '../../utils';
 import { useDepositSDK } from '../../sdk';
 import Button, {
   ButtonSize,
@@ -43,6 +46,8 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { SUPPORTED_PAYMENT_METHODS } from '../../constants';
 import { DepositOrder } from '@consensys/native-ramps-sdk';
+import PrivacySection from '../../components/PrivacySection';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -58,7 +63,8 @@ const BankDetails = () => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const { sdk } = useDepositSDK();
+  const { sdk, selectedWalletAddress, selectedRegion } = useDepositSDK();
+  const trackEvent = useAnalytics();
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
@@ -187,7 +193,7 @@ const BankDetails = () => {
       getDepositNavbarOptions(
         navigation,
         {
-          title: strings('deposit.bank_details.title', {
+          title: strings('deposit.bank_details.navbar_title', {
             paymentMethod: paymentMethodName,
           }),
         },
@@ -209,6 +215,26 @@ const BankDetails = () => {
         return;
       }
 
+      const cryptoCurrency = getCryptoCurrencyFromTransakId(
+        order.data.cryptoCurrency,
+        order.data.network,
+      );
+
+      trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+        ramp_type: 'DEPOSIT',
+        amount_source: Number(order.data.fiatAmount),
+        amount_destination: Number(order.cryptoAmount),
+        exchange_rate: Number(order.data.exchangeRate),
+        gas_fee: 0, //Number(order.data.gasFee),
+        processing_fee: 0, //Number(order.data.processingFee),
+        total_fee: Number(order.data.totalFeesFiat),
+        payment_method_id: order.data.paymentMethod,
+        country: selectedRegion?.isoCode || '',
+        chain_id: cryptoCurrency?.chainId || '',
+        currency_destination: selectedWalletAddress || order.data.walletAddress,
+        currency_source: order.data.fiatCurrency,
+      });
+
       await confirmPayment(order.id, paymentOptionId);
 
       await handleOnRefresh();
@@ -221,7 +247,15 @@ const BankDetails = () => {
     } catch (fetchError) {
       console.error(fetchError);
     }
-  }, [navigation, confirmPayment, handleOnRefresh, order]);
+  }, [
+    navigation,
+    confirmPayment,
+    handleOnRefresh,
+    order,
+    selectedRegion?.isoCode,
+    selectedWalletAddress,
+    trackEvent,
+  ]);
 
   const handleCancelOrder = useCallback(async () => {
     try {
@@ -360,7 +394,8 @@ const BankDetails = () => {
           <View style={styles.bottomContainer}>
             {confirmPaymentError ? (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                {strings('deposit.bank_details.error_message')}
+                {confirmPaymentError ||
+                  strings('deposit.bank_details.error_message')}
               </Text>
             ) : null}
             {cancelOrderError ? (
@@ -368,22 +403,14 @@ const BankDetails = () => {
                 {strings('deposit.bank_details.cancel_order_error')}
               </Text>
             ) : null}
-            <View style={styles.infoBanner}>
-              <Icon
-                name={IconName.SecurityKey}
-                size={IconSize.Lg}
-                color={theme.colors.icon.alternative}
-              />
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-                style={styles.infoBannerText}
-              >
+
+            <PrivacySection>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
                 {strings('deposit.bank_details.info_banner_text', {
                   accountHolderName: accountName,
                 })}
               </Text>
-            </View>
+            </PrivacySection>
 
             <View style={styles.buttonContainer}>
               <Button

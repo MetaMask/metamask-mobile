@@ -95,16 +95,6 @@ export const selectShowTestNetworks = createSelector(
     ).showTestNetworks,
 );
 
-export const selectShowIncomingTransactionNetworks = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    (
-      preferencesControllerState as PreferencesState & {
-        showIncomingTransactions: { [chainId: string]: boolean };
-      }
-    ).showIncomingTransactions,
-);
-
 export const selectIsIpfsGatewayEnabled = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
@@ -171,10 +161,4 @@ export const selectSmartAccountOptIn = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.smartAccountOptIn ?? false,
-);
-
-export const selectSmartAccountOptInForAccounts = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.smartAccountOptInForAccounts ?? [],
 );

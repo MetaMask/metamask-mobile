@@ -129,15 +129,15 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -537,7 +537,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderRadius": 8,
                                       "gap": 16,
                                       "padding": 16,
@@ -821,47 +821,81 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                               }
                             >
                               <View
+                                accessibilityRole="none"
+                                accessible={true}
                                 style={
                                   {
-                                    "alignItems": "flex-start",
-                                    "backgroundColor": "#f3f5f9",
+                                    "backgroundColor": "#3c4d9d1a",
                                     "borderRadius": 8,
-                                    "flexDirection": "row",
-                                    "gap": 12,
-                                    "paddingHorizontal": 16,
+                                    "marginVertical": 8,
+                                    "padding": 16,
                                     "paddingVertical": 8,
                                   }
                                 }
                               >
-                                <SvgMock
-                                  color="#686e7d"
-                                  fill="currentColor"
-                                  height={24}
-                                  name="SecurityKey"
+                                <View
                                   style={
                                     {
-                                      "height": 24,
-                                      "width": 24,
-                                    }
-                                  }
-                                  width={24}
-                                />
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "flex": 1,
-                                      "flexWrap": "wrap",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "alignItems": "flex-start",
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  You should see 'John Doe' as the account holder. This helps your bank process the transfer.
-                                </Text>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": -1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <SvgMock
+                                      color="#686e7d"
+                                      fill="currentColor"
+                                      height={24}
+                                      name="SecurityKey"
+                                      style={
+                                        {
+                                          "height": 24,
+                                          "width": 24,
+                                        }
+                                      }
+                                      width={24}
+                                    />
+                                  </View>
+                                  <View
+                                    accessible={false}
+                                    style={
+                                      {
+                                        "width": 8,
+                                      }
+                                    }
+                                    testID="listitem-gap"
+                                  />
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 12,
+                                          "letterSpacing": 0.25,
+                                          "lineHeight": 20,
+                                        }
+                                      }
+                                    >
+                                      You should see 'John Doe' as the account holder. This helps your bank process the transfer.
+                                    </Text>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={
@@ -882,14 +916,15 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "transparent",
-                                      "borderColor": "#4459ff",
+                                      "backgroundColor": "#3c4d9d1a",
+                                      "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
                                       "height": 48,
                                       "justifyContent": "center",
+                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }
@@ -898,7 +933,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#4459ff",
+                                        "color": "#121314",
                                         "fontFamily": "Geist Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -920,12 +955,13 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#4459ff",
+                                      "backgroundColor": "#121314",
                                       "borderRadius": 12,
                                       "flex": 1,
                                       "flexDirection": "row",
                                       "height": 48,
                                       "justifyContent": "center",
+                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }
@@ -943,7 +979,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Transfer sent
+                                    Bank transfer sent
                                   </Text>
                                 </TouchableOpacity>
                               </View>
@@ -1093,15 +1129,15 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -1501,7 +1537,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#f3f5f9",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderRadius": 8,
                                       "gap": 16,
                                       "padding": 16,
@@ -1927,47 +1963,81 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                               }
                             >
                               <View
+                                accessibilityRole="none"
+                                accessible={true}
                                 style={
                                   {
-                                    "alignItems": "flex-start",
-                                    "backgroundColor": "#f3f5f9",
+                                    "backgroundColor": "#3c4d9d1a",
                                     "borderRadius": 8,
-                                    "flexDirection": "row",
-                                    "gap": 12,
-                                    "paddingHorizontal": 16,
+                                    "marginVertical": 8,
+                                    "padding": 16,
                                     "paddingVertical": 8,
                                   }
                                 }
                               >
-                                <SvgMock
-                                  color="#686e7d"
-                                  fill="currentColor"
-                                  height={24}
-                                  name="SecurityKey"
+                                <View
                                   style={
                                     {
-                                      "height": 24,
-                                      "width": 24,
-                                    }
-                                  }
-                                  width={24}
-                                />
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "flex": 1,
-                                      "flexWrap": "wrap",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "alignItems": "flex-start",
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  You should see 'John Doe' as the account holder. This helps your bank process the transfer.
-                                </Text>
+                                  <View
+                                    style={
+                                      {
+                                        "flex": -1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <SvgMock
+                                      color="#686e7d"
+                                      fill="currentColor"
+                                      height={24}
+                                      name="SecurityKey"
+                                      style={
+                                        {
+                                          "height": 24,
+                                          "width": 24,
+                                        }
+                                      }
+                                      width={24}
+                                    />
+                                  </View>
+                                  <View
+                                    accessible={false}
+                                    style={
+                                      {
+                                        "width": 8,
+                                      }
+                                    }
+                                    testID="listitem-gap"
+                                  />
+                                  <View
+                                    style={
+                                      {
+                                        "flex": 1,
+                                      }
+                                    }
+                                    testID="listitemcolumn"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#686e7d",
+                                          "fontFamily": "Geist Regular",
+                                          "fontSize": 12,
+                                          "letterSpacing": 0.25,
+                                          "lineHeight": 20,
+                                        }
+                                      }
+                                    >
+                                      You should see 'John Doe' as the account holder. This helps your bank process the transfer.
+                                    </Text>
+                                  </View>
+                                </View>
                               </View>
                               <View
                                 style={
@@ -1988,14 +2058,15 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "transparent",
-                                      "borderColor": "#4459ff",
+                                      "backgroundColor": "#3c4d9d1a",
+                                      "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flex": 1,
                                       "flexDirection": "row",
                                       "height": 48,
                                       "justifyContent": "center",
+                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }
@@ -2004,7 +2075,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#4459ff",
+                                        "color": "#121314",
                                         "fontFamily": "Geist Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -2026,12 +2097,13 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#4459ff",
+                                      "backgroundColor": "#121314",
                                       "borderRadius": 12,
                                       "flex": 1,
                                       "flexDirection": "row",
                                       "height": 48,
                                       "justifyContent": "center",
+                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }
@@ -2049,7 +2121,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       }
                                     }
                                   >
-                                    Transfer sent
+                                    Bank transfer sent
                                   </Text>
                                 </TouchableOpacity>
                               </View>

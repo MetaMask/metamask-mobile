@@ -14,9 +14,7 @@ import {
 } from '../../../fixtures/fixture-helper';
 import { buildPermissions } from '../../../fixtures/utils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import {
-  SIMULATION_ENABLED_NETWORKS_MOCK,
-} from '../../../api-mocking/mock-responses/simulations';
+import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../pages/Browser/TestDApp';
 
 describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
@@ -64,7 +62,7 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
           contractAddress: nftsAddress,
         });
 
-        await TestDApp.tabERC721MintButton();
+        await TestDApp.tapERC721MintButton();
 
         // Check all expected elements are visible
         await Assertions.checkIfVisible(
