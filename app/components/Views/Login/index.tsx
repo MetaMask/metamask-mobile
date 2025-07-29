@@ -114,6 +114,7 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import { setIsConnectionRemoved } from '../../../actions/user';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -502,6 +503,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const onLogin = async () => {
+    let isConnectionRemoved = false;
     endTrace({ name: TraceName.LoginUserInteraction });
     if (oauthLoginSuccess) {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
@@ -533,7 +535,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           op: TraceOperation.Login,
         },
         async () => {
-          await Authentication.userEntryAuth(password, authType);
+          isConnectionRemoved = await Authentication.userEntryAuth(
+            password,
+            authType,
+          );
         },
       );
 
@@ -563,6 +568,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } catch (loginErr: unknown) {
       await handleLoginError(loginErr);
       Logger.error(loginErr as Error, 'Failed to unlock');
+    } finally {
+      if (isConnectionRemoved) {
+        dispatch(setIsConnectionRemoved(true));
+      }
     }
   };
 

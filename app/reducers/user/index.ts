@@ -24,6 +24,7 @@ export const userInitialState: UserState = {
   ambiguousAddressEntries: {},
   appServicesReady: false,
   existingUser: false,
+  isConnectionRemoved: false,
 };
 
 /**
@@ -121,7 +122,11 @@ const userReducer = (
         ...state,
         existingUser: action.payload.existingUser,
       };
-
+    case UserActionType.SET_IS_CONNECTION_REMOVED:
+      return {
+        ...state,
+        isConnectionRemoved: action.payload.isConnectionRemoved,
+      };
     default:
       return state;
   }

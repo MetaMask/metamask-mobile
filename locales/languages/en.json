@@ -5034,5 +5034,10 @@
   },
   "pay_with_modal": {
     "title": "Select payment method"
+  },
+  "connection_removed_modal": {
+    "title": "Connections removed",
+    "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
+    "tryAgain": "Try again"
   }
 }
