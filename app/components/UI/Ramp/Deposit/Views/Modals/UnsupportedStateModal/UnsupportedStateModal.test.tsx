@@ -42,19 +42,12 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
-  createNavigationDetails: jest.fn(),
+  ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => ({
     stateCode: 'NY',
     stateName: 'New York',
     onStateSelect: mockOnStateSelect,
   })),
-}));
-
-jest.mock('../StateSelectorModal', () => ({
-  createStateSelectorModalNavigationDetails: jest.fn(() => [
-    'StateSelectorModal',
-    {},
-  ]),
 }));
 
 function render(Component: React.ComponentType) {
@@ -115,6 +108,12 @@ describe('UnsupportedStateModal', () => {
 
     const changeStateButton = getByText('Change region');
     fireEvent.press(changeStateButton);
-    expect(mockNavigate).toHaveBeenCalledWith('StateSelectorModal', {});
+    expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+      screen: 'DepositStateSelectorModal',
+      params: {
+        onStateSelect: expect.any(Function),
+        selectedState: 'NY',
+      },
+    });
   });
 });
