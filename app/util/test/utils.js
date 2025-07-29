@@ -17,7 +17,7 @@ export const isTest =
   process.env.METAMASK_ENVIRONMENT !== 'beta' &&
   process.env.METAMASK_ENVIRONMENT !== 'rc' &&
   process.env.METAMASK_ENVIRONMENT !== 'exp';
-export const isE2E = process.env.IS_TEST === 'true';
+export const isE2E = process.env.IS_TEST;
 export const enableApiCallLogs = process.env.LOG_API_CALLS === 'true';
 export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FIXTURE_SERVER_PORT;

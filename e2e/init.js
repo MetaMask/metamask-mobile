@@ -1,3 +1,4 @@
+/* eslint-env jest */
 import Utilities from './utils/Utilities';
 
 /**
@@ -9,4 +10,13 @@ beforeAll(async () => {
     detoxURLBlacklistRegex: Utilities.BlacklistURLs,
     permissions: { notifications: 'YES' },
   });
+});
+
+global.liveServerRequest = null;
+afterEach(() => {
+  if (global.liveServerRequest) {
+    const err = global.liveServerRequest;
+    global.liveServerRequest = null; // reset for next test
+    throw err;
+  }
 });
