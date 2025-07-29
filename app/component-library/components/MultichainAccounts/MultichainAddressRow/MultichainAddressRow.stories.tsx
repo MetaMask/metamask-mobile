@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import { View } from 'react-native';
+import { CaipChainId } from '@metamask/utils';
 import { mockTheme } from '../../../../util/theme';
 import { default as MultichainAddressRowComponent } from './MultichainAddressRow';
 import { SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS } from './MultichainAddressRow.constants';
@@ -26,7 +27,11 @@ const MultichainAddressRowMeta = {
 export default MultichainAddressRowMeta;
 
 export const MultichainAddressRow = {
-  render: (args: { chainId: string; networkName: string; address: string }) => (
+  render: (args: {
+    chainId: CaipChainId;
+    networkName: string;
+    address: string;
+  }) => (
     <View
       style={{
         alignItems: 'center',
@@ -45,7 +50,7 @@ export const MultichainAddressRow = {
 };
 
 export const WithLongNetworkName = {
-  render: (args: { chainId: string; address: string }) => (
+  render: (args: { chainId: CaipChainId; address: string }) => (
     <View
       style={{
         alignItems: 'center',
@@ -74,7 +79,7 @@ export const WithCustomNetwork = {
       }}
     >
       <MultichainAddressRowComponent
-        chainId="0x89"
+        chainId="eip155:137"
         networkName="Polygon Mainnet"
         address="0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"
       />

@@ -1,7 +1,7 @@
 import { MultichainAddressRowProps } from './MultichainAddressRow.types';
 
 export const SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS: MultichainAddressRowProps = {
-  chainId: '0x1',
+  chainId: 'eip155:1',
   networkName: 'Ethereum Mainnet',
   address: '0x1234567890123456789012345678901234567890',
 };

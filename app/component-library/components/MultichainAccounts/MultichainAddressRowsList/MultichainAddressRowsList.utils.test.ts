@@ -49,55 +49,59 @@ describe('MultichainAddressRowsList Utils', () => {
   describe('sortNetworkAddressItems', () => {
     it('sorts networks with Ethereum first', () => {
       const items: NetworkAddressItem[] = [
-        { chainId: '0x89', networkName: 'Polygon', address: '0x123' },
+        { chainId: 'eip155:0x89', networkName: 'Polygon', address: '0x123' },
         {
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: `eip155:${CHAIN_IDS.MAINNET}`,
           networkName: 'Ethereum',
           address: '0x123',
         },
-        { chainId: '0xa', networkName: 'Optimism', address: '0x123' },
+        { chainId: 'eip155:0xa', networkName: 'Optimism', address: '0x123' },
       ];
 
       const sorted = sortNetworkAddressItems(items);
-      expect(sorted[0].chainId).toBe(CHAIN_IDS.MAINNET);
+      expect(sorted[0].chainId).toBe(`eip155:${CHAIN_IDS.MAINNET}`);
     });
 
     it('sorts networks with Solana second after Ethereum', () => {
       const items: NetworkAddressItem[] = [
-        { chainId: '0x89', networkName: 'Polygon', address: '0x123' },
+        { chainId: 'eip155:0x89', networkName: 'Polygon', address: '0x123' },
         { chainId: SolScope.Mainnet, networkName: 'Solana', address: '0x123' },
         {
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: `eip155:${CHAIN_IDS.MAINNET}`,
           networkName: 'Ethereum',
           address: '0x123',
         },
       ];
 
       const sorted = sortNetworkAddressItems(items);
-      expect(sorted[0].chainId).toBe(CHAIN_IDS.MAINNET);
+      expect(sorted[0].chainId).toBe(`eip155:${CHAIN_IDS.MAINNET}`);
       expect(sorted[1].chainId).toBe(SolScope.Mainnet);
     });
 
     it('sorts test networks last', () => {
       const items: NetworkAddressItem[] = [
-        { chainId: '0xaa36a7', networkName: 'Sepolia', address: '0x123' },
-        { chainId: '0x89', networkName: 'Polygon', address: '0x123' },
         {
-          chainId: CHAIN_IDS.MAINNET,
+          chainId: 'eip155:0xaa36a7',
+          networkName: 'Sepolia',
+          address: '0x123',
+        },
+        { chainId: 'eip155:0x89', networkName: 'Polygon', address: '0x123' },
+        {
+          chainId: `eip155:${CHAIN_IDS.MAINNET}`,
           networkName: 'Ethereum',
           address: '0x123',
         },
       ];
 
       const sorted = sortNetworkAddressItems(items);
-      expect(sorted[0].chainId).toBe(CHAIN_IDS.MAINNET);
+      expect(sorted[0].chainId).toBe(`eip155:${CHAIN_IDS.MAINNET}`);
       expect(sorted[sorted.length - 1].chainId).toBe('0xaa36a7');
     });
 
     it('sorts networks alphabetically within same priority', () => {
       const items: NetworkAddressItem[] = [
-        { chainId: '0x2', networkName: 'Z Network', address: '0x123' },
-        { chainId: '0x3', networkName: 'A Network', address: '0x123' },
+        { chainId: 'eip155:0x2', networkName: 'Z Network', address: '0x123' },
+        { chainId: 'eip155:0x3', networkName: 'A Network', address: '0x123' },
       ];
 
       const sorted = sortNetworkAddressItems(items);

@@ -18,18 +18,17 @@ import {
   sortNetworkAddressItems,
   getCompatibleNetworksForAccount,
 } from './MultichainAddressRowsList.utils';
+import {
+  MULTICHAIN_ADDRESS_ROWS_LIST_TEST_ID,
+  MULTICHAIN_ADDRESS_ROWS_LIST_EMPTY_MESSAGE_TEST_ID,
+  MULTICHAIN_ADDRESS_ROWS_LIST_SEARCH_TEST_ID,
+} from './MultichainAddressRowsList.constants';
 
 export interface MultichainAddressRowsListProps {
   accounts?: InternalAccount[];
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
-
-const MULTICHAIN_ADDRESS_ROWS_LIST_TEST_ID = 'multichain-address-rows-list';
-const MULTICHAIN_ADDRESS_ROWS_LIST_SEARCH_TEST_ID =
-  'multichain-address-rows-list-search';
-const MULTICHAIN_ADDRESS_ROWS_LIST_EMPTY_MESSAGE_TEST_ID =
-  'multichain-address-rows-list-empty-message';
 
 const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
   accounts = [],

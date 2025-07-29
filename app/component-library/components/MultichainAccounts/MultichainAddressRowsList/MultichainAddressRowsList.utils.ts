@@ -6,7 +6,7 @@ import { TEST_NETWORK_IDS } from '../../../../constants/network';
 import { PopularList } from '../../../../util/networks/customNetworks';
 
 export interface NetworkAddressItem {
-  chainId: string;
+  chainId: CaipChainId;
   networkName: string;
   address: string;
 }
@@ -16,7 +16,7 @@ export interface NetworkAddressItem {
  * @param chainId - Chain ID (can be hex or CAIP format)
  * @returns Hex chain ID for EVM networks, original for non-EVM
  */
-const extractHexChainId = (chainId: string): string => {
+const extractHexChainId = (chainId: CaipChainId): string => {
   if (chainId.startsWith('eip155:')) {
     return chainId.split(':')[1];
   }
@@ -29,7 +29,7 @@ const extractHexChainId = (chainId: string): string => {
  * @param chainId - Chain ID (can be hex or CAIP format)
  * @returns Priority score
  */
-const getNetworkPriority = (chainId: string): number => {
+const getNetworkPriority = (chainId: CaipChainId): number => {
   // For EVM networks, extract hex chain ID for comparison
   const hexChainId = extractHexChainId(chainId);
 

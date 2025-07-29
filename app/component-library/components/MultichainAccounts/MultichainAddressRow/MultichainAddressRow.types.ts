@@ -1,10 +1,11 @@
 import { StyleProp, ViewStyle } from 'react-native';
+import { CaipChainId } from '@metamask/utils';
 
 export interface MultichainAddressRowProps {
   /**
    * Chain ID to identify the network
    */
-  chainId: string;
+  chainId: CaipChainId;
   /**
    * Network name to display
    */
