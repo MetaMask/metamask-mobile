@@ -3,6 +3,7 @@
  */
 
 import {
+  formatPerpsFiat,
   formatPrice,
   formatPnl,
   formatPercentage,
@@ -25,6 +26,24 @@ jest.mock('../../../../util/assets', () => ({
 }));
 
 describe('formatUtils', () => {
+  describe('formatPerpsFiat', () => {
+    it('should format balance with default 2 decimal places', () => {
+      expect(formatPerpsFiat(1234.56)).toBe('$1,234.56');
+      expect(formatPerpsFiat('5000')).toBe('$5,000.00');
+      expect(formatPerpsFiat(100)).toBe('$100.00');
+    });
+
+    it('should handle large numbers', () => {
+      expect(formatPerpsFiat(1000000)).toBe('$1,000,000.00');
+      expect(formatPerpsFiat(999999.99)).toBe('$999,999.99');
+      expect(formatPerpsFiat('123456.789')).toBe('$123,456.79');
+    });
+
+    it('should handle small decimal values', () => {
+      expect(formatPerpsFiat(0.1)).toBe('$0.10'); // Currency standard: at least 2 decimals
+    });
+  });
+
   describe('formatPrice', () => {
     it('should format prices >= 1000 with 2 decimal places', () => {
       expect(formatPrice(1234.56)).toBe('$1,234.56');

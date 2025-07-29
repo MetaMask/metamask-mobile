@@ -46,6 +46,7 @@ const Routes = {
       WEBVIEW: 'DepositWebviewModal',
       KYC_WEBVIEW: 'DepositKycWebviewModal',
       INCOMPATIBLE_ACCOUNT_TOKEN: 'IncompatibleAccountTokenModal',
+      SSN_INFO: 'SsnInfoModal',
       CONFIGURATION: 'DepositConfigurationModal',
     },
   },
