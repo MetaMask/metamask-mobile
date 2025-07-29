@@ -1269,6 +1269,17 @@ class FixtureBuilder {
     return this;
   }
 
+  withDetectedTokens(tokens: Record<string, unknown>[]) {
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allDetectedTokens: {
+        [CHAIN_IDS.MAINNET]: {
+          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
+        },
+      },
+    });
+    return this;
+  }
+
   withIncomingTransactionPreferences(incomingTransactionPreferences: boolean) {
     merge(this.fixture.state.engine.backgroundState.PreferencesController, {
       showIncomingTransactions: incomingTransactionPreferences,
