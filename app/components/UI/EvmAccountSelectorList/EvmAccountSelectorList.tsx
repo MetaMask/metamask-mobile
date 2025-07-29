@@ -103,8 +103,6 @@ const EvmAccountSelectorList = ({
 
   const accountTreeSections = useSelector(selectAccountSections);
 
-  console.log('design 1', accountTreeSections);
-
   const internalAccounts = useSelector(selectInternalAccounts);
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
