@@ -14,7 +14,7 @@ import useSendActions from '../../hooks/send/useSendActions';
 import useSendDisabled from '../../hooks/send/useSendDisabled';
 import Amount from './amount';
 import Asset from './asset';
-import To from './to';
+import { To } from './to';
 import styleSheet from './send.styles';
 
 export const Send = () => {
