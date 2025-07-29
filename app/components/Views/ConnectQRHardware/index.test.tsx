@@ -12,13 +12,15 @@ import {
   ACCOUNT_SELECTOR_NEXT_BUTTON,
   ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
-import PermissionsLib from '../../../core/Permissions';
+import { removeAccountsFromPermissions } from '../../../core/Permissions';
 
 jest.mock('../../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn(),
 }));
 
-const MockPermissionsLib = jest.mocked(PermissionsLib);
+const MockRemoveAccountsFromPermissions = jest.mocked(
+  removeAccountsFromPermissions,
+);
 
 const mockedNavigate = {
   pop: jest.fn(),
@@ -317,9 +319,7 @@ describe('ConnectQRHardware', () => {
     });
 
     expect(mockKeyringController.withKeyring).toHaveBeenCalled();
-    expect(
-      MockPermissionsLib.removeAccountsFromPermissions,
-    ).toHaveBeenCalledWith([
+    expect(MockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
       '0x4x678901234567890123456789012345678901210',
       '0xa1e359811322d97991e03f863a0c30c2cf029cd24',
     ]);
