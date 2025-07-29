@@ -183,7 +183,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const ensIgnoreListRef = useRef<string[]>([]);
     const backgroundBridgeRef = useRef<{
       url: string;
-      hostname: string;
       sendNotificationEip1193: (payload: unknown) => void;
       onDisconnect: () => void;
       onMessage: (message: Record<string, unknown>) => void;
