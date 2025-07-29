@@ -4,6 +4,7 @@ import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
 } from '../../../selectors/wallet/ImportTokenView.selectors';
+import { CellComponentSelectorsIDs } from '../../../selectors/wallet/CellComponent.selectors';
 
 class ImportTokensView {
   get searchTokenResult(): DetoxElement {
@@ -42,6 +43,10 @@ class ImportTokensView {
 
   get searchTokenBar(): DetoxElement {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+  }
+
+  get networkList(): DetoxElement {
+    return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, 0);
   }
 
   async tapSymbolInput(): Promise<void> {
@@ -118,6 +123,13 @@ class ImportTokensView {
         });
       }
     }
+  }
+  async swipeNetworkList(): Promise<void> {
+    await Gestures.swipe(this.networkList, 'up', {
+      elemDescription: 'Scroll network list',
+      speed: 'fast',
+      percentage: 0.7,
+    });
   }
 
   async tapNetworkOption(networkName: string): Promise<void> {
