@@ -2591,7 +2591,7 @@ workflows:
   build_android_qa:
       after_run:
         - build_android_qa_prod
-        - _upload_apk_to_browserstack
+        - _upload_apk_to_browserstack_qa
   build_android_qa_flask:
     before_run:
       - code_setup
@@ -2682,7 +2682,7 @@ workflows:
           inputs:
             - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/browserstack_uploaded_flask_apps.json:BROWSERSTACK_UPLOADED_FLASK_APPS_LIST
           title: Save Browserstack uploaded Flask apps JSON
-  _upload_apk_to_browserstack:
+  _upload_apk_to_browserstack_qa:
     steps:
       - script@1:
           title: Upload APK to Browserstack
@@ -3156,8 +3156,8 @@ workflows:
   build_ios_qa:
     after_run:
       - build_ios_qa_prod
-      - _upload_ipa_to_browserstack
-  _upload_ipa_to_browserstack:
+      - _upload_ipa_to_browserstack_qa
+  _upload_ipa_to_browserstack_qa:
     steps:
       - script@1:
           title: Upload IPA to Browserstack
