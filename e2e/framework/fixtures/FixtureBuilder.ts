@@ -863,49 +863,12 @@ class FixtureBuilder {
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
+        getSecondTestDappLocalUrl(),
       );
     }
-<<<<<<< HEAD
-    let allPermissions = {};
-    for (let i = 0; i < additionalPermissions.length; i++) {
-      // This needs to be escalated as permissions are given based on the origin and it's impossible to have distinct
-      // permissions for the same origin.
-      if (i === 0) {
-        additionalPermissions[i].origin = TEST_DAPP_LOCAL_URL;
-      } else {
-        additionalPermissions[i].origin = getSecondTestDappLocalUrl();
-      }
-      const testDappPermissions = this.createPermissionControllerConfig(
-        additionalPermissions[i],
-        additionalPermissions[i].origin as string,
-      );
-      allPermissions = merge(allPermissions, testDappPermissions);
-    }
-    this.withPermissionController(allPermissions);
-||||||| 201ad63e35
-    let allPermissions = {};
-    for (let i = 0; i < additionalPermissions.length; i++) {
-      // This needs to be escalated as permissions are given based on the origin and it's impossible to have distinct
-      // permissions for the same origin.
-      if (i === 0) {
-        additionalPermissions[i].origin = DAPP_URL;
-      } else {
-        additionalPermissions[i].origin =
-          device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
-      }
-      const testDappPermissions = this.createPermissionControllerConfig(
-        additionalPermissions[i],
-        additionalPermissions[i].origin as string,
-      );
-      allPermissions = merge(allPermissions, testDappPermissions);
-    }
-    this.withPermissionController(allPermissions);
-=======
     this.withPermissionController(
       merge(testDappPermissions, secondDappPermissions),
     );
->>>>>>> main
 
     // Ensure Solana feature modal is suppressed
     return this.ensureSolanaModalSuppressed();
