@@ -4,9 +4,9 @@ import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText,
 } from '../../selectors/wallet/TokenOverview.selectors';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors.js';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors.js';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 class TokenOverview {
   get container() {

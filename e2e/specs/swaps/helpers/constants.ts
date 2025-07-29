@@ -1,12 +1,5 @@
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 
-export const localNodeOptions = {
-  hardfork: 'london',
-  mnemonic:
-    'drive manage close raven tape average sausage pledge riot furnace august tip',
-  chainId: 1,
-};
-
 const GET_QUOTE_ETH_USDC_URL =
   'https://bridge.dev-api.cx.metamask.io/getQuote?walletAddress=0xcdD74C6eb517f687Aa2C786bC7484eB2F9bAe1da&destWalletAddress=0xcdD74C6eb517f687Aa2C786bC7484eB2F9bAe1da&srcChainId=1&destChainId=1&srcTokenAddress=0x0000000000000000000000000000000000000000&destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&srcTokenAmount=1000000000000000000&insufficientBal=false&resetApproval=false&slippage=0.5';
 

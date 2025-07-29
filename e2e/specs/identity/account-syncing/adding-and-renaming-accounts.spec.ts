@@ -5,7 +5,7 @@ import {
 import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../framework/Assertions.ts';
+import Assertions from '../../../framework/Assertions';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
@@ -14,8 +14,8 @@ import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
-import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet.js';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';
 import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
 import { createUserStorageController } from '../utils/mocks.ts';

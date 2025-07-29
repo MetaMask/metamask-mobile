@@ -218,6 +218,10 @@ class Browser {
     await device.enableSynchronization(); // re-enabling synchronization
   }
 
+  /**
+   * @deprecated - please migrate to the new  Framework
+   * @returns {Promise<void>}
+   */
   async waitForBrowserPageToLoad(): Promise<void> {
     await TestHelpers.delay(5000);
   }

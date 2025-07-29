@@ -2,9 +2,7 @@
 import { SmokeWalletPlatform } from '../../tags';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import Assertions from '../../framework/Assertions';
 import {
   EventPayload,
   findEvent,
@@ -21,7 +19,9 @@ import {
   IDENTITY_TEAM_SEED_PHRASE,
 } from '../identity/utils/constants';
 import SoftAssert from '../../utils/SoftAssert';
-import { MockttpServer } from 'mockttp';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { TestSpecificMock } from '../../framework';
 
 const balanceMock = getBalanceMocks([
   {
@@ -32,7 +32,7 @@ const balanceMock = getBalanceMocks([
 
 const testSpecificMock = {
   POST: [...balanceMock, mockEvents.POST.segmentTrack],
-};
+} as TestSpecificMock;
 
 describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
   beforeAll(async () => {
@@ -46,7 +46,13 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
         testSpecificMock,
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
+      async ({ mockServer }) => {
+        if (!mockServer) {
+          throw new Error(
+            'Mock server is not defined, check testSpecificMock setup',
+          );
+        }
+
         await importWalletWithRecoveryPhrase({
           seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
           password: IDENTITY_TEAM_PASSWORD,
@@ -209,7 +215,13 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
         testSpecificMock,
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
+      async ({ mockServer }) => {
+        if (!mockServer) {
+          throw new Error(
+            'Mock server is not defined, check testSpecificMock setup',
+          );
+        }
+
         await importWalletWithRecoveryPhrase({
           seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
           password: IDENTITY_TEAM_PASSWORD,

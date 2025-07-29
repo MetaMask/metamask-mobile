@@ -1,20 +1,15 @@
 import { SmokeAccounts } from '../../tags.js';
-import WalletView from '../../pages/wallet/WalletView.js';
-import { loginToApp } from '../../viewHelper.js';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import Assertions from '../../framework/Assertions.ts';
-import TestHelpers from '../../helpers.js';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
-import { withFixtures } from '../../fixtures/fixture-helper.js';
-import FixtureBuilder from '../../fixtures/fixture-builder.js';
-import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent.ts';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js';
+import WalletView from '../../pages/wallet/WalletView';
+import { loginToApp } from '../../viewHelper';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import Assertions from '../../framework/Assertions';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
 describe(SmokeAccounts('Create wallet accounts'), () => {
-  beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-  });
-
   it('should be able to add new accounts - EVM and Solana', async () => {
     await withFixtures(
       {
