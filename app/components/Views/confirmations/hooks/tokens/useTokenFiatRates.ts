@@ -19,11 +19,8 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
   const result = useMemo(
     () =>
       requests.map(({ address, chainId }) => {
-        const tokenMarketData = Object.values(
-          tokenMarketDataByAddressByChainId[chainId] ?? {},
-        ).find(
-          (tmd) => tmd.tokenAddress.toLowerCase() === address.toLowerCase(),
-        );
+        const tokenMarketData =
+          tokenMarketDataByAddressByChainId[chainId]?.[address];
 
         const networkConfiguration = networkConfigurations[chainId];
 

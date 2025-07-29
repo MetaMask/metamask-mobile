@@ -40,10 +40,7 @@ export function useTransactionRequiredFiat() {
   const tokenDecimals = useMemo(
     () =>
       requiredTokens.map(
-        (token) =>
-          Object.values(tokens).find(
-            (t) => t.address.toLowerCase() === token.address.toLowerCase(),
-          )?.decimals ?? 18,
+        (token) => tokens[token.address.toLowerCase()]?.decimals ?? 18,
       ),
     [requiredTokens, tokens],
   );
@@ -60,7 +57,7 @@ export function useTransactionRequiredFiat() {
 
         return calculateFiat(target.amount, targetDecimals, targetFiatRate);
       }),
-    [requiredTokens, JSON.stringify(tokenDecimals), tokenFiatRates],
+    [requiredTokens, tokenDecimals, tokenFiatRates],
   );
 
   const fiatTotal = fiatValues.reduce<number>(
