@@ -124,7 +124,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                   }
                 }
               >
-                UnsupportedStateModal
+                DepositUnsupportedStateModal
               </Text>
             </View>
           </View>
@@ -556,7 +556,6 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
-                                    "marginLeft": 8,
                                   }
                                 }
                               >

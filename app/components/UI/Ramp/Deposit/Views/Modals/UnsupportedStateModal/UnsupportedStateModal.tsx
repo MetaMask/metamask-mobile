@@ -103,11 +103,7 @@ function UnsupportedStateModal() {
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {selectedRegion?.flag}
           </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
-            style={styles.stateName}
-          >
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {stateName || selectedRegion?.name}
           </Text>
         </View>

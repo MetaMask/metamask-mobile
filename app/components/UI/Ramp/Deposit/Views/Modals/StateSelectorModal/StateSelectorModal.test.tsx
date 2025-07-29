@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import StateSelectorModal from './StateSelectorModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import { createUnsupportedStateModalNavigationDetails } from '../UnsupportedStateModal/UnsupportedStateModal';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -148,14 +149,13 @@ describe('StateSelectorModal Component', () => {
       fireEvent.press(newYorkState);
 
       expect(mockUseParamsValues.onStateSelect).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-        params: {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createUnsupportedStateModalNavigationDetails({
           stateCode: 'NY',
           stateName: 'New York',
           onStateSelect: mockUseParamsValues.onStateSelect,
-        },
-        screen: 'DepositUnsupportedStateModal',
-      });
+        }),
+      );
     });
 
     it('filters states when searching by name', () => {

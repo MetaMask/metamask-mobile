@@ -16,9 +16,6 @@ const styleSheet = () =>
       marginBottom: 16,
       gap: 8,
     },
-    stateName: {
-      marginLeft: 8,
-    },
     footer: {
       padding: 24,
       paddingTop: 0,

@@ -4,6 +4,9 @@ import { fireEvent } from '@testing-library/react-native';
 import UnsupportedStateModal from './UnsupportedStateModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils.ts';
+import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal/StateSelectorModal.tsx';
+import Routes from '../../../../../../../constants/navigation/Routes';
 
 const mockUseDepositSDK = jest.fn();
 const mockNavigate = jest.fn();
@@ -54,7 +57,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: 'UnsupportedStateModal',
+      name: Routes.DEPOSIT.MODALS.UNSUPPORTED_STATE,
     },
     {
       state: {
@@ -96,7 +99,7 @@ describe('UnsupportedStateModal', () => {
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('RampBuy');
+    expect(mockNavigate).toHaveBeenCalledWith(...createBuyNavigationDetails());
   });
 
   it('handles select different state button press correctly', () => {
@@ -108,12 +111,12 @@ describe('UnsupportedStateModal', () => {
 
     const changeStateButton = getByText('Change region');
     fireEvent.press(changeStateButton);
-    expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-      screen: 'DepositStateSelectorModal',
-      params: {
-        onStateSelect: expect.any(Function),
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createStateSelectorModalNavigationDetails({
         selectedState: 'NY',
-      },
-    });
+        onStateSelect: mockOnStateSelect,
+      }),
+    );
   });
 });
