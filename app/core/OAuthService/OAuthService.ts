@@ -144,7 +144,7 @@ export class OAuthService {
         OAuthErrorType.LoginInProgress,
       );
     }
-    this.#dispatchLogin();
+    await this.#dispatchLogin();
 
     try {
       let result, data, handleCodeFlowResult;
