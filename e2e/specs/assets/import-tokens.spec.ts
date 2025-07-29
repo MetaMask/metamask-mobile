@@ -78,12 +78,16 @@ describe(Regression('Import Tokens'), () => {
     await ImportTokensView.tapOnNextButton();
 
     await TestHelpers.delay(500);
-    await Assertions.checkIfVisible(ConfirmAddAssetView.container);
+    await Assertions.expectElementToBeVisible(ConfirmAddAssetView.container);
 
     await ConfirmAddAssetView.tapOnConfirmButton();
 
-    await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfVisible(WalletView.tokenInWallet('0 LINK'));
-    await Assertions.checkIfVisible(WalletView.tokenInWallet('0 CNG'));
+    await Assertions.expectElementToBeVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(
+      WalletView.tokenInWallet('0 LINK'),
+    );
+    await Assertions.expectElementToBeVisible(
+      WalletView.tokenInWallet('0 CNG'),
+    );
   });
 });
