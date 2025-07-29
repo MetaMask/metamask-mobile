@@ -29,6 +29,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../../../component-library/components/Toast';
+import Logger from '../../../../../../../util/Logger';
 
 export const createConfigurationModalNavigationDetails =
   createNavigationDetails(
@@ -72,7 +73,7 @@ function ConfigurationModal() {
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
 
-  const { clearAuthToken, isAuthenticated } = useDepositSDK();
+  const { logoutFromProvider, isAuthenticated } = useDepositSDK();
 
   const navigateToOrderHistory = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -89,19 +90,33 @@ function ConfigurationModal() {
     Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
-  const handleLogOut = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-    clearAuthToken();
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        { label: strings('deposit.configuration_modal.logged_out_success') },
-      ],
-      iconName: IconName.CheckBold,
-      iconColor: IconColor.Success,
-      hasNoTimeout: false,
-    });
-  }, [clearAuthToken, toastRef]);
+  const handleLogOut = useCallback(async () => {
+    try {
+      await logoutFromProvider();
+
+      sheetRef.current?.onCloseBottomSheet();
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('deposit.configuration_modal.logged_out_success') },
+        ],
+        iconName: IconName.CheckBold,
+        iconColor: IconColor.Success,
+        hasNoTimeout: false,
+      });
+    } catch (error) {
+      Logger.error(error as Error, 'Error logging out from provider:');
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('deposit.configuration_modal.logged_out_error') },
+        ],
+        iconName: IconName.CircleX,
+        iconColor: IconColor.Error,
+        hasNoTimeout: false,
+      });
+    }
+  }, [logoutFromProvider, toastRef]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
