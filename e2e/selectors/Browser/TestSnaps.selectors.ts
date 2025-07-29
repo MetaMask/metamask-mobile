@@ -8,6 +8,7 @@ export const TestSnapViewSelectorWebIDS = {
   connectBip44Button: 'connectbip44',
   connectClientStatusSnapButton: 'connectclient-status',
   connectGetEntropyButton: 'connectGetEntropySnap',
+  connectJsonRpcButton: 'connectjson-rpc',
   connectManageStateButton: 'connectmanage-state',
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
@@ -25,6 +26,7 @@ export const TestSnapViewSelectorWebIDS = {
   sendGetUnencryptedStateButton: 'sendGetUnencryptedState',
   sendManageStateButton: 'sendManageState',
   sendNetworkAccessTestButton: 'sendNetworkAccessTest',
+  sendRpcButton: 'sendRpc',
   sendStateButton: 'sendState',
   sendUnencryptedManageStateButton: 'sendUnencryptedManageState',
   sendUnencryptedStateButton: 'sendUnencryptedState',
@@ -83,6 +85,7 @@ export const TestSnapResultSelectorWebIDS = {
   retrieveManageStateResultSpan: 'retrieveManageStateResult',
   retrieveManageStateUnencryptedResultSpan:
     'retrieveManageStateUnencryptedResult',
+  rpcResultSpan: 'rpcResult',
   sendManageStateResultSpan: 'sendManageStateResult',
   sendUnencryptedManageStateResultSpan: 'sendUnencryptedManageStateResult',
   signTypedDataResultSpan: 'signTypedDataResult',
