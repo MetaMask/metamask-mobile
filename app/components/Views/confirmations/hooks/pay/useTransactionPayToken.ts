@@ -4,7 +4,7 @@ import {
   selectTransactionPayToken,
   setTransactionPayToken,
 } from '../../../../../core/redux/slices/confirmationMetrics';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 import { useCallback } from 'react';
 import { RootState } from '../../../../../reducers';

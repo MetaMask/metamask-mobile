@@ -38,6 +38,16 @@ describe(Regression('Transaction'), () => {
         await loginToApp();
         await WalletView.tapTokenNetworkFilter();
         await WalletView.tapTokenNetworkFilterAll();
+        // Wait for network filter to apply and layout to stabilize
+        await TestHelpers.delay(2000);
+
+        // Scroll to top first to ensure consistent starting position
+        await WalletView.scrollToBottomOfTokensList();
+        await TestHelpers.delay(1000);
+
+        // Then scroll to Ethereum with extra stability
+        await WalletView.scrollToToken(ETHEREUM_NAME);
+        await TestHelpers.delay(1500); // Extra time for scroll to complete
 
         await WalletView.tapOnToken(ETHEREUM_NAME);
         await TokenOverview.tapSendButton();
