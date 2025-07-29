@@ -27,14 +27,6 @@ const mockSelectedRegion = {
 
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
-  DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
-
-jest.mock('../StateSelectorModal', () => ({
-  createStateSelectorModalNavigationDetails: jest.fn(() => [
-    'StateSelectorModal',
-    {},
-  ]),
 }));
 
 jest.mock('@react-navigation/native', () => {
