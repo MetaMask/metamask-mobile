@@ -290,10 +290,10 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   });
   await OnboardingSuccessView.tapDone();
 
+  await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
 
-  await closeOnboardingModals(false);
 };
 
 /**
