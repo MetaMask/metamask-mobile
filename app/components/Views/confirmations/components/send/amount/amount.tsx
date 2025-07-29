@@ -42,7 +42,7 @@ const Amount = () => {
   const alternateDisplayValue = useMemo(
     () =>
       fiatMode ? getNativeDisplayValue(amount) : getFiatDisplayValue(amount),
-    [amount, fiatMode],
+    [amount, fiatMode, getFiatDisplayValue, getNativeDisplayValue],
   );
 
   const updateToMaxAmount = useCallback(() => {
@@ -56,7 +56,7 @@ const Amount = () => {
       updateAmount(amount);
       updateValue(fiatMode ? getNativeValue(amount).toString() : amount);
     },
-    [getMaxAmount, updateValue],
+    [fiatMode, getMaxAmount, getNativeValue, updateAmount, updateValue],
   );
 
   const toggleFiatMode = useCallback(() => {

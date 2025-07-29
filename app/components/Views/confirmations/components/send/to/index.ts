@@ -1,1 +1,1 @@
-export { default } from './to';
+export { To } from './to';
