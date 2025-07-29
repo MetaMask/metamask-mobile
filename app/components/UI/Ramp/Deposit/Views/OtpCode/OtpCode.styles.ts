@@ -1,19 +1,11 @@
 import { Theme } from '../../../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
-import Device from '../../../../../../util/device';
+import { getOtpCellSize } from '../../../utils/getOtpCellSize';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
-  const screenWidth = Device.getDeviceWidth();
-  const containerPadding = 15;
-  const gap = 5;
-  const cellCount = 6;
-  const availableWidth = screenWidth - 2 * containerPadding;
-  const boxSize = Math.floor(
-    (availableWidth - (cellCount - 1) * gap) / cellCount,
-  );
-  const finalBoxSize = Math.max(40, Math.min(50, boxSize));
+  const finalBoxSize = getOtpCellSize();
 
   return StyleSheet.create({
     title: {
