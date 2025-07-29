@@ -196,9 +196,10 @@ export function* startAppServices() {
   yield call(applyVaultInitialization);
 
   try {
-    // Initialize WalletConnect
-    yield call(WC2Manager.init, {});
-    yield call(SDKConnect.init, { context: 'Nav/App' });
+    yield all([
+      call(WC2Manager.init, {}),
+      call(SDKConnect.init, { context: 'Nav/App' }),
+    ]);
   } catch (e) {
     Logger.log('Failed to initialize services', e);
   }
