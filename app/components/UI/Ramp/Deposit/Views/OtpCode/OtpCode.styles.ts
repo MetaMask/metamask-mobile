@@ -7,10 +7,11 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     title: {
       marginTop: 24,
+      fontWeight: 'bold',
     },
     description: {
       marginTop: 8,
-      color: theme.colors.text.muted,
+      color: theme.colors.text.alternative,
     },
     codeFieldRoot: {
       marginTop: 8,
@@ -41,11 +42,11 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 12,
     },
     resendButtonText: {
-      color: theme.colors.text.muted,
+      color: theme.colors.text.alternative,
       marginRight: 4,
     },
     inlineLink: {
-      color: theme.colors.text.muted,
+      color: theme.colors.text.alternative,
       marginLeft: 4,
       textDecorationLine: 'underline',
     },

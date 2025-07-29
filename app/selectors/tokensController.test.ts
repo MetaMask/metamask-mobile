@@ -328,10 +328,10 @@ describe('TokensController Selectors', () => {
       });
     });
 
-    it('returns undefined if no tokens exist for chain ID', () => {
+    it('returns empty object if no tokens exist for chain ID', () => {
       expect(
         selectTokensByChainIdAndAddress(mockRootState, '0x2'),
-      ).toBeUndefined();
+      ).toStrictEqual({});
     });
   });
 
