@@ -11,16 +11,16 @@ import {
   Caip25CaveatType,
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,
+  getEthAccounts,
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
-import { RampsRegions, RampsRegionsEnum } from '../Constants';
+import { DEFAULT_TAB_ID, RampsRegions, RampsRegionsEnum } from '../Constants';
 import {
   CustomNetworks,
   PopularNetworksList,
 } from '../../resources/networks.e2e';
 import { BackupAndSyncSettings } from '../types';
-import { logger } from '../logger';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -30,6 +30,9 @@ export const DEFAULT_FIXTURE_ACCOUNT_2 =
 
 export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
   '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b';
+
+export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
+  'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -458,7 +461,14 @@ class FixtureBuilder {
             },
             MultichainNetworkController: {
               selectedMultichainNetworkChainId: SolScope.Mainnet,
-              multichainNetworkConfigurationsByChainId: {},
+              multichainNetworkConfigurationsByChainId: {
+                [SolScope.Mainnet]: {
+                  chainId: SolScope.Mainnet,
+                  name: 'Solana Mainnet',
+                  nativeCurrency: `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+                  isEvm: false,
+                },
+              },
               isEvmSelected: true,
               networksWithTransactionActivity: {},
             },
@@ -473,6 +483,7 @@ class FixtureBuilder {
               jobs: {},
               events: {},
             },
+            SnapController: {},
           },
         },
         privacy: {
@@ -795,6 +806,22 @@ class FixtureBuilder {
         isMultichainOrigin: false,
       } as Caip25CaveatValue);
 
+    const incomingEthAccounts = getEthAccounts(caip25CaveatValue);
+    const permittedEthAccounts =
+      incomingEthAccounts.length > 0
+        ? incomingEthAccounts
+        : [DEFAULT_FIXTURE_ACCOUNT];
+
+    // Cast addresses to the required 0x${string} format
+    const typedAddresses = permittedEthAccounts.map(
+      (addr) => addr as `0x${string}`,
+    );
+
+    const basePermissionCaveatValue = setEthAccounts(
+      caip25CaveatValue,
+      typedAddresses,
+    );
+
     const basePermissions = {
       [Caip25EndowmentPermissionName]: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
@@ -803,7 +830,7 @@ class FixtureBuilder {
         caveats: [
           {
             type: Caip25CaveatType,
-            value: setEthAccounts(caip25CaveatValue, [DEFAULT_FIXTURE_ACCOUNT]),
+            value: basePermissionCaveatValue,
           },
         ],
         date: 1664388714636,
@@ -820,29 +847,26 @@ class FixtureBuilder {
     };
   }
 
-  withPermissionControllerConnectedToTestDapp() {
-    return this.withPermissionControllerConnectedToMultipleTestDapps();
-  }
-
   /**
    * Connects the PermissionController to a test dapp with specific accounts permissions and origins.
-   * For the time being, you're only able to connect 2 dapps because one will have the origin as
-   * localhost and the other dapp will have the specific device equivalent localhost.
-   * We could hardcoded the state but then Wallet behavior would be incorrectly checked.
-   * @param {Object[]} additionalPermissions - Additional permissions to merge for each test dapp instance. They should be passed in the correct order
+   * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToMultipleTestDapps(
-    additionalPermissions: Record<string, unknown>[] = [{}],
+  withPermissionControllerConnectedToTestDapp(
+    additionalPermissions = {},
+    connectSecondDapp = false,
   ) {
-    if (additionalPermissions.length > 2) {
-      logger.error(
-        'You can only connect 2 dapps at a time since permissions are given based on the origin.',
-      );
-      throw new Error(
-        'You can only connect 2 dapps at a time since permissions are given based on the origin.',
+    const testDappPermissions = this.createPermissionControllerConfig(
+      additionalPermissions,
+    );
+    let secondDappPermissions = {};
+    if (connectSecondDapp) {
+      secondDappPermissions = this.createPermissionControllerConfig(
+        additionalPermissions,
+        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
       );
     }
+<<<<<<< HEAD
     let allPermissions = {};
     for (let i = 0; i < additionalPermissions.length; i++) {
       // This needs to be escalated as permissions are given based on the origin and it's impossible to have distinct
@@ -859,6 +883,29 @@ class FixtureBuilder {
       allPermissions = merge(allPermissions, testDappPermissions);
     }
     this.withPermissionController(allPermissions);
+||||||| 201ad63e35
+    let allPermissions = {};
+    for (let i = 0; i < additionalPermissions.length; i++) {
+      // This needs to be escalated as permissions are given based on the origin and it's impossible to have distinct
+      // permissions for the same origin.
+      if (i === 0) {
+        additionalPermissions[i].origin = DAPP_URL;
+      } else {
+        additionalPermissions[i].origin =
+          device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
+      }
+      const testDappPermissions = this.createPermissionControllerConfig(
+        additionalPermissions[i],
+        additionalPermissions[i].origin as string,
+      );
+      allPermissions = merge(allPermissions, testDappPermissions);
+    }
+    this.withPermissionController(allPermissions);
+=======
+    this.withPermissionController(
+      merge(testDappPermissions, secondDappPermissions),
+    );
+>>>>>>> main
 
     // Ensure Solana feature modal is suppressed
     return this.ensureSolanaModalSuppressed();
@@ -933,6 +980,43 @@ class FixtureBuilder {
 
     this.withPermissionController(
       this.createPermissionControllerConfig(chainPermission),
+    );
+    return this;
+  }
+
+  /**
+   * Adds Solana account permissions for default fixture account.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withSolanaAccountPermission() {
+    const caveatValue = {
+      optionalScopes: {
+        [SolScope.Mainnet]: {
+          accounts: [`${SolScope.Mainnet}:${DEFAULT_SOLANA_FIXTURE_ACCOUNT}`],
+        },
+      },
+      requiredScopes: {},
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    };
+
+    const permissionConfig = {
+      [Caip25EndowmentPermissionName]: {
+        id: 'Lde5rzDG2bUF6HbXl4xxT',
+        parentCapability: Caip25EndowmentPermissionName,
+        invoker: 'localhost',
+        caveats: [
+          {
+            type: Caip25CaveatType,
+            value: caveatValue,
+          },
+        ],
+        date: 1732715918637,
+      },
+    };
+
+    this.withPermissionController(
+      this.createPermissionControllerConfig(permissionConfig),
     );
     return this;
   }
@@ -1214,9 +1298,20 @@ class FixtureBuilder {
     return this;
   }
 
-  withTokens(tokens: Record<string, unknown>) {
+  withTokens(tokens: Record<string, unknown>[]) {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens: {
+        [CHAIN_IDS.MAINNET]: {
+          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
+        },
+      },
+    });
+    return this;
+  }
+
+  withDetectedTokens(tokens: Record<string, unknown>[]) {
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allDetectedTokens: {
         [CHAIN_IDS.MAINNET]: {
           [DEFAULT_FIXTURE_ACCOUNT]: tokens,
         },
@@ -1281,17 +1376,18 @@ class FixtureBuilder {
    * This is intended to be used for testing multiple dapps concurrently.
    * The dapps are opened in the order they are added.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
-   * @param {number} amountOfDapps - The number of test dapps to open.
+   * @param {number} extraTabs - The amount of extra tabs to open.
    */
-  withMultipleDappTabs(amountOfDapps = 2) {
+  withExtraTabs(extraTabs = 1) {
     if (!this.fixture.state.browser.tabs) {
       this.fixture.state.browser.tabs = [];
     }
 
-    for (let i = 0; i < amountOfDapps; i++) {
+    // We start at 1 to easily identify the tab across all tests
+    for (let i = 1; i <= extraTabs; i++) {
       this.fixture.state.browser.tabs.push({
         url: getTestDappLocalUrl(i),
-        id: 1749234797566 + i,
+        id: DEFAULT_TAB_ID + i,
         isArchived: false,
       });
     }

@@ -29,6 +29,8 @@ export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 // UI utility hooks
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsPositions } from './usePerpsPositions';
+export { useBalanceComparison } from './useBalanceComparison';
+export { useColorPulseAnimation } from './useColorPulseAnimation';
 // - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)
