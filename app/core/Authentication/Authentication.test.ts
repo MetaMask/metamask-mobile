@@ -33,7 +33,7 @@ import {
 } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { logOut } from '../../actions/user';
 import { RootState } from '../../reducers';
 import {
@@ -93,11 +93,9 @@ const mockSnapClient = {
 };
 
 jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
+  ...jest.requireActual('../SnapKeyring/MultichainWalletSnapClient'),
   MultichainWalletSnapFactory: {
     createClient: () => mockSnapClient,
-  },
-  WalletClientType: {
-    Solana: 'solana',
   },
 }));
 
@@ -525,7 +523,7 @@ describe('Authentication', () => {
       );
     });
 
-    describe('Solana account discovery failure handling', () => {
+    describe('Account discovery failure handling', () => {
       beforeEach(() => {
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
           dispatch: jest.fn(),
@@ -542,9 +540,9 @@ describe('Authentication', () => {
         jest.restoreAllMocks();
       });
 
-      it('completes wallet creation when Solana discovery fails', async () => {
+      it('completes wallet creation when discovery fails', async () => {
         mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(
-          new Error('Solana RPC error'),
+          new Error('RPC error'),
         );
 
         await expect(
@@ -553,17 +551,17 @@ describe('Authentication', () => {
           }),
         ).resolves.not.toThrow();
 
-        // Verify Solana discovery was attempted
+        // Verify discovery was attempted
         expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
       });
 
-      it('completes wallet restore when Solana discovery fails', async () => {
-        // Mock Solana discovery to fail
+      it('completes wallet restore when discovery fails', async () => {
+        // Mock discovery to fail
         mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(
           new Error('Network timeout'),
         );
 
-        // Wallet restore should succeed despite Solana failure
+        // Wallet restore should succeed despite failure
         await expect(
           Authentication.newWalletAndRestore(
             '1234',
@@ -573,11 +571,11 @@ describe('Authentication', () => {
           ),
         ).resolves.not.toThrow();
 
-        // Verify Solana discovery was attempted
+        // Verify discovery was attempted
         expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
       });
 
-      it('does not break authentication flow when Solana discovery fails', async () => {
+      it('does not break authentication flow when discovery fails', async () => {
         // Set up pending discovery that will be checked on unlock
         await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
 
@@ -595,11 +593,11 @@ describe('Authentication', () => {
         jest
           .spyOn(
             Authentication as unknown as {
-              attemptSolanaAccountDiscovery: () => Promise<void>;
+              attemptAccountDiscovery: () => Promise<void>;
             },
-            'attemptSolanaAccountDiscovery',
+            'attemptAccountDiscovery',
           )
-          .mockRejectedValue(new Error('Solana RPC error'));
+          .mockRejectedValue(new Error('RPC error'));
 
         await Authentication.newWalletAndKeychain('1234', {
           currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
@@ -617,11 +615,11 @@ describe('Authentication', () => {
         jest
           .spyOn(
             Authentication as unknown as {
-              attemptSolanaAccountDiscovery: () => Promise<void>;
+              attemptAccountDiscovery: () => Promise<void>;
             },
-            'attemptSolanaAccountDiscovery',
+            'attemptAccountDiscovery',
           )
-          .mockRejectedValue(new Error('Solana RPC error'));
+          .mockRejectedValue(new Error('RPC error'));
 
         await Authentication.newWalletAndRestore(
           '1234',
@@ -634,26 +632,26 @@ describe('Authentication', () => {
         expect(setItemSpy).toHaveBeenCalledWith(SOLANA_DISCOVERY_PENDING, TRUE);
       });
 
-      describe('retrySolanaDiscoveryIfPending behavior', () => {
-        let mockAttemptSolanaAccountDiscovery: jest.SpyInstance;
+      describe('retryDiscoveryIfPending behavior', () => {
+        let mockAttemptAccountDiscovery: jest.SpyInstance;
 
         beforeEach(() => {
           // Spy on the private method
-          mockAttemptSolanaAccountDiscovery = jest
+          mockAttemptAccountDiscovery = jest
             .spyOn(
               Authentication as unknown as {
-                attemptSolanaAccountDiscovery: () => Promise<void>;
+                attemptAccountDiscovery: () => Promise<void>;
               },
-              'attemptSolanaAccountDiscovery',
+              'attemptAccountDiscovery',
             )
             .mockResolvedValue(undefined);
         });
 
         afterEach(() => {
-          mockAttemptSolanaAccountDiscovery.mockRestore();
+          mockAttemptAccountDiscovery.mockRestore();
         });
 
-        it('calls attemptSolanaAccountDiscovery when flag is set to true', async () => {
+        it('calls attemptAccountDiscovery when flag is set to true', async () => {
           await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
 
           const mockCredentials = { username: 'test', password: 'test' };
@@ -663,10 +661,10 @@ describe('Authentication', () => {
 
           await Authentication.appTriggeredAuth();
 
-          expect(mockAttemptSolanaAccountDiscovery).toHaveBeenCalled();
+          expect(mockAttemptAccountDiscovery).toHaveBeenCalled();
         });
 
-        it('does not call attemptSolanaAccountDiscovery when flag is not set', async () => {
+        it('does not call attemptAccountDiscovery when flag is not set', async () => {
           await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
 
           const mockCredentials = { username: 'test', password: 'test' };
@@ -676,10 +674,10 @@ describe('Authentication', () => {
 
           await Authentication.appTriggeredAuth();
 
-          expect(mockAttemptSolanaAccountDiscovery).not.toHaveBeenCalled();
+          expect(mockAttemptAccountDiscovery).not.toHaveBeenCalled();
         });
 
-        it('does not call attemptSolanaAccountDiscovery when flag is false', async () => {
+        it('does not call attemptAccountDiscovery when flag is false', async () => {
           await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'false');
 
           const mockCredentials = { username: 'test', password: 'test' };
@@ -689,7 +687,7 @@ describe('Authentication', () => {
 
           await Authentication.appTriggeredAuth();
 
-          expect(mockAttemptSolanaAccountDiscovery).not.toHaveBeenCalled();
+          expect(mockAttemptAccountDiscovery).not.toHaveBeenCalled();
         });
 
         it('retries on userEntryAuth when flag is set', async () => {
@@ -699,7 +697,7 @@ describe('Authentication', () => {
             currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
           });
 
-          expect(mockAttemptSolanaAccountDiscovery).toHaveBeenCalled();
+          expect(mockAttemptAccountDiscovery).toHaveBeenCalled();
         });
 
         it('handles storage errors gracefully without breaking authentication', async () => {
@@ -718,12 +716,13 @@ describe('Authentication', () => {
           ).resolves.not.toThrow();
 
           expect(console.warn).toHaveBeenCalledWith(
-            'Failed to check/retry Solana discovery:',
+            'Failed to check/retry discovery:',
+            'solana',
             expect.any(Error),
           );
 
           // Should not attempt discovery due to storage error
-          expect(mockAttemptSolanaAccountDiscovery).not.toHaveBeenCalled();
+          expect(mockAttemptAccountDiscovery).not.toHaveBeenCalled();
 
           // Restore original method
           StorageWrapper.getItem = originalGetItem;
@@ -731,7 +730,7 @@ describe('Authentication', () => {
 
         it('handles discovery attempt errors gracefully', async () => {
           await StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
-          mockAttemptSolanaAccountDiscovery.mockRejectedValueOnce(
+          mockAttemptAccountDiscovery.mockRejectedValueOnce(
             new Error('Discovery failed'),
           );
 
@@ -745,9 +744,10 @@ describe('Authentication', () => {
             Authentication.appTriggeredAuth(),
           ).resolves.not.toThrow();
 
-          expect(mockAttemptSolanaAccountDiscovery).toHaveBeenCalled();
+          expect(mockAttemptAccountDiscovery).toHaveBeenCalled();
           expect(console.warn).toHaveBeenCalledWith(
-            'Failed to check/retry Solana discovery:',
+            'Failed to check/retry discovery:',
+            'solana',
             expect.any(Error),
           );
         });
@@ -2018,7 +2018,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       // Override Redux store to return seedless flow as true
@@ -2070,7 +2070,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: true,
         shouldSelectAccount: true,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       // Override Redux store to return seedless flow as true
@@ -2119,13 +2119,13 @@ describe('Authentication', () => {
       });
     });
 
-    it('should import mnemonic with Solana account discovery', async () => {
+    it('should import mnemonic with account discovery', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: true,
+        shouldImportAccounts: true,
       };
 
       // Act
@@ -2145,9 +2145,13 @@ describe('Authentication', () => {
         'test-keyring-id',
         SolScope.Mainnet,
       );
+      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
+        'test-keyring-id',
+        BtcScope.Mainnet,
+      );
       expect(result).toEqual({
         newAccountAddress: '0x1234567890abcdef',
-        discoveredAccountsCount: 2,
+        discoveredAccountsCount: 2 + 2, // 2 from Solana and 2 from Bitcoin
       });
     });
 
@@ -2157,7 +2161,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: true,
         shouldSelectAccount: true,
-        shouldImportSolanaAccount: true,
+        shouldImportAccounts: true,
       };
 
       // Override Redux store to return seedless flow as true
@@ -2203,9 +2207,13 @@ describe('Authentication', () => {
         'test-keyring-id',
         SolScope.Mainnet,
       );
+      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
+        'test-keyring-id',
+        BtcScope.Mainnet,
+      );
       expect(result).toEqual({
         newAccountAddress: '0x1234567890abcdef',
-        discoveredAccountsCount: 2,
+        discoveredAccountsCount: 2 + 2, // 2 from Solana and 2 from Bitcoin
       });
     });
 
@@ -2215,7 +2223,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       const error = new Error('Failed to add new keyring');
@@ -2233,7 +2241,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: true,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       // Override Redux store to return seedless flow as true
@@ -2261,22 +2269,22 @@ describe('Authentication', () => {
       ).rejects.toThrow('Failed to add secret data');
     });
 
-    it('should handle Solana account discovery failure', async () => {
+    it('should handle account discovery failure', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: true,
+        shouldImportAccounts: true,
       };
 
-      const error = new Error('Solana discovery failed');
+      const error = new Error('discovery failed');
       mockSnapClient.addDiscoveredAccounts.mockRejectedValue(error);
 
       // Act & Assert
       await expect(
         Authentication.importMnemonicToVault(mnemonic, options),
-      ).rejects.toThrow('Solana discovery failed');
+      ).rejects.toThrow('discovery failed');
     });
 
     it('should handle keyring.getAccounts failure', async () => {
@@ -2285,7 +2293,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       const error = new Error('Failed to get accounts');
@@ -2303,7 +2311,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: false,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       mockKeyring.getAccounts.mockResolvedValue([]);
@@ -2327,7 +2335,7 @@ describe('Authentication', () => {
       const options = {
         shouldCreateSocialBackup: false,
         shouldSelectAccount: true,
-        shouldImportSolanaAccount: false,
+        shouldImportAccounts: false,
       };
 
       mockKeyring.getAccounts.mockResolvedValue([
@@ -2867,7 +2875,7 @@ describe('Authentication', () => {
         {
           shouldCreateSocialBackup: false,
           shouldSelectAccount: false,
-          shouldImportSolanaAccount: true,
+          shouldImportAccounts: true,
         },
       );
     });

@@ -100,12 +100,13 @@ class TransactionConfirmationView {
     });
   }
 
-  async tapEstimatedGasLink(index = 0): Promise<void> {
+  async tapEstimatedGasLink(): Promise<void> {
     await Gestures.swipe(this.transactionAmount, 'up', {
       speed: 'fast',
     });
-    await Gestures.tapAtIndex(this.estimatedGasLink, index, {
+    await Gestures.tap(this.estimatedGasLink, {
       elemDescription: 'Estimated Gas Link in Transaction Confirmation View',
+      checkStability: true,
     });
   }
 
