@@ -2925,7 +2925,8 @@ workflows:
                 # Copy binary with new name (preserve original)
                 OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
                 NEW_BINARY="$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
-                cp "$OLD_BINARY" "$NEW_BINARY"
+                # Need to copy recursively so that .app files are fully copied
+                cp -r "$OLD_BINARY" "$NEW_BINARY"
 
                 # Copy xcarchive with new name (only for non-simulator builds, preserve original)
                 if [ "$IS_SIM_BUILD" != "true" ]; then
