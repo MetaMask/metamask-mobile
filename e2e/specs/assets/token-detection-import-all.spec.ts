@@ -12,29 +12,6 @@ import { LocalNodeType } from '../../framework/types';
 const ETHEREUM_NAME = 'Ethereum';
 const USDC_NAME = 'USD Coin';
 
-// USDC token configuration for Ethereum Mainnet
-const USDC_TOKEN = [
-  {
-    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    symbol: 'USDC',
-    decimals: 6,
-    name: 'USD Coin',
-    iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-    type: 'erc20',
-    aggregators: [
-      'Coinmarketcap',
-      'Coingecko',
-      '1inch',
-      'PMM',
-      'Zapper',
-      'Zerion',
-      'Lifi',
-    ],
-    occurrences: 7,
-  },
-];
-
 describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -44,7 +21,17 @@ describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
   it('should import all tokens detected automatically', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withTokens(USDC_TOKEN).build(),
+        fixture: new FixtureBuilder()
+          .withDetectedTokens([
+            {
+              address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              decimals: 18,
+              symbol: 'USDC',
+              chainId: '0x1',
+              name: 'USDCoin',
+            },
+          ])
+          .build(),
         restartDevice: true,
         localNodeOptions: [
           {
