@@ -335,6 +335,116 @@ describe('WC2Manager', () => {
       const result = await WC2Manager.init({});
       expect(result).toBeInstanceOf(WC2Manager);
     });
+
+    it('should return undefined and skip initialization when isWC2Enabled is false', async () => {
+      // Save the current mock implementation
+      const originalMock = jest.requireMock('../AppConstants');
+
+      // Temporarily mock AppConstants with empty PROJECT_ID
+      jest.doMock('../AppConstants', () => ({
+        ...originalMock,
+        WALLET_CONNECT: {
+          ...originalMock.WALLET_CONNECT,
+          PROJECT_ID: '', // Empty string makes isWC2Enabled false
+        },
+      }));
+
+      // Clear module cache to get fresh imports with the new mock
+      jest.resetModules();
+
+      // Re-require the module with the new mock
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const WalletConnectV2Module = require('./WalletConnectV2');
+      const { WC2Manager: TestWC2Manager, isWC2Enabled } =
+        WalletConnectV2Module;
+
+      // Reset singleton state
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (TestWC2Manager as any).instance = undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (TestWC2Manager as any)._initialized = false;
+
+      // Verify isWC2Enabled is indeed false
+      expect(isWC2Enabled).toBe(false);
+
+      const result = await TestWC2Manager.init({});
+
+      // Should return undefined when WC2 is not enabled (early return)
+      expect(result).toBeUndefined();
+
+      // Restore the original mock for other tests
+      jest.doMock('../AppConstants', () => originalMock);
+      jest.resetModules();
+    });
+
+    it('should return undefined and skip initialization when navigation is undefined', async () => {
+      // Mock NavigationService to return undefined navigation
+      jest.doMock('../NavigationService', () => ({
+        __esModule: true,
+        default: {
+          get navigation() {
+            return undefined;
+          },
+        },
+      }));
+
+      // Reset modules to apply the new mock
+      jest.resetModules();
+
+      // Reset singleton state
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const WalletConnectV2Module = require('./WalletConnectV2');
+      const { WC2Manager: TestWC2Manager } = WalletConnectV2Module;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (TestWC2Manager as any).instance = undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (TestWC2Manager as any)._initialized = false;
+
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      const result = await TestWC2Manager.init({});
+
+      // Should return undefined when navigation is not available
+      expect(result).toBeUndefined();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'WC2::init missing navigation --- SKIP INIT',
+      );
+
+      consoleWarnSpy.mockRestore();
+
+      // Restore the original NavigationService mock
+      jest.doMock('../NavigationService', () => ({
+        __esModule: true,
+        default: {
+          get navigation() {
+            return mockNavigation;
+          },
+          set navigation(value) {
+            // Mock setter - does nothing but prevents errors
+          },
+        },
+      }));
+      jest.resetModules();
+    });
+
+    it('should return existing instance when already initialized', async () => {
+      // First, initialize normally to create an instance
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (WC2Manager as any).instance = undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (WC2Manager as any)._initialized = false;
+
+      const firstInstance = await WC2Manager.init({});
+      expect(firstInstance).toBeInstanceOf(WC2Manager);
+
+      // Now try to initialize again - should return the same instance
+      const secondInstance = await WC2Manager.init({});
+
+      // Should return the same instance, not create a new one
+      expect(secondInstance).toBe(firstInstance);
+      expect(secondInstance).toBeInstanceOf(WC2Manager);
+    });
   });
 
   describe('WC2Manager Sessions', () => {
@@ -1122,46 +1232,6 @@ describe('WC2Manager', () => {
     it('should call getCurrentRoute during initialization', async () => {
       await WC2Manager.init({});
       expect(mockNavigation.getCurrentRoute).toHaveBeenCalled();
-    });
-
-    it('should skip initialization when navigation is not available', async () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-      // Temporarily override the NavigationService mock to return undefined
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const NavigationService = require('../NavigationService').default;
-      const originalGetter = Object.getOwnPropertyDescriptor(
-        NavigationService,
-        'navigation',
-      )?.get;
-
-      Object.defineProperty(NavigationService, 'navigation', {
-        get: () => undefined,
-        configurable: true,
-      });
-
-      // Reset singleton state
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (WC2Manager as any).instance = undefined;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (WC2Manager as any)._initialized = false;
-
-      const result = await WC2Manager.init({});
-
-      expect(result).toBeUndefined();
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'WC2::init missing navigation --- SKIP INIT',
-      );
-
-      // Restore original getter
-      if (originalGetter) {
-        Object.defineProperty(NavigationService, 'navigation', {
-          get: originalGetter,
-          configurable: true,
-        });
-      }
-
-      consoleWarnSpy.mockRestore();
     });
 
     it('should call showWCLoadingState with navigation for existing sessionTopic connections', async () => {
