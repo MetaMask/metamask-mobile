@@ -1,44 +1,37 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { RESUBSCRIBE_NOTIFICATIONS_EXPIRY } from '../../../constants/storage';
 import { selectIsSignedIn } from '../../../selectors/identity';
 import { selectIsUnlocked } from '../../../selectors/keyringController';
-import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import {
+  getIsNotificationEnabledByDefaultFeatureFlag,
+  selectIsMetamaskNotificationsEnabled,
+} from '../../../selectors/notifications';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import storageWrapper from '../../../store/storage-wrapper';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
 import {
   useEnableNotifications,
   useListNotifications,
 } from './useNotifications';
+import {
+  hasNotificationSubscriptionExpired,
+  hasUserTurnedOffNotificationsOnce,
+} from '../constants/notification-storage-keys';
 
-const EXPIRY_DURATION_MS = 24 * 60 * 60 * 1000; // 1 day
-
-const hasExpired = async () => {
-  const expiryTimestamp: string | undefined = await storageWrapper.getItem(
-    RESUBSCRIBE_NOTIFICATIONS_EXPIRY,
-  );
-  if (!expiryTimestamp) {
-    return true;
-  }
-  const now = Date.now();
-  return now > parseInt(expiryTimestamp, 10);
-};
-
-const setExpiry = async () => {
-  const now = Date.now();
-  const expiryTimestamp = now + EXPIRY_DURATION_MS;
-  await storageWrapper.setItem(
-    RESUBSCRIBE_NOTIFICATIONS_EXPIRY,
-    expiryTimestamp.toString(),
+// TODO - see if we want to nudge users to enable push notifications
+const useEnableAndRefresh = () => {
+  const { enableNotifications } = useEnableNotifications();
+  const { listNotifications } = useListNotifications();
+  return useCallback(
+    async (shouldEnable = true) => {
+      shouldEnable && (await enableNotifications());
+      await listNotifications();
+    },
+    [enableNotifications, listNotifications],
   );
 };
 
-/**
- * Effect that queries for notifications on startup if notifications are enabled.
- */
-export function useStartupNotificationsEffect() {
+const useNotificationStartupSelectors = () => {
   // Base requirements
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
   const isBasicFunctionalityEnabled = Boolean(
@@ -54,21 +47,27 @@ export function useStartupNotificationsEffect() {
   const notificationsEnabled =
     notificationsFlagEnabled && notificationsControllerEnabled && isSignedIn;
 
+  return {
+    isUnlocked,
+    isBasicFunctionalityEnabled,
+    notificationsEnabled,
+    notificationsFlagEnabled,
+  };
+};
+
+export function useRegisterAndFetchNotifications() {
+  const { isUnlocked, isBasicFunctionalityEnabled, notificationsEnabled } =
+    useNotificationStartupSelectors();
+
   // Actions
-  const { enableNotifications } = useEnableNotifications();
-  const { listNotifications } = useListNotifications();
+  const enableAndRefresh = useEnableAndRefresh();
 
   // App Open Effect
   useEffect(() => {
     const run = async () => {
       try {
         if (isUnlocked && isBasicFunctionalityEnabled && notificationsEnabled) {
-          if (await hasExpired()) {
-            // Re-enabling notifications to keep subscriptions up to date
-            await enableNotifications();
-            await setExpiry();
-          }
-          await listNotifications();
+          await enableAndRefresh(await hasNotificationSubscriptionExpired());
         }
       } catch (error) {
         const errorMessage =
@@ -81,10 +80,59 @@ export function useStartupNotificationsEffect() {
 
     run();
   }, [
-    enableNotifications,
+    enableAndRefresh,
     isBasicFunctionalityEnabled,
     isUnlocked,
-    listNotifications,
     notificationsEnabled,
   ]);
+}
+
+export function useEnableNotificationsByDefaultEffect() {
+  const {
+    isUnlocked,
+    isBasicFunctionalityEnabled,
+    notificationsEnabled,
+    notificationsFlagEnabled,
+  } = useNotificationStartupSelectors();
+  const isNotificationsEnabledByDefaultFeatureFlag = useSelector(
+    getIsNotificationEnabledByDefaultFeatureFlag,
+  );
+
+  const enableAndRefresh = useEnableAndRefresh();
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        if (
+          isBasicFunctionalityEnabled &&
+          isUnlocked &&
+          !notificationsEnabled &&
+          isNotificationsEnabledByDefaultFeatureFlag &&
+          notificationsFlagEnabled
+        ) {
+          if (!(await hasUserTurnedOffNotificationsOnce())) {
+            await enableAndRefresh();
+          }
+        }
+      } catch {
+        // Do nothing
+      }
+    };
+    run();
+  }, [
+    enableAndRefresh,
+    isBasicFunctionalityEnabled,
+    isNotificationsEnabledByDefaultFeatureFlag,
+    isUnlocked,
+    notificationsEnabled,
+    notificationsFlagEnabled,
+  ]);
+}
+
+/**
+ * Effect that queries for notifications on startup if notifications are enabled.
+ */
+export function useStartupNotificationsEffect() {
+  useRegisterAndFetchNotifications();
+  useEnableNotificationsByDefaultEffect();
 }
