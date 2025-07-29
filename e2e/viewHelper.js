@@ -266,7 +266,7 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
 
-  await closeOnboardingModals(false);
+  await closeOnboardingModals('dismiss', false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
 };
