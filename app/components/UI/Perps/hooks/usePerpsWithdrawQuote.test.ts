@@ -181,19 +181,38 @@ describe('usePerpsWithdrawQuote', () => {
     });
 
     it('should handle invalid numeric strings', () => {
-      const amount = 'abc';
-      const { result } = renderHookWithProvider(
-        () => usePerpsWithdrawQuote({ amount }),
-        { state: {} as DeepPartial<RootState> },
-      );
+      const testCases = ['abc', '123abc', 'abc123', '!@#', ''];
 
-      // NaN - totalFees = NaN - 1 = NaN, Math.max(0, NaN) = NaN
-      // toFixed on NaN returns "NaN"
-      expect(result.current.formattedQuoteData.receivingAmount).toBe(
-        'NaN USDC',
-      );
-      expect(result.current.hasValidQuote).toBe(false);
-      expect(result.current.error).toBeNull();
+      testCases.forEach((amount) => {
+        const { result } = renderHookWithProvider(
+          () => usePerpsWithdrawQuote({ amount }),
+          { state: {} as DeepPartial<RootState> },
+        );
+
+        // Invalid input should result in 0.00 USDC, not NaN USDC
+        expect(result.current.formattedQuoteData.receivingAmount).toBe(
+          '0.00 USDC',
+        );
+        expect(result.current.hasValidQuote).toBe(false);
+        expect(result.current.error).toBeNull();
+      });
+    });
+
+    it('should handle special numeric values', () => {
+      const testCases = ['Infinity', '-Infinity', 'NaN'];
+
+      testCases.forEach((amount) => {
+        const { result } = renderHookWithProvider(
+          () => usePerpsWithdrawQuote({ amount }),
+          { state: {} as DeepPartial<RootState> },
+        );
+
+        expect(result.current.formattedQuoteData.receivingAmount).toBe(
+          '0.00 USDC',
+        );
+        expect(result.current.hasValidQuote).toBe(false);
+        expect(result.current.error).toBeNull();
+      });
     });
   });
 

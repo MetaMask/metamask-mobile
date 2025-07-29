@@ -25,6 +25,20 @@ interface FormattedQuoteData {
  * Simple calculation since withdrawals have fixed fees and no bridging
  */
 export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
+  // Parse and validate amount once
+  const { parsedAmount, isValid } = useMemo(() => {
+    const trimmedAmount = (amount || '').trim();
+    if (trimmedAmount === '') {
+      return { parsedAmount: 0, isValid: false };
+    }
+
+    const parsed = parseFloat(trimmedAmount);
+    const valid =
+      !isNaN(parsed) && isFinite(parsed) && /^-?\d*\.?\d+$/.test(trimmedAmount);
+
+    return { parsedAmount: parsed, isValid: valid };
+  }, [amount]);
+
   // Get withdrawal route to access fee constraints
   const withdrawalRoute = useMemo(() => {
     const controller = Engine.context.PerpsController;
@@ -40,9 +54,6 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
   }, []);
 
   const formattedQuoteData = useMemo<FormattedQuoteData>(() => {
-    // Parse amount
-    const amountNum = parseFloat(amount || '0');
-
     // Get fees from route constraints or use defaults
     const networkFee =
       withdrawalRoute?.constraints?.fees?.fixed ??
@@ -50,8 +61,8 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
     const metamaskFee = METAMASK_WITHDRAWAL_FEE; // $0 currently
     const totalFees = networkFee + metamaskFee;
 
-    // Calculate receiving amount
-    const receivingAmount = Math.max(0, amountNum - totalFees);
+    // Calculate receiving amount - use 0 if amount is invalid
+    const receivingAmount = isValid ? Math.max(0, parsedAmount - totalFees) : 0;
 
     // Format fees with token symbol if available
     const feeToken = withdrawalRoute?.constraints?.fees?.token || 'USDC';
@@ -71,31 +82,38 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
       estimatedTime: withdrawalRoute?.constraints?.estimatedTime || '',
       receivingAmount: `${receivingAmount.toFixed(2)} USDC`,
     };
-  }, [amount, withdrawalRoute]);
+  }, [parsedAmount, isValid, withdrawalRoute]);
 
   // Simple validation
   const hasValidQuote = useMemo(() => {
-    const amountNum = parseFloat(amount || '0');
+    if (!isValid) {
+      return false;
+    }
+
     const minAmount = parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
         WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
     );
-    return amountNum >= minAmount;
-  }, [amount, withdrawalRoute]);
+    return parsedAmount >= minAmount;
+  }, [parsedAmount, isValid, withdrawalRoute]);
 
   const error = useMemo(() => {
-    const amountNum = parseFloat(amount || '0');
+    // Don't show error for empty or invalid input
+    if (!isValid || parsedAmount === 0) {
+      return null;
+    }
+
     const minAmount = parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
         WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
     );
-    if (amountNum > 0 && amountNum < minAmount) {
+    if (parsedAmount > 0 && parsedAmount < minAmount) {
       return strings('perps.withdrawal.amount_too_low', {
         minAmount,
       });
     }
     return null;
-  }, [amount, withdrawalRoute]);
+  }, [parsedAmount, isValid, withdrawalRoute]);
 
   return {
     formattedQuoteData,
