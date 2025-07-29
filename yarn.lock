@@ -4916,10 +4916,8 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^74.3.2":
-  version "74.3.2"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-74.3.2.tgz#6fa7564f3912dc02d90ea81a3cc32dcada255f21"
-  integrity sha512-J2xey02mmoelhpi+tF/+IuZZMlCL449gI8+dJhX1VSSVdJ4kwqOWyxdKYsHyqgOD5W8xRTTWMU8+ZDGE2Lsqpw==
+"@metamask/assets-controllers@file:../core/packages/assets-controllers":
+  version "68.2.0"
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4930,15 +4928,14 @@
     "@metamask/abi-utils" "^2.0.3"
     "@metamask/base-controller" "^8.2.0"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/controller-utils" "^11.10.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/keyring-api" "^20.1.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/polling-controller" "^14.0.0"
+    "@metamask/polling-controller" "^13.0.0"
     "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/snaps-sdk" "^9.0.0"
-    "@metamask/snaps-utils" "^11.0.0"
-    "@metamask/utils" "^11.4.2"
+    "@metamask/snaps-utils" "^9.4.0"
+    "@metamask/utils" "^11.2.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.5.0"
@@ -4965,6 +4962,13 @@
     elliptic "^6.6.1"
     json-stable-stringify-without-jsonify "^1.0.1"
     loglevel "^1.9.2"
+
+"@metamask/backend-platform@file:../core/packages/backend-platform":
+  version "1.0.0"
+  dependencies:
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/controller-utils" "^11.10.0"
+    "@metamask/utils" "^11.2.0"
 
 "@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.1.1":
   version "7.1.1"

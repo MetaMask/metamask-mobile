@@ -19,6 +19,8 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'TokenDetectionController',
   'WebSocketService',
   'MultichainAccountService',
+  'BackendWebSocketService',
+  'AccountActivityService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [

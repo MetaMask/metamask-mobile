@@ -57,6 +57,10 @@ import { seedlessOnboardingControllerInit } from '../controllers/seedless-onboar
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
+import { 
+  WebSocketServiceInit as BackendWebSocketServiceInit,
+  AccountActivityServiceInit
+} from '../controllers/backend-platform';
 import { perpsControllerInit } from '../controllers/perps-controller';
 import { bridgeControllerInit } from '../controllers/bridge-controller/bridge-controller-init';
 import { bridgeStatusControllerInit } from '../controllers/bridge-status-controller/bridge-status-controller-init';
@@ -105,6 +109,7 @@ jest.mock('../controllers/bridge-controller/bridge-controller-init');
 jest.mock(
   '../controllers/bridge-status-controller/bridge-status-controller-init',
 );
+jest.mock('../controllers/backend-platform');
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
@@ -164,6 +169,8 @@ describe('initModularizedControllers', () => {
     networkEnablementControllerInit,
   );
   const mockRewardsControllerInit = jest.mocked(rewardsControllerInit);
+  const mockBackendWebSocketServiceInit = jest.mocked(BackendWebSocketServiceInit);
+  const mockAccountActivityServiceInit = jest.mocked(AccountActivityServiceInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -205,6 +212,8 @@ describe('initModularizedControllers', () => {
           BridgeController: mockBridgeControllerInit,
           BridgeStatusController: mockBridgeStatusControllerInit,
           RewardsController: mockRewardsControllerInit,
+          BackendWebSocketService: mockBackendWebSocketServiceInit,
+          AccountActivityService: mockAccountActivityServiceInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -289,6 +298,14 @@ describe('initModularizedControllers', () => {
     });
     mockRewardsControllerInit.mockReturnValue({
       controller: {} as unknown as RewardsController,
+    });
+    mockBackendWebSocketServiceInit.mockReturnValue({
+      controller: {} as unknown as import('../controllers/backend-platform').MobileBackendWebSocketService,
+    });
+    mockAccountActivityServiceInit.mockReturnValue({
+      memStateKey: null,
+      persistedStateKey: null,
+      controller: {} as unknown as import('@metamask/backend-platform').AccountActivityService,
     });
   });
 
