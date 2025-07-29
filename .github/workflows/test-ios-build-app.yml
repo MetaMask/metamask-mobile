@@ -2,6 +2,13 @@ name: Test iOS Build QA App
 
 on:
   push:
+  workflow_dispatch:
+    inputs:
+      retention_days:
+        description: 'Number of days to retain the uploaded artifacts'
+        required: false
+        default: '7'
+        type: string
 
 permissions:
   contents: write
@@ -20,9 +27,11 @@ jobs:
     env:
       GITHUB_CI: "true"  # ✅ This ensures it's available during pod install
     steps:
+      # Get the source code from the repository
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # Display system information for debugging purposes
       - name: Detect CPU architecture
         run: |
           echo "Arch: $(uname -m)"
@@ -42,6 +51,7 @@ jobs:
             sysctl -n hw.memsize | awk '{ byte =$1 /1024/1024/1024; print byte " GB" }'
         shell: bash
 
+      # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
         with:
@@ -62,10 +72,11 @@ jobs:
             xcrun simctl list | grep Booted || echo "No booted simulators found"
         shell: bash
 
+      # Run project setup and build the iOS QA app for simulator
       - name: Setup iOS Environment
         run: |
           echo "🚀 Finishing iOS Setup..."
-          yarn setup --build-on-github-ci --build-ios --no-build-android
+          yarn setup:github-ci --build-ios --no-build-android
           echo "🏗 Building iOS APP..."
           yarn build:ios:qa
         shell: bash
@@ -78,7 +89,7 @@ jobs:
           GITHUB_CI: "true"
           CI: "true"
 
-          NODE_OPTIONS: "--max_old_space_size=4096"
+          NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build, specially on GH Runners
 
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
@@ -96,49 +107,51 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
+      # Upload the iOS .app file that works in simulators (no certificates needed)
       - name: Upload iOS APP Artifact (Simulator)
         id: upload-app
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-qa-simulator
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app
-          retention-days: 7
+          retention-days: ${{ inputs.retention_days }}
           if-no-files-found: error
         continue-on-error: true
 
-        # Won't exist without certificates
+      # Upload iOS .ipa file for device installation (requires certificates - may not exist)
       - name: Upload iOS IPA Artifact (Device)
         id: upload-ipa
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa-qa-device
           path: ios/build/output/MetaMask-QA.ipa
-          retention-days: 7
-          if-no-files-found: warn
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: error
         continue-on-error: true
 
-        # Won't exist for simulator builds
+      # Upload iOS .xcarchive file for debugging and re-signing (requires certificates - may not exist)
       - name: Upload iOS Archive Artifact
         id: upload-archive
         uses: actions/upload-artifact@v4
         with:
           name: ios-archive-qa
           path: ios/build/MetaMask-QA.xcarchive
-          retention-days: 7
-          if-no-files-found: warn
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: error
         continue-on-error: true
 
-        # May not always exist, so we continue-on-error
+      # Upload source map file for crash debugging and error tracking if exists
       - name: Upload iOS Source Map
         id: upload-sourcemap
         uses: actions/upload-artifact@v4
         with:
           name: ios-sourcemap-qa
           path: sourcemaps/ios/index.js.map
-          retention-days: 7
-          if-no-files-found: warn
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: error
         continue-on-error: true
 
+      # Generate artifact download URL and display upload status summary
       - name: Set Artifacts URL and Status
         id: set-artifacts-url
         run: |
