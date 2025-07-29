@@ -2894,7 +2894,7 @@ workflows:
           is_skippable: true
           inputs:
             - pipeline_intermediate_files: |-
-                ios/build/Build/Products/$BUILD_TYPE-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
+                ios/build/Build/Products/$CONFIGURATION-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
                 ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
       - script@1:
           title: Rename iOS artifact files
@@ -2905,7 +2905,7 @@ workflows:
 
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
-                  BUILD_DIR="ios/build/Build/Products/${BUILD_TYPE}-iphonesimulator"
+                  BUILD_DIR="ios/build/Build/Products/${CONFIGURATION}-iphonesimulator"
                   DEVICE_TYPE="simulator"
                   BINARY_EXTENSION=".app"
                 else
