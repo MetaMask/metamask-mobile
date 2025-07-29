@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 
 import UnsupportedStateModal from './UnsupportedStateModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import initialRootState from '../../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal';
@@ -60,11 +60,7 @@ function render(Component: React.ComponentType) {
       name: Routes.DEPOSIT.MODALS.UNSUPPORTED_STATE,
     },
     {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
+      state: initialRootState,
     },
   );
 }
