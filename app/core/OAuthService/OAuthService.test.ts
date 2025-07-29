@@ -90,6 +90,10 @@ jest.mock('../Engine', () => ({
   },
 }));
 
+jest.mock('../../multichain-accounts/AccountTreeInitService', () => ({
+  initializeAccountTree: jest.fn().mockResolvedValue(undefined),
+}));
+
 let mockAuthenticate = jest.fn().mockImplementation(() => ({
   nodeAuthTokens: [],
   isNewUser: true,
