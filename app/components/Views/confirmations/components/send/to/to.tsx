@@ -11,7 +11,7 @@ import useToAddressValidation from '../../../hooks/send/useToAddressValidation';
 import { useSendContext } from '../../../context/send-context';
 import styleSheet from './to.styles';
 
-export const To = () => {
+const To = () => {
   const { styles } = useStyles(styleSheet, {});
   const { to, updateTo } = useSendContext();
   const { toAddressError, toAddressWarning } = useToAddressValidation();
@@ -32,3 +32,5 @@ export const To = () => {
     </View>
   );
 };
+
+export default To;

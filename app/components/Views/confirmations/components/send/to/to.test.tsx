@@ -3,7 +3,7 @@ import React from 'react';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { SendContextProvider } from '../../../context/send-context';
-import { To } from './to';
+import To from './to';
 
 const renderComponent = () =>
   renderWithProvider(
