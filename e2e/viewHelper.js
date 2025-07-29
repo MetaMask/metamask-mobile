@@ -33,7 +33,8 @@ import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
-  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
+  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
+  process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
 
 export const acceptTermOfUse = async () => {
   // tap on accept term of use screen
@@ -164,13 +165,7 @@ export const importWalletWithRecoveryPhrase = async ({
   );
 
   await OnboardingView.tapHaveAnExistingWallet();
-
-  if (SEEDLESS_ONBOARDING_ENABLED) {
-    await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
-      description: 'Onboarding Sheet should be visible',
-    });
-    await OnboardingSheet.tapImportSeedButton();
-  }
+  await OnboardingSheet.tapImportSeedButton();
 
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
