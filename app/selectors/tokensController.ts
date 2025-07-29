@@ -44,7 +44,7 @@ export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
         [token.address]: token,
       }),
       {},
-    ),
+    ) ?? {},
 );
 
 export const selectTokensByAddress = createSelector(
