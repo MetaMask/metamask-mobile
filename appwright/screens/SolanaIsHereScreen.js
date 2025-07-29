@@ -1,9 +1,7 @@
-import { expect } from 'appwright';
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
-import { CommonScreen } from "./CommonScreen";
+import { CommonScreen } from './CommonScreen';
 
 export class SolanaIsHereScreen extends CommonScreen {
-
   get importAccountButton() {
     return SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON;
   }
@@ -24,5 +22,4 @@ export class SolanaIsHereScreen extends CommonScreen {
     await this.isElementByIdVisible(this.importAccountButton);
     await this.isElementByIdVisible(this.notNowButton);
   }
-
 }
