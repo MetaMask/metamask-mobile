@@ -5,14 +5,7 @@ import { expect } from 'appwright';
 export class CommonScreen {
   constructor(device) {
     this.device = device;
-    this.platform = device.platform;
-  }
-
-  // Locators
-  get getStartedButton() {
-    return Selectors.getXpathElementByResourceId(
-      OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
-    );
+    this.platform = this.device.webDriverClient.capabilities.platformName;
   }
 
   async isIOS() {
