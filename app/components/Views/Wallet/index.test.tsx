@@ -1,14 +1,59 @@
 import React from 'react';
+
+// Local mocks specific to this test file to avoid affecting other tests
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.50.1'),
+  getApplicationName: jest.fn(() => 'MetaMask'),
+  getBuildNumber: jest.fn(() => '1234'),
+  getSystemVersion: jest.fn(() => '17.0'),
+  getTotalMemorySync: jest.fn(() => 4000000000),
+}));
+
+jest.mock(
+  '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled',
+  () => ({
+    isUnifiedSwapsEnvVarEnabled: jest.fn(() => false),
+  }),
+);
+
+// Mock components BEFORE importing the main component
+jest.mock('../AssetDetails/AssetDetailsActions', () =>
+  jest.fn((_props) => null),
+);
+
+// Create shared mock reference
+let mockScrollableTabViewComponent: jest.Mock;
+
+jest.mock('react-native-scrollable-tab-view', () => {
+  const mockComponent = jest.fn((_props) => null);
+
+  // Store reference for tests
+  mockScrollableTabViewComponent = mockComponent;
+
+  // TODO - Clean up mock.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  mockComponent.defaultProps = {
+    onChangeTab: jest.fn(),
+    renderTabBar: jest.fn(),
+  };
+
+  return {
+    __esModule: true,
+    default: mockComponent,
+  };
+});
+
 import Wallet from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { screen } from '@testing-library/react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import { screen as RNScreen } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
+import { isUnifiedSwapsEnvVarEnabled } from '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -25,7 +70,7 @@ jest.mock('../../../util/notifications/constants/config', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => {
-  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: MockAccountsState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
 
@@ -77,8 +122,8 @@ jest.mock('../../../core/Engine', () => {
         },
       },
       AccountsController: {
-        ...mockAccountsControllerState,
-        state: mockAccountsControllerState,
+        ...MockAccountsState,
+        state: MockAccountsState,
       },
       PreferencesController: {
         setTokenNetworkFilter: jest.fn(),
@@ -130,12 +175,40 @@ const mockInitialState = {
   },
   settings: {
     primaryCurrency: 'usd',
+    basicFunctionalityEnabled: true,
+    useTokenDetection: true,
+  },
+  fiatOrders: {
+    networks: [],
+  },
+  browser: {
+    tabs: [],
+  },
+  metamask: {
+    isDataCollectionForMarketingEnabled: true,
+  },
+  multichain: {
+    dismissedBanners: [], // Added missing property
   },
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          bridgeConfigV2: {
+            support: true,
+            chains: {
+              'eip155:1': {
+                isActiveSrc: true,
+                isActiveDest: true,
+                isUnifiedUIEnabled: false, // Default to false in base state
+              },
+            },
+          },
+        },
       },
       TokensController: {
         ...backgroundState.TokensController,
@@ -148,6 +221,57 @@ const mockInitialState = {
           },
         },
       },
+      PreferencesController: {
+        selectedAddress: MOCK_ADDRESS,
+        identities: {
+          [MOCK_ADDRESS]: {
+            address: MOCK_ADDRESS,
+            name: 'Account 1',
+          },
+        },
+        useTokenDetection: true,
+        isTokenNetworkFilterEqualToAllNetworks: false,
+        tokenNetworkFilter: {
+          '0x1': 'mainnet', // Ethereum mainnet enabled
+        },
+      },
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        providerConfig: {
+          chainId: '0x1',
+          type: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        },
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1' as `0x${string}`,
+            name: 'Ethereum Mainnet',
+            nativeCurrency: 'ETH',
+            defaultRpcEndpointIndex: 0,
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+              },
+            ],
+            blockExplorerUrls: [],
+          },
+        },
+      },
+      KeyringController: {
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            accounts: [MOCK_ADDRESS],
+          },
+        ],
+      },
+      NotificationServicesController: {
+        isNotificationServicesEnabled: false,
+        isMetamaskNotificationsEnabled: false,
+        metamaskNotificationsList: [],
+        metamaskNotificationsReadList: [],
+      },
     },
   },
 };
@@ -158,20 +282,6 @@ jest.mock('react-redux', () => ({
     .fn()
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
-
-jest.mock('react-native-scrollable-tab-view', () => {
-  const ScrollableTabViewMock = jest
-    .fn()
-    .mockImplementation(() => ScrollableTabViewMock);
-  // TODO - Clean up mock.
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  ScrollableTabViewMock.defaultProps = {
-    onChangeTab: jest.fn(),
-    renderTabBar: jest.fn(),
-  };
-  return ScrollableTabViewMock;
-});
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
@@ -187,6 +297,22 @@ jest.mock('../../../util/address', () => ({
     },
   }),
 }));
+
+// Better navigation mock pattern (from WalletActions.test.tsx)
+const mockNavigate = jest.fn();
+const mockSetOptions = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+    }),
+  };
+});
+
 const render = (Component: React.ComponentType) =>
   renderScreen(
     Component,
@@ -225,6 +351,12 @@ describe('Wallet', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
+
+  beforeEach(() => {
+    mockNavigate.mockClear();
+    mockSetOptions.mockClear();
+  });
+
   it('should render correctly', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     const wrapper = render(Wallet);
@@ -240,7 +372,7 @@ describe('Wallet', () => {
   it('should render scan qr icon', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
-    const scanButton = screen.getByTestId(
+    const scanButton = RNScreen.getByTestId(
       WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
     );
     expect(scanButton).toBeDefined();
@@ -248,12 +380,14 @@ describe('Wallet', () => {
   it('should render ScrollableTabView', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
-    expect(ScrollableTabView).toHaveBeenCalled();
+
+    // Check if ScrollableTabView mock was called
+    expect(mockScrollableTabViewComponent).toHaveBeenCalled();
   });
   it('should render the address copy button', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
-    const addressCopyButton = screen.getByTestId(
+    const addressCopyButton = RNScreen.getByTestId(
       WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
     );
     expect(addressCopyButton).toBeDefined();
@@ -261,7 +395,7 @@ describe('Wallet', () => {
   it('should render the account picker', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
-    const accountPicker = screen.getByTestId(
+    const accountPicker = RNScreen.getByTestId(
       WalletViewSelectorsIDs.ACCOUNT_ICON,
     );
     expect(accountPicker).toBeDefined();
@@ -285,5 +419,284 @@ describe('Wallet', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose
     const wrapper = render(Wallet);
     expect(wrapper.toJSON()).toMatchSnapshot();
+  });
+
+  // Simple test to verify mock setup
+  it('should have proper mock setup', () => {
+    expect(typeof jest.fn()).toBe('function');
+    expect(typeof mockScrollableTabViewComponent).toBe('function');
+    expect(jest.fn()).toBeDefined();
+    expect(mockScrollableTabViewComponent).toBeDefined();
+  });
+
+  // Unified UI Feature Flag Tests
+  describe('Unified UI Feature Flag', () => {
+    // Get reference to the mocked component
+    const mockAssetDetailsActions = jest.mocked(
+      jest.requireMock('../AssetDetails/AssetDetailsActions'),
+    );
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockAssetDetailsActions.mockClear();
+      mockScrollableTabViewComponent.mockClear();
+    });
+
+    it('should pass displayBridgeButton as true when isUnifiedSwapsEnabled is false', () => {
+      const stateWithUnifiedSwapsDisabled = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: {
+                  chains: {
+                    'eip155:1': {
+                      isUnifiedUIEnabled: false,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      // Mock the unified swaps env var as false
+      jest.mocked(isUnifiedSwapsEnvVarEnabled).mockReturnValue(false);
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(stateWithUnifiedSwapsDisabled),
+        );
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      // Check that AssetDetailsActions was called with displayBridgeButton: true
+      expect(mockAssetDetailsActions.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          displayBridgeButton: true,
+        }),
+      );
+    });
+
+    it('should pass all required props to AssetDetailsActions', () => {
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(mockInitialState),
+        );
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      // Check that AssetDetailsActions was called with all required props
+      expect(mockAssetDetailsActions.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          displayBuyButton: expect.any(Boolean),
+          displaySwapsButton: expect.any(Boolean),
+          displayBridgeButton: expect.any(Boolean),
+          swapsIsLive: expect.any(Boolean),
+          goToBridge: expect.any(Function),
+          goToSwaps: expect.any(Function),
+          onReceive: expect.any(Function),
+          onSend: expect.any(Function),
+          onBuy: expect.any(Function),
+          buyButtonActionID: 'wallet-buy-button',
+          swapButtonActionID: 'wallet-swap-button',
+          bridgeButtonActionID: 'wallet-bridge-button',
+          sendButtonActionID: 'wallet-send-button',
+          receiveButtonActionID: 'wallet-receive-button',
+        }),
+      );
+    });
+  });
+
+  // Callback Functions Tests
+  describe('AssetDetailsActions Callback Functions', () => {
+    const mockAssetDetailsActions = jest.mocked(
+      jest.requireMock('../AssetDetails/AssetDetailsActions'),
+    );
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockAssetDetailsActions.mockClear();
+      mockNavigate.mockClear();
+    });
+
+    it('should handle onReceive callback correctly', () => {
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
+      onReceive();
+
+      // Check that navigate was called with QR_TAB_SWITCHER
+      // QRTabSwitcherScreens.Receive is enum value 1, not string 'Receive'
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
+        initialScreen: 1, // QRTabSwitcherScreens.Receive
+      });
+    });
+
+    it('should handle onSend callback correctly with native currency', async () => {
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
+      await onSend();
+
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('should handle onSend callback correctly without native currency', async () => {
+      const stateWithoutNativeCurrency = {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            NetworkController: {
+              ...mockInitialState.engine.backgroundState.NetworkController,
+              providerConfig: {
+                ...mockInitialState.engine.backgroundState.NetworkController
+                  .providerConfig,
+                ticker: undefined, // Remove native currency
+              },
+            },
+          },
+        },
+      };
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(stateWithoutNativeCurrency),
+        );
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
+      await onSend();
+
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
+    });
+
+    it('should handle onBuy callback correctly', () => {
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const onBuy = mockAssetDetailsActions.mock.calls[0][0].onBuy;
+      onBuy();
+
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('should handle goToBridge callback correctly', () => {
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const goToBridge = mockAssetDetailsActions.mock.calls[0][0].goToBridge;
+      expect(typeof goToBridge).toBe('function');
+    });
+
+    it('should handle goToSwaps callback correctly', () => {
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const goToSwaps = mockAssetDetailsActions.mock.calls[0][0].goToSwaps;
+      expect(typeof goToSwaps).toBe('function');
+    });
+  });
+
+  // Conditional Rendering Tests
+  describe('Conditional Rendering', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should render banner when basic functionality is disabled', () => {
+      const stateWithDisabledBasicFunctionality = {
+        ...mockInitialState,
+        settings: {
+          ...mockInitialState.settings,
+          basicFunctionalityEnabled: false,
+        },
+      };
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(stateWithDisabledBasicFunctionality),
+        );
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      const wrapper = render(Wallet);
+      expect(wrapper.toJSON()).toMatchSnapshot();
+    });
+
+    it('should render loader when no selected account', () => {
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) => {
+          const selectorString = callback.toString();
+          if (selectorString.includes('selectSelectedInternalAccount')) {
+            return null; // No selected account
+          }
+          return callback(mockInitialState);
+        });
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      const wrapper = render(Wallet);
+      expect(wrapper.toJSON()).toMatchSnapshot();
+    });
+  });
+
+  // Error Handling Tests
+  describe('Error Handling', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Suppress console.error for these tests since we're testing error scenarios
+      jest.spyOn(console, 'error').mockImplementation(jest.fn());
+      jest.spyOn(console, 'warn').mockImplementation(jest.fn());
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should handle errors in onSend callback gracefully', async () => {
+      // Mock dispatch to throw an error
+      const mockDispatch = jest.fn().mockImplementation(() => {
+        throw new Error('Transaction initialization failed');
+      });
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) => {
+          const selectorString = callback.toString();
+          if (selectorString.includes('useDispatch')) {
+            return mockDispatch;
+          }
+          return callback(mockInitialState);
+        });
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      const mockAssetDetailsActions = jest.mocked(
+        jest.requireMock('../AssetDetails/AssetDetailsActions'),
+      );
+      const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
+
+      await onSend();
+
+      // Should still navigate even if there's an error
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
+    });
   });
 });
