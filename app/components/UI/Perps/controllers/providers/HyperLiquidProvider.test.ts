@@ -106,6 +106,9 @@ describe('HyperLiquidProvider', () => {
         withdraw3: jest.fn().mockResolvedValue({
           status: 'ok',
         }),
+        updateLeverage: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
       }),
       getInfoClient: jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
@@ -115,7 +118,44 @@ describe('HyperLiquidProvider', () => {
                 coin: 'BTC',
                 szi: '0.1',
                 entryPx: '50000',
+                positionValue: '5000',
                 unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: {
+                  type: 'cross',
+                  value: 10,
+                },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+            {
+              position: {
+                coin: 'ETH',
+                szi: '1.5',
+                entryPx: '3000',
+                positionValue: '4500',
+                unrealizedPnl: '50',
+                marginUsed: '450',
+                leverage: {
+                  type: 'cross',
+                  value: 10,
+                },
+                liquidationPx: '2700',
+                maxLeverage: 50,
+                returnOnEquity: '10',
+                cumFunding: {
+                  allTime: '5',
+                  sinceOpen: '2',
+                  sinceChange: '1',
+                },
               },
               type: 'oneWay',
             },
@@ -136,6 +176,7 @@ describe('HyperLiquidProvider', () => {
           ],
         }),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
       }),
       disconnect: jest.fn().mockResolvedValue(undefined),
       toggleTestnet: jest.fn(),
@@ -341,6 +382,43 @@ describe('HyperLiquidProvider', () => {
       };
 
       const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('updatePositionTPSL', () => {
+    it('should update position TP/SL successfully', async () => {
+      const updateParams = {
+        coin: 'ETH',
+        takeProfitPrice: '3500',
+        stopLossPrice: '2500',
+      };
+
+      const result = await provider.updatePositionTPSL(updateParams);
+
+      expect(result.success).toBe(true);
+      expect(result.orderId).toBeDefined();
+    });
+
+    it('should handle update with only take profit price', async () => {
+      const updateParams = {
+        coin: 'ETH',
+        takeProfitPrice: '3500',
+      };
+
+      const result = await provider.updatePositionTPSL(updateParams);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle update with only stop loss price', async () => {
+      const updateParams = {
+        coin: 'ETH',
+        stopLossPrice: '2500',
+      };
+
+      const result = await provider.updatePositionTPSL(updateParams);
 
       expect(result.success).toBe(true);
     });
@@ -914,6 +992,877 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.isValid).toBe(true);
       expect(result.error).toBeUndefined();
+    });
+  });
+
+  describe('calculateLiquidationPrice', () => {
+    beforeEach(() => {
+      // Set up mock for asset info
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', maxLeverage: 20, szDecimals: 5 }],
+        }),
+      });
+    });
+
+    it('should calculate liquidation price for long position correctly', async () => {
+      const params = {
+        entryPrice: 50000,
+        leverage: 10,
+        direction: 'long' as const,
+        asset: 'BTC',
+      };
+
+      const result = await provider.calculateLiquidationPrice(params);
+
+      // With 10x leverage and 20x max leverage:
+      // maintenance margin = 1 / (2 * 20) = 0.025
+      // initial margin = 1 / 10 = 0.1
+      // margin available = 0.1 - 0.025 = 0.075
+      // l = 1 / 40 = 0.025
+      // liquidation = 50000 - (1 * 0.075 * 50000) / (1 - 0.025 * 1)
+      // liquidation = 50000 - 3750 / 0.975 = 50000 - 3846.15 = 46153.85
+      expect(result).toBe('46153.85');
+    });
+
+    it('should calculate liquidation price for short position correctly', async () => {
+      const params = {
+        entryPrice: 50000,
+        leverage: 10,
+        direction: 'short' as const,
+        asset: 'BTC',
+      };
+
+      const result = await provider.calculateLiquidationPrice(params);
+
+      // With 10x leverage and 20x max leverage:
+      // maintenance margin = 1 / (2 * 20) = 0.025
+      // initial margin = 1 / 10 = 0.1
+      // margin available = 0.1 - 0.025 = 0.075
+      // l = 1 / 40 = 0.025
+      // liquidation = 50000 - (-1 * 0.075 * 50000) / (1 - 0.025 * -1)
+      // liquidation = 50000 + 3750 / 1.025 = 50000 + 3658.54 = 53658.54
+      expect(result).toBe('53658.54');
+    });
+
+    it('should throw error for leverage exceeding maintenance leverage', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', maxLeverage: 20, szDecimals: 2 }],
+        }),
+      });
+
+      const params = {
+        entryPrice: 50000,
+        leverage: 41, // Exceeds maintenance leverage (2 * 20 = 40)
+        direction: 'long' as const,
+        asset: 'BTC',
+      };
+
+      await expect(provider.calculateLiquidationPrice(params)).rejects.toThrow(
+        'Invalid leverage: 41x exceeds maximum allowed leverage of 40x',
+      );
+    });
+
+    it('should handle invalid inputs', async () => {
+      const invalidCases = [
+        { entryPrice: 0, leverage: 10, direction: 'long' as const },
+        { entryPrice: 50000, leverage: 0, direction: 'long' as const },
+        { entryPrice: NaN, leverage: 10, direction: 'long' as const },
+        { entryPrice: 50000, leverage: Infinity, direction: 'long' as const },
+        { entryPrice: -100, leverage: 10, direction: 'long' as const },
+      ];
+
+      for (const params of invalidCases) {
+        const result = await provider.calculateLiquidationPrice(params);
+        expect(result).toBe('0.00');
+      }
+    });
+
+    it('should use default max leverage when asset is not provided', async () => {
+      const params = {
+        entryPrice: 50000,
+        leverage: 4,
+        direction: 'long' as const,
+        // No asset provided, so default 3x will be used
+      };
+
+      const result = await provider.calculateLiquidationPrice(params);
+
+      // Should use default 3x max leverage (since no asset provided)
+      // maintenance leverage = 2 * 3 = 6x
+      // l = 1 / 6 = 0.1667
+      // initial margin = 1 / 4 = 0.25
+      // maintenance margin = 1 / 6 = 0.1667
+      // margin available = 0.25 - 0.1667 = 0.0833
+      // liq price = 50000 - 1 * 0.0833 * 50000 / (1 - 0.1667 * 1)
+      // liq price = 50000 - 4165 / 0.8333 = 50000 - 4998 = 45002
+      expect(parseFloat(result)).toBeCloseTo(45002, -1);
+    });
+
+    it('should throw error when leverage exceeds default max leverage', async () => {
+      const params = {
+        entryPrice: 50000,
+        leverage: 10,
+        direction: 'long' as const,
+        // No asset provided, so default 3x will be used
+      };
+
+      await expect(provider.calculateLiquidationPrice(params)).rejects.toThrow(
+        'Invalid leverage: 10x exceeds maximum allowed leverage of 6x',
+      );
+    });
+  });
+
+  describe('calculateMaintenanceMargin', () => {
+    it('should calculate maintenance margin correctly for 40x max leverage asset', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', maxLeverage: 40, szDecimals: 5 }],
+        }),
+      });
+
+      const result = await provider.calculateMaintenanceMargin({
+        asset: 'BTC',
+      });
+
+      // Maintenance margin = 1 / (2 * 40) = 0.0125 (1.25%)
+      expect(result).toBe(0.0125);
+    });
+
+    it('should calculate maintenance margin correctly for 3x max leverage asset', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'DOGE', maxLeverage: 3, szDecimals: 0 }],
+        }),
+      });
+
+      const result = await provider.calculateMaintenanceMargin({
+        asset: 'DOGE',
+      });
+
+      // Maintenance margin = 1 / (2 * 3) = 0.1667 (16.67%)
+      expect(result).toBeCloseTo(0.1667, 4);
+    });
+
+    it('should throw error when asset not found', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [],
+        }),
+      });
+
+      await expect(
+        provider.calculateMaintenanceMargin({ asset: 'UNKNOWN' }),
+      ).rejects.toThrow('Asset UNKNOWN not found');
+    });
+  });
+
+  describe('getMaxLeverage', () => {
+    it('should return max leverage for an asset', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'ETH', maxLeverage: 30, szDecimals: 4 }],
+        }),
+      });
+
+      const result = await provider.getMaxLeverage('ETH');
+
+      expect(result).toBe(30);
+    });
+
+    it('should throw error when asset not found', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockResolvedValue({
+          universe: [],
+        }),
+      });
+
+      await expect(provider.getMaxLeverage('UNKNOWN')).rejects.toThrow(
+        'Asset UNKNOWN not found',
+      );
+    });
+
+    it('should throw error on network failure', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        meta: jest.fn().mockRejectedValue(new Error('Network error')),
+      });
+
+      await expect(provider.getMaxLeverage('BTC')).rejects.toThrow(
+        'Network error',
+      );
+    });
+  });
+
+  describe('Additional Error Handling and Edge Cases', () => {
+    describe('ensureReady and buildAssetMapping', () => {
+      it('should handle meta fetch failure in buildAssetMapping', async () => {
+        // Create a fresh provider to test buildAssetMapping
+        const freshProvider = new HyperLiquidProvider();
+
+        // Mock failed meta fetch
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          meta: jest.fn().mockRejectedValue(new Error('Network timeout')),
+        });
+
+        MockedHyperLiquidClientService.mockImplementation(
+          () => mockClientService,
+        );
+
+        // Try to place an order which will trigger ensureReady -> buildAssetMapping
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        };
+
+        const result = await freshProvider.placeOrder(orderParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('Network timeout');
+      });
+
+      it('should handle string response from meta endpoint', async () => {
+        // Test updatePositionTPSL with string meta response
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          meta: jest.fn().mockResolvedValue('error response string'),
+          clearinghouseState: jest.fn().mockResolvedValue({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'BTC',
+                  szi: '0.1',
+                  entryPx: '50000',
+                  positionValue: '5000',
+                  unrealizedPnl: '100',
+                  marginUsed: '500',
+                  leverage: { type: 'cross', value: 10 },
+                  liquidationPx: '45000',
+                  maxLeverage: 50,
+                  returnOnEquity: '20',
+                  cumFunding: {
+                    allTime: '10',
+                    sinceOpen: '5',
+                    sinceChange: '2',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+          }),
+          frontendOpenOrders: jest.fn().mockResolvedValue([]),
+          allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+        });
+
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
+
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+        };
+
+        const result = await provider.updatePositionTPSL(updateParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('Failed to fetch market metadata');
+      });
+
+      it('should handle meta response without universe property', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          meta: jest.fn().mockResolvedValue({ notUniverse: [] }),
+          clearinghouseState: jest.fn().mockResolvedValue({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'BTC',
+                  szi: '0.1',
+                  entryPx: '50000',
+                  positionValue: '5000',
+                  unrealizedPnl: '100',
+                  marginUsed: '500',
+                  leverage: { type: 'cross', value: 10 },
+                  liquidationPx: '45000',
+                  maxLeverage: 50,
+                  returnOnEquity: '20',
+                  cumFunding: {
+                    allTime: '10',
+                    sinceOpen: '5',
+                    sinceChange: '2',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+          }),
+          frontendOpenOrders: jest.fn().mockResolvedValue([]),
+          allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+        });
+
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+        };
+
+        const result = await provider.updatePositionTPSL(updateParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('Failed to fetch market metadata');
+      });
+    });
+
+    describe('Order placement edge cases', () => {
+      it('should handle leverage update failure', async () => {
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          updateLeverage: jest.fn().mockResolvedValue({
+            status: 'error',
+            response: { message: 'Leverage update failed' },
+          }),
+          order: jest.fn().mockResolvedValue({
+            status: 'ok',
+            response: { data: { statuses: [{ resting: { oid: '123' } }] } },
+          }),
+        });
+
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          leverage: 10,
+          currentPrice: 50000,
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('Failed to update leverage');
+      });
+
+      it('should handle market order without current price (fallback to API)', async () => {
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          // No currentPrice provided - should fetch from API
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(true);
+        expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+      });
+
+      it('should handle order with custom slippage', async () => {
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          slippage: 0.02, // 2% slippage
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(true);
+        // Should use 2% slippage instead of default 1%
+      });
+
+      it('should handle filled order response', async () => {
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          order: jest.fn().mockResolvedValue({
+            status: 'ok',
+            response: {
+              data: {
+                statuses: [
+                  {
+                    filled: {
+                      oid: '456',
+                      totalSz: '0.1',
+                      avgPx: '50100',
+                    },
+                  },
+                ],
+              },
+            },
+          }),
+        });
+
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(true);
+        expect(result.orderId).toBe('456');
+        expect(result.filledSize).toBe('0.1');
+        expect(result.averagePrice).toBe('50100');
+      });
+
+      it('should handle order with clientOrderId', async () => {
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          clientOrderId: '0x123abc',
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(true);
+      });
+
+      it('should handle order with TP/SL and custom grouping', async () => {
+        const orderParams: OrderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'limit',
+          price: '51000',
+          takeProfitPrice: '55000',
+          stopLossPrice: '48000',
+          grouping: 'positionTpsl',
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(true);
+      });
+    });
+
+    describe('updatePositionTPSL error scenarios', () => {
+      it('should handle WebSocket error in getPositions', async () => {
+        // Create a fresh provider to test WebSocket errors
+        const freshProvider = new HyperLiquidProvider();
+
+        // Mock getPositions to simulate the WebSocket error being handled
+        jest
+          .spyOn(freshProvider, 'getPositions')
+          .mockImplementation(async () => {
+            throw new Error('WebSocket connection failed');
+          });
+
+        MockedHyperLiquidClientService.mockImplementation(
+          () => mockClientService,
+        );
+
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+        };
+
+        const result = await freshProvider.updatePositionTPSL(updateParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain(
+          'Connection error. Please check your network and try again.',
+        );
+      });
+
+      it('should handle non-WebSocket error in getPositions', async () => {
+        // Create a fresh provider to test non-WebSocket errors
+        const freshProvider = new HyperLiquidProvider();
+
+        // Mock getPositions to simulate a generic API error
+        jest
+          .spyOn(freshProvider, 'getPositions')
+          .mockImplementation(async () => {
+            throw new Error('Generic API error');
+          });
+
+        MockedHyperLiquidClientService.mockImplementation(
+          () => mockClientService,
+        );
+
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+        };
+
+        const result = await freshProvider.updatePositionTPSL(updateParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('Generic API error');
+      });
+
+      it('should handle canceling existing TP/SL orders', async () => {
+        // Mock position exists
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          clearinghouseState: jest.fn().mockResolvedValue({
+            assetPositions: [
+              {
+                position: {
+                  coin: 'BTC',
+                  szi: '0.1',
+                  entryPx: '50000',
+                  positionValue: '5000',
+                  unrealizedPnl: '100',
+                  marginUsed: '500',
+                  leverage: { type: 'cross', value: 10 },
+                  liquidationPx: '45000',
+                  maxLeverage: 50,
+                  returnOnEquity: '20',
+                  cumFunding: {
+                    allTime: '10',
+                    sinceOpen: '5',
+                    sinceChange: '2',
+                  },
+                },
+                type: 'oneWay',
+              },
+            ],
+          }),
+          meta: jest.fn().mockResolvedValue({
+            universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+          }),
+          allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+          frontendOpenOrders: jest.fn().mockResolvedValue([
+            {
+              coin: 'BTC',
+              oid: 123,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit',
+            },
+            {
+              coin: 'BTC',
+              oid: 124,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Stop Loss',
+            },
+          ]),
+        });
+
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          cancel: jest.fn().mockResolvedValue({
+            status: 'ok',
+            response: { data: { statuses: ['success', 'success'] } },
+          }),
+          order: jest.fn().mockResolvedValue({
+            status: 'ok',
+            response: { data: { statuses: [{ resting: { oid: '999' } }] } },
+          }),
+        });
+
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
+
+        const updateParams = {
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+        };
+
+        const result = await provider.updatePositionTPSL(updateParams);
+
+        expect(result.success).toBe(true);
+        expect(
+          mockClientService.getExchangeClient().cancel,
+        ).toHaveBeenCalledWith({
+          cancels: [
+            { a: 0, o: 123 },
+            { a: 0, o: 124 },
+          ],
+        });
+      });
+    });
+
+    describe('getAccountState error handling', () => {
+      it('should re-throw errors instead of returning zeros', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          clearinghouseState: jest
+            .fn()
+            .mockRejectedValue(new Error('Account state fetch failed')),
+          spotClearinghouseState: jest.fn().mockResolvedValue({
+            balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+          }),
+        });
+
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
+
+        await expect(provider.getAccountState()).rejects.toThrow(
+          'Account state fetch failed',
+        );
+      });
+    });
+
+    describe('getMarketDataWithPrices error scenarios', () => {
+      it('should handle missing perpsMeta', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          meta: jest.fn().mockResolvedValue(null),
+          allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+        });
+
+        const result = await provider.getMarketDataWithPrices();
+
+        expect(result).toEqual([]);
+      });
+
+      it('should handle missing allMids', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          meta: jest.fn().mockResolvedValue({
+            universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+          }),
+          allMids: jest.fn().mockResolvedValue(null),
+        });
+
+        const result = await provider.getMarketDataWithPrices();
+
+        expect(result).toEqual([]);
+      });
+
+      it('should handle metaAndAssetCtxs call successfully', async () => {
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          meta: jest.fn().mockResolvedValue({
+            universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+          }),
+          allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+          metaAndAssetCtxs: jest.fn().mockResolvedValue([
+            { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+            [
+              {
+                funding: '0.001',
+                openInterest: '1000000',
+                prevDayPx: '49000',
+              },
+            ],
+          ]),
+        });
+
+        const result = await provider.getMarketDataWithPrices();
+
+        expect(Array.isArray(result)).toBe(true);
+        expect(
+          mockClientService.getInfoClient().metaAndAssetCtxs,
+        ).toHaveBeenCalled();
+      });
+    });
+
+    describe('withdrawal edge cases', () => {
+      it('should handle withdrawal without destination (use current user)', async () => {
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          '0xdefaultaddress',
+        );
+
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          withdraw3: jest.fn().mockResolvedValue({ status: 'ok' }),
+        });
+
+        // Mock account state for balance validation
+        Object.defineProperty(provider, 'getAccountState', {
+          value: jest.fn().mockResolvedValue({
+            availableBalance: '5000',
+          }),
+          writable: true,
+        });
+
+        const withdrawParams = {
+          amount: '1000',
+          // No destination provided - should use current user address
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+        };
+
+        const result = await provider.withdraw(withdrawParams);
+
+        expect(result.success).toBe(true);
+        expect(
+          mockClientService.getExchangeClient().withdraw3,
+        ).toHaveBeenCalledWith({
+          destination: '0xdefaultaddress',
+          amount: '1000',
+        });
+      });
+
+      it('should handle withdrawal API error', async () => {
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          withdraw3: jest.fn().mockResolvedValue({
+            status: 'insufficient_funds',
+            message: 'Not enough balance',
+          }),
+        });
+
+        // Mock account state for balance validation
+        Object.defineProperty(provider, 'getAccountState', {
+          value: jest.fn().mockResolvedValue({
+            availableBalance: '5000',
+          }),
+          writable: true,
+        });
+
+        const withdrawParams = {
+          amount: '1000',
+          destination: '0x1234567890123456789012345678901234567890' as Hex,
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default' as CaipAssetId,
+        };
+
+        const result = await provider.withdraw(withdrawParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('Withdrawal failed: insufficient_funds');
+      });
+    });
+
+    describe('liquidation price edge cases', () => {
+      it('should handle denominator close to zero', async () => {
+        // Create scenario where denominator approaches zero
+        // For denominator = 1 - l * side to be close to 0 with long (side = 1):
+        // We need l close to 1, so maintenanceLeverage close to 1, so maxLeverage close to 0.5
+        const params = {
+          entryPrice: 50000,
+          leverage: 1, // Use 1x leverage
+          direction: 'long' as const,
+          asset: 'BTC',
+        };
+
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          meta: jest.fn().mockResolvedValue({
+            universe: [{ name: 'BTC', maxLeverage: 0.50001, szDecimals: 5 }], // Very low max leverage to create denominator < 0.0001
+          }),
+        });
+
+        const result = await provider.calculateLiquidationPrice(params);
+
+        // Should return entry price when denominator is too small
+        expect(parseFloat(result)).toBeCloseTo(50000, 0);
+      });
+
+      it('should handle liquidation price calculation error', async () => {
+        // Mock getMaxLeverage to throw an error but still use default
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          meta: jest.fn().mockRejectedValue(new Error('Network error')),
+        });
+
+        const params = {
+          entryPrice: 50000,
+          leverage: 2,
+          direction: 'long' as const,
+          asset: 'UNKNOWN_ASSET',
+        };
+
+        const result = await provider.calculateLiquidationPrice(params);
+
+        // Should use default leverage and still calculate
+        expect(parseFloat(result)).toBeGreaterThan(0);
+
+        consoleSpy.mockRestore();
+      });
+
+      it('should handle negative liquidation price', async () => {
+        // Create scenario that might result in negative liquidation price
+        const params = {
+          entryPrice: 100,
+          leverage: 2,
+          direction: 'long' as const,
+          asset: 'BTC',
+        };
+
+        mockClientService.getInfoClient = jest.fn().mockReturnValue({
+          meta: jest.fn().mockResolvedValue({
+            universe: [{ name: 'BTC', maxLeverage: 20, szDecimals: 5 }],
+          }),
+        });
+
+        const result = await provider.calculateLiquidationPrice(params);
+
+        // Should never return negative price
+        expect(parseFloat(result)).toBeGreaterThanOrEqual(0);
+      });
+    });
+
+    describe('isReadyToTrade edge cases', () => {
+      it('should handle getCurrentAccountId throwing error', async () => {
+        mockWalletService.getCurrentAccountId.mockImplementation(() => {
+          throw new Error('No account found');
+        });
+
+        const result = await provider.isReadyToTrade();
+
+        expect(result.ready).toBe(false);
+        expect(result.walletConnected).toBe(true); // Clients exist
+        expect(result.networkSupported).toBe(true);
+      });
+
+      it('should handle missing exchange or info client', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockClientService.getExchangeClient.mockReturnValue(null as any);
+
+        const result = await provider.isReadyToTrade();
+
+        expect(result.ready).toBe(false);
+        expect(result.walletConnected).toBe(false);
+      });
+
+      it('should handle general error in readiness check', async () => {
+        mockClientService.getExchangeClient.mockImplementation(() => {
+          throw new Error('Client error');
+        });
+
+        const result = await provider.isReadyToTrade();
+
+        expect(result.ready).toBe(false);
+        expect(result.walletConnected).toBe(false);
+        expect(result.networkSupported).toBe(false);
+        expect(result.error).toContain('Client error');
+      });
+    });
+
+    describe('editOrder error scenarios', () => {
+      it('should handle edit order API failure', async () => {
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          modify: jest.fn().mockResolvedValue({
+            status: 'error',
+            response: { message: 'Order not found' },
+          }),
+        });
+
+        const editParams = {
+          orderId: '999',
+          newOrder: {
+            coin: 'BTC',
+            isBuy: true,
+            size: '0.2',
+            price: '52000',
+            orderType: 'limit',
+          } as OrderParams,
+        };
+
+        const result = await provider.editOrder(editParams);
+
+        expect(result.success).toBe(false);
+      });
+    });
+
+    describe('cancelOrder error scenarios', () => {
+      it('should handle cancel order API returning non-success status', async () => {
+        mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+          cancel: jest.fn().mockResolvedValue({
+            status: 'ok',
+            response: { data: { statuses: ['failed'] } },
+          }),
+        });
+
+        const cancelParams = {
+          orderId: '123',
+          coin: 'BTC',
+        };
+
+        const result = await provider.cancelOrder(cancelParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Order cancellation failed');
+      });
     });
   });
 });

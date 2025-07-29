@@ -1,6 +1,9 @@
+import { waitFor } from 'detox';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types';
-import { logger } from './logger';
+import { createLogger } from './logger';
+// eslint-disable-next-line import/no-nodejs-modules
+import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 
 const TEST_CONFIG_DEFAULTS = {
   timeout: 15000,
@@ -9,6 +12,8 @@ const TEST_CONFIG_DEFAULTS = {
   stabilityCheckInterval: 200,
   stabilityCheckCount: 3,
 };
+
+const logger = createLogger({ name: 'Utilities' });
 
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking
@@ -284,6 +289,61 @@ export default class Utilities {
   }
 
   /**
+   * Wait for element to be visible and throw on failure
+   */
+  static async waitForElementToBeVisible(
+    detoxElement: DetoxElement | DetoxMatcher,
+    timeout: number = 2000,
+  ): Promise<void> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
+    const isWebElement = this.isWebElement(el);
+
+    if (isWebElement) {
+      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+      await (expect(el) as any).toExist();
+    } else if (device.getPlatform() === 'ios') {
+      await waitFor(el).toExist().withTimeout(timeout);
+    } else {
+      await waitFor(el).toBeVisible().withTimeout(timeout);
+    }
+  }
+
+  /**
+   * Wait for element to be not visible and throw on failure
+   */
+  static async waitForElementToDisappear(
+    detoxElement: DetoxElement | DetoxMatcher,
+    timeout: number = 2000,
+  ): Promise<void> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
+    const isWebElement = this.isWebElement(el);
+    if (isWebElement) {
+      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+      await (expect(el) as any).not.toExist();
+    } else if (device.getPlatform() === 'ios') {
+      await waitFor(el).not.toExist().withTimeout(timeout);
+    } else {
+      await waitFor(el).not.toBeVisible().withTimeout(timeout);
+    }
+  }
+
+  /**
+   * Check if element is currently visible
+   * Returns true if element is visible, false if not visible or doesn't exist
+   */
+  static async isElementVisible(
+    detoxElement: DetoxElement | DetoxMatcher,
+    timeout: number = 2000,
+  ): Promise<boolean> {
+    try {
+      await this.waitForElementToBeVisible(detoxElement, timeout);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Check if an element is a WebElement
    */
   static isWebElement(el: unknown): boolean {
@@ -301,6 +361,48 @@ export default class Utilities {
           webEl.constructor.name.includes('SecuredWebElementFacade') ||
           webEl.constructor.name.includes('WebElement')))
     );
+  }
+
+  /**
+   * Waits for a condition to be met within a given timeout period.
+   *
+   * Note: Copied directly from the extension implementation
+   *
+   * @param {() => Promise<boolean>} condition - The condition to wait for. This function must return a boolean indicating whether the condition is met.
+   * @param {object} options - Options for the wait.
+   * @param {number} options.timeout - The maximum amount of time (in milliseconds) to wait for the condition to be met.
+   * @param {number} options.interval - The interval (in milliseconds) between checks for the condition.
+   * @returns {Promise<void>} A promise that resolves when the condition is met or the timeout is reached.
+   * @throws {Error} Throws an error if the condition is not met within the timeout period.
+   */
+  static async waitUntil(
+    condition: () => Promise<boolean>,
+    { interval, timeout }: { interval: number; timeout: number },
+  ): Promise<void> {
+    const startTime = Date.now();
+    const endTime = startTime + timeout;
+
+    // Loop indefinitely until condition met or timeout
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const result = await condition();
+      if (result === true) {
+        return; // Condition met
+      }
+
+      const currentTime = Date.now();
+      if (currentTime >= endTime) {
+        throw new Error(`Condition not met within ${timeout}ms.`);
+      }
+
+      // Calculate remaining time to ensure we don't overshoot the timeout
+      const remainingTime = endTime - currentTime;
+      const waitTime = Math.min(interval, remainingTime);
+
+      // always yield to the event loop, even for an interval of `0`, to avoid a
+      // macro-task deadlock
+      await asyncSetTimeout(waitTime, null, { ref: false });
+    }
   }
 
   static async executeWithRetry<T>(

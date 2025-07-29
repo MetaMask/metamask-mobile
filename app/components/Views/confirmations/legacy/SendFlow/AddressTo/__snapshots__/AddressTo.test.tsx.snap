@@ -73,7 +73,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
         onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Search, public address (0x), or ENS"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         spellCheck={false}
         style={
           [

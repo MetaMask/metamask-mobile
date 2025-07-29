@@ -40,6 +40,7 @@ import type {
   SubscribePricesParams,
   SwitchProviderResult,
   ToggleTestnetResult,
+  UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
 } from './types';
@@ -504,6 +505,24 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Update TP/SL for an existing position
+   */
+  async updatePositionTPSL(
+    params: UpdatePositionTPSLParams,
+  ): Promise<OrderResult> {
+    const provider = this.getActiveProvider();
+    const result = await provider.updatePositionTPSL(params);
+
+    if (result.success) {
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+      });
+    }
+
+    return result;
+  }
+
+  /**
    * Deposit funds to trading account
    * Routes deposits based on chain compatibility:
    * - Same chain (Arbitrum): Direct ERC20 transfer to HyperLiquid contract
@@ -786,6 +805,42 @@ export class PerpsController extends BaseController<
       // Re-throw the error so components can handle it appropriately
       throw error;
     }
+  }
+
+  /**
+   * Calculate liquidation price for a position
+   * Uses provider-specific formulas based on protocol rules
+   */
+  async calculateLiquidationPrice(params: {
+    entryPrice: number;
+    leverage: number;
+    direction: 'long' | 'short';
+    positionSize?: number;
+    marginType?: 'isolated' | 'cross';
+    asset?: string;
+  }): Promise<string> {
+    const provider = this.getActiveProvider();
+    return provider.calculateLiquidationPrice(params);
+  }
+
+  /**
+   * Calculate maintenance margin for a specific asset
+   * Returns a percentage (e.g., 0.0125 for 1.25%)
+   */
+  async calculateMaintenanceMargin(params: {
+    asset: string;
+    positionSize?: number;
+  }): Promise<number> {
+    const provider = this.getActiveProvider();
+    return provider.calculateMaintenanceMargin(params);
+  }
+
+  /**
+   * Get maximum leverage allowed for an asset
+   */
+  async getMaxLeverage(asset: string): Promise<number> {
+    const provider = this.getActiveProvider();
+    return provider.getMaxLeverage(asset);
   }
 
   /**
@@ -1133,6 +1188,10 @@ export class PerpsController extends BaseController<
 
     const provider = this.getActiveProvider();
     await provider.disconnect();
+
+    // Reset initialization state to ensure proper reconnection
+    this.isInitialized = false;
+    this.initializationPromise = null;
   }
 
   /**
