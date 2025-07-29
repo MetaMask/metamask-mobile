@@ -3,7 +3,11 @@ import { type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { getBridgeInfo, getChainId } from '../../constants/hyperLiquidConfig';
+import {
+  getBridgeInfo,
+  getChainId,
+  HYPERLIQUID_WITHDRAWAL_MINUTES,
+} from '../../constants/hyperLiquidConfig';
 import {
   PERPS_CONSTANTS,
   WITHDRAWAL_CONSTANTS,
@@ -144,7 +148,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
       contractAddress: bridgeInfo.contractAddress,
       constraints: {
         minAmount: WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
-        estimatedTime: WITHDRAWAL_CONSTANTS.DEFAULT_ESTIMATED_TIME,
+        estimatedTime: strings('time.minutes_format', {
+          count: HYPERLIQUID_WITHDRAWAL_MINUTES,
+        }),
         fees: {
           fixed: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT,
           token: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_TOKEN,

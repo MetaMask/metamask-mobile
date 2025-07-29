@@ -5,7 +5,6 @@ import {
   HYPERLIQUID_ASSET_CONFIGS,
   METAMASK_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
-  WITHDRAWAL_ESTIMATED_TIME,
 } from '../constants/hyperLiquidConfig';
 import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
 
@@ -69,9 +68,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
       networkFee: networkFeeDisplay,
       metamaskFee: METAMASK_WITHDRAWAL_FEE_PLACEHOLDER, // "$0.00"
       totalFees: totalFeesDisplay,
-      estimatedTime:
-        withdrawalRoute?.constraints?.estimatedTime ||
-        WITHDRAWAL_ESTIMATED_TIME,
+      estimatedTime: withdrawalRoute?.constraints?.estimatedTime || '',
       receivingAmount: `${receivingAmount.toFixed(2)} USDC`,
     };
   }, [amount, withdrawalRoute]);

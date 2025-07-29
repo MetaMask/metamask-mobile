@@ -10,11 +10,11 @@ export const PERPS_CONSTANTS = {
 } as const;
 
 /**
- * Withdrawal-specific constants
+ * Withdrawal-specific constants (protocol-agnostic)
+ * Note: Protocol-specific values like estimated time should be defined in each protocol's config
  */
 export const WITHDRAWAL_CONSTANTS = {
   DEFAULT_MIN_AMOUNT: '1.01', // Default minimum withdrawal amount in USDC
   DEFAULT_FEE_AMOUNT: 1, // Default withdrawal fee in USDC
   DEFAULT_FEE_TOKEN: 'USDC', // Default fee token
-  DEFAULT_ESTIMATED_TIME: '5 minutes', // Default estimated withdrawal time
 } as const;

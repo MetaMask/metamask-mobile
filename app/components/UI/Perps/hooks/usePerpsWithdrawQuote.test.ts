@@ -8,14 +8,18 @@ import {
   HYPERLIQUID_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
-  WITHDRAWAL_ESTIMATED_TIME,
 } from '../constants/hyperLiquidConfig';
 
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: { minAmount?: number }) => {
+  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'perps.withdrawal.amount_too_low' && params?.minAmount) {
       return `Amount must be greater than $${params.minAmount} to cover fees`;
+    }
+    if (key === 'time.minutes_format' && params?.count) {
+      return params.count === 1
+        ? `${params.count} minute`
+        : `${params.count} minutes`;
     }
     return key;
   }),
@@ -28,7 +32,7 @@ jest.mock('../../../../core/Engine', () => ({
       getWithdrawalRoutes: jest.fn().mockReturnValue([
         {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+            'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
           chainId: 'eip155:42161',
           contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
           constraints: {
@@ -65,7 +69,7 @@ describe('usePerpsWithdrawQuote', () => {
         networkFee: '$1.00',
         metamaskFee: METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
         totalFees: '$1.00',
-        estimatedTime: WITHDRAWAL_ESTIMATED_TIME,
+        estimatedTime: '5 minutes',
         receivingAmount: '99.00 USDC',
       });
     });

@@ -22,6 +22,16 @@ import {
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
 jest.mock('../../services/HyperLiquidSubscriptionService');
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
+    if (key === 'time.minutes_format' && params?.count) {
+      return params.count === 1
+        ? `${params.count} minute`
+        : `${params.count} minutes`;
+    }
+    return key;
+  }),
+}));
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     AccountsController: {

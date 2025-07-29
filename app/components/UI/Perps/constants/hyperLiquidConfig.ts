@@ -131,6 +131,9 @@ export const DEPOSIT_CONFIG = {
   },
 };
 
+// Withdrawal constants (HyperLiquid-specific)
+export const HYPERLIQUID_WITHDRAWAL_MINUTES = 5; // HyperLiquid withdrawal processing time in minutes
+
 // Type helpers
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;
 

@@ -5078,5 +5078,9 @@
   },
   "pay_with_modal": {
     "title": "Select payment method"
+  },
+  "time": {
+    "minutes_format": "{{count}} minute",
+    "minutes_format_plural": "{{count}} minutes"
   }
 }
