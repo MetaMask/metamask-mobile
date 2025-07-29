@@ -53,14 +53,11 @@ export const getFiatDisplayValueFn = ({
   currentCurrency: string;
   amount?: string;
 }) => {
-  if (amount === '') {
-    return amount;
-  }
   return `${getCurrencySymbol(currentCurrency)} ${getFiatValueFn({
     asset,
     conversionRate,
     contractExchangeRates,
-    amount,
+    amount: amount ?? '0',
     decimals: 2,
   })}`;
 };
@@ -82,7 +79,7 @@ export const getNativeValueFn = ({
     ? contractExchangeRates?.[asset?.address as Hex]?.price ?? 1
     : 1;
   const nativeValue =
-    parseFloat(amount ?? '0') / ((conversionRate ?? 1) * exchangeRate);
+    (amount ? parseFloat(amount) : 0) / ((conversionRate ?? 1) * exchangeRate);
   return decimals !== undefined
     ? limitToMaximumDecimalPlaces(nativeValue, decimals)
     : nativeValue;
@@ -99,14 +96,11 @@ export const getNativeDisplayValueFn = ({
   contractExchangeRates: Record<Hex, { price: number }>;
   amount?: string;
 }) => {
-  if (amount === '') {
-    return amount;
-  }
   return `${asset?.symbol} ${getNativeValueFn({
     asset,
     conversionRate,
     contractExchangeRates,
-    amount,
+    amount: amount ?? '0',
     decimals: 5,
   })}`;
 };

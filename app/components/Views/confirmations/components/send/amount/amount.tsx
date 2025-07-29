@@ -74,13 +74,13 @@ const Amount = () => {
         onChangeText={updateToNewAmount}
         testID="send_amount"
       />
-      <Text>
-        {fiatMode ? 'Native value' : 'Fiat value'}: {alternateDisplayValue}
-      </Text>
-      <Checkbox
-        label="Fiat mode"
-        isChecked={fiatMode}
-        onPressIn={toggleFiatMode}
+      <Text>{fiatMode ? 'Native value' : 'Fiat value'}:</Text>
+      <Text>{alternateDisplayValue}</Text>
+      <Button
+        label={fiatMode ? 'Native mode' : 'Fiat mode'}
+        onPress={toggleFiatMode}
+        variant={ButtonVariants.Secondary}
+        testID="fiat_toggle"
       />
       <Text color={TextColor.Error}>{amountError}</Text>
       <Button
