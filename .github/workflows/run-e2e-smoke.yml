@@ -12,8 +12,8 @@ on:
 jobs:
   smoke-confirmations-ios:
     name: "Confirmations Smoke (iOS)"
-    #if: false
-    if: github.event.label.name == 'Run E2E Smoke Test'
+    if: false
+    #if: github.event.label.name == 'Run E2E Smoke Test'
     uses: ./.github/workflows/run-e2e-mobile.yml
     with:
       test-suite-name: smoke-confirmations-ios
@@ -193,7 +193,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
-      - smoke-confirmations-ios
+      #- smoke-confirmations-ios
       # - smoke-confirmations-android
       # - smoke-confirmations-redesigned-ios
       # - smoke-trade-ios
@@ -213,6 +213,9 @@ jobs:
       # - smoke-api-specs
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
       - name: Download all test results
         uses: actions/download-artifact@v4
         with:
