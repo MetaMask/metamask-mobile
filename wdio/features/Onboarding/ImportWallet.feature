@@ -11,9 +11,8 @@ Feature: Onboarding Import Wallet
     When I agree to terms
     Then Terms of Use is not displayed
     Then Wallet setup screen is displayed
+    When I tap "Have an existing wallet"
     When I tap "Import using Secret Recovery Phrase"
-    Then "Help us improve MetaMask" is displayed
-    And On Wallet Setup Screen I tap "Agree"
     And "Import from Secret Recovery Phrase" is displayed
 
 #  Scenario Outline: Invalid SRP
@@ -54,5 +53,7 @@ Feature: Onboarding Import Wallet
       | fold media south add since false relax immense pause cloth just raven | Metapass12345!@ |
 
    Scenario Outline: Finish flow
+    Then "Help us improve MetaMask" is displayed
+    And On Wallet Setup Screen I tap "Agree"
     And I tap "Done"
     Then I am on the main wallet view

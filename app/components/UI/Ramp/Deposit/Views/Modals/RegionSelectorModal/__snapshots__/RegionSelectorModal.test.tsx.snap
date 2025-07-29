@@ -685,7 +685,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "maxHeight": 533.6,
+                                "height": 533.6,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -1806,7 +1806,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "maxHeight": 533.6,
+                                "height": 533.6,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -2541,7 +2541,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "maxHeight": 533.6,
+                                "height": 533.6,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}

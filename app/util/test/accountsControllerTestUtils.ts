@@ -52,7 +52,7 @@ function getAccountTypeScopes(
   accountType: Omit<KeyringAccountType, AnyAccountType.Account>,
 ): CaipChainId[] {
   // Define scope mappings
-  const scopeMappings = {
+  const scopeMappings: Record<KeyringAccountType, CaipChainId[]> = {
     // Ethereum account types
     [EthAccountType.Eoa]: [EthScope.Eoa],
     [EthAccountType.Erc4337]: [EthScope.Testnet],
@@ -65,6 +65,12 @@ function getAccountTypeScopes(
 
     // Solana account types
     [SolAccountType.DataAccount]: [SolScope.Mainnet],
+
+    // Generic account type
+    //
+    // This account type is valid only in Flask and is intended to be used
+    // only during the integration of new blockchains.
+    [AnyAccountType.Account]: ['any:scope'],
   };
 
   const scopes = scopeMappings[accountType as keyof typeof scopeMappings];

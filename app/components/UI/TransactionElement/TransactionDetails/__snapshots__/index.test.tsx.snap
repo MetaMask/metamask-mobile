@@ -1521,7 +1521,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             }
                           }
                         >
-                          VIEW ON Etherscan
+                          View on Etherscan
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -3058,7 +3058,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           }
                         >
-                          VIEW ON Etherscan
+                          View on Etherscan
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -4595,7 +4595,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           }
                         >
-                          VIEW ON Etherscan
+                          View on Etherscan
                         </Text>
                       </TouchableOpacity>
                     </View>

@@ -161,6 +161,7 @@ export const mockEvents = {
     defiPositionsError: {
       urlEndpoint:
         'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      response: { error: 'Internal server error' },
       responseCode: 500,
     },
 
@@ -171,20 +172,20 @@ export const mockEvents = {
       responseCode: 200,
     },
 
-    remoteFeatureMultichainAccountsAccountDetails: {
+    remoteFeatureMultichainAccountsAccountDetails: (enabled = true) => ({
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
       response: [
         {
           enableMultichainAccounts: {
-            enabled: true,
+            enabled,
             featureVersion: '1',
             minimumVersion: '7.46.0',
           },
         },
       ],
       responseCode: 200,
-    },
+    }),
 
     remoteFeatureEip7702: {
       urlEndpoint:
