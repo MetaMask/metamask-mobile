@@ -10,7 +10,7 @@ import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
 
 export type TransactionBridgeQuote = QuoteResponse & QuoteMetadata;
 
-const QUOTE_TIMEOUT = 5000; // 5 Seconds
+const QUOTE_TIMEOUT = 1000 * 10; // 10 Seconds
 
 const log = createProjectLogger('confirmation-bridge-utils');
 
@@ -101,7 +101,7 @@ function waitForQuoteOrTimeout(
   targetTokenAddress: Hex,
 ): Promise<TransactionBridgeQuote | undefined> {
   return new Promise<TransactionBridgeQuote>((resolve, reject) => {
-    Engine.controllerMessenger.subscribeOnceIf(
+    const handler = Engine.controllerMessenger.subscribeOnceIf(
       'BridgeController:stateChange',
       (controllerState) => {
         resolve(getActiveQuote(controllerState) as TransactionBridgeQuote);
@@ -115,11 +115,18 @@ function waitForQuoteOrTimeout(
 
         return isMatch;
       },
-      {
-        onTimeout: reject,
-        timeout: QUOTE_TIMEOUT,
-      },
     );
+
+    setTimeout(() => {
+      Engine.controllerMessenger.tryUnsubscribe(
+        'BridgeController:stateChange',
+        handler,
+      );
+
+      log('Bridge quote request timed out');
+
+      reject(new Error('Bridge quote request timed out'));
+    }, QUOTE_TIMEOUT);
   });
 }
 
