@@ -140,6 +140,11 @@ const EnterEmail = () => {
               placeholder={strings('deposit.enter_email.input_placeholder')}
               placeholderTextColor={theme.colors.text.muted}
               returnKeyType={'done'}
+              onSubmitEditing={() => {
+                if (validateEmail(email)) {
+                  handleSubmit();
+                }
+              }}
               autoCapitalize="none"
               ref={emailInputRef}
               onChangeText={handleTextChange}
