@@ -2673,7 +2673,7 @@ workflows:
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_ANDROID_FLASK_APP_URL
                 APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/flask/release/"$CUSTOM_ID".apk
-                mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
+                cp "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_flask_apps.json
       - deploy-to-bitrise-io@2.2.3:
@@ -2698,7 +2698,7 @@ workflows:
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
 
-                mv "$ORIGINAL_APK" "$APK_DIR/$CUSTOM_ID.apk"
+                cp "$ORIGINAL_APK" "$APK_DIR/$CUSTOM_ID.apk"
                 APK_PATH="$APK_DIR/$CUSTOM_ID.apk"
 
                 # Upload to app-automate
@@ -3174,7 +3174,7 @@ workflows:
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
 
-                mv "$ORIGINAL_IPA" "$IPA_DIR/$CUSTOM_ID.ipa"
+                cp "$ORIGINAL_IPA" "$IPA_DIR/$CUSTOM_ID.ipa"
                 IPA_PATH="$IPA_DIR/$CUSTOM_ID.ipa"
 
                 # Upload to app-automate
@@ -3302,7 +3302,7 @@ workflows:
                 IPA_PATH=ios/build/output/MetaMask-Flask.ipa
                 IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_IOS_FLASK_APP_URL
-                mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
+                cp "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_flask_apps.json
       - share-pipeline-variable@1:
