@@ -4,7 +4,6 @@ import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNodeType } from '../../framework/types';
 import { Regression } from '../../tags';
 import Assertions from '../../framework/Assertions';
 
@@ -61,12 +60,7 @@ describe(Regression('Unified UI Asset Details Actions'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
-        localNodeOptions: [
-          {
-            type: LocalNodeType.ganache,
-            options: defaultGanacheOptions,
-          },
-        ],
+        restartDevice: true,
       },
       async () => {
         await loginToApp();
