@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NavigationProp } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
@@ -12,6 +9,7 @@ import RewardsHero from './RewardsHero';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import RewardsDashboard from './RewardsDashboard';
+import { useRewardsAuth } from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsAuth';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -30,8 +28,7 @@ const RewardsView: React.FC = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  // Mock signed-in state
-  const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
+  const { isLoggedIn, login, logout } = useRewardsAuth();
 
   useEffect(() => {
     navigation.setOptions(
@@ -44,26 +41,16 @@ const RewardsView: React.FC = () => {
     );
   }, [colors, navigation]);
 
-  console.log('isSignedIn', isSignedIn);
-
-  const handleOptIn = (): void => {
-    setIsSignedIn(true);
-  };
-
-  const handleSignOut = (): void => {
-    setIsSignedIn(false);
-  };
-
   return (
     <SafeAreaView style={styles.wrapper}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={{ flexGrow: 1 }}
       >
-        {isSignedIn ? (
-          <RewardsDashboard handleSignOut={handleSignOut} />
+        {isLoggedIn ? (
+          <RewardsDashboard handleSignOut={logout} />
         ) : (
-          <RewardsHero onOptIn={handleOptIn} />
+          <RewardsHero onOptIn={login} />
         )}
       </ScrollView>
     </SafeAreaView>
