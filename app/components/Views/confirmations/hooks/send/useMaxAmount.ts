@@ -78,7 +78,7 @@ export const getMaxValueFn = ({
 const useMaxAmount = () => {
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
-  const { asset, chainId, from, updateValue } = useSendContext();
+  const { asset, chainId, from } = useSendContext();
   const { NetworkController } = Engine.context;
   const networkClientId = useMemo(
     () =>
