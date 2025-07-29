@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
 import { getCardholder } from '../../../../components/UI/Card/util/getCardholder';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 
 export interface CardSliceState {
   cardholderAccounts: string[];
@@ -94,14 +93,6 @@ export const selectCardError = createSelector(
 export const selectCardLastUpdated = createSelector(
   [selectCardState],
   (card) => card.lastUpdated,
-);
-
-export const selectShowCardButton = createSelector(
-  [selectCardState, selectSelectedInternalAccountFormattedAddress],
-  (card, selectedAccount) =>
-    Boolean(
-      selectedAccount && card?.cardholderAccounts?.includes(selectedAccount),
-    ),
 );
 
 // Actions
