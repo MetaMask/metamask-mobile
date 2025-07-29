@@ -56,10 +56,14 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkClientId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectNativeCurrencyByChainId,
 } from '../../../selectors/networkController';
-import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import {
+  selectNetworkName,
+  selectNetworkImageSource,
+} from '../../../selectors/networkInfos';
 import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
@@ -288,6 +292,7 @@ const Wallet = ({
   const { colors } = theme;
   const dispatch = useDispatch();
 
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -545,24 +550,11 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
+  const name = useSelector(selectNetworkName);
+  const networkName = networkConfigurations?.[chainId]?.name ?? name;
+
+  const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
-
-  // Get network information
-  const { networkName, networkImageSource } = useNetworkInfo();
-
-  // Handler for network picker press
-  const onPressTitle = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [navigation, trackEvent, createEventBuilder, chainId]);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
@@ -589,6 +581,22 @@ const Wallet = ({
    * Show multi rpc modal if there are networks duplicated and if never showed before
    */
   useCheckMultiRpcModal();
+
+  /**
+   * Callback to trigger when pressing the navigation title.
+   */
+  const onTitlePress = useCallback(() => {
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   /**
    * Handle network filter called when app is mounted and tokenNetworkFilter is empty
@@ -675,7 +683,7 @@ const Wallet = ({
         accountAvatarType,
         networkName,
         networkImageSource,
-        onPressTitle,
+        onTitlePress,
         navigation,
         colors,
         isNotificationEnabled,
@@ -688,11 +696,11 @@ const Wallet = ({
     selectedInternalAccount,
     accountName,
     accountAvatarType,
+    navigation,
+    colors,
     networkName,
     networkImageSource,
     onPressTitle,
-    navigation,
-    colors,
     isNotificationEnabled,
     isBackupAndSyncEnabled,
     unreadNotificationCount,
