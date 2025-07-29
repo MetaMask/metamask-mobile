@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v4
 
       # Install Android SDK, Node.js, and other Android development dependencies
-      - name: Setup E2E Android Environment
+      - name: Installing Android Environment Setup
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
         with:
           platform: android
@@ -154,5 +154,5 @@ jobs:
           echo "- 📦 Source Map: ${{ steps.upload-sourcemap.outcome }}"
 
         env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: "${{ github.repository }}"
+          GITHUB_RUN_ID: "${{ github.run_id }}"
