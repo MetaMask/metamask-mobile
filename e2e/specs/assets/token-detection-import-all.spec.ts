@@ -6,11 +6,9 @@ import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { defaultGanacheOptions } from '../../framework/Constants';
-import { LocalNodeType } from '../../framework/types';
 
 const ETHEREUM_NAME = 'Ethereum';
-const USDC_NAME = 'USD Coin';
+const USDC_NAME = 'USDCoin';
 
 describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
   beforeAll(async () => {
@@ -33,12 +31,6 @@ describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
           ])
           .build(),
         restartDevice: true,
-        localNodeOptions: [
-          {
-            type: LocalNodeType.ganache,
-            options: defaultGanacheOptions,
-          },
-        ],
       },
       async () => {
         await loginToApp();
