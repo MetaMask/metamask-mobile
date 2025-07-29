@@ -233,5 +233,41 @@ describe('PerpsQuoteDetailsCard', () => {
 
       expect(getByText('perps.quote.network_fee')).toBeTruthy();
     });
+
+    it('should use deposit tooltip when direction is deposit', () => {
+      const mockStrings = jest.fn((key: string) => key);
+      jest.mocked(jest.requireMock('../../../../../../locales/i18n')).strings =
+        mockStrings;
+
+      const props = {
+        ...defaultProps,
+        direction: 'deposit' as const,
+      };
+
+      renderWithProvider(<PerpsQuoteDetailsCard {...props} />);
+
+      // The component should call strings with the deposit-specific tooltip key
+      expect(mockStrings).toHaveBeenCalledWith(
+        'perps.quote.metamask_fee_tooltip_deposit',
+      );
+    });
+
+    it('should use withdrawal tooltip when direction is withdrawal', () => {
+      const mockStrings = jest.fn((key: string) => key);
+      jest.mocked(jest.requireMock('../../../../../../locales/i18n')).strings =
+        mockStrings;
+
+      const props = {
+        ...defaultProps,
+        direction: 'withdrawal' as const,
+      };
+
+      renderWithProvider(<PerpsQuoteDetailsCard {...props} />);
+
+      // The component should call strings with the withdrawal-specific tooltip key
+      expect(mockStrings).toHaveBeenCalledWith(
+        'perps.quote.metamask_fee_tooltip_withdrawal',
+      );
+    });
   });
 });

@@ -999,6 +999,7 @@
         "amountPositive": "Amount must be a positive number"
       },
       "withdrawValidation": {
+        "missingParams": "Missing required parameters for withdrawal",
         "assetIdRequired": "assetId is required for withdrawals",
         "amountRequired": "amount is required for withdrawals",
         "amountPositive": "Amount must be a positive number",

@@ -664,39 +664,7 @@ export class PerpsController extends BaseController<
         isTestnet: this.state.isTestnet,
       });
 
-      // Validate required parameters
-      if (!params.assetId) {
-        const error = strings(
-          'perps.errors.withdrawValidation.assetIdRequired',
-        );
-        DevLogger.log('❌ PerpsController: WITHDRAWAL VALIDATION FAILED', {
-          error,
-          reason: 'Missing assetId',
-          params,
-        });
-        this.update((state) => {
-          state.lastError = error;
-          state.lastUpdateTimestamp = Date.now();
-        });
-        return { success: false, error };
-      }
-
-      if (!params.amount || parseFloat(params.amount) <= 0) {
-        const error = strings('perps.errors.withdrawValidation.amountPositive');
-        DevLogger.log('❌ PerpsController: WITHDRAWAL VALIDATION FAILED', {
-          error,
-          reason: 'Invalid amount',
-          amount: params.amount,
-          params,
-        });
-        this.update((state) => {
-          state.lastError = error;
-          state.lastUpdateTimestamp = Date.now();
-        });
-        return { success: false, error };
-      }
-
-      // Get provider
+      // Get provider (all validation is handled at the provider level)
       const provider = this.getActiveProvider();
       DevLogger.log('📡 PerpsController: DELEGATING TO PROVIDER', {
         provider: this.state.activeProvider,

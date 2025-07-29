@@ -9,6 +9,7 @@ import type { PerpsToken } from '../components/PerpsTokenSelector';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
   HYPERLIQUID_MAINNET_CHAIN_ID,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
   USDC_DECIMALS,
   USDC_NAME,
   USDC_SYMBOL,
@@ -17,6 +18,9 @@ import {
 import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
 
 /**
+ * TODO: make the hook dynamic once we manage multiple perps provider.
+ * Currently speicifc to hyperliquid.
+ *
  * Hook to manage source and destination tokens for withdrawal
  * @returns Source and destination token configurations
  */
@@ -58,7 +62,7 @@ export const useWithdrawTokens = () => {
 
     const baseToken: PerpsToken = {
       symbol: USDC_SYMBOL,
-      address: ZERO_ADDRESS, // Will be actual USDC address on Arbitrum
+      address: USDC_ARBITRUM_MAINNET_ADDRESS,
       decimals: USDC_DECIMALS,
       name: USDC_NAME,
       chainId: arbitrumChainId,

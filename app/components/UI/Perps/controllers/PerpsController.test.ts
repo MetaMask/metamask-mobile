@@ -899,6 +899,11 @@ describe('PerpsController', () => {
       };
 
       withController(async ({ controller }) => {
+        // Mock the withdraw method to return an error for missing assetId
+        mockHyperLiquidProvider.withdraw.mockResolvedValue({
+          success: false,
+          error: 'assetId is required for withdrawals',
+        });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         await controller.initializeProviders();
 
@@ -910,8 +915,10 @@ describe('PerpsController', () => {
           'assetId is required for withdrawals',
         );
 
-        // Provider should not be called when validation fails
-        expect(mockHyperLiquidProvider.withdraw).not.toHaveBeenCalled();
+        // Provider should be called since controller doesn't validate
+        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
+          withdrawParams,
+        );
       });
     });
 
@@ -924,6 +931,20 @@ describe('PerpsController', () => {
       };
 
       withController(async ({ controller }) => {
+        // Mock the withdraw method to return validation errors
+        mockHyperLiquidProvider.withdraw
+          .mockResolvedValueOnce({
+            success: false,
+            error: 'Amount must be a positive number',
+          })
+          .mockResolvedValueOnce({
+            success: false,
+            error: 'Amount must be a positive number',
+          })
+          .mockResolvedValueOnce({
+            success: false,
+            error: 'Amount must be a positive number',
+          });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         await controller.initializeProviders();
 
@@ -957,8 +978,8 @@ describe('PerpsController', () => {
           'Amount must be a positive number',
         );
 
-        // Provider should not be called when validation fails
-        expect(mockHyperLiquidProvider.withdraw).not.toHaveBeenCalled();
+        // Provider should be called since controller doesn't validate
+        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledTimes(3);
       });
     });
 
