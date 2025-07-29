@@ -176,11 +176,16 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
 
         const checkWalletSecurityReminderDismissed = softAssert.checkAndCollect(
           async () => {
-            Assertions.checkIfValueIsDefined(walletSecurityReminderDismissedEvent);
-            Assertions.checkIfObjectsMatch(walletSecurityReminderDismissedEvent!.properties, {
-              wallet_protection_required: false,
-              source: 'Backup Alert',
-            });
+            Assertions.checkIfValueIsDefined(
+              walletSecurityReminderDismissedEvent,
+            );
+            Assertions.checkIfObjectsMatch(
+              walletSecurityReminderDismissedEvent!.properties,
+              {
+                wallet_protection_required: false,
+                source: 'Backup Alert',
+              },
+            );
           },
           'Wallet Security Reminder Dismissed: Should be present with correct properties',
         );
