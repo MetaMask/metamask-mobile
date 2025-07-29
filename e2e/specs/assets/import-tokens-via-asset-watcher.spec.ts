@@ -1,20 +1,17 @@
-('use strict');
 import { SmokeNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import { buildPermissions } from '../../fixtures/utils';
+import { DappVariants } from '../../framework/Constants';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -29,7 +26,11 @@ describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
   it('Should Import ERC20 Token via Dapp', async () => {
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
@@ -37,11 +38,10 @@ describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
           )
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-        smartContract: ERC20_CONTRACT,
+        smartContracts: [ERC20_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const hstAddress = await contractRegistry.getContractAddress(
+        const hstAddress = await contractRegistry?.getContractAddress(
           ERC20_CONTRACT,
         );
         await loginToApp();
@@ -51,15 +51,20 @@ describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
-        await TestHelpers.delay(3000); // Because loading the dapp is slow on CI
 
         await TestDApp.tapAddERC20TokenToWalletButton();
-        await Assertions.checkIfVisible(AssetWatchBottomSheet.container);
+        await Assertions.expectElementToBeVisible(
+          AssetWatchBottomSheet.container,
+        );
         await AssetWatchBottomSheet.tapAddTokenButton();
-        await Assertions.checkIfNotVisible(AssetWatchBottomSheet.container);
+        await Assertions.expectElementToNotBeVisible(
+          AssetWatchBottomSheet.container,
+        );
 
         await TabBarComponent.tapWallet();
-        await Assertions.checkIfVisible(WalletView.tokenInWallet('100 TST'));
+        await Assertions.expectElementToBeVisible(
+          WalletView.tokenInWallet('100 TST'),
+        );
       },
     );
   });
