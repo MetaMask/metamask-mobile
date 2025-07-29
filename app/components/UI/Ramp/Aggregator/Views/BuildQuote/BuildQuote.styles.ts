@@ -25,6 +25,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 50,
       backgroundColor: colors.background.alternative,
     },
+    keypad: {
+      paddingHorizontal: 16,
+    },
     cta: {
       paddingTop: 12,
     },

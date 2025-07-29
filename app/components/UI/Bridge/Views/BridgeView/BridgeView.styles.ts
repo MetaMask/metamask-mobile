@@ -62,7 +62,7 @@ export const createStyles = (params: { theme: Theme }) => {
       paddingBottom: 8,
     },
     keypad: {
-      paddingHorizontal: 4,
+      paddingHorizontal: 24,
     },
     destinationAccountSelectorContainer: {
       paddingBottom: 12,
