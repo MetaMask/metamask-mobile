@@ -8,9 +8,11 @@ import Engine from '../../../../core/Engine';
 import { ExtendedControllerMessenger } from '../../../../core/ExtendedControllerMessenger';
 import { BridgeQuoteRequest, getBridgeQuotes } from './bridge';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/redux/slices/bridge');
+jest.mock('../../../../selectors/smartTransactionsController');
 
 jest.useFakeTimers();
 
@@ -46,6 +48,9 @@ const QUOTE_2_MOCK = {
 
 describe('Confirmations Bridge Utils', () => {
   const selectBridgeQuotesMock = jest.mocked(selectBridgeQuotes);
+  const selectShouldUseSmartTransactionMock = jest.mocked(
+    selectShouldUseSmartTransaction,
+  );
   const engineMock = jest.mocked(Engine);
   let messengerMock: ExtendedControllerMessenger<never, BridgeControllerEvents>;
   let bridgeControllerMock: jest.Mocked<BridgeController>;
@@ -70,34 +75,36 @@ describe('Confirmations Bridge Utils', () => {
             state.engine.backgroundState.BridgeController.quotes[0],
         } as never),
     );
+
+    bridgeControllerMock.updateBridgeQuoteRequestParams
+      .mockImplementationOnce(() => {
+        messengerMock.publish(
+          'BridgeController:stateChange',
+          {
+            quotes: [QUOTE_1_MOCK],
+          } as BridgeControllerState,
+          [],
+        );
+
+        return Promise.resolve();
+      })
+      .mockImplementationOnce(() => {
+        messengerMock.publish(
+          'BridgeController:stateChange',
+          {
+            quotes: [QUOTE_2_MOCK],
+          } as BridgeControllerState,
+          [],
+        );
+
+        return Promise.resolve();
+      });
+
+    selectShouldUseSmartTransactionMock.mockReturnValue(false);
   });
 
   describe('getBridgeQuotes', () => {
     it('returns quotes', async () => {
-      bridgeControllerMock.updateBridgeQuoteRequestParams
-        .mockImplementationOnce(() => {
-          messengerMock.publish(
-            'BridgeController:stateChange',
-            {
-              quotes: [QUOTE_1_MOCK],
-            } as BridgeControllerState,
-            [],
-          );
-
-          return Promise.resolve();
-        })
-        .mockImplementationOnce(() => {
-          messengerMock.publish(
-            'BridgeController:stateChange',
-            {
-              quotes: [QUOTE_2_MOCK],
-            } as BridgeControllerState,
-            [],
-          );
-
-          return Promise.resolve();
-        });
-
       const quotesPromise = getBridgeQuotes([
         QUOTE_REQUEST_1_MOCK,
         QUOTE_REQUEST_2_MOCK,
@@ -109,6 +116,8 @@ describe('Confirmations Bridge Utils', () => {
     });
 
     it('returns empty array if quotes not found after timeout', async () => {
+      bridgeControllerMock.updateBridgeQuoteRequestParams.mockReset();
+
       const quotesPromise = getBridgeQuotes([
         QUOTE_REQUEST_1_MOCK,
         QUOTE_REQUEST_2_MOCK,
@@ -122,6 +131,7 @@ describe('Confirmations Bridge Utils', () => {
     });
 
     it('returns empty array if quotes do not match request', async () => {
+      bridgeControllerMock.updateBridgeQuoteRequestParams.mockReset();
       bridgeControllerMock.updateBridgeQuoteRequestParams
         .mockImplementationOnce(() => {
           messengerMock.publish(
@@ -159,30 +169,6 @@ describe('Confirmations Bridge Utils', () => {
     });
 
     it('updates bridge request parameters', async () => {
-      bridgeControllerMock.updateBridgeQuoteRequestParams
-        .mockImplementationOnce(() => {
-          messengerMock.publish(
-            'BridgeController:stateChange',
-            {
-              quotes: [QUOTE_1_MOCK],
-            } as BridgeControllerState,
-            [],
-          );
-
-          return Promise.resolve();
-        })
-        .mockImplementationOnce(() => {
-          messengerMock.publish(
-            'BridgeController:stateChange',
-            {
-              quotes: [QUOTE_2_MOCK],
-            } as BridgeControllerState,
-            [],
-          );
-
-          return Promise.resolve();
-        });
-
       const quotesPromise = getBridgeQuotes([
         QUOTE_REQUEST_1_MOCK,
         QUOTE_REQUEST_2_MOCK,
@@ -218,5 +204,32 @@ describe('Confirmations Bridge Utils', () => {
         expect.any(Object),
       );
     });
+  });
+
+  it('sets smart transactions enabled in request parameters', async () => {
+    selectShouldUseSmartTransactionMock.mockReset();
+    selectShouldUseSmartTransactionMock
+      .mockReturnValueOnce(true)
+      .mockReturnValueOnce(false);
+
+    await getBridgeQuotes([QUOTE_REQUEST_1_MOCK, QUOTE_REQUEST_2_MOCK]);
+
+    expect(
+      bridgeControllerMock.updateBridgeQuoteRequestParams,
+    ).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        stx_enabled: true,
+      }),
+    );
+
+    expect(
+      bridgeControllerMock.updateBridgeQuoteRequestParams,
+    ).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        stx_enabled: false,
+      }),
+    );
   });
 });
