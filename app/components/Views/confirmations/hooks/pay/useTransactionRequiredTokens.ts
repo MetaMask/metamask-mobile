@@ -48,11 +48,6 @@ export function useTransactionRequiredTokens() {
     chainId,
   );
 
-  finalTokens.push({
-    address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
-    amount: toHex(1000000),
-  });
-
   const result = useDeepMemo(() => finalTokens, [finalTokens]);
 
   useEffect(() => {
