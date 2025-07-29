@@ -221,7 +221,7 @@ jobs:
           merge-multiple: true
 
       - name: Post Test Report
-        uses: dorny/test-reporter@v2.1.1
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
           name: "E2E Smoke Test Results"
           path: "all-test-results/**/*.xml"
