@@ -92,7 +92,7 @@ module.exports = {
       type: 'ios.app',
       binaryPath:
         process.env.PREBUILT_IOS_APP_PATH || 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app',
-      build: 'yarn start:ios:e2e',
+      build: 'export CONFIGURATION="Debug" && yarn build:ios:main:e2e',
     },
     'ios.main.release': {
       type: 'ios.app',

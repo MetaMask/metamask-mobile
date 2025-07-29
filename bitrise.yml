@@ -2968,7 +2968,7 @@ workflows:
       - build_ios_main_prod
   build_ios_main_prod:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -2978,7 +2978,7 @@ workflows:
       - _ios_build_template
   build_ios_main_beta:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -2988,7 +2988,7 @@ workflows:
       - _ios_build_template
   build_ios_main_rc:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -2998,7 +2998,7 @@ workflows:
       - _ios_build_template
   build_ios_main_exp:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -3008,7 +3008,7 @@ workflows:
       - _ios_build_template
   build_ios_main_test:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:test'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -3018,7 +3018,7 @@ workflows:
       - _ios_build_template
   build_ios_main_e2e:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - IS_SIM_BUILD: 'true'
       - SHARE_WITH_DETOX: 'true'
       - NAME: $VERSION_NAME
@@ -3040,7 +3040,7 @@ workflows:
       - build_ios_main_rc
   build_ios_beta:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - METAMASK_BUILD_TYPE: "beta"
       - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
@@ -3055,7 +3055,7 @@ workflows:
       - build_ios_flask_prod
   build_ios_flask_prod:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
@@ -3065,7 +3065,7 @@ workflows:
       - _ios_build_template
   build_ios_flask_test:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
@@ -3075,7 +3075,7 @@ workflows:
       - _ios_build_template
   build_ios_flask_e2e:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - IS_SIM_BUILD: 'true'
       - SHARE_WITH_DETOX: 'true'
       - NAME: $FLASK_VERSION_NAME
@@ -3087,7 +3087,7 @@ workflows:
       - _ios_build_template
   build_ios_main_local:
     envs:
-      - BUILD_TYPE: 'Debug'
+      - CONFIGURATION: 'Debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'MetaMask'
@@ -3107,7 +3107,7 @@ workflows:
       - build_ios_main_local
   build_ios_flask_local:
     envs:
-      - BUILD_TYPE: 'Debug'
+      - CONFIGURATION: 'Debug'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
@@ -3126,7 +3126,7 @@ workflows:
       - build_ios_flask_local
   build_ios_qa_local:
     envs:
-      - BUILD_TYPE: 'Debug'
+      - CONFIGURATION: 'Debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
@@ -3145,7 +3145,7 @@ workflows:
       - build_ios_qa_local
   build_ios_qa_prod:
     envs:
-      - BUILD_TYPE: 'Release'
+      - CONFIGURATION: 'Release'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"

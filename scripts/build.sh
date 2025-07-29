@@ -170,7 +170,7 @@ remapEnvVariableE2E() {
 # Mapping for environmental values in the test environment. 
 # This is the same as the QA mapping since e2e used QA values before. Subject to change as build configs are updated.
 remapEnvVariableTest() {
-  	echo "Remapping E2E env variable names to match E2E values"
+  	echo "Remapping test env variable names to match test values"
   	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
@@ -429,7 +429,7 @@ buildIosDeviceFlask(){
 # Generates the iOS binary for the given scheme and configuration
 generateIosBinary() {
 	scheme="$1"
-	configuration="${BUILD_TYPE:-"Release"}"
+	configuration="${CONFIGURATION:-"Release"}"
 
 	if [ "$scheme" = "MetaMask" ] ; then
 		# Main target
