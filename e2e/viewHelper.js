@@ -266,12 +266,9 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await Assertions.checkIfVisible(OnboardingSuccessView.container);
   await OnboardingSuccessView.tapDone();
 
+  await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
-
-  // 'should dismiss the onboarding wizard'
-  // dealing with flakiness on bitrise.
-  await closeOnboardingModals('dismiss');
 };
 
 export const addLocalhostNetwork = async () => {
