@@ -1,4 +1,4 @@
-import { AccountGroup } from '@metamask/account-tree-controller';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
 import React from 'react';
 import { View } from 'react-native';
 import AccountCell from '.';
@@ -7,8 +7,8 @@ import { mockTheme } from '../../../../util/theme';
 const SAMPLE_ACCOUNT_GROUP = {
   metadata: { name: 'Account 1' },
   accounts: [],
-  id: 'keyring:test-group:ethereum' as const,
-} as AccountGroup;
+  id: 'keyring:test-group/ethereum' as const,
+} as AccountGroupObject;
 
 const MultichainAccountRowMeta = {
   title: 'Component Library / MultichainAccounts',
@@ -27,7 +27,7 @@ const MultichainAccountRowMeta = {
 export default MultichainAccountRowMeta;
 
 export const MultichainAddressSelectedRow = {
-  render: (args: { accountGroup: AccountGroup }) => (
+  render: (args: { accountGroup: AccountGroupObject }) => (
     <View
       // eslint-disable-next-line react-native/no-inline-styles
       style={{
@@ -43,7 +43,7 @@ export const MultichainAddressSelectedRow = {
 };
 
 export const MultichainAddressRow = {
-  render: (args: { accountGroup: AccountGroup; isSelected: boolean }) => (
+  render: (args: { accountGroup: AccountGroupObject; isSelected: boolean }) => (
     <View
       // eslint-disable-next-line react-native/no-inline-styles
       style={{

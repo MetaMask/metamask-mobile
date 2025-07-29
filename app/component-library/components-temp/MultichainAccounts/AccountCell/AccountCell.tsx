@@ -1,4 +1,4 @@
-import { AccountGroup } from '@metamask/account-tree-controller';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../hooks';
@@ -14,7 +14,7 @@ import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
 import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
 interface AccountCellProps {
-  accountGroup: AccountGroup;
+  accountGroup: AccountGroupObject;
   isSelected: boolean;
 }
 
