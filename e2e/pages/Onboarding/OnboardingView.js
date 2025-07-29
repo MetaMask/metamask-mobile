@@ -36,9 +36,7 @@ class OnboardingView {
             OnboardingSheet.importSeedButton,
           );
         } else {
-          await Utilities.waitForElementToDisappear(
-            this.existingWalletButton,
-          );
+          await Utilities.waitForElementToDisappear(this.existingWalletButton);
         }
       },
       {
