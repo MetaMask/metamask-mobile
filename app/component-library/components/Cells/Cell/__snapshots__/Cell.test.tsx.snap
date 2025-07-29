@@ -34,15 +34,10 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
     <View
       style={
         {
-          "0": {
-            "marginRight": 16,
-          },
-          "1": {
-            "borderRadius": 8,
-          },
           "backgroundColor": "#ffffff",
-          "borderRadius": 16,
+          "borderRadius": 8,
           "height": 32,
+          "marginRight": 16,
           "overflow": "hidden",
           "width": 32,
         }
@@ -346,15 +341,10 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
         <View
           style={
             {
-              "0": {
-                "marginRight": 16,
-              },
-              "1": {
-                "borderRadius": 8,
-              },
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
+              "marginRight": 16,
               "overflow": "hidden",
               "width": 32,
             }
@@ -622,15 +612,10 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
         <View
           style={
             {
-              "0": {
-                "marginRight": 16,
-              },
-              "1": {
-                "borderRadius": 8,
-              },
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
+              "marginRight": 16,
               "overflow": "hidden",
               "width": 32,
             }

@@ -372,15 +372,10 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                             <View
                               style={
                                 {
-                                  "0": {
-                                    "marginRight": 16,
-                                  },
-                                  "1": {
-                                    "borderRadius": 8,
-                                  },
                                   "backgroundColor": "#ffffff",
-                                  "borderRadius": 16,
+                                  "borderRadius": 8,
                                   "height": 32,
+                                  "marginRight": 16,
                                   "overflow": "hidden",
                                   "width": 32,
                                 }
@@ -1689,15 +1684,10 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                             <View
                               style={
                                 {
-                                  "0": {
-                                    "marginRight": 16,
-                                  },
-                                  "1": {
-                                    "borderRadius": 8,
-                                  },
                                   "backgroundColor": "#ffffff",
-                                  "borderRadius": 16,
+                                  "borderRadius": 8,
                                   "height": 32,
+                                  "marginRight": 16,
                                   "overflow": "hidden",
                                   "width": 32,
                                 }
@@ -3006,15 +2996,10 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             <View
                               style={
                                 {
-                                  "0": {
-                                    "marginRight": 16,
-                                  },
-                                  "1": {
-                                    "borderRadius": 8,
-                                  },
                                   "backgroundColor": "#ffffff",
-                                  "borderRadius": 16,
+                                  "borderRadius": 8,
                                   "height": 32,
+                                  "marginRight": 16,
                                   "overflow": "hidden",
                                   "width": 32,
                                 }
@@ -4323,15 +4308,10 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             <View
                               style={
                                 {
-                                  "0": {
-                                    "marginRight": 16,
-                                  },
-                                  "1": {
-                                    "borderRadius": 8,
-                                  },
                                   "backgroundColor": "#ffffff",
-                                  "borderRadius": 16,
+                                  "borderRadius": 8,
                                   "height": 32,
+                                  "marginRight": 16,
                                   "overflow": "hidden",
                                   "width": 32,
                                 }

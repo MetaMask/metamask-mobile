@@ -64,15 +64,10 @@ exports[`WalletAccount renders correctly 1`] = `
             <View
               style={
                 {
-                  "0": {
-                    "marginRight": 8,
-                  },
-                  "1": {
-                    "borderRadius": 4,
-                  },
                   "backgroundColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 4,
                   "height": 16,
+                  "marginRight": 8,
                   "overflow": "hidden",
                   "width": 16,
                 }

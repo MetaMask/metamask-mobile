@@ -9,6 +9,7 @@ import JazzIcon from 'react-native-jazzicon';
 import AvatarBase from '../../foundation/AvatarBase';
 import { toDataUrl } from '../../../../../../util/blockies';
 import { Maskicon } from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
 import { AvatarAccountProps, AvatarAccountType } from './AvatarAccount.types';
@@ -16,7 +17,6 @@ import stylesheet from './AvatarAccount.styles';
 import {
   DEFAULT_AVATARACCOUNT_TYPE,
   DEFAULT_AVATARACCOUNT_SIZE,
-  BORDERRADIUS_BY_AVATARSIZE,
 } from './AvatarAccount.constants';
 
 const AvatarAccount = ({
@@ -26,7 +26,10 @@ const AvatarAccount = ({
   style,
   ...props
 }: AvatarAccountProps) => {
-  const borderRadius = BORDERRADIUS_BY_AVATARSIZE[size];
+  const { styles } = useStyles(stylesheet, {
+    style,
+    size,
+  });
 
   const avatar = useMemo(() => {
     switch (avatarType) {
@@ -35,14 +38,14 @@ const AvatarAccount = ({
           <JazzIcon
             size={Number(size)}
             address={accountAddress}
-            containerStyle={{ borderRadius }}
+            containerStyle={styles.artStyle}
           />
         );
       case AvatarAccountType.Blockies:
         return (
           <RNImage
             source={{ uri: toDataUrl(accountAddress) }}
-            style={[stylesheet.imageStyle, { borderRadius }]}
+            style={[styles.imageStyle, styles.artStyle]}
           />
         );
       case AvatarAccountType.Maskicon:
@@ -50,23 +53,17 @@ const AvatarAccount = ({
           <Maskicon
             address={accountAddress}
             size={Number(size)}
-            style={{ borderRadius }}
+            style={styles.artStyle}
           />
         );
       default:
         avatarType satisfies never;
         return null;
     }
-  }, [avatarType, accountAddress, size, borderRadius]);
-
-  // Apply border radius to AvatarBase container as well for proper clipping
-  const avatarBaseStyle = useMemo(() => {
-    const borderRadiusStyle = { borderRadius };
-    return style ? [style, borderRadiusStyle] : borderRadiusStyle;
-  }, [style, borderRadius]);
+  }, [avatarType, accountAddress, size, styles.artStyle, styles.imageStyle]);
 
   return (
-    <AvatarBase size={size} style={avatarBaseStyle} {...props}>
+    <AvatarBase size={size} style={styles.avatarBase} {...props}>
       {avatar}
     </AvatarBase>
   );

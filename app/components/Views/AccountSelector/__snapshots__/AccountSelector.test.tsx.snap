@@ -897,15 +897,10 @@ exports[`AccountSelector should render correctly 1`] = `
                                                     <View
                                                       style={
                                                         {
-                                                          "0": {
-                                                            "marginRight": 16,
-                                                          },
-                                                          "1": {
-                                                            "borderRadius": 8,
-                                                          },
                                                           "backgroundColor": "#ffffff",
-                                                          "borderRadius": 16,
+                                                          "borderRadius": 8,
                                                           "height": 32,
+                                                          "marginRight": 16,
                                                           "overflow": "hidden",
                                                           "width": 32,
                                                         }
@@ -1243,15 +1238,10 @@ exports[`AccountSelector should render correctly 1`] = `
                                                     <View
                                                       style={
                                                         {
-                                                          "0": {
-                                                            "marginRight": 16,
-                                                          },
-                                                          "1": {
-                                                            "borderRadius": 8,
-                                                          },
                                                           "backgroundColor": "#ffffff",
-                                                          "borderRadius": 16,
+                                                          "borderRadius": 8,
                                                           "height": 32,
+                                                          "marginRight": 16,
                                                           "overflow": "hidden",
                                                           "width": 32,
                                                         }

@@ -622,15 +622,10 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 <View
                                   style={
                                     {
-                                      "0": {
-                                        "marginRight": 8,
-                                      },
-                                      "1": {
-                                        "borderRadius": 8,
-                                      },
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
+                                      "marginRight": 8,
                                       "overflow": "hidden",
                                       "width": 32,
                                     }
@@ -882,15 +877,10 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 <View
                                   style={
                                     {
-                                      "0": {
-                                        "marginRight": 8,
-                                      },
-                                      "1": {
-                                        "borderRadius": 8,
-                                      },
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
+                                      "marginRight": 8,
                                       "overflow": "hidden",
                                       "width": 32,
                                     }
@@ -2173,15 +2163,10 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 <View
                                   style={
                                     {
-                                      "0": {
-                                        "marginRight": 8,
-                                      },
-                                      "1": {
-                                        "borderRadius": 8,
-                                      },
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
+                                      "marginRight": 8,
                                       "overflow": "hidden",
                                       "width": 32,
                                     }
@@ -2433,15 +2418,10 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 <View
                                   style={
                                     {
-                                      "0": {
-                                        "marginRight": 8,
-                                      },
-                                      "1": {
-                                        "borderRadius": 8,
-                                      },
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
+                                      "marginRight": 8,
                                       "overflow": "hidden",
                                       "width": 32,
                                     }
@@ -3724,15 +3704,10 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 <View
                                   style={
                                     {
-                                      "0": {
-                                        "marginRight": 8,
-                                      },
-                                      "1": {
-                                        "borderRadius": 8,
-                                      },
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
+                                      "marginRight": 8,
                                       "overflow": "hidden",
                                       "width": 32,
                                     }
@@ -3984,15 +3959,10 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 <View
                                   style={
                                     {
-                                      "0": {
-                                        "marginRight": 8,
-                                      },
-                                      "1": {
-                                        "borderRadius": 8,
-                                      },
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
+                                      "marginRight": 8,
                                       "overflow": "hidden",
                                       "width": 32,
                                     }

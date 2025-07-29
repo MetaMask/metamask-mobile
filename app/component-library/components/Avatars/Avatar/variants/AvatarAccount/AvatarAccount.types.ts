@@ -31,3 +31,11 @@ export interface AvatarAccountProps extends AvatarBaseProps {
    */
   type?: AvatarAccountType;
 }
+
+/**
+ * Style sheet input parameters.
+ */
+export type AvatarAccountStyleSheetVars = Pick<
+  AvatarAccountProps,
+  'style' | 'size'
+>;
