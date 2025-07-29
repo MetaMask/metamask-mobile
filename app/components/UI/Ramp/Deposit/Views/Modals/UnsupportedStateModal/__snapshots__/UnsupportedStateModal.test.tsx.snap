@@ -124,7 +124,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                   }
                 }
               >
-                UnsupportedStateModal
+                DepositUnsupportedStateModal
               </Text>
             </View>
           </View>

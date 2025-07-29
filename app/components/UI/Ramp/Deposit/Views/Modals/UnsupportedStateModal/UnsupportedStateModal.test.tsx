@@ -4,6 +4,9 @@ import { fireEvent } from '@testing-library/react-native';
 import UnsupportedStateModal from './UnsupportedStateModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
+import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal';
 
 const mockUseDepositSDK = jest.fn();
 const mockNavigate = jest.fn();
@@ -42,7 +45,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
-  createNavigationDetails: jest.fn(),
+  ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => ({
     stateCode: 'NY',
     stateName: 'New York',
@@ -50,18 +53,11 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   })),
 }));
 
-jest.mock('../StateSelectorModal', () => ({
-  createStateSelectorModalNavigationDetails: jest.fn(() => [
-    'StateSelectorModal',
-    {},
-  ]),
-}));
-
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: 'UnsupportedStateModal',
+      name: Routes.DEPOSIT.MODALS.UNSUPPORTED_STATE,
     },
     {
       state: {
@@ -103,7 +99,7 @@ describe('UnsupportedStateModal', () => {
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('RampBuy');
+    expect(mockNavigate).toHaveBeenCalledWith(...createBuyNavigationDetails());
   });
 
   it('handles select different state button press correctly', () => {
@@ -115,6 +111,11 @@ describe('UnsupportedStateModal', () => {
 
     const changeStateButton = getByText('Change region');
     fireEvent.press(changeStateButton);
-    expect(mockNavigate).toHaveBeenCalledWith('StateSelectorModal', {});
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createStateSelectorModalNavigationDetails({
+        selectedState: 'NY',
+        onStateSelect: mockOnStateSelect,
+      }),
+    );
   });
 });
