@@ -1,20 +1,30 @@
-import type { MockttpServer } from 'mockttp';
-import TestHelpers from '../../helpers';
+import type { Mockttp } from 'mockttp';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { mockNotificationServices } from './utils/mocks';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../fixtures/fixture-builder';
+} from '../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { getMockServerPort } from '../../fixtures/utils';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
+  let mockServer: Mockttp;
+
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    jest.setTimeout(170000);
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer({}, mockServerPort);
+    await mockNotificationServices(mockServer);
+  });
+
+  afterAll(async () => {
+    await stopMockServer(mockServer);
   });
 
   it('should enable notifications and toggle feature announcements and account notifications', async () => {
@@ -22,14 +32,12 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
-        testSpecificMock: {},
+        mockServerInstance: mockServer,
         permissions: {
           notifications: 'YES',
         },
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
-        // Setup: Mock notification services and login
-        await mockNotificationServices(mockServer);
+      async () => {
         await loginToApp();
 
         // Navigate to notification settings

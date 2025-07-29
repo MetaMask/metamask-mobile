@@ -1,29 +1,38 @@
-'use strict';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import TestHelpers from '../../helpers';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeTrade } from '../../tags';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { startMockServer } from '../../api-mocking/mock-server';
 import { getMockServerPort } from '../../fixtures/utils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { getEventsPayloads } from '../analytics/helpers';
+import {
+  EventPayload,
+  findEvent,
+  getEventsPayloads,
+} from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
+import { Mockttp } from 'mockttp';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
 const PaymentMethods = {
   SEPA_BANK_TRANSFER: 'SEPA Bank Transfer',
 };
+const expectedEvents = {
+  OFFRAMP_PAYMENT_METHOD_SELECTED: 'Off-ramp Payment Method Selected',
+};
 
-let mockServer;
-let mockServerPort;
+let mockServer: Mockttp;
+let mockServerPort: number;
 
 describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
+  const eventsToCheck: EventPayload[] = [];
+
   beforeAll(async () => {
     const segmentMock = {
       POST: [mockEvents.POST.segmentTrack],
@@ -31,38 +40,31 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
 
     mockServerPort = getMockServerPort();
     mockServer = await startMockServer(segmentMock, mockServerPort);
-    await TestHelpers.reverseServerPort();
   });
 
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
 
-  afterAll(async () => {
-    await stopMockServer(mockServer);
-  });
-
   it('should change cashout destination', async () => {
-    const franceRegion = {
-      currencies: ['/currencies/fiat/eur'],
-      emoji: '🇫🇷',
-      id: '/regions/fr',
-      name: 'France',
-      support: { buy: true, sell: true, recurringBuy: true },
-      unsupported: false,
-      recommended: false,
-      detected: false,
-    };
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withRampsSelectedRegion(franceRegion)
+          .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.FRANCE])
           .withRampsSelectedPaymentMethod()
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
-        launchArgs: {
-          mockServerPort,
+        mockServerInstance: mockServer,
+        endTestfn: async ({ mockServer: mockServerInstance }) => {
+          const events = await getEventsPayloads(mockServerInstance);
+          const offRampPaymentMethodSelected = findEvent(
+            events,
+            expectedEvents.OFFRAMP_PAYMENT_METHOD_SELECTED,
+          );
+          if (offRampPaymentMethodSelected) {
+            eventsToCheck.push(offRampPaymentMethodSelected);
+          }
         },
       },
       async () => {
@@ -70,25 +72,20 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapSellButton();
         await SellGetStartedView.tapGetStartedButton();
-        await Assertions.checkIfTextIsNotDisplayed('SEPA Bank Transfer');
+        await Assertions.expectTextNotDisplayed('SEPA Bank Transfer');
         await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');
         await SelectPaymentMethodView.tapPaymentMethodOption(
           PaymentMethods.SEPA_BANK_TRANSFER,
         );
-        await Assertions.checkIfTextIsDisplayed('SEPA Bank Transfer');
+        await Assertions.expectTextDisplayed('SEPA Bank Transfer');
       },
     );
   });
 
   it('should validate segment/metametric events for a successful offramp flow (cashout)', async () => {
-    const expectedEvents = {
-      OFFRAMP_PAYMENT_METHOD_SELECTED: 'Off-ramp Payment Method Selected',
-    };
-    const events = await getEventsPayloads(mockServer);
-
     const softAssert = new SoftAssert();
 
-    const offRampPaymentMethodSelected = events.find(
+    const offRampPaymentMethodSelected = eventsToCheck.find(
       (event) => event.event === expectedEvents.OFFRAMP_PAYMENT_METHOD_SELECTED,
     );
 
@@ -100,20 +97,20 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
       'Off-ramp Payment Method Selected: Should be present',
     );
 
-    const checkOffRampPaymentMethodProperties = softAssert.checkAndCollect(
-      async () => {
-        Assertions.checkIfObjectHasKeysAndValidValues(
-          offRampPaymentMethodSelected.properties,
-          {
-            payment_method_id: 'string',
-            available_payment_method_ids: 'array',
-            region: 'string',
-            location: 'string',
-          },
-        );
-      },
-      'Off-ramp Payment Method Selected: Should have correct properties',
-    );
+    // Only check properties if the event is defined
+    const checkOffRampPaymentMethodProperties = offRampPaymentMethodSelected
+      ? softAssert.checkAndCollect(async () => {
+          Assertions.checkIfObjectHasKeysAndValidValues(
+            offRampPaymentMethodSelected.properties,
+            {
+              payment_method_id: 'string',
+              available_payment_method_ids: 'array',
+              region: 'string',
+              location: 'string',
+            },
+          );
+        }, 'Off-ramp Payment Method Selected: Should have correct properties')
+      : Promise.resolve();
 
     await Promise.all([
       checkOffRampPaymentMethodDefined,

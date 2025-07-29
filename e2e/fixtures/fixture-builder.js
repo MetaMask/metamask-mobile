@@ -1045,7 +1045,7 @@ class FixtureBuilder {
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
-          url: sepoliaConfig.rpcTarget,
+          url: sepoliaConfig.rpcUrl,
           type: 'custom',
           name: sepoliaConfig.nickname,
         },

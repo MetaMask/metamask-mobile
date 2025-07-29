@@ -67,6 +67,7 @@ export const TestDapps = {
 
 export enum RampsRegionsEnum {
   SAINT_LUCIA = 'saint-lucia',
+  FRANCE = 'france',
 }
 
 export const RampsRegions = {
@@ -75,6 +76,16 @@ export const RampsRegions = {
     emoji: '🇱🇨',
     id: '/regions/lc',
     name: 'Saint Lucia',
+    support: { buy: true, sell: true, recurringBuy: true },
+    unsupported: false,
+    recommended: false,
+    detected: false,
+  },
+  [RampsRegionsEnum.FRANCE]: {
+    currencies: ['/currencies/fiat/eur'],
+    emoji: '🇫🇷',
+    id: '/regions/fr',
+    name: 'France',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,
