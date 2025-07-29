@@ -6,6 +6,7 @@ import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
 import { useSelector } from 'react-redux';
+import { useDeepMemo } from '../useDeepMemo';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -44,7 +45,7 @@ export function useTransactionRequiredFiat() {
     [requiredTokens, tokens],
   );
 
-  const fiatValues = useMemo(
+  const fiatValues = useDeepMemo(
     () =>
       requiredTokens.map((target, index) => {
         const targetDecimals = tokenDecimals?.[index];
