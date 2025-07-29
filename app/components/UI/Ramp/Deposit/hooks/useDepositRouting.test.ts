@@ -562,7 +562,10 @@ describe('useDepositRouting', () => {
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
-        ott: providedOtt,
+        ott: {
+          token: providedOtt,
+          timestamp: Date.now(),
+        },
       };
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -573,6 +576,94 @@ describe('useDepositRouting', () => {
       expect(mockRequestOtt).not.toHaveBeenCalled();
       expect(mockGeneratePaymentUrl).toHaveBeenCalledWith(
         providedOtt,
+        mockQuote,
+        '0x123',
+        expect.objectContaining({
+          themeColor: expect.any(String),
+          colorMode: expect.any(String),
+          backgroundColors: expect.any(String),
+          textColors: expect.any(String),
+          borderColors: expect.any(String),
+        }),
+      );
+
+      verifyPopToBuildQuoteCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositWebviewModal',
+        params: expect.objectContaining({
+          sourceUrl: 'https://payment.url',
+          handleNavigationStateChange: expect.any(Function),
+        }),
+      });
+    });
+
+    it('should request new OTT token when provided token is expired', async () => {
+      const mockQuote = {} as BuyQuote;
+      const expiredOtt = 'expired-ott-token';
+      const freshOtt = 'fresh-ott-token';
+
+      const expiredTimestamp = Date.now() - 6 * 60 * 1000;
+
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+        ott: {
+          token: expiredOtt,
+          timestamp: expiredTimestamp,
+        },
+      };
+
+      mockRequestOtt.mockResolvedValue({ token: freshOtt });
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const success = await result.current.routeAfterAuthentication(mockQuote);
+
+      expect(success).toBe(true);
+      expect(mockRequestOtt).toHaveBeenCalledTimes(1);
+      expect(mockGeneratePaymentUrl).toHaveBeenCalledWith(
+        freshOtt,
+        mockQuote,
+        '0x123',
+        expect.objectContaining({
+          themeColor: expect.any(String),
+          colorMode: expect.any(String),
+          backgroundColors: expect.any(String),
+          textColors: expect.any(String),
+          borderColors: expect.any(String),
+        }),
+      );
+
+      verifyPopToBuildQuoteCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositWebviewModal',
+        params: expect.objectContaining({
+          sourceUrl: 'https://payment.url',
+          handleNavigationStateChange: expect.any(Function),
+        }),
+      });
+    });
+
+    it('should request new OTT token when no token is provided', async () => {
+      const mockQuote = {} as BuyQuote;
+      const freshOtt = 'fresh-ott-token';
+
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+        ott: null,
+      };
+
+      mockRequestOtt.mockResolvedValue({ token: freshOtt });
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      const success = await result.current.routeAfterAuthentication(mockQuote);
+
+      expect(success).toBe(true);
+      expect(mockRequestOtt).toHaveBeenCalledTimes(1);
+      expect(mockGeneratePaymentUrl).toHaveBeenCalledWith(
+        freshOtt,
         mockQuote,
         '0x123',
         expect.objectContaining({

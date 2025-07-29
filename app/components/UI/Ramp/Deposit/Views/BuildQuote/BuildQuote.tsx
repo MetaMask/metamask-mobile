@@ -42,7 +42,7 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
 
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useDepositRouting } from '../../hooks/useDepositRouting';
+import { useDepositRouting, OttToken } from '../../hooks/useDepositRouting';
 import useAnalytics from '../../../hooks/useAnalytics';
 import useSupportedTokens from '../../hooks/useSupportedTokens';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -103,7 +103,7 @@ const BuildQuote = () => {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
-  const [ott, setOtt] = useState<string | null>(null);
+  const [ott, setOtt] = useState<OttToken | null>(null);
 
   const isAccountTokenCompatible = useAccountTokenCompatible(cryptoCurrency);
 
@@ -192,7 +192,10 @@ const BuildQuote = () => {
         try {
           const ottResult = await requestOtt();
           if (ottResult && isMounted) {
-            setOtt(ottResult.token);
+            setOtt({
+              token: ottResult.token,
+              timestamp: Date.now(),
+            });
           }
         } catch (ottError) {
           if (isMounted) {

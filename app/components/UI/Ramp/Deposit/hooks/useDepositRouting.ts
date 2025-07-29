@@ -32,10 +32,15 @@ import useAnalytics from '../../hooks/useAnalytics';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
 import Logger from '../../../../../../app/util/Logger';
 
+export interface OttToken {
+  token: string;
+  timestamp: number;
+}
+
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
   paymentMethodId: string;
-  ott?: string | null;
+  ott?: OttToken | null;
 }
 
 export const useDepositRouting = ({
@@ -368,8 +373,14 @@ export const useDepositRouting = ({
                   shouldUpdate: false,
                 });
               } else {
-                let ottToken = ott;
-                if (!ottToken) {
+                let ottToken = ott?.token;
+
+                const OTT_EXPIRATION_TIME = 5 * 60 * 1000;
+                const isOttExpired =
+                  ott?.timestamp &&
+                  Date.now() - ott.timestamp > OTT_EXPIRATION_TIME;
+
+                if (!ottToken || isOttExpired) {
                   const ottResponse = await requestOtt();
 
                   if (ottResponse) {

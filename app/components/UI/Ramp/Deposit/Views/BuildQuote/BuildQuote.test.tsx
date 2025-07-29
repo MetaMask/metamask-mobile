@@ -601,9 +601,12 @@ describe('BuildQuote Component', () => {
       mockRequestOtt.mockClear();
     });
 
-    it('fetches OTT token when user becomes authenticated', async () => {
+    it('fetches OTT token with timestamp when user becomes authenticated', async () => {
       const mockOttToken = { token: 'test-ott-token' };
       mockRequestOtt.mockResolvedValue(mockOttToken);
+
+      const mockTimestamp = 1640995200000;
+      jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
 
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({ isAuthenticated: true }),
@@ -614,6 +617,8 @@ describe('BuildQuote Component', () => {
       await waitFor(() => {
         expect(mockRequestOtt).toHaveBeenCalledTimes(1);
       });
+
+      jest.restoreAllMocks();
     });
 
     it('does not fetch OTT token when user is unauthenticated', async () => {
@@ -625,6 +630,18 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(mockRequestOtt).not.toHaveBeenCalled();
+      });
+    });
+
+    it('handles OTT token state changes correctly', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockRequestOtt).toHaveBeenCalledTimes(1);
       });
     });
   });
