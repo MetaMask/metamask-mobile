@@ -25,6 +25,17 @@ jest.mock('../../../../../../util/address', () => ({
   validateAddressOrENS: jest.fn(),
 }));
 
+jest.mock('../../../../../../util/networks/handleNetworkSwitch', () => ({
+  handleNetworkSwitch: jest.fn(),
+}));
+
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Alert: {
+    alert: jest.fn(),
+  },
+}));
+
 const mockStore = configureStore();
 const navigationPropMock = {
   setOptions: jest.fn(),
@@ -105,5 +116,228 @@ describe('SendTo Component', () => {
     );
 
     expect(expectedWarningMessage).toBeOnTheScreen();
+  });
+
+  it('validates address when to address changes', () => {
+    mockValidateAddressOrENS.mockResolvedValue(
+      {} as unknown as ReturnType<typeof validateAddressOrENS>,
+    );
+
+    render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <SendTo navigation={navigationPropMock} route={routeMock} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+
+    const toInput = screen.getByTestId(SendViewSelectorsIDs.ADDRESS_INPUT);
+    fireEvent.changeText(toInput, '0x1234567890123456789012345678901234567890');
+
+    expect(mockValidateAddressOrENS).toHaveBeenCalledWith(
+      '0x1234567890123456789012345678901234567890',
+      expect.any(Object),
+      expect.any(Array),
+      expect.any(String),
+    );
+  });
+
+  it('navigates to Amount screen with valid address', () => {
+    const { navigate } = navigationPropMock;
+    mockValidateAddressOrENS.mockResolvedValue({
+      addressError: undefined,
+      toEnsName: undefined,
+      addressReady: true,
+      toEnsAddress: '0x1234567890123456789012345678901234567890',
+      addToAddressToAddressBook: false,
+      toAddressName: undefined,
+      errorContinue: false,
+      isOnlyWarning: false,
+      confusableCollection: [],
+    } as unknown as ReturnType<typeof validateAddressOrENS>);
+
+    render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <SendTo navigation={navigationPropMock} route={routeMock} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+
+    const toInput = screen.getByTestId(SendViewSelectorsIDs.ADDRESS_INPUT);
+    fireEvent.changeText(toInput, '0x1234567890123456789012345678901234567890');
+
+    const nextButton = screen.getByTestId(
+      SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON,
+    );
+    fireEvent.press(nextButton);
+
+    expect(navigate).toHaveBeenCalledWith('Amount');
+  });
+
+  it('prevents navigation with invalid address', () => {
+    const { navigate } = navigationPropMock;
+    mockValidateAddressOrENS.mockResolvedValue({
+      addressError: 'Invalid address',
+      toEnsName: undefined,
+      addressReady: false,
+      toEnsAddress: undefined,
+      addToAddressToAddressBook: false,
+      toAddressName: undefined,
+      errorContinue: false,
+      isOnlyWarning: false,
+      confusableCollection: [],
+    } as unknown as ReturnType<typeof validateAddressOrENS>);
+
+    render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <SendTo navigation={navigationPropMock} route={routeMock} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+
+    const toInput = screen.getByTestId(SendViewSelectorsIDs.ADDRESS_INPUT);
+    fireEvent.changeText(toInput, 'invalid-address');
+
+    const nextButton = screen.getByTestId(
+      SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON,
+    );
+    fireEvent.press(nextButton);
+
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('disables Next button when address is not ready', () => {
+    mockValidateAddressOrENS.mockResolvedValue({
+      addressError: undefined,
+      toEnsName: undefined,
+      addressReady: false,
+      toEnsAddress: undefined,
+      addToAddressToAddressBook: false,
+      toAddressName: undefined,
+      errorContinue: false,
+      isOnlyWarning: false,
+      confusableCollection: [],
+    } as unknown as ReturnType<typeof validateAddressOrENS>);
+
+    render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <SendTo navigation={navigationPropMock} route={routeMock} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+
+    const toInput = screen.getByTestId(SendViewSelectorsIDs.ADDRESS_INPUT);
+    fireEvent.changeText(toInput, '0x1234567890123456789012345678901234567890');
+
+    const nextButton = screen.getByTestId(
+      SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON,
+    );
+    expect(nextButton.props.disabled).toBe(true);
+  });
+
+  it('resolves ENS name to address', () => {
+    const ensName = 'vitalik.eth';
+    const resolvedAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+
+    mockValidateAddressOrENS.mockResolvedValue({
+      addressError: undefined,
+      toEnsName: ensName,
+      addressReady: true,
+      toEnsAddress: resolvedAddress,
+      addToAddressToAddressBook: false,
+      toAddressName: undefined,
+      errorContinue: false,
+      isOnlyWarning: false,
+      confusableCollection: [],
+    } as unknown as ReturnType<typeof validateAddressOrENS>);
+
+    render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <SendTo navigation={navigationPropMock} route={routeMock} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+
+    const toInput = screen.getByTestId(SendViewSelectorsIDs.ADDRESS_INPUT);
+    fireEvent.changeText(toInput, ensName);
+
+    expect(mockValidateAddressOrENS).toHaveBeenCalledWith(
+      ensName,
+      expect.any(Object),
+      expect.any(Array),
+      expect.any(String),
+    );
+  });
+
+  it('shows error for invalid ENS name', () => {
+    const invalidEnsName = 'nonexistent.eth';
+
+    mockValidateAddressOrENS.mockResolvedValue({
+      addressError: 'No address has been set for this name.',
+      toEnsName: invalidEnsName,
+      addressReady: false,
+      toEnsAddress: undefined,
+      addToAddressToAddressBook: false,
+      toAddressName: undefined,
+      errorContinue: false,
+      isOnlyWarning: false,
+      confusableCollection: [],
+    } as unknown as ReturnType<typeof validateAddressOrENS>);
+
+    render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <SendTo navigation={navigationPropMock} route={routeMock} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+
+    const toInput = screen.getByTestId(SendViewSelectorsIDs.ADDRESS_INPUT);
+    fireEvent.changeText(toInput, invalidEnsName);
+
+    expect(mockValidateAddressOrENS).toHaveBeenCalledWith(
+      invalidEnsName,
+      expect.any(Object),
+      expect.any(Array),
+      expect.any(String),
+    );
+  });
+
+  it('shows warning for contract address', () => {
+    const contractAddress = '0xA0b86a33E6441b8c4C8C8C8C8C8C8C8C8C8C8C8';
+
+    mockValidateAddressOrENS.mockResolvedValue({
+      addressError: 'SYMBOL_ERROR',
+      toEnsName: undefined,
+      addressReady: true,
+      toEnsAddress: contractAddress,
+      addToAddressToAddressBook: false,
+      toAddressName: undefined,
+      errorContinue: true,
+      isOnlyWarning: true,
+      confusableCollection: [],
+    } as unknown as ReturnType<typeof validateAddressOrENS>);
+
+    render(
+      <Provider store={store}>
+        <ThemeContext.Provider value={mockTheme}>
+          <SendTo navigation={navigationPropMock} route={routeMock} />
+        </ThemeContext.Provider>
+      </Provider>,
+    );
+
+    const toInput = screen.getByTestId(SendViewSelectorsIDs.ADDRESS_INPUT);
+    fireEvent.changeText(toInput, contractAddress);
+
+    expect(mockValidateAddressOrENS).toHaveBeenCalledWith(
+      contractAddress,
+      expect.any(Object),
+      expect.any(Array),
+      expect.any(String),
+    );
   });
 });

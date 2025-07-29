@@ -1274,4 +1274,619 @@ describe('Amount', () => {
       },
     );
   });
+
+  it('switches between crypto and fiat currency input modes', async () => {
+    const { getByTestId } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates: {
+              ETH: {
+                conversionRate: 3000,
+              },
+            },
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    // Enter 1 ETH
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
+    fireEvent.changeText(textInput, '1');
+
+    // Check conversion shows $3000
+    const conversionValue = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
+    );
+    expect(conversionValue.props.children).toBe('$3000.00');
+
+    // Switch currency by pressing the conversion button
+    const currencySwitch = getByTestId(AmountViewSelectorsIDs.CURRENCY_SWITCH);
+    fireEvent.press(currencySwitch);
+
+    // After switch, input should show the fiat value
+    expect(textInput.props.value).toBe('3000');
+
+    // And conversion should show ETH
+    expect(conversionValue.props.children).toBe('1 ETH');
+  });
+
+  it('toggles asset selection modal', async () => {
+    const { getByText, queryByText, queryAllByText } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
+          TokenBalancesController: {
+            contractBalances: {
+              '0x514910771AF9Ca656af840dff83E8264EcF986CA':
+                '0x8ac7230489e80000', // 10 tokens
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    // Initially there should be only one ETH text (in the dropdown)
+    const ethTextElements = queryAllByText('ETH');
+    expect(ethTextElements.length).toBe(1);
+
+    // Find and press the dropdown button (parent of the text element)
+    const dropdownText = getByText('ETH');
+    fireEvent.press(dropdownText.parent);
+
+    // Now we should see ETH twice (one in dropdown, one in modal)
+    await waitFor(() => {
+      const updatedEthTextElements = queryAllByText('ETH');
+      expect(updatedEthTextElements.length).toBe(2);
+    });
+
+    // And we should also see LINK in the modal
+    expect(queryByText('LINK')).toBeTruthy();
+  });
+
+  it('validates negative amount inputs', async () => {
+    const { getByTestId, queryByText } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates: {
+              ETH: {
+                conversionRate: 1,
+              },
+            },
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
+    await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
+
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
+
+    // Enter negative value
+    fireEvent.changeText(textInput, '-1');
+
+    // Try to proceed
+    await act(() => fireEvent.press(nextButton));
+
+    // Should see invalid amount error
+    expect(queryByText('Invalid amount')).toBeTruthy();
+  });
+
+  it('handles comma as decimal separator', () => {
+    const { getByTestId } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates: {
+              ETH: {
+                conversionRate: 2000,
+              },
+            },
+          },
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
+
+    // Enter amount with comma as decimal separator (European style)
+    fireEvent.changeText(textInput, '1,5');
+
+    // Input should convert comma to dot and display correctly
+    expect(textInput.props.value).toBe('1,5');
+
+    // The conversion should still work correctly
+    const conversionValue = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
+    );
+    expect(conversionValue.props.children).toBe('$3000.00');
+  });
+
+  it('disables max button when gas estimation is pending', () => {
+    const { getByTestId } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    // Max button should be disabled initially (before gas estimation)
+    const maxButton = getByTestId(AmountViewSelectorsIDs.MAX_BUTTON);
+    expect(maxButton.props.disabled).toBe(true);
+  });
+
+  it('disables next button when gas estimation is pending', () => {
+    const { getByTestId } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    // Next button should be disabled initially (before gas estimation)
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
+    expect(nextButton.props.disabled).toBe(true);
+  });
+
+  it('enables max button functionality when gas estimation completes', async () => {
+    const { getByText, getByTestId } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000', // ETH balance
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    // Wait for gas estimation to complete
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
+    await waitFor(() => expect(nextButton.props.disabled).toBe(false));
+
+    // Verify max button is enabled after gas estimation
+    const useMaxButton = getByText(/Use max/);
+    expect(useMaxButton.props.accessibilityState?.disabled).toBeFalsy();
+
+    // Test that max button can be pressed (triggers max value mode)
+    const amountInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
+
+    await act(async () => {
+      fireEvent.press(useMaxButton);
+    });
+
+    // After pressing max, the input should have some value (not empty)
+    expect(amountInput.props.value).not.toBe('');
+    expect(amountInput.props.value).not.toBe('0');
+  });
+
+  it('validates invalid decimal input and shows error', async () => {
+    const { getByTestId, queryByText } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    // Wait for gas estimation to complete
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
+    await waitFor(() => expect(nextButton.props.disabled).toBe(false));
+
+    const amountInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
+
+    // Enter invalid non-numeric input
+    fireEvent.changeText(amountInput, 'abc');
+
+    // Try to proceed - this should trigger validation
+    await act(() => fireEvent.press(nextButton));
+
+    expect(queryByText('Invalid amount')).not.toBeNull();
+  });
+
+  it('handles gas estimation errors gracefully', () => {
+    const { getByTestId } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0xaa36a7': {
+                [CURRENT_ACCOUNT]: {
+                  balance: '4563918244F40000',
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+          // No 'to' address - this will cause gas estimation to fail
+        },
+        transactionFromName: 'Account 1',
+        transactionToName: 'Account 2',
+      },
+    });
+
+    // When gas estimation fails due to missing 'to' address, buttons should be disabled initially
+    const maxButton = getByTestId(AmountViewSelectorsIDs.MAX_BUTTON);
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
+
+    expect(maxButton.props.disabled).toBe(true);
+    expect(nextButton.props.disabled).toBe(true);
+  });
 });

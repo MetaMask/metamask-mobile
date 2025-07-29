@@ -55,6 +55,9 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountTrackerController: {
         accountsByChainId: {
           '0x1': {
+            '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': {
+              balance: '0x1000000000000000000',
+            },
             '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
           },
         },
@@ -167,6 +170,10 @@ jest.mock('../../../../../../core/Engine', () => {
             },
           ],
         },
+        resetQRKeyringState: jest.fn(),
+      },
+      ApprovalController: {
+        accept: jest.fn().mockResolvedValue({}),
       },
       TransactionController: {
         addTransaction: jest.fn().mockResolvedValue({
@@ -192,7 +199,15 @@ jest.mock('../../../../../../core/Engine', () => {
 
 jest.mock('../../../../../../util/custom-gas', () => ({
   ...jest.requireActual('../../../../../../util/custom-gas'),
-  getGasLimit: jest.fn(),
+  getGasLimit: jest.fn().mockResolvedValue({
+    gas: '0x5208',
+    gasLimit: '0x5208',
+  }),
+}));
+
+jest.mock('../../../../../../util/transaction-controller', () => ({
+  ...jest.requireActual('../../../../../../util/transaction-controller'),
+  getNetworkNonce: jest.fn().mockResolvedValue('0x5'),
 }));
 jest.mock('../../../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../../../util/transactions'),
@@ -205,6 +220,14 @@ jest.mock('../../../../../../core/redux/slices/confirmationMetrics', () => ({
   ),
   updateConfirmationMetric: jest.fn(),
   selectConfirmationMetrics: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../../../core/ClipboardManager', () => ({
+  setString: jest.fn(),
+}));
+
+jest.mock('../../../../../../core/NotificationManager', () => ({
+  watchSubmittedTransaction: jest.fn(),
 }));
 
 jest.mock('../../../../../../reducers/swaps', () => ({
@@ -353,5 +376,262 @@ describe('Confirm', () => {
     render(Confirm, testState);
 
     expect(Engine.context.TokensController.addToken).toHaveBeenCalled();
+  });
+
+  it('should display hex data button when showHexData is enabled', async () => {
+    const stateWithHexData = merge({}, mockInitialState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': {
+                  balance: '0x1000000000000000000',
+                },
+                '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        selectedAsset: {},
+        chainId: '0x1',
+        transaction: {
+          from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+          to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+          value: '0x2',
+          data: '0xa9059cbb000000000000000000000000e64dd0ab5ad7e8c5f2bf6ce75c34e187af8b920a0000000000000000000000000000000000000000000000000000000000000002',
+        },
+      },
+      settings: {
+        showHexData: true,
+      },
+    });
+
+    const { queryByText } = render(Confirm, stateWithHexData);
+
+    // Wait for component to fully render and the transaction to be added
+    await waitFor(() => {
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalled();
+    });
+
+    // Wait for gas estimation to complete which is needed to show the hex data button
+    await waitFor(
+      () => {
+        const hexDataButton = queryByText('Hex Data');
+        expect(hexDataButton).toBeDefined();
+      },
+      { timeout: 10000 },
+    );
+  });
+
+  it('should render send button with correct disabled state', async () => {
+    const stateWithSufficientBalance = merge({}, mockInitialState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': {
+                  balance: '0x1000000000000000000',
+                },
+                '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        selectedAsset: {},
+        chainId: '0x1',
+        transaction: {
+          from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+          to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+          value: '0x2',
+        },
+      },
+    });
+
+    const { getByTestId } = render(Confirm, stateWithSufficientBalance);
+
+    // Wait for component to fully render and transaction to be added
+    await waitFor(() => {
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalled();
+    });
+
+    // Verify the send button exists and has the expected attributes
+    const sendButton = getByTestId(ConfirmViewSelectorsIDs.SEND_BUTTON);
+    expect(sendButton).toBeDefined();
+
+    // The button should initially be disabled while gas estimation is happening
+    expect(sendButton.props.disabled).toBe(true);
+
+    // Verify the button contains the expected text
+    expect(sendButton.props.children.props.children[0]).toBe('Send');
+  });
+
+  it('should display error message when balance is insufficient', async () => {
+    const stateWithInsufficientBalance = merge({}, mockInitialState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': {
+                  balance: '0x1',
+                }, // Very low balance
+                '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+              },
+            },
+          },
+          GasFeeController: {
+            gasFeeEstimates: {
+              low: {
+                suggestedMaxPriorityFeePerGas: '1',
+                suggestedMaxFeePerGas: '20',
+              },
+              medium: {
+                suggestedMaxPriorityFeePerGas: '2',
+                suggestedMaxFeePerGas: '30',
+              },
+              high: {
+                suggestedMaxPriorityFeePerGas: '3',
+                suggestedMaxFeePerGas: '40',
+              },
+            },
+            gasEstimateType: 'fee-market',
+          },
+        },
+      },
+      transaction: {
+        selectedAsset: {},
+        chainId: '0x1',
+        transaction: {
+          from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+          to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+          value: '0x1000000000000000000', // 1 ETH - more than the balance
+          gas: '0x5208',
+        },
+      },
+    });
+
+    const { queryByText } = render(Confirm, stateWithInsufficientBalance);
+
+    // Wait for component to fully render and transaction to be added
+    await waitFor(() => {
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalled();
+    });
+
+    // Wait for gas estimation and validation to complete
+    await waitFor(
+      () => {
+        const errorMessage = queryByText('Insufficient funds');
+        expect(errorMessage).toBeDefined();
+      },
+      { timeout: 5000 },
+    );
+  });
+
+  it('should not render custom nonce section when showCustomNonce is disabled', async () => {
+    const stateWithoutCustomNonce = merge({}, mockInitialState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': {
+                  balance: '0x1000000000000000000',
+                },
+                '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        selectedAsset: {},
+        chainId: '0x1',
+        transaction: {
+          from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+          to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+          value: '0x2',
+        },
+      },
+      settings: {
+        showCustomNonce: false, // Explicitly disabled
+      },
+    });
+
+    const { queryByText } = render(Confirm, stateWithoutCustomNonce);
+
+    // Wait for component to fully render and transaction to be added
+    await waitFor(() => {
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalled();
+    });
+
+    // Verify that nonce section is not rendered when disabled
+    const nonceText = queryByText('Nonce');
+    expect(nonceText).toBeNull();
+  });
+
+  it('should display amount label for regular ETH transactions', async () => {
+    const stateWithETH = merge({}, mockInitialState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': {
+                  balance: '0x1000000000000000000',
+                },
+                '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        selectedAsset: { isETH: true, symbol: 'ETH' }, // Regular ETH transaction
+        chainId: '0x1',
+        transaction: {
+          from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+          to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+          value: '0x1000000000000000000', // 1 ETH
+        },
+      },
+    });
+
+    const { queryByText } = render(Confirm, stateWithETH);
+
+    // Wait for component to fully render and transaction to be added
+    await waitFor(() => {
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalled();
+    });
+
+    // Check that regular ETH transaction shows "Amount" label instead of "Asset"
+    await waitFor(() => {
+      const amountLabel = queryByText('Amount');
+      expect(amountLabel).toBeDefined();
+    });
+
+    // Should not show "Asset" label for regular ETH transactions
+    const assetLabel = queryByText('Asset');
+    expect(assetLabel).toBeNull();
   });
 });

@@ -2,6 +2,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { useRoute } from '@react-navigation/native';
 
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -42,6 +43,12 @@ jest.mock('../../../core/Analytics', () => ({
   MetaMetricsEvents: {
     NETWORK_SWITCHED: 'Network Switched',
   },
+}));
+
+const mockedUseRoute = jest.mocked(useRoute);
+const mockSelectSendFlowContextualChainId = jest.fn();
+jest.mock('../../../selectors/sendFlow', () => ({
+  selectSendFlowContextualChainId: mockSelectSendFlowContextualChainId,
 }));
 
 // eslint-disable-next-line import/no-namespace
@@ -726,12 +733,6 @@ describe('Network Selector', () => {
   });
 
   describe('contextual chain ID logic', () => {
-    // eslint-disable-next-line import/no-namespace
-    const mockUseRoute = require('@react-navigation/native').useRoute;
-    // eslint-disable-next-line import/no-namespace
-    const mockSelectSendFlowContextualChainId =
-      require('../../../selectors/sendFlow').selectSendFlowContextualChainId;
-
     beforeEach(() => {
       jest.clearAllMocks();
     });
@@ -739,11 +740,13 @@ describe('Network Selector', () => {
     it('uses contextual chain ID when source is SendFlow and contextual chain ID exists', () => {
       const contextualChainId = '0x89'; // Polygon
 
-      mockUseRoute.mockReturnValue({
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
         params: {
           source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
         },
-      });
+      }));
 
       mockSelectSendFlowContextualChainId.mockReturnValue(contextualChainId);
 
@@ -757,11 +760,13 @@ describe('Network Selector', () => {
     it('does not use contextual chain ID when source is not SendFlow', () => {
       const contextualChainId = '0x89'; // Polygon
 
-      mockUseRoute.mockReturnValue({
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
         params: {
           source: 'other-source',
         },
-      });
+      }));
 
       mockSelectSendFlowContextualChainId.mockReturnValue(contextualChainId);
 
@@ -773,11 +778,13 @@ describe('Network Selector', () => {
     });
 
     it('does not use contextual chain ID when source is SendFlow but no contextual chain ID exists', () => {
-      mockUseRoute.mockReturnValue({
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
         params: {
           source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
         },
-      });
+      }));
 
       mockSelectSendFlowContextualChainId.mockReturnValue(null);
 
@@ -789,11 +796,13 @@ describe('Network Selector', () => {
     });
 
     it('does not use contextual chain ID when source is SendFlow but contextual chain ID is undefined', () => {
-      mockUseRoute.mockReturnValue({
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
         params: {
           source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
         },
-      });
+      }));
 
       mockSelectSendFlowContextualChainId.mockReturnValue(undefined);
 
@@ -807,11 +816,13 @@ describe('Network Selector', () => {
     it('uses contextual chain ID for different networks when source is SendFlow', () => {
       const contextualChainId = '0xa86a'; // Avalanche
 
-      mockUseRoute.mockReturnValue({
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
         params: {
           source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
         },
-      });
+      }));
 
       mockSelectSendFlowContextualChainId.mockReturnValue(contextualChainId);
 
@@ -823,9 +834,11 @@ describe('Network Selector', () => {
     });
 
     it('handles missing route params gracefully', () => {
-      mockUseRoute.mockReturnValue({
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
         params: undefined,
-      });
+      }));
 
       mockSelectSendFlowContextualChainId.mockReturnValue('0x89');
 
@@ -837,11 +850,13 @@ describe('Network Selector', () => {
     });
 
     it('handles missing source param gracefully', () => {
-      mockUseRoute.mockReturnValue({
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
         params: {
           // source is missing
         },
-      });
+      }));
 
       mockSelectSendFlowContextualChainId.mockReturnValue('0x89');
 
@@ -853,11 +868,13 @@ describe('Network Selector', () => {
     });
 
     it('verifies isContextualChainId is false when conditions are not met', () => {
-      mockUseRoute.mockReturnValue({
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
         params: {
           source: 'other-source',
         },
-      });
+      }));
 
       mockSelectSendFlowContextualChainId.mockReturnValue(null);
 
@@ -870,11 +887,13 @@ describe('Network Selector', () => {
 
     it('verifies isContextualChainId is true when both conditions are met', () => {
       const contextualChainId = '0x64';
-      mockUseRoute.mockReturnValue({
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
         params: {
           source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
         },
-      });
+      }));
 
       mockSelectSendFlowContextualChainId.mockReturnValue(contextualChainId);
 
@@ -884,4 +903,10 @@ describe('Network Selector', () => {
       expect(gnosisCell).toBeTruthy();
     });
   });
+
+  // TODO: Add test coverage for non-EVM networks rendering based on isContextualChainId
+  // The line `!isContextualChainId && renderNonEvmNetworks(false)` should be tested to ensure:
+  // 1. Non-EVM networks render when isContextualChainId is false (source != SEND_FLOW || no contextual chain ID)
+  // 2. Non-EVM networks do NOT render when isContextualChainId is true (source == SEND_FLOW && contextual chain ID exists)
+  // This requires complex mocking of selectors that causes import chain issues
 });
