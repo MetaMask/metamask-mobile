@@ -5,3 +5,7 @@ export const createDeepEqualSelector = createSelectorCreator(
   lruMemoize,
   deepEqual,
 );
+
+export const createDeepEqualResultSelector = createSelectorCreator(lruMemoize, {
+  resultEqualityCheck: deepEqual,
+});
