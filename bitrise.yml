@@ -2139,12 +2139,12 @@ workflows:
                 fi
 
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
-                mv "$OLD_APK" "$NEW_APK"
+                cp "$OLD_APK" "$NEW_APK"
 
                 # Rename AAB
                 if [ -n "$BUNDLE_DIR" ]; then
                     NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
-                    mv "$OLD_AAB" "$NEW_AAB"
+                    cp "$OLD_AAB" "$NEW_AAB"
                 fi
 
                 # Export new names as environment variables
@@ -2922,17 +2922,17 @@ workflows:
                   NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
                 fi
 
-                # Rename binary
+                # Copy binary with new name (preserve original)
                 OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
                 NEW_BINARY="$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
-                mv "$OLD_BINARY" "$NEW_BINARY"
+                cp "$OLD_BINARY" "$NEW_BINARY"
 
-                # Rename xcarchive (only for non-simulator builds)
+                # Copy xcarchive with new name (only for non-simulator builds, preserve original)
                 if [ "$IS_SIM_BUILD" != "true" ]; then
                   ARCHIVE_DIR="ios/build"
                   OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
                   NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
-                  mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
+                  cp -r "$OLD_ARCHIVE" "$NEW_ARCHIVE"
                 fi
 
                 # Export new names as environment variables
