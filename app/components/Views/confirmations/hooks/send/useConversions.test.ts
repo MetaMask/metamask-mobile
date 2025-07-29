@@ -10,12 +10,6 @@ import useConversions, {
   getNativeDisplayValueFn,
   getNativeValueFn,
 } from './useConversions';
-import {
-  GasFeeEstimatesType,
-  getEstimatedTotalGas,
-  GetMaxValueArgs,
-  getMaxValueFn,
-} from './useMaxAmount';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: () => ({

@@ -52,15 +52,14 @@ export const getFiatDisplayValueFn = ({
   contractExchangeRates: Record<Hex, { price: number }>;
   currentCurrency: string;
   amount?: string;
-}) => {
-  return `${getCurrencySymbol(currentCurrency)} ${getFiatValueFn({
+}) =>
+  `${getCurrencySymbol(currentCurrency)} ${getFiatValueFn({
     asset,
     conversionRate,
     contractExchangeRates,
     amount: amount ?? '0',
     decimals: 2,
   })}`;
-};
 
 export const getNativeValueFn = ({
   asset,
@@ -95,15 +94,14 @@ export const getNativeDisplayValueFn = ({
   conversionRate?: number | null;
   contractExchangeRates: Record<Hex, { price: number }>;
   amount?: string;
-}) => {
-  return `${asset?.symbol} ${getNativeValueFn({
+}) =>
+  `${asset?.symbol} ${getNativeValueFn({
     asset,
     conversionRate,
     contractExchangeRates,
     amount: amount ?? '0',
     decimals: 5,
   })}`;
-};
 
 const useConversions = () => {
   const { asset, chainId } = useSendContext();

@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import Checkbox from '../../../../../../component-library/components/Checkbox/Checkbox';
 import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input';
 import Text, {
   TextColor,
@@ -49,14 +48,14 @@ const Amount = () => {
     const maxAmount = getMaxAmount();
     updateAmount(fiatMode ? getFiatValue(maxAmount).toString() : maxAmount);
     updateValue(maxAmount);
-  }, [fiatMode, getMaxAmount, updateValue]);
+  }, [fiatMode, getFiatValue, getMaxAmount, updateAmount, updateValue]);
 
   const updateToNewAmount = useCallback(
-    (amount: string) => {
-      updateAmount(amount);
-      updateValue(fiatMode ? getNativeValue(amount).toString() : amount);
+    (amt: string) => {
+      updateAmount(amt);
+      updateValue(fiatMode ? getNativeValue(amt).toString() : amt);
     },
-    [fiatMode, getMaxAmount, getNativeValue, updateAmount, updateValue],
+    [fiatMode, getNativeValue, updateAmount, updateValue],
   );
 
   const toggleFiatMode = useCallback(() => {

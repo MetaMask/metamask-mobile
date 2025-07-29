@@ -98,7 +98,7 @@ const useMaxAmount = () => {
         from: from as Hex,
         gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
       }),
-    [accounts, asset, contractBalances, from, gasFeeEstimates, updateValue],
+    [accounts, asset, contractBalances, from, gasFeeEstimates],
   );
 
   return { getMaxAmount };
