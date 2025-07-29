@@ -135,7 +135,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
     date={1704085200000}
     displayIOS="default"
     enabled={true}
-    maximumDate={1767157200000}
+    maximumDate={123}
     minimumDate={-2208970800000}
     mode="date"
     onChange={[Function]}
@@ -430,7 +430,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
           date={1704085200000}
           displayIOS="spinner"
           enabled={true}
-          maximumDate={1767157200000}
+          maximumDate={123}
           minimumDate={-2208970800000}
           mode="date"
           onChange={[Function]}
