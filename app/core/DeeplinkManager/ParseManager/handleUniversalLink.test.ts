@@ -335,6 +335,54 @@ describe('handleUniversalLinks', () => {
     });
   });
 
+  describe('ACTIONS.DAPP', () => {
+    const testCases = [
+      {
+        domain: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        description: 'old deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        description: 'new deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+        description: 'test deeplink domain',
+      },
+    ] as const;
+
+    it.each(testCases)(
+      'calls _handleBrowserUrl with transformed URL for $description',
+      async ({ domain }) => {
+        const dappUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.DAPP}/example.com/path?param=value`;
+        const origin = `${PROTOCOLS.HTTPS}://${domain}`;
+        const dappUrlObj = {
+          ...urlObj,
+          hostname: domain,
+          href: dappUrl,
+          pathname: `/${ACTIONS.DAPP}/example.com/path`,
+          origin,
+        };
+        const expectedTransformedUrl = 'https://example.com/path?param=value';
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: dappUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: dappUrl,
+          source: 'test-source',
+        });
+
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandleBrowserUrl).toHaveBeenCalledWith(
+          expectedTransformedUrl,
+          mockBrowserCallBack,
+        );
+      },
+    );
+  });
+
   describe('signature verification', () => {
     beforeEach(() => {
       DevLogger.log = jest.fn();
