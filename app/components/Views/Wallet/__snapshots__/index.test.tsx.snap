@@ -277,10 +277,15 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 8,
+                                },
+                                "1": {
+                                  "borderRadius": 4,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 8,
                                 "height": 16,
-                                "marginRight": 8,
                                 "overflow": "hidden",
                                 "width": 16,
                               }
@@ -298,7 +303,9 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                                     "height": 16,
                                     "width": 16,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 4,
+                                  },
                                 ]
                               }
                             >
@@ -1540,10 +1547,15 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 8,
+                                },
+                                "1": {
+                                  "borderRadius": 4,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 8,
                                 "height": 16,
-                                "marginRight": 8,
                                 "overflow": "hidden",
                                 "width": 16,
                               }
@@ -1561,7 +1573,9 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                                     "height": 16,
                                     "width": 16,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 4,
+                                  },
                                 ]
                               }
                             >
@@ -2803,10 +2817,15 @@ exports[`Wallet should render correctly 1`] = `
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 8,
+                                },
+                                "1": {
+                                  "borderRadius": 4,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 8,
                                 "height": 16,
-                                "marginRight": 8,
                                 "overflow": "hidden",
                                 "width": 16,
                               }
@@ -2824,7 +2843,9 @@ exports[`Wallet should render correctly 1`] = `
                                     "height": 16,
                                     "width": 16,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 4,
+                                  },
                                 ]
                               }
                             >
@@ -4066,10 +4087,15 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 8,
+                                },
+                                "1": {
+                                  "borderRadius": 4,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 8,
                                 "height": 16,
-                                "marginRight": 8,
                                 "overflow": "hidden",
                                 "width": 16,
                               }
@@ -4087,7 +4113,9 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                                     "height": 16,
                                     "width": 16,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 4,
+                                  },
                                 ]
                               }
                             >
@@ -5329,10 +5357,15 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 8,
+                                },
+                                "1": {
+                                  "borderRadius": 4,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 8,
                                 "height": 16,
-                                "marginRight": 8,
                                 "overflow": "hidden",
                                 "width": 16,
                               }
@@ -5350,7 +5383,9 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                     "height": 16,
                                     "width": 16,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 4,
+                                  },
                                 ]
                               }
                             >

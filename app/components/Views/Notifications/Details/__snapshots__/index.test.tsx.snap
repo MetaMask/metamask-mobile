@@ -41,7 +41,12 @@ exports[`NotificationsDetails renders correctly 1`] = `
         <View
           style={
             {
-              "alignSelf": "center",
+              "0": {
+                "alignSelf": "center",
+              },
+              "1": {
+                "borderRadius": 8,
+              },
               "backgroundColor": "#ffffff",
               "borderRadius": 16,
               "height": 32,
@@ -62,7 +67,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
                   "height": 32,
                   "width": 32,
                 },
-                undefined,
+                {
+                  "borderRadius": 8,
+                },
               ]
             }
           >
@@ -289,7 +296,12 @@ exports[`NotificationsDetails renders correctly 1`] = `
         <View
           style={
             {
-              "alignSelf": "center",
+              "0": {
+                "alignSelf": "center",
+              },
+              "1": {
+                "borderRadius": 8,
+              },
               "backgroundColor": "#ffffff",
               "borderRadius": 16,
               "height": 32,
@@ -310,7 +322,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
                   "height": 32,
                   "width": 32,
                 },
-                undefined,
+                {
+                  "borderRadius": 8,
+                },
               ]
             }
           >

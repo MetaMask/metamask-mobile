@@ -372,10 +372,15 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                             <View
                               style={
                                 {
+                                  "0": {
+                                    "marginRight": 16,
+                                  },
+                                  "1": {
+                                    "borderRadius": 8,
+                                  },
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 16,
                                   "height": 32,
-                                  "marginRight": 16,
                                   "overflow": "hidden",
                                   "width": 32,
                                 }
@@ -394,7 +399,9 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                       "height": 32,
                                       "width": 32,
                                     },
-                                    undefined,
+                                    {
+                                      "borderRadius": 8,
+                                    },
                                   ]
                                 }
                               >
@@ -782,7 +789,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                   {
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "overflow": "hidden",
@@ -803,7 +810,9 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                                         "height": 16,
                                         "width": 16,
                                       },
-                                      undefined,
+                                      {
+                                        "borderRadius": 4,
+                                      },
                                     ]
                                   }
                                 >
@@ -1680,10 +1689,15 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                             <View
                               style={
                                 {
+                                  "0": {
+                                    "marginRight": 16,
+                                  },
+                                  "1": {
+                                    "borderRadius": 8,
+                                  },
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 16,
                                   "height": 32,
-                                  "marginRight": 16,
                                   "overflow": "hidden",
                                   "width": 32,
                                 }
@@ -1702,7 +1716,9 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                       "height": 32,
                                       "width": 32,
                                     },
-                                    undefined,
+                                    {
+                                      "borderRadius": 8,
+                                    },
                                   ]
                                 }
                               >
@@ -2090,7 +2106,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                   {
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "overflow": "hidden",
@@ -2111,7 +2127,9 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                                         "height": 16,
                                         "width": 16,
                                       },
-                                      undefined,
+                                      {
+                                        "borderRadius": 4,
+                                      },
                                     ]
                                   }
                                 >
@@ -2988,10 +3006,15 @@ exports[`AccountConnect renders correctly with request including chains and acco
                             <View
                               style={
                                 {
+                                  "0": {
+                                    "marginRight": 16,
+                                  },
+                                  "1": {
+                                    "borderRadius": 8,
+                                  },
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 16,
                                   "height": 32,
-                                  "marginRight": 16,
                                   "overflow": "hidden",
                                   "width": 32,
                                 }
@@ -3010,7 +3033,9 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                       "height": 32,
                                       "width": 32,
                                     },
-                                    undefined,
+                                    {
+                                      "borderRadius": 8,
+                                    },
                                   ]
                                 }
                               >
@@ -3398,7 +3423,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                   {
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "overflow": "hidden",
@@ -3419,7 +3444,9 @@ exports[`AccountConnect renders correctly with request including chains and acco
                                         "height": 16,
                                         "width": 16,
                                       },
-                                      undefined,
+                                      {
+                                        "borderRadius": 4,
+                                      },
                                     ]
                                   }
                                 >
@@ -4296,10 +4323,15 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                             <View
                               style={
                                 {
+                                  "0": {
+                                    "marginRight": 16,
+                                  },
+                                  "1": {
+                                    "borderRadius": 8,
+                                  },
                                   "backgroundColor": "#ffffff",
                                   "borderRadius": 16,
                                   "height": 32,
-                                  "marginRight": 16,
                                   "overflow": "hidden",
                                   "width": 32,
                                 }
@@ -4318,7 +4350,9 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                       "height": 32,
                                       "width": 32,
                                     },
-                                    undefined,
+                                    {
+                                      "borderRadius": 8,
+                                    },
                                   ]
                                 }
                               >
@@ -4706,7 +4740,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                   {
                                     "backgroundColor": "#ffffff",
                                     "borderColor": "#ffffff",
-                                    "borderRadius": 8,
+                                    "borderRadius": 4,
                                     "borderWidth": 1.5,
                                     "height": 16,
                                     "overflow": "hidden",
@@ -4727,7 +4761,9 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                                         "height": 16,
                                         "width": 16,
                                       },
-                                      undefined,
+                                      {
+                                        "borderRadius": 4,
+                                      },
                                     ]
                                   }
                                 >

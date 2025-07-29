@@ -52,10 +52,15 @@ exports[`PickerAccount should render correctly 1`] = `
           <View
             style={
               {
+                "0": {
+                  "marginRight": 8,
+                },
+                "1": {
+                  "borderRadius": 4,
+                },
                 "backgroundColor": "#ffffff",
                 "borderRadius": 8,
                 "height": 16,
-                "marginRight": 8,
                 "overflow": "hidden",
                 "width": 16,
               }
@@ -73,7 +78,9 @@ exports[`PickerAccount should render correctly 1`] = `
                     "height": 16,
                     "width": 16,
                   },
-                  undefined,
+                  {
+                    "borderRadius": 4,
+                  },
                 ]
               }
             >

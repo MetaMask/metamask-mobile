@@ -492,10 +492,15 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 16,
+                                },
+                                "1": {
+                                  "borderRadius": 8,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
                                 "height": 32,
-                                "marginRight": 16,
                                 "overflow": "hidden",
                                 "width": 32,
                               }
@@ -514,7 +519,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -911,10 +918,15 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 16,
+                                },
+                                "1": {
+                                  "borderRadius": 8,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
                                 "height": 32,
-                                "marginRight": 16,
                                 "overflow": "hidden",
                                 "width": 32,
                               }
@@ -933,7 +945,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -1739,10 +1753,15 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 16,
+                                },
+                                "1": {
+                                  "borderRadius": 8,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
                                 "height": 32,
-                                "marginRight": 16,
                                 "overflow": "hidden",
                                 "width": 32,
                               }
@@ -1761,7 +1780,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -2120,10 +2141,15 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 16,
+                                },
+                                "1": {
+                                  "borderRadius": 8,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
                                 "height": 32,
-                                "marginRight": 16,
                                 "overflow": "hidden",
                                 "width": 32,
                               }
@@ -2142,7 +2168,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -2908,10 +2936,15 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 16,
+                                },
+                                "1": {
+                                  "borderRadius": 8,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
                                 "height": 32,
-                                "marginRight": 16,
                                 "overflow": "hidden",
                                 "width": 32,
                               }
@@ -2930,7 +2963,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -3327,10 +3362,15 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 16,
+                                },
+                                "1": {
+                                  "borderRadius": 8,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
                                 "height": 32,
-                                "marginRight": 16,
                                 "overflow": "hidden",
                                 "width": 32,
                               }
@@ -3349,7 +3389,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -4154,10 +4196,15 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 16,
+                                },
+                                "1": {
+                                  "borderRadius": 8,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
                                 "height": 32,
-                                "marginRight": 16,
                                 "overflow": "hidden",
                                 "width": 32,
                               }
@@ -4176,7 +4223,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -4573,10 +4622,15 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                           <View
                             style={
                               {
+                                "0": {
+                                  "marginRight": 16,
+                                },
+                                "1": {
+                                  "borderRadius": 8,
+                                },
                                 "backgroundColor": "#ffffff",
                                 "borderRadius": 16,
                                 "height": 32,
-                                "marginRight": 16,
                                 "overflow": "hidden",
                                 "width": 32,
                               }
@@ -4595,7 +4649,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
