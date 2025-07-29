@@ -2,7 +2,7 @@ name: Test Android Build QA App
 
 on:
   push:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       retention_days:
         description: 'Number of days to retain artifacts'

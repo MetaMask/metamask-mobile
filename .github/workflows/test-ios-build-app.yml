@@ -2,7 +2,7 @@ name: Test iOS Build QA App
 
 on:
   push:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       retention_days:
         description: 'Number of days to retain the uploaded artifacts'
@@ -156,7 +156,7 @@ jobs:
         id: set-artifacts-url
         run: |
           ARTIFACTS_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          echo "artifacts-url=${ARTIFACTS_URL}" >> $GITHUB_OUTPUT
+          echo "artifacts-url=${ARTIFACTS_URL}" >> "$GITHUB_OUTPUT"
           echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
           echo ""
           echo "Upload Status Summary:"
