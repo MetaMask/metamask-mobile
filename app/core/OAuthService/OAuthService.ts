@@ -21,7 +21,6 @@ import {
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
-import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 
 export interface OAuthServiceConfig {
   authConnectionConfig: {
@@ -64,10 +63,9 @@ export class OAuthService {
     };
   }
 
-  #dispatchLogin = async () => {
+  #dispatchLogin = () => {
     this.resetOauthState();
     this.updateLocalState({ loginInProgress: true });
-    await AccountTreeInitService.initializeAccountTree();
     ReduxService.store.dispatch({
       type: UserActionType.LOADING_SET,
     });
@@ -144,7 +142,7 @@ export class OAuthService {
         OAuthErrorType.LoginInProgress,
       );
     }
-    await this.#dispatchLogin();
+    this.#dispatchLogin();
 
     try {
       let result, data, handleCodeFlowResult;
