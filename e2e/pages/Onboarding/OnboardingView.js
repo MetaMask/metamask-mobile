@@ -37,7 +37,7 @@ class OnboardingView {
           );
         } else {
           await Utilities.waitForElementToDisappear(
-            OnboardingSheet.existingWalletButton,
+            this.existingWalletButton,
           );
         }
       },
