@@ -327,21 +327,20 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         WELCOME_SCREEN_CAROUSEL_TITLE_ID(key),
                       )}
                     >
-                      {isTest ||
-                        (isQa && (
-                          // This Text component is used to grab the App Start Time for our E2E test
-                          // ColdStartToOnboardingScreen.feature
-                          <Text
-                            variant={TextVariant.BodySM}
-                            color={TextColor.Alternative}
-                            style={styles.metricsData}
-                            testID={
-                              OnboardingCarouselSelectorIDs.APP_START_TIME_ID
-                            }
-                          >
-                            {appStartTime}
-                          </Text>
-                        ))}
+                      {(isTest || isQa) && (
+                        // This Text component is used to grab the App Start Time for our E2E test
+                        // ColdStartToOnboardingScreen.feature
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Alternative}
+                          style={styles.metricsData}
+                          testID={
+                            OnboardingCarouselSelectorIDs.APP_START_TIME_ID
+                          }
+                        >
+                          {appStartTime}
+                        </Text>
+                      )}
                     </View>
                     <View style={styles.carouselImageWrapper}>
                       <Image
