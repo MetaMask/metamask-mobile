@@ -68,23 +68,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -176,23 +160,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -284,23 +252,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -568,23 +520,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -676,23 +612,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -784,23 +704,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -1068,23 +972,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -1176,23 +1064,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -1284,23 +1156,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -1568,23 +1424,7 @@ exports[`OnboardingCarousel Image Padding should use android medium device 1`] =
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -1676,23 +1516,7 @@ exports[`OnboardingCarousel Image Padding should use android medium device 1`] =
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -1784,23 +1608,7 @@ exports[`OnboardingCarousel Image Padding should use android medium device 1`] =
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -2068,23 +1876,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -2176,23 +1968,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -2284,23 +2060,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -2568,24 +2328,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -2679,24 +2422,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -2790,24 +2516,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -3078,23 +2787,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -3186,23 +2879,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -3294,23 +2971,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -3578,23 +3239,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -3686,23 +3331,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -3794,23 +3423,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -4078,23 +3691,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -4186,23 +3783,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -4294,23 +3875,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -4578,23 +4143,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -4686,23 +4235,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -4794,23 +4327,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -5078,23 +4595,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -5186,23 +4687,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -5294,23 +4779,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -5510,7 +4979,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
 </View>
 `;
 
-exports[`OnboardingCarousel should render the App Start Time text when isTest is true 1`] = `
+exports[`OnboardingCarousel should render the App Start Time text when isTest or isQa is true 1`] = `
 <View
   style={
     {
@@ -5578,23 +5047,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -5686,23 +5139,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
@@ -5794,23 +5231,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                   }
                 }
                 testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Regular",
-                      "fontSize": 14,
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                      "paddingVertical": 16,
-                      "textAlign": "center",
-                    }
-                  }
-                  testID="app-start-time-id"
-                />
-              </View>
+              />
               <View
                 style={
                   {
