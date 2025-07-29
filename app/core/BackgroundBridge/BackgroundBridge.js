@@ -251,9 +251,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   get channelIdOrOrigin() {
-    return this.isWalletConnect || this.isMMSDK
-      ? this.channelId
-      : this.origin;
+    return this.isWalletConnect || this.isMMSDK ? this.channelId : this.origin;
   }
 
   onUnlock() {
@@ -334,7 +332,8 @@ export class BackgroundBridge extends EventEmitter {
     DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotificationEip1193({
       method: NOTIFICATION_NAMES.chainChanged,
-      params: params ?? (await this.getProviderNetworkState(this.channelIdOrOrigin)),
+      params:
+        params ?? (await this.getProviderNetworkState(this.channelIdOrOrigin)),
     });
   }
 
@@ -373,9 +372,10 @@ export class BackgroundBridge extends EventEmitter {
           ),
         ];
 
-      DevLogger.log(
-        `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`, {approvedAccounts}
-      );
+        DevLogger.log(
+          `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
+          { approvedAccounts },
+        );
         this.sendNotificationEip1193({
           method: NOTIFICATION_NAMES.accountsChanged,
           params: approvedAccounts,
@@ -395,7 +395,9 @@ export class BackgroundBridge extends EventEmitter {
     if (!memState) {
       memState = this.getState();
     }
-    const publicState = await this.getProviderNetworkState(this.channelIdOrOrigin);
+    const publicState = await this.getProviderNetworkState(
+      this.channelIdOrOrigin,
+    );
     // Check if update already sent
     if (
       this.lastChainIdSent !== publicState.chainId ||
