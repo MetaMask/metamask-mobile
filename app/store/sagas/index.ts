@@ -61,7 +61,7 @@ export function* authStateMachine() {
     const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
     LockManagerService.startListening();
     //TODO: Move this logic to the Engine when the account tree state will be persisted
-    AccountTreeInitService.initializeAccountTree();
+    yield call(AccountTreeInitService.initializeAccountTree);
     // Listen to app lock behavior.
     yield take(UserActionType.LOGOUT);
     LockManagerService.stopListening();
