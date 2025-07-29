@@ -8,6 +8,7 @@ import JazzIcon from 'react-native-jazzicon';
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
 import { toDataUrl } from '../../../../../../util/blockies';
+import { Maskicon } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import { AvatarAccountProps, AvatarAccountType } from './AvatarAccount.types';
@@ -35,6 +36,8 @@ const AvatarAccount = ({
             style={stylesheet.imageStyle}
           />
         );
+      case AvatarAccountType.Maskicon:
+        return <Maskicon address={accountAddress} size={Number(size)} />;
       default:
         avatarType satisfies never;
         return null;
