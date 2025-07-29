@@ -19,10 +19,7 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../core/AppConstants';
-import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
 import { getLabelTextByAddress } from '../../../util/address';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
@@ -977,9 +974,6 @@ export function getWalletNavbarOptions(
       alignItems: 'center',
       flex: 1,
     },
-    headerRightContainer: {
-      minWidth: 120, // Ensure consistent width for layout balance
-    },
   });
 
   let formattedAddress = toChecksumHexAddress(selectedInternalAccount.address);
@@ -989,61 +983,6 @@ export function getWalletNavbarOptions(
     selectedInternalAccount,
   );
   ///: END:ONLY_INCLUDE_IF
-
-  const onScanSuccess = (data, content) => {
-    if (data.private_key) {
-      Alert.alert(
-        strings('wallet.private_key_detected'),
-        strings('wallet.do_you_want_to_import_this_account'),
-        [
-          {
-            text: strings('wallet.cancel'),
-            onPress: () => false,
-            style: 'cancel',
-          },
-          {
-            text: strings('wallet.yes'),
-            onPress: async () => {
-              try {
-                await importAccountFromPrivateKey(data.private_key);
-                navigation.navigate('ImportPrivateKeyView', {
-                  screen: 'ImportPrivateKeySuccess',
-                });
-              } catch (e) {
-                Alert.alert(
-                  strings('import_private_key.error_title'),
-                  strings('import_private_key.error_message'),
-                );
-              }
-            },
-          },
-        ],
-        { cancelable: false },
-      );
-    } else if (data.seed) {
-      Alert.alert(
-        strings('wallet.error'),
-        strings('wallet.logout_to_import_seed'),
-      );
-    } else {
-      setTimeout(() => {
-        DeeplinkManager.parse(content, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-        });
-      }, 500);
-    }
-  };
-
-  function openQRScanner() {
-    navigation.navigate(Routes.QR_TAB_SWITCHER, {
-      onScanSuccess,
-    });
-    trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_QR_SCANNER,
-      ).build(),
-    );
-  }
 
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
@@ -1118,12 +1057,7 @@ export function getWalletNavbarOptions(
               </View>
 
               {/* Right side - Action buttons */}
-              <View
-                style={[
-                  styles.rightElementContainer,
-                  innerStyles.headerRightContainer,
-                ]}
-              >
+              <View style={[styles.rightElementContainer]}>
                 <View
                   testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
                 >
@@ -1152,14 +1086,6 @@ export function getWalletNavbarOptions(
                     />
                   </BadgeWrapper>
                 )}
-
-                <ButtonIcon
-                  iconColor={IconColor.Default}
-                  onPress={openQRScanner}
-                  iconName={IconName.ScanBarcode}
-                  size={IconSize.Xl}
-                  testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-                />
               </View>
             </>
           ) : (
@@ -1190,12 +1116,7 @@ export function getWalletNavbarOptions(
               </View>
 
               {/* Right side - Action buttons */}
-              <View
-                style={[
-                  styles.rightElementContainer,
-                  innerStyles.headerRightContainer,
-                ]}
-              >
+              <View style={[styles.rightElementContainer]}>
                 <View
                   testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
                 >
@@ -1224,14 +1145,6 @@ export function getWalletNavbarOptions(
                     />
                   </BadgeWrapper>
                 )}
-
-                <ButtonIcon
-                  iconColor={IconColor.Default}
-                  onPress={openQRScanner}
-                  iconName={IconName.ScanBarcode}
-                  size={IconSize.Xl}
-                  testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-                />
               </View>
             </>
           )}
