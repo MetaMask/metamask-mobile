@@ -39,6 +39,8 @@ import type {
   InitializeResult,
   IPerpsProvider,
   LiveDataConfig,
+  LiquidationPriceParams,
+  MaintenanceMarginParams,
   PerpsMarketData,
   MarketInfo,
   OrderResult,
@@ -49,10 +51,12 @@ import type {
   SubscribePositionsParams,
   SubscribePricesParams,
   ToggleTestnetResult,
+  UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
 } from '../types';
 import { strings } from '../../../../../../locales/i18n';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 /**
  * HyperLiquid provider implementation
@@ -71,7 +75,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   // Asset mapping
   private coinToAssetId = new Map<string, number>();
-  private assetIdToCoin = new Map<number, string>();
 
   constructor(options: { isTestnet?: boolean } = {}) {
     const isTestnet = options.isTestnet || false;
@@ -111,22 +114,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Build asset ID mapping from market metadata
    */
   private async buildAssetMapping(): Promise<void> {
-    try {
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
-      const { coinToAssetId, assetIdToCoin } = buildAssetMapping(meta.universe);
+    const infoClient = this.clientService.getInfoClient();
+    const meta = await infoClient.meta();
+    const { coinToAssetId } = buildAssetMapping(meta.universe);
 
-      this.coinToAssetId = coinToAssetId;
-      this.assetIdToCoin = assetIdToCoin;
+    this.coinToAssetId = coinToAssetId;
 
-      DevLogger.log('Asset mapping built', {
-        assetCount: meta.universe.length,
-        coins: Array.from(this.coinToAssetId.keys()),
-      });
-    } catch (error) {
-      DevLogger.log(strings('perps.errors.assetMappingFailed'), error);
-      throw error;
-    }
+    DevLogger.log('Asset mapping built', {
+      assetCount: meta.universe.length,
+      coins: Array.from(this.coinToAssetId.keys()),
+    });
   }
 
   /**
@@ -227,6 +224,34 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const assetId = this.coinToAssetId.get(params.coin);
       if (assetId === undefined) {
         throw new Error(`Asset ID not found for ${params.coin}`);
+      }
+
+      // Update leverage if specified
+      if (params.leverage) {
+        DevLogger.log('Updating leverage before order:', {
+          coin: params.coin,
+          assetId,
+          requestedLeverage: params.leverage,
+          leverageType: 'isolated', // Default to isolated leverage
+        });
+
+        const exchangeClient = this.clientService.getExchangeClient();
+        const leverageResult = await exchangeClient.updateLeverage({
+          asset: assetId,
+          isCross: false, // Default to isolated leverage for now
+          leverage: params.leverage,
+        });
+
+        if (leverageResult.status !== 'ok') {
+          throw new Error(
+            `Failed to update leverage: ${JSON.stringify(leverageResult)}`,
+          );
+        }
+
+        DevLogger.log('Leverage updated successfully:', {
+          coin: params.coin,
+          leverage: params.leverage,
+        });
       }
 
       // Build orders array - main order plus optional TP/SL orders
@@ -333,7 +358,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Edit an existing order
+   * Edit an existing order (pending/unfilled order)
+   *
+   * Note: This modifies price/size of a pending order. It CANNOT add TP/SL to an existing order.
+   * For adding TP/SL to an existing position, use updatePositionTPSL instead.
+   *
+   * @param params.orderId - The order ID to modify
+   * @param params.newOrder - New order parameters (price, size, etc.)
    */
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
     try {
@@ -476,6 +507,206 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Update TP/SL for an existing position
+   *
+   * This creates new TP/SL orders for the position using 'positionTpsl' grouping.
+   * These are separate orders that will close the position when triggered.
+   *
+   * Key differences from editOrder:
+   * - editOrder: Modifies pending orders (before fill)
+   * - updatePositionTPSL: Creates TP/SL orders for filled positions
+   *
+   * HyperLiquid supports two TP/SL types:
+   * 1. 'normalTpsl' - Tied to a parent order (set when placing the order)
+   * 2. 'positionTpsl' - Tied to a position (can be set/modified after fill)
+   *
+   * @param params.coin - Asset symbol of the position
+   * @param params.takeProfitPrice - TP price (undefined to remove)
+   * @param params.stopLossPrice - SL price (undefined to remove)
+   */
+  async updatePositionTPSL(
+    params: UpdatePositionTPSLParams,
+  ): Promise<OrderResult> {
+    try {
+      DevLogger.log('Updating position TP/SL:', params);
+
+      const { coin, takeProfitPrice, stopLossPrice } = params;
+
+      // Get current position to validate it exists
+      let positions: Position[];
+      try {
+        positions = await this.getPositions();
+      } catch (error) {
+        DevLogger.log('Error getting positions:', error);
+        // If it's a WebSocket error, try to provide a more helpful message
+        if (error instanceof Error && error.message.includes('WebSocket')) {
+          throw new Error(
+            'Connection error. Please check your network and try again.',
+          );
+        }
+        throw error;
+      }
+
+      const position = positions.find((p) => p.coin === coin);
+
+      if (!position) {
+        throw new Error(`No position found for ${coin}`);
+      }
+
+      const positionSize = Math.abs(parseFloat(position.size));
+      const isLong = parseFloat(position.size) > 0;
+
+      await this.ensureReady();
+
+      // Get current price for the asset
+      const infoClient = this.clientService.getInfoClient();
+      const exchangeClient = this.clientService.getExchangeClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault();
+
+      const mids = await infoClient.allMids();
+      const currentPrice = parseFloat(mids[coin] || '0');
+
+      if (currentPrice === 0) {
+        throw new Error(`No price available for ${coin}`);
+      }
+
+      // Cancel existing TP/SL orders for this position
+      DevLogger.log('Fetching open orders to cancel existing TP/SL...');
+      const openOrders = await infoClient.frontendOpenOrders({
+        user: userAddress,
+      });
+
+      const tpslOrdersToCancel = openOrders.filter(
+        (order) =>
+          order.coin === coin &&
+          order.reduceOnly === true &&
+          order.isTrigger === true &&
+          (order.orderType.includes('Take Profit') ||
+            order.orderType.includes('Stop')),
+      );
+
+      if (tpslOrdersToCancel.length > 0) {
+        DevLogger.log(
+          `Canceling ${tpslOrdersToCancel.length} existing TP/SL orders for ${coin}`,
+        );
+        const assetId = this.coinToAssetId.get(coin);
+        if (assetId === undefined) {
+          throw new Error(`Asset ID not found for ${coin}`);
+        }
+        const cancelRequests = tpslOrdersToCancel.map((order) => ({
+          a: assetId,
+          o: order.oid,
+        }));
+
+        const cancelResult = await exchangeClient.cancel({
+          cancels: cancelRequests,
+        });
+        DevLogger.log('Cancel result:', cancelResult);
+      }
+
+      // Get asset info for proper formatting
+      const meta = await infoClient.meta();
+
+      // Check if meta is an error response (string) or doesn't have universe property
+      if (!meta || typeof meta === 'string' || !meta.universe) {
+        DevLogger.log('Failed to fetch metadata for asset mapping', { meta });
+        throw new Error('Failed to fetch market metadata');
+      }
+
+      const assetInfo = meta.universe.find((asset) => asset.name === coin);
+      if (!assetInfo) {
+        throw new Error(`Asset ${coin} not found`);
+      }
+
+      const assetId = this.coinToAssetId.get(coin);
+      if (assetId === undefined) {
+        throw new Error(`Asset ID not found for ${coin}`);
+      }
+
+      // Build orders array for TP/SL
+      const orders: SDKOrderParams[] = [];
+
+      // Take Profit order
+      if (takeProfitPrice) {
+        const tpOrder: SDKOrderParams = {
+          a: assetId,
+          b: !isLong, // Opposite side to close position
+          p: formatHyperLiquidPrice({
+            price: parseFloat(takeProfitPrice),
+            szDecimals: assetInfo.szDecimals,
+          }),
+          s: formatHyperLiquidSize({
+            size: positionSize,
+            szDecimals: assetInfo.szDecimals,
+          }),
+          r: true, // Always reduce-only for position TP
+          t: {
+            trigger: {
+              isMarket: false, // Limit order when triggered
+              triggerPx: formatHyperLiquidPrice({
+                price: parseFloat(takeProfitPrice),
+                szDecimals: assetInfo.szDecimals,
+              }),
+              tpsl: 'tp',
+            },
+          },
+        };
+        orders.push(tpOrder);
+      }
+
+      // Stop Loss order
+      if (stopLossPrice) {
+        const slOrder: SDKOrderParams = {
+          a: assetId,
+          b: !isLong, // Opposite side to close position
+          p: formatHyperLiquidPrice({
+            price: parseFloat(stopLossPrice),
+            szDecimals: assetInfo.szDecimals,
+          }),
+          s: formatHyperLiquidSize({
+            size: positionSize,
+            szDecimals: assetInfo.szDecimals,
+          }),
+          r: true, // Always reduce-only for position SL
+          t: {
+            trigger: {
+              isMarket: true, // Market order when triggered for faster execution
+              triggerPx: formatHyperLiquidPrice({
+                price: parseFloat(stopLossPrice),
+                szDecimals: assetInfo.szDecimals,
+              }),
+              tpsl: 'sl',
+            },
+          },
+        };
+        orders.push(slOrder);
+      }
+
+      if (orders.length === 0) {
+        throw new Error('No TP/SL prices provided');
+      }
+
+      // Submit via SDK exchange client with positionTpsl grouping
+      const result = await exchangeClient.order({
+        orders,
+        grouping: 'positionTpsl',
+      });
+
+      if (result.status !== 'ok') {
+        throw new Error(`TP/SL update failed: ${JSON.stringify(result)}`);
+      }
+
+      return {
+        success: true,
+        orderId: 'TP/SL orders placed',
+      };
+    } catch (error) {
+      DevLogger.log('Position TP/SL update failed:', error);
+      return createErrorResult(error, { success: false });
+    }
+  }
+
+  /**
    * Close a position
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
@@ -508,11 +739,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get current positions
+   * Get current positions with TP/SL prices
+   *
+   * Note on TP/SL orders:
+   * - normalTpsl: TP/SL tied to parent order, only placed after parent fills
+   * - positionTpsl: TP/SL tied to position, placed immediately
+   *
+   * This means TP/SL prices may not appear immediately after placing an order
+   * with TP/SL. They will only show up once the parent order is filled and
+   * the child TP/SL orders are actually placed on the order book.
    */
   async getPositions(params?: GetPositionsParams): Promise<Position[]> {
     try {
-      DevLogger.log('Getting positions via HyperLiquid SDK:', params);
+      DevLogger.log('Getting positions via HyperLiquid SDK');
 
       await this.ensureReady();
 
@@ -520,13 +759,123 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const userAddress = await this.walletService.getUserAddressWithDefault(
         params?.accountId,
       );
-      const clearingState = await infoClient.clearinghouseState({
-        user: userAddress,
+
+      // Get positions and frontend orders (includes trigger info) in parallel
+      const [clearingState, frontendOrders] = await Promise.all([
+        infoClient.clearinghouseState({ user: userAddress }),
+        infoClient.frontendOpenOrders({ user: userAddress }),
+      ]);
+
+      DevLogger.log('Frontend open orders:', {
+        count: frontendOrders.length,
+        orders: frontendOrders.map((o) => ({
+          coin: o.coin,
+          oid: o.oid,
+          orderType: o.orderType,
+          reduceOnly: o.reduceOnly,
+          isTrigger: o.isTrigger,
+          triggerPx: o.triggerPx,
+          isPositionTpsl: o.isPositionTpsl,
+          side: o.side,
+          sz: o.sz,
+        })),
       });
 
+      // Process positions and attach TP/SL prices
       return clearingState.assetPositions
         .filter((assetPos) => assetPos.position.szi !== '0')
-        .map((assetPos) => adaptPositionFromSDK(assetPos));
+        .map((assetPos) => {
+          const position = adaptPositionFromSDK(assetPos);
+
+          // Find TP/SL orders for this position
+          // First check direct trigger orders
+          const positionOrders = frontendOrders.filter(
+            (order) =>
+              order.coin === position.coin &&
+              order.isTrigger &&
+              order.reduceOnly,
+          );
+
+          // Also check for parent orders that might have TP/SL children
+          const parentOrdersWithChildren = frontendOrders.filter(
+            (order) =>
+              order.coin === position.coin &&
+              order.children &&
+              order.children.length > 0,
+          );
+
+          // Look for TP and SL trigger orders
+          let takeProfitPrice: string | undefined;
+          let stopLossPrice: string | undefined;
+
+          // Check direct trigger orders
+          positionOrders.forEach((order) => {
+            // Frontend orders have explicit orderType field
+            if (
+              order.orderType === 'Take Profit Market' ||
+              order.orderType === 'Take Profit Limit'
+            ) {
+              takeProfitPrice = order.triggerPx;
+              DevLogger.log(`Found TP order for ${position.coin}:`, {
+                triggerPrice: order.triggerPx,
+                orderId: order.oid,
+                orderType: order.orderType,
+                isPositionTpsl: order.isPositionTpsl,
+              });
+            } else if (
+              order.orderType === 'Stop Market' ||
+              order.orderType === 'Stop Limit'
+            ) {
+              stopLossPrice = order.triggerPx;
+              DevLogger.log(`Found SL order for ${position.coin}:`, {
+                triggerPrice: order.triggerPx,
+                orderId: order.oid,
+                orderType: order.orderType,
+                isPositionTpsl: order.isPositionTpsl,
+              });
+            }
+          });
+
+          // Check child orders (for normalTpsl grouping)
+          parentOrdersWithChildren.forEach((parentOrder) => {
+            DevLogger.log(`Parent order with children for ${position.coin}:`, {
+              parentOid: parentOrder.oid,
+              childrenCount: parentOrder.children.length,
+            });
+
+            parentOrder.children.forEach((childOrder) => {
+              if (childOrder.isTrigger && childOrder.reduceOnly) {
+                if (
+                  childOrder.orderType === 'Take Profit Market' ||
+                  childOrder.orderType === 'Take Profit Limit'
+                ) {
+                  takeProfitPrice = childOrder.triggerPx;
+                  DevLogger.log(`Found TP child order for ${position.coin}:`, {
+                    triggerPrice: childOrder.triggerPx,
+                    orderId: childOrder.oid,
+                    orderType: childOrder.orderType,
+                  });
+                } else if (
+                  childOrder.orderType === 'Stop Market' ||
+                  childOrder.orderType === 'Stop Limit'
+                ) {
+                  stopLossPrice = childOrder.triggerPx;
+                  DevLogger.log(`Found SL child order for ${position.coin}:`, {
+                    triggerPrice: childOrder.triggerPx,
+                    orderId: childOrder.oid,
+                    orderType: childOrder.orderType,
+                  });
+                }
+              }
+            });
+          });
+
+          return {
+            ...position,
+            takeProfitPrice,
+            stopLossPrice,
+          };
+        });
     } catch (error) {
       DevLogger.log('Error getting positions:', error);
       return [];
@@ -538,13 +887,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
     try {
-      DevLogger.log('Getting account state via HyperLiquid SDK:', params);
+      DevLogger.log('Getting account state via HyperLiquid SDK');
 
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
       const userAddress = await this.walletService.getUserAddressWithDefault(
         params?.accountId,
+      );
+
+      DevLogger.log('User address for account state:', userAddress);
+      DevLogger.log(
+        'Network mode:',
+        this.clientService.isTestnetMode() ? 'TESTNET' : 'MAINNET',
       );
 
       // Get both Perps and Spot balances
@@ -556,15 +911,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Perps state:', perpsState);
       DevLogger.log('Spot state:', spotState);
 
-      return adaptAccountStateFromSDK(perpsState, spotState);
+      const accountState = adaptAccountStateFromSDK(perpsState, spotState);
+      DevLogger.log('Adapted account state:', accountState);
+
+      return accountState;
     } catch (error) {
       DevLogger.log('Error getting account state:', error);
-      return {
-        availableBalance: '0',
-        totalBalance: '0',
-        marginUsed: '0',
-        unrealizedPnl: '0',
-      };
+      // Re-throw the error so the controller can handle it properly
+      // This allows the UI to show proper error messages instead of zeros
+      throw error;
     }
   }
 
@@ -829,6 +1184,116 @@ export class HyperLiquidProvider implements IPerpsProvider {
             : strings('perps.errors.unknownError'),
       };
     }
+  }
+
+  /**
+   * Calculate liquidation price using HyperLiquid's formula
+   * Formula: liq_price = price - side * margin_available / position_size / (1 - l * side)
+   * where l = 1 / MAINTENANCE_LEVERAGE = 1 / (2 * max_leverage)
+   */
+  async calculateLiquidationPrice(
+    params: LiquidationPriceParams,
+  ): Promise<string> {
+    const { entryPrice, leverage, direction, asset } = params;
+
+    // Validate inputs
+    if (
+      !isFinite(entryPrice) ||
+      !isFinite(leverage) ||
+      entryPrice <= 0 ||
+      leverage <= 0
+    ) {
+      return '0.00';
+    }
+
+    // Get asset's max leverage to calculate maintenance margin
+    let maxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE; // Default fallback
+    if (asset) {
+      try {
+        maxLeverage = await this.getMaxLeverage(asset);
+      } catch (error) {
+        DevLogger.log('Failed to get max leverage for asset, using default', {
+          asset,
+          error,
+        });
+        // Use default if we can't fetch the asset's max leverage
+      }
+    }
+
+    // Calculate maintenance leverage and margin according to HyperLiquid docs
+    const maintenanceLeverage = 2 * maxLeverage;
+    const l = 1 / maintenanceLeverage;
+    const side = direction === 'long' ? 1 : -1;
+
+    // For isolated margin, we use the standard formula
+    // margin_available = initial_margin - maintenance_margin_required
+    const initialMargin = 1 / leverage;
+    const maintenanceMargin = 1 / maintenanceLeverage;
+
+    // Check if position can be opened
+    if (initialMargin < maintenanceMargin) {
+      // Position cannot be opened - leverage exceeds maximum allowed (2 * maxLeverage)
+      throw new Error(
+        `Invalid leverage: ${leverage}x exceeds maximum allowed leverage of ${maintenanceLeverage}x`,
+      );
+    }
+
+    try {
+      // HyperLiquid liquidation formula
+      // For isolated margin: margin_available = isolated_margin - maintenance_margin_required
+      const marginAvailable = initialMargin - maintenanceMargin;
+
+      // Simplified calculation when position size is 1 unit
+      // liq_price = price - side * margin_available * price / (1 - l * side)
+      const denominator = 1 - l * side;
+      if (Math.abs(denominator) < 0.0001) {
+        // Avoid division by very small numbers
+        return entryPrice.toFixed(2);
+      }
+
+      const liquidationPrice =
+        entryPrice - (side * marginAvailable * entryPrice) / denominator;
+
+      // Ensure liquidation price is non-negative
+      return Math.max(0, liquidationPrice).toFixed(2);
+    } catch (error) {
+      DevLogger.log('Error calculating liquidation price:', error);
+      return '0.00';
+    }
+  }
+
+  /**
+   * Calculate maintenance margin for a specific asset
+   * According to HyperLiquid docs: maintenance_margin = 1 / (2 * max_leverage)
+   */
+  async calculateMaintenanceMargin(
+    params: MaintenanceMarginParams,
+  ): Promise<number> {
+    const { asset } = params;
+
+    // Get asset's max leverage
+    const maxLeverage = await this.getMaxLeverage(asset);
+
+    // Maintenance margin = 1 / (2 * max_leverage)
+    // This varies from 1.25% (for 40x) to 16.7% (for 3x) depending on the asset
+    return 1 / (2 * maxLeverage);
+  }
+
+  /**
+   * Get maximum leverage allowed for an asset
+   */
+  async getMaxLeverage(asset: string): Promise<number> {
+    await this.ensureReady();
+
+    const infoClient = this.clientService.getInfoClient();
+    const meta = await infoClient.meta();
+
+    const assetInfo = meta.universe.find((a) => a.name === asset);
+    if (!assetInfo) {
+      throw new Error(`Asset ${asset} not found`);
+    }
+
+    return assetInfo.maxLeverage;
   }
 
   /**

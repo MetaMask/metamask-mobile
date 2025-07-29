@@ -118,6 +118,7 @@ describe('HyperLiquidSubscriptionService', () => {
         }, 0);
         return Promise.resolve(mockSubscription);
       }),
+      l2Book: jest.fn().mockResolvedValue(mockSubscription),
     };
 
     mockWalletAdapter = {
@@ -668,6 +669,229 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Should not call callback without position data
       expect(mockCallback).not.toHaveBeenCalled();
+
+      unsubscribe();
+    });
+  });
+
+  describe('L2 Book (Order Book) Subscriptions', () => {
+    it('should subscribe to L2 book when includeOrderBook is true', async () => {
+      const mockCallback = jest.fn();
+      const mockL2BookSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          // Simulate L2 book data
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: [
+                [{ px: '49900', sz: '1.5' }], // Bid level
+                [{ px: '50100', sz: '2.0' }], // Ask level
+              ],
+            });
+          }, 0);
+          return Promise.resolve(mockL2BookSubscription);
+        },
+      );
+
+      const unsubscribe = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeOrderBook: true,
+      });
+
+      // Wait for subscription and data processing
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Verify L2 book subscription was created
+      expect(mockSubscriptionClient.l2Book).toHaveBeenCalledWith(
+        { coin: 'BTC', nSigFigs: 5 },
+        expect.any(Function),
+      );
+
+      // Verify callback received bid/ask data
+      expect(mockCallback).toHaveBeenCalled();
+      const lastCall =
+        mockCallback.mock.calls[mockCallback.mock.calls.length - 1][0];
+      expect(lastCall).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            coin: 'BTC',
+            bestBid: '49900',
+            bestAsk: '50100',
+          }),
+        ]),
+      );
+
+      unsubscribe();
+    });
+
+    it('should not subscribe to L2 book when includeOrderBook is false', async () => {
+      const mockCallback = jest.fn();
+
+      const unsubscribe = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeOrderBook: false,
+      });
+
+      // Wait for any potential subscriptions
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Verify L2 book subscription was NOT created
+      expect(mockSubscriptionClient.l2Book).not.toHaveBeenCalled();
+
+      unsubscribe();
+    });
+
+    it('should handle multiple L2 book subscriptions with reference counting', async () => {
+      const mockCallback1 = jest.fn();
+      const mockCallback2 = jest.fn();
+
+      // First subscription
+      const unsubscribe1 = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback1,
+        includeOrderBook: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Second subscription to same symbol
+      const unsubscribe2 = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback2,
+        includeOrderBook: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should only create one L2 book subscription
+      expect(mockSubscriptionClient.l2Book).toHaveBeenCalledTimes(1);
+
+      // Unsubscribe first
+      unsubscribe1();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // L2 book subscription should still be active
+      expect(mockSubscriptionClient.l2Book).toHaveBeenCalledTimes(1);
+
+      // Unsubscribe second
+      unsubscribe2();
+    });
+
+    it('should handle L2 book data with missing levels gracefully', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          // Simulate L2 book data with missing levels
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: [], // Empty levels
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeOrderBook: true,
+      });
+
+      // Wait for subscription and data processing
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Should still receive price updates, but without bid/ask
+      expect(mockCallback).toHaveBeenCalled();
+      const calls = mockCallback.mock.calls;
+      const lastCall = calls[calls.length - 1][0];
+
+      // Check that bestBid and bestAsk are either undefined or '0'
+      if (lastCall?.[0]) {
+        expect(
+          lastCall[0].bestBid === undefined || lastCall[0].bestBid === '0',
+        ).toBeTruthy();
+        expect(
+          lastCall[0].bestAsk === undefined || lastCall[0].bestAsk === '0',
+        ).toBeTruthy();
+      }
+
+      unsubscribe();
+    });
+
+    it('should handle L2 book subscription errors', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.l2Book.mockRejectedValue(
+        new Error('L2 book subscription failed'),
+      );
+
+      const unsubscribe = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeOrderBook: true,
+      });
+
+      // Wait for subscription attempt
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Error should be handled internally
+      // Just verify the subscription still works
+      expect(mockCallback).toHaveBeenCalled();
+
+      unsubscribe();
+    });
+
+    it('should calculate spread from bid/ask prices', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.l2Book.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: 'BTC',
+              levels: [
+                [{ px: '49900', sz: '1.5' }], // Bid
+                [{ px: '50100', sz: '2.0' }], // Ask
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeOrderBook: true,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(mockCallback).toHaveBeenCalled();
+      const calls = mockCallback.mock.calls;
+      const lastCall = calls[calls.length - 1][0];
+      expect(lastCall).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            coin: 'BTC',
+            bestBid: '49900',
+            bestAsk: '50100',
+            spread: '200.00000', // 50100 - 49900
+          }),
+        ]),
+      );
 
       unsubscribe();
     });

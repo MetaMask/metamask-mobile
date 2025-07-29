@@ -15,7 +15,6 @@ import { connect } from 'react-redux';
 import {
   setSelectedAsset,
   prepareTransaction,
-  setTransactionObject,
   resetTransaction,
   setMaxValueMode,
 } from '../../../../../../actions/transaction';
@@ -713,8 +712,7 @@ class Amount extends PureComponent {
     );
 
     const shouldUseRedesignedTransferConfirmation =
-      isRedesignedTransferConfirmationEnabledForTransfer &&
-      !isHardwareAccount(transaction.from);
+      isRedesignedTransferConfirmationEnabledForTransfer;
 
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
