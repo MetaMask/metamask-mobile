@@ -85,6 +85,7 @@ const getStories = () => {
     "./app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories.tsx": require("../app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect.stories.tsx"),
     "./app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories.tsx": require("../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories.tsx"),
     "./app/component-library/components/Checkbox/Checkbox.stories.tsx": require("../app/component-library/components/Checkbox/Checkbox.stories.tsx"),
+    "./app/component-library/components/design-system.stories.tsx": require("../app/component-library/components/design-system.stories.tsx"),
     "./app/component-library/components/Form/HelpText/HelpText.stories.tsx": require("../app/component-library/components/Form/HelpText/HelpText.stories.tsx"),
     "./app/component-library/components/Form/Label/Label.stories.tsx": require("../app/component-library/components/Form/Label/Label.stories.tsx"),
     "./app/component-library/components/Form/TextField/foundation/Input/Input.stories.tsx": require("../app/component-library/components/Form/TextField/foundation/Input/Input.stories.tsx"),
@@ -124,6 +125,7 @@ const getStories = () => {
     "./app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.tsx": require("../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.tsx"),
     "./app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx": require("../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx"),
     "./app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx": require("../app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx"),
+    "./app/component-library/components-temp/TabBar/TabBar.stories.tsx": require("../app/component-library/components-temp/TabBar/TabBar.stories.tsx"),
     "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
   };
 };

@@ -1,7 +1,6 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { AccountDetailsIds } from '../../selectors/MultichainAccounts/AccountDetails.selectors';
-import { MultichainDeleteAccountSelectors } from '../../selectors/MultichainAccounts/DeleteAccount.selectors';
 import { ExportCredentialsIds } from '../../selectors/MultichainAccounts/ExportCredentials.selectors';
 
 class AccountDetails {
@@ -26,9 +25,7 @@ class AccountDetails {
   }
 
   get deleteAccountLink() {
-    return Matchers.getElementByID(
-      MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
-    );
+    return Matchers.getElementByID(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON);
   }
 
   get exportPrivateKeyButton() {

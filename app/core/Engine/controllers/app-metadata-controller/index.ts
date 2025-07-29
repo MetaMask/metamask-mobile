@@ -11,14 +11,12 @@ export function appMetadataControllerInit(
   initRequest: ControllerInitRequest<AppMetadataControllerMessenger>,
 ) {
   const currentVersion = getVersion();
-  const currentState =
-    initRequest.persistedState?.AppMetadataController ||
-    {
-      currentAppVersion: '',
-      previousAppVersion: '',
-      previousMigrationVersion: 0,
-      currentMigrationVersion: 0,
-    };
+  const currentState = initRequest.persistedState?.AppMetadataController || {
+    currentAppVersion: '',
+    previousAppVersion: '',
+    previousMigrationVersion: 0,
+    currentMigrationVersion: 0,
+  };
 
   const controller = new AppMetadataController({
     state: currentState,

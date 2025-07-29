@@ -5,7 +5,6 @@ import { createMockInternalAccount } from '../../../../../../util/test/accountsC
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
-import { MultichainDeleteAccountSelectors } from '../../../../../../../e2e/selectors/MultichainAccounts/DeleteAccount.selectors';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -117,11 +116,7 @@ describe('SnapAccountDetails', () => {
       getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
     ).toBeTruthy();
     expect(getByTestId(ExportCredentialsIds.EXPORT_SRP_BUTTON)).toBeTruthy();
-    expect(
-      queryByTestId(
-        MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
-      ),
-    ).toBeNull();
+    expect(queryByTestId(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON)).toBeNull();
   });
 
   it('renders RemoveAccount for third party snap account', () => {
@@ -136,11 +131,7 @@ describe('SnapAccountDetails', () => {
       getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
     ).toBeTruthy();
     expect(queryByTestId(ExportCredentialsIds.EXPORT_SRP_BUTTON)).toBeNull();
-    expect(
-      getByTestId(
-        MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
-      ),
-    ).toBeTruthy();
+    expect(getByTestId(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON)).toBeTruthy();
   });
 
   it('calls isHDOrFirstPartySnapAccount with correct account', () => {

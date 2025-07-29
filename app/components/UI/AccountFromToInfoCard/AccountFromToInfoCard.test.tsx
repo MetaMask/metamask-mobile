@@ -110,9 +110,9 @@ jest.mock('../../../core/Engine', () => {
 jest.mock('../../Views/confirmations/hooks/useNetworkInfo', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-      networkImage: 10,
-      networkName: NETWORK_NAME_MOCK,
-      networkNativeCurrency: 'ETH',
+    networkImage: 10,
+    networkName: NETWORK_NAME_MOCK,
+    networkNativeCurrency: 'ETH',
   })),
 }));
 
@@ -249,7 +249,7 @@ describe('AccountFromToInfoCard', () => {
     expect(await queryByText('test3.eth')).toBeDefined();
   });
 
-    it('renders correct network name', async () => {
+  it('renders correct network name', async () => {
     const { findByText } = renderWithProvider(
       //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,

@@ -8,7 +8,8 @@ const styleSheet = (params: {
   theme: Theme;
   vars: RegionSelectorModalStyleSheetVars;
 }) => {
-  const { vars } = params;
+  const { vars, theme } = params;
+  const { colors } = theme;
   const { screenHeight } = vars;
 
   return StyleSheet.create({
@@ -36,7 +37,14 @@ const styleSheet = (params: {
     },
     listItem: {
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingVertical: 12, // Increased from 8 to 12 for better touch targets
+      backgroundColor: colors.background.default,
+    },
+    selectedItem: {
+      backgroundColor: colors.primary.muted,
+    },
+    disabledItem: {
+      opacity: 0.5,
     },
   });
 };

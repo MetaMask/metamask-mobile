@@ -1,8 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectEnabledSourceChains,
-} from '../../../../core/redux/slices/bridge';
+import { selectEnabledSourceChains } from '../../../../core/redux/slices/bridge';
 import { useGetFormattedTokensPerChain } from '../../../hooks/useGetFormattedTokensPerChain';
 import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
 import { selectLastSelectedEvmAccount } from '../../../../selectors/accountsController';
@@ -33,41 +31,53 @@ export const useSortedSourceNetworks = () => {
 
   const evmAddress = lastSelectedEvmAccount?.address;
 
-  const getEvmChainTotalFiatValue = useCallback((chainId: string) => {
-    if (!evmAddress || !evmTotalFiatBalancesCrossChain[evmAddress]) return 0;
+  const getEvmChainTotalFiatValue = useCallback(
+    (chainId: string) => {
+      if (!evmAddress || !evmTotalFiatBalancesCrossChain[evmAddress]) return 0;
 
-    const chainData = evmTotalFiatBalancesCrossChain[evmAddress].tokenFiatBalancesCrossChains.find(
-      (chain) => chain.chainId === chainId
-    );
+      const chainData = evmTotalFiatBalancesCrossChain[
+        evmAddress
+      ].tokenFiatBalancesCrossChains.find((chain) => chain.chainId === chainId);
 
-    if (!chainData) return 0;
+      if (!chainData) return 0;
 
-    // Sum native value and all token values
-    const tokenFiatSum = chainData.tokenFiatBalances.reduce((sum, value) => sum + value, 0);
-    return chainData.nativeFiatValue + tokenFiatSum;
-  }, [evmAddress, evmTotalFiatBalancesCrossChain]);
+      // Sum native value and all token values
+      const tokenFiatSum = chainData.tokenFiatBalances.reduce(
+        (sum, value) => sum + value,
+        0,
+      );
+      return chainData.nativeFiatValue + tokenFiatSum;
+    },
+    [evmAddress, evmTotalFiatBalancesCrossChain],
+  );
 
   // Calculate total fiat value per Solana chain (native + tokens)
   const solTokensWithBalance = useTokensWithBalance({
     chainIds: [SolScope.Mainnet],
   });
   const solFiatTotal = solTokensWithBalance.reduce(
-    (sum, token) => sum + (token.tokenFiatAmount ?? 0)
-  , 0);
+    (sum, token) => sum + (token.tokenFiatAmount ?? 0),
+    0,
+  );
 
   // Sort networks by total fiat value in descending order
-  const sortedSourceNetworks = useMemo(() =>
-    enabledSourceChains.map(chain => {
-      const totalFiatValue = chain.chainId === SolScope.Mainnet
-        ? solFiatTotal
-        : getEvmChainTotalFiatValue(chain.chainId);
+  const sortedSourceNetworks = useMemo(
+    () =>
+      enabledSourceChains
+        .map((chain) => {
+          const totalFiatValue =
+            chain.chainId === SolScope.Mainnet
+              ? solFiatTotal
+              : getEvmChainTotalFiatValue(chain.chainId);
 
-      return {
-        ...chain,
-        totalFiatValue,
-      };
-    }).sort((a, b) => b.totalFiatValue - a.totalFiatValue)
-  , [enabledSourceChains, getEvmChainTotalFiatValue, solFiatTotal]);
+          return {
+            ...chain,
+            totalFiatValue,
+          };
+        })
+        .sort((a, b) => b.totalFiatValue - a.totalFiatValue),
+    [enabledSourceChains, getEvmChainTotalFiatValue, solFiatTotal],
+  );
 
   return {
     sortedSourceNetworks,

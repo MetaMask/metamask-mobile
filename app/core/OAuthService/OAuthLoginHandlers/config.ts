@@ -1,7 +1,4 @@
-import { getBundleId } from 'react-native-device-info';
-
 interface OAUTH_CONFIG_TYPE {
-  IOS_APPLE_CLIENT_ID: string;
   AUTH_SERVER_URL: string;
   WEB3AUTH_NETWORK: string;
 
@@ -25,9 +22,6 @@ enum BUILD_TYPE {
 
 export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
   development: {
-    // TODO: point to main dev
-    IOS_APPLE_CLIENT_ID: getBundleId ? getBundleId() : 'io.metamask.MetaMask',
-
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
     AUTH_SERVER_URL: 'https://api-develop-torus-byoa.web3auth.io',
@@ -39,8 +33,6 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     IOS_APPLE_AUTH_CONNECTION_ID: 'byoa-server',
   },
   main_prod: {
-    IOS_APPLE_CLIENT_ID: getBundleId ? getBundleId() : 'io.metamask.MetaMask',
-
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-main',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-main',
     AUTH_SERVER_URL: 'https://auth-service.api.cx.metamask.io',
@@ -52,8 +44,6 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-main-common',
   },
   main_uat: {
-    IOS_APPLE_CLIENT_ID: getBundleId ? getBundleId() : 'io.metamask.MetaMask',
-
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-uat',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-uat',
     AUTH_SERVER_URL: 'https://auth-service.uat-api.cx.metamask.io',
@@ -65,8 +55,6 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-uat-common',
   },
   main_dev: {
-    IOS_APPLE_CLIENT_ID: getBundleId ? getBundleId() : 'io.metamask.MetaMask',
-
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-dev',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-dev',
     AUTH_SERVER_URL: 'https://auth-service.dev-api.cx.metamask.io',
@@ -78,10 +66,6 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-common',
   },
   flask_prod: {
-    IOS_APPLE_CLIENT_ID: getBundleId
-      ? getBundleId()
-      : 'io.metamask.MetaMask-Flask',
-
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-flask-main',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-flask-main',
     AUTH_SERVER_URL: 'https://auth-service.api.cx.metamask.io',
@@ -93,10 +77,6 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-main-common',
   },
   flask_uat: {
-    IOS_APPLE_CLIENT_ID: getBundleId
-      ? getBundleId()
-      : 'io.metamask.MetaMask-Flask',
-
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-flask-uat',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-flask-uat',
     AUTH_SERVER_URL: 'https://auth-service.api.cx.metamask.io',
@@ -108,10 +88,6 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-uat-common',
   },
   flask_dev: {
-    IOS_APPLE_CLIENT_ID: getBundleId
-      ? getBundleId()
-      : 'io.metamask.MetaMask-Flask',
-
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-flask-dev',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-flask-dev',
     AUTH_SERVER_URL: 'https://auth-service.dev-api.cx.metamask.io',

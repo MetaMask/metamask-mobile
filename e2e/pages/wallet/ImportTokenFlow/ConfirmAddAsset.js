@@ -1,29 +1,39 @@
 import {
   ImportTokenViewSelectorsIDs,
-  ImportTokenViewSelectorsText
+  ImportTokenViewSelectorsText,
 } from '../../../selectors/wallet/ImportTokenView.selectors';
 import Matchers from '../../../utils/Matchers';
 import Gestures from '../../../utils/Gestures';
 
 class ConfirmAddAssetView {
   get container() {
-    return Matchers.getElementByID(ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET);
+    return Matchers.getElementByID(
+      ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET,
+    );
   }
 
   get cancelButton() {
-    return Matchers.getElementByText(ImportTokenViewSelectorsText.CANCEL_IMPORT_TOKEN);
+    return Matchers.getElementByText(
+      ImportTokenViewSelectorsText.CANCEL_IMPORT_TOKEN,
+    );
   }
 
   get confirmButton() {
-    return Matchers.getElementByText(ImportTokenViewSelectorsText.CONFIRM_IMPORT_TOKEN);
+    return Matchers.getElementByText(
+      ImportTokenViewSelectorsText.CONFIRM_IMPORT_TOKEN,
+    );
   }
 
   get cancelModal() {
-    return Matchers.getElementByID(ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL);
+    return Matchers.getElementByID(
+      ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL,
+    );
   }
 
   get confirmButtonModal() {
-    return Matchers.getElementByText(ImportTokenViewSelectorsText.CONFIRM_CANCEL_IMPORT_TOKEN);
+    return Matchers.getElementByText(
+      ImportTokenViewSelectorsText.CONFIRM_CANCEL_IMPORT_TOKEN,
+    );
   }
 
   async tapOnCancelButton() {

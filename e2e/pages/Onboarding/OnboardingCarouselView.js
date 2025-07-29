@@ -2,8 +2,8 @@ import {
   OnboardingCarouselSelectorIDs,
   OnboardingCarouselSelectorText,
 } from '../../selectors/Onboarding/OnboardingCarousel.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class OnboardingCarouselView {
   get container() {
@@ -51,7 +51,9 @@ class OnboardingCarouselView {
   }
 
   async tapOnGetStartedButton() {
-    await Gestures.waitAndTap(this.getStartedButton);
+    await Gestures.waitAndTap(this.getStartedButton, {
+      elemDescription: 'Onboarding Carousel Get Started Button',
+    });
   }
 }
 

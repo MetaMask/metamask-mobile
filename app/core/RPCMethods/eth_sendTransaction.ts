@@ -100,9 +100,10 @@ async function eth_sendTransaction({
     });
   }
   // TODO: Normalize chainId to Hex string
-  const nChainId = typeof req.params[0].chainId === 'number'
-    ? req.params[0].chainId
-    : parseInt(req.params[0].chainId || '0x0', 16);
+  const nChainId =
+    typeof req.params[0].chainId === 'number'
+      ? req.params[0].chainId
+      : parseInt(req.params[0].chainId || '0x0', 16);
   await validateAccountAndChainId({
     from: req.params[0].from,
     chainId: nChainId,

@@ -59,9 +59,7 @@ const PORTFOLIO_ALLOWED_METHODS: string[] = [
 /**
  * List of allowed protocols. On Flask, HTTP is also allowed for testing.
  */
-const ALLOWED_PROTOCOLS: string[] = [
-  'https:',
-];
+const ALLOWED_PROTOCOLS: string[] = ['https:'];
 
 /**
  * Checks if the protocol of the origin is allowed.
@@ -87,9 +85,7 @@ export function isProtocolAllowed(origin: string): boolean {
  * @returns A function that returns the list of keyring methods an origin can
  * call.
  */
-export function keyringSnapPermissionsBuilder(
-  origin: string,
-): () => string[] {
+export function keyringSnapPermissionsBuilder(origin: string): () => string[] {
   return () => {
     if (origin === 'metamask') {
       return METAMASK_ALLOWED_METHODS;

@@ -93,7 +93,9 @@ const getNonEvmDisplayBalance = (
 };
 ///: END:ONLY_INCLUDE_IF
 
-export const getShouldShowAggregatedPercentage = (chainId: SupportedCaipChainId) => {
+export const getShouldShowAggregatedPercentage = (
+  chainId: SupportedCaipChainId,
+) => {
   return !isTestNet(chainId);
 };
 

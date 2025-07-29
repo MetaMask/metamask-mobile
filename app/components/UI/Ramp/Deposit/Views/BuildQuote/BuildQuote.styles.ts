@@ -29,7 +29,7 @@ const styleSheet = (params: { theme: Theme }) => {
     centerGroup: {
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
+      gap: 16,
       flex: 1,
     },
     amountContainer: {
@@ -38,7 +38,7 @@ const styleSheet = (params: { theme: Theme }) => {
     mainAmount: {
       textAlign: 'center',
       fontSize: 64,
-      lineHeight: 100,
+      lineHeight: 64 + 8,
       fontWeight: 400,
     },
     convertedAmount: {

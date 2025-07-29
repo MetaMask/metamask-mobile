@@ -96,9 +96,7 @@ export function calculateApprovalTokenAmount(
   amount: string,
   decimals = 18,
 ): { amount: string; rawAmount: string } {
-  const amountInDecimals = new BigNumber(amount ?? 0).div(
-    10 ** (decimals),
-  );
+  const amountInDecimals = new BigNumber(amount ?? 0).div(10 ** decimals);
   const isUnlimited = amountInDecimals.gt(TOKEN_VALUE_UNLIMITED_THRESHOLD);
   const rawAmount = amountInDecimals.toString();
   return {

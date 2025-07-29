@@ -40,11 +40,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    cryptoIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-    },
     mainAmount: {
       textAlign: 'center',
       marginBottom: 16,

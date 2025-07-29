@@ -64,7 +64,7 @@ describe('Validator Utilities', () => {
         cipher: 'test',
         salt: 'test',
         iv: 'test',
-        lib: 'test'
+        lib: 'test',
       });
 
       const result = await parseVaultValue('correct-password', validVault);
@@ -95,7 +95,7 @@ describe('Validator Utilities', () => {
         cipher: 'test',
         salt: 'test',
         iv: 'test',
-        lib: 'test'
+        lib: 'test',
       });
 
       const result = await parseVaultValue('wrong-password', validVault);

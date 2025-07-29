@@ -1,5 +1,8 @@
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import { PortfolioPageSelectorsXpath, PortfolioPageSelectorsWebID } from '../../selectors/Browser/PortfolioPage.selectors';
+import {
+  PortfolioPageSelectorsXpath,
+  PortfolioPageSelectorsWebID,
+} from '../../selectors/Browser/PortfolioPage.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
@@ -37,7 +40,9 @@ class PortfolioHomePage {
   }
 
   async closePrivacyModal(): Promise<void> {
-    await Gestures.tapWebElement(this.closeIconPrivacyModal, {delayBeforeTap: 1000});
+    await Gestures.tapWebElement(this.closeIconPrivacyModal, {
+      delayBeforeTap: 1000,
+    });
   }
 
   async tapAccountButton(): Promise<void> {
@@ -49,4 +54,4 @@ class PortfolioHomePage {
   }
 }
 
-export default new PortfolioHomePage(); 
+export default new PortfolioHomePage();

@@ -48,6 +48,7 @@ import EarnWithdrawalTokenListItem from '../EarnWithdrawalTokenListItem';
 import { EarnTokenDetails } from '../../types/lending.types';
 import BN4 from 'bnjs4';
 import { sortByHighestBalance, sortByHighestRewards } from '../../utils';
+import { trace, TraceName, endTrace } from '../../../../../util/trace';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -99,6 +100,7 @@ const EarnTokenList = () => {
   const { navigate } = useNavigation();
   const { params } = useRoute<EarnTokenListProps['route']>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const traceEndedRef = useRef(false);
 
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { includeReceiptTokens } = params?.tokenFilter ?? {};
@@ -107,6 +109,14 @@ const EarnTokenList = () => {
     useEarnTokens();
 
   const tokens = includeReceiptTokens ? earnOutputTokens : earnTokens;
+
+  // End trace when earn tokens data becomes available (only once)
+  useEffect(() => {
+    if (earnTokens?.length && !traceEndedRef.current) {
+      endTrace({ name: TraceName.EarnTokenList });
+      traceEndedRef.current = true;
+    }
+  }, [earnTokens?.length]);
 
   // Temp workaround for BadgeNetwork component not anchoring correctly on initial render.
   // We force a rerender to ensure the BadgeNetwork component properly anchors to its BadgeWrapper.
@@ -127,6 +137,7 @@ const EarnTokenList = () => {
   );
 
   const redirectToDepositScreen = async (token: TokenI) => {
+    trace({ name: TraceName.EarnDepositScreen });
     closeBottomSheetAndNavigate(() => {
       navigate('StakeScreens', {
         screen: Routes.STAKING.STAKE,
@@ -136,6 +147,7 @@ const EarnTokenList = () => {
   };
 
   const redirectToWithdrawalScreen = (token: TokenI) => {
+    trace({ name: TraceName.EarnWithdrawScreen });
     closeBottomSheetAndNavigate(() => {
       navigate('StakeScreens', {
         screen: Routes.STAKING.UNSTAKE,

@@ -7,6 +7,7 @@ import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { getNavbar } from '../../../../components/UI/navbar/navbar';
+import { endTrace, TraceName } from '../../../../../../../util/trace';
 import StakingDeposit from './staking-deposit';
 
 jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
@@ -24,6 +25,9 @@ jest.mock('../../../../../../../core/Engine', () => ({
       stopPollingByPollingToken: jest.fn(),
     },
   },
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../hooks/useConfirmActions', () => ({
@@ -36,6 +40,11 @@ jest.mock('../../../../components/UI/navbar/navbar', () => ({
 
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
+}));
+
+jest.mock('../../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../../util/trace'),
+  endTrace: jest.fn(),
 }));
 
 const noop = () => undefined;
@@ -60,6 +69,7 @@ describe('StakingDeposit', () => {
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
   );
+  const mockEndTrace = jest.mocked(endTrace);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -151,5 +161,15 @@ describe('StakingDeposit', () => {
 
     // Collapse toggle should not set advanced_details_viewed
     expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(3);
+  });
+
+  it('ends the EarnDepositConfirmationScreen trace on mount', () => {
+    renderWithProvider(<StakingDeposit />, {
+      state: stakingDepositConfirmationState,
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.EarnDepositConfirmationScreen,
+    });
   });
 });

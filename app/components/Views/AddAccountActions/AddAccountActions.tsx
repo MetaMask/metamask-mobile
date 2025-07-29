@@ -162,7 +162,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             iconName={IconName.Add}
             onPress={createNewAccount}
             disabled={isLoading}
-            testID={AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON
+            }
           />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

@@ -1,4 +1,9 @@
-import type { Json, JsonRpcParams, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
+import type {
+  Json,
+  JsonRpcParams,
+  JsonRpcRequest,
+  PendingJsonRpcResponse,
+} from '@metamask/utils';
 import { default as createTracingMiddleware, MESSAGE_TYPE } from './index';
 
 const REQUEST_MOCK = {

@@ -66,7 +66,12 @@ const Summary: SummaryComponent = ({ style, ...props }) => {
   return <View style={[styles.wrapper, style]} {...props} />;
 };
 
-const SummaryRow: React.FC<SummaryRowProps> = ({ style, end, last, ...props }) => {
+const SummaryRow: React.FC<SummaryRowProps> = ({
+  style,
+  end,
+  last,
+  ...props
+}) => {
   const styles = useGetStyles();
   return (
     <View
@@ -81,7 +86,10 @@ const SummaryCol: React.FC<SummaryColProps> = ({ style, end, ...props }) => {
   return <View style={[styles.col, end && styles.rowEnd, style]} {...props} />;
 };
 
-const SummarySeparator: React.FC<SummarySeparatorProps> = ({ style, ...props }) => {
+const SummarySeparator: React.FC<SummarySeparatorProps> = ({
+  style,
+  ...props
+}) => {
   const styles = useGetStyles();
   return <View style={[styles.separator, style]} {...props} />;
 };

@@ -37,12 +37,9 @@ interface FilterButtonProps extends Omit<ButtonProps, 'variant' | 'size'> {
 }
 
 function FilterButton({ selected = false, ...props }: FilterButtonProps) {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   return (
     <Button
       variant={selected ? ButtonVariants.Primary : ButtonVariants.Secondary}
-      style={selected ? styles.selectedFilter : undefined}
       size={ButtonSize.Sm}
       accessibilityRole="button"
       accessible

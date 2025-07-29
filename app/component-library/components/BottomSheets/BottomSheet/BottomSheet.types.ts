@@ -10,6 +10,12 @@ export interface BottomSheetProps extends BottomSheetDialogProps {
    * @default true
    */
   shouldNavigateBack?: boolean;
+
+  /**
+   * Optional boolean that indicates if the KeyboardAvoidingView is enabled.
+   * @default true
+   */
+  keyboardAvoidingViewEnabled?: boolean;
 }
 
 export type BottomSheetPostCallback = () => void;

@@ -7,6 +7,8 @@ export interface DepositConfig {
   entrypoints?: {
     walletActions?: boolean;
   };
+  minimumVersion?: string;
+  active?: boolean;
 }
 
 export const selectDepositConfig = createSelector(
@@ -29,6 +31,22 @@ export const selectDepositProviderFrontendAuth = createSelector(
   (depositConfig) => {
     const depositProviderFrontendAuth = depositConfig?.providerFrontendAuth;
     return depositProviderFrontendAuth ?? null;
+  },
+);
+
+export const selectDepositMinimumVersionFlag = createSelector(
+  selectDepositConfig,
+  (depositConfig) => {
+    const depositMinimumVersion = depositConfig?.minimumVersion;
+    return depositMinimumVersion ?? null;
+  },
+);
+
+export const selectDepositActiveFlag = createSelector(
+  selectDepositConfig,
+  (depositConfig) => {
+    const depositActiveFlag = depositConfig?.active;
+    return depositActiveFlag ?? false;
   },
 );
 

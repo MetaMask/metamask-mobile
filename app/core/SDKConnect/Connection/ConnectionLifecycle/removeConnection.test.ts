@@ -9,7 +9,9 @@ describe('removeConnection', () => {
   let mockConnection: Connection;
 
   const mockDisapprove = jest.fn();
-  const mockDisconnect = jest.fn().mockImplementation(() => Promise.resolve(true));
+  const mockDisconnect = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(true));
   const mockOnDisconnect = jest.fn();
   const mockSetLoading = jest.fn();
 

@@ -1,36 +1,31 @@
+// Shim is used to ensure API compatibility for React Native and provides polyfills for globals
 import './shim.js';
 
-// Needed to polyfill random number generation.
-import 'react-native-get-random-values';
-import '@walletconnect/react-native-compat';
-
+// TODO: This import may not be required anymore since we've upgraded to v2 - https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation/#requirements
+// Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/
 import 'react-native-gesture-handler';
-import 'react-native-url-polyfill/auto';
-
-import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
-require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
 import { setupSentry } from './app/util/sentry/utils';
-setupSentry();
-
-import { AppRegistry, LogBox, ErrorUtils } from 'react-native';
+import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.config.js';
 import { isE2E } from './app/util/test/utils.js';
-
 import { Performance } from './app/core/Performance';
-import { handleCustomError, setReactNativeDefaultHandler } from './app/core/ErrorHandler';
+import {
+  handleCustomError,
+  setReactNativeDefaultHandler,
+} from './app/core/ErrorHandler';
 
-// polyfill crypto
-global.crypto = {
-  ...crypto,
-  ...global.crypto,
-};
+// Setup Sentry
+setupSentry();
 
+// Setup Performance observers
 Performance.setupPerformanceObservers();
 
+// Ignore all logs
 LogBox.ignoreAllLogs();
+
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
   '{}',
@@ -109,4 +104,3 @@ function setupGlobalErrorHandler() {
 }
 
 setupGlobalErrorHandler();
-

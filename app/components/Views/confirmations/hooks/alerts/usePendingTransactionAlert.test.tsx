@@ -31,11 +31,15 @@ const MOCK_ANOTHER_CHAIN_PENDING_TRANSACTION = {
 jest.mock('../transactions/useTransactionMetadataRequest');
 
 describe('usePendingTransactionAlert', () => {
-  const mockUseTransactionMetadataRequest = jest.mocked(useTransactionMetadataRequest);
+  const mockUseTransactionMetadataRequest = jest.mocked(
+    useTransactionMetadataRequest,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTransactionMetadataRequest.mockReturnValue(MOCK_SUBMITTED_TRANSACTION_META);
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      MOCK_SUBMITTED_TRANSACTION_META,
+    );
   });
 
   it('returns alert if there is a submitted transaction (pending)', () => {

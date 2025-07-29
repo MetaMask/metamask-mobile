@@ -34,7 +34,7 @@ const addAccountToSrp = async (
   accountName: string,
 ) => {
   await AccountListBottomSheet.tapAddAccountButton();
-  await AddAccountBottomSheet.tapCreateAccount();
+  await AddAccountBottomSheet.tapCreateEthereumAccount();
   await Assertions.checkIfVisible(AddNewHdAccountComponent.container);
 
   // convert srpNumber to index

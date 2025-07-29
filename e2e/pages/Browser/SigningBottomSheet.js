@@ -16,11 +16,15 @@ class SigningBottomSheet {
   }
 
   get personalRequest() {
-    return Matchers.getElementByID(SigningBottomSheetSelectorsIDs.PERSONAL_REQUEST);
+    return Matchers.getElementByID(
+      SigningBottomSheetSelectorsIDs.PERSONAL_REQUEST,
+    );
   }
 
   get typedRequest() {
-    return Matchers.getElementByID(SigningBottomSheetSelectorsIDs.TYPED_REQUEST);
+    return Matchers.getElementByID(
+      SigningBottomSheetSelectorsIDs.TYPED_REQUEST,
+    );
   }
 
   async tapSignButton() {

@@ -90,7 +90,7 @@ const QuoteDetailsCard = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const rotationValue = useSharedValue(0);
 
-  const { formattedQuoteData } = useBridgeQuoteData();
+  const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
@@ -197,20 +197,47 @@ const QuoteDetailsCard = () => {
         </Box>
 
         {/* Always visible content */}
-        <KeyValueRow
-          field={{
-            label: {
-              text: strings('bridge.network_fee') || 'Network fee',
-              variant: TextVariant.BodyMDMedium,
-            },
-          }}
-          value={{
-            label: {
-              text: networkFee,
-              variant: TextVariant.BodyMD,
-            },
-          }}
-        />
+        {activeQuote?.quote.gasIncluded ? (
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            justifyContent={JustifyContent.spaceBetween}
+          >
+            <Text variant={TextVariant.BodyMDMedium}>
+              {strings('bridge.network_fee') || 'Network fee'}
+            </Text>
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={8}
+            >
+              <Text variant={TextVariant.BodyMD}>
+                {strings('bridge.included') || 'Included'}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                style={styles.strikethroughText}
+              >
+                {networkFee}
+              </Text>
+            </Box>
+          </Box>
+        ) : (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.network_fee') || 'Network fee',
+                variant: TextVariant.BodyMDMedium,
+              },
+            }}
+            value={{
+              label: {
+                text: networkFee,
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        )}
 
         <KeyValueRow
           field={{

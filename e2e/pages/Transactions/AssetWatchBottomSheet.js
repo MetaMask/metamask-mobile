@@ -11,9 +11,7 @@ class AssetWatchBottomSheet {
     return Matchers.getElementByID(AssetWatcherSelectorsIDs.CANCEL_BUTTON);
   }
   get confirmButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(AssetWatcherSelectorsIDs.CONFIRM_BUTTON)
-      : Matchers.getElementByID(AssetWatcherSelectorsIDs.CONFIRM_BUTTON);
+    return Matchers.getElementByID(AssetWatcherSelectorsIDs.CONFIRM_BUTTON);
   }
 
   async tapCancelButton() {

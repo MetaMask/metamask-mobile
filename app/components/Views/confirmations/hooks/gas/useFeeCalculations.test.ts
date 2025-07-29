@@ -159,10 +159,12 @@ describe('useFeeCalculations', () => {
     );
     // Add a layer1GasFee to the transactionMeta
     const layer1GasFee = '0x1000'; // 4096 in hex, small value for test
-    clonedStateWithLayer1GasFee.engine.backgroundState.TransactionController.transactions[0].layer1GasFee = layer1GasFee;
+    clonedStateWithLayer1GasFee.engine.backgroundState.TransactionController.transactions[0].layer1GasFee =
+      layer1GasFee;
 
     const transactionMetaWithLayer1GasFee =
-      clonedStateWithLayer1GasFee.engine.backgroundState.TransactionController.transactions[0];
+      clonedStateWithLayer1GasFee.engine.backgroundState.TransactionController
+        .transactions[0];
 
     const { result } = renderHookWithProvider(
       () => useFeeCalculations(transactionMetaWithLayer1GasFee),

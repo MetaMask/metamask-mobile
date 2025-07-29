@@ -2,6 +2,7 @@ import { Order } from '@consensys/on-ramp-sdk';
 import { toHex } from '@metamask/controller-utils';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/Ramp/Aggregator/types';
+import { DepositRegion } from '../../components/UI/Ramp/Deposit/constants';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import {
@@ -40,6 +41,10 @@ export const updateFiatOrder = (order: FiatOrder) => ({
 });
 export const setFiatOrdersRegionAGG = (region: Region | null) => ({
   type: ACTIONS.FIAT_SET_REGION_AGG,
+  payload: region,
+});
+export const setFiatOrdersRegionDeposit = (region: DepositRegion | null) => ({
+  type: ACTIONS.FIAT_SET_REGION_DEPOSIT,
   payload: region,
 });
 export const setFiatOrdersPaymentMethodAGG = (
@@ -160,6 +165,10 @@ export const fiatOrdersRegionSelectorAgg: (
   state: RootState,
 ) => FiatOrdersState['selectedRegionAgg'] = (state: RootState) =>
   state.fiatOrders.selectedRegionAgg;
+export const fiatOrdersRegionSelectorDeposit: (
+  state: RootState,
+) => FiatOrdersState['selectedRegionDeposit'] = (state: RootState) =>
+  state.fiatOrders.selectedRegionDeposit;
 export const fiatOrdersPaymentMethodSelectorAgg: (
   state: RootState,
 ) => FiatOrdersState['selectedPaymentMethodAgg'] = (state: RootState) =>
@@ -278,6 +287,7 @@ export const initialState: FiatOrdersState = {
   customOrderIds: [],
   networks: [],
   selectedRegionAgg: null,
+  selectedRegionDeposit: null,
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
   getStartedSell: false,
@@ -372,6 +382,12 @@ const fiatOrderReducer: (
       return {
         ...state,
         selectedRegionAgg: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_REGION_DEPOSIT: {
+      return {
+        ...state,
+        selectedRegionDeposit: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG: {

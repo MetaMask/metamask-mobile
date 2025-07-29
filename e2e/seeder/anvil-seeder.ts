@@ -1,4 +1,7 @@
-import { SMART_CONTRACTS, contractConfiguration } from '../../app/util/test/smart-contracts';
+import {
+  SMART_CONTRACTS,
+  contractConfiguration,
+} from '../../app/util/test/smart-contracts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */

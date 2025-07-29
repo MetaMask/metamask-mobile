@@ -7,9 +7,11 @@ export const BuildQuoteSelectors = {
   GET_QUOTES_BUTTON: enContent.fiat_on_ramp_aggregator.get_quotes,
   CANCEL_BUTTON_TEXT: enContent.navigation.cancel,
   SELECT_REGION: enContent.fiat_on_ramp_aggregator.region.select_region,
-  SELECT_PAYMENT_METHOD: enContent.fiat_on_ramp_aggregator.update_payment_method,
+  SELECT_PAYMENT_METHOD:
+    enContent.fiat_on_ramp_aggregator.update_payment_method,
   SELECT_CURRENCY: 'select-currency',
   REGION_DROPDOWN: 'region-dropdown',
+  ACCOUNT_PICKER: 'ramps-account-picker',
   DONE_BUTTON: enContent.fiat_on_ramp_aggregator.done,
   MIN_LIMIT_ERROR: 'min-limit-error',
   MAX_LIMIT_ERROR: 'max-limit-error',

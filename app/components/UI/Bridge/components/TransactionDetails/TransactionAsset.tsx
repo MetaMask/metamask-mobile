@@ -32,23 +32,23 @@ import { TransactionType } from '@metamask/transaction-controller';
 const styles = StyleSheet.create({
   tokenIcon: {
     width: 40,
-      height: 40,
-    },
-    tokenInfo: {
-      flex: 1,
-      marginLeft: 12,
-      marginTop: -6,
-    },
-    infoButton: {
-      marginRight: 12,
-    },
-    container: {
-      padding: 4,
-    },
-    networkName: {
-      marginTop: -2,
-    },
-  });
+    height: 40,
+  },
+  tokenInfo: {
+    flex: 1,
+    marginLeft: 12,
+    marginTop: -6,
+  },
+  infoButton: {
+    marginRight: 12,
+  },
+  container: {
+    padding: 4,
+  },
+  networkName: {
+    marginTop: -2,
+  },
+});
 
 interface TransactionAssetProps {
   token: BridgeToken;
@@ -117,7 +117,7 @@ const TransactionAsset = ({
           <Text
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Alternative}
-          style={styles.networkName}
+            style={styles.networkName}
           >
             {networkName}
           </Text>

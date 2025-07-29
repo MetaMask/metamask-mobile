@@ -385,6 +385,9 @@ describe('BridgeTransactionDetails', () => {
             },
           },
         },
+        PerpsController: {
+          connectionStatus: 'disconnected' as const,
+        },
       },
     },
     settings: {

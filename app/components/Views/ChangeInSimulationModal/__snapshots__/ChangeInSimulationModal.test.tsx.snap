@@ -99,11 +99,12 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#4459ff",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -135,13 +136,14 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#3c4d9d1a",
+          "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -151,7 +153,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,

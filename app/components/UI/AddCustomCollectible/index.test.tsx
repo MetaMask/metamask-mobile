@@ -14,10 +14,8 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     NftController: {
       state: {
-        allNfts: {
-        },
-        allNftContracts: {
-        },
+        allNfts: {},
+        allNftContracts: {},
         ignoredNfts: [],
       },
       addNft: jest.fn(),
@@ -46,10 +44,9 @@ describe('AddCustomCollectible', () => {
   });
 
   it('handles address input changes', () => {
-    const { getByTestId } = renderWithProvider(
-      <AddCustomCollectible />,
-      { state: initialRootState },
-    );
+    const { getByTestId } = renderWithProvider(<AddCustomCollectible />, {
+      state: initialRootState,
+    });
 
     const textfield = getByTestId('input-collectible-address');
     fireEvent.changeText(textfield, '0xtestAddress');
@@ -57,17 +54,16 @@ describe('AddCustomCollectible', () => {
   });
 
   it('handles tokenId input changes', () => {
-    const { getByTestId } = renderWithProvider(
-      <AddCustomCollectible />,
-      { state: initialRootState },
-    );
+    const { getByTestId } = renderWithProvider(<AddCustomCollectible />, {
+      state: initialRootState,
+    });
 
     const textfield = getByTestId('input-collectible-identifier');
     fireEvent.changeText(textfield, '55');
     expect(textfield.props.value).toBe('55');
   });
 
-  it('calls addNft', async() => {
+  it('calls addNft', async () => {
     const spyOnAddNft = jest
       .spyOn(Engine.context.NftController, 'addNft')
       .mockImplementation(async () => undefined);
@@ -76,22 +72,27 @@ describe('AddCustomCollectible', () => {
       .spyOn(Engine.context.NftController, 'isNftOwner')
       .mockResolvedValue(true);
 
-    jest.spyOn(utilsTransactions, 'isSmartContractAddress').mockResolvedValue(true);
-
+    jest
+      .spyOn(utilsTransactions, 'isSmartContractAddress')
+      .mockResolvedValue(true);
 
     const { getByTestId } = renderWithProvider(
-      <AddCustomCollectible navigation={{ navigate: jest.fn(), goBack: jest.fn() }} />,
+      <AddCustomCollectible
+        navigation={{ navigate: jest.fn(), goBack: jest.fn() }}
+      />,
       { state: initialRootState },
     );
 
     const textfieldAddress = getByTestId('input-collectible-address');
-    fireEvent.changeText(textfieldAddress, '0x1a92f7381b9f03921564a437210bb9396471050c');
+    fireEvent.changeText(
+      textfieldAddress,
+      '0x1a92f7381b9f03921564a437210bb9396471050c',
+    );
 
     const textfieldTokenId = getByTestId('input-collectible-identifier');
     fireEvent.changeText(textfieldTokenId, '55');
 
     const button = getByTestId('add-collectible-button');
-
 
     await act(async () => {
       fireEvent.press(button);

@@ -9,6 +9,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { formatAddress } from '../../../../../../util/address';
+import { RootState } from '../../../../../../reducers';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -121,8 +122,11 @@ describe('BaseAccountDetails', () => {
     fireEvent.press(accountNameLink);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
-      { account: mockAccount },
+      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+        params: { account: mockAccount },
+      },
     );
   });
 
@@ -138,8 +142,11 @@ describe('BaseAccountDetails', () => {
     fireEvent.press(accountAddressLink);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
-      { account: mockAccount },
+      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      {
+        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
+        params: { account: mockAccount },
+      },
     );
   });
 
@@ -159,5 +166,55 @@ describe('BaseAccountDetails', () => {
 
     expect(getAllByText(snapAccount.metadata.name)).toHaveLength(2);
     expect(getByText(shortAddress)).toBeTruthy();
+  });
+
+  it('navigates to wallet details when wallet name is pressed', () => {
+    const mockWalletId = 'keyring:wallet-test';
+    const mockWallet = {
+      id: mockWalletId,
+      metadata: { name: 'Test Wallet' },
+      groups: {
+        'keyring:1:ethereum': {
+          accounts: [mockAccount.id],
+        },
+      },
+    };
+
+    const mockStateWithWallet = {
+      ...mockInitialState,
+      engine: {
+        backgroundState: {
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                [mockWalletId]: mockWallet,
+              },
+            },
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '1',
+                minimumVersion: '1.0.0',
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const { getByTestId } = renderWithProvider(
+      <BaseAccountDetails account={mockAccount} />,
+      { state: mockStateWithWallet },
+    );
+
+    const walletNameLink = getByTestId(AccountDetailsIds.WALLET_NAME_LINK);
+    fireEvent.press(walletNameLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS,
+      { walletId: mockWalletId },
+    );
   });
 });

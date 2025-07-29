@@ -24,7 +24,10 @@ class QuotesView {
   }
 
   get continueWithProvider() {
-    const providerLocator = QuoteSelectors.CONTINUE_WITH_PROVIDER.replace('{{provider}}', '.*');
+    const providerLocator = QuoteSelectors.CONTINUE_WITH_PROVIDER.replace(
+      '{{provider}}',
+      '.*',
+    );
     return Matchers.getElementByText(new RegExp(`^${providerLocator}$`));
   }
 

@@ -27,6 +27,7 @@ import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
 import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { TokenI } from '../../../Tokens/types';
+import { trace, TraceName } from '../../../../../util/trace';
 
 jest.mock('../../../Navbar', () => ({
   getStakingNavbar: jest.fn().mockReturnValue({}),
@@ -389,6 +390,11 @@ jest.mock('../../utils/tempLending', () => ({
   getLendingPoolLiquidity: jest.fn().mockResolvedValue('1000000000000000000'),
 }));
 
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+}));
+
 describe('EarnWithdrawInputView', () => {
   const selectConfirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
@@ -396,6 +402,7 @@ describe('EarnWithdrawInputView', () => {
   const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
   const mockTrackEvent = jest.fn();
   const useMetricsMock = jest.mocked(useMetrics);
+  const mockTrace = jest.mocked(trace);
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -1117,6 +1124,35 @@ describe('EarnWithdrawInputView', () => {
             }),
           }),
         );
+      });
+    });
+  });
+
+  describe('Tracing', () => {
+    describe('Pooled Staking flow tracing', () => {
+      it('calls trace with EarnWithdrawConfirmationScreen when redesigned confirmations are enabled', async () => {
+        selectConfirmationRedesignFlagsMock.mockReturnValue({
+          staking_confirmations: true,
+        } as unknown as ConfirmationRedesignRemoteFlags);
+
+        const mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue({});
+        jest.requireMock('../../../Stake/hooks/usePoolStakedUnstake').default =
+          () => ({
+            attemptUnstakeTransaction: mockAttemptUnstakeTransaction,
+          });
+
+        const { getByText } = render(EarnWithdrawInputView);
+
+        fireEvent.press(getByText('1'));
+
+        await act(async () => {
+          fireEvent.press(screen.getByText('Review'));
+        });
+
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: TraceName.EarnWithdrawConfirmationScreen,
+          data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+        });
       });
     });
   });

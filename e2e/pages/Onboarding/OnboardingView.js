@@ -1,14 +1,18 @@
 import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { BASE_DEFAULTS, Utilities } from '../../framework';
+import OnboardingSheet from './OnboardingSheet';
 
 class OnboardingView {
   get container() {
     return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
-  get importSeedButton() {
-    return Matchers.getElementByID(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
+  get existingWalletButton() {
+    return Matchers.getElementByID(
+      OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+    );
   }
 
   get newWalletButton() {
@@ -19,8 +23,22 @@ class OnboardingView {
     await Gestures.waitAndTap(this.newWalletButton);
   }
 
-  async tapImportWalletFromSeedPhrase() {
-    await Gestures.waitAndTap(this.importSeedButton);
+  async tapHaveAnExistingWallet() {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.existingWalletButton, {
+          elemDescription: 'Onboarding Have an Existing Wallet Button',
+        });
+        await Utilities.waitForElementToBeVisible(
+          OnboardingSheet.importSeedButton,
+        );
+      },
+      {
+        timeout: BASE_DEFAULTS.timeout,
+        description: 'tapHaveAnExistingWallet()',
+        elemDescription: 'Taps to prompt bottom sheet',
+      },
+    );
   }
 }
 

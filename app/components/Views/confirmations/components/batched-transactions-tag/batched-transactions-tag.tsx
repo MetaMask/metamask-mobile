@@ -26,7 +26,10 @@ export const BatchedTransactionTag = () => {
   const batchedTransactionCount =
     transactionBatchesMetadata?.transactions?.length ?? 0;
   const isInternalConfirmation = useIsInternalConfirmation();
-  if (nestedTransactionCount <= 1 && (batchedTransactionCount <= 1 || isInternalConfirmation)) {
+  if (
+    nestedTransactionCount <= 1 &&
+    (batchedTransactionCount <= 1 || isInternalConfirmation)
+  ) {
     return null;
   }
 

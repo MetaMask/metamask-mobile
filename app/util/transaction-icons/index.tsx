@@ -26,8 +26,18 @@ export function getTransactionIcon(
   appTheme: AppThemeKey,
   osColorScheme: ColorSchemeName,
 ) {
-  const swapIcon = getAssetFromTheme(appTheme, osColorScheme, transactionIconSwapLight, transactionIconSwapDark);
-  const swapFailedIcon = getAssetFromTheme(appTheme, osColorScheme, transactionIconSwapFailedLight, transactionIconSwapFailedDark);
+  const swapIcon = getAssetFromTheme(
+    appTheme,
+    osColorScheme,
+    transactionIconSwapLight,
+    transactionIconSwapDark,
+  );
+  const swapFailedIcon = getAssetFromTheme(
+    appTheme,
+    osColorScheme,
+    transactionIconSwapFailedLight,
+    transactionIconSwapFailedDark,
+  );
 
   switch (transactionType) {
     case 'send':

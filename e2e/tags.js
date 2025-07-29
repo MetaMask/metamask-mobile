@@ -40,16 +40,15 @@ const SmokeNotifications = (testName) =>
   `${tags.smokeNotifications} ${testName}`;
 const SmokeAnalytics = (testName) => `${tags.smokeAnalytics} ${testName}`;
 
-
 const SmokeTrade = (testName) => `${tags.SmokeTrade} ${testName}`;
-const SmokeWalletPlatform = (testName) => `${tags.SmokeWalletPlatform} ${testName}`;
+const SmokeWalletPlatform = (testName) =>
+  `${tags.SmokeWalletPlatform} ${testName}`;
 
 const SmokeNetworkAbstractions = (testName) =>
   `${tags.SmokeNetworkAbstractions} ${testName}`;
 const SmokeNetworkExpansion = (testName) =>
   `${tags.SmokeNetworkExpansion} ${testName}`;
-const FlaskBuildTests = (testName) => 
-  `${tags.FlaskBuildTests} ${testName}`;
+const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
 
 export {
   FlaskBuildTests,

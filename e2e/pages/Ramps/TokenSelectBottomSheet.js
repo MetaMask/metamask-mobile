@@ -4,7 +4,9 @@ import { selectTokenSelectors } from '../../selectors/Ramps/SelectToken.selector
 
 class TokenSelectBottomSheet {
   get tokenSearchInput() {
-    return Matchers.getElementByID(selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT);
+    return Matchers.getElementByID(
+      selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT,
+    );
   }
 
   async tapTokenByName(token) {

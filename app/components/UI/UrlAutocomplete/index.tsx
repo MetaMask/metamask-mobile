@@ -15,7 +15,7 @@ import {
   ActivityIndicator,
   SectionListRenderItem,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from 'react-native';
 import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
@@ -32,18 +32,29 @@ import {
 } from './types';
 import { debounce } from 'lodash';
 import { strings } from '../../../../locales/i18n';
-import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
+import {
+  selectBrowserBookmarksWithType,
+  selectBrowserHistoryWithType,
+} from '../../../selectors/browser';
 import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
 import { Result } from './Result';
 import useTokenSearchDiscovery from '../../hooks/TokenSearchDiscovery/useTokenSearch/useTokenSearch';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../core/Engine';
-import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selectors/currencyRateController';
-import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
+import {
+  selectCurrentCurrency,
+  selectUsdConversionRate,
+} from '../../../selectors/currencyRateController';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../Bridge/hooks/useSwapBridgeNavigation';
 
 export * from './types';
 
-const dappsWithType: FuseSearchResult[] = dappUrlList.map(i => ({...i, category: UrlAutocompleteCategory.Sites} as const));
+const dappsWithType: FuseSearchResult[] = dappUrlList.map(
+  (i) => ({ ...i, category: UrlAutocompleteCategory.Sites } as const),
+);
 
 const TOKEN_SEARCH_LIMIT = 10;
 
@@ -61,29 +72,42 @@ const UrlAutocomplete = forwardRef<
 >(({ onSelect, onDismiss }, ref) => {
   const browserHistory = useSelector(selectBrowserHistoryWithType);
   const bookmarks = useSelector(selectBrowserBookmarksWithType);
-  const initialFuseResults = useMemo(() => [
-    ...browserHistory,
-    ...bookmarks,
-  ], [browserHistory, bookmarks]);
-  const [fuseResults, setFuseResults] = useState<FuseSearchResult[]>(initialFuseResults);
-  const {searchTokens, results: tokenSearchResults, reset: resetTokenSearch, isLoading: isTokenSearchLoading} = useTokenSearchDiscovery();
+  const initialFuseResults = useMemo(
+    () => [...browserHistory, ...bookmarks],
+    [browserHistory, bookmarks],
+  );
+  const [fuseResults, setFuseResults] =
+    useState<FuseSearchResult[]>(initialFuseResults);
+  const {
+    searchTokens,
+    results: tokenSearchResults,
+    reset: resetTokenSearch,
+    isLoading: isTokenSearchLoading,
+  } = useTokenSearchDiscovery();
   const usdConversionRate = useSelector(selectUsdConversionRate);
   const tokenResults: TokenSearchResult[] = useMemo(
-    () => (
+    () =>
       tokenSearchResults
-      .map(({tokenAddress, usdPricePercentChange, usdPrice, chainId, ...rest}) => ({
-        ...rest,
-        category: UrlAutocompleteCategory.Tokens as const,
-        address: tokenAddress,
-        chainId: chainId as Hex,
-        price: usdConversionRate ? usdPrice / usdConversionRate : -1,
-        percentChange: usdPricePercentChange.oneDay,
-        decimals: 18,
-        isFromSearch: true as const,
-      }))
-      .slice(0, TOKEN_SEARCH_LIMIT)
-    ),
-    [tokenSearchResults, usdConversionRate]
+        .map(
+          ({
+            tokenAddress,
+            usdPricePercentChange,
+            usdPrice,
+            chainId,
+            ...rest
+          }) => ({
+            ...rest,
+            category: UrlAutocompleteCategory.Tokens as const,
+            address: tokenAddress,
+            chainId: chainId as Hex,
+            price: usdConversionRate ? usdPrice / usdConversionRate : -1,
+            percentChange: usdPricePercentChange.oneDay,
+            decimals: 18,
+            isFromSearch: true as const,
+          }),
+        )
+        .slice(0, TOKEN_SEARCH_LIMIT),
+    [tokenSearchResults, usdConversionRate],
   );
 
   const hasResults = fuseResults.length > 0 || tokenResults.length > 0;
@@ -92,38 +116,46 @@ const UrlAutocomplete = forwardRef<
 
   useEffect(() => {
     if (currentCurrency) {
-      Engine.context.CurrencyRateController.updateExchangeRate([currentCurrency]);
+      Engine.context.CurrencyRateController.updateExchangeRate([
+        currentCurrency,
+      ]);
     }
   }, [currentCurrency]);
 
-  const resultsByCategory: ResultsWithCategory[] = useMemo(() => (
-    ORDERED_CATEGORIES.flatMap((category) => {
-      if (category === UrlAutocompleteCategory.Tokens) {
-        if (tokenResults.length === 0 && !isTokenSearchLoading) {
+  const resultsByCategory: ResultsWithCategory[] = useMemo(
+    () =>
+      ORDERED_CATEGORIES.flatMap((category) => {
+        if (category === UrlAutocompleteCategory.Tokens) {
+          if (tokenResults.length === 0 && !isTokenSearchLoading) {
+            return [];
+          }
+          return {
+            category,
+            data: tokenResults,
+          };
+        }
+
+        let data = fuseResults.filter(
+          (result, index, self) =>
+            result.category === category &&
+            index ===
+              self.findIndex(
+                (r) => r.url === result.url && r.category === result.category,
+              ),
+        );
+        if (data.length === 0) {
           return [];
+        }
+        if (category === UrlAutocompleteCategory.Recents) {
+          data = data.slice(0, MAX_RECENTS);
         }
         return {
           category,
-          data: tokenResults,
+          data,
         };
-      }
-
-      let data = fuseResults.filter((result, index, self) =>
-        result.category === category &&
-        index === self.findIndex(r => r.url === result.url && r.category === result.category)
-      );
-      if (data.length === 0) {
-        return [];
-      }
-      if (category === UrlAutocompleteCategory.Recents) {
-        data = data.slice(0, MAX_RECENTS);
-      }
-      return {
-        category,
-        data,
-      };
-    })
-  ), [fuseResults, tokenResults, isTokenSearchLoading]);
+      }),
+    [fuseResults, tokenResults, isTokenSearchLoading],
+  );
 
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
   const resultsRef = useRef<View | null>(null);
@@ -145,22 +177,24 @@ const UrlAutocomplete = forwardRef<
   }, [initialFuseResults, resetTokenSearch]);
 
   const latestSearchTerm = useRef<string | null>(null);
-  const search = useCallback((text: string) => {
-    latestSearchTerm.current = text;
-    if (!text) {
-      reset();
-      return;
-    }
-    const fuseSearchResult = fuseRef.current?.search(text);
-    if (Array.isArray(fuseSearchResult)) {
-      setFuseResults(fuseSearchResult);
-    } else {
-      setFuseResults([]);
-    }
+  const search = useCallback(
+    (text: string) => {
+      latestSearchTerm.current = text;
+      if (!text) {
+        reset();
+        return;
+      }
+      const fuseSearchResult = fuseRef.current?.search(text);
+      if (Array.isArray(fuseSearchResult)) {
+        setFuseResults(fuseSearchResult);
+      } else {
+        setFuseResults([]);
+      }
 
-    searchTokens(text);
-
-  }, [searchTokens, reset]);
+      searchTokens(text);
+    },
+    [searchTokens, reset],
+  );
 
   /**
    * Debounce the search function
@@ -220,40 +254,56 @@ const UrlAutocomplete = forwardRef<
     sourcePage: 'MainView',
   });
 
-  const goToSwaps = useCallback(async (result: TokenSearchResult) => {
-    try {
-      await goToSwapsHook(result);
-    } catch (error) {
-      return;
-    }
-  }, [goToSwapsHook]);
+  const goToSwaps = useCallback(
+    async (result: TokenSearchResult) => {
+      try {
+        await goToSwapsHook(result);
+      } catch (error) {
+        return;
+      }
+    },
+    [goToSwapsHook],
+  );
 
-  const renderSectionHeader = useCallback(({section: { category }}: {section: ResultsWithCategory}) => (
-    <View style={styles.categoryWrapper}>
-      <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
-      {category === UrlAutocompleteCategory.Tokens && isTokenSearchLoading && (
-        <ActivityIndicator testID="loading-indicator" size="small" />
-      )}
-    </View>
-  ), [styles, isTokenSearchLoading]);
+  const renderSectionHeader = useCallback(
+    ({ section: { category } }: { section: ResultsWithCategory }) => (
+      <View style={styles.categoryWrapper}>
+        <Text style={styles.category}>
+          {strings(`autocomplete.${category}`)}
+        </Text>
+        {category === UrlAutocompleteCategory.Tokens &&
+          isTokenSearchLoading && (
+            <ActivityIndicator testID="loading-indicator" size="small" />
+          )}
+      </View>
+    ),
+    [styles, isTokenSearchLoading],
+  );
 
-  const renderItem: SectionListRenderItem<AutocompleteSearchResult> = useCallback(({item}) => (
-    <Result
-      result={item}
-      onPress={() => {
-        if (item.category !== UrlAutocompleteCategory.Tokens) {
-            hide();
-        }
-        onSelect(item);
-      }}
-      onSwapPress={goToSwaps}
-    />
-  ), [hide, onSelect, goToSwaps]);
+  const renderItem: SectionListRenderItem<AutocompleteSearchResult> =
+    useCallback(
+      ({ item }) => (
+        <Result
+          result={item}
+          onPress={() => {
+            if (item.category !== UrlAutocompleteCategory.Tokens) {
+              hide();
+            }
+            onSelect(item);
+          }}
+          onSwapPress={goToSwaps}
+        />
+      ),
+      [hide, onSelect, goToSwaps],
+    );
 
   if (!hasResults && !isTokenSearchLoading) {
     return (
       <View ref={resultsRef} style={styles.wrapper}>
-        <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
+        <TouchableWithoutFeedback
+          style={styles.bg}
+          onPress={dismissAutocomplete}
+        >
           <View style={styles.bg} />
         </TouchableWithoutFeedback>
       </View>

@@ -21,15 +21,15 @@ export default class MetaMetricsTestUtils {
   }
 
   constructor() {
-     /**
+    /**
      * This class is used to send test events to the E2E test mock server.
      * It is initialized with the `sendMetaMetricsinE2E` flag from the launch arguments.
      * To enable sending events, ensure you launch the app with the appropriate
      * You should also ensure you have the IS_TEST test env variable set to `true`
      * as this is the main safeguard to prevent sending events to the real server.
      */
-     this.sendMetaMetricsinE2E = true;
-    }
+    this.sendMetaMetricsinE2E = true;
+  }
 
   /**
    * Sends an event to the test server
@@ -51,7 +51,12 @@ export default class MetaMetricsTestUtils {
         }),
       });
     } catch (error) {
-      if (!(error instanceof TypeError && error.message.includes('Network request failed'))) {
+      if (
+        !(
+          error instanceof TypeError &&
+          error.message.includes('Network request failed')
+        )
+      ) {
         console.error('Error sending event to test server:', error);
       }
     }

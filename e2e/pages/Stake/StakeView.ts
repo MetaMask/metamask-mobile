@@ -25,12 +25,12 @@ class StakeView {
     await Gestures.waitAndTap(amountButton);
   }
 
- async enterAmount(amount: string) {
-  for (const digit of amount) {
-    const button = Matchers.getElementByText(digit);
-    await Gestures.waitAndTap(button);
+  async enterAmount(amount: string) {
+    for (const digit of amount) {
+      const button = Matchers.getElementByText(digit);
+      await Gestures.waitAndTap(button);
+    }
   }
-}
 
   async tapReview() {
     await Gestures.waitAndTap(this.reviewButton);

@@ -42,8 +42,8 @@ jest.mock('../../../core/Engine', () => ({
       test: () => ({ result: true, name: 'test' }),
     },
     AccountsController: {
-      listMultichainAccounts: () => []
-    }
+      listMultichainAccounts: () => [],
+    },
   },
 }));
 

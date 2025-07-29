@@ -10,7 +10,7 @@ import {
   FORMATTED_VALUE_PRICE_TEST_ID,
   FORMATTED_PERCENTAGE_TEST_ID,
 } from './AggregatedPercentage.constants';
-import { toChecksumAddress, zeroAddress } from 'ethereumjs-util';
+import { zeroAddress } from 'ethereumjs-util';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
   MarketDataMapping,
@@ -18,6 +18,7 @@ import {
 } from '../../../../components/hooks/useGetFormattedTokensPerChain';
 import { getFormattedAmountChange, getPercentageTextColor } from './utils';
 import { AggregatedPercentageCrossChainsProps } from './AggregatedPercentageCrossChains.types';
+import { toChecksumAddress } from '../../../../util/address';
 
 export const getCalculatedTokenAmount1dAgo = (
   tokenFiatBalance: number,

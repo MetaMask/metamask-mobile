@@ -57,12 +57,17 @@ describe(
         if (device.getPlatform() === 'ios' && process.env.CI) {
           await TabBarComponent.tapWallet();
         }
-    
+
         //wait for screen transitions after password change
-        await Assertions.checkIfNotVisible(ChangePasswordView.submitButton, 25000);
+        await Assertions.checkIfNotVisible(
+          ChangePasswordView.submitButton,
+          25000,
+        );
         await Assertions.checkIfVisible(ToastModal.notificationTitle);
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
-        await Assertions.checkIfVisible(SecurityAndPrivacyView.securityAndPrivacyHeading);
+        await Assertions.checkIfVisible(
+          SecurityAndPrivacyView.securityAndPrivacyHeading,
+        );
 
         // should lock wallet from Settings
         // TODO: remove the condition but keep the step once the issue above is fixed
@@ -75,7 +80,7 @@ describe(
         await Assertions.checkIfVisible(LoginView.container);
 
         // should tap reset wallet button
-        await LoginView.tapResetWalletButton();
+        await LoginView.tapForgotPassword();
 
         // should reset wallet
         await ForgotPasswordModal.tapResetWalletButton();

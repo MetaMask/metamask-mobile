@@ -85,15 +85,22 @@ const handleDeeplink = async ({
   try {
     if (channelExists) {
       // is it already connected?
-      let connected = sdkConnect.getConnected()[channelId]?.remote.isConnected() ?? false;
-      if(!connected) {
-        if(sdkConnect.state.connecting[channelId] === true) {
+      let connected =
+        sdkConnect.getConnected()[channelId]?.remote.isConnected() ?? false;
+      if (!connected) {
+        if (sdkConnect.state.connecting[channelId] === true) {
           // skip reconnect if connecting
-          DevLogger.log(`handleDeeplink:: channel=${channelId} is connecting --- SKIP reconnect`, sdkConnect.state.connecting);
+          DevLogger.log(
+            `handleDeeplink:: channel=${channelId} is connecting --- SKIP reconnect`,
+            sdkConnect.state.connecting,
+          );
           // wait for connection to be established
           await waitForCondition({
             fn: () => {
-              DevLogger.log(`handleDeeplink:: channel=${channelId} is connecting --- wait for connection to be established`, sdkConnect.state.connecting);
+              DevLogger.log(
+                `handleDeeplink:: channel=${channelId} is connecting --- wait for connection to be established`,
+                sdkConnect.state.connecting,
+              );
               return sdkConnect.state.connecting[channelId] === false;
             },
             context: 'handleDeeplink',
@@ -112,10 +119,13 @@ const handleDeeplink = async ({
           });
         }
       } else {
-        DevLogger.log(`handleDeeplink:: channel=${channelId} is already connected`);
+        DevLogger.log(
+          `handleDeeplink:: channel=${channelId} is already connected`,
+        );
       }
 
-      connected = sdkConnect.getConnected()[channelId]?.remote.isConnected() ?? false;
+      connected =
+        sdkConnect.getConnected()[channelId]?.remote.isConnected() ?? false;
       DevLogger.log(
         `handleDeeplink:: channel=${channelId} reconnected=${connected} -- handle rcp`,
       );
@@ -142,7 +152,9 @@ const handleDeeplink = async ({
         const rpcMethodTracker = connection.remote.getRPCMethodTracker();
         if (rpcMethodTracker?.[message.id ?? '']) {
           // Already received via websocket
-          DevLogger.log(`handleDeeplink:: rpcId=${message.id} already received via websocket`);
+          DevLogger.log(
+            `handleDeeplink:: rpcId=${message.id} already received via websocket`,
+          );
           return;
         }
 

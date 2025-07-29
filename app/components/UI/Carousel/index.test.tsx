@@ -62,6 +62,11 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   setSelectedAddress: jest.fn(),
+  context: {
+    PreferencesController: {
+      state: {},
+    },
+  },
 }));
 
 jest.mock('../../../util/theme', () => ({

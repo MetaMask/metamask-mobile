@@ -32,6 +32,7 @@ import styleSheet from './ClaimBanner.styles';
 import { renderFromWei } from '../../../../../../../util/number';
 import { TokenI } from '../../../../../Tokens/types';
 import { getDecimalChainId } from '../../../../../../../util/networks';
+import { trace, TraceName } from '../../../../../../../util/trace';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
@@ -71,6 +72,7 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
     try {
       if (!activeAccount?.address) return;
 
+      trace({ name: TraceName.EarnClaimConfirmationScreen });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_CLAIM_BUTTON_CLICKED)
           .addProperties({

@@ -7,9 +7,7 @@ import ButtonPill from './ButtonPill';
 
 describe('ButtonPill', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
-      <ButtonPill onPress={jest.fn} />,
-    );
+    const { toJSON } = render(<ButtonPill onPress={jest.fn} />);
     expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -44,6 +44,11 @@ export const snapControllerInit: ControllerInitFunction<
   const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE !== 'flask';
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
 
+  ///: BEGIN:ONLY_INCLUDE_IF(flask)
+  const forcePreinstalledSnaps =
+    process.env.FORCE_PREINSTALLED_SNAPS === 'true';
+  ///: END:ONLY_INCLUDE_IF
+
   const encryptor = new Encryptor({
     keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
   });
@@ -103,6 +108,9 @@ export const snapControllerInit: ControllerInitFunction<
       disableSnapInstallation,
       requireAllowlist,
       useCaip25Permission: true,
+      ///: BEGIN:ONLY_INCLUDE_IF(flask)
+      forcePreinstalledSnaps,
+      ///: END:ONLY_INCLUDE_IF
     },
 
     // @ts-expect-error: `encryptorFactory` is not compatible with the expected

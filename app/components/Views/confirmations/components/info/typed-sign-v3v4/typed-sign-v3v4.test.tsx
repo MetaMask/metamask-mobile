@@ -45,9 +45,12 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../hooks/signatures/useTokenDecimalsInTypedSignRequest', () => ({
-  useTokenDecimalsInTypedSignRequest: () => 2,
-}));
+jest.mock(
+  '../../../hooks/signatures/useTokenDecimalsInTypedSignRequest',
+  () => ({
+    useTokenDecimalsInTypedSignRequest: () => 2,
+  }),
+);
 
 describe('TypedSignV3V4', () => {
   it('contains required text', () => {

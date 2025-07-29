@@ -12,7 +12,8 @@ export const ConfirmationTopSheetSelectorsText = {
   BANNER_FAILED_TITLE: enContent.blockaid_banner.failed_title,
   BANNER_FAILED_DESCRIPTION: enContent.blockaid_banner.failed_description,
   BANNER_MALICIOUS_TITLE: enContent.blockaid_banner.deceptive_request_title,
-  BANNER_MALICIOUS_DESCRIPTION: enContent.blockaid_banner.malicious_domain_description,
+  BANNER_MALICIOUS_DESCRIPTION:
+    enContent.blockaid_banner.malicious_domain_description,
 } as const;
 
 export const ConfirmationRequestTypeIDs = {
@@ -63,7 +64,7 @@ export const AlertModalSelectorsText = {
 
 export const AlertTypeIDs = {
   INLINE_ALERT: 'inline-alert',
-} as const; 
+} as const;
 
 export const ApproveComponentIDs = {
   SPENDING_CAP_VALUE: 'spending-cap-value',

@@ -1,13 +1,17 @@
 // Third party dependencies.
-import { Platform, StatusBar, StyleSheet } from 'react-native';
+import { Insets, Platform, StatusBar, StyleSheet } from 'react-native';
 
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = (params: { vars: { insets: Insets } }) => {
+  const { vars } = params;
+  const { insets } = vars;
+
+  return StyleSheet.create({
     container: {
       flex: 1,
       paddingLeft: 16,
       paddingRight: 16,
       paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+      paddingBottom: Platform.OS === 'android' ? 10 : insets.bottom,
     },
     headerContainer: {
       display: 'flex',
@@ -34,6 +38,7 @@ const styleSheet = () =>
     },
     buttonContainer: {
       marginTop: 'auto',
+      marginBottom: Platform.OS === 'android' ? 12 : 0,
       paddingLeft: 16,
       paddingRight: 16,
       gap: 16,
@@ -42,5 +47,6 @@ const styleSheet = () =>
       width: '100%',
     },
   });
+};
 
 export default styleSheet;

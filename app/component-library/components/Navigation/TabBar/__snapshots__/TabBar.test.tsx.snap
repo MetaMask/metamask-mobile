@@ -7,7 +7,7 @@ exports[`TabBar renders correctly 1`] = `
       {
         "backgroundColor": "#ffffff",
         "flexBasis": 1,
-        "shadowColor": "#00000066",
+        "shadowColor": "#3f434a66",
         "shadowOffset": {
           "height": 4,
           "width": 0,

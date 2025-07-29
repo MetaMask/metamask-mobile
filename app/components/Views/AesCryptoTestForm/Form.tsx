@@ -17,6 +17,7 @@ const TestForm = ({
   callback,
   callbackTestId,
   responseTestId,
+  responseTextTestId,
   styles,
 }: {
   title: string;
@@ -33,6 +34,7 @@ const TestForm = ({
     | ((...args: any[]) => unknown);
   callbackTestId: string;
   responseTestId: string;
+  responseTextTestId?: string;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: any;
@@ -79,7 +81,9 @@ const TestForm = ({
       ))}
       {result && (
         <>
-          <Text variant={TextVariant.BodyMDBold}>Response</Text>
+          <Text variant={TextVariant.BodyMDBold} testID={responseTextTestId}>
+            Response
+          </Text>
           <ClipboardText
             text={result}
             styles={styles}

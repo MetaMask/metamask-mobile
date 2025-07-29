@@ -208,6 +208,7 @@ export const stopFixtureServer = async (fixtureServer) => {
  * @param {boolean} [options.restartDevice=false] - If true, restarts the app to apply the loaded fixture.
  * @param {Object} [options.smartContract] - The smart contract to load for test.
  * @param {Object} [options.testSpecificMock] - The test specific mock to load for test.
+ * @param {Object} [options.permissions] - The permissions to set for the device.
  * @param {Function} testSuite - The test suite function to execute after setting up the fixture.
  * @param {Object} testSuite.params - The parameters passed to the test suite function.
  * @param {Object} [testSuite.params.contractRegistry] - Registry of deployed smart contracts.
@@ -232,6 +233,7 @@ export async function withFixtures(options, testSuite) {
     testSpecificMock,
     launchArgs,
     languageAndLocale,
+    permissions = {},
   } = options;
 
   const fixtureServer = new FixtureServer();
@@ -358,6 +360,7 @@ export async function withFixtures(options, testSuite) {
           ...(launchArgs || {}),
         },
         languageAndLocale,
+        permissions,
       });
     }
 

@@ -251,7 +251,9 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   get origin() {
-    return this.isWalletConnect || this.isMMSDK ? this.channelId : this.hostname;
+    return this.isWalletConnect || this.isMMSDK
+      ? this.channelId
+      : this.hostname;
   }
 
   onUnlock() {
@@ -749,6 +751,8 @@ export class BackgroundBridge extends EventEmitter {
         getProviderState: this.getProviderState.bind(this),
       }),
     );
+
+    engine.push(createAsyncWalletMiddleware());
 
     engine.push(async (req, res, _next, end) => {
       const { provider } = NetworkController.getNetworkClientById(

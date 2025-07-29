@@ -20,7 +20,6 @@ import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import ToastModal from '../../pages/wallet/ToastModal';
 
 describe(Regression('Transaction'), () => {
-
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();

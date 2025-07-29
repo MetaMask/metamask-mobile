@@ -64,10 +64,12 @@ describe('OrderProcessing Component', () => {
     amount: '100',
     currency: 'USD',
     cryptoAmount: '0.05',
-    cryptocurrency: 'ETH',
+    cryptocurrency: 'USDC',
     fee: '2.50',
     state: FIAT_ORDER_STATES.COMPLETED,
+    network: 'eip155:1',
     data: {
+      cryptoCurrency: 'USDC',
       providerOrderLink: 'https://transak.com/order/123',
     },
   };

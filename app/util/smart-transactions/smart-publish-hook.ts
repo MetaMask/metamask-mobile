@@ -350,7 +350,9 @@ class SmartTransactionHook {
       return await this.#smartTransactionsController.getFees(
         { ...this.#txParams, chainId: this.#chainId },
         undefined,
-        isPerDappSelectedNetworkEnabled() ? { networkClientId: this.#transactionMeta.networkClientId } : undefined,
+        isPerDappSelectedNetworkEnabled()
+          ? { networkClientId: this.#transactionMeta.networkClientId }
+          : undefined,
       );
     } catch (error) {
       return undefined;
@@ -439,7 +441,11 @@ class SmartTransactionHook {
     getFeesResponse?: Fees;
   } = {}) => {
     let signedTransactions: string[] = [];
-    if (this.#transactions && Array.isArray(this.#transactions) && this.#transactions.length > 0) {
+    if (
+      this.#transactions &&
+      Array.isArray(this.#transactions) &&
+      this.#transactions.length > 0
+    ) {
       // Batch transaction mode - extract signed transactions from this.#transactions[].signedTx
       signedTransactions = this.#transactions
         .filter((tx) => tx?.signedTx)

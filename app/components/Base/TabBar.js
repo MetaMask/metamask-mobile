@@ -34,8 +34,8 @@ function TabBar({ ...props }) {
       backgroundColor={colors.background.default}
       tabStyle={styles.tabStyle}
       textStyle={styles.textStyle}
-      style={styles.tabBar}
       {...props}
+      style={styles.tabBar}
     />
   );
 }

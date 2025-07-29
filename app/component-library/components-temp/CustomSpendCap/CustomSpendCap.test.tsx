@@ -150,7 +150,7 @@ describe('CustomSpendCap', () => {
     const roundedAccountBalance = '3.14';
     const unroundedAccountBalance = '3.141592654';
 
-    const { findByTestId,findByText } = renderWithProvider(
+    const { findByTestId, findByText } = renderWithProvider(
       RenderCustomSpendCap(
         inputtedSpendValue,
         isInputValid,

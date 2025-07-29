@@ -11,44 +11,53 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './styles';
 
 export interface AssetLoaderProps {
-    route: {
-        params: {
-            address: string;
-            chainId: Hex;
-        }
-    }
+  route: {
+    params: {
+      address: string;
+      chainId: Hex;
+    };
+  };
 }
 
-export const AssetLoader: React.FC<AssetLoaderProps> = ({ route: { params: { address, chainId } } }) => {
-    const tokenResult = useSelector((state: RootState) => selectTokenDisplayData(state, chainId, address));
-    const navigation = useNavigation();
+export const AssetLoader: React.FC<AssetLoaderProps> = ({
+  route: {
+    params: { address, chainId },
+  },
+}) => {
+  const tokenResult = useSelector((state: RootState) =>
+    selectTokenDisplayData(state, chainId, address),
+  );
+  const navigation = useNavigation();
 
-    const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
-    useEffect(() => {
-        Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(chainId, address);
-        if (tokenResult?.found) {
-            navigation.dispatch(
-                StackActions.replace(Routes.BROWSER.ASSET_VIEW, {
-                    ...tokenResult.token,
-                    chainId,
-                    isFromSearch: true,
-                })
-            );
-        }
-    }, [tokenResult, address, chainId, navigation]);
-
-    if (tokenResult && !tokenResult.found) {
-        return (
-            <View style={styles.container}>
-                <Text>Token not found</Text>
-            </View>
-        );
-    }
-
-    return (
-        <View style={styles.container}>
-            <ActivityIndicator testID="asset-loader-spinner" size="large" />
-        </View>
+  useEffect(() => {
+    Engine.context.TokenSearchDiscoveryDataController.fetchTokenDisplayData(
+      chainId,
+      address,
     );
+    if (tokenResult?.found) {
+      navigation.dispatch(
+        StackActions.replace(Routes.BROWSER.ASSET_VIEW, {
+          ...tokenResult.token,
+          chainId,
+          isFromSearch: true,
+        }),
+      );
+    }
+  }, [tokenResult, address, chainId, navigation]);
+
+  if (tokenResult && !tokenResult.found) {
+    return (
+      <View style={styles.container}>
+        <Text>Token not found</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <ActivityIndicator testID="asset-loader-spinner" size="large" />
+    </View>
+  );
 };

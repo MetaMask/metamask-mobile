@@ -66,8 +66,8 @@ exports[`Root should render correctly 1`] = `
           "grey400": "#858b9a",
           "grey500": "#686e7d",
           "grey600": "#4b505c",
-          "grey700": "#31333a",
-          "grey800": "#222325",
+          "grey700": "#2a2c32",
+          "grey800": "#202123",
           "grey900": "#121314",
           "indigo025": "#f3faff",
           "indigo050": "#ebf5ff",
@@ -138,18 +138,40 @@ exports[`Root should render correctly 1`] = `
           "yellow900": "#1c1100",
         },
         "colors": {
+          "accent01": {
+            "dark": "#661800",
+            "light": "#ffa680",
+            "normal": "#ff5c16",
+          },
+          "accent02": {
+            "dark": "#3d065f",
+            "light": "#eac2ff",
+            "normal": "#d075ff",
+          },
+          "accent03": {
+            "dark": "#013330",
+            "light": "#e5ffc3",
+            "normal": "#baf24a",
+          },
+          "accent04": {
+            "dark": "#190066",
+            "light": "#cce7ff",
+            "normal": "#89b0ff",
+          },
           "background": {
             "alternative": "#f3f5f9",
-            "alternativeHover": "#f6f6f7",
-            "alternativePressed": "#ebecef",
+            "alternativeHover": "#ebedf1",
+            "alternativePressed": "#e1e4ea",
             "default": "#ffffff",
             "defaultHover": "#f6f6f7",
             "defaultPressed": "#ebecef",
             "hover": "#858b9a14",
-            "muted": "#f3f5f9",
-            "mutedHover": "#e7ebee",
-            "mutedPressed": "#ebecef",
+            "muted": "#3c4d9d1a",
+            "mutedHover": "#3c4d9d26",
+            "mutedPressed": "#3c4d9d33",
             "pressed": "#858b9a29",
+            "section": "#f3f5f9",
+            "subsection": "#ffffff",
           },
           "border": {
             "default": "#b7bbc8",
@@ -172,6 +194,9 @@ exports[`Root should render correctly 1`] = `
           "icon": {
             "alternative": "#686e7d",
             "default": "#121314",
+            "defaultHover": "#2a2b2c",
+            "defaultPressed": "#414243",
+            "inverse": "#ffffff",
             "muted": "#9ca1af",
           },
           "info": {
@@ -181,7 +206,7 @@ exports[`Root should render correctly 1`] = `
           },
           "overlay": {
             "alternative": "#000000cc",
-            "default": "#00000066",
+            "default": "#3f434a66",
             "inverse": "#ffffff",
           },
           "primary": {
@@ -319,6 +344,12 @@ exports[`Root should render correctly 1`] = `
             "letterSpacing": 0.25,
             "lineHeight": 20,
           },
+          "lDisplayLG": {
+            "fontSize": 60,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 75,
+          },
           "lDisplayMD": {
             "fontSize": 48,
             "fontWeight": "500",
@@ -340,12 +371,6 @@ exports[`Root should render correctly 1`] = `
           "lHeadingSM": {
             "fontSize": 18,
             "fontWeight": "700",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          "lHeadingSMRegular": {
-            "fontSize": 18,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           },
@@ -403,6 +428,12 @@ exports[`Root should render correctly 1`] = `
             "letterSpacing": 0.25,
             "lineHeight": 20,
           },
+          "sDisplayLG": {
+            "fontSize": 40,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 50,
+          },
           "sDisplayMD": {
             "fontSize": 32,
             "fontWeight": "700",
@@ -424,12 +455,6 @@ exports[`Root should render correctly 1`] = `
           "sHeadingSM": {
             "fontSize": 16,
             "fontWeight": "700",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          "sHeadingSMRegular": {
-            "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           },

@@ -42,7 +42,7 @@ describe(Regression('Carousel Tests'), () => {
     },
     {
       title: 'MetaMask Card',
-      id: 'card'
+      id: 'card',
     },
     {
       title: 'Fund your wallet',
@@ -52,7 +52,9 @@ describe(Regression('Carousel Tests'), () => {
 
   it('should display carousel with correct slides', async () => {
     const carouselFirstSlide = await WalletView.getCarouselSlide(SLIDES[0].id);
-    const carouselFirstSlideTitle = await WalletView.getCarouselSlideTitle(SLIDES[0].id);
+    const carouselFirstSlideTitle = await WalletView.getCarouselSlideTitle(
+      SLIDES[0].id,
+    );
     const carouselProgressDots = await WalletView.carouselProgressDots;
     await Assertions.checkIfVisible(carouselFirstSlide, 5000);
     await Assertions.checkIfElementToHaveText(
@@ -65,8 +67,12 @@ describe(Regression('Carousel Tests'), () => {
 
   it('should navigate between slides', async () => {
     const carouselSecondSlide = await WalletView.getCarouselSlide(SLIDES[1].id);
-    const carouselSecondSlideTitle = await WalletView.getCarouselSlideTitle(SLIDES[1].id);
-    const carouselFirstSlideTitle = await WalletView.getCarouselSlideTitle(SLIDES[0].id);
+    const carouselSecondSlideTitle = await WalletView.getCarouselSlideTitle(
+      SLIDES[1].id,
+    );
+    const carouselFirstSlideTitle = await WalletView.getCarouselSlideTitle(
+      SLIDES[0].id,
+    );
     await WalletView.swipeCarousel('left');
     await Assertions.checkIfVisible(carouselSecondSlide, 5000);
     await Assertions.checkIfElementToHaveText(
@@ -84,9 +90,12 @@ describe(Regression('Carousel Tests'), () => {
 
   it('should dismiss a slide', async () => {
     await device.disableSynchronization();
-    const carouselSecondSlideTitle = await WalletView.getCarouselSlideTitle(SLIDES[1].id);
-    const firstSlideCloseButton =
-      await WalletView.getCarouselSlideCloseButton(SLIDES[0].id);
+    const carouselSecondSlideTitle = await WalletView.getCarouselSlideTitle(
+      SLIDES[1].id,
+    );
+    const firstSlideCloseButton = await WalletView.getCarouselSlideCloseButton(
+      SLIDES[0].id,
+    );
     await Assertions.checkIfVisible(firstSlideCloseButton, 5000);
     await WalletView.closeCarouselSlide(SLIDES[0].id);
     await TestHelpers.delay(5000);
@@ -103,7 +112,9 @@ describe(Regression('Carousel Tests'), () => {
     // First slide was already dismissed in the previous test
     // Dismissing the second slide as it's opening portfolio
     await WalletView.closeCarouselSlide(SLIDES[1].id);
-    const thirdCarouselSlideTitle = await WalletView.getCarouselSlideTitle(SLIDES[2].id);
+    const thirdCarouselSlideTitle = await WalletView.getCarouselSlideTitle(
+      SLIDES[2].id,
+    );
     const container = await WalletView.container;
     await Assertions.checkIfElementToHaveText(
       thirdCarouselSlideTitle,

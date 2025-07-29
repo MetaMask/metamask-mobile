@@ -1045,10 +1045,12 @@ describe('CollectibleContracts', () => {
       navigate: jest.fn(),
       push: jest.fn(),
     };
-    const { getByTestId } = renderWithProvider(<CollectibleContracts
-    navigation={mockNavigation}/>, {
-      state: mockState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <CollectibleContracts navigation={mockNavigation} />,
+      {
+        state: mockState,
+      },
+    );
 
     const addCollectibleButton = getByTestId('import-collectible-button');
     fireEvent.press(addCollectibleButton);
@@ -1056,7 +1058,7 @@ describe('CollectibleContracts', () => {
     expect(mockNavigation.push).toHaveBeenCalledTimes(1);
 
     expect(mockNavigation.push).toHaveBeenCalledWith('AddAsset', {
-        assetType: 'collectible',
+      assetType: 'collectible',
     });
   });
 
@@ -1110,16 +1112,16 @@ describe('CollectibleContracts', () => {
       navigate: jest.fn(),
       push: jest.fn(),
     };
-    const { getByTestId } = renderWithProvider(<CollectibleContracts
-    navigation={mockNavigation}/>, {
-      state: mockState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <CollectibleContracts navigation={mockNavigation} />,
+      {
+        state: mockState,
+      },
+    );
 
     const filterControlersButton = getByTestId('token-network-filter');
     fireEvent.press(filterControlersButton);
 
     expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
-
-
   });
 });

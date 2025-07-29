@@ -42,7 +42,9 @@ class TestSnaps {
   }
 
   get confirmSignatureButton() {
-    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+    return Matchers.getElementByID(
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    );
   }
 
   async checkResultSpan(
@@ -158,7 +160,7 @@ class TestSnaps {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
     )) as IndexableWebElement;
-    
+
     await Utilities.waitUntil(
       async () => {
         try {

@@ -47,7 +47,10 @@ import { selectContractBalances } from '../../../../../../../selectors/tokenBala
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../../selectors/gasFeeController';
-import { selectNativeCurrencyByChainId, selectProviderTypeByChainId } from '../../../../../../../selectors/networkController';
+import {
+  selectNativeCurrencyByChainId,
+  selectProviderTypeByChainId,
+} from '../../../../../../../selectors/networkController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -238,8 +241,8 @@ class TransactionEditor extends PureComponent {
         dappSuggestedGasPrice
           ? fromWei(dappSuggestedGasPrice, 'gwei')
           : gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-            ? this.props.gasFeeEstimates[selected]
-            : this.props.gasFeeEstimates.gasPrice;
+          ? this.props.gasFeeEstimates[selected]
+          : this.props.gasFeeEstimates.gasPrice;
 
       const LegacyGasData = this.parseTransactionDataLegacy(
         {
@@ -517,9 +520,9 @@ class TransactionEditor extends PureComponent {
         const tokenAmountToSend = selectedAsset && value && value.toString(16);
         return to && tokenAmountToSend
           ? generateTransferData('transfer', {
-            toAddress: to,
-            amount: tokenAmountToSend,
-          })
+              toAddress: to,
+              amount: tokenAmountToSend,
+            })
           : undefined;
       },
       ERC721: () => {
@@ -635,9 +638,9 @@ class TransactionEditor extends PureComponent {
 
     const totalError = this.validateTotal(
       EIP1559GasData?.totalMaxHex ||
-      this.state.EIP1559GasData.totalMaxHex ||
-      LegacyGasData?.totalHex ||
-      this.state.LegacyGasData.totalHex,
+        this.state.EIP1559GasData.totalMaxHex ||
+        LegacyGasData?.totalHex ||
+        this.state.LegacyGasData.totalHex,
     );
     const amountError = await validateAmount(
       assetType,

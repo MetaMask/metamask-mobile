@@ -1,3 +1,1 @@
-export {
-  useContactSyncing,
-} from './useContactSyncing';
+export { useContactSyncing } from './useContactSyncing';

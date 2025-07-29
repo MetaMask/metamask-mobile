@@ -131,15 +131,17 @@ describe('SnapUIInput', () => {
   it('updates value when initialValue changes', () => {
     const { getByTestId, updateInterface, getByDisplayValue } = renderInterface(
       Box({ children: Input({ name: 'testInput' }) }),
-      { state: { testInput: 'initial value' } }
+      { state: { testInput: 'initial value' } },
     );
 
     const input = getByTestId('testInput-snap-ui-input');
     expect(input.props.value).toBe('initial value');
 
     updateInterface(
-      Box({ children: [Input({ name: 'testInput' }), Input({ name: 'testInput2' })] }),
-      { testInput: 'updated value' }
+      Box({
+        children: [Input({ name: 'testInput' }), Input({ name: 'testInput2' })],
+      }),
+      { testInput: 'updated value' },
     );
 
     expect(getByDisplayValue('updated value')).toBeTruthy();
@@ -166,7 +168,9 @@ describe('SnapUIInput', () => {
     expect(afterFocusBorderColor).toBe(focusedBorderColor);
 
     updateInterface(
-      Box({ children: [Input({ name: 'testInput' }), Input({ name: 'testInput2' })] })
+      Box({
+        children: [Input({ name: 'testInput' }), Input({ name: 'testInput2' })],
+      }),
     );
 
     const afterTextfield = getAllByTestId(TEXTFIELD_TEST_ID)[0];

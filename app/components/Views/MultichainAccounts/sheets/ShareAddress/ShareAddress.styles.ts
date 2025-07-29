@@ -8,6 +8,14 @@ const styleSheet = () =>
       paddingLeft: 24,
       paddingRight: 24,
     },
+    viewOnExplorerButton: {
+      flex: 1,
+      marginLeft: 24,
+      marginRight: 24,
+    },
+    addressContainer: {
+      width: 200,
+    },
   });
 
 export default styleSheet;

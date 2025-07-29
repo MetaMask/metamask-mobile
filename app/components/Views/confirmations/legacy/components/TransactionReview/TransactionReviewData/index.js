@@ -183,7 +183,10 @@ class TransactionReviewData extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  conversionRate: selectConversionRateByChainId(state, state.transaction.chainId),
+  conversionRate: selectConversionRateByChainId(
+    state,
+    state.transaction.chainId,
+  ),
   currentCurrency: selectCurrentCurrency(state),
   transaction: state.transaction,
 });

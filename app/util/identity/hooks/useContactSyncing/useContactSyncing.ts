@@ -34,7 +34,7 @@ export const useShouldDispatchContactSyncing = () => {
       isContactSyncingEnabled &&
       isUnlocked &&
       isSignedIn &&
-      completedOnboarding
+      completedOnboarding,
   );
 
   return shouldDispatchContactSyncing;

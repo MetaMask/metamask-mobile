@@ -39,7 +39,10 @@ export const useSafeChains = () => {
           }
 
           try {
-            await StorageWrapper.setItem('SAFE_CHAINS_CACHE', JSON.stringify(safeChainsData));
+            await StorageWrapper.setItem(
+              'SAFE_CHAINS_CACHE',
+              JSON.stringify(safeChainsData),
+            );
           } catch (cacheError) {
             Logger.log('Error caching chains data:', cacheError);
           }

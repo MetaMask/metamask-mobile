@@ -334,7 +334,7 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -579,11 +579,12 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#4459ff",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }
@@ -627,6 +628,7 @@ exports[`NFT Auto detection modal render matches snapshot 1`] = `
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }

@@ -10,15 +10,21 @@ import { wipeTransactions } from '../../../../../util/transaction-controller';
 import { wipeBridgeStatus } from '../../../../UI/Bridge/utils';
 
 jest.mock('../../../../../selectors/accountsController', () => {
-  const actual = jest.requireActual('../../../../../selectors/accountsController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/accountsController',
+  );
   return {
     ...actual,
-    selectSelectedInternalAccountFormattedAddress: jest.fn(actual.selectSelectedInternalAccountFormattedAddress),
+    selectSelectedInternalAccountFormattedAddress: jest.fn(
+      actual.selectSelectedInternalAccountFormattedAddress,
+    ),
   };
 });
 
 jest.mock('../../../../../selectors/networkController', () => {
-  const actual = jest.requireActual('../../../../../selectors/networkController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/networkController',
+  );
   return {
     ...actual,
     selectChainId: jest.fn(actual.selectChainId),
@@ -61,36 +67,44 @@ describe('ResetAccountModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock).mockReturnValue('0x123456789abcdef123456789abcdef123456789a');
+    (
+      selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
+    ).mockReturnValue('0x123456789abcdef123456789abcdef123456789a');
     (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
   });
 
   it('calls wipeBridgeStatus and wipeTransactions when reset button is pressed', () => {
     const { getByText } = renderWithProvider(
       <ResetAccountModal {...defaultProps} />,
-      { state: initialState }
+      { state: initialState },
     );
 
-    const confirmButton = getByText(strings('app_settings.reset_account_confirm_button'));
+    const confirmButton = getByText(
+      strings('app_settings.reset_account_confirm_button'),
+    );
     fireEvent.press(confirmButton);
 
     expect(wipeBridgeStatus).toHaveBeenCalledWith(
       '0x123456789abcdef123456789abcdef123456789a',
-      '0x1'
+      '0x1',
     );
     expect(wipeTransactions).toHaveBeenCalledWith();
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 
   it('does not call wipeBridgeStatus when selectedAddress is falsy', () => {
-    (selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock).mockReturnValue(undefined);
+    (
+      selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
+    ).mockReturnValue(undefined);
 
     const { getByText } = renderWithProvider(
       <ResetAccountModal {...defaultProps} />,
-      { state: initialState }
+      { state: initialState },
     );
 
-    const confirmButton = getByText(strings('app_settings.reset_account_confirm_button'));
+    const confirmButton = getByText(
+      strings('app_settings.reset_account_confirm_button'),
+    );
     fireEvent.press(confirmButton);
 
     expect(wipeBridgeStatus).not.toHaveBeenCalled();
