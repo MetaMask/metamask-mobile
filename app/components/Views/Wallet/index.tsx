@@ -58,6 +58,7 @@ import {
   selectNetworkClientId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
@@ -69,7 +70,7 @@ import {
 } from '@react-navigation/native';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
-import Text, {
+import MorphText, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -419,6 +420,23 @@ const Wallet = ({
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
+  // Get network information
+  const { networkName, networkImageSource } = useNetworkInfo();
+
+  // Handler for network picker press
+  const onPressTitle = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [navigation, trackEvent, createEventBuilder, chainId]);
+
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
@@ -521,12 +539,16 @@ const Wallet = ({
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
+
     navigation.setOptions(
       getWalletNavbarOptions(
         walletRef,
         selectedInternalAccount,
         accountName,
         accountAvatarType,
+        networkName,
+        networkImageSource,
+        onPressTitle,
         navigation,
         colors,
         isNotificationEnabled,
@@ -539,6 +561,9 @@ const Wallet = ({
     selectedInternalAccount,
     accountName,
     accountAvatarType,
+    networkName,
+    networkImageSource,
+    onPressTitle,
     navigation,
     colors,
     isNotificationEnabled,
@@ -747,9 +772,12 @@ const Wallet = ({
               severity={BannerAlertSeverity.Error}
               title={strings('wallet.banner.title')}
               description={
-                <Text color={TextColor.Info} onPress={turnOnBasicFunctionality}>
+                <MorphText
+                  color={TextColor.Info}
+                  onPress={turnOnBasicFunctionality}
+                >
                   {strings('wallet.banner.link')}
-                </Text>
+                </MorphText>
               }
             />
           </View>

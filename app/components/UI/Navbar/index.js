@@ -25,6 +25,7 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
 import { getLabelTextByAddress } from '../../../util/address';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
@@ -59,6 +60,13 @@ import { createAccountSelectorNavDetails } from '../../../components/Views/Accou
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import {
+  BadgeStatus,
+  BadgeStatusStatus,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
+  BadgeWrapper,
+} from '@metamask/design-system-react-native';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
@@ -135,15 +143,6 @@ const styles = StyleSheet.create({
   },
   leftElementContainer: {
     marginLeft: 16,
-  },
-  notificationsBadge: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-
-    position: 'absolute',
-    top: 2,
-    right: 4,
   },
   headerLeftButton: {
     marginHorizontal: 16,
@@ -928,6 +927,9 @@ export function getOfflineModalNavbar() {
  * @param {Object} selectedInternalAccount - The currently selected internal account
  * @param {string} accountName - The name of the currently selected account
  * @param {string} accountAvatarType - The type of avatar for the currently selected account
+ * @param {string} networkName - The name of the currently selected network
+ * @param {Object} networkImageSource - The image source for the currently selected network
+ * @param {Function} onPressTitle - Callback function for when the network picker is pressed
  * @param {Object} navigation - The navigation object
  * @param {Object} themeColors - The theme colors object
  * @param {boolean} isNotificationEnabled - Whether notifications are enabled
@@ -941,6 +943,9 @@ export function getWalletNavbarOptions(
   selectedInternalAccount,
   accountName,
   accountAvatarType,
+  networkName,
+  networkImageSource,
+  onPressTitle,
   navigation,
   themeColors,
   isNotificationEnabled,
@@ -965,6 +970,14 @@ export function getWalletNavbarOptions(
     },
     headerLeftContainer: {
       justifyContent: 'center',
+    },
+    headerMiddleContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      flex: 1,
+    },
+    headerRightContainer: {
+      minWidth: 120, // Ensure consistent width for layout balance
     },
   });
 
@@ -1059,75 +1072,168 @@ export function getWalletNavbarOptions(
     }
   }
 
+  const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
+
   return {
     header: () => (
       <SafeAreaView style={{ backgroundColor: themeColors.background }}>
         <View style={innerStyles.headerContainer}>
-          {/* Left side - Account Picker */}
-          <View style={innerStyles.headerLeftContainer}>
-            <PickerAccount
-              ref={accountActionsRef}
-              accountAddress={formattedAddress}
-              accountName={accountName}
-              accountAvatarType={accountAvatarType}
-              onPress={() => {
-                trace({
-                  name: TraceName.AccountList,
-                  tags: getTraceTags(store.getState()),
-                  op: TraceOperation.AccountList,
-                });
-                navigation.navigate(...createAccountSelectorNavDetails({}));
-              }}
-              accountTypeLabel={
-                getLabelTextByAddress(formattedAddress) || undefined
-              }
-              showAddress={false}
-              cellAccountContainerStyle={styles.account}
-              testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-            />
-          </View>
+          {!isFeatureFlagEnabled ? (
+            // Old layout: PickerNetwork on left, PickerAccount in middle, Action buttons on right
+            <>
+              {/* Left side - Network Picker */}
+              <View style={innerStyles.headerLeftContainer}>
+                <PickerNetwork
+                  onPress={onPressTitle}
+                  label={networkName}
+                  imageSource={networkImageSource}
+                  testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+                  hideNetworkName
+                />
+              </View>
 
-          {/* Right side - Action buttons */}
-          <View style={styles.rightElementContainer}>
-            <View testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}>
-              <AddressCopy account={selectedInternalAccount} />
-            </View>
-            {isNotificationsFeatureEnabled() && (
-              <View>
-                {/* Icon */}
+              {/* Middle - Account Picker */}
+              <View style={innerStyles.headerMiddleContainer}>
+                <PickerAccount
+                  ref={accountActionsRef}
+                  accountAddress={formattedAddress}
+                  accountName={accountName}
+                  accountAvatarType={accountAvatarType}
+                  onPress={() => {
+                    trace({
+                      name: TraceName.AccountList,
+                      tags: getTraceTags(store.getState()),
+                      op: TraceOperation.AccountList,
+                    });
+                    navigation.navigate(...createAccountSelectorNavDetails({}));
+                  }}
+                  accountTypeLabel={
+                    getLabelTextByAddress(formattedAddress) || undefined
+                  }
+                  showAddress={false}
+                  cellAccountContainerStyle={styles.account}
+                  testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+                />
+              </View>
+
+              {/* Right side - Action buttons */}
+              <View
+                style={[
+                  styles.rightElementContainer,
+                  innerStyles.headerRightContainer,
+                ]}
+              >
+                <View
+                  testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+                >
+                  <AddressCopy account={selectedInternalAccount} />
+                </View>
+                {isNotificationsFeatureEnabled() && (
+                  <BadgeWrapper
+                    position={BadgeWrapperPosition.TopRight}
+                    positionAnchorShape={
+                      BadgeWrapperPositionAnchorShape.Circular
+                    }
+                    badge={
+                      isNotificationEnabled && unreadNotificationCount > 0 ? (
+                        <BadgeStatus status={BadgeStatusStatus.Active} />
+                      ) : null
+                    }
+                  >
+                    <ButtonIcon
+                      iconColor={IconColor.Default}
+                      onPress={handleNotificationOnPress}
+                      iconName={IconName.Notification}
+                      size={IconSize.Xl}
+                      testID={
+                        WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
+                      }
+                    />
+                  </BadgeWrapper>
+                )}
+
                 <ButtonIcon
                   iconColor={IconColor.Default}
-                  onPress={handleNotificationOnPress}
-                  iconName={IconName.Notification}
+                  onPress={openQRScanner}
+                  iconName={IconName.ScanBarcode}
                   size={IconSize.Xl}
-                  testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-                  style={styles.notificationButton}
+                  testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
                 />
-
-                {/* Badge Dot */}
-                {isNotificationEnabled && (
-                  <View
-                    style={[
-                      styles.notificationsBadge,
-                      {
-                        backgroundColor: unreadNotificationCount
-                          ? themeColors.error.default
-                          : themeColors.background.transparent,
-                      },
-                    ]}
-                  />
-                )}
               </View>
-            )}
+            </>
+          ) : (
+            // New layout: PickerAccount on left, Action buttons on right only
+            <>
+              {/* Left side - Account Picker */}
+              <View style={innerStyles.headerLeftContainer}>
+                <PickerAccount
+                  ref={accountActionsRef}
+                  accountAddress={formattedAddress}
+                  accountName={accountName}
+                  accountAvatarType={accountAvatarType}
+                  onPress={() => {
+                    trace({
+                      name: TraceName.AccountList,
+                      tags: getTraceTags(store.getState()),
+                      op: TraceOperation.AccountList,
+                    });
+                    navigation.navigate(...createAccountSelectorNavDetails({}));
+                  }}
+                  accountTypeLabel={
+                    getLabelTextByAddress(formattedAddress) || undefined
+                  }
+                  showAddress={false}
+                  cellAccountContainerStyle={styles.account}
+                  testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+                />
+              </View>
 
-            <ButtonIcon
-              iconColor={IconColor.Default}
-              onPress={openQRScanner}
-              iconName={IconName.ScanBarcode}
-              size={IconSize.Xl}
-              testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-            />
-          </View>
+              {/* Right side - Action buttons */}
+              <View
+                style={[
+                  styles.rightElementContainer,
+                  innerStyles.headerRightContainer,
+                ]}
+              >
+                <View
+                  testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+                >
+                  <AddressCopy account={selectedInternalAccount} />
+                </View>
+                {isNotificationsFeatureEnabled() && (
+                  <BadgeWrapper
+                    position={BadgeWrapperPosition.TopRight}
+                    positionAnchorShape={
+                      BadgeWrapperPositionAnchorShape.Circular
+                    }
+                    badge={
+                      isNotificationEnabled && unreadNotificationCount > 0 ? (
+                        <BadgeStatus status={BadgeStatusStatus.Active} />
+                      ) : null
+                    }
+                  >
+                    <ButtonIcon
+                      iconColor={IconColor.Default}
+                      onPress={handleNotificationOnPress}
+                      iconName={IconName.Notification}
+                      size={IconSize.Xl}
+                      testID={
+                        WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
+                      }
+                    />
+                  </BadgeWrapper>
+                )}
+
+                <ButtonIcon
+                  iconColor={IconColor.Default}
+                  onPress={openQRScanner}
+                  iconName={IconName.ScanBarcode}
+                  size={IconSize.Xl}
+                  testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+                />
+              </View>
+            </>
+          )}
         </View>
       </SafeAreaView>
     ),
