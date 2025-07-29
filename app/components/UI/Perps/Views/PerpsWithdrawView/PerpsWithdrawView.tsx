@@ -77,6 +77,13 @@ const PerpsWithdrawView: React.FC = () => {
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
 
+  // TODO: Get network names dynamically once we implement multiple protocol
+  const sourceNetworkName = useMemo(() => 'Hyperliquid', []);
+  const destNetworkName = useMemo(
+    () => (isTestnet ? 'Arbitrum Sepolia' : 'Arbitrum'),
+    [isTestnet],
+  );
+
   // Custom hooks for business logic
   const { sourceToken, destToken } = useWithdrawTokens();
 
@@ -323,7 +330,7 @@ const PerpsWithdrawView: React.FC = () => {
               networkImageSource={getNetworkImageSource({
                 chainId: sourceToken.chainId,
               })}
-              networkName="Hyperliquid"
+              networkName={sourceNetworkName}
               testID={PerpsWithdrawViewSelectorsIDs.SOURCE_TOKEN_AREA}
               tokenType={TokenInputAreaType.Source}
               onFocus={() => setIsInputFocused(true)}
@@ -347,7 +354,7 @@ const PerpsWithdrawView: React.FC = () => {
               amount={destAmount}
               token={destToken}
               networkImageSource={destNetworkImage}
-              networkName="Arbitrum"
+              networkName={destNetworkName}
               testID={PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA}
               tokenType={TokenInputAreaType.Destination}
             />
@@ -360,6 +367,7 @@ const PerpsWithdrawView: React.FC = () => {
                 estimatedTime={formattedQuoteData.estimatedTime}
                 rate={`1 ${USDC_SYMBOL} = 1 ${USDC_SYMBOL}`}
                 metamaskFee={METAMASK_WITHDRAWAL_FEE_PLACEHOLDER}
+                direction="withdrawal"
               />
             </Box>
           )}
@@ -382,28 +390,28 @@ const PerpsWithdrawView: React.FC = () => {
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Md}
-                  label="10%"
+                  label={strings('perps.withdrawal.percentage_10')}
                   onPress={() => handlePercentagePress(0.1)}
                   style={styles.percentageButton}
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Md}
-                  label="25%"
+                  label={strings('perps.withdrawal.percentage_25')}
                   onPress={() => handlePercentagePress(0.25)}
                   style={styles.percentageButton}
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Md}
-                  label="Max"
+                  label={strings('perps.withdrawal.max')}
                   onPress={handleMaxPress}
                   style={styles.percentageButton}
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Md}
-                  label="Done"
+                  label={strings('perps.withdrawal.done')}
                   onPress={handleDonePress}
                   style={styles.percentageButton}
                 />

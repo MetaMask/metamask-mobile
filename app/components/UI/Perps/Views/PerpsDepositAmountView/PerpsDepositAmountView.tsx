@@ -588,6 +588,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
                   `1 ${sourceToken?.symbol || USDC_SYMBOL} = 1 ${USDC_SYMBOL}`
                 }
                 metamaskFee={METAMASK_DEPOSIT_FEE}
+                direction="deposit"
               />
             </Box>
           )}
