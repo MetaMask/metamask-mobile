@@ -11,6 +11,13 @@ export enum AvatarAccountType {
 }
 
 /**
+ * Border radius mapping by avatar size.
+ */
+export interface BorderRadiusByAvatarSize {
+  [key: string]: number;
+}
+
+/**
  * AvatarAccount component props.
  */
 export interface AvatarAccountProps extends AvatarBaseProps {

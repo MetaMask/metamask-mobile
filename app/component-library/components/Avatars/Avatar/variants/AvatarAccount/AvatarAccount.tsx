@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { useMemo } from 'react';
-import { Image } from 'react-native';
+import { Image as RNImage } from 'react-native';
 import JazzIcon from 'react-native-jazzicon';
 
 // External dependencies.
@@ -16,6 +16,7 @@ import stylesheet from './AvatarAccount.styles';
 import {
   DEFAULT_AVATARACCOUNT_TYPE,
   DEFAULT_AVATARACCOUNT_SIZE,
+  BORDERRADIUS_BY_AVATARSIZE,
 } from './AvatarAccount.constants';
 
 const AvatarAccount = ({
@@ -25,27 +26,47 @@ const AvatarAccount = ({
   style,
   ...props
 }: AvatarAccountProps) => {
+  const borderRadius = BORDERRADIUS_BY_AVATARSIZE[size];
+
   const avatar = useMemo(() => {
     switch (avatarType) {
       case AvatarAccountType.JazzIcon:
-        return <JazzIcon size={Number(size)} address={accountAddress} />;
+        return (
+          <JazzIcon
+            size={Number(size)}
+            address={accountAddress}
+            containerStyle={{ borderRadius }}
+          />
+        );
       case AvatarAccountType.Blockies:
         return (
-          <Image
+          <RNImage
             source={{ uri: toDataUrl(accountAddress) }}
-            style={stylesheet.imageStyle}
+            style={[stylesheet.imageStyle, { borderRadius }]}
           />
         );
       case AvatarAccountType.Maskicon:
-        return <Maskicon address={accountAddress} size={Number(size)} />;
+        return (
+          <Maskicon
+            address={accountAddress}
+            size={Number(size)}
+            style={{ borderRadius }}
+          />
+        );
       default:
         avatarType satisfies never;
         return null;
     }
-  }, [avatarType, accountAddress, size]);
+  }, [avatarType, accountAddress, size, borderRadius]);
+
+  // Apply border radius to AvatarBase container as well for proper clipping
+  const avatarBaseStyle = useMemo(() => {
+    const borderRadiusStyle = { borderRadius };
+    return style ? [style, borderRadiusStyle] : borderRadiusStyle;
+  }, [style, borderRadius]);
 
   return (
-    <AvatarBase size={size} style={style} {...props}>
+    <AvatarBase size={size} style={avatarBaseStyle} {...props}>
       {avatar}
     </AvatarBase>
   );

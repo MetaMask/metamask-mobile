@@ -4,7 +4,6 @@ import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import AvatarAccount from './AvatarAccount';
-import { SAMPLE_AVATARACCOUNT_PROPS } from './AvatarAccount.constants';
 import { AvatarAccountType } from './AvatarAccount.types';
 import { AvatarSize } from '../../Avatar.types';
 
@@ -136,6 +135,74 @@ describe('AvatarAccount', () => {
 
       // Assert
       expect(getByTestId(`avatar-${size}`)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Border Radius Handling', () => {
+    it('applies border radius directly to JazzIcon via containerStyle', () => {
+      // Arrange & Act
+      const { toJSON } = render(
+        <AvatarAccount
+          accountAddress={mockAccountAddress}
+          type={AvatarAccountType.JazzIcon}
+          size={AvatarSize.Md}
+        />,
+      );
+
+      // Assert - JazzIcon should have containerStyle with border radius
+      const rendered = toJSON();
+      expect(rendered).toMatchSnapshot();
+    });
+
+    it('applies border radius directly to Blockies via Image style', () => {
+      // Arrange & Act
+      const { toJSON } = render(
+        <AvatarAccount
+          accountAddress={mockAccountAddress}
+          type={AvatarAccountType.Blockies}
+          size={AvatarSize.Lg}
+        />,
+      );
+
+      // Assert - Image should have style with border radius
+      const rendered = toJSON();
+      expect(rendered).toMatchSnapshot();
+    });
+
+    it('applies border radius directly to Maskicon via style prop', () => {
+      // Arrange & Act
+      const { toJSON } = render(
+        <AvatarAccount
+          accountAddress={mockAccountAddress}
+          type={AvatarAccountType.Maskicon}
+          size={AvatarSize.Sm}
+        />,
+      );
+
+      // Assert - Maskicon should have style with border radius
+      const rendered = toJSON();
+      expect(rendered).toMatchSnapshot();
+    });
+
+    it('applies different border radius values for different sizes', () => {
+      // Arrange & Act
+      const xsAvatar = render(
+        <AvatarAccount
+          accountAddress={mockAccountAddress}
+          type={AvatarAccountType.JazzIcon}
+          size={AvatarSize.Xs}
+        />,
+      );
+      const xlAvatar = render(
+        <AvatarAccount
+          accountAddress={mockAccountAddress}
+          type={AvatarAccountType.JazzIcon}
+          size={AvatarSize.Xl}
+        />,
+      );
+
+      // Assert - Different sizes should produce different border radius values
+      expect(xsAvatar.toJSON()).not.toEqual(xlAvatar.toJSON());
     });
   });
 
