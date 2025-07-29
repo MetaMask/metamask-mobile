@@ -1,7 +1,4 @@
-import {
-  useIsOnBridgeRoute,
-  getAllRouteValues,
-} from './index';
+import { useIsOnBridgeRoute, getAllRouteValues } from './index';
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useNavigationState } from '@react-navigation/native';
