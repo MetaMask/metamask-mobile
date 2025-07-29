@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable no-restricted-syntax */
 import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities';
@@ -10,6 +9,9 @@ import {
   GestureOptions,
   TypeTextOptions,
 } from './types';
+import { createLogger } from './logger';
+
+const logger = createLogger({ name: 'Gestures' });
 
 /**
  * Gestures class with element stability and auto-retry
@@ -28,6 +30,7 @@ export default class Gestures {
       checkEnabled?: boolean;
       elemDescription?: string;
       delay?: number;
+      waitForElementToDisappear?: boolean;
     },
     point?: { x: number; y: number },
   ) => {
@@ -42,6 +45,9 @@ export default class Gestures {
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
       await (expect(await elem) as any).toExist();
       await (await elem).tap();
+      if (options.waitForElementToDisappear) {
+        await Utilities.waitForElementToDisappear(elem);
+      }
       return;
     }
 
@@ -59,10 +65,15 @@ export default class Gestures {
       );
     }
     await el.tap(point);
+
+    if (options.waitForElementToDisappear) {
+      await Utilities.waitForElementToDisappear(elem);
+    }
+
     const successMessage = elemDescription
       ? `✅ Successfully tapped element: ${elemDescription}`
       : `✅ Successfully tapped element`;
-    console.log(successMessage);
+    logger.debug(successMessage);
   };
 
   /**
@@ -80,6 +91,7 @@ export default class Gestures {
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
+      waitForElementToDisappear = false,
     } = options;
 
     const fn = () =>
@@ -88,6 +100,7 @@ export default class Gestures {
         checkVisibility,
         checkEnabled,
         elemDescription,
+        waitForElementToDisappear,
       });
     return Utilities.executeWithRetry(fn, {
       timeout,
@@ -114,6 +127,7 @@ export default class Gestures {
       checkEnabled = true,
       elemDescription,
       delay = 500,
+      waitForElementToDisappear = false,
     } = options;
 
     const fn = async () =>
@@ -123,6 +137,7 @@ export default class Gestures {
         checkEnabled,
         elemDescription,
         delay,
+        waitForElementToDisappear,
       });
 
     return Utilities.executeWithRetry(fn, {
@@ -140,14 +155,19 @@ export default class Gestures {
   static async tapAtIndex(
     elem: DetoxElement,
     index: number,
-    timeout = 15000,
+    options: TapOptions = {},
   ): Promise<void> {
+    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
     return Utilities.executeWithRetry(
       async () => {
         const el = (await elem) as Detox.IndexableNativeElement;
         const itemElementAtIndex = el.atIndex(index);
         await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
         await itemElementAtIndex.tap();
+        const successMessage = elemDescription
+          ? `✅ Successfully tapped element at index: ${index} ${elemDescription}`
+          : `✅ Successfully tapped element at index: ${index}`;
+        logger.debug(successMessage);
       },
       {
         timeout,
@@ -314,7 +334,7 @@ export default class Gestures {
         const textToType = hideKeyboard ? text + '\n' : text;
         await el.typeText(textToType);
 
-        console.log(
+        logger.debug(
           `✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${
             elemDescription || 'unknown'
           }`,

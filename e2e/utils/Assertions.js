@@ -33,7 +33,6 @@ class Assertions {
     return await expect(await element).toExist();
   }
 
-
   /**
    * Check if an element with the specified ID is not visible.
    * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
@@ -70,7 +69,6 @@ class Assertions {
       .toHaveLabel(label)
       .withTimeout(timeout);
   }
-
 
   /**
    * Check if text is visible.

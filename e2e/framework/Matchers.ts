@@ -22,7 +22,7 @@ export default class Matchers {
    * Get element by text with optional index
    */
   static async getElementByText(
-    text: string,
+    text: string | RegExp,
     index = 0,
   ): Promise<Detox.IndexableNativeElement> {
     return element(by.text(text)).atIndex(
@@ -121,7 +121,7 @@ export default class Matchers {
   static async getElementByXPath(
     webviewID: string,
     xpath: string,
-  ): Promise<Detox.IndexableWebElement | Detox.SecuredWebElementFacade> {
+  ): Promise<DetoxElement | WebElement> {
     const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.xpath(xpath));
   }
