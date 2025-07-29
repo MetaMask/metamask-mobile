@@ -164,6 +164,7 @@ export const importWalletWithRecoveryPhrase = async ({
   );
 
   await OnboardingView.tapHaveAnExistingWallet();
+  console.log('Checking if seedless onboarding is enabled');
   if (SEEDLESS_ONBOARDING_ENABLED) {
     await OnboardingSheet.tapImportSeedButton();
   }
