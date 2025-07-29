@@ -45,7 +45,7 @@ export const useDepositRouting = ({
 }: UseDepositRoutingParams) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
-  const { selectedRegion, clearAuthToken, selectedWalletAddress } =
+  const { selectedRegion, logoutFromProvider, selectedWalletAddress } =
     useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
@@ -407,9 +407,9 @@ export const useDepositRouting = ({
             );
           }
         }
-
         // auto-submit purpose of usage form and then recursive call to route again
-        if (!getForm(TransakFormId.PURPOSE_OF_USAGE)?.isSubmitted) {
+        const purposeOfUsageForm = getForm(TransakFormId.PURPOSE_OF_USAGE);
+        if (purposeOfUsageForm && purposeOfUsageForm.isSubmitted === false) {
           if (depth < 5) {
             await submitPurposeOfUsage([
               'Buying/selling crypto for investments',
@@ -445,6 +445,9 @@ export const useDepositRouting = ({
         const idProofForm = getForm(TransakFormId.ID_PROOF);
         if (idProofForm?.isSubmitted === false) {
           const idProofData = await fetchKycFormData(quote, idProofForm);
+          if (!idProofData) {
+            throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          }
           if (idProofData?.data?.kycUrl) {
             navigateToAdditionalVerificationCallback({
               quote,
@@ -457,7 +460,7 @@ export const useDepositRouting = ({
         throw new Error(strings('deposit.buildQuote.unexpectedError'));
       } catch (error) {
         if ((error as AxiosError).status === 401) {
-          clearAuthToken();
+          await logoutFromProvider(false);
           navigateToEnterEmailCallback({ quote });
           return;
         }
@@ -474,7 +477,7 @@ export const useDepositRouting = ({
       navigateToWebviewModalCallback,
       navigateToKycProcessingCallback,
       submitPurposeOfUsage,
-      clearAuthToken,
+      logoutFromProvider,
       navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
       trackEvent,

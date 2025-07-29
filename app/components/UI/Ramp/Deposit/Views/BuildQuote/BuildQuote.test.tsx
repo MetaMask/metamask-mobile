@@ -29,6 +29,7 @@ const mockRouteAfterAuthentication = jest.fn();
 const mockNavigateToVerifyIdentity = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
+const mockUseAccountTokenCompatible = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockRequestOtt = jest.fn();
 
@@ -82,6 +83,11 @@ jest.mock(
   () => () => mockUseDepositTokenExchange(),
 );
 
+jest.mock(
+  '../../hooks/useAccountTokenCompatible',
+  () => () => mockUseAccountTokenCompatible(),
+);
+
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
     routeAfterAuthentication: mockRouteAfterAuthentication,
@@ -128,6 +134,7 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
+    mockUseAccountTokenCompatible.mockReturnValue(true);
     // Ensure trackEvent mock is reset
     mockTrackEvent.mockClear();
   });
@@ -372,6 +379,23 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
+      });
+    });
+
+    it('navigates to incompatible token modal when user they are not compatible', async () => {
+      mockUseAccountTokenCompatible.mockReturnValue(false);
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'DepositModals',
+          expect.objectContaining({
+            screen: 'IncompatibleAccountTokenModal',
+          }),
+        );
       });
     });
 

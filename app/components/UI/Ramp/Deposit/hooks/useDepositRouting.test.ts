@@ -115,13 +115,13 @@ jest.mock('./useDepositSdkMethod', () => ({
   }),
 }));
 
-const mockClearAuthToken = jest.fn();
+const mockLogoutFromProvider = jest.fn();
 const mockSelectedRegion = { isoCode: 'US' };
 
 jest.mock('../sdk', () => ({
   useDepositSDK: jest.fn(() => ({
     selectedRegion: mockSelectedRegion,
-    clearAuthToken: mockClearAuthToken,
+    logoutFromProvider: mockLogoutFromProvider,
     selectedWalletAddress: '0x123',
   })),
 }));
@@ -501,7 +501,7 @@ describe('useDepositRouting', () => {
       ).rejects.toThrow('An unexpected error occurred.');
     });
 
-    it('should not navigate to BasicInfo when all required forms are submitted', async () => {
+    it('should throw error when all forms are submitted but no clear next step exists', async () => {
       const mockQuote = {} as BuyQuote;
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
@@ -520,7 +520,7 @@ describe('useDepositRouting', () => {
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
-      ).resolves.not.toThrow();
+      ).rejects.toThrow('An unexpected error occurred.');
 
       expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
       expect(mockNavigate).not.toHaveBeenCalledWith(
@@ -814,7 +814,7 @@ describe('useDepositRouting', () => {
       });
       const { result } = renderHook(() => useDepositRouting(mockParams));
       await result.current.routeAfterAuthentication(mockQuote);
-      expect(mockClearAuthToken).toHaveBeenCalled();
+      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
 
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`

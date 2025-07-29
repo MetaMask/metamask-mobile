@@ -1,5 +1,5 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { SendLinkViewSelectorsIDs } from '../../selectors/Receive/SendLinkView.selectors';
 
 class PaymentRequestQrBottomSheet {
@@ -14,7 +14,9 @@ class PaymentRequestQrBottomSheet {
   }
 
   async tapCloseButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeButton);
+    await Gestures.waitAndTap(this.closeButton, {
+      elemDescription: 'Close Button in Payment Request QR Bottom Sheet',
+    });
   }
 }
 
