@@ -16,9 +16,12 @@ export const account2Short = '9Wa2...Dj2U';
  * @param options.selectAllAccounts - Whether we connect with all accounts or only the default one
  */
 export const connectSolanaTestDapp = async (
-  options: { selectAllAccounts?: boolean } = {},
+  options: {
+    selectAllAccounts?: boolean;
+    assert?: () => Promise<void>;
+  } = {},
 ): Promise<void> => {
-  const { selectAllAccounts } = options;
+  const { selectAllAccounts, assert } = options;
 
   const header = SolanaTestDApp.getHeader();
   await header.connect();
@@ -32,6 +35,11 @@ export const connectSolanaTestDapp = async (
 
   // Click connect button
   await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.CONNECTION);
+
+  if (assert) {
+    await assert();
+  }
+
   await ConnectBottomSheet.tapConnectButton();
 };
 

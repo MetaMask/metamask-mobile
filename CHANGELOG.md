@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.51.1]
+
+### Added
+
+- migrate BSC network RPC to bsc-mainnet.infura.io ([#16824](https://github.com/MetaMask/metamask-mobile/pull/16824))
+- feat: allow multiple provider connections ([#16699](https://github.com/MetaMask/metamask-mobile/pull/16699))
+
+### Fixed
+
+- fix: cp-7.51.1 fox size adjustments ([#17569](https://github.com/MetaMask/metamask-mobile/pull/17569))
+
 ## [7.51.0]
 
 ### Added
@@ -6010,7 +6021,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.1...HEAD
+[7.51.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.0...v7.51.1  
 [7.51.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.2...v7.51.0  
 [7.50.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.1...v7.50.2  
 [7.50.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.0...v7.50.1
