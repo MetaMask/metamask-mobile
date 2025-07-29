@@ -33,8 +33,11 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
     }
 
     const parsed = parseFloat(trimmedAmount);
+    // Check if the input is a valid positive number
+    // Using Number() for stricter parsing - it returns NaN for '123abc'
+    const strictParsed = Number(trimmedAmount);
     const valid =
-      !isNaN(parsed) && isFinite(parsed) && /^-?\d*\.?\d+$/.test(trimmedAmount);
+      !isNaN(strictParsed) && isFinite(strictParsed) && strictParsed > 0;
 
     return { parsedAmount: parsed, isValid: valid };
   }, [amount]);
