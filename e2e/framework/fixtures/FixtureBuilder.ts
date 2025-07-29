@@ -458,7 +458,14 @@ class FixtureBuilder {
             },
             MultichainNetworkController: {
               selectedMultichainNetworkChainId: SolScope.Mainnet,
-              multichainNetworkConfigurationsByChainId: {},
+              multichainNetworkConfigurationsByChainId: {
+                [SolScope.Mainnet]: {
+                  chainId: SolScope.Mainnet,
+                  name: 'Solana Mainnet',
+                  nativeCurrency: `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+                  isEvm: false,
+                },
+              },
               isEvmSelected: true,
               networksWithTransactionActivity: {},
             },
@@ -473,6 +480,7 @@ class FixtureBuilder {
               jobs: {},
               events: {},
             },
+            SnapController: {},
           },
         },
         privacy: {
@@ -1250,7 +1258,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withTokens(tokens: Record<string, unknown>) {
+  withTokens(tokens: Record<string, unknown>[]) {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens: {
         [CHAIN_IDS.MAINNET]: {
