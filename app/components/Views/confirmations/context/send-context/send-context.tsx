@@ -12,6 +12,7 @@ import { AssetType } from '../../types/token';
 
 export interface SendContextType {
   asset?: AssetType;
+  chainId?: Hex;
   from: Hex;
   to?: Hex;
   updateAsset: (asset: AssetType) => void;
@@ -22,6 +23,7 @@ export interface SendContextType {
 
 export const SendContext = createContext<SendContextType>({
   asset: undefined,
+  chainId: undefined,
   from: '0x',
   to: undefined,
   updateAsset: () => undefined,
@@ -37,11 +39,13 @@ export const SendContextProvider: React.FC<{
   const from = useSelector(selectSelectedInternalAccount);
   const [to, updateTo] = useState<Hex>();
   const [value, updateValue] = useState<string>();
+  const { chainId } = asset ?? { chainId: undefined };
 
   return (
     <SendContext.Provider
       value={{
         asset,
+        chainId: chainId as Hex,
         from: from?.address as Hex,
         to,
         updateAsset,
