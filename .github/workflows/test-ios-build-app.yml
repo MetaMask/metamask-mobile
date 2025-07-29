@@ -2,7 +2,7 @@ name: Test iOS Build QA App
 
 on:
   push:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       retention_days:
         description: 'Number of days to retain the uploaded artifacts'
@@ -112,7 +112,7 @@ jobs:
         id: upload-app
         uses: actions/upload-artifact@v4
         with:
-          name: ios-app-qa-simulator
+          name: MetaMask-QA.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app
           retention-days: ${{ inputs.retention_days }}
           if-no-files-found: error
@@ -123,7 +123,7 @@ jobs:
         id: upload-ipa
         uses: actions/upload-artifact@v4
         with:
-          name: ios-ipa-qa-device
+          name: MetaMask-QA.ipa
           path: ios/build/output/MetaMask-QA.ipa
           retention-days: ${{ inputs.retention_days }}
           if-no-files-found: error
@@ -134,7 +134,7 @@ jobs:
         id: upload-archive
         uses: actions/upload-artifact@v4
         with:
-          name: ios-archive-qa
+          name: MetaMask-QA.xcarchive
           path: ios/build/MetaMask-QA.xcarchive
           retention-days: ${{ inputs.retention_days }}
           if-no-files-found: error
@@ -145,7 +145,7 @@ jobs:
         id: upload-sourcemap
         uses: actions/upload-artifact@v4
         with:
-          name: ios-sourcemap-qa
+          name: index.js.map
           path: sourcemaps/ios/index.js.map
           retention-days: ${{ inputs.retention_days }}
           if-no-files-found: error

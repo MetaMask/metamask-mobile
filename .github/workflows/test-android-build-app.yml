@@ -2,14 +2,13 @@ name: Test Android Build QA App
 
 on:
   push:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       retention_days:
         description: 'Number of days to retain artifacts'
         required: false
         default: '7'
         type: string
-
 
 permissions:
   contents: write
@@ -112,7 +111,7 @@ jobs:
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: android-app-qa
+          name: app-qa-release.apk
           path: android/app/build/outputs/apk/qa/release/app-qa-release.apk
           retention-days: ${{ inputs.retention_days }}
           if-no-files-found: error
@@ -123,7 +122,7 @@ jobs:
         id: upload-aab
         uses: actions/upload-artifact@v4
         with:
-          name: android-bundle-qa
+          name: app-qa-release.aab
           path: android/app/build/outputs/bundle/qaRelease/app-qa-release.aab
           retention-days: ${{ inputs.retention_days }}
           if-no-files-found: warn
@@ -134,7 +133,7 @@ jobs:
         id: upload-sourcemap
         uses: actions/upload-artifact@v4
         with:
-          name: android-sourcemap-qa
+          name: index.android.bundle.map
           path: sourcemaps/android/index.android.bundle.map
           retention-days: ${{ inputs.retention_days }}
           if-no-files-found: warn
@@ -145,7 +144,7 @@ jobs:
         id: set-artifacts-url
         run: |
           ARTIFACTS_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          echo "artifacts-url=${ARTIFACTS_URL}" >> $GITHUB_OUTPUT
+          echo "artifacts-url=${ARTIFACTS_URL}" >> "$GITHUB_OUTPUT"
           echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
           echo ""
           echo "Upload Status Summary:"
