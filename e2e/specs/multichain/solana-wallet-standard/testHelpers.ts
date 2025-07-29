@@ -1,11 +1,9 @@
-import TestHelpers from '../../../helpers';
 import BrowserView from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import { SOLANA_TEST_TIMEOUTS } from '../../../selectors/Browser/SolanaTestDapp.selectors';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 
 export const account1Short = 'CEQ8...Yrrd';
 export const account2Short = '9Wa2...Dj2U';
@@ -33,9 +31,6 @@ export const connectSolanaTestDapp = async (
     await ConnectBottomSheet.tapAccountConnectMultiSelectButton();
   }
 
-  // Click connect button
-  await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.CONNECTION);
-
   if (assert) {
     await assert();
   }
@@ -45,7 +40,7 @@ export const connectSolanaTestDapp = async (
 
 export const navigateToSolanaTestDApp = async (): Promise<void> => {
   await TabBarComponent.tapBrowser();
-  await Assertions.checkIfVisible(BrowserView.browserScreenID);
+  await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
   await SolanaTestDApp.navigateToSolanaTestDApp();
 };
 
