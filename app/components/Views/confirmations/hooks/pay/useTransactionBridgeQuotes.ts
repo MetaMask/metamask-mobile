@@ -7,7 +7,9 @@ import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useDispatch } from 'react-redux';
 import { setTransactionBridgeQuotes } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
-import { Hex } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
+
+const log = createProjectLogger('transaction-pay');
 
 export function useTransactionBridgeQuotes() {
   const dispatch = useDispatch();
@@ -64,6 +66,8 @@ export function useTransactionBridgeQuotes() {
 
   useEffect(() => {
     dispatch(setTransactionBridgeQuotes({ transactionId, quotes }));
+
+    log('Bridge quotes', { transactionId, quotes });
   }, [dispatch, quotes, transactionId]);
 
   return { loading, quotes };

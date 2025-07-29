@@ -1,11 +1,13 @@
-import { Hex } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
 import { useSelector } from 'react-redux';
+
+const log = createProjectLogger('transaction-pay');
 
 export const PAY_BRIDGE_SLIPPAGE = 0.02;
 export const PAY_BRIDGE_FEE = 0.005;
@@ -61,6 +63,13 @@ export function useTransactionRequiredFiat() {
     (acc, value) => acc + (value ?? 0),
     0,
   );
+
+  useEffect(() => {
+    log('Required fiat values', {
+      fiatValues,
+      fiatTotal,
+    });
+  }, [fiatValues, fiatTotal]);
 
   return {
     fiatTotal,

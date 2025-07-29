@@ -7,6 +7,7 @@ import { Hex, createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 
 export type TransactionBridgeQuote = QuoteResponse & QuoteMetadata;
 
@@ -78,10 +79,9 @@ async function getSingleBridgeQuotes(
       destTokenAddress: targetTokenAddress,
       insufficientBal: true,
       destWalletAddress: from,
-      slippage: 0.5,
     },
     {
-      stx_enabled: false,
+      stx_enabled: isSmartTransactionsEnabled(sourceChainId),
       token_symbol_source: '',
       token_symbol_destination: '',
       security_warnings: [],
@@ -147,4 +147,9 @@ function getActiveQuote(
   };
 
   return selectBridgeQuotes(state).recommendedQuote ?? undefined;
+}
+
+function isSmartTransactionsEnabled(chainId: Hex): boolean {
+  const state = store.getState();
+  return selectShouldUseSmartTransaction(state, chainId);
 }

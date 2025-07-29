@@ -6,16 +6,12 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenPill } from '../../token-pill/token-pill';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
-import Icon, {
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../../../UI/Box/Box';
-import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { quotes } = useTransactionBridgeQuotes();
+  useTransactionBridgeQuotes();
 
   const handleClick = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
@@ -25,12 +21,7 @@ export function PayWithRow() {
     <>
       <InfoSection>
         <InfoRow label="Pay with">
-          <Box
-            onTouchEnd={handleClick}
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-          >
-            {quotes?.length && <Icon name={IconName.CheckBold} />}
+          <Box onTouchEnd={handleClick}>
             <TokenPill address={payToken.address} chainId={payToken.chainId} />
           </Box>
         </InfoRow>
