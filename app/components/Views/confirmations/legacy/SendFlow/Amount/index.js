@@ -852,9 +852,7 @@ class Amount extends PureComponent {
           weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
         }
         // TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
-        amountError = gte(weiBalance, weiInput)
-          ? undefined
-          : strings('transaction.insufficient');
+        amountError = undefined;
       }
     } else {
       amountError = strings('transaction.invalid_amount');

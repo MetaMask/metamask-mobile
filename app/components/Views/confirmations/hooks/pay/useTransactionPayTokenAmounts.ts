@@ -34,18 +34,17 @@ export function useTransactionPayTokenAmounts() {
   );
 
   const tokenFiatRate = useTokenFiatRates(fiatRequest)[0];
-
-  const { fiatValues } = useTransactionRequiredFiat();
+  const { values } = useTransactionRequiredFiat();
 
   const amounts = useDeepMemo(() => {
     if (!tokenFiatRate) {
       return undefined;
     }
 
-    return fiatValues.map((fiatValue) =>
-      calculateAmount(fiatValue, tokenFiatRate, tokenDecimals),
+    return values.map((value) =>
+      calculateAmount(value.totalFiat, tokenFiatRate, tokenDecimals),
     );
-  }, [fiatValues, tokenFiatRate, tokenDecimals]);
+  }, [values, tokenFiatRate, tokenDecimals]);
 
   useEffect(() => {
     log('Pay token amounts', amounts);

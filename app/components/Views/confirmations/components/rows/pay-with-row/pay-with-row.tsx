@@ -7,15 +7,18 @@ import { TokenPill } from '../../token-pill/token-pill';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
 import { Box } from '../../../../../UI/Box/Box';
+import Text from '../../../../../../component-library/components/Texts/Text';
 
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  useTransactionBridgeQuotes();
+  const { quotes } = useTransactionBridgeQuotes();
 
   const handleClick = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [navigation]);
+
+  const estimatedTimeSeconds = quotes?.[0]?.estimatedProcessingTimeInSeconds;
 
   return (
     <>
@@ -24,6 +27,9 @@ export function PayWithRow() {
           <Box onTouchEnd={handleClick}>
             <TokenPill address={payToken.address} chainId={payToken.chainId} />
           </Box>
+        </InfoRow>
+        <InfoRow label="Est. time">
+          <Text>{estimatedTimeSeconds} sec</Text>
         </InfoRow>
       </InfoSection>
     </>
