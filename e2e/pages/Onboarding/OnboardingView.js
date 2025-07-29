@@ -5,8 +5,7 @@ import { BASE_DEFAULTS, Utilities } from '../../framework';
 import OnboardingSheet from './OnboardingSheet';
 
 const SEEDLESS_ONBOARDING_ENABLED =
-  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
-  process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
+  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 class OnboardingView {
   get container() {
     return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
