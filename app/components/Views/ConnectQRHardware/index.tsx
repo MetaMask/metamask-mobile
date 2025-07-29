@@ -338,7 +338,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       },
     );
     const { remainingAccounts } = await KeyringController.forgetQRDevice();
-    Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
+Engine.setSelectedAddress(remainingAccounts.at(-1));
     navigation.pop(2);
   }, [KeyringController, navigation, resetError]);
 
