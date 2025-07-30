@@ -4,9 +4,11 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { DEFAULT_GANACHE_PORT } from '../../app/util/test/ganache';
 import { DEFAULT_ANVIL_PORT } from '../../e2e/seeder/anvil-manager';
-import { DEFAULT_FIXTURE_SERVER_PORT } from '../framework/fixtures/FixtureServer';
-import { DEFAULT_DAPP_SERVER_PORT } from '../framework/fixtures/FixtureHelper';
-export const DEFAULT_MOCKSERVER_PORT = 8000;
+import {
+  DEFAULT_FIXTURE_SERVER_PORT,
+  DEFAULT_DAPP_SERVER_PORT,
+  DEFAULT_MOCKSERVER_PORT,
+} from '../framework/Constants';
 
 function transformToValidPort(defaultPort, pid) {
   // Improve uniqueness by using a simple transformation
