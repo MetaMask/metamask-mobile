@@ -1,5 +1,4 @@
 import ImportedEngine from '../Engine';
-import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
 import {
   CaipAccountId,
@@ -29,12 +28,16 @@ import {
 import { captureException } from '@sentry/react-native';
 import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { areAddressesEqual } from '../../util/address';
+import Logger from '../../util/Logger';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
+
+// Error indicating that there was no CAIP-25 endowment found for the target origin
+class Caip25EndowmentMissingError extends Error {}
 
 /**
  * Checks that all accounts referenced have a matching InternalAccount. Sends
@@ -329,7 +332,7 @@ export const addPermittedAccounts = (
 ) => {
   const caip25Caveat = getCaip25Caveat(origin);
   if (!caip25Caveat) {
-    throw new Error(
+    throw new Caip25EndowmentMissingError(
       `Cannot add account permissions for origin "${origin}": no permission currently exists for this origin.`,
     );
   }
@@ -419,7 +422,7 @@ export const removePermittedAccounts = (
 
   const caip25Caveat = getCaip25Caveat(origin);
   if (!caip25Caveat) {
-    throw new Error(
+    throw new Caip25EndowmentMissingError(
       `Cannot remove accounts "${addresses}": No permissions exist for origin "${origin}".`,
     );
   }
@@ -465,12 +468,15 @@ export const removePermittedAccounts = (
 };
 
 // The codebase needs to be refactored to use caipAccountIds so that this is easier to change
-export const removeAccountsFromPermissions = async (addresses: Hex[]) => {
+export const removeAccountsFromPermissions = (addresses: Hex[]) => {
   const { PermissionController } = Engine.context;
   for (const subject in PermissionController.state.subjects) {
     try {
       removePermittedAccounts(subject, addresses);
     } catch (e) {
+      if (e instanceof Caip25EndowmentMissingError) {
+        continue;
+      }
       Logger.log(
         e,
         'Failed to remove account from permissions after deleting account from wallet.',
@@ -486,7 +492,7 @@ export const updatePermittedChains = (
 ) => {
   const caip25Caveat = getCaip25Caveat(origin);
   if (!caip25Caveat) {
-    throw new Error(
+    throw new Caip25EndowmentMissingError(
       `Cannot add chain permissions for origin "${origin}": no permission currently exists for this origin.`,
     );
   }
@@ -535,7 +541,7 @@ export const removePermittedChain = (
 ) => {
   const caip25Caveat = getCaip25Caveat(hostname);
   if (!caip25Caveat) {
-    throw new Error(
+    throw new Caip25EndowmentMissingError(
       `Cannot remove chain permissions for origin "${hostname}": no permission currently exists for this origin.`,
     );
   }
