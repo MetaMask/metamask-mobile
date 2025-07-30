@@ -4773,14 +4773,6 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/account-api@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/account-api/-/account-api-0.2.0.tgz#63309883fe1035454b5e32b3fa5350f3d33ceffd"
-  integrity sha512-EaB2LBpoaLOpqBKkrvkC5+Tgg8YwS4ht+8lFVK/WNSu1I/xz3AOHH/GuKPWOgGP6z4QDhXNVJNEEN7HCoiWZ5g==
-  dependencies:
-    "@metamask/keyring-api" "^19.0.0"
-    "@metamask/keyring-utils" "^3.1.0"
-
 "@metamask/account-api@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/account-api/-/account-api-0.3.0.tgz#aa81282b0157a0aad216223a35e60f70031d8534"
@@ -4790,20 +4782,20 @@
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/superstruct" "^3.1.0"
 
-"@metamask/account-tree-controller@0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.6.0.tgz#4aa201863519a5ef7a4b5776c9b1915952c19e9a"
-  integrity sha512-tXrdFF3MrqwDTwOxm9BRmOXSEb0IfKc8P15hYtL7iH3aXUjR8obqC70Ue/sUcTwd19/t5jNBzngv1uVOHGOB8Q==
+"@metamask/account-tree-controller@0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.7.0.tgz#5fdaada8915125cc278bb98ef03346efe12621ec"
+  integrity sha512-CfDUKuktFs++X/NeEz4lsdDsyLcLZqB81gCribGNebQH8b8uD0lp+0iwPSpHb0k2yHmaz+vGtLIKEdIVCkCHrg==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
     lodash "^4.17.21"
 
-"@metamask/accounts-controller@^32.0.0":
-  version "32.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-32.0.0.tgz#739b0122d82d61633d1601db44744a4ee89b8b4d"
-  integrity sha512-L9Z39CDz4llI5z8SghjUUeRgpKzz/n93uOgDGC0aPNDuBdpGeMVt3tt+Vq/9Z85yBIA2mc1jGrco7aMZ5MZA6Q==
+"@metamask/accounts-controller@^32.0.1":
+  version "32.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-32.0.1.tgz#f2380bc6ddbca1135a167d71c3163a400712a10f"
+  integrity sha512-ggAJdOJuId40jVPrvAZVWwHWKJUHQZsd/MtounHhfYTzvKxlOi6sVmBCodLvk4rexOdgSatoM2lrHgNRnr29lw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/base-controller" "^8.0.1"
@@ -5537,12 +5529,11 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/multichain-account-service@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.2.0.tgz#9e5fc33de738e9c2450cc9f5e4110550f9346f2f"
-  integrity sha512-9C/bfBCXGASYuUrGjr9ACG2C1izyn/FQMlCi9ven4W01Hg3DGjguI8Yngjftx8RdU/PFVF7ZqINx26KqxcYTtw==
+"@metamask/multichain-account-service@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.3.0.tgz#f7fab4976e27be3c3bfe4a23dd04747ca847fbd2"
+  integrity sha512-TXsSq713PVfyxbeQvVvZJ7zleq2nwRVhM1dajIISzfKLMjt1f2Olif6/kHgctEU6cItIhWwCd1EC2UeflpBVTQ==
   dependencies:
-    "@metamask/account-api" "^0.2.0"
     "@metamask/base-controller" "^8.0.1"
     "@metamask/keyring-api" "^19.0.0"
     "@metamask/keyring-internal-api" "^7.0.0"
