@@ -1,9 +1,7 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
-import ReduxService from '../redux';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 
-import { UserActionType } from '../../actions/user';
 import {
   HandleOAuthLoginResult,
   AuthConnection,
@@ -66,9 +64,6 @@ export class OAuthService {
   #dispatchLogin = () => {
     this.resetOauthState();
     this.updateLocalState({ loginInProgress: true });
-    ReduxService.store.dispatch({
-      type: UserActionType.LOADING_SET,
-    });
   };
 
   #dispatchPostLogin = (result: HandleOAuthLoginResult) => {
@@ -83,9 +78,8 @@ export class OAuthService {
       stateToUpdate.oauthLoginError = result.error;
     }
     this.updateLocalState(stateToUpdate);
-    ReduxService.store.dispatch({
-      type: UserActionType.LOADING_UNSET,
-    });
+
+    // move dispatch loading false to onboarding view
   };
 
   handleSeedlessAuthenticate = async (
