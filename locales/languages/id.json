@@ -157,7 +157,8 @@
     "your_wallet": "Anda berhasil mereset dompet!",
     "delete_current": "Reset dompet saat ini",
     "have_existing_wallet": "Saya sudah memiliki dompet",
-    "import_using_srp": "Impor menggunakan Frasa Pemulihan Rahasia"
+    "import_using_srp": "Impor menggunakan Frasa Pemulihan Rahasia",
+    "import_using_srp_social_login": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "Jaga agar Frasa Pemulihan Rahasia tetap aman!",
@@ -290,7 +291,7 @@
   "login": {
     "title": "Selamat Datang kembali!",
     "password": "Kata sandi",
-    "password_placeholder": "Masukkan kata sandi",
+    "password_placeholder": "Enter MetaMask password",
     "unlock_button": "Buka",
     "go_back": "Dompet tidak bisa dibuka? Anda dapat MENGHAPUS dompet saat ini dan mengatur yang baru",
     "forgot_password": "Lupa kata sandi?",
@@ -312,16 +313,16 @@
     "wrong_password_error_android": "Kesalahan: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "Kesalahan: Tidak dapat dibuka tanpa vault sebelumnya.",
     "clean_vault_error": "MetaMask mengalami kesalahan karena batas penyimpanan telah tercapai. Data lokal telah rusak. Instal ulang MetaMask dan pulihkan dengan Frasa Pemulihan Rahasia.",
-    "seedless_password_outdated": "Your password was changed recently.",
-    "seedless_password_outdated_modal_title": "Your password was changed",
-    "seedless_password_outdated_modal_content": "Your password was recently changed, so you need to enter your new password to stay logged into MetaMask.",
-    "seedless_password_outdated_modal_confirm": "Continue",
+    "seedless_password_outdated": "Kata sandi Anda baru saja diubah.",
+    "seedless_password_outdated_modal_title": "Kata sandi Anda telah diubah",
+    "seedless_password_outdated_modal_content": "Kata sandi Anda baru saja diubah, jadi Anda perlu memasukkan kata sandi baru untuk tetap masuk ke MetaMask.",
+    "seedless_password_outdated_modal_confirm": "Lanjutkan",
     "security_alert_title": "Peringatan Keamanan",
     "security_alert_desc": "Untuk melanjutkan, Anda harus mengaktifkan Kode Sandi atau metode autentikasi biometrik yang didukung perangkat Anda (FaceID, TouchID, atau Sidik Jari)",
     "too_many_attempts": "Terlalu banyak percobaan. Coba lagi dalam {{remainingTime}}",
     "apple_button": "Masuk dengan Apple",
     "google_button": "Masuk dengan Google",
-    "other_methods": "Gunakan metode lain",
+    "other_methods": "Use a different login method",
     "forgot_password_desc": "Lupa kata sandi Anda?",
     "forgot_password_desc_2": "MetaMask tidak dapat memulihkan kata sandi Anda.",
     "forgot_password_point_1": "Jika Anda masuk ke MetaMask pada perangkat dengan",
@@ -351,6 +352,7 @@
   "choose_password": {
     "title": "Kata sandi MetaMask",
     "description": "Buka MetaMask hanya pada perangkat ini.",
+    "description_social_login": "Use this for wallet recovery on all devices.",
     "subtitle": "Kata sandi ini akan membuka dompet MetaMask Anda hanya pada perangkat ini.",
     "password": "Buat kata sandi baru",
     "confirm_password": "Konfirmasikan kata sandi",
@@ -445,7 +447,7 @@
     "paste": "Tempel",
     "hide_all": "Sembunyikan semua",
     "srp": "Frasa Pemulihan Rahasia",
-    "srp_placeholder": "Add a space between each word and make sure no one is watching.",
+    "srp_placeholder": "Tambahkan spasi di antara setiap kata dan pastikan tidak ada yang melihat.",
     "learn_more_link": "Selengkapnya",
     "create_password_cta": "Buat kata sandi",
     "pass_flow": "Lanjutkan dengan Flow",
@@ -513,6 +515,15 @@
       "search_by_name_or_address": "Cari token berdasarkan nama atau alamat",
       "no_tokens_found": "Tidak ada token yang cocok dengan \"{{searchString}}\""
     },
+    "configuration_modal": {
+      "title": "Options",
+      "view_order_history": "View order history",
+      "contact_support": "Contact support",
+      "log_out": "Log out",
+      "logged_out_success": "Successfully logged out",
+      "error_sdk_not_initialized": "SDK not initialized",
+      "logged_out_error": "Error logging out"
+    },
     "region_modal": {
       "select_a_region": "Pilih wilayah",
       "search_by_country": "Cari berdasarkan negara",
@@ -533,25 +544,41 @@
     "unsupported_region_modal": {
       "title": "Wilayah tidak didukung",
       "location_prefix": "Sepertinya Anda berada di:",
-      "description": "Kami sedang berupaya keras untuk memperluas jangkauan ke wilayah Anda. Sementara itu, mungkin ada cara lain bagi Anda untuk membeli kripto.",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to get crypto.",
       "change_region": "Ubah wilayah",
       "buy_crypto": "Beli Kripto"
     },
+    "unsupported_state_modal": {
+      "title": "Region not supported",
+      "location_prefix": "You've selected:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there are other ways for you to get crypto.",
+      "change_state": "Change region",
+      "try_another_option": "Try another option"
+    },
+    "incompatible_token_acount_modal": {
+      "title": "Switch your account",
+      "description": "The {{networkName}} account you’re on doesn't support the selected token. Switch your account or token to continue.",
+      "cta": "I understand"
+    },
+    "ssn_info_modal": {
+      "title": "Why we ask",
+      "description": "U.S. laws require Transak to check your identity before changing dollars into crypto. This means U.S. customers need to provide a Social Security number."
+    },
     "get_started": {
       "navbar_title": "Deposit",
-      "title": "Starting is easy with USDC",
+      "title": "Memulai dengan mudah menggunakan USDC",
       "bullet_1_title": "Nilai yang didukung oleh dolar AS",
-      "bullet_1_description": "USDC is a digital dollar, backed by U.S. dollars, so you always know what it’s worth.",
+      "bullet_1_description": "USDC merupakan dolar digital yang didukung oleh dolar AS, jadi Anda selalu tahu nilainya.",
       "bullet_2_title": "Volatilitas rendah",
-      "bullet_2_description": "USDC is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_2_description": "USDC dirancang untuk tetap stabil, menjadikannya semakin mudah untuk membuat rencana, menabung, dan berbelanja.",
       "bullet_3_title": "Lebih cepat dari bank",
-      "bullet_3_description": "Send and receive in minutes, no waiting for bank hours or international delays.",
+      "bullet_3_description": "Kirim dan terima dalam hitungan menit, tanpa menunggu jam operasional bank atau penundaan internasional.",
       "button": "Mulai"
     },
     "enter_email": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "Verifikasikan identitas Anda",
       "title": "Masukkan email Anda",
-      "description": "We'll email you a six-digit verification code to securely log in or create an account with Transak.",
+      "description": "Kami akan mengirimkan kode verifikasi enam digit melalui email untuk masuk atau membuat akun dengan aman di Transak.",
       "input_placeholder": "name@domain.com",
       "submit_button": "Kirim email",
       "loading": "Mengirim email...",
@@ -559,9 +586,9 @@
       "error": "Terjadi kesalahan saat mengirim email"
     },
     "otp_code": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "Verifikasikan identitas Anda",
       "title": "Masukkan kode enam digit",
-      "description": "Enter the code we sent to {{email}}. If you don't see it, check your spam folder.",
+      "description": "Masukkan kode yang kami kirim ke {{email}}. Jika Anda tidak melihatnya, periksa folder spam.",
       "submit_button": "Kirim",
       "loading": "Memverifikasi kode...",
       "invalid_code_error": "Kode tidak valid",
@@ -577,34 +604,34 @@
     "verify_identity": {
       "title": "Verifikasikan identitas Anda",
       "navbar_title": "Deposit",
-      "description_1": "To deposit cash for the first time, your identity must be verified.",
+      "description_1": "Untuk mendepositkan uang tunai untuk pertama kalinya, identitas Anda harus diverifikasi.",
       "description_2_transak": "Transak",
-      "description_2_rest": " will facilitate your deposit, and we work with them to ensure your privacy. We never store your data, and Transak never sells your data.",
-      "description_3_part1": "Check out our ",
-      "description_3_privacy_policy": "privacy policy",
-      "description_3_part2": " to learn more.",
-      "agreement_text_part1": "By clicking the button below, you agree to ",
-      "agreement_text_transak_terms": "Transak's Terms of Use",
-      "agreement_text_and": " and ",
-      "agreement_text_privacy_policy": "Privacy Policy",
+      "description_2_rest": " will facilitate your deposit and your data is sent directly to Transak. We do not process the data you share.",
+      "description_3_part1": "Lihat ",
+      "description_3_privacy_policy": "kebijakan privasi",
+      "description_3_part2": " untuk selengkapnya.",
+      "agreement_text_part1": "Dengan mengeklik tombol di bawah ini, Anda menyetujui ",
+      "agreement_text_transak_terms": "Ketentuan Penggunaan Transak",
+      "agreement_text_and": " dan ",
+      "agreement_text_privacy_policy": "Kebijakan Privasi",
       "agreement_text_part2": ".",
-      "button": "Agree and continue"
+      "button": "Setuju dan lanjutkan"
     },
     "additional_verification": {
-      "title": "Additional Verification",
-      "paragraph_1": "For larger deposits, you’ll need a valid ID (like a driver’s license) and a real-time selfie.",
-      "paragraph_2": "In order to complete your verification, you’ll need to enable access to your camera.",
-      "button": "Continue"
+      "title": "Verifikasi Tambahan",
+      "paragraph_1": "Untuk deposit yang lebih besar, Anda memerlukan identitas yang valid (seperti SIM) dan swafoto waktu nyata.",
+      "paragraph_2": "Untuk menyelesaikan verifikasi, Anda perlu mengaktifkan akses ke kamera.",
+      "button": "Lanjutkan"
     },
     "basic_info": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "Verifikasikan identitas Anda",
       "title": "Masukkan info dasar Anda",
       "continue": "Lanjutkan",
-      "subtitle": "Next, we need some basic information about you.",
+      "subtitle": "Selanjutnya, kami memerlukan beberapa informasi dasar tentang Anda.",
       "first_name": "Nama Depan",
       "last_name": "Nama Belakang",
       "phone_number": "Nomor Telepon",
-      "date_of_birth": "Date of birth",
+      "date_of_birth": "Tanggal lahir",
       "social_security_number": "Nomor Jaminan Sosial",
       "enter_phone_number": "Masukkan nomor telepon",
       "select_region": "Pilih wilayah",
@@ -619,9 +646,9 @@
       "ssn_required": "Nomor jaminan sosial diperlukan"
     },
     "enter_address": {
-      "navbar_title": "Verify your identity",
+      "navbar_title": "Verifikasikan identitas Anda",
       "title": "Masukkan alamat",
-      "subtitle": "Use your most recent permanent address.",
+      "subtitle": "Gunakan alamat permanen terbaru Anda.",
       "continue": "Lanjutkan",
       "address_line_1": "Baris alamat 1",
       "address_line_2": "Baris alamat 2 (opsional)",
@@ -639,21 +666,21 @@
       "state_invalid": "Masukkan negara bagian yang valid",
       "postal_code_required": "Kode Pos diperlukan",
       "postal_code_invalid": "Masukkan kode pos yang valid",
-      "unexpected_error": "Unexpected error."
+      "unexpected_error": "Kesalahan tak terduga."
     },
     "privacy_section": {
       "transak": "Transak mengenkripsi dan menyimpan informasi ini.",
       "metamask": "MetaMask tidak pernah menerima atau menggunakan data Anda."
     },
     "kyc_processing": {
-      "navbar_title": "Verify your identity",
-      "heading": "Hang tight...",
+      "navbar_title": "Verifikasikan identitas Anda",
+      "heading": "Mohon tunggu...",
       "description": "Hanya memakan waktu sekitar 2 menit.",
       "error_heading": "Kami tidak dapat memverifikasi identitas Anda.",
       "error_description": "Coba unggah dokumen Anda lagi dan kirim ulang untuk verifikasi.",
       "error_button": "Coba verifikasi lagi",
-      "success_heading": "You're verified",
-      "success_description": "Now you can complete your deposit.",
+      "success_heading": "Anda sudah terverifikasi",
+      "success_description": "Selesaikan deposit Anda sekarang.",
       "success_button": "Selesaikan order"
     },
     "provider_webview": {
@@ -691,8 +718,8 @@
       "error_message": "Terjadi kesalahan tidak terduga."
     },
     "bank_details": {
-      "navbar_title": "{{paymentMethod}} bank transfer",
-      "button": "Bank transfer sent",
+      "navbar_title": "Transfer bank {{paymentMethod}}",
+      "button": "Transfer bank terkirim",
       "button_cancel": "Batalkan order",
       "main_title": "Untuk menyelesaikan order",
       "main_content_1": "Lakukan transfer dari bank pilihan menggunakan informasi di bawah ini.",
@@ -734,138 +761,358 @@
   },
   "perps": {
     "title": "Perdagangan Abadi",
+    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
+    "manage_balance": "Manage Balance",
+    "total_balance": "Total Balance",
+    "available_balance": "Available Balance",
+    "margin_used": "Margin Used",
+    "unrealized_pnl": "Unrealized PnL",
+    "withdraw": "Withdraw",
+    "refresh_balance": "Refresh Balance",
+    "add_funds": "Add funds",
+    "perpetuals": "Perpetuals",
+    "your_positions": "Your positions",
+    "loading_positions": "Loading positions...",
+    "refreshing_positions": "Refreshing positions...",
     "deposit": {
-      "title": "Deposit",
+      "title": "Amount to deposit",
+      "pay_with": "Pay with",
+      "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
+      "insufficient_funds": "Insufficient funds",
+      "enter_amount": "Enter amount",
+      "fetching_quote": "Fetching quote",
+      "submitting": "Submitting transaction",
+      "get_usdc": "Get USDC",
+      "network_fee": "Network fee",
+      "estimated_time": "Estimated time",
+      "rate": "Rate",
+      "slippage": "Slippage",
+      "slippage_info": "If the price changes between the time your order is placed and confirmed it's called slippage. Your transaction will automatically cancel if slippage exceeds the tolerance you set here.",
+      "slippage_auto": "Auto",
+      "apply": "Apply",
+      "max_button": "Max",
+      "done_button": "Done",
+      "metamask_fee": "MetaMask fee",
+      "metamask_fee_tooltip": "MetaMask does not charge any fees for deposits to Hyperliquid",
+      "minimum_deposit_error": "Minimum deposit amount is {{amount}} USDC",
+      "processing_title": "Processing deposit",
       "preview": {
         "title": "Pratinjau Deposit"
       },
       "processing": {
         "title": "Memproses Deposit"
       },
+      "deposit_completed": "Deposit completed successfully!",
+      "deposit_failed": "Deposit Failed",
+      "retry_deposit": "Retry Deposit",
+      "go_back": "Go Back",
+      "view_balance": "View Balance",
+      "calculating_fee": "Calculating...",
+      "quote_expired_modal": {
+        "title": "Quote Expired",
+        "description": "The quote for your deposit has expired after {{refreshRate}} seconds. Get a new quote to continue.",
+        "get_new_quote": "Get New Quote"
+      },
+      "steps": {
+        "preparing": "Preparing deposit...",
+        "swapping": "Swapping {{token}} to USDC",
+        "bridging": "Bridging to Hyperliquid",
+        "depositing": "Depositing into perps account",
+        "depositing_direct": "Transferring USDC directly to your HyperLiquid account..."
+      },
+      "step_descriptions": {
+        "preparing": "Preparing your deposit transaction...",
+        "swapping": "Converting your tokens to USDC for deposit...",
+        "bridging": "Moving USDC to Arbitrum network...",
+        "depositing": "Transferring USDC to your HyperLiquid account...",
+        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account",
+        "error": "Something went wrong during the deposit process. Please try again."
+      },
+      "quote_fetch_error": "Failed to fetch deposit quote. Please try again.",
+      "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
+      "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
       "success": {
-        "title": "Deposit Berhasil"
+        "title": "Deposit Successful!",
+        "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
+        "amount": "Amount",
+        "processing_time": "Processing Time",
+        "status": "Status",
+        "completed": "Completed",
+        "view_balance": "View Balance",
+        "view_transaction": "View Transaction"
       }
+    },
+    "withdrawal": {
+      "title": "Withdraw",
+      "insufficient_funds": "Insufficient funds",
+      "enter_amount": "Enter amount",
+      "review": "Review withdrawal",
+      "withdraw": "Withdraw",
+      "withdraw_usdc": "Withdraw USDC",
+      "minimum_amount_error": "Minimum withdrawal amount is ${{amount}}",
+      "amount_too_low": "Amount must be greater than ${{minAmount}} to cover fees",
+      "confirm": "Confirm withdrawal",
+      "processing_title": "Withdrawal initiated",
+      "processing_description": "Your USDC will arrive in approximately 5 minutes",
+      "success_title": "Withdrawal successful",
+      "success_description": "Your {{amount}} USDC has been withdrawn from Hyperliquid",
+      "network_fee": "Network fee",
+      "metamask_fee": "MetaMask fee",
+      "total_fees": "Total fees",
+      "receiving_amount": "You will receive",
+      "estimated_time": "Estimated time",
+      "done": "Done",
+      "initiated": "Withdrawal initiated",
+      "wait_time_message": "Your funds should arrive within 5 minutes",
+      "error": "Withdrawal failed",
+      "success_toast": "{{amount}} {{symbol}} withdrawal initiated",
+      "arrival_time": "Funds will arrive within 5 minutes",
+      "bridge_info": "HyperLiquid validators are processing your withdrawal",
+      "error_generic": "An error occurred during withdrawal",
+      "invalid_amount": "Please enter a valid amount",
+      "completed": "Withdrawal Complete",
+      "max": "Max",
+      "percentage_10": "10%",
+      "percentage_25": "25%"
+    },
+    "quote": {
+      "network_fee": "Network fee",
+      "estimated_time": "Estimated time",
+      "rate": "Rate",
+      "metamask_fee": "MetaMask fee",
+      "metamask_fee_tooltip": "MetaMask does not charge any fees for Hyperliquid transactions",
+      "metamask_fee_tooltip_deposit": "MetaMask does not charge any fees for deposits to Hyperliquid",
+      "metamask_fee_tooltip_withdrawal": "MetaMask does not charge any fees for withdrawals from Hyperliquid"
     },
     "order": {
       "title": "Order Baru",
+      "leverage": "Leverage",
+      "limit_price": "Limit price",
+      "liquidation_price": "Harga likuidasi",
+      "fees": "Biaya",
+      "validation": {
+        "failed": "Validasi order gagal",
+        "amount_required": "Jumlah order harus lebih besar dari 0",
+        "minimum_amount": "Ukuran order minimum adalah ${{amount}}",
+        "maximum_amount": "Ukuran order maksimum adalah ${{amount}}",
+        "insufficient_balance": "Saldo tidak mencukupi. Diperlukan: ${{required}}, Tersedia: ${{available}}",
+        "invalid_leverage": "Leverage harus berada di antara {{min}}x dan {{max}}x",
+        "high_leverage_warning": "Leverage yang tinggi meningkatkan risiko likuidasi",
+        "invalid_take_profit": "Ambil profit harus {{direction}} harga saat ini untuk posisi {{positionType}}",
+        "invalid_stop_loss": "Stop loss harus {{direction}} harga saat ini untuk posisi {{positionType}}",
+        "liquidation_warning": "Posisi mendekati harga likuidasi",
+        "limit_price_required": "Please set a limit price for limit orders",
+        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment"
+      },
+      "error": {
+        "placement_failed": "Pembuatan order gagal",
+        "network_error": "Kesalahan jaringan",
+        "unknown": "Terjadi kesalahan tidak dikenal",
+        "dismiss": "Lewatkan",
+        "invalid_asset": "Invalid asset",
+        "go_back": "Go Back",
+        "asset_not_tradable": "{{asset}} is not a tradable asset"
+      },
+      "off": "Off",
+      "estimated_execution_time": "Estimated execution time",
+      "one_to_three_seconds": "1 to 3 seconds",
+      "margin": "Margin",
+      "take_profit": "Take profit",
+      "stop_loss": "Stop loss",
+      "select_payment_asset": "Select asset to pay with",
+      "button": {
+        "long": "Long {{asset}}",
+        "short": "Short {{asset}}"
+      },
+      "tpsl_modal": {
+        "title": "Take profit & Stop loss",
+        "save": "Save",
+        "current_price": "Current price: {{price}}",
+        "on": "ON",
+        "off": "OFF",
+        "take_profit_helper": "Close position when price reaches this level",
+        "stop_loss_helper": "Limit losses by closing position at this price"
+      },
+      "limit_price_modal": {
+        "title": "Set limit price",
+        "set": "Set",
+        "market_price": "Market price: {{price}}",
+        "market": "Market",
+        "current_price": "Current price",
+        "ask_price": "Ask price",
+        "bid_price": "Bid price"
+      },
+      "leverage_modal": {
+        "title": "Set Leverage",
+        "confirm": "Confirm",
+        "entry_price": "Entry Price",
+        "liquidation_price": "Liquidation Price",
+        "liquidation_distance": "Liquidation Distance"
+      },
+      "type": {
+        "title": "Order Type",
+        "market": {
+          "title": "Market",
+          "description": "Execute immediately at current market price"
+        },
+        "limit": {
+          "title": "Limit",
+          "description": "Execute only at your specified price or better"
+        }
+      },
       "success": {
         "title": "Order Berhasil Dibuat",
         "subtitle": "Posisi {{direction}} Anda untuk {{asset}} telah dibuat",
-        "order_placed": "Order placed successfully",
         "asset": "Aset",
         "direction": "Petunjuk",
         "amount": "Jumlah",
-        "order_id": "Order ID",
-        "view_positions": "View Positions",
-        "place_another": "Place Another Order"
-      },
-      "details": {
-        "title": "Detail Order"
-      },
-      "history": {
-        "title": "Riwayat Order"
-      },
-      "long_title": "Long {{asset}}",
-      "short_title": "Short {{asset}}",
-      "market": "Pasar",
-      "margin_required": "Margin required",
-      "leverage": "Leverage",
-      "liquidation_price": "Liquidation price",
-      "take_profit_stop_loss": "Take profit/Stop loss",
-      "add_tpsl": "Add",
-      "balance": "Saldo",
-      "fees": "Biaya",
-      "place_order": "Place order",
-      "cannot_place_order": "Cannot place order ({{count}} errors)",
-      "tpsl_modal": {
-        "title": "Set take profit/stop loss",
-        "mark_price": "Mark price",
-        "set_limit": "Set limit",
-        "take_profit_short": "TP",
-        "stop_loss_short": "SL",
-        "add_tp": "+ TP",
-        "remove_tp": "✕ TP",
-        "add_sl": "+ SL",
-        "remove_sl": "✕ SL"
-      },
-      "validation": {
-        "failed": "Validasi order gagal",
-        "amount_required": "Order amount must be greater than 0",
-        "minimum_amount": "Minimum order size is ${{amount}}",
-        "maximum_amount": "Maximum order size is ${{amount}}",
-        "insufficient_balance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
-        "invalid_leverage": "Leverage must be between {{min}}x and {{max}}x",
-        "high_leverage_warning": "High leverage increases liquidation risk",
-        "invalid_take_profit": "Take profit must be {{direction}} current price for {{positionType}} positions",
-        "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
-        "liquidation_warning": "Position is close to liquidation price"
-      },
-      "error": {
-        "placement_failed": "Order placement failed",
-        "network_error": "Network error",
-        "unknown": "Terjadi kesalahan tidak dikenal",
-        "dismiss": "Lewatkan"
+        "orderId": "ID Order",
+        "viewPositions": "Lihat Posisi",
+        "placeAnother": "Buat Order Lain",
+        "backToPerps": "Back to Perps"
       }
+    },
+    "tpsl": {
+      "title": "Set take profit and stop loss",
+      "set_button": "Set",
+      "updating": "Updating...",
+      "usd_label": "USD"
+    },
+    "token_selector": {
+      "no_tokens": "No tokens available"
+    },
+    "errors": {
+      "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
+      "tokenNotSupported": "Token {{token}} not supported for deposits",
+      "unknownError": "Unknown error occurred",
+      "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
+      "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
+      "infoClientNotAvailable": "InfoClient not available after initialization",
+      "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",
+      "failedToSubscribePosition": "Failed to subscribe to position updates",
+      "failedToUnsubscribePosition": "Failed to unsubscribe from position updates",
+      "failedToSubscribeOrderFill": "Failed to subscribe to order fill updates",
+      "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
+      "failedToEstablishAllMids": "Failed to establish global allMids subscription",
+      "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "noAccountSelected": "No account selected",
+      "unsupportedMethod": "Unsupported method: {{method}}",
+      "invalidAddressFormat": "Invalid address format: {{address}}",
+      "depositValidation": {
+        "assetIdRequired": "AssetId is required for deposit validation",
+        "amountRequired": "Amount is required and must be greater than 0",
+        "amountPositive": "Amount must be a positive number"
+      },
+      "withdrawValidation": {
+        "missingParams": "Missing required parameters for withdrawal",
+        "assetIdRequired": "assetId is required for withdrawals",
+        "amountRequired": "amount is required for withdrawals",
+        "amountPositive": "Amount must be a positive number",
+        "invalidDestination": "Invalid destination address format: {{address}}",
+        "insufficientBalance": "Insufficient balance. Available: {{available}}, Requested: {{requested}}",
+        "assetNotSupported": "Asset {{assetId}} is not supported for withdrawals. Supported assets: {{supportedAssets}}"
+      },
+      "orderValidation": {
+        "coinRequired": "Coin is required for orders",
+        "sizePositive": "Size must be a positive number",
+        "pricePositive": "Price must be a positive number if provided",
+        "unknownCoin": "Unknown coin: {{coin}}"
+      },
+      "networkToggleFailed": "Failed to toggle network: {{error}}",
+      "accountBalanceFailed": "Failed to get account balance: {{error}}",
+      "positionsFailed": "Failed to get positions",
+      "accountStateFailed": "Failed to get account state",
+      "marketsFailed": "Failed to get markets",
+      "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
+      "providerNotAvailable": "Provider {{providerId}} not available",
+      "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
+      "assetMappingFailed": "Failed to build asset mapping",
+      "depositFailed": "Deposit failed"
     },
     "position": {
       "title": "Posisi",
-      "details": {
-        "error_message": "Position data not found. Please go back and try again.",
-        "section_title": "Position"
-      },
       "card": {
-        "entry_price": "Entry Price",
-        "market_price": "Market Price",
-        "liquidity_price": "Liquidity Price",
-        "take_profit": "Take Profit",
+        "entry_price": "Harga Masuk",
+        "market_price": "Harga Pasar",
+        "liquidity_price": "Harga Likuiditas",
+        "take_profit": "Ambil Profit",
         "stop_loss": "Stop Loss",
         "margin": "Margin",
-        "not_set": "Not Set",
+        "not_set": "Belum Diatur",
         "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close Position"
+        "close_position": "Tutup Posisi"
       },
       "list": {
-        "loading": "Loading positions...",
-        "error_title": "Error Loading Positions",
-        "empty_title": "No Open Positions",
-        "empty_description": "You don't have any open positions yet.\nStart trading to see your positions here.",
-        "open_positions": "Open Positions",
-        "position_count": "{{count}} position",
-        "position_count_plural": "{{count}} positions"
+        "loading": "Memuat posisi...",
+        "error_title": "Kesalahan saat Memuat Posisi",
+        "empty_title": "Tidak Ada Posisi Terbuka",
+        "empty_description": "Anda belum memiliki posisi terbuka.\nMulai berdagang untuk melihat posisi Anda di sini.",
+        "open_positions": "Posisi Terbuka",
+        "position_count": "{{count}} posisi",
+        "position_count_plural": "{{count}} posisi"
+      },
+      "details": {
+        "title": "Detail Posisi",
+        "error_message": "Data posisi tidak ditemukan. Kembali dan coba lagi.",
+        "section_title": "Posisi"
+      },
+      "tpsl": {
+        "update_success": "TP/SL updated successfully",
+        "update_failed": "Failed to update TP/SL",
+        "update_error": "Error updating TP/SL"
       },
       "account": {
-        "summary_title": "Account Summary",
-        "total_balance": "Total Balance",
-        "available_balance": "Available Balance",
-        "margin_used": "Margin Used",
-        "total_unrealized_pnl": "Total Unrealized P&L"
+        "summary_title": "Ringkasan Akun",
+        "total_balance": "Total Saldo",
+        "available_balance": "Saldo Tersedia",
+        "margin_used": "Margin yang Digunakan",
+        "total_unrealized_pnl": "Total Laba Rugi yang Belum Terealisasi"
       }
     },
-    "trading": {
-      "title": "Perps Trading (Minimal)",
-      "subtitle": "Core Controller & Services Testing",
-      "network": "Network:",
-      "cached_balance": "Cached Balance:",
-      "loading_balance": "Loading balance...",
-      "balance_auto_load": "Balance will load automatically",
+    "markets": {
+      "title": "Markets"
+    },
+    "market": {
+      "details": {
+        "title": "Market Details",
+        "error_message": "Market data not found. Please go back and try again."
+      },
+      "statistics": "Statistics",
+      "24hr_high": "24hr high",
+      "24hr_low": "24hr low",
+      "24h_volume": "24h volume",
+      "open_interest": "Open interest",
+      "funding_rate": "Funding rate",
+      "countdown": "Countdown",
+      "long": "Long",
+      "short": "Short"
+    },
+    "network": {
+      "hyperliquid": "Hyperliquid"
+    },
+    "buttons": {
       "get_account_balance": "Get Account Balance",
+      "deposit_funds": "Deposit Funds",
       "switch_to_mainnet": "Switch to Mainnet",
       "switch_to_testnet": "Switch to Testnet",
-      "positions": "Positions",
-      "result": "Result:"
+      "view_markets": "View Markets",
+      "positions": "Positions"
     },
     "connection": {
-      "connecting": "Connecting to Perps...",
-      "initializing": "Initializing Perps controller...",
-      "connecting_to_trading": "Connecting to Perps trading...",
-      "failed": "Connection Failed",
-      "error_message": "Unable to connect to Perps trading service.",
-      "retry_connection": "Retry Connection",
-      "retrying_connection": "Connecting..."
+      "failed": "Koneksi Gagal",
+      "error_message": "Tidak dapat terhubung ke layanan perdagangan Perps.",
+      "retry_connection": "Coba Hubungkan Kembali",
+      "retrying_connection": "Menghubungkan..."
     },
     "chart": {
-      "no_data": "No chart data available"
-    }
+      "no_data": "Data grafik tidak tersedia"
+    },
+    "perpetual_markets": "Perpetual markets",
+    "token_volume": "Token Volume",
+    "last_price_24h_change": "Last Price / 24h Change",
+    "failed_to_load_market_data": "Failed to load market data",
+    "tap_to_retry": "Tap to retry",
+    "search": "Search"
   },
   "receive": {
     "title": "Terima"
@@ -935,6 +1182,7 @@
     "collectible": "Koleksi",
     "collectibles": "NFT",
     "defi": "DeFi",
+    "perps": "Perpetuals",
     "transactions": "TRANSAKSI",
     "no_collectibles": "Tidak melihat NFT Anda?",
     "no_available_tokens": "Tidak melihat token Anda?",
@@ -1101,6 +1349,8 @@
   },
   "defi_positions": {
     "loading_positions": "Memuat posisi DeFi...",
+    "no_visible_positions": "Can't find what you're looking for?",
+    "not_supported": "We may not support your protocol yet.",
     "error_cannot_load_page": "Kami tidak dapat memuat halaman ini.",
     "error_visit_again": "Coba kunjungi lagi nanti.",
     "single_token": "Hanya {{symbol}}",
@@ -1293,6 +1543,8 @@
     "labels": {
       "bitcoin_testnet_account_name": "Akun Testnet Bitcoin",
       "bitcoin_account_name": "Akun Bitcoin",
+      "bitcoin_signet_account_name": "Bitcoin Signet Account",
+      "bitcoin_regtest_account_name": "Bitcoin Regtest Account",
       "solana_devnet_account_name": "Akun Devnet Solana",
       "solana_testnet_account_name": "Akun Testnet Solana",
       "solana_account_name": "Akun Solana"
@@ -1873,6 +2125,7 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Hasilkan",
     "perps_button": "Abadi",
+    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "Tambahkan",
     "info": "Informasi",
     "swap": "Tukar",
@@ -1882,11 +2135,13 @@
       "buy": "Pembelian tidak didukung untuk akun ini",
       "sell": "Penjualan tidak didukung untuk akun ini",
       "swap": "Swap tidak didukung untuk akun ini",
+      "deposit": "Depositing not supported for this account",
       "bridge": "Bridge tidak didukung untuk akun ini",
       "send": "Pengiriman tidak didukung untuk akun ini",
       "action": "Tindakan ini tidak didukung untuk akun ini",
       "earn": "Penghasilan tidak didukung untuk akun ini",
-      "perps": "Perdagangan abadi tidak didukung untuk akun ini"
+      "perps": "Perdagangan abadi tidak didukung untuk akun ini",
+      "perps_sandbox": "Perps sandbox not supported for this account"
     },
     "description": "Deskripsi",
     "totalSupply": "Jumlah Pasokan",
@@ -1896,7 +2151,8 @@
     "troubleshooting_missing": "pemecahan masalah saldo yang hilang",
     "for_help": "untuk mendapatkan bantuan.",
     "troubleshoot": "Troubleshoot",
-    "buy_description": "Beli kripto dengan uang tunai",
+    "deposit_description": "Low-cost card or bank transfer",
+    "buy_description": "Good for buying a specific token",
     "sell_description": "Jual kripto untuk dapat uang tunai",
     "swap_description": "Pertukaran antar token",
     "bridge_description": "Transfer token antar jaringan",
@@ -1904,6 +2160,7 @@
     "receive_description": "Terima kripto",
     "earn_description": "Dapatkan imbalan atas token Anda",
     "perps_description": "Kontrak perdagangan abadi",
+    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "Hari ini",
       "7d": "7 hari terakhir",
@@ -1911,7 +2168,8 @@
       "1m": "Bulan lalu",
       "3m": "3 bulan terakhir",
       "1y": "Tahun lalu",
-      "3y": "3 tahun terakhir"
+      "3y": "3 tahun terakhir",
+      "all": "All"
     },
     "chart_time_period_navigation": {
       "1d": "1H",
@@ -1920,7 +2178,8 @@
       "1m": "1B",
       "3m": "3B",
       "1y": "1T",
-      "3y": "3T"
+      "3y": "3T",
+      "all": "All"
     },
     "no_chart_data": {
       "title": "Tidak ada data grafik",
@@ -1995,7 +2254,7 @@
     "url_redirection_alert_desc": "Tautan dapat digunakan untuk mencoba menipu atau mengelabui orang, jadi pastikan untuk mengunjungi situs web yang aman saja.",
     "label": "Pindai kode QR",
     "open_settings": "Pengaturan",
-    "camera_not_available": "Camera not available"
+    "camera_not_available": "Kamera tidak tersedia"
   },
   "action_view": {
     "cancel": "Batal",
@@ -2297,6 +2556,8 @@
     "receive": "Terima",
     "swap": "Tukar",
     "send": "Kirim",
+    "redeposit": "Redeposit",
+    "interaction": "Interaction",
     "contract_deploy": "Penempatan Kontrak",
     "to_contract": "Kontrak Baru",
     "tx_details_free": "Gratis",
@@ -2324,7 +2585,7 @@
     "multichain_priority_fee": "Biaya Prioritas",
     "max_fee": "Biaya Maks Per Gas",
     "total": "Total",
-    "view_on": "LIHAT DI",
+    "view_on": "View on",
     "view_on_etherscan": "Lihat di Etherscan",
     "view_full_history_on": "Lihat riwayat lengkapnya di",
     "view_full_history_on_etherscan": "Lihat riwayat lengkapnya di Etherscan",
@@ -2382,7 +2643,8 @@
       "gas_limit_too_low": "Batas gas harus lebih besar dari 21000",
       "priority_fee_too_high": "Biaya prioritas harus kurang dari biaya dasar maks",
       "no_zero_value": "{{field}} harus lebih besar dari 0",
-      "speed": "Kecepatan"
+      "speed": "Kecepatan",
+      "only_integers_allowed": "Only whole numbers are allowed"
     }
   },
   "smart_transactions": {
@@ -2613,11 +2875,15 @@
   },
   "import_private_key": {
     "title": "Impor Akun",
-    "description_one": "Akun yang diimpor dapat dilihat di dompet Anda tetapi tidak dapat dipulihkan dengan Frasa Pemulihan Rahasia MetaMask.",
-    "learn_more_here": "Pelajari selengkapnya seputar akun yang diimpor di sini.",
+    "description_one": "Imported private keys are backed up to your account and sync automatically when you sign in with the same Google or Apple login.",
+    "description_srp": "Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.",
+    "learn_more": "Learn more",
+    "learn_more_here": "about how imported keys work.",
+    "learn_more_srp": "Learn more about imported accounts",
+    "here": "here.",
     "subtitle": "Tempel string kunci pribadi Anda",
-    "cta_text": "IMPOR",
-    "example": "mis., 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
+    "cta_text": "Import",
+    "example": "e.g.\n3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
     "error_title": "Terjadi kesalahan",
     "error_message": "Kami tidak dapat mengimpor kunci pribadi tersebut. Pastikan Anda memasukkannya dengan benar.",
     "error_empty_message": "Masukkan kunci pribadi Anda.",
@@ -2795,7 +3061,7 @@
     "watching": "Pastikan tidak ada yang melihat layar Anda.",
     "view": "Lihat",
     "confirm_password": "Konfirmasikan kata sandi Anda",
-    "before_continiuing": "Sebelum melanjutkan, konfirmasikan kata sandi Anda terlebih dulu",
+    "before_continiuing": "Enter password to continue",
     "enter_current_password": "Masukkan kata sandi saat ini",
     "confirm": "Konfirmasikan",
     "got_it": "Mengerti",
@@ -3649,7 +3915,7 @@
     "bug_report_prompt_description": "Tambahkan detail sehingga kami dapat mengetahui apa yang salah.",
     "bug_report_thanks": "Terima kasih! Kami akan segera memeriksanya.",
     "save_seedphrase_1": "Jika kesalahan ini terus muncul,",
-    "save_seedphrase_2": "simpan Frasa Pemulihan Rahasia",
+    "save_seedphrase_2": "Save your Secret Recovery Phrase",
     "save_seedphrase_3": "dan instal ulang aplikasinya. Ingat: tanpa Frasa Pemulihan Rahasia, Anda tidak dapat memulihkan dompet.",
     "copied_clipboard": "Disalin ke papan klip",
     "ok": "Oke",
@@ -4080,8 +4346,7 @@
     "import_srp": "Frasa Pemulihan Rahasia",
     "add_hardware_wallet": "Dompet perangkat keras",
     "import_account": "Kunci pribadi",
-    "add_bitcoin_account_testnet": "Akun testnet Bitcoin",
-    "add_bitcoin_account_mainnet": "Akun Bitcoin",
+    "add_bitcoin_account": "Bitcoin account",
     "add_solana_account": "Akun Solana",
     "switch_to_smart_account": "Beralih ke Akun Cerdas",
     "headers": {
@@ -4622,7 +4887,7 @@
     "fee_disclaimer": "Termasuk biaya MM 0,875%",
     "hardware_wallet_not_supported": "Dompet perangkat keras belum didukung. Gunakan hot wallet untuk melanjutkan.",
     "hardware_wallet_not_supported_solana": "Dompet perangkat keras belum didukung untuk Solana. Gunakan hot wallet untuk melanjutkan.",
-    "max": "Max"
+    "max": "Maks"
   },
   "quote_expired_modal": {
     "title": "Kuotasi baru tersedia",
@@ -4723,6 +4988,9 @@
     "asset_selector": {
       "title": "Pilih aset"
     },
+    "account_selector": {
+      "title": "Select account"
+    },
     "hideSentitiveInfo": {
       "message": "Sembunyikan informasi sensitif"
     },
@@ -4819,5 +5087,22 @@
     },
     "back_button": "Kembali",
     "continue_button": "Lanjutkan"
+  },
+  "onboarding_error_fallback": {
+    "title": "An error occurred",
+    "description": "Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.",
+    "recovery_warning": "If you keep getting this error, save your Secret Recovery Phrase and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.",
+    "error_message_report": "Error report:",
+    "copy": "Copy",
+    "send_report": "Send report",
+    "try_again": "Try again",
+    "report_submitted": "Error report has been submitted."
+  },
+  "pay_with_modal": {
+    "title": "Select payment method"
+  },
+  "time": {
+    "minutes_format": "{{count}} minute",
+    "minutes_format_plural": "{{count}} minutes"
   }
 }
