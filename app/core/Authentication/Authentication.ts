@@ -66,6 +66,7 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { OAuthError, OAuthErrorType } from '../OAuthService/error';
+import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -79,7 +80,8 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-  private dispatchLogin(): void {
+  private async dispatchLogin(): Promise<void> {
+    await AccountTreeInitService.initializeAccountTree();
     ReduxService.store.dispatch(logIn());
   }
 
@@ -444,7 +446,7 @@ class AuthenticationService {
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
-      this.dispatchLogin();
+      await this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -482,7 +484,7 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      this.dispatchLogin();
+      await this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -527,7 +529,7 @@ class AuthenticationService {
       endTrace({ name: TraceName.VaultCreation });
 
       await this.storePassword(password, authData.currentAuthType);
-      this.dispatchLogin();
+      await this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
 
@@ -598,7 +600,7 @@ class AuthenticationService {
       }
       endTrace({ name: TraceName.VaultCreation });
 
-      this.dispatchLogin();
+      await this.dispatchLogin();
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
 
