@@ -361,7 +361,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const destChainId = '0x2105';
 
     await TabBarComponent.tapWallet();
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.container);
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSwapButton();
     await device.disableSynchronization();

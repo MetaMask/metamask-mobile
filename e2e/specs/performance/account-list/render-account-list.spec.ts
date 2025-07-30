@@ -71,9 +71,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
               AccountListBottomSheet.accountList,
             );
 
-            await Assertions.expectElementToBeVisible(
-              AccountListBottomSheet.accountList,
-            );
+            await Assertions.expectTextDisplayed('Account 1');
 
             const endTime = Date.now();
             const totalTime = endTime - startTime;
@@ -159,9 +157,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
               AccountListBottomSheet.accountList,
             );
 
-            await Assertions.expectElementToBeVisible(
-              AccountListBottomSheet.accountList,
-            );
+            await Assertions.expectTextDisplayed('Account 1');
 
             const endTime = Date.now();
             const totalTime = endTime - startTime;
@@ -249,9 +245,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
               AccountListBottomSheet.accountList,
             );
 
-            await Assertions.expectElementToBeVisible(
-              AccountListBottomSheet.accountList,
-            );
+            await Assertions.expectTextDisplayed('Account 1');
 
             const endTime = Date.now();
             const totalTime = endTime - startTime;
