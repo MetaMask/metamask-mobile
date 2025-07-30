@@ -1444,10 +1444,10 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/native-ramps-sdk@^1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.1.2.tgz#fd03246308ee27b74d45a78bfb798f4519ab7823"
-  integrity sha512-6kH3QkWcuV5LZjKIHWngttgK5wXARyi5EHsyeRkGBqLxZQuHNt8grorHR5OrOSEEzdFyO+iv1z2YF6VYnVkSyQ==
+"@consensys/native-ramps-sdk@^1.1.4":
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.1.4.tgz#b248f658047c91d629f59384db96ec676cd0c791"
+  integrity sha512-4isXxCuGK7GYUxyKtDU6uc3+rGQQdUb90GIia/9ThlkgiQoh4dfgSrITykp/inv8VFgNc/omcT8EvPJNvQPCnw==
   dependencies:
     async "^3.2.3"
     axios "^1.10.0"
@@ -4773,6 +4773,14 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
+"@metamask/account-api@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/account-api/-/account-api-0.2.0.tgz#63309883fe1035454b5e32b3fa5350f3d33ceffd"
+  integrity sha512-EaB2LBpoaLOpqBKkrvkC5+Tgg8YwS4ht+8lFVK/WNSu1I/xz3AOHH/GuKPWOgGP6z4QDhXNVJNEEN7HCoiWZ5g==
+  dependencies:
+    "@metamask/keyring-api" "^19.0.0"
+    "@metamask/keyring-utils" "^3.1.0"
+
 "@metamask/account-api@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/account-api/-/account-api-0.3.0.tgz#aa81282b0157a0aad216223a35e60f70031d8534"
@@ -5529,6 +5537,20 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
+"@metamask/multichain-account-service@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.2.0.tgz#9e5fc33de738e9c2450cc9f5e4110550f9346f2f"
+  integrity sha512-9C/bfBCXGASYuUrGjr9ACG2C1izyn/FQMlCi9ven4W01Hg3DGjguI8Yngjftx8RdU/PFVF7ZqINx26KqxcYTtw==
+  dependencies:
+    "@metamask/account-api" "^0.2.0"
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/keyring-api" "^19.0.0"
+    "@metamask/keyring-internal-api" "^7.0.0"
+    "@metamask/keyring-snap-client" "^6.0.0"
+    "@metamask/snaps-sdk" "^9.0.0"
+    "@metamask/snaps-utils" "^11.0.0"
+    "@metamask/superstruct" "^3.1.0"
+
 "@metamask/multichain-api-client@^0.6.4":
   version "0.6.4"
   resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.6.4.tgz#417009a7f202fcbdf365f4041e388fe25da77e6c"
@@ -5817,6 +5839,13 @@
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.10.0"
+
+"@metamask/preinstalled-example-snap@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preinstalled-example-snap/-/preinstalled-example-snap-0.6.0.tgz#eb5932f0d9df0e36e17b360bdcefa1d0ee92c467"
+  integrity sha512-4m+nxSjBAu7V8XqCos8fYFgBNdnXLgcbfUGDnDewPwRP6z1HgTJ46V/wEwYUEXdLT9uRWULzWeABMQVOJrRCbA==
+  dependencies:
+    "@metamask/snaps-sdk" "^9.1.0"
 
 "@metamask/profile-sync-controller@^21.0.0":
   version "21.0.0"
