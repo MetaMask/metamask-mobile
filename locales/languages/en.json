@@ -5092,40 +5092,19 @@
     "back_button": "Back",
     "continue_button": "Continue"
   },
-    "card": {
-    "card": "Card",
-    "allowance_states": {
-      "enabled": "Enabled",
-      "limited": "Limited",
-      "not_enabled": "Not enabled" 
-    },
+  "card": {
+    "card": "MetaMask Card",
     "card_home": {
-      "spending_with": "Spending with",
-      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to",
-      "add_funds": "Add funds",
       "error_title": "Can’t fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
       "try_again": "Try again",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "add_funds": "Add funds",
       "manage_card_options": {
         "manage_card": "Manage card",
-        "change_asset": "Change asset",
-        "manage_spending_limit": "Manage spending limit",
-        "manage_spending_limit_description": "Currently on Approve card spending",
-        "advanced_card_management": "Advanced card management",
         "advanced_card_management_description": "See transactions, freeze card, and more"
       }
-    },
-    "spending_limit": {
-      "approve_card_spending": "Approve card spending",
-      "approve_card_spending_description": "Let your card use funds in your account whenever you spend with your card.",
-      "edit_limit": "Edit limit",
-      "recommended": "Recommended",
-      "custom_spending_limit": "Custom spending limit",
-      "custom_spending_limit_description": "You’ll have to come back to this dashboard and pay a gas fee whenever you want to raise this limit.",
-      "save": "Save"
-    },
-    "select_asset": "Select asset",
-    "changed_spending_asset_alert": "You’re now spending from {{symbol}}"
+    }
   },
   "onboarding_error_fallback": {
     "title": "An error occurred",
