@@ -4,7 +4,7 @@ import useGoToPortfolioBridge from '../useGoToPortfolioBridge';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
@@ -22,7 +22,6 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import {
   selectIsBridgeEnabledSource,
   selectIsUnifiedSwapsEnabled,
-  setBridgeViewMode,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { trace, TraceName } from '../../../../../util/trace';
@@ -48,7 +47,6 @@ export const useSwapBridgeNavigation = ({
   sourcePage: string;
   sourceToken?: BridgeToken;
 }) => {
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const selectedChainId = useSelector(selectChainId);
   const goToPortfolioBridge = useGoToPortfolioBridge(location);
@@ -91,13 +89,16 @@ export const useSwapBridgeNavigation = ({
       if (!bridgeToken) {
         return;
       }
-      dispatch(setBridgeViewMode(bridgeViewMode));
+
+      const params: BridgeRouteParams = {
+        sourceToken: bridgeToken,
+        sourcePage,
+        bridgeViewMode,
+      };
+
       navigation.navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BRIDGE_VIEW,
-        params: {
-          sourceToken: bridgeToken,
-          sourcePage,
-        } as BridgeRouteParams,
+        params,
       });
 
       trackEvent(
@@ -124,7 +125,6 @@ export const useSwapBridgeNavigation = ({
       createEventBuilder,
       location,
       isBridgeEnabledSource,
-      dispatch,
     ],
   );
 

@@ -4,8 +4,12 @@ import { createTokenFromCaip } from '../../../components/UI/Bridge/utils/tokenUt
 import { fetchBridgeTokens, BridgeClientId } from '@metamask/bridge-controller';
 import { handleFetch } from '@metamask/controller-utils';
 import { BRIDGE_API_BASE_URL } from '../../../constants/bridge';
-import { BridgeToken } from '../../../components/UI/Bridge/types';
+import {
+  BridgeToken,
+  BridgeViewMode,
+} from '../../../components/UI/Bridge/types';
 import Routes from '../../../constants/navigation/Routes';
+import { BridgeRouteParams } from '../../../components/UI/Bridge/Views/BridgeView';
 
 interface HandleSwapUrlParams {
   swapPath: string;
@@ -129,23 +133,27 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
         : undefined;
 
     // Navigate to bridge view with deep link parameters
+    const params: BridgeRouteParams = {
+      sourceToken,
+      destToken,
+      sourceAmount,
+      sourcePage: 'deeplink',
+      bridgeViewMode: BridgeViewMode.Unified,
+    };
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: {
-        sourceToken,
-        destToken,
-        sourceAmount,
-        sourcePage: 'deeplink',
-      },
+      params,
     });
   } catch (error) {
     // Deep link processing failed - fallback to bridge view without parameters
     // This ensures the deep link never breaks the user experience
+    const params: BridgeRouteParams = {
+      sourcePage: 'deeplink',
+      bridgeViewMode: BridgeViewMode.Unified,
+    };
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: {
-        sourcePage: 'deeplink',
-      },
+      params,
     });
   }
 };

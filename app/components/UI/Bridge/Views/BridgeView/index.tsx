@@ -41,6 +41,7 @@ import {
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
+  setBridgeViewMode,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -66,7 +67,7 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -78,6 +79,7 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
+  bridgeViewMode: BridgeViewMode;
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;
   sourceAmount?: string;
@@ -131,6 +133,12 @@ const BridgeView = () => {
   const initialDestToken = route.params?.destToken;
   useInitialSourceToken(initialSourceToken);
   useInitialDestToken(initialSourceToken, initialDestToken);
+
+  useEffect(() => {
+    if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
+      dispatch(setBridgeViewMode(route.params?.bridgeViewMode));
+    }
+  }, [route.params?.bridgeViewMode, dispatch, bridgeViewMode]);
 
   // End trace when component mounts
   useEffect(() => {
