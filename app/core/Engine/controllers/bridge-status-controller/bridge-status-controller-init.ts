@@ -10,7 +10,7 @@ import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 
-export const BridgeStatusControllerInit: ControllerInitFunction<
+export const bridgeStatusControllerInit: ControllerInitFunction<
   BridgeStatusController,
   BridgeStatusControllerMessenger
 > = (request) => {

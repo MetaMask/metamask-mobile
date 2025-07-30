@@ -10,7 +10,7 @@ import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenge
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { getBridgeStatusControllerMessenger } from '../../messengers/bridge-status-controller-messenger';
 import { ControllerInitRequest } from '../../types';
-import { BridgeStatusControllerInit } from './bridge-status-controller-init';
+import { bridgeStatusControllerInit } from './bridge-status-controller-init';
 import { trace } from '../../../../util/trace';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 
@@ -82,7 +82,7 @@ describe('BridgeStatusController Init', () => {
     const requestMock = buildInitRequestMock();
 
     // Act
-    const result = BridgeStatusControllerInit(requestMock);
+    const result = bridgeStatusControllerInit(requestMock);
 
     // Assert
     expect(result.controller).toBeInstanceOf(BridgeStatusController);
@@ -97,7 +97,7 @@ describe('BridgeStatusController Init', () => {
     });
 
     // Act & Assert
-    expect(() => BridgeStatusControllerInit(requestMock)).toThrow(
+    expect(() => bridgeStatusControllerInit(requestMock)).toThrow(
       'TransactionController not found',
     );
   });
@@ -110,7 +110,7 @@ describe('BridgeStatusController Init', () => {
     const requestMock = buildInitRequestMock();
 
     // Act & Assert
-    expect(() => BridgeStatusControllerInit(requestMock)).toThrow(
+    expect(() => bridgeStatusControllerInit(requestMock)).toThrow(
       'Controller initialization failed',
     );
   });
@@ -129,7 +129,7 @@ describe('BridgeStatusController Init', () => {
       });
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       const constructorOptions =
@@ -145,7 +145,7 @@ describe('BridgeStatusController Init', () => {
       const requestMock = buildInitRequestMock();
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       const constructorOptions =
@@ -158,7 +158,7 @@ describe('BridgeStatusController Init', () => {
       const requestMock = buildInitRequestMock();
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       const constructorOptions =
@@ -171,7 +171,7 @@ describe('BridgeStatusController Init', () => {
       const requestMock = buildInitRequestMock();
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       const constructorOptions =
@@ -184,7 +184,7 @@ describe('BridgeStatusController Init', () => {
       const requestMock = buildInitRequestMock();
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       const constructorOptions =
@@ -204,7 +204,7 @@ describe('BridgeStatusController Init', () => {
       });
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       const constructorOptions =
@@ -233,7 +233,7 @@ describe('BridgeStatusController Init', () => {
       });
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       const constructorOptions =
@@ -260,7 +260,7 @@ describe('BridgeStatusController Init', () => {
       });
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       const constructorOptions =
@@ -291,7 +291,7 @@ describe('BridgeStatusController Init', () => {
       });
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       const constructorOptions =
@@ -322,7 +322,7 @@ describe('BridgeStatusController Init', () => {
       });
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       const constructorOptions =
@@ -340,7 +340,7 @@ describe('BridgeStatusController Init', () => {
       });
 
       // Act
-      BridgeStatusControllerInit(requestMock);
+      bridgeStatusControllerInit(requestMock);
 
       // Assert
       expect(requestMock.getController).toHaveBeenCalledWith(

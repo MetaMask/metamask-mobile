@@ -191,8 +191,8 @@ import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { ApprovalControllerInit } from './controllers/approval-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import { BridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
-import { BridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
+import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
+import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
@@ -1157,8 +1157,8 @@ export class Engine {
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
-        BridgeController: BridgeControllerInit,
-        BridgeStatusController: BridgeStatusControllerInit,
+        BridgeController: bridgeControllerInit,
+        BridgeStatusController: bridgeStatusControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,

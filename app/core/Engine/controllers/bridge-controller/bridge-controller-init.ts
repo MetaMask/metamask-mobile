@@ -17,7 +17,7 @@ import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 
-export const BridgeControllerInit: ControllerInitFunction<
+export const bridgeControllerInit: ControllerInitFunction<
   BridgeController,
   BridgeControllerMessenger
 > = (request) => {

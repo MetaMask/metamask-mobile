@@ -58,8 +58,8 @@ import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
 import { perpsControllerInit } from '../controllers/perps-controller';
-import { BridgeControllerInit } from '../controllers/bridge-controller/bridge-controller-init';
-import { BridgeStatusControllerInit } from '../controllers/bridge-status-controller/bridge-status-controller-init';
+import { bridgeControllerInit } from '../controllers/bridge-controller/bridge-controller-init';
+import { bridgeStatusControllerInit } from '../controllers/bridge-status-controller/bridge-status-controller-init';
 import { BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 
@@ -148,9 +148,9 @@ describe('initModularizedControllers', () => {
   );
   const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
   const mockPerpsControllerInit = jest.mocked(perpsControllerInit);
-  const mockBridgeControllerInit = jest.mocked(BridgeControllerInit);
+  const mockBridgeControllerInit = jest.mocked(bridgeControllerInit);
   const mockBridgeStatusControllerInit = jest.mocked(
-    BridgeStatusControllerInit,
+    bridgeStatusControllerInit,
   );
 
   function buildModularizedControllerRequest(

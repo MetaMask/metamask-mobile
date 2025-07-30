@@ -9,7 +9,7 @@ import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenge
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { getBridgeControllerMessenger } from '../../messengers/bridge-controller-messenger';
 import { ControllerInitRequest } from '../../types';
-import { BridgeControllerInit } from './bridge-controller-init';
+import { bridgeControllerInit } from './bridge-controller-init';
 import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import { trace } from '../../../../util/trace';
@@ -85,7 +85,7 @@ describe('BridgeController Init', () => {
     const requestMock = buildInitRequestMock();
 
     // Act
-    const result = BridgeControllerInit(requestMock);
+    const result = bridgeControllerInit(requestMock);
 
     // Assert
     expect(result.controller).toBeInstanceOf(BridgeController);
@@ -100,7 +100,7 @@ describe('BridgeController Init', () => {
     });
 
     // Act & Assert
-    expect(() => BridgeControllerInit(requestMock)).toThrow(
+    expect(() => bridgeControllerInit(requestMock)).toThrow(
       'TransactionController not found',
     );
   });
@@ -113,7 +113,7 @@ describe('BridgeController Init', () => {
     const requestMock = buildInitRequestMock();
 
     // Act & Assert
-    expect(() => BridgeControllerInit(requestMock)).toThrow(
+    expect(() => bridgeControllerInit(requestMock)).toThrow(
       'Controller initialization failed',
     );
   });
@@ -124,7 +124,7 @@ describe('BridgeController Init', () => {
       const requestMock = buildInitRequestMock();
 
       // Act
-      BridgeControllerInit(requestMock);
+      bridgeControllerInit(requestMock);
 
       // Assert
       const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
@@ -139,7 +139,7 @@ describe('BridgeController Init', () => {
       const requestMock = buildInitRequestMock();
 
       // Act
-      BridgeControllerInit(requestMock);
+      bridgeControllerInit(requestMock);
 
       // Assert
       const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
@@ -151,7 +151,7 @@ describe('BridgeController Init', () => {
       const requestMock = buildInitRequestMock();
 
       // Act
-      BridgeControllerInit(requestMock);
+      bridgeControllerInit(requestMock);
 
       // Assert
       const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
@@ -163,7 +163,7 @@ describe('BridgeController Init', () => {
       const requestMock = buildInitRequestMock();
 
       // Act
-      BridgeControllerInit(requestMock);
+      bridgeControllerInit(requestMock);
 
       // Assert
       const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
@@ -182,7 +182,7 @@ describe('BridgeController Init', () => {
       });
 
       // Act
-      BridgeControllerInit(requestMock);
+      bridgeControllerInit(requestMock);
 
       // Assert
       const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
@@ -203,7 +203,7 @@ describe('BridgeController Init', () => {
       const requestMock = buildInitRequestMock();
 
       // Act
-      BridgeControllerInit(requestMock);
+      bridgeControllerInit(requestMock);
 
       // Assert
       const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
@@ -227,7 +227,7 @@ describe('BridgeController Init', () => {
       const requestMock = buildInitRequestMock();
 
       // Act
-      BridgeControllerInit(requestMock);
+      bridgeControllerInit(requestMock);
 
       // Assert
       const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
@@ -254,7 +254,7 @@ describe('BridgeController Init', () => {
       });
 
       // Act
-      BridgeControllerInit(requestMock);
+      bridgeControllerInit(requestMock);
 
       // Assert
       expect(requestMock.getController).toHaveBeenCalledWith(
