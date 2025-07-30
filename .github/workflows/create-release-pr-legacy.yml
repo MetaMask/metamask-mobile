@@ -1,4 +1,4 @@
-name: Create Release Pull Request V2
+name: Create Release Pull Request (Legacy)
 
 on:
   workflow_dispatch:
