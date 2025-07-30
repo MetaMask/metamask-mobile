@@ -31,10 +31,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const PERFORMANCE_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 5900, // 5.9 seconds max for Android
+              TOTAL_TIME: 10, // 5.9 seconds max for Android
             }
           : {
-              TOTAL_TIME: 4000, // 4 seconds max for iOS
+              TOTAL_TIME: 10, // 4 seconds max for iOS
             };
 
         console.log(
@@ -124,10 +124,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const HEAVY_LOAD_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 4200, // 4.2 seconds max for Android
+              TOTAL_TIME: 10, // 4.2 seconds max for Android
             }
           : {
-              TOTAL_TIME: 4200, // 4.2 seconds max for iOS
+              TOTAL_TIME: 10, // 4.2 seconds max for iOS
             };
 
         let result: Partial<TestResult> = {};
@@ -193,10 +193,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const BASELINE_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 3800, // 3.8 seconds max for Android
+              TOTAL_TIME: 10, // 3.8 seconds max for Android
             }
           : {
-              TOTAL_TIME: 3800, // 3.8 seconds max for iOS
+              TOTAL_TIME: 10, // 3.8 seconds max for iOS
             };
         // Baseline test with minimal tokens for comparison
         const minimalTokens = [
