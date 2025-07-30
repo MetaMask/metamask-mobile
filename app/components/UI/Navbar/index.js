@@ -1116,7 +1116,7 @@ export function getWalletNavbarOptions(
             // This will be replaced with a Cardholder button in the future
             <ButtonIcon
               iconColor={IconColor.Default}
-              onPress={openQRScanner}
+              onPress={() => navigation.navigate(Routes.CARD.ROOT)}
               iconName={IconName.Card}
               size={IconSize.Xl}
               testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}

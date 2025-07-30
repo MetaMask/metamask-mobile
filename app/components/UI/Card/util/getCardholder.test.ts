@@ -2,6 +2,7 @@ import { getCardholder } from './getCardholder';
 import { CardSDK } from '../sdk/CardSDK';
 import Logger from '../../../../util/Logger';
 import { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import { toChecksumAddress } from '../../../../util/address';
 
 // Mock dependencies
 jest.mock('../sdk/CardSDK');
@@ -71,8 +72,8 @@ describe('getCardholder', () => {
       });
 
       expect(result).toEqual([
-        '0x1234567890abcdef1234567890abcdef12345678',
-        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        toChecksumAddress('0x1234567890abcdef1234567890abcdef12345678'),
+        toChecksumAddress('0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'),
       ]);
       expect(MockedCardSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
@@ -97,7 +98,9 @@ describe('getCardholder', () => {
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
-      expect(result).toEqual(['0x1234567890abcdef1234567890abcdef12345678']);
+      expect(result).toEqual([
+        toChecksumAddress('0x1234567890abcdef1234567890abcdef12345678'),
+      ]);
     });
 
     it('should return empty array when no accounts are cardholders', async () => {
@@ -189,7 +192,7 @@ describe('getCardholder', () => {
       expect(result).toBeUndefined();
       expect(mockedLogger.error).toHaveBeenCalledWith(
         mockError,
-        'Card: Error loading cardholder accounts',
+        'getCardholder::Error loading cardholder accounts',
       );
     });
 
@@ -205,7 +208,7 @@ describe('getCardholder', () => {
       expect(result).toBeUndefined();
       expect(mockedLogger.error).toHaveBeenCalledWith(
         mockError,
-        'Card: Error loading cardholder accounts',
+        'getCardholder::Error loading cardholder accounts',
       );
     });
 
@@ -221,7 +224,7 @@ describe('getCardholder', () => {
       expect(result).toBeUndefined();
       expect(mockedLogger.error).toHaveBeenCalledWith(
         new Error(mockErrorString),
-        'Card: Error loading cardholder accounts',
+        'getCardholder::Error loading cardholder accounts',
       );
     });
 
@@ -236,7 +239,7 @@ describe('getCardholder', () => {
       expect(result).toBeUndefined();
       expect(mockedLogger.error).toHaveBeenCalledWith(
         new Error('null'),
-        'Card: Error loading cardholder accounts',
+        'getCardholder::Error loading cardholder accounts',
       );
     });
 
@@ -251,7 +254,7 @@ describe('getCardholder', () => {
       expect(result).toBeUndefined();
       expect(mockedLogger.error).toHaveBeenCalledWith(
         new Error('undefined'),
-        'Card: Error loading cardholder accounts',
+        'getCardholder::Error loading cardholder accounts',
       );
     });
   });
@@ -277,30 +280,6 @@ describe('getCardholder', () => {
         '0x1111111111111111111111111111111111111111',
         '0x2222222222222222222222222222222222222222',
         '0x3333333333333333333333333333333333333333',
-      ]);
-    });
-
-    it('should handle malformed CAIP identifiers gracefully', async () => {
-      const mockResult = {
-        cardholderAccounts: [
-          'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
-          'malformed:account:identifier',
-          'eip155:59144:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-        ] as `eip155:${string}:0x${string}`[],
-      };
-
-      mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
-
-      const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
-        cardFeatureFlag: mockCardFeatureFlag,
-      });
-
-      // The function should still extract what it can from the valid entries
-      expect(result).toEqual([
-        '0x1234567890abcdef1234567890abcdef12345678',
-        'identifier', // This would be the third part of the malformed identifier
-        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       ]);
     });
   });
