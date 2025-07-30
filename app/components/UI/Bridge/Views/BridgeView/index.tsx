@@ -77,8 +77,10 @@ import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBri
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 
 export interface BridgeRouteParams {
-  token?: BridgeToken;
   sourcePage: string;
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  sourceAmount?: string;
 }
 
 const BridgeView = () => {
@@ -125,9 +127,10 @@ const BridgeView = () => {
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
-  const initialSourceToken = route.params?.token;
+  const initialSourceToken = route.params?.sourceToken;
+  const initialDestToken = route.params?.destToken;
   useInitialSourceToken(initialSourceToken);
-  useInitialDestToken(initialSourceToken);
+  useInitialDestToken(initialSourceToken, initialDestToken);
 
   // End trace when component mounts
   useEffect(() => {

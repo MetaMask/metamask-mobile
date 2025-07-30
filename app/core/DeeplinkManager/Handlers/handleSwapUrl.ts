@@ -1,77 +1,151 @@
-import {
-  isCaipAssetType,
-  isHexString,
-  parseCaipAssetType,
-} from '@metamask/utils';
-import NavigationService from '../../../core/NavigationService';
+import NavigationService from '../../NavigationService';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { createTokenFromCaip } from '../../../components/UI/Bridge/utils/tokenUtils';
+import { fetchBridgeTokens, BridgeClientId } from '@metamask/bridge-controller';
+import { handleFetch } from '@metamask/controller-utils';
+import { BRIDGE_API_BASE_URL } from '../../../constants/bridge';
+import { BridgeToken } from '../../../components/UI/Bridge/types';
+import Routes from '../../../constants/navigation/Routes';
 
 interface HandleSwapUrlParams {
   swapPath: string;
 }
 
 /**
- * Handles deeplinks for swaps
- * Expected format: https://metamask.app.link/swap?from=0x...&to=0x...&value=1
+ * Validates and looks up a token from the bridge token list
+ */
+const validateAndLookupToken = async (
+  caipAssetType: string,
+): Promise<BridgeToken | null> => {
+  try {
+    const basicToken = createTokenFromCaip(caipAssetType);
+    if (!basicToken) return null;
+
+    const bridgeTokens = await fetchBridgeTokens(
+      basicToken.chainId,
+      BridgeClientId.MOBILE,
+      handleFetch,
+      BRIDGE_API_BASE_URL,
+    );
+
+    // For Solana tokens, extract assetReference for lookup
+    let lookupAddress = basicToken.address;
+    if (
+      basicToken.chainId.startsWith('solana:') &&
+      isCaipAssetType(caipAssetType)
+    ) {
+      const parsedAsset = parseCaipAssetType(caipAssetType);
+      lookupAddress = parsedAsset.assetReference;
+    }
+
+    const matchingToken =
+      bridgeTokens[lookupAddress] || bridgeTokens[lookupAddress.toLowerCase()];
+
+    if (!matchingToken) return null;
+
+    // Create the token with metadata (balance will be fetched by Bridge view)
+    const token: BridgeToken = {
+      address: basicToken.address,
+      symbol: matchingToken.symbol,
+      name: matchingToken.name,
+      decimals: matchingToken.decimals,
+      image: matchingToken.iconUrl || matchingToken.icon || '',
+      chainId: basicToken.chainId,
+    };
+
+    return token;
+  } catch (error) {
+    // Token validation failed - return null to indicate unsupported token
+    return null;
+  }
+};
+
+/**
+ * Processes amount parameter from deep link
+ */
+const processAmount = (
+  amount: string,
+  tokenDecimals: number,
+): string | undefined => {
+  try {
+    // Only accept decimal string format (digits only)
+    if (!/^\d+$/.test(amount)) {
+      return undefined;
+    }
+
+    // Convert from minimal divisible units to display units
+    const minimalUnits = parseFloat(amount);
+    const divisor = Math.pow(10, tokenDecimals);
+    const displayAmount = (minimalUnits / divisor).toString();
+
+    return parseFloat(displayAmount) > 0 ? displayAmount : undefined;
+  } catch (error) {
+    // Amount processing failed - return undefined to indicate invalid amount
+    return undefined;
+  }
+};
+
+/**
+ * Handles deeplinks for the unified swap/bridge experience
  *
- * @param params Object containing the swap path and navigation object
+ * @param params Object containing the swap path
  * @param params.swapPath - The swap URL path containing the parameters
  *
  * @example
- * URL format:
- * ?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
- * &to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7
- * &value=0x38d7ea4c68000
+ * URL format: ?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174&amount=1000000
  *
- * Where:
- * - from: CAIP-19 format for source token
- * - to: CAIP-19 format for destination token
- * - value: Hexadecimal amount (e.g., "0x38d7ea4c68000")
+ * Parameters:
+ * - from: CAIP-19 asset identifier for source token
+ * - to: CAIP-19 asset identifier for destination token
+ * - amount: Amount in minimal divisible units (e.g., 1000000 for 1.00 USDC)
+ *
+ * All parameters are optional, allows partial deep linking
  */
-export const handleSwapUrl = ({ swapPath }: HandleSwapUrlParams) => {
+export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
   try {
+    // Parse URL parameters
     const cleanPath = swapPath.startsWith('?') ? swapPath.slice(1) : swapPath;
     const urlParams = new URLSearchParams(cleanPath);
 
     const fromCaip = urlParams.get('from');
     const toCaip = urlParams.get('to');
-    const amount = urlParams.get('value');
+    const amount = urlParams.get('amount');
 
-    if (!isCaipAssetType(fromCaip) || !isCaipAssetType(toCaip)) {
-      NavigationService.navigation.navigate('Swaps', {
-        screen: 'SwapsAmountView',
-      });
-      return;
-    }
+    // Validate and lookup tokens
+    const sourceToken =
+      fromCaip && isCaipAssetType(fromCaip)
+        ? await validateAndLookupToken(fromCaip)
+        : undefined;
 
-    if (!fromCaip || !toCaip) {
-      NavigationService.navigation.navigate('Swaps', {
-        screen: 'SwapsAmountView',
-      });
-      return;
-    }
+    const destToken =
+      toCaip && isCaipAssetType(toCaip)
+        ? await validateAndLookupToken(toCaip)
+        : undefined;
 
-    // Extract token addresses from CAIP-19 format
-    const fromAddress = parseCaipAssetType(fromCaip).assetReference;
-    const toAddress = parseCaipAssetType(toCaip).assetReference;
+    // Process amount
+    const sourceAmount =
+      amount && sourceToken?.decimals !== undefined
+        ? processAmount(amount, sourceToken.decimals)
+        : undefined;
 
-    if (!fromAddress || !toAddress) {
-      NavigationService.navigation.navigate('Swaps', {
-        screen: 'SwapsAmountView',
-      });
-      return;
-    }
-
-    NavigationService.navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
+    // Navigate to bridge view with deep link parameters
+    NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
       params: {
-        sourceToken: fromAddress,
-        destinationToken: toAddress,
-        amount: amount && isHexString(amount) ? amount : '0',
+        sourceToken,
+        destToken,
+        sourceAmount,
+        sourcePage: 'deeplink',
       },
     });
-  } catch (_) {
-    NavigationService.navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
+  } catch (error) {
+    // Deep link processing failed - fallback to bridge view without parameters
+    // This ensures the deep link never breaks the user experience
+    NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: {
+        sourcePage: 'deeplink',
+      },
     });
   }
 };

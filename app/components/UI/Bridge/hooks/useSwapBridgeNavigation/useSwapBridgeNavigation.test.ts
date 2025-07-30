@@ -96,7 +96,7 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        token: {
+        sourceToken: {
           address: mockNativeAsset.address,
           name: 'Ether',
           symbol: mockNativeAsset.symbol,
@@ -123,7 +123,7 @@ describe('useSwapBridgeNavigation', () => {
         useSwapBridgeNavigation({
           location: mockLocation,
           sourcePage: mockSourcePage,
-          token: mockToken,
+          sourceToken: mockToken,
         }),
       { state: initialState },
     );
@@ -133,7 +133,7 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        token: mockToken,
+        sourceToken: mockToken,
         sourcePage: mockSourcePage,
       },
     });
@@ -154,7 +154,7 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        token: mockNativeAsset,
+        sourceToken: mockNativeAsset,
         sourcePage: mockSourcePage,
       },
     });
@@ -230,7 +230,7 @@ describe('useSwapBridgeNavigation', () => {
         useSwapBridgeNavigation({
           location: mockLocation,
           sourcePage: mockSourcePage,
-          token: mockToken,
+          sourceToken: mockToken,
         }),
       { state: initialState },
     );
@@ -283,7 +283,7 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          token: mockNativeAsset,
+          sourceToken: mockNativeAsset,
           sourcePage: mockSourcePage,
         },
       });
@@ -310,7 +310,7 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          token: {
+          sourceToken: {
             address: ethers.constants.AddressZero,
             name: 'Solana',
             symbol: 'SOL',
@@ -342,7 +342,7 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          token: {
+          sourceToken: {
             address: ethers.constants.AddressZero,
             name: 'Solana',
             symbol: 'SOL',
