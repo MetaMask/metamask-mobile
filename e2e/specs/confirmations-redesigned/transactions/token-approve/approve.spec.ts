@@ -1,22 +1,19 @@
 import { SMART_CONTRACTS } from '../../../../../app/util/test/smart-contracts';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
-import TestHelpers from '../../../../helpers';
 import { loginToApp } from '../../../../viewHelper';
-import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
 import { mockEvents } from '../../../../api-mocking/mock-config/mock-events.js';
-import Assertions from '../../../../utils/Assertions';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../../../fixtures/fixture-helper';
+import Assertions from '../../../../framework/Assertions';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { buildPermissions } from '../../../../fixtures/utils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
+import { DappVariants } from '../../../../framework/Constants';
 
 describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
   const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
@@ -30,14 +27,14 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
     ],
   };
 
-  beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-  });
-
   it('creates an approve transaction confirmation for given ERC 20, changes the spending cap and submits it', async () => {
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
@@ -45,14 +42,11 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
           )
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
         testSpecificMock,
-        smartContract: ERC_20_CONTRACT,
+        smartContracts: [ERC_20_CONTRACT],
       },
-      // Remove any once withFixtures is typed
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ contractRegistry }: { contractRegistry: any }) => {
-        const erc20Address = await contractRegistry.getContractAddress(
+      async ({ contractRegistry }) => {
+        const erc20Address = await contractRegistry?.getContractAddress(
           ERC_20_CONTRACT,
         );
 
@@ -66,19 +60,21 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         await TestDApp.tapApproveERC20TokensButton();
 
         // Check confirmation modal is visible
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
           ConfirmationUITypes.ModalConfirmationContainer,
         );
 
         // Check all expected row components are visible
-        await Assertions.checkIfVisible(RowComponents.AccountNetwork);
-        await Assertions.checkIfVisible(RowComponents.ApproveRow);
-        await Assertions.checkIfVisible(RowComponents.OriginInfo);
-        await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
-        await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
+        await Assertions.expectElementToBeVisible(RowComponents.AccountNetwork);
+        await Assertions.expectElementToBeVisible(RowComponents.ApproveRow);
+        await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
+        await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
+        await Assertions.expectElementToBeVisible(
+          RowComponents.AdvancedDetails,
+        );
 
         // Check spending cap is visible and has the correct value
-        await Assertions.checkIfElementToHaveText(
+        await Assertions.expectElementToHaveText(
           TokenApproveConfirmation.SpendingCapValue,
           '7',
         );
@@ -87,7 +83,7 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         await TokenApproveConfirmation.tapEditSpendingCapButton();
         await TokenApproveConfirmation.inputSpendingCap('10');
         await TokenApproveConfirmation.tapEditSpendingCapSaveButton();
-        await Assertions.checkIfElementToHaveText(
+        await Assertions.expectElementToHaveText(
           TokenApproveConfirmation.SpendingCapValue,
           '10',
         );
@@ -97,8 +93,8 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Approve');
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
+        await Assertions.expectTextDisplayed('Approve');
+        await Assertions.expectTextDisplayed('Confirmed');
       },
     );
   });
@@ -106,7 +102,11 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
   it('creates an approve transaction confirmation for ERC 721 and submits it', async () => {
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
@@ -114,14 +114,11 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
           )
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
         testSpecificMock,
-        smartContract: ERC_721_CONTRACT,
+        smartContracts: [ERC_721_CONTRACT],
       },
-      // Remove any once withFixtures is typed
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ contractRegistry }: { contractRegistry: any }) => {
-        const erc721Address = await contractRegistry.getContractAddress(
+      async ({ contractRegistry }) => {
+        const erc721Address = await contractRegistry?.getContractAddress(
           ERC_721_CONTRACT,
         );
 
@@ -135,13 +132,13 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         await TestDApp.tapApproveERC721TokenButton();
 
         // Check confirmation modal is visible
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
           ConfirmationUITypes.ModalConfirmationContainer,
         );
 
         // Check spending cap is visible and has the correct value
         // #1 means the token id for ERC 721
-        await Assertions.checkIfElementToHaveText(
+        await Assertions.expectElementToHaveText(
           TokenApproveConfirmation.SpendingCapValue,
           '#1',
         );
@@ -151,8 +148,8 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Approve');
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
+        await Assertions.expectTextDisplayed('Approve');
+        await Assertions.expectTextDisplayed('Confirmed');
       },
     );
   });
