@@ -680,10 +680,11 @@
       "description": "This should only take about 2 minutes.",
       "error_heading": "We were unable to verify your identity.",
       "error_description": "Try uploading your documents again and resubmit for verification.",
-      "error_button": "Retry verification",
+      "contact_support": "Contact support",
       "success_heading": "You're verified",
       "success_description": "Now you can complete your deposit.",
-      "success_button": "Complete your order"
+      "success_button": "Complete your order",
+      "retry_kyc": "Retry"
     },
     "provider_webview": {
       "title": "Deposit"

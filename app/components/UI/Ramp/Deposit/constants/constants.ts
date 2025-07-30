@@ -36,6 +36,7 @@ export const TRANSAK_NETWORKS: Record<string, CaipChainId> = {
   bsc: BSC_MAINNET.chainId,
 };
 
+export const TRANSAK_WIDGET_URL = 'https://global.transak.com/';
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
 export const TRANSAK_URL = 'https://www.transak.com';
 export const CONSENSYS_PRIVACY_POLICY_URL =
@@ -44,6 +45,11 @@ export const TRANSAK_TERMS_URL_US =
   'https://www.transak.com/terms-of-service-us';
 export const TRANSAK_TERMS_URL_WORLD =
   'https://www.transak.com/terms-of-service';
+
+export const TRANSAK_USER_STATUS = {
+  INACTIVE: 'INACTIVE',
+  ACTIVE: 'ACTIVE',
+};
 
 export enum KycStatus {
   NOT_SUBMITTED = 'NOT_SUBMITTED',

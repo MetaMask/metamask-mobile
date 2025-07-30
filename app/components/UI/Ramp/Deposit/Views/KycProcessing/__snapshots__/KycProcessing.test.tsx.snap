@@ -1907,10 +1907,10 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                               }
                             >
                               <SvgMock
-                                color="#ca3542"
+                                color="#121314"
                                 fill="currentColor"
                                 height={32}
-                                name="CircleX"
+                                name="Warning"
                                 style={
                                   {
                                     "height": 32,
@@ -1980,7 +1980,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "transparent",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -1994,7 +1994,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#ffffff",
+                                    "color": "#4459ff",
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -2002,7 +2002,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Retry verification
+                                Contact support
                               </Text>
                             </TouchableOpacity>
                             <SvgMock
@@ -3237,10 +3237,10 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                               }
                             >
                               <SvgMock
-                                color="#ca3542"
+                                color="#121314"
                                 fill="currentColor"
                                 height={32}
-                                name="CircleX"
+                                name="Warning"
                                 style={
                                   {
                                     "height": 32,
@@ -3310,7 +3310,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "transparent",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -3324,7 +3324,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#ffffff",
+                                    "color": "#4459ff",
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -3332,7 +3332,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Retry verification
+                                Contact support
                               </Text>
                             </TouchableOpacity>
                             <SvgMock
@@ -3924,10 +3924,10 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                               }
                             >
                               <SvgMock
-                                color="#ca3542"
+                                color="#121314"
                                 fill="currentColor"
                                 height={32}
-                                name="CircleX"
+                                name="Warning"
                                 style={
                                   {
                                     "height": 32,
@@ -3997,7 +3997,7 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "transparent",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -4011,7 +4011,7 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#ffffff",
+                                    "color": "#4459ff",
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -4019,7 +4019,7 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                   }
                                 }
                               >
-                                Retry verification
+                                Contact support
                               </Text>
                             </TouchableOpacity>
                             <SvgMock

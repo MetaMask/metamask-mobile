@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Linking, View } from 'react-native';
 import styleSheet from './KycProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
 import DepositProgressBar from '../../components/DepositProgressBar';
@@ -31,7 +31,12 @@ import Button, {
 import PoweredByTransak from '../../components/PoweredByTransak';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { getCryptoCurrencyFromTransakId } from '../../utils';
-import { KycStatus } from '../../constants';
+import {
+  KycStatus,
+  TRANSAK_SUPPORT_URL,
+  TRANSAK_USER_STATUS,
+  TRANSAK_WIDGET_URL,
+} from '../../constants';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 
@@ -85,15 +90,22 @@ const KycProcessing = () => {
   }, [navigation, theme]);
 
   useEffect(() => {
-    if (kycForms?.forms.length === 0) {
+    if (
+      kycForms?.forms.length === 0 &&
+      userDetails?.status !== TRANSAK_USER_STATUS.INACTIVE
+    ) {
       startPolling();
     }
 
     return () => stopPolling();
-  }, [kycForms, startPolling, stopPolling]);
+  }, [kycForms, startPolling, stopPolling, userDetails]);
 
-  const handleRetryVerification = useCallback(() => {
-    // TODO: Implement retry logic for KYC verification?
+  const handleRetryKyc = useCallback(() => {
+    Linking.openURL(TRANSAK_WIDGET_URL);
+  }, []);
+
+  const handleContactSupport = useCallback(() => {
+    Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
   const handleContinue = useCallback(async () => {
@@ -131,7 +143,12 @@ const KycProcessing = () => {
     userDetails?.kyc?.l1?.type,
   ]);
 
-  if (error || kycStatus === KycStatus.REJECTED || hasPendingForms) {
+  if (
+    error ||
+    kycStatus === KycStatus.REJECTED ||
+    hasPendingForms ||
+    userDetails?.status === TRANSAK_USER_STATUS.INACTIVE
+  ) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -139,11 +156,10 @@ const KycProcessing = () => {
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
               <Icon
-                name={IconName.CircleX}
+                name={IconName.Warning}
                 size={IconSize.Xl}
-                color={IconColor.Error}
+                color={IconColor.Default}
               />
-
               <Text variant={TextVariant.BodyMD} style={styles.heading}>
                 {strings('deposit.kyc_processing.error_heading')}
               </Text>
@@ -155,11 +171,20 @@ const KycProcessing = () => {
         </ScreenLayout.Body>
         <ScreenLayout.Footer>
           <ScreenLayout.Content style={styles.footerContent}>
+            {userDetails?.status === TRANSAK_USER_STATUS.ACTIVE && (
+              <Button
+                size={ButtonSize.Lg}
+                onPress={handleRetryKyc}
+                label={strings('deposit.kyc_processing.retry_kyc')}
+                variant={ButtonVariants.Primary}
+                width={ButtonWidthTypes.Full}
+              />
+            )}
             <Button
               size={ButtonSize.Lg}
-              onPress={handleRetryVerification}
-              label={strings('deposit.kyc_processing.error_button')}
-              variant={ButtonVariants.Primary}
+              onPress={handleContactSupport}
+              label={strings('deposit.kyc_processing.contact_support')}
+              variant={ButtonVariants.Link}
               width={ButtonWidthTypes.Full}
             />
             <PoweredByTransak name="powered-by-transak-logo" />
