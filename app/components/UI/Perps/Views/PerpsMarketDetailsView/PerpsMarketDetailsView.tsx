@@ -29,8 +29,6 @@ import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
 }
@@ -41,7 +39,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market } = route.params || {};
-  const { top } = useSafeAreaInsets();
 
   const [selectedInterval, setSelectedInterval] = useState('1h');
 
@@ -96,7 +93,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       style={styles.container}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      <ScrollView style={[styles.container, { paddingTop: top }]}>
+      <ScrollView style={styles.container}>
         {/* Market Header */}
         <PerpsMarketHeader
           market={market}

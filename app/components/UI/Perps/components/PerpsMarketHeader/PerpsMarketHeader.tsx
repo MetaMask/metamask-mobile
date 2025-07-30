@@ -20,6 +20,7 @@ import {
   formatPercentage,
   formatPnl,
   formatPrice,
+  parseCurrencyString,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsMarketHeader.styles';
 
@@ -43,19 +44,9 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(market.symbol);
 
-  // Parse values for display with safe parsing
-  const parseNumber = (value: string): number => {
-    const cleaned = value.replace(/[^0-9.-]/g, '');
-    // Check for empty string or invalid formats
-    if (!cleaned || cleaned === '-' || cleaned === '.' || cleaned === '-.') {
-      return 0;
-    }
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? 0 : parsed;
-  };
-
-  const displayPrice = currentPrice || parseNumber(market.price);
-  const displayChange = priceChange24h || parseNumber(market.change24hPercent);
+  const displayPrice = currentPrice || parseCurrencyString(market.price || '0');
+  const displayChange =
+    priceChange24h || parseCurrencyString(market.change24hPercent || '0');
   const isPositiveChange = displayChange >= 0;
 
   // Calculate fiat change amount

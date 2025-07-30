@@ -7,6 +7,8 @@ import type { CandleData, CandleStick } from '../types';
 export const calculateFundingCountdown = (): string => {
   const now = new Date();
   const utcHour = now.getUTCHours();
+  const utcMinutes = now.getUTCMinutes();
+  const utcSeconds = now.getUTCSeconds();
 
   // Determine next funding hour (0, 8, or 16)
   let nextFundingHour: number;
@@ -15,31 +17,34 @@ export const calculateFundingCountdown = (): string => {
   } else if (utcHour < 16) {
     nextFundingHour = 16;
   } else {
-    nextFundingHour = 24; // Next day at 00:00
+    nextFundingHour = 0; // Next day at 00:00
   }
 
-  // Create target date for next funding
-  const target = new Date(now);
-  target.setUTCHours(nextFundingHour % 24, 0, 0, 0);
-
-  // If next funding is tomorrow (24 hours case), add a day
-  if (nextFundingHour === 24) {
-    target.setUTCDate(target.getUTCDate() + 1);
+  // Calculate hours until next funding
+  let hoursUntilFunding: number;
+  if (nextFundingHour === 0) {
+    // If next funding is at 00:00 tomorrow
+    hoursUntilFunding = 24 - utcHour;
+  } else {
+    // If next funding is today
+    hoursUntilFunding = nextFundingHour - utcHour;
   }
 
-  // Calculate time difference in milliseconds
-  const diff = target.getTime() - now.getTime();
+  // Calculate remaining time
+  const hours = hoursUntilFunding - 1; // Subtract 1 because we'll add minutes/seconds
+  const minutes = 59 - utcMinutes;
+  const seconds = 60 - utcSeconds;
 
-  // Convert to hours, minutes, seconds
-  const totalSeconds = Math.floor(diff / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+  // Handle edge case where seconds equals 60
+  const finalSeconds = seconds === 60 ? 0 : seconds;
+  const finalMinutes = seconds === 60 ? minutes + 1 : minutes;
+  const finalHours = finalMinutes === 60 ? hours + 1 : hours;
+  const adjustedMinutes = finalMinutes === 60 ? 0 : finalMinutes;
 
   // Format as HH:MM:SS
-  const formattedHours = String(hours).padStart(2, '0');
-  const formattedMinutes = String(minutes).padStart(2, '0');
-  const formattedSeconds = String(seconds).padStart(2, '0');
+  const formattedHours = String(finalHours).padStart(2, '0');
+  const formattedMinutes = String(adjustedMinutes).padStart(2, '0');
+  const formattedSeconds = String(finalSeconds).padStart(2, '0');
 
   return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 };
