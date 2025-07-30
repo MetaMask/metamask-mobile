@@ -1315,6 +1315,8 @@ export class PerpsController extends BaseController<
    */
 
   /**
+   * Fetch geo location
+   *
    * Returned in Country or Country-Region format
    * Example: FR, DE, US-MI, CA-ON
    */
@@ -1339,6 +1341,9 @@ export class PerpsController extends BaseController<
     }
   }
 
+  /**
+   * Refresh eligibility status
+   */
   async refreshEligibility(
     blockedLocations = DEFAULT_GEO_BLOCKED_REGIONS,
   ): Promise<void> {
