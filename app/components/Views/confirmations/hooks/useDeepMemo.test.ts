@@ -53,4 +53,12 @@ describe('useDeepMemo', () => {
     expect(factoryMock).toHaveBeenCalledTimes(2);
     expect(result.result.current).toBe(RESULT_2_MOCK);
   });
+
+  it('returns same factory result if no dependencies', () => {
+    const result = runHook(factoryMock, []);
+    result.rerender([factoryMock, []]);
+
+    expect(factoryMock).toHaveBeenCalledTimes(1);
+    expect(result.result.current).toBe(RESULT_MOCK);
+  });
 });
