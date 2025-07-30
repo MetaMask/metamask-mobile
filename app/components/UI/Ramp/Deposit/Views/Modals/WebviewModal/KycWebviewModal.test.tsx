@@ -76,7 +76,7 @@ describe('KycWebviewModal', () => {
 
     expect(mockUseIdProofPolling).toHaveBeenCalledWith(
       'test-workflow-run-id',
-      5000,
+      1000,
       true,
       0,
     );

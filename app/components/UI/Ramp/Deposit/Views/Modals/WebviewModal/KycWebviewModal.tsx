@@ -32,7 +32,7 @@ function KycWebviewModal() {
     paymentMethodId,
   });
 
-  const { idProofStatus } = useIdProofPolling(kycWorkflowRunId, 5000, true, 0);
+  const { idProofStatus } = useIdProofPolling(kycWorkflowRunId, 1000, true, 0);
   useEffect(() => {
     if (idProofStatus === 'SUBMITTED' && quote) {
       routeAfterAuthentication(quote);

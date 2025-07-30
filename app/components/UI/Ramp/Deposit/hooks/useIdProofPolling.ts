@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useDepositSdkMethod } from './useDepositSdkMethod';
 
-export interface UserDetailsPollingResult {
+export interface IdProofPollingResult {
   idProofStatus: 'SUBMITTED' | 'NOT_SUBMITTED' | null;
   loading: boolean;
   error: string | null;
@@ -17,12 +17,12 @@ export interface UserDetailsPollingResult {
  * @param autoStart - Whether to automatically start polling
  * @param maxPollingAttempts - The maximum number of polling attempts before stopping. Set to 0 to poll indefinitely.
  */
-const useUserDetailsPolling = (
+const useIdProofPolling = (
   kycWorkflowRunId: string,
   pollingInterval: number = 10000,
   autoStart: boolean = true,
   maxPollingAttempts: number = 30,
-): UserDetailsPollingResult => {
+): IdProofPollingResult => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollCountRef = useRef<number>(0);
   const [pollingError, setPollingError] = useState<string | null>(null);
@@ -102,4 +102,4 @@ const useUserDetailsPolling = (
   };
 };
 
-export default useUserDetailsPolling;
+export default useIdProofPolling;

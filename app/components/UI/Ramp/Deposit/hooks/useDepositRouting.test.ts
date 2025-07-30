@@ -1102,6 +1102,7 @@ describe('useDepositRouting', () => {
       result.current.navigateToKycWebview({
         quote: mockQuote,
         kycUrl: 'test-url',
+        kycWorkflowRunId: 'test-workflow-id',
       });
 
       verifyPopToBuildQuoteCalled();
