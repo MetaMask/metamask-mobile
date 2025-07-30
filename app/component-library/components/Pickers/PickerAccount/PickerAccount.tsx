@@ -56,7 +56,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
 
   return (
     <PickerBase
-      iconSize={IconSize.Xs}
+      iconSize={IconSize.Sm}
       style={pressed ? styles.basePressed : styles.base}
       dropdownIconStyle={styles.dropDownIcon}
       onPress={onPress}
