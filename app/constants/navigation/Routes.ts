@@ -191,6 +191,7 @@ const Routes = {
   SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {
     ROOT: 'Bridge',
+    BRIDGE_VIEW: 'BridgeView',
     MODALS: {
       ROOT: 'BridgeModals',
       SOURCE_TOKEN_SELECTOR: 'BridgeSourceTokenSelector',

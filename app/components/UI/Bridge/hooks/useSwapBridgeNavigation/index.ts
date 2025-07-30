@@ -36,17 +36,17 @@ export enum SwapBridgeNavigationLocation {
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
  * @param location location of navigation call – used for analytics.
- * @param token token object containing address and chainId we want to set as source.
+ * @param sourceToken token object containing address and chainId we want to set as source.
  * @returns An object containing functions that can be used to navigate to the existing Bridges page in the browser and the MetaMask Swaps page. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
 export const useSwapBridgeNavigation = ({
   location,
   sourcePage,
-  token: tokenBase,
+  sourceToken: tokenBase,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
-  token?: BridgeToken;
+  sourceToken?: BridgeToken;
 }) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -92,10 +92,10 @@ export const useSwapBridgeNavigation = ({
         return;
       }
       dispatch(setBridgeViewMode(bridgeViewMode));
-      navigation.navigate('Bridge', {
-        screen: 'BridgeView',
+      navigation.navigate(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BRIDGE_VIEW,
         params: {
-          token: bridgeToken,
+          sourceToken: bridgeToken,
           sourcePage,
         } as BridgeRouteParams,
       });
