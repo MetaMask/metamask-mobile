@@ -1,8 +1,8 @@
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+} from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
