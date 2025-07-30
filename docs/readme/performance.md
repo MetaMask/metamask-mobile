@@ -278,7 +278,7 @@ function MyComponent() {
 ```
 
 ## useRunOnJS
-Purpose: useRunOnJS is a hook that allows you to define a JavaScript function that can be safely called from a worklet. It ensures that the function is properly wrapped to run on the JavaScript thread when invoked from the worklet thread.
+Purpose: `useRunOnJS` is a hook that allows you to define a JavaScript function that can be safely called from a worklet. It ensures that the function is properly wrapped to run on the JavaScript thread when invoked from the worklet thread.
 
 When to use: Use this hook when you need to call a JavaScript function from a worklet.
 
