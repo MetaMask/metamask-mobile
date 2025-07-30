@@ -77,8 +77,9 @@ export const getNativeValueFn = ({
   const exchangeRate = asset?.address
     ? contractExchangeRates?.[asset?.address as Hex]?.price ?? 1
     : 1;
-  const nativeValue =
-    (amount ? parseFloat(amount) : 0) / ((conversionRate ?? 1) * exchangeRate);
+  let amt = amount ? parseFloat(amount) : 0;
+  amt = Number.isNaN(amt) ? 0 : amt;
+  const nativeValue = amt / ((conversionRate ?? 1) * exchangeRate);
   return limitToMaximumDecimalPlaces(nativeValue, decimals ?? 0);
 };
 

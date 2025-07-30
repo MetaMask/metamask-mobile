@@ -22,9 +22,9 @@ const Amount = () => {
   const { updateValue } = useSendContext();
   const { getMaxAmount } = useMaxAmount();
   const [amount, updateAmount] = useState('');
-  const [fiatMode, setFiatMode] = useState(false);
   const { amountError } = useAmountValidation();
   const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
+  const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
   const {
     getFiatDisplayValue,
     getFiatValue,
@@ -33,9 +33,7 @@ const Amount = () => {
   } = useConversions();
 
   useEffect(() => {
-    if (primaryCurrency === 'Fiat') {
-      setFiatMode(true);
-    }
+    setFiatMode(primaryCurrency === 'Fiat');
   }, [primaryCurrency, setFiatMode]);
 
   const alternateDisplayValue = useMemo(
