@@ -40,6 +40,7 @@ import type {
   SubscribePricesParams,
   SwitchProviderResult,
   ToggleTestnetResult,
+  UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
 } from './types';
@@ -504,6 +505,24 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Update TP/SL for an existing position
+   */
+  async updatePositionTPSL(
+    params: UpdatePositionTPSLParams,
+  ): Promise<OrderResult> {
+    const provider = this.getActiveProvider();
+    const result = await provider.updatePositionTPSL(params);
+
+    if (result.success) {
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+      });
+    }
+
+    return result;
+  }
+
+  /**
    * Deposit funds to trading account
    * Routes deposits based on chain compatibility:
    * - Same chain (Arbitrum): Direct ERC20 transfer to HyperLiquid contract
@@ -622,11 +641,96 @@ export class PerpsController extends BaseController<
 
   /**
    * Withdraw funds from trading account
+   *
+   * The withdrawal process varies by provider and may involve:
+   * - Direct on-chain transfers
+   * - Bridge operations
+   * - Multi-step validation processes
+   *
+   * Check the specific provider documentation for detailed withdrawal flows.
+   *
+   * @param params Withdrawal parameters
+   * @returns WithdrawResult with withdrawal ID and tracking info
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
-    // TODO: not validated yet
-    const provider = this.getActiveProvider();
-    return provider.withdraw(params);
+    try {
+      DevLogger.log('🚀 PerpsController: STARTING WITHDRAWAL', {
+        params,
+        timestamp: new Date().toISOString(),
+        assetId: params.assetId,
+        amount: params.amount,
+        destination: params.destination,
+        activeProvider: this.state.activeProvider,
+        isTestnet: this.state.isTestnet,
+      });
+
+      // Get provider (all validation is handled at the provider level)
+      const provider = this.getActiveProvider();
+      DevLogger.log('📡 PerpsController: DELEGATING TO PROVIDER', {
+        provider: this.state.activeProvider,
+        providerReady: !!provider,
+      });
+
+      // Execute withdrawal through provider
+      const result = await provider.withdraw(params);
+
+      DevLogger.log('📊 PerpsController: WITHDRAWAL RESULT', {
+        success: result.success,
+        error: result.error,
+        txHash: result.txHash,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Update state based on result
+      if (result.success) {
+        this.update((state) => {
+          state.lastError = null;
+          state.lastUpdateTimestamp = Date.now();
+        });
+
+        DevLogger.log('✅ PerpsController: WITHDRAWAL SUCCESSFUL', {
+          txHash: result.txHash,
+          amount: params.amount,
+          assetId: params.assetId,
+          withdrawalId: result.withdrawalId,
+        });
+
+        return result;
+      }
+
+      this.update((state) => {
+        state.lastError =
+          result.error || strings('perps.errors.withdrawFailed');
+        state.lastUpdateTimestamp = Date.now();
+      });
+      DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
+        error: result.error,
+        params,
+      });
+
+      return result;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : strings('perps.errors.withdrawFailed');
+
+      DevLogger.log('💥 PerpsController: WITHDRAWAL EXCEPTION', {
+        error: errorMessage,
+        errorType:
+          error instanceof Error ? error.constructor.name : typeof error,
+        stack: error instanceof Error ? error.stack : undefined,
+        params,
+        timestamp: new Date().toISOString(),
+      });
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      return { success: false, error: errorMessage };
+    }
   }
 
   /**
@@ -786,6 +890,42 @@ export class PerpsController extends BaseController<
       // Re-throw the error so components can handle it appropriately
       throw error;
     }
+  }
+
+  /**
+   * Calculate liquidation price for a position
+   * Uses provider-specific formulas based on protocol rules
+   */
+  async calculateLiquidationPrice(params: {
+    entryPrice: number;
+    leverage: number;
+    direction: 'long' | 'short';
+    positionSize?: number;
+    marginType?: 'isolated' | 'cross';
+    asset?: string;
+  }): Promise<string> {
+    const provider = this.getActiveProvider();
+    return provider.calculateLiquidationPrice(params);
+  }
+
+  /**
+   * Calculate maintenance margin for a specific asset
+   * Returns a percentage (e.g., 0.0125 for 1.25%)
+   */
+  async calculateMaintenanceMargin(params: {
+    asset: string;
+    positionSize?: number;
+  }): Promise<number> {
+    const provider = this.getActiveProvider();
+    return provider.calculateMaintenanceMargin(params);
+  }
+
+  /**
+   * Get maximum leverage allowed for an asset
+   */
+  async getMaxLeverage(asset: string): Promise<number> {
+    const provider = this.getActiveProvider();
+    return provider.getMaxLeverage(asset);
   }
 
   /**
@@ -974,11 +1114,7 @@ export class PerpsController extends BaseController<
       );
 
       // Use lower-level transaction submission to bypass UI confirmation
-      const result = await this.submitTransactionDirectly(
-        transaction,
-        selectedNetworkClientId,
-        params.amount,
-      );
+      const result = await this.submitDirectDepositTransaction(transaction);
       const txHash = result.txHash;
 
       DevLogger.log(
@@ -1023,18 +1159,21 @@ export class PerpsController extends BaseController<
       );
 
       // Submit via TransactionController using Engine.context
-      const { NetworkController } = Engine.context;
+      const { NetworkController, TransactionController } = Engine.context;
 
       // Get current network client ID from state
       const selectedNetworkClientId =
         NetworkController.state.selectedNetworkClientId;
 
-      // Use lower-level transaction submission to bypass UI confirmation
-      const result = await this.submitTransactionDirectly(
-        transaction,
-        selectedNetworkClientId,
-      );
-      const txHash = result.txHash;
+      // Submit the transaction to TransactionController
+      const result = await TransactionController.addTransaction(transaction, {
+        networkClientId: selectedNetworkClientId,
+        requireApproval: false,
+        origin: 'metamask',
+      });
+
+      // Wait for the transaction hash
+      const txHash = await result.result;
 
       DevLogger.log(
         '✅ PerpsController: DIRECT DEPOSIT TRANSACTION SUBMITTED',
@@ -1133,50 +1272,9 @@ export class PerpsController extends BaseController<
 
     const provider = this.getActiveProvider();
     await provider.disconnect();
-  }
 
-  /**
-   * Submit transaction with proper gas estimation and nonce management
-   */
-  private async submitTransactionDirectly(
-    transaction: TransactionParams,
-    networkClientId: string,
-    depositAmount?: string,
-  ): Promise<{ success: boolean; txHash?: string; error?: string }> {
-    try {
-      const { TransactionController } = Engine.context;
-
-      const result = await TransactionController.addTransaction(transaction, {
-        origin: 'metamask',
-        requireApproval: false,
-        networkClientId,
-      });
-
-      // Track this deposit transaction
-      const txMeta = result.transactionMeta;
-      if (txMeta && depositAmount) {
-        this.update((state) => {
-          state.activeDepositTransactions[txMeta.id] = {
-            amount: depositAmount,
-            token: 'USDC', // For now, we only support USDC
-          };
-        });
-      }
-
-      const txHash = await result.result;
-
-      return {
-        success: true,
-        txHash,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Transaction submission failed',
-      };
-    }
+    // Reset initialization state to ensure proper reconnection
+    this.isInitialized = false;
+    this.initializationPromise = null;
   }
 }

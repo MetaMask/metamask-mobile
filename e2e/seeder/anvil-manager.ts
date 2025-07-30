@@ -2,7 +2,11 @@ import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../fixtures/utils';
 import { AnvilNodeOptions } from '../framework/types';
-import { logger } from '../framework/logger';
+import { createLogger } from '../framework/logger';
+
+const logger = createLogger({
+  name: 'AnvilManager',
+});
 
 export const DEFAULT_ANVIL_PORT = 8545;
 
@@ -123,7 +127,7 @@ class AnvilManager {
     }
     const { walletClient, publicClient, testClient } = createAnvilClients(
       this.server.options.chainId ?? 1337,
-      this.server.options.port ?? 8545,
+      this.server.options.port ?? AnvilPort(),
     );
 
     return { walletClient, publicClient, testClient };

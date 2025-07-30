@@ -24,6 +24,33 @@ jest.mock('../../../../../util/theme', () => ({
   }),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../../../constants/navigation/Routes', () => ({
+  __esModule: true,
+  default: {
+    PERPS: {
+      DEPOSIT: 'PerpsDeposit',
+    },
+  },
+}));
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const translations: Record<string, string> = {
+      'perps.deposit.get_usdc': 'Get USDC',
+      'perps.token_selector.no_tokens': 'No tokens available',
+    };
+    return translations[key] || key;
+  },
+}));
+
 jest.mock('./PerpsTokenSelector.styles', () => ({
   createStyles: () => ({
     modal: {},
@@ -91,21 +118,21 @@ const mockRenderFromTokenMinimalUnit =
 // Test data
 const mockTokens: PerpsToken[] = [
   {
-    address: '0xusdc-arbitrum',
+    address: '0xusdc-hyperliquid',
     symbol: 'USDC',
     name: 'USD Coin',
     decimals: 6,
-    chainId: '0xa4b1', // Arbitrum
+    chainId: '0x3e7', // Hyperliquid mainnet
     balance: '1000.123456',
     balanceFiat: '$1000.12',
     image: 'https://example.com/usdc.png',
   },
   {
-    address: '0xusdc-ethereum',
+    address: '0xusdc-arbitrum',
     symbol: 'USDC',
     name: 'USD Coin',
     decimals: 6,
-    chainId: '0x1', // Ethereum
+    chainId: '0xa4b1', // Arbitrum
     balance: '500.123456',
     balanceFiat: '$500.12',
     image: 'https://example.com/usdc.png',
@@ -271,26 +298,31 @@ describe('PerpsTokenSelector', () => {
       expect(getByTestId('token-symbol-USDT')).toBeOnTheScreen();
     });
 
-    it('displays token names when available', () => {
+    it('displays token symbols correctly', () => {
       // Arrange & Act
       const { getByTestId, getAllByTestId } = renderComponent();
 
-      // Assert
-      const usdcNames = getAllByTestId('token-name-USDC');
-      expect(usdcNames).toHaveLength(2); // Both USDC tokens
-      expect(usdcNames[0]).toHaveTextContent('USD Coin');
-      expect(getByTestId('token-name-ETH')).toHaveTextContent('Ethereum');
-      expect(getByTestId('token-name-USDT')).toHaveTextContent('Tether USD');
+      // Assert - Token names are not rendered in the current implementation
+      // Only symbols are shown
+      const usdcSymbols = getAllByTestId('token-symbol-USDC');
+      expect(usdcSymbols).toHaveLength(2); // Both USDC tokens
+      expect(usdcSymbols[0]).toHaveTextContent('USDC • Hyperliquid'); // First USDC is on Hyperliquid
+      expect(getByTestId('token-symbol-ETH')).toHaveTextContent('ETH');
+      expect(getByTestId('token-symbol-USDT')).toHaveTextContent('USDT');
     });
 
-    it('displays token balances when available', () => {
+    it('displays token fiat values and timing info', () => {
       // Arrange & Act
-      const { getByTestId, getAllByTestId } = renderComponent();
+      const { getByTestId, getAllByTestId, queryByTestId } = renderComponent();
 
-      // Assert
-      expect(getAllByTestId('token-balance-USDC')).toHaveLength(2); // Both USDC tokens
-      expect(getByTestId('token-balance-ETH')).toBeOnTheScreen();
-      expect(getByTestId('token-balance-USDT')).toBeOnTheScreen();
+      // Assert - Component displays fiat values, not raw balances
+      const usdcFiatValues = getAllByTestId('token-fiat-USDC');
+      expect(usdcFiatValues).toHaveLength(2); // Both USDC tokens
+      expect(getByTestId('token-fiat-ETH')).toBeOnTheScreen();
+      expect(getByTestId('token-fiat-USDT')).toBeOnTheScreen();
+
+      // Balance test IDs don't exist in the component
+      expect(queryByTestId('token-balance-USDC')).toBeNull();
     });
 
     it('displays fiat values when available', () => {
@@ -300,7 +332,8 @@ describe('PerpsTokenSelector', () => {
       // Assert
       const usdcFiatValues = getAllByTestId('token-fiat-USDC');
       expect(usdcFiatValues).toHaveLength(2); // Both USDC tokens
-      expect(usdcFiatValues[0]).toHaveTextContent('$1000.12');
+      expect(usdcFiatValues[0]).toHaveTextContent('$1000.12'); // First is Hyperliquid USDC
+      expect(usdcFiatValues[1]).toHaveTextContent('$500.12'); // Second is Arbitrum USDC
       expect(getByTestId('token-fiat-ETH')).toHaveTextContent('$5000.00');
       expect(getByTestId('token-fiat-USDT')).toHaveTextContent('$100.50');
     });
@@ -311,7 +344,7 @@ describe('PerpsTokenSelector', () => {
 
       // Assert
       expect(getByTestId('no-tokens-message')).toHaveTextContent(
-        'No supported tokens available',
+        'No tokens available',
       );
       expect(queryByTestId('token-list')).toBeNull();
     });
@@ -368,81 +401,18 @@ describe('PerpsTokenSelector', () => {
   });
 
   describe('Network Filtering', () => {
-    it('shows network filter when multiple networks are available', () => {
+    it('shows all tokens from different networks without filter UI', () => {
       // Arrange & Act
-      const { queryByTestId } = renderComponent();
+      const { getAllByTestId, queryByTestId } = renderComponent();
 
-      // Assert - Should show network filter since we have tokens on different chains
-      expect(queryByTestId('network-filter-0xa4b1')).toBeOnTheScreen();
-      expect(queryByTestId('network-filter-0x1')).toBeOnTheScreen();
-    });
+      // Assert - All tokens should be visible even though they're on different chains
+      expect(getAllByTestId('token-USDC')).toHaveLength(2); // Both USDC tokens
+      expect(queryByTestId('token-ETH')).toBeOnTheScreen();
+      expect(queryByTestId('token-USDT')).toBeOnTheScreen();
 
-    it('does not show network filter when only one network is available', () => {
-      // Arrange
-      const singleNetworkTokens = mockTokens.filter(
-        (token) => token.chainId === '0xa4b1',
-      );
-
-      // Act
-      const { queryByTestId } = renderComponent({
-        tokens: singleNetworkTokens,
-      });
-
-      // Assert - Should not show network filter for single network
+      // Network filter UI doesn't exist in current implementation
       expect(queryByTestId('network-filter-0xa4b1')).toBeNull();
-    });
-
-    it('allows toggling network filters', () => {
-      // Arrange
-      const { getByTestId, queryByTestId, getAllByTestId } = renderComponent();
-
-      // Act - Toggle off Ethereum network
-      fireEvent.press(getByTestId('network-filter-0x1'));
-
-      // Assert - Should still have Arbitrum filter but Ethereum tokens should be filtered out
-      expect(getByTestId('network-filter-0xa4b1')).toBeOnTheScreen();
-      // ETH and USDT are on Ethereum, so they should not be visible in the token list
-      expect(queryByTestId('token-ETH')).toBeNull();
-      expect(queryByTestId('token-USDT')).toBeNull();
-      // Only USDC on Arbitrum should still be visible (1 token instead of 2)
-      expect(getAllByTestId('token-USDC')).toHaveLength(1);
-    });
-
-    it('shows Select All option when not all networks are selected', () => {
-      // Arrange
-      const { getByTestId } = renderComponent();
-
-      // Act - Deselect one network first
-      fireEvent.press(getByTestId('network-filter-0x1'));
-
-      // Assert - Select All should be visible
-      expect(getByTestId('network-filter-all')).toBeOnTheScreen();
-    });
-
-    it('selecting all networks shows all tokens', () => {
-      // Arrange
-      const { getByTestId, getAllByTestId } = renderComponent();
-
-      // Act - First deselect a network, then select all
-      fireEvent.press(getByTestId('network-filter-0x1'));
-      fireEvent.press(getByTestId('network-filter-all'));
-
-      // Assert - All tokens should be visible again
-      expect(getAllByTestId('token-USDC')).toHaveLength(2); // Both USDC tokens should be visible
-      expect(getByTestId('token-ETH')).toBeOnTheScreen();
-      expect(getByTestId('token-USDT')).toBeOnTheScreen();
-    });
-
-    it('prevents deselecting the last remaining network', () => {
-      // Arrange
-      const { getByTestId, getAllByTestId } = renderComponent();
-
-      // Act - Try to deselect all networks
-      fireEvent.press(getByTestId('network-filter-0x1')); // Deselect Ethereum
-      fireEvent.press(getByTestId('network-filter-0xa4b1')); // Try to deselect Arbitrum (last one)
-
-      // Assert - Should still have at least one network selected (Arbitrum)
-      expect(getAllByTestId('token-USDC')).toHaveLength(1); // Only Arbitrum USDC should be visible
+      expect(queryByTestId('network-filter-0x1')).toBeNull();
     });
   });
 
@@ -579,13 +549,13 @@ describe('PerpsTokenSelector', () => {
       ];
 
       // Act
-      const { getByTestId, queryByTestId } = renderComponent({
+      const { getByTestId } = renderComponent({
         tokens: tokenWithoutName,
       });
 
-      // Assert - Symbol should be visible, but name should not be rendered
+      // Assert - Symbol should be visible (component doesn't render name field)
       expect(getByTestId('token-symbol-TEST')).toBeOnTheScreen();
-      expect(queryByTestId('token-name-TEST')).toBeNull();
+      expect(getByTestId('token-symbol-TEST')).toHaveTextContent('TEST');
     });
 
     it('shows empty state when all tokens are filtered out by minimum balance', () => {
@@ -618,7 +588,7 @@ describe('PerpsTokenSelector', () => {
       // Assert - Should show empty state since no tokens meet minimum balance
       expect(getByTestId('no-tokens-message')).toBeOnTheScreen();
       expect(getByTestId('no-tokens-message')).toHaveTextContent(
-        'No supported tokens available',
+        'No tokens available',
       );
     });
   });

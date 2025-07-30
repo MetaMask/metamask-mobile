@@ -58,6 +58,7 @@ pipelines:
   #Run E2E test suite for  Flask builds
   run_e2e_flask_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android: {}
       - notify: {}
@@ -87,16 +88,27 @@ pipelines:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
+  
 
   flask_smoke_e2e_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android_stage: {}
+      - notify: {}
+
+  #Performance smoke test pipeline - runs only performance tests
+  smoke_e2e_performance_pipeline:
+    stages:
+      - pr_cache_check_stage: {}
+      - build_smoke_e2e_ios_android_stage: {}
+      - run_smoke_e2e_performance_ios_android_stage: {}
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
+      - pr_cache_check_stage: {}
       - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
@@ -156,12 +168,12 @@ stages:
       - build_ios_simbuild: {}
   create_build_release:
     workflows:
-      - build_android_release: {}
-      - build_ios_release: {}
+      - build_android_main_prod: {}
+      - build_ios_main_prod: {}
   create_build_beta:
     workflows:
-      - build_android_beta: {}
-      - build_ios_beta: {}
+      - build_android_main_beta: {}
+      - build_ios_main_beta: {}
   deploy_build_release:
     workflows:
       - deploy_android_to_store: {}
@@ -174,7 +186,7 @@ stages:
       - deploy_ios_to_store: {}
   create_android_release:
     workflows:
-      - build_android_release: {}
+      - build_android_main_prod: {}
   create_android_release_new:
     workflows:
       - build_android_main_prod: {}
@@ -291,10 +303,19 @@ stages:
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-  build_regression_e2e_ios_android_stage:
+      - run_tag_smoke_performance_ios: {}
+      - run_tag_smoke_performance_android: {}
+  run_smoke_e2e_performance_ios_android_stage:
     workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+      - run_tag_smoke_performance_ios: {}
+      - run_tag_smoke_performance_android: {}
+  build_regression_e2e_ios_android_stage:
+    abort_on_fail: true
+    workflows:
+      - ios_build_regression_tests:
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+      - android_build_regression_tests:
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -354,8 +375,10 @@ stages:
       - release_announcing_stores: {}
   build_e2e_flask_ios_android:
     workflows:
-      - build_flask_e2e_android: {}
-      - build_flask_e2e_ios: {}
+      - build_flask_e2e_android: 
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+      - build_flask_e2e_ios: 
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
   run_e2e_flask_ios_android:
     workflows:
       - run_flask_e2e_android: {}
@@ -959,6 +982,20 @@ workflows:
       - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned'
     after_run:
       - ios_e2e_test
+  run_tag_smoke_performance_ios:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokePerformance.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_performance_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*SmokePerformance.*'
+    after_run:
+      - android_e2e_test
   run_tag_multichain_permissions_ios:
     envs:
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
@@ -1111,6 +1148,134 @@ workflows:
       - wait-for-android-emulator@1: {}
       - script@1:
           title: Run detox test
+          timeout: 1800
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                export METAMASK_ENVIRONMENT='local'
+                 node -v
+                if [ -n "${E2E_TEST_FILE:-}" ]; then
+                  echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release $E2E_TEST_FILE
+                elif [ -n "${TEST_SUITE_TAG:-}" ]; then
+                  echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
+                  ./scripts/run-e2e-tags.sh
+                fi
+      - custom-test-results-export@1:
+          title: Export test results
+          is_always_run: true
+          is_skippable: true
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          title: Deploy test report files
+          is_always_run: true
+          is_skippable: true
+      - script@1:
+          title: Copy screenshot files
+          is_always_run: true
+          run_if: .IsBuildFailed
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy test screenshots
+          is_always_run: true
+          run_if: .IsBuildFailed
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: E2E_Android_Failure_Artifacts
+      - script@1:
+          title: Copy performance results
+          is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | eq ".*SmokePerformance.*"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Create performance results directory
+                mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
+                
+                # Copy performance JSON files if they exist
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied account-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied network-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
+                fi
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy performance results
+          is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | eq ".*SmokePerformance.*"}}'
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
+            - is_compress: true
+            - zip_name: E2E_Performance_Results
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+
+  # Performance-specific Android E2E test workflow
+  android_e2e_test_performance:
+    before_run:
+      - setup
+      - prep_environment
+    after_run:
+      - notify_failure
+    steps:
+      - restore-gradle-cache@2: {}
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull Android build
+      - script@1:
+          title: Copy Android build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/android/app/build/outputs"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
+                cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
+      - avd-manager@1:
+          inputs:
+            - api_level: '34'
+            - abi: 'x86_64'
+            - create_command_flags: --sdcard 8192M
+            - start_command_flags: -read-only
+            - profile: pixel_5
+      - wait-for-android-emulator@1: {}
+      - script@1:
+          title: Run detox test
           timeout: 1200
           is_always_run: false
           inputs:
@@ -1154,10 +1319,43 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
             - zip_name: E2E_Android_Failure_Artifacts
+      - script@1:
+          title: Copy performance results
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Create performance results directory
+                mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
+                
+                # Copy performance JSON files if they exist
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied account-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied network-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
+                fi
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy performance results
+          is_always_run: true
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
+            - is_compress: true
+            - zip_name: E2E_Performance_Results
     meta:
       bitrise.io:
         machine_type_id: elite-xl
         stack: linux-docker-android-22.04
+
   ios_api_specs:
     before_run:
       - setup
@@ -1246,7 +1444,7 @@ workflows:
           title: Set Env Path for caching deps
       - script@1:
           title: Run detox test
-          timeout: 1200
+          timeout: 1800
           is_always_run: false
           inputs:
             - content: |-
@@ -1408,7 +1606,7 @@ workflows:
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
           title: Run detox build
-          timeout: 1200
+          timeout: 1800
           is_always_run: true
           inputs:
             - content: |-
@@ -1555,6 +1753,156 @@ workflows:
                 xcrun simctl list | grep Booted
       - script@1:
           title: Run detox test
+          timeout: 1800
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+
+                # node -v
+                export METAMASK_ENVIRONMENT='local'
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                # if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
+                # else
+                # ./scripts/run-e2e-tags.sh
+                # fi
+                if [ -n "${E2E_TEST_FILE:-}" ]; then
+                  echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release $E2E_TEST_FILE
+                elif [ -n "${TEST_SUITE_TAG:-}" ]; then
+                  echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
+                  ./scripts/run-e2e-tags.sh
+                fi
+      - custom-test-results-export@1:
+          is_always_run: true
+          is_skippable: false
+          title: Export test results
+          inputs:
+            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
+            - test_name: E2E Tests
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: true
+          title: Deploy test report files
+      - script@1:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Copy screenshot files
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          is_always_run: true
+          run_if: .IsBuildFailed
+          title: Deploy test screenshots
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
+            - is_compress: true
+            - zip_name: 'E2E_IOS_Failure_Artifacts'
+      - script@1:
+          title: Copy performance results
+          is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | eq ".*SmokePerformance.*"}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Create performance results directory
+                mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
+                
+                # Copy performance JSON files if they exist
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied account-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied network-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
+                fi
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy performance results
+          is_always_run: true
+          run_if: '{{getenv "TEST_SUITE_TAG" | eq ".*SmokePerformance.*"}}'
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
+            - is_compress: true
+            - zip_name: E2E_Performance_Results
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+
+  # Performance-specific iOS E2E test workflow
+  ios_e2e_test_performance:
+    before_run:
+      - setup
+      - install_applesimutils
+      - prep_environment
+    after_run:
+      - notify_failure
+    steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: .*
+          title: Pull iOS build
+      - script@1:
+          title: Copy iOS build for Detox
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+
+                # Create directories for Detox
+                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
+                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
+
+                # Copy saved files for Detox usage
+                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
+                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
+                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
+      # - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - script@1:
+          title: Install foundry
+          inputs:
+            - content: |-
+                #!/bin/bash
+                yarn install:foundryup
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+      - script:
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+                brew tap wix/brew
+          title: Set Env Path for caching deps
+      - script@1:
+          title: Boot up simulator
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                xcrun simctl boot "iPhone 15 Pro" || true
+                xcrun simctl list | grep Booted
+      - script@1:
+          title: Run detox test
           timeout: 1200
           is_always_run: false
           inputs:
@@ -1605,6 +1953,43 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
             - zip_name: 'E2E_IOS_Failure_Artifacts'
+      - script@1:
+          title: Copy performance results
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -ex
+                # Create performance results directory
+                mkdir -p "$BITRISE_DEPLOY_DIR/performance-results"
+                
+                # Copy performance JSON files if they exist
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/account-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied account-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/network-list-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied network-list-load-testing-performance-results.json"
+                fi
+                
+                if [ -f "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" ]; then
+                  cp "$BITRISE_SOURCE_DIR/e2e/specs/performance/reports/switching-accounts-to-dismiss-load-testing-performance-results.json" "$BITRISE_DEPLOY_DIR/performance-results/"
+                  echo "Copied switching-accounts-to-dismiss-load-testing-performance-results.json"
+                fi
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy performance results
+          is_always_run: true
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
+            - is_compress: true
+            - zip_name: E2E_Performance_Results
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
+
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -1790,7 +2175,7 @@ workflows:
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
           title: Run detox build
-          timeout: 1200
+          timeout: 1800
           is_always_run: true
           inputs:
             - content: |-
@@ -2871,16 +3256,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.50.1
+      VERSION_NAME: 7.51.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2103
+      VERSION_NUMBER: 2203
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.50.1
+      FLASK_VERSION_NAME: 7.51.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2103
+      FLASK_VERSION_NUMBER: 2203
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -2907,7 +3292,7 @@ app:
       COREPACK_VERSION: 0.28.0
     - opts:
         is_expand: false
-      WEB3AUTH_NETWORK: 'sapphire_devnet'
+      SEEDLESS_ONBOARDING_ENABLED: true
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x
