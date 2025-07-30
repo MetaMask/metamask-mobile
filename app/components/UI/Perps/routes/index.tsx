@@ -82,7 +82,6 @@ const PerpsScreenStack = () => (
           headerShown: false,
         }}
       />
-
       <Stack.Screen
         name={Routes.PERPS.POSITIONS}
         component={PerpsPositionsView}
