@@ -10,6 +10,7 @@ import {
   formatLargeNumber,
   formatPositionSize,
   formatLeverage,
+  parseCurrencyString,
 } from './formatUtils';
 
 // Mock the formatWithThreshold utility
@@ -255,6 +256,29 @@ describe('formatUtils', () => {
     it('should handle very large leverage values', () => {
       expect(formatLeverage(999.9)).toBe('999.9x');
       expect(formatLeverage('1000')).toBe('1000.0x');
+    });
+  });
+
+  describe('parseCurrencyString', () => {
+    it('should parse formatted currency strings', () => {
+      expect(parseCurrencyString('$1,234.56')).toBe(1234.56);
+      expect(parseCurrencyString('$1,000')).toBe(1000);
+      expect(parseCurrencyString('$0.00')).toBe(0);
+      expect(parseCurrencyString('$-123.45')).toBe(-123.45);
+    });
+
+    it('should handle strings without currency symbols', () => {
+      expect(parseCurrencyString('1234.56')).toBe(1234.56);
+      expect(parseCurrencyString('1,000')).toBe(1000);
+    });
+
+    it('should handle invalid inputs', () => {
+      expect(parseCurrencyString('')).toBe(0);
+      expect(parseCurrencyString('invalid')).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parseCurrencyString(null as any)).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parseCurrencyString(undefined as any)).toBe(0);
     });
   });
 });
