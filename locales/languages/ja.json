@@ -148,7 +148,7 @@
     "continue_with_google": "Continue with Google",
     "continue_with_apple": "Continue with Apple",
     "or": "OR",
-    "import_existing_wallet": "Import existing wallet",
+    "import_existing_wallet": "すでにあるウォレットを入れる",
     "bottom_sheet_title": "Choose an option to continue",
     "continue_with_srp": "Continue with Secret Recovery Phrase",
     "import_srp": "Import using Secret Recovery Phrase",
@@ -406,7 +406,7 @@
     "successfully_changed": "パスワードが変更されました",
     "new_password_placeholder": "Use at least 8 characters",
     "confirm_password_placeholder": "Re-enter your password",
-    "confirm_btn": "Save",
+    "confirm_btn": "保存",
     "warning_password_change_title": "Are you sure?",
     "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
     "warning_password_change_button": "Confirm",
@@ -532,10 +532,10 @@
     },
     "unsupported_region_modal": {
       "title": "未対応の地域です",
-      "location_prefix": "It looks like you're in:",
+      "location_prefix": "あなたがいそうに見えるところ:",
       "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
-      "change_region": "Change region",
-      "buy_crypto": "Buy Crypto"
+      "change_region": "地域を変える",
+      "buy_crypto": "暗号資産を買う"
     },
     "get_started": {
       "navbar_title": "Deposit",
@@ -588,7 +588,7 @@
       "agreement_text_and": " and ",
       "agreement_text_privacy_policy": "Privacy Policy",
       "agreement_text_part2": ".",
-      "button": "Agree and continue"
+      "button": "同意して続ける"
     },
     "additional_verification": {
       "title": "Additional Verification",
@@ -609,9 +609,9 @@
       "enter_phone_number": "電話番号を入力してください",
       "select_region": "地域を選択してください",
       "first_name_required": "First name is required",
-      "first_name_invalid": "Please enter a valid first name",
+      "first_name_invalid": "有効な下の名前（名）を入力してください",
       "last_name_required": "Last name is required",
-      "last_name_invalid": "Please enter a valid last name",
+      "last_name_invalid": "有効な上の名前（姓）を入力してください",
       "mobile_number_required": "Phone number is required",
       "mobile_number_invalid": "Please enter a valid phone number",
       "dob_required": "Date of birth is required",
@@ -629,7 +629,7 @@
       "city": "市",
       "postal_code": "郵便番号",
       "country": "国",
-      "select_state": "Select state",
+      "select_state": "国をえらぶ",
       "address_line_1_required": "Address line 1 is required",
       "address_line_1_invalid": "Please enter a valid address",
       "address_line_2_invalid": "Please enter a valid address",
@@ -652,7 +652,7 @@
       "error_heading": "お客様の本人確認ができませんでした。",
       "error_description": "もう一度書類をアップロードして、本人確認を再申請してください。",
       "error_button": "本人確認をやり直す",
-      "success_heading": "You're verified",
+      "success_heading": "あなたは確認されたよ",
       "success_description": "Now you can complete your deposit.",
       "success_button": "注文を完了する"
     },
@@ -687,13 +687,13 @@
     },
     "order_details": {
       "title": "デポジットの注文",
-      "error_title": "There was an error with your deposit order",
+      "error_title": "デポジットの注文でエラーが起きたよ",
       "error_message": "An unexpected error occurred."
     },
     "bank_details": {
       "navbar_title": "{{paymentMethod}} bank transfer",
       "button": "Bank transfer sent",
-      "button_cancel": "Cancel order",
+      "button_cancel": "注文をキャンセルする",
       "main_title": "To complete your order",
       "main_content_1": "Initiate a transfer from your preferred bank using the information below.",
       "main_content_2": "Once you’re finished, come back and click “Bank transfer sent” to confirm.",
