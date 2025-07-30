@@ -546,9 +546,16 @@
     "unsupported_region_modal": {
       "title": "Region not supported",
       "location_prefix": "It looks like you're in:",
-      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to get crypto.",
       "change_region": "Change region",
       "buy_crypto": "Buy Crypto"
+    },
+    "unsupported_state_modal": {
+      "title": "Region not supported",
+      "location_prefix": "You've selected:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there are other ways for you to get crypto.",
+      "change_state": "Change region",
+      "try_another_option": "Try another option"
     },
     "incompatible_token_acount_modal": {
       "title": "Switch your account",
@@ -769,7 +776,6 @@
     "your_positions": "Your positions",
     "loading_positions": "Loading positions...",
     "refreshing_positions": "Refreshing positions...",
-    "search": "Search",
     "deposit": {
       "title": "Amount to deposit",
       "pay_with": "Pay with",
@@ -837,6 +843,48 @@
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
       }
+    },
+    "withdrawal": {
+      "title": "Withdraw",
+      "insufficient_funds": "Insufficient funds",
+      "enter_amount": "Enter amount",
+      "review": "Review withdrawal",
+      "withdraw": "Withdraw",
+      "withdraw_usdc": "Withdraw USDC",
+      "minimum_amount_error": "Minimum withdrawal amount is ${{amount}}",
+      "amount_too_low": "Amount must be greater than ${{minAmount}} to cover fees",
+      "confirm": "Confirm withdrawal",
+      "processing_title": "Withdrawal initiated",
+      "processing_description": "Your USDC will arrive in approximately 5 minutes",
+      "success_title": "Withdrawal successful",
+      "success_description": "Your {{amount}} USDC has been withdrawn from Hyperliquid",
+      "network_fee": "Network fee",
+      "metamask_fee": "MetaMask fee",
+      "total_fees": "Total fees",
+      "receiving_amount": "You will receive",
+      "estimated_time": "Estimated time",
+      "done": "Done",
+      "initiated": "Withdrawal initiated",
+      "wait_time_message": "Your funds should arrive within 5 minutes",
+      "error": "Withdrawal failed",
+      "success_toast": "{{amount}} {{symbol}} withdrawal initiated",
+      "arrival_time": "Funds will arrive within 5 minutes",
+      "bridge_info": "HyperLiquid validators are processing your withdrawal",
+      "error_generic": "An error occurred during withdrawal",
+      "invalid_amount": "Please enter a valid amount",
+      "completed": "Withdrawal Complete",
+      "max": "Max",
+      "percentage_10": "10%",
+      "percentage_25": "25%"
+    },
+    "quote": {
+      "network_fee": "Network fee",
+      "estimated_time": "Estimated time",
+      "rate": "Rate",
+      "metamask_fee": "MetaMask fee",
+      "metamask_fee_tooltip": "MetaMask does not charge any fees for Hyperliquid transactions",
+      "metamask_fee_tooltip_deposit": "MetaMask does not charge any fees for deposits to Hyperliquid",
+      "metamask_fee_tooltip_withdrawal": "MetaMask does not charge any fees for withdrawals from Hyperliquid"
     },
     "order": {
       "title": "New Order",
@@ -958,6 +1006,7 @@
         "amountPositive": "Amount must be a positive number"
       },
       "withdrawValidation": {
+        "missingParams": "Missing required parameters for withdrawal",
         "assetIdRequired": "assetId is required for withdrawals",
         "amountRequired": "amount is required for withdrawals",
         "amountPositive": "Amount must be a positive number",
@@ -1022,6 +1071,24 @@
         "total_unrealized_pnl": "Total Unrealized P&L"
       }
     },
+    "markets": {
+      "title": "Markets"
+    },
+    "market": {
+      "details": {
+        "title": "Market Details",
+        "error_message": "Market data not found. Please go back and try again."
+      },
+      "statistics": "Statistics",
+      "24hr_high": "24hr high",
+      "24hr_low": "24hr low",
+      "24h_volume": "24h volume",
+      "open_interest": "Open interest",
+      "funding_rate": "Funding rate",
+      "countdown": "Countdown",
+      "long": "Long",
+      "short": "Short"
+    },
     "network": {
       "hyperliquid": "Hyperliquid"
     },
@@ -1043,11 +1110,11 @@
       "no_data": "No chart data available"
     },
     "perpetual_markets": "Perpetual markets",
-    "search": "Search",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
-    "tap_to_retry": "Tap to retry"
+    "tap_to_retry": "Tap to retry",
+    "search": "Search"
   },
   "receive": {
     "title": "Receive"
@@ -4704,11 +4771,8 @@
       "resources": "Resources"
     },
     "simulation": {
-      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
-      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
-      "edit_approval_limit_title": "Edit approval limit",
       "edit_value_balance_info": "Account balance:",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
       "info_revoke": "You're removing someone's permission to spend tokens from your account.",
@@ -4722,7 +4786,6 @@
       "label_change_type_transfer": "You send",
       "label_change_type_approve": "You approve",
       "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
-      "save": "Save",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
@@ -4749,12 +4812,17 @@
       "success_message": "Your account will be updated to smart account with your next transaction."
     },
     "edit_spending_cap_modal": {
-      "no_zero_error": "Spending cap cannot be 0",
-      "no_empty_error": "Spending cap cannot be empty",
+      "account_balance": "Account balance",
+      "cancel": "Cancel",
+      "description": "Enter the amount that you feel comfortable being spent on your behalf.",
       "invalid_number_error": "Spending cap must be a number",
+      "no_empty_error": "Spending cap cannot be empty",
       "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method",
       "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
-      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
+      "save": "Save",
+      "title": "Edit approval limit"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -5036,5 +5104,9 @@
   },
   "pay_with_modal": {
     "title": "Select payment method"
+  },
+  "time": {
+    "minutes_format": "{{count}} minute",
+    "minutes_format_plural": "{{count}} minutes"
   }
 }
