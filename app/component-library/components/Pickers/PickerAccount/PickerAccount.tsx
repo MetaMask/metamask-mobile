@@ -5,8 +5,7 @@ import React, { forwardRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
-import Text, { TextVariant } from '../../Texts/Text';
+import DSText, { TextVariant } from '../../Texts/Text';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
 import { IconSize } from '../../Icons/Icon';
@@ -25,7 +24,6 @@ const PickerAccount: React.ForwardRefRenderFunction<
     style,
     accountAddress,
     accountName,
-    accountAvatarType,
     showAddress = true,
     cellAccountContainerStyle = {},
     ...props
@@ -42,19 +40,12 @@ const PickerAccount: React.ForwardRefRenderFunction<
     <View style={styles.cellAccount}>
       <View style={styles.accountNameLabel}>
         <View style={styles.accountNameAvatar}>
-          <Avatar
-            variant={AvatarVariant.Account}
-            type={accountAvatarType}
-            accountAddress={accountAddress}
-            size={AvatarSize.Sm}
-            style={styles.accountAvatar}
-          />
-          <Text
+          <DSText
             variant={TextVariant.BodyMDMedium}
             testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
           >
             {accountName}
-          </Text>
+          </DSText>
         </View>
       </View>
     </View>
@@ -75,12 +66,12 @@ const PickerAccount: React.ForwardRefRenderFunction<
         {renderCellAccount()}
       </PickerBase>
       {showAddress && (
-        <Text
+        <DSText
           variant={TextVariant.BodySMMedium}
           style={styles.accountAddressLabel}
         >
           {shortenedAddress}
-        </Text>
+        </DSText>
       )}
     </TouchableOpacity>
   );

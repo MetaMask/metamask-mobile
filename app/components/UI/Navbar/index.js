@@ -923,24 +923,21 @@ export function getOfflineModalNavbar() {
  * @param {Object} accountActionsRef - The ref object for the account actions
  * @param {Object} selectedInternalAccount - The currently selected internal account
  * @param {string} accountName - The name of the currently selected account
- * @param {string} accountAvatarType - The type of avatar for the currently selected account
- * @param {string} networkName - The name of the current network
- * @param {Object} networkImageSource - The image source for the network icon
- * @param {Function} onPressTitle - Callback function when the title is pressed
+ * @param {string} networkName - The name of the currently selected network
+ * @param {Object} networkImageSource - The image source for the currently selected network
+ * @param {Function} onPressTitle - Callback function for when the network picker is pressed
  * @param {Object} navigation - The navigation object
  * @param {Object} themeColors - The theme colors object
  * @param {boolean} isNotificationEnabled - Whether notifications are enabled
  * @param {boolean | null} isBackupAndSyncEnabled - Whether backup and sync is enabled
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
- * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
   accountActionsRef,
   selectedInternalAccount,
   accountName,
-  accountAvatarType,
   networkName,
   networkImageSource,
   onPressTitle,
@@ -1038,7 +1035,6 @@ export function getWalletNavbarOptions(
                   ref={accountActionsRef}
                   accountAddress={formattedAddress}
                   accountName={accountName}
-                  accountAvatarType={accountAvatarType}
                   onPress={() => {
                     trace({
                       name: TraceName.AccountList,
@@ -1097,7 +1093,6 @@ export function getWalletNavbarOptions(
                   ref={accountActionsRef}
                   accountAddress={formattedAddress}
                   accountName={accountName}
-                  accountAvatarType={accountAvatarType}
                   onPress={() => {
                     trace({
                       name: TraceName.AccountList,
