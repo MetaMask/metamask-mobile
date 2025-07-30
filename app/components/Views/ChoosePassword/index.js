@@ -86,6 +86,7 @@ import {
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import OAuthService from '../../../core/OAuthService/OAuthService';
+import { OAuthError } from '../../../core/OAuthService/error';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -373,10 +374,9 @@ class ChoosePassword extends PureComponent {
     }
   }
 
-  isOAuthPasswordCreationError = (error, authType) =>
-    authType.oauth2Login &&
-    error.message &&
-    error.message.includes('SeedlessOnboardingController');
+  isOAuthPasswordCreationError = (error) =>
+    (error.message && error.message.includes('SeedlessOnboardingController')) ||
+    error instanceof OAuthError;
 
   handleOAuthPasswordCreationError = (error, authType) => {
     // If user has already consented to analytics, report error using regular Sentry
@@ -389,16 +389,18 @@ class ChoosePassword extends PureComponent {
               'OAuth password creation failed - user consented to analytics',
           },
         });
-    } else {
-      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
-      authType.oauth2Login &&
-        this.setState({
-          loading: false,
-          errorToThrow: new Error(
-            `OAuth password creation failed: ${error.message}`,
-          ),
-        });
+      return true;
     }
+
+    // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
+    authType.oauth2Login &&
+      this.setState({
+        loading: false,
+        errorToThrow: new Error(
+          `OAuth password creation failed: ${error.message}`,
+        ),
+      });
+    return false;
   };
 
   setSelection = () => {
@@ -461,10 +463,12 @@ class ChoosePassword extends PureComponent {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
-          if (this.isOAuthPasswordCreationError(error, authType)) {
-            this.handleOAuthPasswordCreationError(error, authType);
-            await this.handleSeedlessOnboardingControllerError(error);
-            throw error;
+          if (this.isOAuthPasswordCreationError(error)) {
+            const shouldRethrow = this.handleOAuthPasswordCreationError(
+              error,
+              authType,
+            );
+            if (shouldRethrow) throw error;
           } else if (Device.isIos) {
             await this.handleRejectedOsBiometricPrompt();
           }
@@ -529,6 +533,12 @@ class ChoosePassword extends PureComponent {
       } catch (e) {
         Logger.error(e);
       }
+
+      if (this.isOAuthPasswordCreationError(error)) {
+        await this.handleSeedlessOnboardingControllerError();
+        this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
+      }
+
       // Set state in app as it was with no password
       this.props.setExistingUser(true);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -558,10 +568,6 @@ class ChoosePassword extends PureComponent {
           tags: { errorMessage: error.toString() },
         });
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
-      }
-
-      if (error.message.includes('SeedlessOnboardingController')) {
-        this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
       }
     }
   };
@@ -612,10 +618,6 @@ class ChoosePassword extends PureComponent {
         newAuthData,
       );
     } catch (err) {
-      if (this.isOAuthPasswordCreationError(err, newAuthData)) {
-        this.handleOAuthPasswordCreationError(err, newAuthData);
-        return;
-      }
       throw Error(strings('choose_password.disable_biometric_error'));
     }
     this.setState({

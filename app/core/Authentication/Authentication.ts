@@ -65,6 +65,7 @@ import {
 import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { OAuthError, OAuthErrorType } from '../OAuthService/error';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -449,6 +450,11 @@ class AuthenticationService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       this.lockApp({ reset: false });
+
+      if (e instanceof OAuthError) {
+        throw e;
+      }
+
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -641,10 +647,11 @@ class AuthenticationService {
 
   createAndBackupSeedPhrase = async (password: string): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
-    await this.createWalletVaultAndKeychain(password);
-    // submit password to unlock keyring ?
-    await KeyringController.submitPassword(password);
     try {
+      await this.createWalletVaultAndKeychain(password);
+      // submit password to unlock keyring ?
+      await KeyringController.submitPassword(password);
+
       const keyringId = KeyringController.state.keyrings[0]?.metadata.id;
       if (!keyringId) {
         throw new Error('No keyring metadata found');
@@ -697,7 +704,13 @@ class AuthenticationService {
       });
       await clearAllVaultBackups();
       SeedlessOnboardingController.clearState();
-      throw error;
+
+      // rethrow as OauthError
+      if (error instanceof OAuthError) {
+        throw error;
+      } else {
+        throw new OAuthError(error as Error, OAuthErrorType.UnknownError);
+      }
     }
   };
 
