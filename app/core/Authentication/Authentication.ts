@@ -510,7 +510,7 @@ class AuthenticationService {
       if (authData.oauth2Login) {
         // if seedless flow - rehydrate
         await this.rehydrateSeedPhrase(password, authData);
-      } else if (await this.checkIsSeedlessPasswordOutdated()) {
+      } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
         await this.syncPasswordAndUnlockWallet(password, authData);
       } else {
@@ -745,7 +745,7 @@ class AuthenticationService {
           await this.importMnemonicToVault(mnemonicToRestore, {
             shouldCreateSocialBackup: false,
             shouldSelectAccount: false,
-            shouldImportAccounts: true,
+            shouldWaitForImportAccounts: true,
           });
         } else {
           Logger.error(new Error('Unknown secret type'), secret.type);
@@ -759,7 +759,7 @@ class AuthenticationService {
     options: {
       shouldCreateSocialBackup: boolean;
       shouldSelectAccount: boolean;
-      shouldImportAccounts: boolean;
+      shouldWaitForImportAccounts: boolean;
     },
   ): Promise<{
     newAccountAddress: string;
@@ -816,22 +816,23 @@ class AuthenticationService {
       Engine.setSelectedAddress(newAccountAddress);
     }
 
-    const discoveredAccountsCount = options.shouldImportAccounts
-      ? (
-          await Promise.all(
-            Object.values(WalletClientType).map(async (clientType) => {
-              const { discoveryScope } = WALLET_SNAP_MAP[clientType];
-              const multichainClient =
-                MultichainWalletSnapFactory.createClient(clientType);
+    let discoveredAccountsCount = 0;
 
-              return await multichainClient.addDiscoveredAccounts(
-                id,
-                discoveryScope,
-              );
-            }),
-          )
-        ).reduce((acc, count) => acc + count || 0, 0)
-      : 0;
+    const discoveryPromises = Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryScope } = WALLET_SNAP_MAP[clientType];
+        const multichainClient =
+          MultichainWalletSnapFactory.createClient(clientType);
+        return await multichainClient.addDiscoveredAccounts(id, discoveryScope);
+      }),
+    );
+
+    if (options.shouldWaitForImportAccounts) {
+      discoveredAccountsCount = (await discoveryPromises).reduce(
+        (acc, count) => acc + count || 0,
+        0,
+      );
+    }
 
     return {
       newAccountAddress,
@@ -976,7 +977,7 @@ class AuthenticationService {
                 await this.importMnemonicToVault(mnemonic, {
                   shouldCreateSocialBackup: false,
                   shouldSelectAccount: false,
-                  shouldImportAccounts: true,
+                  shouldWaitForImportAccounts: false,
                 });
               } else {
                 Logger.error(new Error('Unknown secret type'), item.type);
