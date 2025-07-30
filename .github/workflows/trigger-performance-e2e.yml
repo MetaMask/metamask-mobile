@@ -54,9 +54,8 @@ jobs:
           node-version-file: '.nvmrc'
       
       - name: Install dependencies
-        run: yarn --immutable
-        working-directory: '.github/scripts'
-      
+        run: yarn setup
+
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
