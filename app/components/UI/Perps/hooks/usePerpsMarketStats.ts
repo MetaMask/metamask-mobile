@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
 import Engine from '../../../../core/Engine';
-import { usePerpsPrices } from './usePerpsPrices';
 import { usePerpsPositionData } from './usePerpsPositionData';
 import type { PriceUpdate } from '../controllers/types';
 import { formatPrice, formatLargeNumber } from '../utils/formatUtils';
@@ -33,10 +32,9 @@ interface MarketDataUpdate {
 export const usePerpsMarketStats = (symbol: string): MarketStats => {
   const [marketData, setMarketData] = useState<MarketDataUpdate>({});
   const [fundingCountdown, setFundingCountdown] = useState('00:00:00');
-
-  // Get real-time price data
-  const priceData = usePerpsPrices([symbol], true);
-  const currentPriceData = priceData[symbol];
+  const [currentPriceData, setCurrentPriceData] = useState<
+    PriceUpdate | undefined
+  >();
 
   // Get candlestick data for 24h high/low calculation
   const { candleData } = usePerpsPositionData({
@@ -59,7 +57,8 @@ export const usePerpsMarketStats = (symbol: string): MarketStats => {
           callback: (updates: PriceUpdate[]) => {
             const update = updates.find((u) => u.coin === symbol);
             if (update) {
-              // Extract market data from the update
+              // Set both price data and market data from the same update
+              setCurrentPriceData(update);
               setMarketData({
                 funding: update.funding,
                 openInterest: update.openInterest,

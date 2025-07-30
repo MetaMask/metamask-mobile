@@ -210,6 +210,8 @@ export const parseCurrencyString = (formattedValue: string): number => {
     .trim();
 
   // Handle multiple dots by keeping only the last one as decimal separator
+  // NOTE: This assumes US format (comma for thousands, dot for decimal)
+  // Numbers with dots as thousand separators (e.g., European format) will be parsed incorrectly
   const parts = cleanedValue.split('.');
   const integerPart = parts[0] || '0';
   const decimalPart = parts.length > 1 ? parts[parts.length - 1] : '';
