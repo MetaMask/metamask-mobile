@@ -15,6 +15,19 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+// Mock PerpsConnectionProvider
+jest.mock('../providers/PerpsConnectionProvider', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+  })),
+}));
+
 // Mock data
 const mockMarketData: PerpsMarketData[] = [
   {
@@ -60,6 +73,17 @@ const mockProvider = {
   isReadyToTrade: jest.fn(),
   deposit: jest.fn(),
   validateDeposit: jest.fn(),
+  calculateLiquidationPrice: jest.fn(),
+  calculateMaintenanceMargin: jest.fn(),
+  getMaxLeverage: jest.fn(),
+  updatePositionTPSL: jest.fn().mockResolvedValue({
+    success: true,
+    orderId: '123',
+  }),
+  checkWithdrawalStatus: jest.fn().mockResolvedValue({
+    status: 'pending',
+    metadata: {},
+  }),
 } as const;
 
 const mockPerpsController = Engine.context.PerpsController as jest.Mocked<

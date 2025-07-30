@@ -50,6 +50,10 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.qa',
     },
+    'ios.sim.flask': {
+      device: 'ios.simulator',
+      app: 'ios.flask',
+    },
 
     'android.emu.debug': {
       device: 'android.emulator',
@@ -76,6 +80,10 @@ module.exports = {
       device: {
         avdName: 'emulator',
       },
+      // to be used by github action runners later on
+      // bootArgs: '-skin 1080x2340 -memory 4096 -cores 4 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096',
+      // forceAdbInstall: true,
+      // gpuMode: 'swiftshader_indirect',
     },
     'android.emulator': {
       type: 'android.emulator',
@@ -97,6 +105,12 @@ module.exports = {
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
       build: `METAMASK_BUILD_TYPE='${process.env.METAMASK_BUILD_TYPE || 'main'}' METAMASK_ENVIRONMENT='qa' yarn build:ios:qa`,
     },
+    'ios.flask': {
+      type: 'ios.app',
+      binaryPath:
+        process.env.PREBUILT_IOS_FLASK_APP_PATH || 'ios/build/Build/Products/Debug-iphonesimulator/MetaMask-Flask.app',
+      build: 'yarn start:ios:e2e:flask',
+    },
     'android.debug': {
       type: 'android.apk',
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
@@ -107,6 +121,6 @@ module.exports = {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/qa/release/app-qa-release.apk',
       build: `METAMASK_BUILD_TYPE='${process.env.METAMASK_BUILD_TYPE || 'main'}' METAMASK_ENVIRONMENT='qa' yarn build:android:qa`,
-    },
+    }
   },
 };

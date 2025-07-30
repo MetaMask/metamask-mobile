@@ -94,6 +94,8 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
+import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
+import { handleShowNetworkActiveToast } from './utils';
 
 const Stack = createStackNavigator();
 
@@ -124,28 +126,40 @@ const Main = (props) => {
   );
 
   useEffect(() => {
-    if (isSeedlessPasswordOutdated) {
-      // show seedless password outdated modal and force user to lock app
-      props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('login.seedless_password_outdated_modal_title'),
-          description: strings(
-            'login.seedless_password_outdated_modal_content',
-          ),
-          primaryButtonLabel: strings(
-            'login.seedless_password_outdated_modal_confirm',
-          ),
-          type: 'error',
-          icon: IconName.Danger,
-          isInteractable: false,
-          onPrimaryButtonPress: async () => {
-            await Authentication.lockApp({ locked: true });
+    const checkIsSeedlessPasswordOutdated = async () => {
+      if (isSeedlessPasswordOutdated) {
+        // Check for latest seedless password outdated state
+        // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
+        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
+          false,
+        );
+        if (!isOutdated) {
+          return;
+        }
+
+        // show seedless password outdated modal and force user to lock app
+        props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings('login.seedless_password_outdated_modal_title'),
+            description: strings(
+              'login.seedless_password_outdated_modal_content',
+            ),
+            primaryButtonLabel: strings(
+              'login.seedless_password_outdated_modal_confirm',
+            ),
+            type: 'error',
+            icon: IconName.Danger,
+            isInteractable: false,
+            onPrimaryButtonPress: async () => {
+              await Authentication.lockApp({ locked: true });
+            },
+            closeOnPrimaryButtonPress: true,
           },
-          closeOnPrimaryButtonPress: true,
-        },
-      });
-    }
+        });
+      }
+    };
+    checkIsSeedlessPasswordOutdated();
   }, [isSeedlessPasswordOutdated, props.navigation]);
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
@@ -265,6 +279,7 @@ const Main = (props) => {
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const isOnBridgeRoute = useIsOnBridgeRoute();
 
   const hasNetworkChanged = useCallback(
     (chainId, previousConfig, isEvmSelected) => {
@@ -297,17 +312,13 @@ const Main = (props) => {
           });
         }
       }
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Network,
-        labelOptions: [
-          {
-            label: `${networkName} `,
-            isBold: true,
-          },
-          { label: strings('toast.now_active') },
-        ],
-        networkImageSource: networkImage,
-      });
+
+      handleShowNetworkActiveToast(
+        isOnBridgeRoute,
+        toastRef,
+        networkName,
+        networkImage,
+      );
     }
     previousProviderConfig.current = !isEvmSelected
       ? { chainId }
@@ -322,6 +333,7 @@ const Main = (props) => {
     hasNetworkChanged,
     isAllNetworks,
     tokenNetworkFilter,
+    isOnBridgeRoute,
   ]);
 
   // Show add network confirmation.

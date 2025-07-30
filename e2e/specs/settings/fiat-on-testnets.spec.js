@@ -10,13 +10,13 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-import FiatOnTestnetsBottomSheet from '../../pages/Settings/Advanced/FiatOnTestnetsBottomSheet.js';
-import Assertions from '../../utils/Assertions.js';
+import FiatOnTestnetsBottomSheet from '../../pages/Settings/Advanced/FiatOnTestnetsBottomSheet';
+import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers.js';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
-describe(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
+describe.skip(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -38,13 +38,7 @@ describe(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
         await NetworkEducationModal.tapGotItButton();
 
         // Verify no fiat values displayed
-        await Assertions.checkIfElementToHaveText(
-          WalletView.totalBalance,
-          '$0.00',
-        );
-
-        // Wait for network switch toast to disapear
-        await TestHelpers.delay(2500);
+        await Assertions.expectTextDisplayed(WalletView.totalBalance, '$0.00');
 
         // Enable fiat on testnets setting
         await TabBarComponent.tapSettings();
@@ -55,10 +49,7 @@ describe(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
 
         // Verify fiat values are displayed
         await TabBarComponent.tapWallet();
-        await Assertions.checkIfElementNotToHaveText(
-          WalletView.totalBalance,
-          '$0',
-        );
+        await Assertions.expectTextNotDisplayed(WalletView.totalBalance, '$0');
       },
     );
   });

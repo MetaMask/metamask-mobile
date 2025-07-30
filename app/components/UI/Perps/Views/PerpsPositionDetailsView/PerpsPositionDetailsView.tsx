@@ -7,6 +7,7 @@ import {
 } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Text, {
   TextVariant,
   TextColor,
@@ -19,11 +20,13 @@ import CandlestickChartComponent from '../../components/PerpsCandlestickChart/Pe
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPositionHeader from '../../components/PerpsPostitionHeader/PerpsPositionHeader';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
+import { usePerpsTPSLUpdate } from '../../hooks';
 import { createStyles } from './PerpsPositionDetailsView.styles';
+import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 
 interface PositionDetailsRouteParams {
   position: Position;
-  action?: 'close' | 'edit';
+  action?: 'close' | 'edit_tpsl';
 }
 
 const PerpsPositionDetailsView: React.FC = () => {
@@ -31,10 +34,18 @@ const PerpsPositionDetailsView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const route =
     useRoute<RouteProp<{ params: PositionDetailsRouteParams }, 'params'>>();
+  const { top } = useSafeAreaInsets();
 
   const { position } = route.params || {};
 
   const [selectedInterval, setSelectedInterval] = useState('1h');
+  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
+  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
+    onSuccess: () => {
+      // Navigate back to refresh the position
+      navigation.goBack();
+    },
+  });
   const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
     coin: position?.coin || '',
     selectedInterval,
@@ -53,20 +64,21 @@ const PerpsPositionDetailsView: React.FC = () => {
     navigation.goBack();
   };
 
-  // Initialize TP/SL values from current position
+  // Handle initial navigation action
   useEffect(() => {
-    // TODO: Get current TP/SL from position when available in Position type
-    // setTakeProfitPrice(position.takeProfitPrice || '');
-    // setStopLossPrice(position.stopLossPrice || '');
-  }, [position]);
+    if (route.params?.action === 'edit_tpsl') {
+      setIsTPSLVisible(true);
+    }
+  }, [route.params?.action]);
 
   const handleEditTPSL = () => {
-    DevLogger.log('PerpsPositionDetails: handleEditTPSL not implemented');
+    DevLogger.log('PerpsPositionDetailsView: handleEditTPSL called');
+    setIsTPSLVisible(true);
   };
 
   if (!position) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { marginTop: top }]}>
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Error}>
             {strings('perps.position.details.error_message')}
@@ -77,8 +89,8 @@ const PerpsPositionDetailsView: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.container}>
+    <SafeAreaView style={[styles.container, { marginTop: top }]}>
+      <ScrollView>
         {/* Position Header */}
         <PerpsPositionHeader
           position={position}
@@ -106,10 +118,31 @@ const PerpsPositionDetailsView: React.FC = () => {
             position={position}
             onClose={handleClosePosition}
             onEdit={handleEditTPSL}
-            disabled
           />
         </View>
       </ScrollView>
+
+      {/* TP/SL Bottom Sheet */}
+      {isTPSLVisible && (
+        <PerpsTPSLBottomSheet
+          isVisible
+          onClose={() => setIsTPSLVisible(false)}
+          onConfirm={async (takeProfitPrice, stopLossPrice) => {
+            await handleUpdateTPSL(position, takeProfitPrice, stopLossPrice);
+            setIsTPSLVisible(false);
+          }}
+          asset={position.coin}
+          position={position}
+          currentPrice={
+            priceData?.price
+              ? parseFloat(priceData.price)
+              : parseFloat(position.entryPrice) // Fallback to entry price
+          }
+          initialTakeProfitPrice={position.takeProfitPrice}
+          initialStopLossPrice={position.stopLossPrice}
+          isUpdating={isUpdating}
+        />
+      )}
     </SafeAreaView>
   );
 };

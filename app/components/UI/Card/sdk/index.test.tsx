@@ -51,10 +51,6 @@ describe('CardSDK Context', () => {
   ];
 
   const mockCardFeatureFlag: CardFeatureFlag = {
-    constants: {
-      onRampApiUrl: 'https://api.onramp.example.com',
-      accountsApiUrl: 'https://api.accounts.example.com',
-    },
     chains: {
       'eip155:59144': {
         enabled: true,

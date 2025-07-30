@@ -99,6 +99,44 @@ export const getPerpsPayWithRowSelector = {
 };
 
 // ========================================
+// PERPS MARKET LIST VIEW SELECTORS
+// ========================================
+
+export const PerpsMarketListViewSelectorsIDs = {
+  SEARCH_TOGGLE_BUTTON: 'search-toggle-button',
+  CLOSE_BUTTON: 'close-button',
+  SEARCH_CLEAR_BUTTON: 'search-clear-button',
+};
+
+// ========================================
+// PERPS ORDER HEADER SELECTORS
+// ========================================
+
+export const PerpsOrderHeaderSelectorsIDs = {
+  HEADER: 'perps-order-header',
+  ASSET_TITLE: 'perps-order-header-asset-title',
+};
+
+// ========================================
+// PERPS TOKEN SELECTOR SELECTORS
+// ========================================
+
+export const PerpsTokenSelectorSelectorsIDs = {
+  CONTAINER: 'token-selector',
+  MODAL: 'perps-token-selector-modal',
+  TITLE: 'token-selector-title',
+  CLOSE_BUTTON: 'close-token-selector',
+};
+
+// ========================================
+// PERPS AMOUNT DISPLAY SELECTORS
+// ========================================
+
+export const PerpsAmountDisplaySelectorsIDs = {
+  CONTAINER: 'perps-amount-display',
+};
+
+// ========================================
 // PERPS VIEWS SELECTORS
 // ========================================
 
@@ -114,4 +152,48 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 // Helper functions for dynamic view selectors
 export const getPerpsViewSelector = {
   buttonIcon: (iconName: string) => `button-icon-${iconName.toLowerCase()}`,
+};
+
+// ========================================
+// PERPS WITHDRAW VIEW SELECTORS
+// ========================================
+
+export const PerpsWithdrawViewSelectorsIDs = {
+  BACK_BUTTON: 'withdraw-back-button',
+  SOURCE_TOKEN_AREA: 'source-token-area',
+  DEST_TOKEN_AREA: 'dest-token-area',
+  CONTINUE_BUTTON: 'continue-button',
+};
+
+// ========================================
+// PERPS MARKET DETAILS VIEW SELECTORS
+// ========================================
+
+export const PerpsMarketDetailsViewSelectorsIDs = {
+  CONTAINER: 'perps-market-details-view',
+  LOADING: 'perps-market-details-loading',
+  ERROR: 'perps-market-details-error',
+  HEADER: 'perps-market-header',
+  STATISTICS_HIGH_24H: 'perps-statistics-high-24h',
+  STATISTICS_LOW_24H: 'perps-statistics-low-24h',
+  STATISTICS_VOLUME_24H: 'perps-statistics-volume-24h',
+  STATISTICS_OPEN_INTEREST: 'perps-statistics-open-interest',
+  STATISTICS_FUNDING_RATE: 'perps-statistics-funding-rate',
+  STATISTICS_FUNDING_COUNTDOWN: 'perps-statistics-funding-countdown',
+  LONG_BUTTON: 'perps-long-button',
+  SHORT_BUTTON: 'perps-short-button',
+};
+
+// ========================================
+// PERPS MARKET HEADER SELECTORS
+// ========================================
+
+export const PerpsMarketHeaderSelectorsIDs = {
+  CONTAINER: 'perps-market-header',
+  BACK_BUTTON: 'perps-market-header-back-button',
+  ASSET_ICON: 'perps-market-header-asset-icon',
+  ASSET_NAME: 'perps-market-header-asset-name',
+  PRICE: 'perps-market-header-price',
+  PRICE_CHANGE: 'perps-market-header-price-change',
+  MORE_BUTTON: 'perps-market-header-more-button',
 };

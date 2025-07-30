@@ -3,24 +3,33 @@ import {
   CaipChainId,
   CaipNamespace,
   parseCaipAccountId,
+  parseCaipChainId,
+  KnownCaipNamespace,
 } from '@metamask/utils';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,
+  getAllScopesFromCaip25CaveatValue,
+  getCaipAccountIdsFromCaip25CaveatValue,
   setChainIdsInCaip25CaveatValue,
   setNonSCACaipAccountIdsInCaip25CaveatValue,
+  getPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
+import { SolScope } from '@metamask/keyring-api';
 import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
+import { getCaip25Caveat } from '../../../core/Permissions';
 
 /**
  * Takes in an incoming value and attempts to return the {@link Caip25CaveatValue}.
  *
  * @param permissions - The value to extract Caip25CaveatValue from, expected to be a {@link PermissionsRequest}
+ * @param origin - The origin of the connection.
  * @returns The {@link Caip25CaveatValue}.
  */
 export function getRequestedCaip25CaveatValue(
   permissions: unknown,
+  origin: string,
 ): Caip25CaveatValue {
   const defaultValue: Caip25CaveatValue = {
     optionalScopes: {},
@@ -80,7 +89,69 @@ export function getRequestedCaip25CaveatValue(
     return defaultValue;
   }
 
-  return caveatValue as Caip25CaveatValue;
+  try {
+    const existingCaveat = getCaip25Caveat(origin);
+
+    const mergedCaveatValue = mergeCaip25Values(
+      existingCaveat.value,
+      caveatValue,
+    );
+
+    return mergedCaveatValue;
+  } catch (e) {
+    return caveatValue as Caip25CaveatValue;
+  }
+}
+
+/**
+ * TODO: Isolate the merger function from @metamask/chain-agnostic-permissions and reuse it here
+ * See https://github.com/MetaMask/MetaMask-planning/issues/5113
+ *
+ * Merges two Caip25CaveatValue objects
+ *
+ * @param first - The first Caip25CaveatValue to merge
+ * @param second - The second Caip25CaveatValue to merge
+ * @returns A new Caip25CaveatValue with merged data
+ */
+function mergeCaip25Values(
+  first: Caip25CaveatValue,
+  second: Caip25CaveatValue,
+): Caip25CaveatValue {
+  const firstAccounts = getCaipAccountIdsFromCaip25CaveatValue(first);
+  const secondAccounts = getCaipAccountIdsFromCaip25CaveatValue(second);
+
+  const mergedAccounts = Array.from(
+    new Set([...firstAccounts, ...secondAccounts]),
+  );
+
+  const firstChainIds = getAllScopesFromCaip25CaveatValue(first);
+  const secondChainIds = getAllScopesFromCaip25CaveatValue(second);
+
+  const mergedChainIds = Array.from(
+    new Set([...firstChainIds, ...secondChainIds]),
+  );
+
+  let mergedCaveatValue = { ...first };
+
+  mergedCaveatValue.sessionProperties = {
+    ...first.sessionProperties,
+    ...second.sessionProperties,
+  };
+
+  mergedCaveatValue.isMultichainOrigin =
+    first.isMultichainOrigin || second.isMultichainOrigin;
+
+  mergedCaveatValue = setChainIdsInCaip25CaveatValue(
+    mergedCaveatValue,
+    mergedChainIds,
+  );
+
+  mergedCaveatValue = setNonSCACaipAccountIdsInCaip25CaveatValue(
+    mergedCaveatValue,
+    mergedAccounts,
+  );
+
+  return mergedCaveatValue;
 }
 
 /**
@@ -195,4 +266,129 @@ export function getDefaultAccounts(
   }
 
   return defaultAccounts;
+}
+
+/**
+ * Gets the default selected chain IDs for a connection request.
+ *
+ * @param params - The parameters for determining default chain IDs.
+ * @param params.isEip1193Request - Whether this is an EIP-1193 request.
+ * @param params.allNetworksList - List of all available networks.
+ * @param params.isOriginWalletConnect - Whether the origin is WalletConnect.
+ * @param params.isOriginMMSDKRemoteConn - Whether the origin is MM SDK remote connection.
+ * @param params.supportedRequestedCaipChainIds - The supported requested chain IDs.
+ * @param params.origin - The origin of the request.
+ * @param params.requestedNamespaces - The requested namespaces.
+ * @returns The default selected chain IDs.
+ */
+export function getDefaultSelectedChainIds({
+  isEip1193Request,
+  allNetworksList,
+  isOriginWalletConnect,
+  isOriginMMSDKRemoteConn,
+  supportedRequestedCaipChainIds,
+  origin,
+  requestedNamespaces,
+}: {
+  isEip1193Request: boolean;
+  allNetworksList: CaipChainId[];
+  isOriginWalletConnect: boolean;
+  isOriginMMSDKRemoteConn: boolean;
+  supportedRequestedCaipChainIds: CaipChainId[];
+  origin: string;
+  requestedNamespaces: CaipNamespace[];
+}): CaipChainId[] {
+  let existingCaveat;
+  try {
+    existingCaveat = getCaip25Caveat(origin);
+  } catch (e) {
+    existingCaveat = undefined;
+  }
+
+  const existingChainIds = existingCaveat?.value
+    ? getAllScopesFromCaip25CaveatValue(existingCaveat.value)
+    : [];
+
+  const requestedNamespaceSet = new Set(requestedNamespaces);
+  const hasSpecificChainsRequested = supportedRequestedCaipChainIds.length > 0;
+
+  // Filter EVM chains from any chain list
+  const filterEvmChains = (chains: CaipChainId[]) =>
+    chains.filter((chain) => {
+      try {
+        return parseCaipChainId(chain).namespace === KnownCaipNamespace.Eip155;
+      } catch {
+        return false;
+      }
+    });
+
+  const allEvmChains = filterEvmChains(allNetworksList);
+  const isEvmOnlyRequest =
+    (isEip1193Request || isOriginWalletConnect || isOriginMMSDKRemoteConn) &&
+    (requestedNamespaces.length === 0 ||
+      (requestedNamespaces.length === 1 &&
+        requestedNamespaces[0] === KnownCaipNamespace.Eip155));
+
+  let chainIds: CaipChainId[] = [];
+
+  // EVM-only request with specific chains
+  if (isEvmOnlyRequest && hasSpecificChainsRequested) {
+    chainIds = filterEvmChains(supportedRequestedCaipChainIds);
+  }
+
+  // EVM-only request without specific chains
+  if (isEvmOnlyRequest && !hasSpecificChainsRequested) {
+    chainIds = [...allEvmChains];
+
+    // Include existing non-EVM permissions
+    if (existingChainIds.length > 0 && existingCaveat) {
+      const existingEvmChainIds = getPermittedEthChainIds(
+        existingCaveat.value,
+      ).map(
+        (chainId) =>
+          `${KnownCaipNamespace.Eip155}:${parseInt(
+            chainId,
+            16,
+          )}` as CaipChainId,
+      );
+      chainIds.push(
+        ...existingChainIds.filter(
+          (chain) => !existingEvmChainIds.includes(chain),
+        ),
+      );
+    }
+  }
+
+  // Multi-chain request with specific chains
+  if (!isEvmOnlyRequest && hasSpecificChainsRequested) {
+    chainIds = [...supportedRequestedCaipChainIds];
+
+    // Add all EVM chains if Eip155 requested but no specific EVM chains provided
+    if (
+      requestedNamespaceSet.has(KnownCaipNamespace.Eip155) &&
+      filterEvmChains(supportedRequestedCaipChainIds).length === 0
+    ) {
+      chainIds.push(...allEvmChains);
+    }
+  }
+
+  // Multi-chain request without specific chains
+  if (!isEvmOnlyRequest && !hasSpecificChainsRequested) {
+    requestedNamespaceSet.forEach((namespace) => {
+      if (namespace === KnownCaipNamespace.Eip155) {
+        chainIds.push(...allEvmChains);
+      }
+      if (namespace === KnownCaipNamespace.Solana) {
+        chainIds.push(SolScope.Mainnet);
+      }
+    });
+
+    // Use all available if no specific namespaces requested
+    if (chainIds.length === 0) {
+      chainIds = [...allNetworksList];
+    }
+  }
+
+  // Merge existing permissions and deduplicate
+  return Array.from(new Set([...chainIds, ...existingChainIds]));
 }

@@ -3,12 +3,15 @@
  */
 
 import {
+  formatPerpsFiat,
   formatPrice,
   formatPnl,
   formatPercentage,
   formatLargeNumber,
   formatPositionSize,
   formatLeverage,
+  parseCurrencyString,
+  parsePercentageString,
 } from './formatUtils';
 
 // Mock the formatWithThreshold utility
@@ -25,6 +28,24 @@ jest.mock('../../../../util/assets', () => ({
 }));
 
 describe('formatUtils', () => {
+  describe('formatPerpsFiat', () => {
+    it('should format balance with default 2 decimal places', () => {
+      expect(formatPerpsFiat(1234.56)).toBe('$1,234.56');
+      expect(formatPerpsFiat('5000')).toBe('$5,000.00');
+      expect(formatPerpsFiat(100)).toBe('$100.00');
+    });
+
+    it('should handle large numbers', () => {
+      expect(formatPerpsFiat(1000000)).toBe('$1,000,000.00');
+      expect(formatPerpsFiat(999999.99)).toBe('$999,999.99');
+      expect(formatPerpsFiat('123456.789')).toBe('$123,456.79');
+    });
+
+    it('should handle small decimal values', () => {
+      expect(formatPerpsFiat(0.1)).toBe('$0.10'); // Currency standard: at least 2 decimals
+    });
+  });
+
   describe('formatPrice', () => {
     it('should format prices >= 1000 with 2 decimal places', () => {
       expect(formatPrice(1234.56)).toBe('$1,234.56');
@@ -236,6 +257,60 @@ describe('formatUtils', () => {
     it('should handle very large leverage values', () => {
       expect(formatLeverage(999.9)).toBe('999.9x');
       expect(formatLeverage('1000')).toBe('1000.0x');
+    });
+  });
+
+  describe('parseCurrencyString', () => {
+    it('should parse formatted currency strings', () => {
+      expect(parseCurrencyString('$1,234.56')).toBe(1234.56);
+      expect(parseCurrencyString('$1,000')).toBe(1000);
+      expect(parseCurrencyString('$0.00')).toBe(0);
+      expect(parseCurrencyString('$-123.45')).toBe(-123.45);
+    });
+
+    it('should handle strings without currency symbols', () => {
+      expect(parseCurrencyString('1234.56')).toBe(1234.56);
+      expect(parseCurrencyString('1,000')).toBe(1000);
+    });
+
+    it('should handle invalid inputs', () => {
+      expect(parseCurrencyString('')).toBe(0);
+      expect(parseCurrencyString('invalid')).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parseCurrencyString(null as any)).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parseCurrencyString(undefined as any)).toBe(0);
+    });
+  });
+
+  describe('parsePercentageString', () => {
+    it('should parse formatted percentage strings', () => {
+      expect(parsePercentageString('+2.50%')).toBe(2.5);
+      expect(parsePercentageString('-10.75%')).toBe(-10.75);
+      expect(parsePercentageString('5%')).toBe(5);
+      expect(parsePercentageString('0%')).toBe(0);
+      expect(parsePercentageString('+0.00%')).toBe(0);
+    });
+
+    it('should handle strings without percentage symbols', () => {
+      expect(parsePercentageString('2.5')).toBe(2.5);
+      expect(parsePercentageString('-10.75')).toBe(-10.75);
+      expect(parsePercentageString('+5')).toBe(5);
+    });
+
+    it('should handle spaces in the string', () => {
+      expect(parsePercentageString('+ 2.50 %')).toBe(2.5);
+      expect(parsePercentageString(' -10.75% ')).toBe(-10.75);
+    });
+
+    it('should handle invalid inputs', () => {
+      expect(parsePercentageString('')).toBe(0);
+      expect(parsePercentageString('abc')).toBe(0);
+      expect(parsePercentageString('%')).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parsePercentageString(undefined as any)).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parsePercentageString(null as any)).toBe(0);
     });
   });
 });

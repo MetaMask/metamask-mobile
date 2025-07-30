@@ -116,43 +116,116 @@ export class CardSDK {
     return accountsApi;
   }
 
+  /**
+   * Checks if the given accounts are cardholders by querying the accounts API.
+   * Supports batching for performance optimization - processes up to 3 batches of 50 accounts each.
+   *
+   * @param accounts - Array of account IDs to check
+   * @returns Promise resolving to object containing array of cardholder accounts
+   */
   isCardHolder = async (
     accounts: `eip155:${string}:0x${string}`[],
-  ): Promise<boolean> => {
-    if (!this.isCardEnabled || !accounts || accounts.length === 0) {
-      return false;
+  ): Promise<{
+    cardholderAccounts: `eip155:${string}:0x${string}`[];
+  }> => {
+    // Early return for invalid input or disabled feature
+    if (!this.isCardEnabled || !accounts?.length) {
+      return { cardholderAccounts: [] };
     }
 
-    if (accounts.length > 50) {
-      Logger.log('isCardHolder called with more than 50 accounts');
-      return false;
+    const BATCH_SIZE = 50;
+    const MAX_BATCHES = 3;
+
+    // Single batch optimization - no need for complex batching logic
+    if (accounts.length <= BATCH_SIZE) {
+      return await this.performCardholderRequest(accounts);
     }
 
+    // Multi-batch processing for large account sets
+    return await this.processBatchedCardholderRequests(
+      accounts,
+      BATCH_SIZE,
+      MAX_BATCHES,
+    );
+  };
+
+  /**
+   * Performs a single API request to check if accounts are cardholders
+   */
+  private async performCardholderRequest(
+    accountIds: string[],
+  ): Promise<{ cardholderAccounts: `eip155:${string}:0x${string}`[] }> {
     try {
-      const url = new URL('v1/metadata', this.accountsApiUrl);
-      url.searchParams.set('accountIds', accounts.join(',').toLowerCase());
-      url.searchParams.set('label', 'card_user');
-
+      const url = this.buildCardholderApiUrl(accountIds);
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error('Failed to check if address is a card holder');
+        throw new Error(`API request failed with status: ${response.status}`);
       }
 
       const data = await response.json();
-
-      // Check if the response contains the account ID with 'is' label
-      return accounts.some((account) =>
-        data.is?.includes(account.toLowerCase()),
-      );
+      return {
+        cardholderAccounts: data.is || [],
+      };
     } catch (error) {
       Logger.error(
         error as Error,
         'Failed to check if address is a card holder',
       );
-      return false;
+      return { cardholderAccounts: [] };
     }
-  };
+  }
+
+  /**
+   * Builds the API URL for cardholder checking requests
+   */
+  private buildCardholderApiUrl(accountIds: string[]): URL {
+    const url = new URL('v1/metadata', this.accountsApiUrl);
+    url.searchParams.set('accountIds', accountIds.join(',').toLowerCase());
+    url.searchParams.set('label', 'card_user');
+    return url;
+  }
+
+  /**
+   * Processes multiple batches of accounts to check cardholder status
+   */
+  private async processBatchedCardholderRequests(
+    accounts: `eip155:${string}:0x${string}`[],
+    batchSize: number,
+    maxBatches: number,
+  ): Promise<{ cardholderAccounts: `eip155:${string}:0x${string}`[] }> {
+    const batches = this.createAccountBatches(accounts, batchSize, maxBatches);
+    const batchPromises = batches.map((batch) =>
+      this.performCardholderRequest(batch),
+    );
+
+    const results = await Promise.all(batchPromises);
+    const allCardholderAccounts = results.flatMap(
+      (result) => result.cardholderAccounts,
+    );
+
+    return { cardholderAccounts: allCardholderAccounts };
+  }
+
+  /**
+   * Creates batches of accounts for API processing
+   */
+  private createAccountBatches(
+    accounts: `eip155:${string}:0x${string}`[],
+    batchSize: number,
+    maxBatches: number,
+  ): `eip155:${string}:0x${string}`[][] {
+    const batches: `eip155:${string}:0x${string}`[][] = [];
+    let remainingAccounts = accounts;
+
+    while (remainingAccounts.length > 0 && batches.length < maxBatches) {
+      const batch = remainingAccounts.slice(0, batchSize);
+      remainingAccounts = remainingAccounts.slice(batchSize);
+      batches.push(batch);
+    }
+
+    return batches;
+  }
 
   getGeoLocation = async (): Promise<string> => {
     try {

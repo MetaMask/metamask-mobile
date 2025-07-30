@@ -13,7 +13,7 @@ import {
   selectChainId,
   selectEvmTicker,
 } from '../../../selectors/networkController';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { swapsLivenessMultichainSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
@@ -63,6 +63,7 @@ import { selectMultichainTokenListForAccountId } from '../../../selectors/multic
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { isSendRedesignEnabled } from '../confirmations/utils/confirm';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -73,7 +74,7 @@ const WalletActions = () => {
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector(swapsLivenessMultichainSelector);
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
@@ -296,6 +297,15 @@ const WalletActions = () => {
       );
     }
 
+    if (isSendRedesignEnabled()) {
+      closeBottomSheetAndNavigate(() => {
+        navigate(Routes.SEND.DEFAULT, {
+          screen: Routes.SEND.ROOT,
+        });
+      });
+      return;
+    }
+
     closeBottomSheetAndNavigate(() => {
       if (
         !assetToSend ||
@@ -353,6 +363,14 @@ const WalletActions = () => {
 
   const onPerps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
+      navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
+  const onPerpsSandbox = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
       navigate(Routes.PERPS.ROOT);
     });
   }, [closeBottomSheetAndNavigate, navigate]);
@@ -379,6 +397,16 @@ const WalletActions = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
+        {isDepositEnabled && (
+          <WalletAction
+            actionType={WalletActionType.Deposit}
+            iconName={IconName.Cash}
+            onPress={onDeposit}
+            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+          />
+        )}
         {isNetworkRampSupported && (
           <WalletAction
             actionType={WalletActionType.Buy}
@@ -398,16 +426,6 @@ const WalletActions = () => {
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
-          />
-        )}
-        {isDepositEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Deposit}
-            iconName={IconName.Cash}
-            onPress={onDeposit}
-            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
           />
         )}
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
@@ -441,6 +459,17 @@ const WalletActions = () => {
             onPress={onPerps}
             actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
             iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
+        {isPerpsEnabled && (
+          <WalletAction
+            actionType={WalletActionType.PerpsSandbox}
+            iconName={IconName.Arrow2Right}
+            onPress={onPerpsSandbox}
+            iconStyle={sendIconStyle}
+            actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_SANDBOX_BUTTON}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
           />
