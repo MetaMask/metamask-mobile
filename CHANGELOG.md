@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - feat(bridge): add support for deep link parameters in bridge view ([#17187](https://github.com/MetaMask/metamask-mobile/pull/17187))
 
 ### Fixed
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.50.1]
 
 ### Fixed
+
 - fix: default to main code fence and opt-in for beta ([#16599](https://github.com/MetaMask/metamask-mobile/pull/16599))/
 
 ## [7.50.0]
