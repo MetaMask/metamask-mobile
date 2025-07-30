@@ -13,12 +13,19 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
   selectSelectedInternalAccount,
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
   selectLastSelectedSolanaAccount,
+  ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors/accountsController';
-import { isEvmAccountType, SolAccountType } from '@metamask/keyring-api';
+import {
+  isEvmAccountType,
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  SolAccountType,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
+///: BEGIN:ONLY_INCLUDE_IF(solana)
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
