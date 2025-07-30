@@ -379,6 +379,7 @@ const BridgeView = () => {
           {blockaidError && (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
+              title={strings('bridge.blockaid_error_title')}
               description={blockaidError}
             />
           )}
