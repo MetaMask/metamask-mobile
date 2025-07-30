@@ -1,30 +1,20 @@
-import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../Box/Box';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PerpsQuoteDetailsCard.styles';
-import { selectSlippage } from '../../../../../core/redux/slices/bridge';
-import Routes from '../../../../../constants/navigation/Routes';
-import { FlexDirection, AlignItems } from '../../../Box/box.types';
+
+export type QuoteDirection = 'deposit' | 'withdrawal';
 
 interface PerpsQuoteDetailsCardProps {
   networkFee: string;
   estimatedTime?: string;
   rate: string;
   metamaskFee?: string;
+  direction?: QuoteDirection;
 }
 
 const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
@@ -32,21 +22,9 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
   estimatedTime,
   rate,
   metamaskFee = '$0.00',
+  direction = 'deposit',
 }) => {
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
-  const slippage = useSelector(selectSlippage);
-
-  const handleSlippagePress = useCallback(() => {
-    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.SLIPPAGE_MODAL,
-    });
-  }, [navigation]);
-
-  const displaySlippage =
-    slippage === undefined || slippage === null
-      ? strings('perps.deposit.slippage_auto')
-      : `${slippage}%`;
 
   return (
     <Box style={styles.container}>
@@ -54,7 +32,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         <KeyValueRow
           field={{
             label: {
-              text: strings('perps.deposit.network_fee'),
+              text: strings('perps.quote.network_fee'),
               variant: TextVariant.BodyMDMedium,
             },
           }}
@@ -70,12 +48,12 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         <KeyValueRow
           field={{
             label: {
-              text: strings('perps.deposit.metamask_fee'),
+              text: strings('perps.quote.metamask_fee'),
               variant: TextVariant.BodyMDMedium,
             },
             tooltip: {
-              title: strings('perps.deposit.metamask_fee'),
-              content: strings('perps.deposit.metamask_fee_tooltip'),
+              title: strings('perps.quote.metamask_fee'),
+              content: strings(`perps.quote.metamask_fee_tooltip_${direction}`),
               size: TooltipSizes.Sm,
             },
           }}
@@ -92,7 +70,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           <KeyValueRow
             field={{
               label: {
-                text: strings('perps.deposit.estimated_time'),
+                text: strings('perps.quote.estimated_time'),
                 variant: TextVariant.BodyMDMedium,
               },
             }}
@@ -109,48 +87,13 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         <KeyValueRow
           field={{
             label: {
-              text: strings('perps.deposit.rate'),
+              text: strings('perps.quote.rate'),
               variant: TextVariant.BodyMDMedium,
             },
           }}
           value={{
             label: {
               text: rate,
-              variant: TextVariant.BodyMD,
-            },
-          }}
-          style={styles.quoteRow}
-        />
-
-        <KeyValueRow
-          field={{
-            label: (
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                gap={4}
-              >
-                <TouchableOpacity
-                  onPress={handleSlippagePress}
-                  activeOpacity={0.6}
-                  testID="edit-slippage-button"
-                  style={styles.slippageButton}
-                >
-                  <Text variant={TextVariant.BodyMDMedium}>
-                    {strings('perps.deposit.slippage')}
-                  </Text>
-                  <Icon
-                    name={IconName.Edit}
-                    size={IconSize.Sm}
-                    color={IconColor.Muted}
-                  />
-                </TouchableOpacity>
-              </Box>
-            ),
-          }}
-          value={{
-            label: {
-              text: displaySlippage,
               variant: TextVariant.BodyMD,
             },
           }}

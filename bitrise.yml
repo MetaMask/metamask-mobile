@@ -168,12 +168,12 @@ stages:
       - build_ios_simbuild: {}
   create_build_release:
     workflows:
-      - build_android_release: {}
-      - build_ios_release: {}
+      - build_android_main_prod: {}
+      - build_ios_main_prod: {}
   create_build_beta:
     workflows:
-      - build_android_beta: {}
-      - build_ios_beta: {}
+      - build_android_main_beta: {}
+      - build_ios_main_beta: {}
   deploy_build_release:
     workflows:
       - deploy_android_to_store: {}
@@ -186,7 +186,7 @@ stages:
       - deploy_ios_to_store: {}
   create_android_release:
     workflows:
-      - build_android_release: {}
+      - build_android_main_prod: {}
   create_android_release_new:
     workflows:
       - build_android_main_prod: {}
@@ -1148,7 +1148,7 @@ workflows:
       - wait-for-android-emulator@1: {}
       - script@1:
           title: Run detox test
-          timeout: 1200
+          timeout: 1800
           is_always_run: false
           inputs:
             - content: |-
@@ -1444,7 +1444,7 @@ workflows:
           title: Set Env Path for caching deps
       - script@1:
           title: Run detox test
-          timeout: 1200
+          timeout: 1800
           is_always_run: false
           inputs:
             - content: |-
@@ -1606,7 +1606,7 @@ workflows:
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
           title: Run detox build
-          timeout: 1200
+          timeout: 1800
           is_always_run: true
           inputs:
             - content: |-
@@ -1753,7 +1753,7 @@ workflows:
                 xcrun simctl list | grep Booted
       - script@1:
           title: Run detox test
-          timeout: 1200
+          timeout: 1800
           is_always_run: false
           inputs:
             - content: |-
@@ -2175,7 +2175,7 @@ workflows:
                 envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - script@1:
           title: Run detox build
-          timeout: 1200
+          timeout: 1800
           is_always_run: true
           inputs:
             - content: |-
@@ -3256,16 +3256,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.50.1
+      VERSION_NAME: 7.51.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2103
+      VERSION_NUMBER: 2203
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.50.1
+      FLASK_VERSION_NAME: 7.51.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2103
+      FLASK_VERSION_NUMBER: 2203
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -3292,7 +3292,7 @@ app:
       COREPACK_VERSION: 0.28.0
     - opts:
         is_expand: false
-      WEB3AUTH_NETWORK: 'sapphire_devnet'
+      SEEDLESS_ONBOARDING_ENABLED: true
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x

@@ -1,17 +1,17 @@
-import type {
-  OrderParams as PerpsOrderParams,
-  Position,
-  MarketInfo,
-  AccountState,
-} from '../controllers/types';
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
 import type {
-  PerpsClearinghouseState,
   AssetPosition,
+  PerpsClearinghouseState,
   SpotClearinghouseState,
 } from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
 import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
 import { isHexString } from '@metamask/utils';
+import type {
+  AccountState,
+  MarketInfo,
+  OrderParams as PerpsOrderParams,
+  Position,
+} from '../controllers/types';
 
 /**
  * HyperLiquid SDK Adapter Utilities
@@ -71,7 +71,12 @@ export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
     positionValue: pos.positionValue,
     unrealizedPnl: pos.unrealizedPnl,
     marginUsed: pos.marginUsed,
-    leverage: pos.leverage,
+    leverage: {
+      type: pos.leverage.type,
+      value: pos.leverage.value,
+      rawUsd:
+        pos.leverage.type === 'isolated' ? pos.leverage.rawUsd : undefined,
+    },
     liquidationPrice: pos.liquidationPx,
     maxLeverage: pos.maxLeverage,
     returnOnEquity: pos.returnOnEquity,
