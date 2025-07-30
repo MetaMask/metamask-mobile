@@ -90,16 +90,17 @@ export const recreateVaultWithNewPassword = async (
 ) => {
   const { KeyringController } = Engine.context;
 
+  await KeyringController.changePassword(newPassword);
+
   const isSeedlessFlow = selectSeedlessOnboardingLoginFlow(
     ReduxService.store.getState(),
   );
   if (isSeedlessFlow) {
-    await seedlessChangePassword(newPassword, password);
-  }
-
-  await KeyringController.changePassword(newPassword);
-
-  if (isSeedlessFlow) {
+    try {
+      await seedlessChangePassword(newPassword, password);
+    } catch {
+      await KeyringController.changePassword(password);
+    }
     await Authentication.syncKeyringEncryptionKey();
   }
 
