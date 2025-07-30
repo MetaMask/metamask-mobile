@@ -39,6 +39,12 @@ export class HyperLiquidSubscriptionService {
   private positionSubscribers = new Set<(positions: Position[]) => void>();
   private orderFillSubscribers = new Set<(fills: OrderFill[]) => void>();
 
+  // Track which subscribers want market data
+  private marketDataSubscribers = new Map<
+    string,
+    Set<(prices: PriceUpdate[]) => void>
+  >();
+
   // Global singleton subscriptions
   private globalAllMidsSubscription?: Subscription;
   private globalActiveAssetSubscriptions = new Map<string, Subscription>();
@@ -85,13 +91,24 @@ export class HyperLiquidSubscriptionService {
    * Uses allMids for fast price updates and activeAssetCtx for market data
    */
   public subscribeToPrices(params: SubscribePricesParams): () => void {
-    const { symbols, callback, includeOrderBook = false } = params;
+    const {
+      symbols,
+      callback,
+      includeOrderBook = false,
+      includeMarketData = false,
+    } = params;
     const unsubscribers: (() => void)[] = [];
 
     symbols.forEach((symbol) => {
       unsubscribers.push(
         this.createSubscription(this.priceSubscribers, callback, symbol),
       );
+      // Track market data subscribers separately
+      if (includeMarketData) {
+        unsubscribers.push(
+          this.createSubscription(this.marketDataSubscribers, callback, symbol),
+        );
+      }
     });
 
     this.clientService.ensureSubscriptionClient(
@@ -107,7 +124,10 @@ export class HyperLiquidSubscriptionService {
     // Ensure global subscriptions are established
     this.ensureGlobalAllMidsSubscription();
     symbols.forEach((symbol) => {
-      this.ensureActiveAssetSubscription(symbol);
+      // Subscribe to activeAssetCtx only when market data is requested
+      if (includeMarketData) {
+        this.ensureActiveAssetSubscription(symbol);
+      }
       if (includeOrderBook) {
         this.ensureL2BookSubscription(symbol);
       }
@@ -124,9 +144,11 @@ export class HyperLiquidSubscriptionService {
     // Return cleanup function
     return () => {
       unsubscribers.forEach((fn) => fn());
-      // Cleanup active asset subscriptions with reference counting
+      // Cleanup subscriptions with reference counting
       symbols.forEach((symbol) => {
-        this.cleanupActiveAssetSubscription(symbol);
+        if (includeMarketData) {
+          this.cleanupActiveAssetSubscription(symbol);
+        }
         if (includeOrderBook) {
           this.cleanupL2BookSubscription(symbol);
         }
@@ -310,6 +332,11 @@ export class HyperLiquidSubscriptionService {
       percentChange24h = change.toFixed(2);
     }
 
+    // Check if any subscriber for this symbol wants market data
+    const hasMarketDataSubscribers =
+      this.marketDataSubscribers.has(symbol) &&
+      (this.marketDataSubscribers.get(symbol)?.size ?? 0) > 0;
+
     return {
       coin: symbol,
       price, // This is the mid price from allMids
@@ -323,6 +350,12 @@ export class HyperLiquidSubscriptionService {
       bestBid: orderBookData?.bestBid,
       bestAsk: orderBookData?.bestAsk,
       spread: orderBookData?.spread,
+      // Add market data only if requested by at least one subscriber
+      funding: hasMarketDataSubscribers ? marketData?.funding : undefined,
+      openInterest: hasMarketDataSubscribers
+        ? marketData?.openInterest
+        : undefined,
+      volume24h: hasMarketDataSubscribers ? marketData?.volume24h : undefined,
     };
   }
 
@@ -560,6 +593,7 @@ export class HyperLiquidSubscriptionService {
     this.priceSubscribers.clear();
     this.positionSubscribers.clear();
     this.orderFillSubscribers.clear();
+    this.marketDataSubscribers.clear();
 
     // Clear cached data
     this.cachedPriceData.clear();

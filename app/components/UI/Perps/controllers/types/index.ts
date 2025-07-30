@@ -255,6 +255,10 @@ export interface PriceUpdate {
   bestAsk?: string; // Best ask price (lowest price sellers are willing to accept)
   spread?: string; // Ask - Bid spread
   markPrice?: string; // Mark price from oracle (used for liquidations)
+  // Market data (only available when includeMarketData is true)
+  funding?: number; // Current funding rate
+  openInterest?: number; // Open interest in USD
+  volume24h?: number; // 24h trading volume in USD
 }
 
 export interface OrderFill {
@@ -290,6 +294,7 @@ export interface SubscribePricesParams {
   callback: (prices: PriceUpdate[]) => void;
   throttleMs?: number; // Future: per-subscription throttling
   includeOrderBook?: boolean; // Optional: include bid/ask data from L2 book
+  includeMarketData?: boolean; // Optional: include funding, open interest, volume data
 }
 
 export interface SubscribePositionsParams {
