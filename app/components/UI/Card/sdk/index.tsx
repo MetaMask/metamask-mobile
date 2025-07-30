@@ -64,6 +64,14 @@ export const useCardSDK = () => {
   return contextValue;
 };
 
+export const withCardSDK =
+  (Component: React.ComponentType) => (props: Record<string, unknown>) =>
+    (
+      <CardSDKProvider>
+        <Component {...props} />
+      </CardSDKProvider>
+    );
+
 export const CardVerification: React.FC = () => {
   useCardholderCheck();
 

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -17,12 +17,13 @@ import Text, {
 import {
   NavigationProp,
   ParamListBase,
+  useFocusEffect,
   useNavigation,
 } from '@react-navigation/native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -36,7 +37,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { strings } from '../../../../../../locales/i18n';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
@@ -47,9 +47,23 @@ import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../../Bridge/hooks/useSwapBridgeNavigation';
-import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import CardImage from '../../components/CardImage';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { selectCardholderAccounts } from '../../../../../core/redux/slices/card';
+import Logger from '../../../../../util/Logger';
+import { selectChainId } from '../../../../../selectors/networkController';
+import {
+  setDestToken,
+  setSourceToken,
+} from '../../../../../core/redux/slices/bridge';
+import { BridgeToken } from '../../../Bridge/types';
+import { Hex } from '@metamask/utils';
+import {
+  selectEvmTokenFiatBalances,
+  selectEvmTokens,
+} from '../../../../../selectors/multichain';
+import { getHighestFiatToken } from '../../util/getHighestFiatToken';
 
 /**
  * CardHome Component
@@ -63,35 +77,113 @@ import CardImage from '../../components/CardImage';
  * @returns JSX element representing the card home screen
  */
 const CardHome = () => {
-  const [retries, setRetries] = React.useState(0);
+  const dispatch = useDispatch();
+  const { PreferencesController, NetworkController } = Engine.context;
+  const [error, setError] = useState<boolean>(false);
+  const [isLoadingNetworkChange, setIsLoadingNetworkChange] = useState(false);
+  const [retries, setRetries] = useState(0);
 
   const navigation = useNavigation();
   const theme = useTheme();
 
   const styles = createStyles(theme);
 
-  const currentAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
   const privacyMode = useSelector(selectPrivacyMode);
-  const { PreferencesController } = Engine.context;
+  const selectedChainId = useSelector(selectChainId);
+  const cardholderAddresses = useSelector(selectCardholderAccounts);
+  const evmTokens = useSelector(selectEvmTokens);
+  const tokenFiatBalances = useSelector(selectEvmTokenFiatBalances);
+
+  const tokens = useMemo(
+    () =>
+      evmTokens.map((token, i) => ({
+        ...token,
+        tokenFiatAmount: tokenFiatBalances[i],
+      })),
+    [evmTokens, tokenFiatBalances],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        if (selectedChainId !== LINEA_CHAIN_ID) {
+          const id =
+            NetworkController.findNetworkClientIdByChainId(LINEA_CHAIN_ID);
+
+          try {
+            if (id) {
+              setIsLoadingNetworkChange(true);
+              await NetworkController.setActiveNetwork(id);
+            }
+          } catch (err) {
+            const mappedError =
+              err instanceof Error ? err : new Error(String(err));
+            Logger.error(mappedError, 'CardHome::Error setting active network');
+            setError(true);
+          } finally {
+            setIsLoadingNetworkChange(false);
+          }
+        }
+      })();
+    }, [NetworkController, selectedChainId]),
+  );
 
   const {
     priorityToken,
     fetchPriorityToken,
     isLoading: isLoadingPriorityToken,
     error: errorPriorityToken,
-  } = useGetPriorityCardToken(currentAddress);
+  } = useGetPriorityCardToken(cardholderAddresses?.[0]);
   const { balanceFiat, asset } = useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
-  const { goToBridge } = useSwapBridgeNavigation({
+  const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: Routes.CARD.HOME,
-    token: {
+  });
+
+  const swapDestinationToken = useMemo(() => {
+    if (!priorityToken) return undefined;
+    return {
       ...priorityToken,
       image: asset?.image,
-    } as BridgeToken,
-  });
+    } as BridgeToken;
+  }, [priorityToken, asset]);
+
+  const swapSourceToken = useMemo(() => {
+    if (cardholderAddresses?.[0] && priorityToken) {
+      const topToken = getHighestFiatToken(
+        tokens,
+        priorityToken.address as Hex,
+      );
+
+      if (!topToken?.isETH) {
+        return topToken;
+      }
+    }
+  }, [cardholderAddresses, priorityToken, tokens]);
+
+  const openSwaps = useCallback(() => {
+    if (swapDestinationToken) {
+      dispatch(setDestToken(swapDestinationToken));
+
+      if (swapSourceToken) {
+        dispatch(
+          setSourceToken({
+            chainId: swapSourceToken.chainId as Hex,
+            address: swapSourceToken.address,
+            decimals: swapSourceToken.decimals,
+            symbol: swapSourceToken.symbol,
+            balance: swapSourceToken.balance,
+            image: swapSourceToken.image,
+            balanceFiat: swapSourceToken.balanceFiat,
+            name: swapSourceToken.name,
+          }),
+        );
+      }
+
+      goToSwaps();
+    }
+  }, [goToSwaps, dispatch, swapDestinationToken, swapSourceToken]);
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -100,10 +192,17 @@ const CardHome = () => {
     [PreferencesController],
   );
 
-  const isAllowanceLimited =
-    priorityToken?.allowanceState === AllowanceState.Limited;
+  const isAllowanceLimited = useMemo(
+    () => priorityToken?.allowanceState === AllowanceState.Limited,
+    [priorityToken],
+  );
 
-  if (errorPriorityToken) {
+  const isLoading = useMemo(
+    () => isLoadingPriorityToken || isLoadingNetworkChange,
+    [isLoadingPriorityToken, isLoadingNetworkChange],
+  );
+
+  if (errorPriorityToken || error || (!isLoading && !priorityToken)) {
     return (
       <View style={styles.errorContainer}>
         <Icon
@@ -142,7 +241,7 @@ const CardHome = () => {
     );
   }
 
-  if (isLoadingPriorityToken) {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator
@@ -186,8 +285,39 @@ const CardHome = () => {
               />
             </TouchableOpacity>
           </View>
+          {isAllowanceLimited && (
+            <View
+              style={[
+                styles.limitedAllowanceWarningContainer,
+                styles.defaultHorizontalPadding,
+              ]}
+            >
+              <Text>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={theme.colors.text.alternative}
+                >
+                  {strings('card.card_home.limited_spending_warning', {
+                    manageCard: '',
+                  })}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={theme.colors.text.alternative}
+                  style={styles.limitedAllowanceManageCardText}
+                >
+                  {strings('card.card_home.manage_card_options.manage_card')}
+                  {'.'}
+                </Text>
+              </Text>
+            </View>
+          )}
           <View
-            style={[styles.cardImageContainer, styles.defaultHorizontalPadding]}
+            style={[
+              styles.cardImageContainer,
+              styles.defaultHorizontalPadding,
+              isAllowanceLimited && styles.defaultMarginTop,
+            ]}
           >
             <CardImage />
           </View>
@@ -204,46 +334,18 @@ const CardHome = () => {
               disabled
             />
           </View>
-          {isAllowanceLimited && (
-            <>
-              <View style={styles.divider} />
-              <View
-                style={[
-                  styles.limitedAllowanceWarningContainer,
-                  styles.defaultHorizontalPadding,
-                ]}
-              >
-                <Text>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={theme.colors.text.alternative}
-                  >
-                    {strings('card.card_home.limited_spending_warning')}
-                  </Text>{' '}
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={theme.colors.text.alternative}
-                    style={styles.limitedAllowanceManageCardText}
-                  >
-                    {strings('card.card_home.manage_card_options.manage_card')}
-                    {'.'}
-                  </Text>
-                </Text>
-              </View>
-            </>
-          )}
+
           <View
             style={[
               styles.addFundsButtonContainer,
               styles.defaultHorizontalPadding,
-              isAllowanceLimited && styles.defaultMarginTop,
             ]}
           >
             <Button
               variant={ButtonVariants.Primary}
               label={strings('card.card_home.add_funds')}
               size={ButtonSize.Sm}
-              onPress={goToBridge}
+              onPress={openSwaps}
               width={ButtonWidthTypes.Full}
               testID="add-funds-button"
             />

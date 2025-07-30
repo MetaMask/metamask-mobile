@@ -45,10 +45,11 @@ const createStyles = (theme: Theme) =>
       justifyContent: 'space-between',
       flexDirection: 'row',
       width: '100%',
-      marginBottom: 16,
+      marginBottom: 8,
     },
     cardImageContainer: {
       width: '100%',
+      marginTop: 8,
     },
     cardAssetItemContainer: {
       height: 80,
@@ -58,7 +59,6 @@ const createStyles = (theme: Theme) =>
     },
     limitedAllowanceWarningContainer: {
       width: '100%',
-      marginTop: 12,
     },
     limitedAllowanceManageCardText: {
       fontWeight: 'bold',
