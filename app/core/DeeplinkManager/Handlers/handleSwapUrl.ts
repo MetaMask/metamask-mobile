@@ -5,6 +5,7 @@ import { fetchBridgeTokens, BridgeClientId } from '@metamask/bridge-controller';
 import { handleFetch } from '@metamask/controller-utils';
 import { BRIDGE_API_BASE_URL } from '../../../constants/bridge';
 import { BridgeToken } from '../../../components/UI/Bridge/types';
+import Routes from '../../../constants/navigation/Routes';
 
 interface HandleSwapUrlParams {
   swapPath: string;
@@ -128,8 +129,8 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
         : undefined;
 
     // Navigate to bridge view with deep link parameters
-    NavigationService.navigation.navigate('Bridge', {
-      screen: 'BridgeView',
+    NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
       params: {
         sourceToken,
         destToken,
@@ -140,8 +141,8 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
   } catch (error) {
     // Deep link processing failed - fallback to bridge view without parameters
     // This ensures the deep link never breaks the user experience
-    NavigationService.navigation.navigate('Bridge', {
-      screen: 'BridgeView',
+    NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
       params: {
         sourcePage: 'deeplink',
       },
