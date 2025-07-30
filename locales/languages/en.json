@@ -3037,7 +3037,7 @@
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "action": "Save your Secret Recovery Phrase",
     "info-1": "This is your",
-    "info-2": "Secret Recovery Phrase",
+    "info-2": "Secret Recovery Phrase.",
     "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
     "info-4": "Don’t share it with anyone, ever.",
     "continue": "Continue",

@@ -166,7 +166,7 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Secret Recovery Phrase
+                  Secret Recovery Phrase.
                    
                 </Text>
                 Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.
@@ -276,7 +276,7 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#3f434a66"
+                      color="#121314"
                       fill="currentColor"
                       height={32}
                       name="EyeSlash"
@@ -332,6 +332,7 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
                   "width": "100%",
                 },
                 {
+                  "marginBottom": 0,
                   "paddingHorizontal": 0,
                 },
               ]
