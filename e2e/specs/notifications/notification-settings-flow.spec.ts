@@ -10,7 +10,7 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { startMockServer } from '../../api-mocking/mock-server';
 import { getMockServerPort } from '../../fixtures/utils';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
@@ -21,10 +21,6 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     const mockServerPort = getMockServerPort();
     mockServer = await startMockServer({}, mockServerPort);
     await mockNotificationServices(mockServer);
-  });
-
-  afterAll(async () => {
-    await stopMockServer(mockServer);
   });
 
   it('should enable notifications and toggle feature announcements and account notifications', async () => {
