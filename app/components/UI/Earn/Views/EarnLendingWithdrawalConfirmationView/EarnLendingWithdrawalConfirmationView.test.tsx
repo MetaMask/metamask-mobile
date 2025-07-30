@@ -140,8 +140,10 @@ const mockLineaAUsdc = {
 jest.mock('../../hooks/useEarnToken', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
-    outputToken: mockLineaAUsdc,
-    earnToken: MOCK_USDC_MAINNET_ASSET,
+    earnTokenPair: {
+      earnToken: MOCK_USDC_MAINNET_ASSET,
+      outputToken: mockLineaAUsdc,
+    },
     getTokenSnapshot: jest.fn(),
   })),
 }));
@@ -379,8 +381,10 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
   it('handles token import and confirmation via subscription listener when no earnToken is present', async () => {
     // Update the mock to return no earnToken
     (useEarnToken as jest.Mock).mockReturnValueOnce({
-      outputToken: mockLineaAUsdc,
-      earnToken: null,
+      earnTokenPair: {
+        earnToken: null,
+        outputToken: mockLineaAUsdc,
+      },
       getTokenSnapshot: jest.fn(),
     });
 
@@ -445,6 +449,94 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     });
 
     expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle error adding counter-token on confirmation', async () => {
+    // Update the mock to return no earnToken
+    (useEarnToken as jest.Mock).mockReturnValueOnce({
+      earnTokenPair: {
+        earnToken: null,
+        outputToken: mockLineaAUsdc,
+      },
+      getTokenSnapshot: jest.fn(),
+    });
+
+    (
+      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
+    ).mockImplementationOnce(() => {
+      throw new Error('Invalid chain ID');
+    });
+
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {
+        // Do nothing
+      });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingWithdrawalConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerConfirmationButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    // Mock the subscription callback
+    let subscriptionCallback:
+      | ((event: { transaction: { hash: string; status: string } }) => void)
+      | undefined;
+    (
+      Engine.controllerMessenger.subscribeOnceIf as jest.Mock
+    ).mockImplementation((event, callback) => {
+      if (event === 'TransactionController:transactionConfirmed') {
+        subscriptionCallback = callback;
+      }
+      return () => {
+        // Cleanup function
+      };
+    });
+
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
+
+    // Simulate transaction submission
+    await act(async () => {
+      if (subscriptionCallback) {
+        subscriptionCallback({
+          transaction: {
+            hash: '0x123',
+            status: 'submitted',
+          },
+        });
+      }
+    });
+
+    // Verify the transaction was executed
+    expect(
+      Engine.context.EarnController.executeLendingWithdraw,
+    ).toHaveBeenCalledWith({
+      amount: '1000000',
+      gasOptions: {
+        gasLimit: 'none',
+      },
+      protocol: LendingProtocol.AAVE,
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'linea-mainnet',
+        origin: 'metamask',
+        type: 'lendingWithdraw',
+      },
+      underlyingTokenAddress: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+
+    // Clean up the spy
+    consoleErrorSpy.mockRestore();
   });
 
   it('should use MaxUint256 when amountTokenMinimalUnit equals balanceMinimalUnit', async () => {

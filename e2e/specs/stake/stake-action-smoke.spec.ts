@@ -109,7 +109,7 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
     await ImportAccountView.enterPrivateKey(
-      process.env.MM_STAKE_TEST_ACCOUNT_PRIVATE_KEY,
+      process.env.MM_STAKE_TEST_ACCOUNT_PRIVATE_KEY || '',
     );
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
@@ -246,10 +246,15 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await Assertions.checkIfNotVisible(WalletView.stakedEthereumLabel);
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
+
+    // Scroll to top first to ensure consistent starting position
+    await WalletView.scrollToBottomOfTokensList();
+
     // 3rd one is Linea Network
+    await WalletView.scrollToToken('Ethereum');
+
     await WalletView.tapOnToken('Ethereum', THIRD_ONE);
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(3000);
     await Assertions.checkIfNotVisible(TokenOverview.stakedBalance);
     await Assertions.checkIfNotVisible(TokenOverview.unstakingBanner);
     await Assertions.checkIfNotVisible(TokenOverview.unstakeButton);

@@ -303,7 +303,122 @@ describe('rpc-domain-utils', () => {
         expect(result).toBe('known-domain.com');
       });
     });
+
+    describe('Security tests for provider domain validation', () => {
+      beforeEach(async () => {
+        setupTestEnvironment();
+        const mockChains: SafeChain[] = [
+          {
+            chainId: '1',
+            name: 'Test Chain',
+            nativeCurrency: { symbol: 'TEST' },
+            rpc: ['https://known-domain.com/api'],
+          },
+        ];
+        (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+          JSON.stringify(mockChains),
+        );
+        await initializeRpcProviderDomains();
+      });
+
+      describe('Infura provider domain validation', () => {
+        it('returns domain for legitimate Infura domains and subdomains', () => {
+          expect(extractRpcDomain('https://infura.io')).toBe('infura.io');
+          expect(extractRpcDomain('https://mainnet.infura.io')).toBe(
+            'mainnet.infura.io',
+          );
+          expect(extractRpcDomain('https://goerli.infura.io')).toBe(
+            'goerli.infura.io',
+          );
+          expect(extractRpcDomain('https://api.infura.io')).toBe(
+            'api.infura.io',
+          );
+          expect(extractRpcDomain('https://v1.api.infura.io')).toBe(
+            'v1.api.infura.io',
+          );
+        });
+
+        it('returns private for malicious domains that end with infura.io but are not subdomains', () => {
+          expect(extractRpcDomain('https://evilinfura.io')).toBe('private');
+          expect(extractRpcDomain('https://malicious-infura.io')).toBe(
+            'private',
+          );
+          expect(extractRpcDomain('https://fakeinfura.io')).toBe('private');
+          expect(extractRpcDomain('https://notinfura.io')).toBe('private');
+        });
+      });
+
+      describe('Alchemy provider domain validation', () => {
+        it('returns domain for legitimate Alchemy domains and subdomains', () => {
+          expect(extractRpcDomain('https://alchemyapi.io')).toBe(
+            'alchemyapi.io',
+          );
+          expect(extractRpcDomain('https://eth-mainnet.alchemyapi.io')).toBe(
+            'eth-mainnet.alchemyapi.io',
+          );
+          expect(
+            extractRpcDomain('https://polygon-mainnet.alchemyapi.io'),
+          ).toBe('polygon-mainnet.alchemyapi.io');
+          expect(extractRpcDomain('https://eth.v2.alchemyapi.io')).toBe(
+            'eth.v2.alchemyapi.io',
+          );
+        });
+
+        it('returns private for malicious domains that end with alchemyapi.io but are not subdomains', () => {
+          expect(extractRpcDomain('https://evilalchemyapi.io')).toBe('private');
+          expect(extractRpcDomain('https://malicious-alchemyapi.io')).toBe(
+            'private',
+          );
+          expect(extractRpcDomain('https://fakealchemyapi.io')).toBe('private');
+          expect(extractRpcDomain('https://notalchemyapi.io')).toBe('private');
+        });
+      });
+
+      describe('Edge cases for provider domain validation', () => {
+        it('handles case sensitivity correctly', () => {
+          expect(extractRpcDomain('https://MAINNET.INFURA.IO')).toBe(
+            'mainnet.infura.io',
+          );
+          expect(extractRpcDomain('https://ETH-MAINNET.ALCHEMYAPI.IO')).toBe(
+            'eth-mainnet.alchemyapi.io',
+          );
+        });
+
+        it('returns private for domains with similar but different TLDs', () => {
+          expect(extractRpcDomain('https://mainnet.infura.com')).toBe(
+            'private',
+          );
+          expect(extractRpcDomain('https://eth-mainnet.alchemyapi.com')).toBe(
+            'private',
+          );
+        });
+
+        it('prevents subdomain confusion attacks (security fix validation)', () => {
+          // These domains would have passed the old endsWith check but should be blocked
+          const attackDomains = [
+            'https://evilinfura.io',
+            'https://maliciousinfura.io',
+            'https://fakeinfura.io',
+            'https://evilalchemyapi.io',
+            'https://maliciousalchemyapi.io',
+            'https://fakealchemyapi.io',
+          ];
+
+          attackDomains.forEach((domain) => {
+            expect(extractRpcDomain(domain)).toBe('private');
+          });
+        });
+
+        it('handles exact base domain matches', () => {
+          expect(extractRpcDomain('https://infura.io')).toBe('infura.io');
+          expect(extractRpcDomain('https://alchemyapi.io')).toBe(
+            'alchemyapi.io',
+          );
+        });
+      });
+    });
   });
+
   describe('getNetworkRpcUrl', () => {
     describe('when retrieving RPC URLs', () => {
       it('returns RPC URL from legacy format', () => {

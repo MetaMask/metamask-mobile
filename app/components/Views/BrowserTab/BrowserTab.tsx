@@ -901,6 +901,23 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     /**
+     * Check if any iFrame URLs are prohibited
+     */
+    const checkIFrameUrls = useCallback(
+      async (iframeUrls: string[]) => {
+        for (const iframeUrl of iframeUrls) {
+          const { origin: iframeOrigin } = new URLParse(iframeUrl);
+          const isAllowed = await isAllowedOrigin(iframeOrigin);
+          if (!isAllowed) {
+            handleNotAllowedUrl(iframeOrigin);
+            return;
+          }
+        }
+      },
+      [isAllowedOrigin, handleNotAllowedUrl],
+    );
+
+    /**
      * Handle message from website
      */
     const onMessage = ({ nativeEvent }: WebViewMessageEvent) => {
@@ -917,6 +934,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
         const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
         if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
+          return;
+        }
+        if (
+          dataParsed.type === 'IFRAME_DETECTED' &&
+          Array.isArray(dataParsed.iframeUrls) &&
+          dataParsed.iframeUrls.length > 0
+        ) {
+          const validIframeUrls = dataParsed.iframeUrls.filter(
+            (url: unknown): url is string =>
+              typeof url === 'string' && url.trim().length > 0,
+          );
+          if (validIframeUrls.length > 0) {
+            checkIFrameUrls(validIframeUrls);
+          }
           return;
         }
         if (dataParsed.name) {
@@ -984,31 +1015,37 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const sendActiveAccount = useCallback(
       async (targetUrl?: string) => {
-        try {
-          const urlToCheck = targetUrl || resolvedUrlRef.current;
-          if (!urlToCheck) return;
-          const hostname = new URLParse(urlToCheck).hostname;
-          const permissionsControllerState =
-            Engine.context.PermissionController.state;
+        // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
+        const urlToCheck =
+          targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
 
-          // Get permitted accounts specifically for the target hostname
-          const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
-            permissionsControllerState,
-            hostname,
-          );
-
-          // Only send account information if the target URL has explicit permissions
-          if (permittedAccountsForTarget.length > 0) {
-            notifyAllConnections({
-              method: NOTIFICATION_NAMES.accountsChanged,
-              params: permittedAccountsForTarget,
-            });
-          }
-        } catch (err) {
-          Logger.log(err as Error, 'Error in sendActiveAccount');
+        if (!urlToCheck) {
+          // If no URL to check, send empty accounts
+          notifyAllConnections({
+            method: NOTIFICATION_NAMES.accountsChanged,
+            params: [],
+          });
           return;
         }
-        // Use the target URL if provided, otherwise use current resolved URL
+
+        // Get permitted accounts for the target URL
+        const permissionsControllerState =
+          Engine.context.PermissionController.state;
+        let hostname = ''; // notifyAllConnections will return empty array if ''
+        try {
+          hostname = new URLParse(urlToCheck).hostname;
+        } catch (err) {
+          Logger.log('Error parsing WebView URL', err);
+        }
+        const permittedAcc = getPermittedEvmAddressesByHostname(
+          permissionsControllerState,
+          hostname,
+        );
+
+        notifyAllConnections({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: permittedAcc,
+        });
       },
       [notifyAllConnections],
     );
@@ -1027,6 +1064,22 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           ...webStates.current[nativeEvent.url],
           started: true,
         };
+        if (nativeEvent.url.startsWith('http://')) {
+          /*
+            If the user is initially redirected to the page using the HTTP protocol,
+            which then automatically redirects to HTTPS, we receive `onLoadStart` for the HTTP URL
+            and `onLoadEnd` for the HTTPS URL. In this case, the URL bar will not be updated.
+            To fix this, we also mark the HTTPS version of the URL as started.
+          */
+          const urlWithHttps = nativeEvent.url.replace(
+            regex.urlHttpToHttps,
+            'https://',
+          );
+          webStates.current[urlWithHttps] = {
+            ...webStates.current[urlWithHttps],
+            started: true,
+          };
+        }
 
         // Cancel loading the page if we detect its a phishing page
         const isAllowed = await isAllowedOrigin(urlOrigin);
@@ -1035,8 +1088,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return false;
         }
 
-        // Only send active account for the specific URL being navigated to
-        // This ensures we only send account info to sites that have explicit permissions
         sendActiveAccount(nativeEvent.url);
 
         iconRef.current = undefined;
@@ -1395,6 +1446,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             event,
           )}`,
         );
+
         // Handles force resolves url when going back since the behavior slightly differs that results in onLoadEnd not being called
         if (navigationType === 'backforward') {
           const payload = {
@@ -1484,6 +1536,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         onShouldStartLoadWithRequest
                       }
                       allowsInlineMediaPlayback
+                      {...(process.env.IS_TEST === 'true'
+                        ? { javaScriptEnabled: true }
+                        : {})}
                       testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                       applicationNameForUserAgent={'WebView MetaMaskMobile'}
                       onFileDownload={handleOnFileDownload}

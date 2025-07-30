@@ -14,7 +14,7 @@ import {
 } from '../../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { ethers } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
@@ -38,9 +38,10 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
+import { FlexDirection } from '../../../Box/box.types';
 
 const MAX_DECIMALS = 5;
-export const MAX_INPUT_LENGTH = 18;
+export const MAX_INPUT_LENGTH = 36;
 
 /**
  * Calculates font size based on input length
@@ -123,6 +124,8 @@ interface TokenInputAreaProps {
   onFocus?: () => void;
   onBlur?: () => void;
   onInputPress?: () => void;
+  onMaxPress?: () => void;
+  latestAtomicBalance?: BigNumber;
 }
 
 export const TokenInputArea = forwardRef<
@@ -143,6 +146,8 @@ export const TokenInputArea = forwardRef<
       onFocus,
       onBlur,
       onInputPress,
+      onMaxPress,
+      latestAtomicBalance,
     },
     ref,
   ) => {
@@ -189,7 +194,11 @@ export const TokenInputArea = forwardRef<
       selectNetworkConfigurations,
     );
 
-    const isInsufficientBalance = useIsInsufficientBalance({ amount, token });
+    const isInsufficientBalance = useIsInsufficientBalance({
+      amount,
+      token,
+      latestAtomicBalance,
+    });
 
     let nonEvmMultichainAssetRates = {};
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -226,6 +235,12 @@ export const TokenInputArea = forwardRef<
     const displayedAmount = getDisplayAmount(amount, tokenType);
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
+
+    // TODO come up with a more robust way to check if the asset is native
+    // Maybe a util in BridgeController
+    const isNativeAsset =
+      token?.address === ethers.constants.AddressZero ||
+      token?.address === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
 
     return (
       <Box>
@@ -293,16 +308,38 @@ export const TokenInputArea = forwardRef<
                   ) : null}
                 </Box>
                 {subtitle ? (
-                  <Text
-                    color={
-                      tokenType === TokenInputAreaType.Source &&
-                      isInsufficientBalance
-                        ? TextColor.Error
-                        : TextColor.Alternative
-                    }
-                  >
-                    {subtitle}
-                  </Text>
+                  tokenType === TokenInputAreaType.Source &&
+                  tokenBalance &&
+                  onMaxPress &&
+                  !isNativeAsset ? (
+                    <Box flexDirection={FlexDirection.Row} gap={4}>
+                      <Text
+                        color={
+                          isInsufficientBalance
+                            ? TextColor.Error
+                            : TextColor.Alternative
+                        }
+                      >
+                        {subtitle}
+                      </Text>
+                      <Button
+                        variant={ButtonVariants.Link}
+                        label={strings('bridge.max')}
+                        onPress={onMaxPress}
+                      />
+                    </Box>
+                  ) : (
+                    <Text
+                      color={
+                        tokenType === TokenInputAreaType.Source &&
+                        isInsufficientBalance
+                          ? TextColor.Error
+                          : TextColor.Alternative
+                      }
+                    >
+                      {subtitle}
+                    </Text>
+                  )
                 ) : null}
               </>
             )}
