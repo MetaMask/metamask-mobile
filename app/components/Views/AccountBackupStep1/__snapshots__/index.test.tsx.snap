@@ -6,6 +6,7 @@ exports[`AccountBackupStep1 render matches snapshot 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
+      "paddingTop": 0,
     }
   }
 >
@@ -19,6 +20,7 @@ exports[`AccountBackupStep1 render matches snapshot 1`] = `
       {
         "backgroundColor": "#ffffff",
         "flex": 1,
+        "paddingTop": 0,
       }
     }
     testID="protect-your-account-screen"
