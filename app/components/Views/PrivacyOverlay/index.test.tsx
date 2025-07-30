@@ -1,7 +1,10 @@
 import React from 'react';
-import { AppState } from 'react-native';
+import { AppState, AppStateStatus } from 'react-native';
 import { waitFor, act } from '@testing-library/react-native';
+import PrivacyOverlay from './PrivacyOverlay';
+import Device from '../../../util/device';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { PRIVACY_OVERLAY_TEST_ID } from './constants';
 
 jest.mock('../../../util/device', () => ({
   isAndroid: () => false,
@@ -16,13 +19,11 @@ jest.mock('react-native', () => ({
 
 const mockAppState = AppState as jest.Mocked<typeof AppState>;
 
-import { PrivacyOverlay } from '.';
-import Device from '../../../util/device';
+// We only handle the supported app states
+type SupportedAppStatus = Omit<AppStateStatus, 'unknown' | 'extension'>;
 
 describe('PrivacyOverlay', () => {
-  let changeHandler:
-    | ((nextAppState: 'active' | 'background' | 'inactive') => void)
-    | undefined;
+  let changeHandler: ((nextAppState: SupportedAppStatus) => void) | undefined;
   let removeMock: jest.Mock;
   let isAndroidSpy: jest.SpyInstance;
 
@@ -34,9 +35,7 @@ describe('PrivacyOverlay', () => {
 
     mockAppState.addEventListener.mockImplementation((event, handler) => {
       if (event === 'change') {
-        changeHandler = handler as (
-          nextAppState: 'active' | 'background' | 'inactive',
-        ) => void;
+        changeHandler = handler as (nextAppState: SupportedAppStatus) => void;
       }
       return { remove: removeMock };
     });
@@ -49,11 +48,11 @@ describe('PrivacyOverlay', () => {
   describe('Component behavior', () => {
     it('does not render overlay initially', () => {
       const { queryByTestId } = renderWithProvider(<PrivacyOverlay />);
-      expect(queryByTestId('privacy-overlay')).toBeNull();
+      expect(queryByTestId(PRIVACY_OVERLAY_TEST_ID)).toBeNull();
     });
 
     it('shows overlay when app goes to background', async () => {
-      const { getByTestId } = renderWithProvider(<PrivacyOverlay />);
+      const { queryByTestId } = renderWithProvider(<PrivacyOverlay />);
 
       await act(async () => {
         if (changeHandler) {
@@ -62,14 +61,12 @@ describe('PrivacyOverlay', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId('privacy-overlay')).toBeTruthy();
+        expect(queryByTestId(PRIVACY_OVERLAY_TEST_ID)).toBeTruthy();
       });
     });
 
     it('hides overlay when app becomes active', async () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <PrivacyOverlay />,
-      );
+      const { queryByTestId } = renderWithProvider(<PrivacyOverlay />);
 
       await act(async () => {
         if (changeHandler) {
@@ -78,7 +75,7 @@ describe('PrivacyOverlay', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId('privacy-overlay')).toBeTruthy();
+        expect(queryByTestId(PRIVACY_OVERLAY_TEST_ID)).toBeTruthy();
       });
 
       await act(async () => {
@@ -88,12 +85,12 @@ describe('PrivacyOverlay', () => {
       });
 
       await waitFor(() => {
-        expect(queryByTestId('privacy-overlay')).toBeNull();
+        expect(queryByTestId(PRIVACY_OVERLAY_TEST_ID)).toBeNull();
       });
     });
 
     it('shows overlay for inactive state', async () => {
-      const { getByTestId } = renderWithProvider(<PrivacyOverlay />);
+      const { queryByTestId } = renderWithProvider(<PrivacyOverlay />);
 
       await act(async () => {
         if (changeHandler) {
@@ -102,7 +99,7 @@ describe('PrivacyOverlay', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId('privacy-overlay')).toBeTruthy();
+        expect(queryByTestId(PRIVACY_OVERLAY_TEST_ID)).toBeTruthy();
       });
     });
   });
@@ -188,7 +185,7 @@ describe('PrivacyOverlay', () => {
       });
 
       await waitFor(() => {
-        const overlay = getByTestId('privacy-overlay');
+        const overlay = getByTestId(PRIVACY_OVERLAY_TEST_ID);
         expect(overlay).toBeTruthy();
 
         const style = overlay.props.style;

@@ -7,13 +7,17 @@ import {
 } from 'react-native';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import Device from '../../../util/device';
-import styleSheet from './PrivacyOverlay.styles';
+import styleSheet from './styles';
+import { PRIVACY_OVERLAY_TEST_ID } from './constants';
 
-export function PrivacyOverlay() {
+export default function PrivacyOverlay() {
   const [showOverlay, setShowOverlay] = useState(false);
   const { styles } = useStyles(styleSheet, {});
 
   useEffect(() => {
+    let androidBlurListener: NativeEventSubscription;
+    let androidFocusListener: NativeEventSubscription;
+
     const handleAppStateChange = (action: AppStateStatus) => {
       setShowOverlay(() => {
         switch (action) {
@@ -33,9 +37,6 @@ export function PrivacyOverlay() {
       handleAppStateChange,
     );
 
-    let androidBlurListener: NativeEventSubscription;
-    let androidFocusListener: NativeEventSubscription;
-
     if (Device.isAndroid()) {
       androidBlurListener = AppState.addEventListener('blur', () =>
         handleAppStateChange('inactive'),
@@ -49,13 +50,13 @@ export function PrivacyOverlay() {
     return () => {
       subscription.remove();
       if (Device.isAndroid()) {
-        androidBlurListener?.remove();
-        androidFocusListener?.remove();
+        androidBlurListener.remove();
+        androidFocusListener.remove();
       }
     };
   }, []);
 
   if (!showOverlay) return null;
 
-  return <View style={styles.view} testID="privacy-overlay" />;
+  return <View style={styles.view} testID={PRIVACY_OVERLAY_TEST_ID} />;
 }
