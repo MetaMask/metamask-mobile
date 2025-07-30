@@ -15,6 +15,7 @@ import {
   ChannelId,
   notificationChannels,
 } from '../../../util/notifications/androidChannels';
+import { isE2E } from '../../test/utils';
 import { withTimeout } from '../methods';
 import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
@@ -75,13 +76,19 @@ class NotificationsService {
       this.getBlockedNotifications(),
       5000,
     );
+
+    // E2E tests do not play well with OS push permissions
+    if (isE2E) {
+      return { permission: 'authorized' };
+    }
+
     if (
       (permission !== 'authorized' || blockedNotifications.size !== 0) &&
       shouldOpenSettings
     ) {
       permission = await this.requestPermission();
     }
-    return { permission, blockedNotifications };
+    return { permission };
   }
 
   async isDeviceNotificationEnabled() {
