@@ -119,10 +119,11 @@ import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
-import { toFormattedAddress } from '../../../util/address';
+import { toChecksumAddress, toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { selectCardholderAccounts } from '../../../core/redux/slices/card';
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import {
   useSwapBridgeNavigation,
@@ -293,6 +294,8 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+
+  const cardholderAccounts = useSelector(selectCardholderAccounts);
 
   /**
    * Object containing the balance of the current selected account
@@ -670,6 +673,16 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
+  const isCardholder = useMemo(() => {
+    if (!selectedInternalAccount?.address || !cardholderAccounts?.length) {
+      return false;
+    }
+
+    return cardholderAccounts.includes(
+      toChecksumAddress(selectedInternalAccount.address),
+    );
+  }, [cardholderAccounts, selectedInternalAccount]);
+
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
@@ -687,6 +700,7 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
+        isCardholder,
       ),
     );
   }, [
@@ -702,6 +716,7 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
+    isCardholder,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(

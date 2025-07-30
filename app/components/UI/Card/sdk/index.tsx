@@ -11,6 +11,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 
 import { CardSDK } from './CardSDK';
 import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import { useCardholderCheck } from '../hooks/useCardholderCheck';
 
 export interface ICardSDK {
   sdk: CardSDK | null;
@@ -63,12 +64,10 @@ export const useCardSDK = () => {
   return contextValue;
 };
 
-export const withCardSDK =
-  (Component: React.ComponentType) => (props: Record<string, unknown>) =>
-    (
-      <CardSDKProvider>
-        <Component {...props} />
-      </CardSDKProvider>
-    );
+export const CardVerification: React.FC = () => {
+  useCardholderCheck();
+
+  return null;
+};
 
 export default CardSDKContext;

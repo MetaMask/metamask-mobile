@@ -939,6 +939,7 @@ export function getOfflineModalNavbar() {
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
  * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
+ * @param {boolean} isCardholder - Whether user is a cardholder or not
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -955,6 +956,7 @@ export function getWalletNavbarOptions(
   isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
+  isCardholder = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1110,7 +1112,18 @@ export function getWalletNavbarOptions(
           testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
           style={styles.addressCopyWrapper}
         >
-          <AddressCopy account={selectedInternalAccount} />
+          {isCardholder ? (
+            // This will be replaced with a Cardholder button in the future
+            <ButtonIcon
+              iconColor={IconColor.Default}
+              onPress={openQRScanner}
+              iconName={IconName.Card}
+              size={IconSize.Xl}
+              testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+            />
+          ) : (
+            <AddressCopy account={selectedInternalAccount} />
+          )}
         </View>
         {isNotificationsFeatureEnabled() && (
           <View>
