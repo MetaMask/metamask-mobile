@@ -74,10 +74,7 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             );
             console.log('Network list became visible');
 
-            // Check if all network is displayed
-            await Assertions.expectElementToBeVisible(
-              NetworkListModal.networkScroll,
-            );
+            await Assertions.expectTextDisplayed('Linea Main Network');
 
             const totalTime = Date.now() - starTime;
 
