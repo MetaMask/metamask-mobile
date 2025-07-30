@@ -35,7 +35,6 @@ import { useAssetBalance } from '../../hooks/useAssetBalance';
 interface CardAssetItemProps {
   assetKey: CardTokenAllowance;
   privacyMode: boolean;
-  shouldShowAllowance?: boolean;
   disabled?: boolean;
   onPress?: (asset: TokenI) => void;
 }
@@ -109,7 +108,7 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
 
       return (
         <NetworkAssetLogo
-          chainId={chainId as Hex}
+          chainId={chainId}
           style={styles.ethLogo}
           ticker={asset.ticker || ''}
           testID={asset.name}

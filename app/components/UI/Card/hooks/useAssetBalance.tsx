@@ -1,17 +1,11 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { useMemo } from 'react';
-import {
-  makeSelectAssetByAddressAndChainId,
-  makeSelectNonEvmAssetById,
-} from '../../../../selectors/multichain';
+import { makeSelectAssetByAddressAndChainId } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
-import {
-  selectSelectedInternalAccount,
-  selectSelectedInternalAccountAddress,
-} from '../../../../selectors/accountsController';
-import { CaipAssetId, Hex } from '@metamask/utils';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { Hex } from '@metamask/utils';
 import {
   selectCurrencyRateForChainId,
   selectCurrentCurrency,
@@ -59,37 +53,20 @@ export const useAssetBalance = (
       : undefined,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const selectNonEvmAsset = useMemo(() => makeSelectNonEvmAssetById(), []);
-
-  const nonEvmAsset = useSelector((state: RootState) =>
-    token && selectedAccount?.id
-      ? selectNonEvmAsset(state, {
-          accountId: selectedAccount.id,
-          assetId: token.address as CaipAssetId,
-        })
-      : undefined,
-  );
-  ///: END:ONLY_INCLUDE_IF
-
-  let asset = token && isEvmNetworkSelected ? evmAsset : nonEvmAsset;
+  let asset = token && isEvmNetworkSelected ? evmAsset : undefined;
   let isMappedAsset = false;
 
   if (!asset && token) {
     const iconUrl = buildTokenIconUrl(token.chainId, token.address);
 
     asset = {
-      address: token.address,
-      aggregators: [],
-      decimals: token.decimals,
+      ...token,
       image: iconUrl,
-      name: token.name,
-      symbol: token.symbol,
-      balance: '0',
-      balanceFiat: '0',
       logo: iconUrl,
       isETH: false,
+      aggregators: [],
+      balance: '0',
+      balanceFiat: '0',
     } as TokenI;
     isMappedAsset = true;
   }
@@ -189,23 +166,17 @@ export const useAssetBalance = (
     isMappedAsset,
   ]);
 
-  // render balances according to primary currency
   let mainBalance;
   let secondaryBalance;
   const shouldNotShowBalanceOnTestnets =
     isTestNet(asset?.chainId as Hex) && !showFiatOnTestnets;
 
-  // Set main and secondary balances based on the primary currency and asset type.
   if (primaryCurrency === 'ETH') {
-    // TECH_DEBT: this should not be primary currency for multichain, not ETH
-    // Default to displaying the formatted balance value and its fiat equivalent.
     mainBalance = balanceValueFormatted;
     secondaryBalance = balanceFiat;
-    // For ETH as a native currency, adjust display based on network safety.
+
     if (asset?.isETH) {
-      // Main balance always shows the formatted balance value for ETH.
       mainBalance = balanceValueFormatted;
-      // Display fiat value as secondary balance only for original native tokens on safe networks.
       secondaryBalance = shouldNotShowBalanceOnTestnets
         ? undefined
         : balanceFiat;

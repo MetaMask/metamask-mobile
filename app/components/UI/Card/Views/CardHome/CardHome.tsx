@@ -330,7 +330,6 @@ const CardHome = () => {
             <CardAssetItem
               assetKey={priorityToken}
               privacyMode={privacyMode}
-              shouldShowAllowance={false}
               disabled
             />
           </View>

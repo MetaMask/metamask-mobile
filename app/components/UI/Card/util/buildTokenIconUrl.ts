@@ -11,5 +11,5 @@ export const buildTokenIconUrl = (
   const chainIdDecimal = chainId.includes('0x')
     ? hexToDecimal(chainId)
     : chainId;
-  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/${chainIdDecimal}/erc20/${address}.png`;
+  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/${chainIdDecimal}/erc20/${address.toLowerCase()}.png`;
 };
