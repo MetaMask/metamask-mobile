@@ -224,12 +224,12 @@ describe('InstallSnapApprovalFlow', () => {
     await waitFor(() => expect(getByTestId(SNAP_INSTALL_ERROR)).toBeDefined());
   });
 
-  it('calls onCancel on cancel button click', async () => {
+  it('calls onCancel on cancel button click', () => {
     mockApprovalRequest(installSnapData);
     const { getByTestId } = render(<InstallSnapApproval />, {
       wrapper: Wrapper,
     });
-    const cancelButton = await getByTestId(SNAP_INSTALL_CANCEL);
+    const cancelButton = getByTestId(SNAP_INSTALL_CANCEL);
     fireEvent.press(cancelButton);
     expect(onReject).toHaveBeenCalledTimes(1);
   });
