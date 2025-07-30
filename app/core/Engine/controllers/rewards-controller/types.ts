@@ -111,20 +111,7 @@ export interface SeasonStatusDto {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
-  // Auth state
-  isAuthenticated: boolean;
-
-  // Subscription state
-  subscriptionId: string | null;
-
-  // Season state
-  currentSeasonId: string | null;
-  seasonBalance: number;
-  currentTierId: string | null;
-
   // UI state
-  isLoading: boolean;
-  error: string | null;
   lastUpdated: number | null;
 };
 

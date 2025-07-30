@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { toHex } from '@metamask/controller-utils';
@@ -10,12 +10,14 @@ import {
 } from '../services';
 import { useRewardsSubscription } from './useRewardsSubscription';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { handleRewardsErrorMessage } from '../../../../../util/rewards';
 import Engine from '../../../../Engine';
 
 export const REWARDS_SIGNUP_PREFIX = 'metaMaskRewardsSignup';
 
 export const useRewardsAuth = () => {
   const address = useSelector(selectSelectedInternalAccountAddress);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const [generateChallenge, generateChallengeResult] =
     useGenerateChallengeMutation();
@@ -23,12 +25,10 @@ export const useRewardsAuth = () => {
   const [logout, logoutResult] = useLogoutMutation();
 
   const handleLogin = useCallback(async () => {
+    if (!address) return;
+
     try {
-      if (!address) {
-        // eslint-disable-next-line no-console
-        console.error('User is not connected to wallet');
-        return;
-      }
+      setLoginError(null);
       const challengeResponse = await generateChallenge({ address }).unwrap();
 
       // Try different encoding approaches to handle potential character issues
@@ -49,16 +49,10 @@ export const useRewardsAuth = () => {
           from: address,
         });
 
-      await login({
-        challengeId: challengeResponse.id,
-        signature,
-      });
-      // eslint-disable-next-line no-console
-      console.log('Login successful');
+      await login({ challengeId: challengeResponse.id, signature });
       await AsyncStorage.setItem(`${REWARDS_SIGNUP_PREFIX}-${address}`, 'true');
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error logging in:', error);
+      setLoginError(handleRewardsErrorMessage(error));
     }
   }, [address, generateChallenge, login]);
 
@@ -66,16 +60,29 @@ export const useRewardsAuth = () => {
     logout();
   }, [logout]);
 
-  const { subscription, isSuccess: subscriptionIsSuccess } =
-    useRewardsSubscription();
+  const clearLoginError = useCallback(() => setLoginError(null), []);
+
+  const {
+    subscription,
+    isLoading: subscriptionIsLoading,
+    isSuccess: subscriptionIsSuccess,
+    isFetching: subscriptionIsFetching,
+  } = useRewardsSubscription();
+
+  console.log('subscription', subscription);
+  console.log('subscriptionIsSuccess', subscriptionIsSuccess);
 
   return {
     login: handleLogin,
     logout: handleLogout,
-    isLoggedIn: !!subscription && subscriptionIsSuccess,
+    isLoggedIn:
+      subscriptionIsSuccess || (!!subscription && subscriptionIsFetching),
     isLoading:
       generateChallengeResult.isLoading ||
       loginResult.isLoading ||
-      logoutResult.isLoading,
+      logoutResult.isLoading ||
+      subscriptionIsLoading,
+    loginError,
+    clearLoginError,
   };
 };

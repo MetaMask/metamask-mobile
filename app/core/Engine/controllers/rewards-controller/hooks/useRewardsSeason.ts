@@ -2,7 +2,7 @@ import { useGetSeasonQuery, useGetSeasonStatusQuery } from '../services';
 
 export const useRewardsSeason = () => {
   const { data: seasonData } = useGetSeasonQuery(undefined, {
-    refetchOnMountOrArgChange: 60 * 60, // 60 minutes
+    refetchOnMountOrArgChange: 60 * 10, // 10 minutes
     refetchOnFocus: false,
   });
 
