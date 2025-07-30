@@ -79,6 +79,14 @@ describe(Regression('Send ERC Token'), () => {
   });
 
   it('should send token to address via asset overview screen', async () => {
+    // Scroll to top first to ensure consistent starting position
+    await WalletView.scrollToBottomOfTokensList();
+    await TestHelpers.delay(1000);
+
+    // Then scroll to ChainLink Token with extra stability
+    await WalletView.scrollToToken('ChainLink Token');
+    await TestHelpers.delay(1500); // Extra time for scroll to complete
+
     await WalletView.tapOnToken('ChainLink Token');
     await TestHelpers.delay(3500);
     await TokenOverview.scrollOnScreen();
