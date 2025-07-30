@@ -1,21 +1,18 @@
-'use strict';
 import { loginToApp } from '../../viewHelper';
-
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import { SmokeTrade } from '../../tags';
-
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeTrade('Sell Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -25,7 +22,7 @@ describe(SmokeTrade('Sell Crypto Deeplinks'), () => {
     jest.setTimeout(150000);
   });
 
-  const itif = (condition) => (condition ? it : it.skip);
+  const itif = (condition: boolean) => (condition ? it : it.skip);
 
   itif(device.getPlatform() === 'android')(
     'should deep link to offramp ETH',
@@ -56,14 +53,16 @@ describe(SmokeTrade('Sell Crypto Deeplinks'), () => {
           await device.launchApp({
             url: sellDeepLinkURL,
           });
-          await Assertions.checkIfVisible(
-            await SellGetStartedView.getStartedButton,
+          await Assertions.expectElementToBeVisible(
+            SellGetStartedView.getStartedButton,
           );
 
           await SellGetStartedView.tapGetStartedButton();
-          await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+          await Assertions.expectElementToBeVisible(
+            BuildQuoteView.getQuotesButton,
+          );
 
-          await Assertions.checkIfTextIsDisplayed('50 ETH');
+          await Assertions.expectTextDisplayed('50 ETH');
         },
       );
     },
@@ -88,20 +87,24 @@ describe(SmokeTrade('Sell Crypto Deeplinks'), () => {
           await device.launchApp({
             url: sellDeepLink,
           });
-          await Assertions.checkIfVisible(
-            await SellGetStartedView.getStartedButton,
+          await Assertions.expectElementToBeVisible(
+            SellGetStartedView.getStartedButton,
           );
           await SellGetStartedView.tapGetStartedButton();
-          await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
+          await Assertions.expectElementToBeVisible(
+            NetworkApprovalBottomSheet.container,
+          );
           await NetworkApprovalBottomSheet.tapCancelButton();
           await NetworkListModal.changeNetworkTo(
             PopularNetworksList.Optimism.providerConfig.nickname,
           );
           await NetworkApprovalBottomSheet.tapApproveButton();
           await NetworkAddedBottomSheet.tapCloseButton();
-          await Assertions.checkIfVisible(NetworkEducationModal.container);
+          await Assertions.expectElementToBeVisible(
+            NetworkEducationModal.container,
+          );
           await NetworkEducationModal.tapGotItButton();
-          await Assertions.checkIfTextIsDisplayed(
+          await Assertions.expectTextDisplayed(
             PopularNetworksList.Optimism.providerConfig.nickname,
           );
         },

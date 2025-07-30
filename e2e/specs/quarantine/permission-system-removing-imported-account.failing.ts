@@ -1,4 +1,3 @@
-'use strict';
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
@@ -16,12 +15,14 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import Accounts from '../../../wdio/helpers/Accounts';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 
 const SEPOLIA = 'Sepolia';
 
 const accountPrivateKey = Accounts.getAccountPrivateKey();
+
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(
   Regression(
     'Permission System Test: Revoking accounts after connecting to a dapp',
@@ -32,7 +33,7 @@ describe(
     });
 
     it('should import wallet and go to the wallet view', async () => {
-      await importWalletWithRecoveryPhrase();
+      await importWalletWithRecoveryPhrase({});
     });
 
     it('should navigate to browser', async () => {
@@ -55,9 +56,11 @@ describe(
     it('should import account', async () => {
       await ConnectBottomSheet.tapImportAccountOrHWButton();
       await AddAccountBottomSheet.tapImportAccount();
-      await Assertions.checkIfVisible(ImportAccountView.container);
+      await Assertions.expectElementToBeVisible(ImportAccountView.container);
       await ImportAccountView.enterPrivateKey(accountPrivateKey.keys);
-      await Assertions.checkIfVisible(SuccessImportAccountView.container);
+      await Assertions.expectElementToBeVisible(
+        SuccessImportAccountView.container,
+      );
       await SuccessImportAccountView.tapCloseButton();
     });
 
@@ -70,15 +73,19 @@ describe(
     it('should switch to Sepolia', async () => {
       await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
       await ConnectedAccountsModal.tapNetworksPicker();
-      await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+      await Assertions.expectElementToBeVisible(NetworkListModal.networkScroll);
       await NetworkListModal.tapTestNetworkSwitch();
       await NetworkListModal.changeNetworkTo(SEPOLIA);
     });
 
     it('should dismiss the network education modal', async () => {
-      await Assertions.checkIfVisible(NetworkEducationModal.container);
+      await Assertions.expectElementToBeVisible(
+        NetworkEducationModal.container,
+      );
       await NetworkEducationModal.tapGotItButton();
-      await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+      await Assertions.expectElementToNotBeVisible(
+        NetworkEducationModal.container,
+      );
     });
 
     it('should set the imported account as primary account', async () => {
@@ -88,7 +95,7 @@ describe(
     it('should navigate to wallet view', async () => {
       await TestHelpers.delay(1500);
       await TabBarComponent.tapWallet();
-      await Assertions.checkIfVisible(WalletView.container);
+      await Assertions.expectElementToBeVisible(WalletView.container);
     });
 
     it('should remove imported account', async () => {
@@ -105,12 +112,14 @@ describe(
       await TestHelpers.delay(4500);
       await TabBarComponent.tapBrowser();
       // Check that we are on the browser screen
-      await Assertions.checkIfVisible(Browser.browserScreenID);
+      await Assertions.expectElementToBeVisible(Browser.browserScreenID);
     });
 
     it('imported account is not visible', async () => {
       await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-      await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+      await Assertions.expectElementToNotBeVisible(
+        ConnectedAccountsModal.title,
+      );
       //await AccountListView.accountNameNotVisible('Account 2');
     });
   },

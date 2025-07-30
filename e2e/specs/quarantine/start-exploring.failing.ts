@@ -1,4 +1,3 @@
-'use strict';
 import { SmokeWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
@@ -9,10 +8,11 @@ import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
 import { acceptTermOfUse } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 
 const PASSWORD = '12345678';
 
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeWalletPlatform('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -21,25 +21,29 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
 
   it('should show the onboarding screen', async () => {
     // Check that we are on the onboarding carousel screen
-    await Assertions.checkIfVisible(OnboardingCarouselView.container);
-    await Assertions.checkIfVisible(OnboardingCarouselView.titleOne);
-    await Assertions.checkIfVisible(OnboardingCarouselView.imageOne);
+    await Assertions.expectElementToBeVisible(OnboardingCarouselView.container);
+    await Assertions.expectElementToBeVisible(OnboardingCarouselView.titleOne);
+    await Assertions.expectElementToBeVisible(OnboardingCarouselView.imageOne);
     await OnboardingCarouselView.swipeCarousel();
-    await Assertions.checkIfVisible(OnboardingCarouselView.titleTwo);
-    await Assertions.checkIfVisible(OnboardingCarouselView.imageTwo);
+    await Assertions.expectElementToBeVisible(OnboardingCarouselView.titleTwo);
+    await Assertions.expectElementToBeVisible(OnboardingCarouselView.imageTwo);
     await OnboardingCarouselView.swipeCarousel();
-    await Assertions.checkIfVisible(OnboardingCarouselView.titleThree);
-    await Assertions.checkIfVisible(OnboardingCarouselView.imageThree);
+    await Assertions.expectElementToBeVisible(
+      OnboardingCarouselView.titleThree,
+    );
+    await Assertions.expectElementToBeVisible(
+      OnboardingCarouselView.imageThree,
+    );
     await OnboardingCarouselView.tapOnGetStartedButton();
     await acceptTermOfUse();
-    await Assertions.checkIfVisible(OnboardingView.container);
+    await Assertions.expectElementToBeVisible(OnboardingView.container);
   });
 
   it('should be able to opt-out of the onboarding-wizard', async () => {
     await OnboardingView.tapCreateWallet();
-    await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+    await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container);
     await MetaMetricsOptIn.tapNoThanksButton();
-    await Assertions.checkIfVisible(CreatePasswordView.container);
+    await Assertions.expectElementToBeVisible(CreatePasswordView.container);
   });
 
   it('should be able to create a new wallet', async () => {
@@ -50,7 +54,7 @@ describe(SmokeWalletPlatform('Start Exploring'), () => {
 
   it('Should skip backup check', async () => {
     // Check that we are on the Secure your wallet screen
-    await Assertions.checkIfVisible(ProtectYourWalletView.container);
+    await Assertions.expectElementToBeVisible(ProtectYourWalletView.container);
     await ProtectYourWalletView.tapOnRemindMeLaterButton();
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();

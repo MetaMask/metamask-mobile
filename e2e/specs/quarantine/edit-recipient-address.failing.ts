@@ -1,4 +1,3 @@
-'use strict';
 import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
@@ -7,23 +6,17 @@ import SendView from '../../pages/Send/SendView';
 import { loginToApp } from '../../viewHelper';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import {
-  defaultGanacheOptions,
-  stopFixtureServer,
-  withFixtures,
-} from '../../fixtures/fixture-helper';
-import FixtureServer from '../../fixtures/fixture-server';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
 const INCORRECT_SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const CORRECT_SEND_ADDRESS = '0x37cc5ef6bfe753aeaf81f945efe88134b238face';
 const SHORTHAND_ADDRESS = '0x37Cc...FACE';
-const fixtureServer = new FixtureServer();
 
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(
   SmokeCore('Send ETH to the correct address after editing the recipient'),
   () => {
@@ -36,11 +29,10 @@ describe(
         {
           fixture: new FixtureBuilder().withGanacheNetwork().build(),
           restartDevice: true,
-          ganacheOptions: defaultGanacheOptions,
         },
         async () => {
           await loginToApp();
-          await Assertions.checkIfVisible(WalletView.container);
+          await Assertions.expectElementToBeVisible(WalletView.container);
           await TabBarComponent.tapActions();
           await TokenOverview.tapActionSheetSendButton();
           await SendView.inputAddress(INCORRECT_SEND_ADDRESS);
@@ -82,7 +74,7 @@ describe(
             await TabBarComponent.tapActivity();
             await TestHelpers.delay(3000);
             await ActivitiesView.tapConfirmedTransaction();
-            await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
+            await Assertions.expectTextDisplayed(`${SHORTHAND_ADDRESS}`);
           }
         },
       );

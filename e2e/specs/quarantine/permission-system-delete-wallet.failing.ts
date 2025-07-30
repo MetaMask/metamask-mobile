@@ -1,4 +1,3 @@
-'use strict';
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
@@ -14,19 +13,22 @@ import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWal
 import LoginView from '../../pages/wallet/LoginView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import ToastModal from '../../pages/wallet/ToastModal';
 import OnboardingSheet from '../../pages/Onboarding/OnboardingSheet';
+import { DappVariants } from '../../framework/Constants';
+
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 const PASSWORD = '12345678';
 
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(Regression('Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -36,7 +38,11 @@ describe(Regression('Permission System'), () => {
   it('should no longer be connected to the dapp after deleting wallet', async () => {
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
           .build(),
@@ -47,10 +53,10 @@ describe(Regression('Permission System'), () => {
 
         //validate connection to test dapp
         await TabBarComponent.tapBrowser();
-        await Assertions.checkIfVisible(Browser.browserScreenID);
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.checkIfVisible(ConnectedAccountsModal.title);
+        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.scrollToBottomOfModal();
         await TestHelpers.delay(2000);
 
@@ -58,57 +64,69 @@ describe(Regression('Permission System'), () => {
         await TabBarComponent.tapSettings();
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();
-        await Assertions.checkIfVisible(LoginView.container);
+        await Assertions.expectElementToBeVisible(LoginView.container);
 
         // should tap reset wallet button
         await LoginView.tapForgotPassword();
 
-        await Assertions.checkIfVisible(DeleteWalletModal.container);
+        await Assertions.expectElementToBeVisible(DeleteWalletModal.container);
 
         //Delete wallet
         await DeleteWalletModal.tapIUnderstandButton();
         await DeleteWalletModal.typeDeleteInInputBox();
         await DeleteWalletModal.tapDeleteMyWalletButton();
-        await Assertions.checkIfNotVisible(DeleteWalletModal.container);
+        await Assertions.expectElementToNotBeVisible(
+          DeleteWalletModal.container,
+        );
         await TestHelpers.delay(2000);
-        await Assertions.checkIfVisible(OnboardingView.container);
+        await Assertions.expectElementToBeVisible(OnboardingView.container);
         if (device.getPlatform() === 'ios') {
-          await Assertions.checkIfVisible(ToastModal.notificationTitle);
-          await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
+          await Assertions.expectElementToBeVisible(
+            ToastModal.notificationTitle,
+          );
+          await Assertions.expectElementToNotBeVisible(
+            ToastModal.notificationTitle,
+          );
         } else {
           await TestHelpers.delay(3000);
         }
         await OnboardingView.tapCreateWallet();
         if (SEEDLESS_ONBOARDING_ENABLED) {
-          await Assertions.checkIfVisible(OnboardingSheet.container);
+          await Assertions.expectElementToBeVisible(OnboardingSheet.container);
           await OnboardingSheet.tapImportSeedButton();
         }
 
         // Create new wallet
-        await Assertions.checkIfVisible(MetaMetricsOptIn.container);
+        await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container);
         await MetaMetricsOptIn.tapAgreeButton();
-        await Assertions.checkIfVisible(CreatePasswordView.container);
+        await Assertions.expectElementToBeVisible(CreatePasswordView.container);
         await CreatePasswordView.enterPassword(PASSWORD);
         await CreatePasswordView.reEnterPassword(PASSWORD);
         await CreatePasswordView.tapIUnderstandCheckBox();
         await CreatePasswordView.tapCreatePasswordButton();
-        await Assertions.checkIfVisible(ProtectYourWalletView.container);
+        await Assertions.expectElementToBeVisible(
+          ProtectYourWalletView.container,
+        );
         await ProtectYourWalletView.tapOnRemindMeLaterButton();
         await SkipAccountSecurityModal.tapIUnderstandCheckBox();
         await SkipAccountSecurityModal.tapSkipButton();
         await OnboardingSuccessView.tapDone();
-        await Assertions.checkIfVisible(WalletView.container);
+        await Assertions.expectElementToBeVisible(WalletView.container);
         await ProtectYourWalletModal.tapRemindMeLaterButton();
         await SkipAccountSecurityModal.tapIUnderstandCheckBox();
         await SkipAccountSecurityModal.tapSkipButton();
 
         //should no longer be connected to the  dapp
         await TabBarComponent.tapBrowser();
-        await Assertions.checkIfVisible(Browser.browserScreenID);
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID);
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+        await Assertions.expectElementToNotBeVisible(
+          ConnectedAccountsModal.title,
+        );
         await NetworkListModal.scrollToBottomOfNetworkList();
-        await Assertions.checkIfVisible(NetworkListModal.testNetToggle);
+        await Assertions.expectElementToBeVisible(
+          NetworkListModal.testNetToggle,
+        );
       },
     );
   });

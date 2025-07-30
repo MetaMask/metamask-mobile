@@ -1,8 +1,5 @@
-'use strict';
-
 import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
-
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
@@ -10,16 +7,14 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import enContent from '../../../locales/languages/en.json';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;
   const AMOUNT = '0.12345';
@@ -35,7 +30,6 @@ describe(SmokeConfirmations('Send ETH'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -52,7 +46,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
 
-        await Assertions.checkIfTextIsDisplayed(`${AMOUNT}`);
+        await Assertions.expectTextDisplayed(`${AMOUNT}`);
       },
     );
   });
@@ -64,11 +58,10 @@ describe(SmokeConfirmations('Send ETH'), () => {
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-        smartContract: MULTISIG_CONTRACT,
+        smartContracts: [MULTISIG_CONTRACT],
       },
       async ({ contractRegistry }) => {
-        const multisigAddress = await contractRegistry.getContractAddress(
+        const multisigAddress = await contractRegistry?.getContractAddress(
           MULTISIG_CONTRACT,
         );
         await loginToApp();
@@ -84,7 +77,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
 
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
+        await Assertions.expectTextDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },
     );
   });
@@ -92,14 +85,11 @@ describe(SmokeConfirmations('Send ETH'), () => {
   it('should send ETH to an EOA from token detail page', async () => {
     const ETHEREUM_NAME = 'Ethereum';
     const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
-    const AMOUNT = '0.12345';
-    const TOKEN_NAME = enContent.unit.eth;
 
     await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
       },
       async () => {
         await loginToApp();
@@ -115,7 +105,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
 
-        await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
+        await Assertions.expectTextDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },
     );
   });

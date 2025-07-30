@@ -1,20 +1,17 @@
-'use strict';
 import TestHelpers from '../../helpers';
-
 import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeRamps } from '../../tags';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
-import Assertions from '../../utils/Assertions';
-
+import Assertions from '../../framework/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -40,17 +37,19 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
         await device.launchApp({
           url: buyLink,
         });
-        await Assertions.checkIfVisible(
-          await SellGetStartedView.getStartedButton,
+        await Assertions.expectElementToBeVisible(
+          SellGetStartedView.getStartedButton,
         );
 
         await BuyGetStartedView.tapGetStartedButton();
-        await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+        await Assertions.expectElementToBeVisible(
+          BuildQuoteView.getQuotesButton,
+        );
         await BuildQuoteView.tapTokenDropdown('Ethereum');
 
         await TokenSelectBottomSheet.tapTokenByName('DAI');
-        await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
-        await Assertions.checkIfTextIsDisplayed('$275');
+        await Assertions.expectTextDisplayed('Dai Stablecoin');
+        await Assertions.expectTextDisplayed('$275');
       },
     );
   });
@@ -73,16 +72,18 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
           url: BuyDeepLink,
         });
 
-        await Assertions.checkIfVisible(
-          await SellGetStartedView.getStartedButton,
+        await Assertions.expectElementToBeVisible(
+          SellGetStartedView.getStartedButton,
         );
 
         await BuyGetStartedView.tapGetStartedButton();
 
-        await Assertions.checkIfVisible(NetworkEducationModal.container);
+        await Assertions.expectElementToBeVisible(
+          NetworkEducationModal.container,
+        );
         await NetworkEducationModal.tapGotItButton();
-        await Assertions.checkIfTextIsDisplayed('USD Coin');
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed('USD Coin');
+        await Assertions.expectTextDisplayed(
           PopularNetworksList.Base.providerConfig.nickname,
         );
       },

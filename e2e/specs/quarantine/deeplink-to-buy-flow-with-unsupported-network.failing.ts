@@ -1,21 +1,18 @@
-'use strict';
 import TestHelpers from '../../helpers';
-
 import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeTrade } from '../../tags';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeTrade('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -24,7 +21,7 @@ describe(SmokeTrade('Buy Crypto Deeplinks'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-  const itif = (condition) => (condition ? it : it.skip);
+  const itif = (condition: boolean) => (condition ? it : it.skip);
 
   itif(device.getPlatform() === 'android')(
     'should deep link to onramp to unsupported network',
@@ -43,22 +40,24 @@ describe(SmokeTrade('Buy Crypto Deeplinks'), () => {
             url: BuyDeepLink,
           });
 
-          await Assertions.checkIfVisible(
-            await SellGetStartedView.getStartedButton,
+          await Assertions.expectElementToBeVisible(
+            SellGetStartedView.getStartedButton,
           );
 
           await BuyGetStartedView.tapGetStartedButton();
 
-          await Assertions.checkIfTextIsDisplayed('Unsupported buy Network');
+          await Assertions.expectTextDisplayed('Unsupported buy Network');
           await NetworkListModal.changeNetworkTo(
             PopularNetworksList.Avalanche.providerConfig.nickname,
           );
           await NetworkApprovalBottomSheet.tapApproveButton();
           await NetworkAddedBottomSheet.tapCloseButton();
-          await Assertions.checkIfVisible(NetworkEducationModal.container);
+          await Assertions.expectElementToBeVisible(
+            NetworkEducationModal.container,
+          );
           await NetworkEducationModal.tapGotItButton();
-          await Assertions.checkIfTextIsNotDisplayed('Unsupported buy Network');
-          await Assertions.checkIfTextIsDisplayed('Avalanche');
+          await Assertions.expectTextNotDisplayed('Unsupported buy Network');
+          await Assertions.expectTextDisplayed('Avalanche');
         },
       );
     },
