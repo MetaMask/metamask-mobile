@@ -10,6 +10,7 @@ import type {
   TransactionControllerTransactionSubmittedEvent,
   TransactionParams,
 } from '@metamask/transaction-controller';
+import { successfulFetch } from '@metamask/controller-utils';
 import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
@@ -44,6 +45,16 @@ import type {
   WithdrawParams,
   WithdrawResult,
 } from './types';
+import { getEnvironment } from './utils';
+
+const ON_RAMP_GEO_BLOCKING_URLS = {
+  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+  UAT: 'https://on-ramp.uat-api.cx.metamask.io/geolocation',
+  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
+};
+
+// Unknown is the default/fallback in case the location API call fails
+const DEFAULT_GEO_BLOCKED_REGIONS = ['US', 'CA-ON', 'UNKNOWN'];
 
 /**
  * State shape for PerpsController
@@ -68,6 +79,9 @@ export type PerpsControllerState = {
   depositError: string | null;
   activeDepositTransactions: Record<string, { amount: string; token: string }>; // Track active deposits by tx id
 
+  // Eligibility (Geo-Blocking)
+  isEligible: boolean;
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -90,6 +104,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeDepositTransactions: {},
   lastError: null,
   lastUpdateTimestamp: 0,
+  isEligible: false,
 });
 
 /**
@@ -109,6 +124,7 @@ const metadata = {
   activeDepositTransactions: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
+  isEligible: { persist: false, anonymous: false },
 };
 
 /**
@@ -166,6 +182,11 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:getMarkets';
       handler: PerpsController['getMarkets'];
+    }
+  // TODO: Circle back and remove these if they're not necessary.
+  | {
+      type: 'PerpsController:refreshEligibility';
+      handler: PerpsController['refreshEligibility'];
     }
   | {
       type: 'PerpsController:toggleTestnet';
@@ -254,6 +275,16 @@ export class PerpsController extends BaseController<
     );
 
     this.initializeProviders().catch((error) => {
+      DevLogger.log('PerpsController: Error initializing providers', {
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
+        timestamp: new Date().toISOString(),
+      });
+    });
+
+    this.refreshEligibility().catch((error) => {
       DevLogger.log('PerpsController: Error initializing providers', {
         error:
           error instanceof Error
@@ -1276,5 +1307,64 @@ export class PerpsController extends BaseController<
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
     this.initializationPromise = null;
+  }
+
+  /**
+   * Eligibility (Geo-Blocking)
+   * Users in the USA and Ontario (Canada) are not eligible for Perps
+   */
+
+  /**
+   * Returned in Country or Country-Region format
+   * Example: FR, DE, US-MI, CA-ON
+   */
+  async #fetchGeoLocation(): Promise<string> {
+    let location = 'UNKNOWN';
+
+    try {
+      const environment = getEnvironment();
+
+      const response = await successfulFetch(
+        ON_RAMP_GEO_BLOCKING_URLS[environment],
+      );
+
+      location = await response?.text();
+
+      return location;
+    } catch (e) {
+      DevLogger.log('PerpsController: Failed to fetch geo location', {
+        error: e,
+      });
+      return location;
+    }
+  }
+
+  async refreshEligibility(
+    blockedLocations = DEFAULT_GEO_BLOCKED_REGIONS,
+  ): Promise<void> {
+    // Default to false in case of error.
+    let isEligible = false;
+
+    try {
+      DevLogger.log('PerpsController: Refreshing eligibility');
+
+      const geoLocation = await this.#fetchGeoLocation();
+
+      isEligible = blockedLocations.every(
+        (blockedLocation) => !geoLocation.startsWith(blockedLocation),
+      );
+    } catch (error) {
+      DevLogger.log('PerpsController: Eligibility refresh failed', {
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
+        timestamp: new Date().toISOString(),
+      });
+    } finally {
+      this.update((state) => {
+        state.isEligible = isEligible;
+      });
+    }
   }
 }
