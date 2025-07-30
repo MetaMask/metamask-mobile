@@ -183,7 +183,6 @@ export type PerpsControllerActions =
       type: 'PerpsController:getMarkets';
       handler: PerpsController['getMarkets'];
     }
-  // TODO: Circle back and remove these if they're not necessary.
   | {
       type: 'PerpsController:refreshEligibility';
       handler: PerpsController['refreshEligibility'];
