@@ -485,13 +485,10 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.closePosition(closeParams);
 
       expect(result.success).toBe(true);
-      expect(DevLogger.log).not.toHaveBeenCalledWith(
-        expect.stringContaining('Position has TP/SL orders'),
-        expect.any(Object),
-      );
+      // No TP/SL logging expected since we removed this functionality
     });
 
-    it('should handle position with TP/SL and log defensive checks', async () => {
+    it('should handle position with TP/SL successfully', async () => {
       // Mock position with TP/SL
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
@@ -579,27 +576,8 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.success).toBe(true);
 
-      // Verify defensive TP/SL logging
-      expect(DevLogger.log).toHaveBeenCalledWith('Position has TP/SL orders:', {
-        coin: 'BTC',
-        takeProfitPrice: '55000',
-        stopLossPrice: '45000',
-      });
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'Found open TP/SL orders that may be auto-canceled:',
-        {
-          count: 2,
-          orders: [
-            { oid: 1001, side: 'A', limitPx: '55000' },
-            { oid: 1002, side: 'B', limitPx: '45000' },
-          ],
-        },
-      );
-
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'Position close successful, monitoring TP/SL auto-cancellation...',
-      );
+      // TP/SL orders are automatically handled by Hyperliquid
+      // No additional logging needed
     });
 
     it('should handle partial position close with TP/SL', async () => {
@@ -687,12 +665,7 @@ describe('HyperLiquidProvider', () => {
         }),
       );
 
-      // Verify TP/SL warning is still logged for partial close
-      expect(DevLogger.log).toHaveBeenCalledWith('Position has TP/SL orders:', {
-        coin: 'ETH',
-        takeProfitPrice: '3500',
-        stopLossPrice: undefined,
-      });
+      // TP/SL orders are automatically handled by Hyperliquid for partial closes too
     });
 
     it('should handle position without open TP/SL orders', async () => {
@@ -879,16 +852,11 @@ describe('HyperLiquidProvider', () => {
         }),
       );
 
-      // Verify TP/SL logging for short position
-      expect(DevLogger.log).toHaveBeenCalledWith('Position has TP/SL orders:', {
-        coin: 'BTC',
-        takeProfitPrice: '45000',
-        stopLossPrice: '55000',
-      });
+      // TP/SL orders are automatically handled by Hyperliquid for short positions too
     });
 
-    it('should handle errors in fetching TP/SL orders gracefully', async () => {
-      // Mock position exists but error fetching TP/SL orders
+    it('should handle position close even if TP/SL info is unavailable', async () => {
+      // Mock position exists with TP/SL in positions call
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
           assetPositions: [
@@ -914,21 +882,18 @@ describe('HyperLiquidProvider', () => {
             },
           ],
         }),
-        frontendOpenOrders: jest
-          .fn()
-          .mockResolvedValueOnce([
-            // First call for getPositions succeeds
-            {
-              coin: 'BTC',
-              oid: 1001,
-              reduceOnly: true,
-              isTrigger: true,
-              orderType: 'Take Profit Market',
-              triggerPx: '55000',
-              isPositionTpsl: true,
-            },
-          ])
-          .mockRejectedValueOnce(new Error('Failed to fetch orders')), // Second call fails
+        frontendOpenOrders: jest.fn().mockResolvedValueOnce([
+          // First call for getPositions with TP/SL
+          {
+            coin: 'BTC',
+            oid: 1001,
+            reduceOnly: true,
+            isTrigger: true,
+            orderType: 'Take Profit Market',
+            triggerPx: '55000',
+            isPositionTpsl: true,
+          },
+        ]),
         meta: jest.fn().mockResolvedValue({
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
@@ -942,9 +907,8 @@ describe('HyperLiquidProvider', () => {
 
       const result = await provider.closePosition(closeParams);
 
-      // Should still fail due to error in the try block
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Failed to fetch orders');
+      // Should succeed - TP/SL handling is automatic by Hyperliquid
+      expect(result.success).toBe(true);
     });
   });
 

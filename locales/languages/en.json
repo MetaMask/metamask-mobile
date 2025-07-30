@@ -986,8 +986,9 @@
       "error_unknown": "Failed to close position",
       "success_title": "Position Closed Successfully",
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
-      "fox_points_earned": "{{points}} Fox Points earned!",
-      "tpsl_warning": "Take profit and stop loss orders will be closed with this position"
+      "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
+      "error_title": "Close Position Failed",
+      "fox_points_earned": "{{points}} Fox Points earned!"
     },
     "tpsl": {
       "title": "Set take profit and stop loss",
@@ -1129,19 +1130,7 @@
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search",
-    "close_position": {
-      "title": "Close position",
-      "button": "Close position",
-      "closing": "Closing position...",
-      "pnl": "PnL",
-      "fees": "Fees",
-      "receive": "You'll receive (Hyperliquid USDC)",
-      "success_title": "Position Closed",
-      "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
-      "error_title": "Close Position Failed",
-      "error_unknown": "Unknown error occurred while closing position"
-    }
+    "search": "Search"
   },
   "receive": {
     "title": "Receive"

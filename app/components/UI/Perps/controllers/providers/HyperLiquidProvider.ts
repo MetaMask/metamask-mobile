@@ -726,12 +726,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   /**
    * Close a position
-   *
-   * Note on TP/SL handling:
-   * Based on Hyperliquid's siblingFilledCanceled status, TP/SL orders may be
-   * automatically canceled when the position is closed. However, this behavior
-   * is not explicitly documented, so we implement defensive logging to monitor
-   * the actual behavior.
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
     try {
@@ -742,41 +736,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       if (!position) {
         throw new Error(`No position found for ${params.coin}`);
-      }
-
-      // Check if position has TP/SL orders
-      const hasTpSl = position.takeProfitPrice || position.stopLossPrice;
-      if (hasTpSl) {
-        DevLogger.log('Position has TP/SL orders:', {
-          coin: params.coin,
-          takeProfitPrice: position.takeProfitPrice,
-          stopLossPrice: position.stopLossPrice,
-        });
-
-        // Check for open TP/SL orders
-        const userAddress =
-          await this.walletService.getUserAddressWithDefault();
-        const infoClient = this.clientService.getInfoClient();
-        const frontendOrders = await infoClient.frontendOpenOrders({
-          user: userAddress,
-        });
-        const tpslOrders = frontendOrders.filter(
-          (order) =>
-            order.coin === params.coin &&
-            order.reduceOnly === true &&
-            order.isPositionTpsl === true,
-        );
-
-        if (tpslOrders.length > 0) {
-          DevLogger.log('Found open TP/SL orders that may be auto-canceled:', {
-            count: tpslOrders.length,
-            orders: tpslOrders.map((o) => ({
-              oid: o.oid,
-              side: o.side,
-              limitPx: o.limitPx || o.triggerPx,
-            })),
-          });
-        }
       }
 
       const positionSize = parseFloat(position.size);
@@ -791,15 +750,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
         price: params.price,
         reduceOnly: true,
       });
-
-      // Log post-close state for monitoring TP/SL behavior
-      if (result.success && hasTpSl) {
-        DevLogger.log(
-          'Position close successful, monitoring TP/SL auto-cancellation...',
-        );
-        // In production, we might want to check if TP/SL orders were canceled
-        // after a short delay, but for now we'll rely on Hyperliquid's behavior
-      }
 
       return result;
     } catch (error) {

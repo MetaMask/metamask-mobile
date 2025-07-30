@@ -47,7 +47,6 @@ describe('PerpsClosePositionBottomSheet', () => {
     size: '0.1',
     positionValue: '4500',
     unrealizedPnl: '500',
-    realizedPnl: '0',
     marginUsed: '450',
     leverage: { type: 'cross', value: 10 },
     liquidationPrice: '35000',
@@ -58,6 +57,8 @@ describe('PerpsClosePositionBottomSheet', () => {
       sinceChange: '2',
       sinceOpen: '5',
     },
+    maxLeverage: 50,
+    returnOnEquity: '111.11',
   };
 
   const defaultProps = {
@@ -95,26 +96,6 @@ describe('PerpsClosePositionBottomSheet', () => {
       const { queryByTestId } = renderComponent({ isVisible: false });
 
       expect(queryByTestId('market-order-tab')).toBeFalsy();
-    });
-
-    it('should show TP/SL warning when position has TP/SL orders', () => {
-      const { getByTestId } = renderComponent();
-
-      expect(getByTestId('tpsl-warning')).toBeTruthy();
-    });
-
-    it('should not show TP/SL warning when position has no TP/SL orders', () => {
-      const positionWithoutTPSL = {
-        ...mockPosition,
-        takeProfitPrice: undefined,
-        stopLossPrice: undefined,
-      };
-
-      const { queryByTestId } = renderComponent({
-        position: positionWithoutTPSL,
-      });
-
-      expect(queryByTestId('tpsl-warning')).toBeFalsy();
     });
   });
 
@@ -367,8 +348,8 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       const { getByTestId } = renderComponent({ position: tpslPosition });
 
-      // Should show TP/SL warning
-      expect(getByTestId('tpsl-warning')).toBeTruthy();
+      // Should show position details
+      expect(getByTestId('position-pnl')).toBeTruthy();
     });
 
     it('should handle undefined leverage', () => {

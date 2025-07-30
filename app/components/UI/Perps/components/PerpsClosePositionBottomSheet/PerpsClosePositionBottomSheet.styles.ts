@@ -61,12 +61,6 @@ export const createStyles = ({ colors }: Theme) =>
       padding: 0,
       margin: 0,
     },
-    tpslWarning: {
-      backgroundColor: colors.warning.muted,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 16,
-    },
     detailsSection: {
       backgroundColor: colors.background.alternative,
       borderRadius: 8,

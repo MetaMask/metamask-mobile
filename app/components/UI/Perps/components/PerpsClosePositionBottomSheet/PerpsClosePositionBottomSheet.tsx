@@ -135,7 +135,10 @@ const PerpsClosePositionBottomSheet: React.FC<
       onPress: handleConfirm,
       disabled:
         isClosing ||
-        (orderType === 'limit' && (!limitPrice || parseFloat(limitPrice) <= 0)),
+        (orderType === 'limit' &&
+          (!limitPrice || parseFloat(limitPrice) <= 0)) ||
+        (orderType === 'market' && closePercentage === 0) ||
+        receiveAmount <= 0,
       loading: isClosing,
       testID: 'close-position-confirm-button',
     },
@@ -260,15 +263,6 @@ const PerpsClosePositionBottomSheet: React.FC<
                 USD
               </Text>
             </View>
-          </View>
-        )}
-
-        {/* TP/SL Warning if exists */}
-        {(position.takeProfitPrice || position.stopLossPrice) && (
-          <View style={styles.tpslWarning} testID="tpsl-warning">
-            <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
-              {strings('perps.close_position.tpsl_warning')}
-            </Text>
           </View>
         )}
 
