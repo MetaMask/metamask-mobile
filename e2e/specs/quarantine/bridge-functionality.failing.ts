@@ -23,7 +23,10 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../framework/fixtures/FixtureUtils';
 import { startMockServer } from '../bridge/bridge-mocks';
 import { stopMockServer } from '../../api-mocking/mock-server';
 import { localNodeOptions, testSpecificMock } from '../bridge/constants';

@@ -16,7 +16,7 @@ import FixtureServer from '../../framework/fixtures/FixtureServer';
 import {
   getFixturesServerPort,
   getMockServerPort,
-} from '../../fixtures/utils.js';
+} from '../../framework/fixtures/FixtureUtils';
 import { Regression } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';

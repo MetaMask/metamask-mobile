@@ -14,7 +14,7 @@ import {
 import { CustomNetworks } from '../../resources/networks.e2e.js';
 import TestHelpers from '../../helpers.js';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
-import { getFixturesServerPort } from '../../fixtures/utils.js';
+import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';

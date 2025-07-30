@@ -2,6 +2,13 @@
 import path from 'path';
 import { GanacheHardfork } from './types';
 
+// Port Constants
+export const DEFAULT_FIXTURE_SERVER_PORT = 12345;
+
+export const DEFAULT_MOCKSERVER_PORT = 8000;
+
+export const DEFAULT_DAPP_SERVER_PORT = 8085;
+
 // SRP corresponding to the vault set in the default fixtures - it's an empty test account, not secret
 export const defaultGanacheOptions = {
   hardfork: GanacheHardfork.london,

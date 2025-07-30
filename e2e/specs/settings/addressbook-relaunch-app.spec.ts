@@ -7,7 +7,7 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TestHelpers from '../../helpers';
-import { getFixturesServerPort } from '../../fixtures/utils';
+import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 

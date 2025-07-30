@@ -7,7 +7,7 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../../framework/fixtures/FixtureHelper';
-import { getFixturesServerPort } from '../../fixtures/utils';
+import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';

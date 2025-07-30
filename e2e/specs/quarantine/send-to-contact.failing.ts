@@ -15,7 +15,7 @@ import {
 import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
-import { getFixturesServerPort } from '../../fixtures/utils';
+import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import Assertions from '../../framework/Assertions';
 
 const fixtureServer = new FixtureServer();

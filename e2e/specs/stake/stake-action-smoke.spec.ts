@@ -18,7 +18,10 @@ import {
 } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import StakeView from '../../pages/Stake/StakeView';
