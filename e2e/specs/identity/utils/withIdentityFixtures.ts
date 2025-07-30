@@ -1,5 +1,5 @@
-import { withFixtures } from '../../../fixtures/fixture-helper';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import {
   mockAuthServices,
   createUserStorageController,
@@ -11,13 +11,14 @@ import {
   UserStorageMockttpController,
   UserStorageMockttpControllerOverrides,
 } from './user-storage/userStorageMockttpController';
-import { MockttpServer } from 'mockttp';
+import { Mockttp } from 'mockttp';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import { TestSpecificMock } from '../../../framework/types';
 
 export interface IdentityFixtureOptions {
   fixture?: object;
   restartDevice?: boolean;
-  testSpecificMock?: object;
+  testSpecificMock?: TestSpecificMock;
   userStorageFeatures?: (keyof typeof pathRegexps)[];
   userStorageOverrides?: Partial<
     Record<keyof typeof pathRegexps, UserStorageMockttpControllerOverrides>
@@ -27,7 +28,7 @@ export interface IdentityFixtureOptions {
 }
 
 export interface IdentityTestContext {
-  mockServer: MockttpServer;
+  mockServer: Mockttp;
   userStorageMockttpController: UserStorageMockttpController;
 }
 
@@ -56,7 +57,11 @@ export async function withIdentityFixtures(
       restartDevice,
       testSpecificMock,
     },
-    async ({ mockServer }: { mockServer: MockttpServer }) => {
+    async ({ mockServer }) => {
+      if (!mockServer) {
+        throw new Error('Mock server is not defined');
+      }
+
       // mock auth services
       await mockAuthServices(mockServer);
       if (mockBalancesAccounts.length > 0) {

@@ -157,7 +157,11 @@ export interface AssetRoute {
     minAmount?: string; // Minimum deposit/withdrawal amount
     maxAmount?: string; // Maximum deposit/withdrawal amount
     estimatedTime?: string; // Estimated processing time
-    fees?: string; // Associated fees
+    fees?: {
+      fixed?: number; // Fixed fee amount (e.g., 1 for 1 token)
+      percentage?: number; // Percentage fee (e.g., 0.05 for 0.05%)
+      token?: string; // Fee token symbol (e.g., 'USDC', 'ETH')
+    };
   };
 }
 
@@ -231,6 +235,8 @@ export interface WithdrawResult {
   success: boolean;
   txHash?: string;
   error?: string;
+  withdrawalId?: string; // Unique ID for tracking
+  estimatedArrivalTime?: number; // Provider-specific arrival time
 }
 
 export interface LiveDataConfig {
@@ -249,6 +255,10 @@ export interface PriceUpdate {
   bestAsk?: string; // Best ask price (lowest price sellers are willing to accept)
   spread?: string; // Ask - Bid spread
   markPrice?: string; // Mark price from oracle (used for liquidations)
+  // Market data (only available when includeMarketData is true)
+  funding?: number; // Current funding rate
+  openInterest?: number; // Open interest in USD
+  volume24h?: number; // 24h trading volume in USD
 }
 
 export interface OrderFill {
@@ -284,6 +294,7 @@ export interface SubscribePricesParams {
   callback: (prices: PriceUpdate[]) => void;
   throttleMs?: number; // Future: per-subscription throttling
   includeOrderBook?: boolean; // Optional: include bid/ask data from L2 book
+  includeMarketData?: boolean; // Optional: include funding, open interest, volume data
 }
 
 export interface SubscribePositionsParams {
