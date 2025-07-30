@@ -1,4 +1,3 @@
-'use strict';
 import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
@@ -11,7 +10,7 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
@@ -58,7 +57,7 @@ describe(Regression('Send ERC Token'), () => {
       await NetworkListModal.scrollToBottomOfNetworkList();
       await NetworkListModal.tapTestNetworkSwitch();
       await NetworkListModal.scrollToBottomOfNetworkList();
-      await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+      await Assertions.expectToggleToBeOn(NetworkListModal.testNetToggle);
       await NetworkListModal.changeNetworkTo(
         CustomNetworks.Sepolia.providerConfig.nickname,
       );
@@ -66,9 +65,11 @@ describe(Regression('Send ERC Token'), () => {
   );
 
   it('should dismiss network education modal', async () => {
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
+    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+    await Assertions.expectElementToNotBeVisible(
+      NetworkEducationModal.container,
+    );
   });
 
   it('should Import custom token', async () => {
@@ -83,7 +84,7 @@ describe(Regression('Send ERC Token'), () => {
     await ImportTokensView.scrollDownOnImportCustomTokens();
     await ImportTokensView.tapOnNextButton();
     await ConfirmAddAssetView.tapOnConfirmButton();
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.container);
   });
 
   it('should send token to address via asset overview screen', async () => {
@@ -106,8 +107,8 @@ describe(Regression('Send ERC Token'), () => {
     await AmountView.typeInTransactionAmount('0.000001');
     await TestHelpers.delay(5000);
     await AmountView.tapNextButton();
-    await Assertions.checkIfTextIsDisplayed('< 0.00001 LINK');
+    await Assertions.expectTextDisplayed('< 0.00001 LINK');
     await TransactionConfirmationView.tapConfirmButton();
-    // await Assertions.checkIfTextIsDisplayed('Transaction submitted'); removing this assertion for now
+    // await Assertions.expectTextDisplayed('Transaction submitted'); removing this assertion for now
   });
 });

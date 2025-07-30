@@ -202,8 +202,10 @@ xdescribe(
             // Verify network switched to Sepolia
             await TabBarComponent.tapWallet();
             await Assertions.expectElementToBeVisible(WalletView.container);
-            const networkPicker = await WalletView.getNavbarNetworkPicker();
-            await Assertions.expectElementToHaveLabel(networkPicker, SEPOLIA);
+            await Assertions.expectElementToHaveLabel(
+              WalletView.navbarNetworkPicker,
+              SEPOLIA,
+            );
           },
         );
       },
@@ -258,9 +260,8 @@ xdescribe(
             // Verify network switched to Linea Sepolia
             await TabBarComponent.tapWallet();
             await Assertions.expectElementToBeVisible(WalletView.container);
-            const networkPicker = await WalletView.getNavbarNetworkPicker();
             await Assertions.expectElementToHaveLabel(
-              networkPicker,
+              WalletView.navbarNetworkPicker,
               'Linea Sepolia',
             );
           },
