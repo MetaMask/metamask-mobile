@@ -98,6 +98,7 @@ describe('useBridgeQuoteData', () => {
       isNoQuotesAvailable: false,
       isExpired: false,
       willRefresh: undefined,
+      blockaidError: null,
     });
   });
 
@@ -133,6 +134,7 @@ describe('useBridgeQuoteData', () => {
       isNoQuotesAvailable: true,
       isExpired: false,
       willRefresh: undefined,
+      blockaidError: null,
     });
   });
 
@@ -169,6 +171,7 @@ describe('useBridgeQuoteData', () => {
       isNoQuotesAvailable: false,
       isExpired: true,
       willRefresh: undefined,
+      blockaidError: null,
     });
   });
 
@@ -201,6 +204,7 @@ describe('useBridgeQuoteData', () => {
       isNoQuotesAvailable: false,
       isExpired: false,
       willRefresh: undefined,
+      blockaidError: null,
     });
   });
 
@@ -234,6 +238,7 @@ describe('useBridgeQuoteData', () => {
       isNoQuotesAvailable: false,
       isExpired: false,
       willRefresh: undefined,
+      blockaidError: null,
     });
   });
 
