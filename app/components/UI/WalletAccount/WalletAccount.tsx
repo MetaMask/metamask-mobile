@@ -7,7 +7,6 @@ import { View } from 'react-native';
 // External dependencies
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { useStyles } from '../../../component-library/hooks';
 import AddressCopy from '../AddressCopy';
@@ -48,14 +47,6 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     accountActionsRef,
   }));
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
-
   const onNavigateToAccountActions = () => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ACCOUNT_ACTIONS,
@@ -76,15 +67,12 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         ref={yourAccountRef}
         accountAddress={selectedAccount.address}
         accountName={accountName}
-        accountAvatarType={accountAvatarType}
         onPress={() => {
           navigate(...createAccountSelectorNavDetails());
         }}
         accountTypeLabel={
           getLabelTextByAddress(selectedAccount?.address) || undefined
         }
-        showAddress={false}
-        cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}
         testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
       />

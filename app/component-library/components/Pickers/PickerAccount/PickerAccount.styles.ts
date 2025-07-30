@@ -21,62 +21,23 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, cellAccountContainerStyle } = vars;
+  const { style } = vars;
   return StyleSheet.create({
     base: {
       ...(style as ViewStyle),
       flexDirection: 'row',
-      padding: 0,
       borderWidth: 0,
     },
     basePressed: {
       ...(style as ViewStyle),
       flexDirection: 'row',
-      padding: 8,
       borderWidth: 0,
       borderRadius: 2,
       backgroundColor: colors.background.pressed,
     },
-    accountAvatar: {
-      marginRight: 8,
-    },
     accountAddressLabel: {
       color: colors.text.alternative,
       textAlign: 'center',
-    },
-    cellAccount: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      ...cellAccountContainerStyle,
-    },
-    accountNameLabel: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    accountNameAvatar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    pickerAccountContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      minHeight: 44,
-      minWidth: 80,
-      backgroundColor: colors.background.default,
-    },
-    pickerAccountContainerPressed: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      minHeight: 44,
-      minWidth: 80,
-      backgroundColor: colors.error.default, // Use design system error color for visibility
     },
     dropDownIcon: {
       marginLeft: 8,

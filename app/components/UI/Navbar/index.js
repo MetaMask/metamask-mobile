@@ -4,10 +4,8 @@ import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import {
-  Alert,
   Image,
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -61,6 +59,7 @@ import {
   BadgeWrapper,
   ButtonIcon,
   ButtonIconSize,
+  IconColor as MMDSIconColor,
 } from '@metamask/design-system-react-native';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
@@ -963,20 +962,20 @@ export function getWalletNavbarOptions(
     headerMiddleContainer: {
       justifyContent: 'center',
       alignItems: 'center',
-      flex: 1,
     },
     startAccessoryContainer: {
-      marginLeft: 16,
+      alignItems: 'flex-start',
     },
     endAccessoryContainer: {
+      alignItems: 'flex-end',
       marginRight: 16,
     },
     networkPickerStyle: {
       alignSelf: 'flex-start',
+      marginLeft: 16,
     },
     actionButtonsContainer: {
       flexDirection: 'row',
-      alignItems: 'center',
     },
     // Minimum 44px touch area for accessibility
     touchAreaSlop: {
@@ -1045,7 +1044,7 @@ export function getWalletNavbarOptions(
           }
         >
           <ButtonIcon
-            iconProps={{ color: IconColor.Default }}
+            iconProps={{ color: MMDSIconColor.Default }}
             onPress={handleNotificationOnPress}
             iconName={IconName.Notification}
             size={ButtonIconSize.Lg}
@@ -1072,8 +1071,6 @@ export function getWalletNavbarOptions(
         navigation.navigate(...createAccountSelectorNavDetails({}));
       }}
       accountTypeLabel={getLabelTextByAddress(formattedAddress) || undefined}
-      showAddress={false}
-      cellAccountContainerStyle={styles.account}
       testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
       hitSlop={innerStyles.touchAreaSlop}
     />

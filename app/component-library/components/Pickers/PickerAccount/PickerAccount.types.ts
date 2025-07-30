@@ -1,12 +1,11 @@
 // External dependencies.
-import { ViewStyle, GestureResponderEvent } from 'react-native';
+import { GestureResponderEvent } from 'react-native';
 import { PickerBaseProps } from '../PickerBase';
 
 /**
  * PickerAccount component props.
  */
-export interface PickerAccountProps
-  extends Omit<PickerBaseProps, 'children' | 'onPress'> {
+export interface PickerAccountProps extends Omit<PickerBaseProps, 'children'> {
   /**
    * An Ethereum wallet address.
    */
@@ -15,15 +14,6 @@ export interface PickerAccountProps
    * Name of the account.
    */
   accountName: string;
-  /**
-   * Show address.
-   */
-  showAddress?: boolean;
-  /**
-   * cell account contianer style.
-   */
-  cellAccountContainerStyle?: ViewStyle;
-
   /**
    * Account type label.
    */
@@ -38,29 +28,11 @@ export interface PickerAccountProps
     left?: number;
     right?: number;
   };
-
-  /**
-   * Function to trigger when pressed.
-   */
-  onPress?: (event: GestureResponderEvent) => void;
-
-  /**
-   * Function to trigger when press in.
-   */
-  onPressIn?: (event: GestureResponderEvent) => void;
-
-  /**
-   * Function to trigger when press out.
-   */
-  onPressOut?: (event: GestureResponderEvent) => void;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type PickerAccountStyleSheetVars = Pick<
-  PickerAccountProps,
-  'style' | 'cellAccountContainerStyle'
-> & {
+export type PickerAccountStyleSheetVars = Pick<PickerAccountProps, 'style'> & {
   pressed: boolean;
 };

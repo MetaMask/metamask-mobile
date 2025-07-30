@@ -6,7 +6,6 @@ import { TouchableOpacity, View, GestureResponderEvent } from 'react-native';
 
 // External dependencies.
 import DSText, { TextVariant } from '../../Texts/Text';
-import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
 import { IconSize } from '../../Icons/Icon';
 
@@ -24,8 +23,6 @@ const PickerAccount: React.ForwardRefRenderFunction<
     style,
     accountAddress,
     accountName,
-    showAddress = true,
-    cellAccountContainerStyle = {},
     hitSlop,
     onPress,
     onPressIn,
@@ -38,7 +35,6 @@ const PickerAccount: React.ForwardRefRenderFunction<
 
   const { styles } = useStyles(styleSheet, {
     style,
-    cellAccountContainerStyle,
     pressed,
   });
 
@@ -58,43 +54,25 @@ const PickerAccount: React.ForwardRefRenderFunction<
     [setPressed, onPressOut],
   );
 
-  const shortenedAddress = formatAddress(accountAddress, 'short');
-
   return (
-    <View style={styles.pickerAccountContainer}>
-      <PickerBase
-        iconSize={IconSize.Xs}
-        style={pressed ? styles.basePressed : styles.base}
-        dropdownIconStyle={styles.dropDownIcon}
-        onPress={() => onPress && onPress({} as GestureResponderEvent)}
-        onPressIn={triggerOnPressedIn}
-        onPressOut={triggerOnPressedOut}
-        hitSlop={hitSlop}
-        activeOpacity={1}
-        {...props}
+    <PickerBase
+      iconSize={IconSize.Xs}
+      style={pressed ? styles.basePressed : styles.base}
+      dropdownIconStyle={styles.dropDownIcon}
+      onPress={onPress}
+      onPressIn={triggerOnPressedIn}
+      onPressOut={triggerOnPressedOut}
+      hitSlop={hitSlop}
+      activeOpacity={1}
+      {...props}
+    >
+      <DSText
+        variant={TextVariant.BodyMDMedium}
+        testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
       >
-        <View style={styles.cellAccount}>
-          <View style={styles.accountNameLabel}>
-            <View style={styles.accountNameAvatar}>
-              <DSText
-                variant={TextVariant.BodyMDMedium}
-                testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
-              >
-                {accountName}
-              </DSText>
-            </View>
-          </View>
-        </View>
-      </PickerBase>
-      {showAddress && (
-        <DSText
-          variant={TextVariant.BodySMMedium}
-          style={styles.accountAddressLabel}
-        >
-          {shortenedAddress}
-        </DSText>
-      )}
-    </View>
+        {accountName}
+      </DSText>
+    </PickerBase>
   );
 };
 

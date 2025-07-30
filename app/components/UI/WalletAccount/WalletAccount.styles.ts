@@ -18,9 +18,6 @@ const styleSheet = (params: {
       borderRadius: 8,
       ...style,
     },
-    account: {
-      alignItems: 'center',
-    },
     accountPicker: {
       borderWidth: 0,
       borderColor: colors.border.default,
