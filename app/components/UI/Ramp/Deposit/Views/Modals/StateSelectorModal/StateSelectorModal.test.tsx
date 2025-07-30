@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import StateSelectorModal from './StateSelectorModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import { createUnsupportedStateModalNavigationDetails } from '../UnsupportedStateModal/UnsupportedStateModal';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -49,6 +50,22 @@ let mockUseParamsValues = {
   selectedState: undefined,
   onStateSelect: jest.fn(),
 };
+
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockDangerouslyGetParent = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      dangerouslyGetParent: mockDangerouslyGetParent,
+    }),
+  };
+});
 
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
@@ -115,11 +132,30 @@ describe('StateSelectorModal Component', () => {
   });
 
   describe('Behavior Tests', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('calls onStateSelect when a state is selected', () => {
       const { getByText } = renderWithProvider(StateSelectorModal);
       const californiaState = getByText('California');
       fireEvent.press(californiaState);
       expect(mockUseParamsValues.onStateSelect).toHaveBeenCalledWith('CA');
+    });
+
+    it('navigates to unsupported state modal when NY is selected', () => {
+      const { getByText } = renderWithProvider(StateSelectorModal);
+      const newYorkState = getByText('New York');
+      fireEvent.press(newYorkState);
+
+      expect(mockUseParamsValues.onStateSelect).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createUnsupportedStateModalNavigationDetails({
+          stateCode: 'NY',
+          stateName: 'New York',
+          onStateSelect: mockUseParamsValues.onStateSelect,
+        }),
+      );
     });
 
     it('filters states when searching by name', () => {

@@ -39,10 +39,12 @@ export const useConfirmActions = () => {
     approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
 
   const onReject = useCallback(
-    async (error?: Error) => {
+    async (error?: Error, skipNavigation = false) => {
       await cancelQRScanRequestIfPresent();
       onRequestReject(error);
-      navigation.goBack();
+      if (!skipNavigation) {
+        navigation.goBack();
+      }
       if (isSignatureReq) {
         captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
         PPOMUtil.clearSignatureSecurityAlertResponse();

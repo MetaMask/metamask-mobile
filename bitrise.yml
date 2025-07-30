@@ -3256,16 +3256,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.50.1
+      VERSION_NAME: 7.51.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2186
+      VERSION_NUMBER: 2203
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.50.1
+      FLASK_VERSION_NAME: 7.51.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2186
+      FLASK_VERSION_NUMBER: 2203
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -3292,7 +3292,7 @@ app:
       COREPACK_VERSION: 0.28.0
     - opts:
         is_expand: false
-      WEB3AUTH_NETWORK: 'sapphire_devnet'
+      SEEDLESS_ONBOARDING_ENABLED: true
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x
