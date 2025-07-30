@@ -16,6 +16,7 @@ import {
   PopularNetworksList,
 } from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types';
+import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -988,6 +989,186 @@ class FixtureBuilder {
     this.withPermissionController(
       this.createPermissionControllerConfig(permissionConfig),
     );
+    return this;
+  }
+
+  /**
+   * Sets the user profile key ring in the fixture's background state.
+   * @param {object} userState - The user state to set.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  withUserProfileKeyRing(userState: any) {
+    merge(
+      this.fixture.state.engine.backgroundState.KeyringController,
+      userState.KEYRING_CONTROLLER_STATE,
+    );
+
+    // Add accounts controller with the first account selected
+    const firstAccountAddress =
+      userState.KEYRING_CONTROLLER_STATE.keyrings[0].accounts[0];
+    const accountId = '4d7a5e0b-b261-4aed-8126-43972b0fa0a1';
+
+    merge(this.fixture.state.engine.backgroundState.AccountsController, {
+      internalAccounts: {
+        accounts: {
+          [accountId]: {
+            address: firstAccountAddress,
+            id: accountId,
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            type: 'eip155:eoa',
+            scopes: ['eip155:1'],
+          },
+        },
+        selectedAccount: accountId,
+      },
+    });
+
+    return this;
+  }
+
+  /**
+   * Sets the user profile snap unencrypted state in the fixture's background state.
+   * @param {object} userState - The user state to set.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  withUserProfileSnapUnencryptedState(userState: any) {
+    merge(
+      this.fixture.state.engine.backgroundState.SnapController,
+      userState.SNAPS_CONTROLLER_STATE,
+    );
+
+    return this;
+  }
+
+  /**
+   * Sets the user profile snap permissions in the fixture's background state.
+   * @param {object} userState - The user state to set.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  withUserProfileSnapPermissions(userState: any) {
+    merge(
+      this.fixture.state.engine.backgroundState.PermissionController,
+      userState.PERMISSION_CONTROLLER_STATE,
+    );
+    return this;
+  }
+
+  /**
+   * Sets the tokens for all popular networks in the fixture's background state.
+   * @param tokens - The tokens to set.
+   * @param userState - The user state to set.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withTokensForAllPopularNetworks(
+    tokens: Record<string, unknown>[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userState: any = null,
+  ) {
+    // Get all popular network chain IDs using proper constants
+    const popularChainIds = [
+      CHAIN_IDS.MAINNET, // Ethereum Mainnet
+      CHAIN_IDS.POLYGON, // Polygon Mainnet
+      CHAIN_IDS.BSC, // BNB Smart Chain
+      CHAIN_IDS.OPTIMISM, // Optimism
+      CHAIN_IDS.ARBITRUM, // Arbitrum One
+      CHAIN_IDS.AVALANCHE, // Avalanche C-Chain
+      CHAIN_IDS.BASE, // Base
+      CHAIN_IDS.ZKSYNC_ERA, // zkSync Era
+      CHAIN_IDS.SEI, // Sei Network
+    ];
+
+    // Use userState accounts if provided, otherwise fall back to MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER
+    let allAccountAddresses: string[] = [];
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    if (userState && userState.KEYRING_CONTROLLER_STATE) {
+      // Extract all account addresses from the user state keyring
+      allAccountAddresses = userState.KEYRING_CONTROLLER_STATE.keyrings.flatMap(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (keyring: any) => keyring.accounts,
+      );
+    } else {
+      // Fallback to the hardcoded accounts
+      const accountsData =
+        MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER.internalAccounts.accounts;
+      allAccountAddresses = Object.values(accountsData).map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (account: any) => account.address,
+      );
+    }
+
+    // Create tokens object for all accounts
+    const accountTokens: Record<string, Record<string, unknown>[]> = {};
+    allAccountAddresses.forEach((address) => {
+      accountTokens[address] = tokens;
+    });
+
+    const allTokens: Record<string, Record<string, unknown>> = {};
+
+    // Add tokens to each popular network
+    popularChainIds.forEach((chainId) => {
+      allTokens[chainId] = accountTokens;
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allTokens,
+    });
+
+    // we need to test this ...
+
+    // Create token balances for TokenBalancesController
+    // Structure: { [accountAddress]: { [chainId]: { [tokenAddress]: balance } } }
+    const tokenBalances: Record<
+      string,
+      Record<string, Record<string, string>>
+    > = {};
+
+    allAccountAddresses.forEach((accountAddress, accountIndex) => {
+      tokenBalances[accountAddress] = {};
+
+      // Add balances for each popular network
+      popularChainIds.forEach((chainId) => {
+        tokenBalances[accountAddress][chainId] = {};
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tokens.forEach((token: any, tokenIndex: number) => {
+          // Generate realistic but varied balances for testing
+          // Using different multipliers to create variety across accounts and tokens
+          const baseBalance = (accountIndex + 1) * (tokenIndex + 1) * 1000;
+          const randomVariation = Math.floor(Math.random() * 5000);
+          const finalBalance = baseBalance + randomVariation;
+
+          // Convert to hex with proper padding for token decimals
+          const balanceInWei = (
+            finalBalance * Math.pow(10, token.decimals)
+          ).toString(16);
+          tokenBalances[accountAddress][chainId][
+            token.address
+          ] = `0x${balanceInWei}`;
+        });
+      });
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokenBalancesController, {
+      tokenBalances,
+    });
+
     return this;
   }
 

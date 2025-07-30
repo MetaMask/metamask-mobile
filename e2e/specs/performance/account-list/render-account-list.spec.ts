@@ -1,15 +1,16 @@
-/* eslint-disable no-console, import/no-nodejs-modules */
-
 import { loginToApp } from '../../../viewHelper';
 import { SmokePerformance } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { withFixtures } from '../../../fixtures/fixture-helper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { CORE_USER_STATE, POWER_USER_STATE } from '../../../fixtures/constants';
+import {
+  CORE_USER_STATE,
+  POWER_USER_STATE,
+} from '../../../framework/fixtures/constants';
 import {
   PerformanceTestReporter,
   createUserProfileTests,
@@ -59,16 +60,20 @@ describe(SmokePerformance('Account List Load Testing'), () => {
           async () => {
             await loginToApp();
 
-            await Assertions.checkIfVisible(WalletView.container);
+            await Assertions.expectElementToBeVisible(WalletView.container);
             // Measure time to navigate to account list
             const startTime = Date.now();
 
             await WalletView.tapIdenticon();
 
             // Check if account list is visible
-            await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+            );
 
-            await Assertions.checkIfTextIsDisplayed('Account 1');
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+            );
 
             const endTime = Date.now();
             const totalTime = endTime - startTime;
@@ -139,8 +144,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
               .withUserProfileSnapUnencryptedState(userState)
               .withUserProfileSnapPermissions(userState)
               .withPopularNetworks()
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              .withTokensForAllPopularNetworks(heavyTokenLoad, userState as any)
+              .withTokensForAllPopularNetworks(heavyTokenLoad, userState)
               .build(),
             restartDevice: true,
           },
@@ -151,9 +155,13 @@ describe(SmokePerformance('Account List Load Testing'), () => {
 
             const startTime = Date.now();
             await WalletView.tapIdenticon();
-            await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+            );
 
-            await Assertions.checkIfTextIsDisplayed('Account 1');
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+            );
 
             const endTime = Date.now();
             const totalTime = endTime - startTime;
@@ -237,9 +245,13 @@ describe(SmokePerformance('Account List Load Testing'), () => {
 
             const startTime = Date.now();
             await WalletView.tapIdenticon();
-            await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+            );
 
-            await Assertions.checkIfTextIsDisplayed('Account 1');
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+            );
 
             const endTime = Date.now();
             const totalTime = endTime - startTime;

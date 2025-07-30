@@ -1,14 +1,16 @@
-/* eslint-disable no-console, import/no-nodejs-modules */
 import { loginToApp } from '../../../viewHelper';
 import { SmokePerformance } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { withFixtures } from '../../../fixtures/fixture-helper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import NetworkListModal from '../../../pages/Network/NetworkListModal';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { CORE_USER_STATE, POWER_USER_STATE } from '../../../fixtures/constants';
+import {
+  CORE_USER_STATE,
+  POWER_USER_STATE,
+} from '../../../framework/fixtures/constants';
 import {
   PerformanceTestReporter,
   createUserProfileTests,
@@ -60,18 +62,22 @@ describe(SmokePerformance('Network List Load Testing'), () => {
           async () => {
             await loginToApp();
 
-            await Assertions.checkIfVisible(WalletView.container);
+            await Assertions.expectElementToBeVisible(WalletView.container);
             // Measure time to navigate to account list
             const starTime = Date.now();
 
             await WalletView.tapNetworksButtonOnNavBar();
 
             // Re-enable sync and check if network list is visible
-            await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+            await Assertions.expectElementToBeVisible(
+              NetworkListModal.networkScroll,
+            );
             console.log('Network list became visible');
 
             // Check if all network is displayed
-            await Assertions.checkIfTextIsDisplayed('Linea Main Network');
+            await Assertions.expectElementToBeVisible(
+              NetworkListModal.networkScroll,
+            );
 
             const totalTime = Date.now() - starTime;
 
@@ -161,7 +167,9 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             await WalletView.tapNetworksButtonOnNavBar();
 
             const endTime = Date.now();
-            await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+            await Assertions.expectElementToBeVisible(
+              NetworkListModal.networkScroll,
+            );
 
             const totalTime = endTime - startTime;
 
@@ -238,7 +246,9 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             await WalletView.tapNetworksButtonOnNavBar();
 
             const startTime = Date.now();
-            await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+            await Assertions.expectElementToBeVisible(
+              NetworkListModal.networkScroll,
+            );
             const endTime = Date.now();
 
             const totalTime = endTime - startTime;

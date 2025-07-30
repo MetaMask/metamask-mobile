@@ -19,7 +19,7 @@ import {
   CORE_USER_STATE,
   POWER_USER_STATE,
   CASUAL_USER_STATE,
-} from './constants';
+} from '../framework/fixtures/constants';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
