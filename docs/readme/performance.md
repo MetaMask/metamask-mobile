@@ -257,7 +257,7 @@ function something() {
 
 ## useWorklet
 
-Purpose: useWorklet is a hook that allows you to define a worklet function directly within your React component. It ensures that the function is properly marked as a worklet and can run on the worklet thread.
+Purpose: `useWorklet` is a hook that allows you to define a worklet function directly within your React component. It ensures that the function is properly marked as a worklet and can run on the worklet thread.
 
 When to use: Use this hook when you need to define a function that will execute on the worklet thread.
 
