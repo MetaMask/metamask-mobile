@@ -79,9 +79,7 @@ export const getNativeValueFn = ({
     : 1;
   const nativeValue =
     (amount ? parseFloat(amount) : 0) / ((conversionRate ?? 1) * exchangeRate);
-  return decimals !== undefined
-    ? limitToMaximumDecimalPlaces(nativeValue, decimals)
-    : nativeValue;
+  return limitToMaximumDecimalPlaces(nativeValue, decimals ?? 0);
 };
 
 export const getNativeDisplayValueFn = ({

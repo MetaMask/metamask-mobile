@@ -45,7 +45,7 @@ export const SendContextProvider: React.FC<{
     <SendContext.Provider
       value={{
         asset,
-        chainId: chainId as Hex,
+        chainId: chainId as Hex | undefined,
         from: from?.address as Hex,
         to,
         updateAsset,

@@ -53,7 +53,7 @@ const Amount = () => {
   const updateToNewAmount = useCallback(
     (amt: string) => {
       updateAmount(amt);
-      updateValue(fiatMode ? getNativeValue(amt).toString() : amt);
+      updateValue(fiatMode ? getNativeValue(amt) : amt);
     },
     [fiatMode, getNativeValue, updateAmount, updateValue],
   );
