@@ -8,6 +8,8 @@ import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
 
 class WalletView {
+  static readonly MAX_SCROLL_ITERATIONS = 8;
+
   get container(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
@@ -198,11 +200,21 @@ class WalletView {
     });
   }
 
-  async scrollDownOnTokensTab(): Promise<void> {
+  async scrollToBottomOfTokensList(): Promise<void> {
     const tokensContainer = await this.getTokensInWallet();
-    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
-      speed: 'slow',
-      percentage: 0.2,
+    for (let i = 0; i < WalletView.MAX_SCROLL_ITERATIONS; i++) {
+      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
+        speed: 'fast',
+        percentage: 0.7,
+      });
+    }
+  }
+
+  async scrollToTopOfTokensList(): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
+      speed: 'fast',
+      percentage: 0.7,
     });
   }
 
@@ -215,6 +227,7 @@ class WalletView {
       Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
       {
         direction,
+        scrollAmount: 50,
       },
     );
   }
@@ -460,6 +473,59 @@ class WalletView {
     if (!(await this.isBalanceVisible())) {
       await this.toggleBalanceVisibility();
     }
+  }
+
+  // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
+  get walletBuyButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
+  }
+
+  get walletSwapButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON);
+  }
+
+  get walletBridgeButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
+  }
+
+  get walletSendButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
+  }
+
+  get walletReceiveButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
+    );
+  }
+
+  async tapWalletBuyButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletBuyButton, {
+      elemDescription: 'Wallet Buy Button',
+    });
+  }
+
+  async tapWalletSwapButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletSwapButton, {
+      elemDescription: 'Wallet Swap Button',
+    });
+  }
+
+  async tapWalletBridgeButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletBridgeButton, {
+      elemDescription: 'Wallet Bridge Button',
+    });
+  }
+
+  async tapWalletSendButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletSendButton, {
+      elemDescription: 'Wallet Send Button',
+    });
+  }
+
+  async tapWalletReceiveButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletReceiveButton, {
+      elemDescription: 'Wallet Receive Button',
+    });
   }
 }
 
