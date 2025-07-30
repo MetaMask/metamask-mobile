@@ -2389,5 +2389,122 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toBe('Order cancellation failed');
       });
     });
+
+    describe('calculateFees', () => {
+      it('should calculate fees for market orders', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(result.feeRate).toBe(0.00045); // 0.045% taker fee
+        expect(result.feeAmount).toBe(45); // 100000 * 0.00045
+      });
+
+      it('should calculate fees for limit orders as taker', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'limit',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(result.feeRate).toBe(0.00045); // 0.045% taker fee
+        expect(result.feeAmount).toBe(45);
+      });
+
+      it('should calculate fees for limit orders as maker', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'limit',
+          isMaker: true,
+          amount: '100000',
+        });
+
+        expect(result.feeRate).toBe(0.00015); // 0.015% maker fee
+        expect(result.feeAmount).toBeCloseTo(15, 10);
+      });
+
+      it('should handle zero amount', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '0',
+        });
+
+        expect(result.feeRate).toBe(0.00045);
+        expect(result.feeAmount).toBe(0);
+      });
+
+      it('should handle undefined amount', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+        });
+
+        expect(result.feeRate).toBe(0.00045);
+        expect(result.feeAmount).toBeUndefined();
+      });
+
+      it('should handle non-numeric amount gracefully', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: 'invalid',
+        });
+
+        expect(result.feeRate).toBe(0.00045);
+        expect(result.feeAmount).toBe(0); // parseFloat('invalid') returns NaN, which * 0.00045 = NaN, but we expect 0
+      });
+
+      it('should return FeeCalculationResult with correct structure', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(result).toHaveProperty('feeRate');
+        expect(result).toHaveProperty('feeAmount');
+        expect(typeof result.feeRate).toBe('number');
+        expect(typeof result.feeAmount).toBe('number');
+      });
+
+      it('should be async and return a Promise', () => {
+        const result = provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+        });
+
+        expect(result).toBeInstanceOf(Promise);
+      });
+
+      describe('placeholder methods for future implementation', () => {
+        it('should have getUserVolume method returning 0', async () => {
+          // Access private method for testing
+          interface HyperLiquidProviderTestable extends HyperLiquidProvider {
+            getUserVolume(): Promise<number>;
+          }
+          const testableProvider =
+            provider as unknown as HyperLiquidProviderTestable;
+          const getUserVolume = testableProvider.getUserVolume;
+          expect(getUserVolume).toBeDefined();
+          const volume = await getUserVolume.call(provider);
+          expect(volume).toBe(0);
+        });
+
+        it('should have getUserStaking method returning 0', async () => {
+          // Access private method for testing
+          interface HyperLiquidProviderTestable extends HyperLiquidProvider {
+            getUserStaking(): Promise<number>;
+          }
+          const testableProvider =
+            provider as unknown as HyperLiquidProviderTestable;
+          const getUserStaking = testableProvider.getUserStaking;
+          expect(getUserStaking).toBeDefined();
+          const staking = await getUserStaking.call(provider);
+          expect(staking).toBe(0);
+        });
+      });
+    });
   });
 });

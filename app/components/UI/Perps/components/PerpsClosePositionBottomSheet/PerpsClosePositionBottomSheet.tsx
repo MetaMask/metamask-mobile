@@ -23,7 +23,7 @@ import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsClosePositionBottomSheet.styles';
-import { usePerpsPrices } from '../../hooks';
+import { usePerpsPrices, usePerpsOrderFees } from '../../hooks';
 import PerpsSlider from '../PerpsSlider/PerpsSlider';
 
 interface PerpsClosePositionBottomSheetProps {
@@ -82,10 +82,19 @@ const PerpsClosePositionBottomSheet: React.FC<
     ? (currentPrice - entryPrice) * absSize
     : (entryPrice - currentPrice) * absSize;
 
+  // Calculate fees using the unified fee hook
+  const closingValue = positionValue * (closePercentage / 100);
+  const feeResults = usePerpsOrderFees({
+    orderType,
+    amount: closingValue.toString(),
+    isMaker: false, // Closing positions are typically taker orders
+  });
+
   // Calculate what user will receive (effective margin + pnl - fees)
-  const estimatedFees = positionValue * 0.0005; // 0.05% taker fee
   const receiveAmount =
-    (closePercentage / 100) * (effectiveMargin + pnl - estimatedFees);
+    (closePercentage / 100) * effectiveMargin +
+    (closePercentage / 100) * pnl -
+    feeResults.totalFee;
 
   useEffect(() => {
     if (isVisible) {
@@ -291,7 +300,7 @@ const PerpsClosePositionBottomSheet: React.FC<
               variant={TextVariant.BodyMD}
               color={TextColor.Default}
             >
-              -{formatPrice(estimatedFees * (closePercentage / 100))}
+              -{formatPrice(feeResults.totalFee)}
             </Text>
           </View>
 

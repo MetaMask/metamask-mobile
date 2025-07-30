@@ -29,6 +29,15 @@ jest.mock('../../hooks', () => ({
     BTC: { price: '45000' },
     ETH: { price: '2500' },
   })),
+  usePerpsOrderFees: jest.fn(() => ({
+    totalFee: 45,
+    protocolFee: 45,
+    metamaskFee: 0,
+    protocolFeeRate: 0.00045,
+    metamaskFeeRate: 0,
+    isLoadingMetamaskFee: false,
+    error: null,
+  })),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

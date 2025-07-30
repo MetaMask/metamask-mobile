@@ -95,9 +95,11 @@ export const TRADING_DEFAULTS: TradingDefaultsConfig = {
 };
 
 // Fee configuration
+// Note: These are base rates (Tier 0, no discounts)
+// Actual fees will be calculated based on user's volume tier and staking
 export const FEE_RATES: FeeRatesConfig = {
-  market: 0.0002, // 0.02% market order fee
-  limit: 0.0001, // 0.01% limit order fee
+  taker: 0.00045, // 0.045% - Market orders and aggressive limit orders
+  maker: 0.00015, // 0.015% - Limit orders that add liquidity
 };
 
 // MetaMask fee for deposits (temporary placeholder)
