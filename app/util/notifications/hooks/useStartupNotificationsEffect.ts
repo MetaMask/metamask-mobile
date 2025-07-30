@@ -17,10 +17,13 @@ import {
   hasNotificationSubscriptionExpired,
   hasUserTurnedOffNotificationsOnce,
 } from '../constants/notification-storage-keys';
+import { useStorageValue } from '../../../store/storage-wrapper-hooks';
+import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
 
-// TODO - see if we want to nudge users to enable push notifications
+const showPushNush = { nudgeEnablePush: true };
+
 const useEnableAndRefresh = () => {
-  const { enableNotifications } = useEnableNotifications();
+  const { enableNotifications } = useEnableNotifications(showPushNush);
   const { listNotifications } = useListNotifications();
   return useCallback(
     async (shouldEnable = true) => {
@@ -100,6 +103,11 @@ export function useEnableNotificationsByDefaultEffect() {
 
   const enableAndRefresh = useEnableAndRefresh();
 
+  // Ensure in-app modals are closed
+  const solanaModalFlag = useStorageValue(SOLANA_FEATURE_MODAL_SHOWN);
+  const solanaModalClosed =
+    !solanaModalFlag.loading && solanaModalFlag.value === 'true';
+
   useEffect(() => {
     const run = async () => {
       try {
@@ -108,7 +116,8 @@ export function useEnableNotificationsByDefaultEffect() {
           isUnlocked &&
           !notificationsEnabled &&
           isNotificationsEnabledByDefaultFeatureFlag &&
-          notificationsFlagEnabled
+          notificationsFlagEnabled &&
+          solanaModalClosed
         ) {
           if (!(await hasUserTurnedOffNotificationsOnce())) {
             await enableAndRefresh();
@@ -126,6 +135,7 @@ export function useEnableNotificationsByDefaultEffect() {
     isUnlocked,
     notificationsEnabled,
     notificationsFlagEnabled,
+    solanaModalClosed,
   ]);
 }
 

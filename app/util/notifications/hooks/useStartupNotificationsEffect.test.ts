@@ -16,6 +16,8 @@ import { renderHookWithProvider } from '../../test/renderWithProvider';
 import * as Constants from '../constants/config';
 // eslint-disable-next-line import/no-namespace
 import * as NotificationHooks from './useNotifications';
+// eslint-disable-next-line import/no-namespace
+import * as StorageHooks from '../../../store/storage-wrapper-hooks';
 import {
   useRegisterAndFetchNotifications,
   useEnableNotificationsByDefaultEffect,
@@ -355,6 +357,15 @@ describe('useEnableNotificationsByDefaultEffect', () => {
       .spyOn(Constants, 'isNotificationsFeatureEnabled')
       .mockReturnValue(true);
 
+    // Mock useStorageValue for Solana modal - default to closed
+    const mockUseStorageValue = jest.spyOn(StorageHooks, 'useStorageValue');
+    mockUseStorageValue.mockReturnValue({
+      loading: false,
+      value: 'true',
+      setValue: jest.fn(),
+      error: null,
+    });
+
     return {
       hooks: arrangeHooks(),
       selectors: arrangeSelectors(),
@@ -362,6 +373,7 @@ describe('useEnableNotificationsByDefaultEffect', () => {
         mockGetStorageItem,
         mockSetStorageItem,
         mockIsFlagEnabled,
+        mockUseStorageValue,
       },
     };
   };
@@ -383,6 +395,40 @@ describe('useEnableNotificationsByDefaultEffect', () => {
     await waitFor(() => {
       expect(mocks.hooks.enableNotifications).toHaveBeenCalled();
       expect(mocks.hooks.listNotifications).toHaveBeenCalled();
+    });
+  });
+
+  it('does not enable notifications when solana modal is still loading', async () => {
+    const mocks = arrange();
+    // Override default mock for this test
+    mocks.helpers.mockUseStorageValue.mockReturnValue({
+      loading: true,
+      value: null,
+      setValue: jest.fn(),
+      error: null,
+    });
+
+    renderHookWithProvider(() => useEnableNotificationsByDefaultEffect(), {});
+    await waitFor(() => {
+      expect(mocks.hooks.enableNotifications).not.toHaveBeenCalled();
+      expect(mocks.hooks.listNotifications).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not enable notifications when solana modal is not closed', async () => {
+    const mocks = arrange();
+    // Override default mock for this test
+    mocks.helpers.mockUseStorageValue.mockReturnValue({
+      loading: false,
+      value: 'false', // Modal not closed
+      setValue: jest.fn(),
+      error: null,
+    });
+
+    renderHookWithProvider(() => useEnableNotificationsByDefaultEffect(), {});
+    await waitFor(() => {
+      expect(mocks.hooks.enableNotifications).not.toHaveBeenCalled();
+      expect(mocks.hooks.listNotifications).not.toHaveBeenCalled();
     });
   });
 
