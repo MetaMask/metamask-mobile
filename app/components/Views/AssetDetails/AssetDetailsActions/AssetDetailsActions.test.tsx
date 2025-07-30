@@ -123,6 +123,64 @@ describe('AssetDetailsActions', () => {
     expect(queryByText(strings('asset_overview.swap'))).toBeNull();
   });
 
+  it('does not render the bridge button when displayBridgeButton is false (unified UI enabled)', () => {
+    const { queryByText, queryByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} displayBridgeButton={false} />,
+      { state: initialRootState },
+    );
+
+    expect(queryByText(strings('asset_overview.bridge'))).toBeNull();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeNull();
+  });
+
+  it('renders the bridge button when displayBridgeButton is true (unified UI disabled)', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} displayBridgeButton />,
+      { state: initialRootState },
+    );
+
+    expect(getByText(strings('asset_overview.bridge'))).toBeTruthy();
+    expect(getByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeTruthy();
+  });
+
+  it('renders correct number of buttons when unified UI is enabled', () => {
+    const { queryByTestId } = renderWithProvider(
+      <AssetDetailsActions
+        {...defaultProps}
+        displayBridgeButton={false} // Unified UI enabled
+      />,
+      { state: initialRootState },
+    );
+
+    // Should have 4 buttons: Buy, Swap, Send, Receive (no Bridge)
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeTruthy();
+    expect(
+      queryByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
+    ).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeNull();
+  });
+
+  it('renders correct number of buttons when unified UI is disabled', () => {
+    const { queryByTestId } = renderWithProvider(
+      <AssetDetailsActions
+        {...defaultProps}
+        displayBridgeButton // Unified UI disabled
+      />,
+      { state: initialRootState },
+    );
+
+    // Should have 5 buttons: Buy, Swap, Bridge, Send, Receive
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeTruthy();
+    expect(
+      queryByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
+    ).toBeTruthy();
+  });
+
   it('disables buttons when the account cannot sign transactions', () => {
     const mockState = { ...MOCK_ACCOUNTS_CONTROLLER_STATE };
     mockState.internalAccounts.accounts[expectedUuid2].methods = Object.values(

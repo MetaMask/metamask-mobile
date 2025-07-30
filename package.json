@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.50.1",
+  "version": "7.51.1",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -225,6 +225,7 @@
     "@metamask/logging-controller": "^6.0.4",
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/metamask-eth-abis": "3.1.1",
+    "@metamask/multichain-account-service": "^0.2.0",
     "@metamask/multichain-api-client": "^0.6.4",
     "@metamask/multichain-api-middleware": "^0.4.0",
     "@metamask/multichain-network-controller": "^0.10.0",
@@ -268,7 +269,6 @@
     "@metamask/transaction-controller": "^58.1.1",
     "@metamask/utils": "^11.4.2",
     "@ngraveio/bc-ur": "^1.1.6",
-    "@noble/hashes": "^1.7.1",
     "@notifee/react-native": "^9.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-clipboard/clipboard": "^1.16.1",
