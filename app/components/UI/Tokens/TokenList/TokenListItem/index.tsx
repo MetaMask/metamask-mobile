@@ -102,7 +102,7 @@ export const TokenListItem = React.memo(
     );
 
     const selectEvmAsset = useMemo(
-      () => makeSelectAssetByAddressAndChainId,
+      () => makeSelectAssetByAddressAndChainId(),
       [],
     );
 
@@ -116,7 +116,7 @@ export const TokenListItem = React.memo(
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const selectedAccount = useSelector(selectSelectedInternalAccount);
-    const selectNonEvmAsset = useMemo(() => makeSelectNonEvmAssetById, []);
+    const selectNonEvmAsset = useMemo(() => makeSelectNonEvmAssetById(), []);
 
     const nonEvmAsset = useSelector((state: RootState) =>
       selectNonEvmAsset(state, {
