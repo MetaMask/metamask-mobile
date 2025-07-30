@@ -1060,7 +1060,6 @@ export function getWalletNavbarOptions(
   const accountPicker = (
     <PickerAccount
       ref={accountActionsRef}
-      accountAddress={formattedAddress}
       accountName={accountName}
       onPress={() => {
         trace({

@@ -1,5 +1,4 @@
 // External dependencies.
-import { GestureResponderEvent } from 'react-native';
 import { PickerBaseProps } from '../PickerBase';
 
 /**
@@ -7,17 +6,9 @@ import { PickerBaseProps } from '../PickerBase';
  */
 export interface PickerAccountProps extends Omit<PickerBaseProps, 'children'> {
   /**
-   * An Ethereum wallet address.
-   */
-  accountAddress: string;
-  /**
    * Name of the account.
    */
   accountName: string;
-  /**
-   * Account type label.
-   */
-  accountTypeLabel?: string | null;
 }
 
 /**

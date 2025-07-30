@@ -13,7 +13,6 @@ describe('PickerAccount', () => {
   const mockOnPressOut = jest.fn();
 
   const defaultProps = {
-    accountAddress: SAMPLE_PICKERACCOUNT_PROPS.accountAddress,
     accountName: SAMPLE_PICKERACCOUNT_PROPS.accountName,
     onPress: mockOnPress,
   };
@@ -184,7 +183,6 @@ describe('PickerAccount', () => {
     it('handles missing onPress gracefully', () => {
       // Given a PickerAccount without onPress (should not be possible with types, but testing runtime)
       const propsWithoutOnPress = {
-        accountAddress: defaultProps.accountAddress,
         accountName: defaultProps.accountName,
       };
 

@@ -19,16 +19,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
   typeof TouchableOpacity,
   PickerAccountProps
 > = (
-  {
-    style,
-    accountAddress,
-    accountName,
-    hitSlop,
-    onPress,
-    onPressIn,
-    onPressOut,
-    ...props
-  },
+  { style, accountName, hitSlop, onPress, onPressIn, onPressOut, ...props },
   _ref: React.Ref<typeof TouchableOpacity>,
 ) => {
   const [pressed, setPressed] = useState(false);

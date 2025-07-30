@@ -12,9 +12,6 @@ const PickerAccountMeta = {
   title: 'Component Library / Pickers',
   component: PickerAccountComponent,
   argTypes: {
-    accountAddress: {
-      control: { type: 'text' },
-    },
     accountName: {
       control: { type: 'text' },
     },
@@ -24,7 +21,6 @@ export default PickerAccountMeta;
 
 export const PickerAccount = {
   args: {
-    accountAddress: SAMPLE_PICKERACCOUNT_PROPS.accountAddress,
     accountName: SAMPLE_PICKERACCOUNT_PROPS.accountName,
   },
   render: (
