@@ -3,7 +3,7 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 describe(Regression('Settings'), () => {
@@ -18,7 +18,7 @@ describe(Regression('Settings'), () => {
         await SettingsView.scrollToContactSupportButton();
         await SettingsView.tapContactSupport();
 
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
           SettingsView.contactSupportSectionTitle,
         );
       },
