@@ -19,6 +19,11 @@ const fixtureServer = new FixtureServer();
 const ETHEREUM = 'Ethereum Main Network';
 
 describe(Regression('Connect to a Test Network'), () => {
+  // These tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
+  const isRemoveGlobalNetworkSelectorEnabled =
+    process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
+  const itif = (condition) => (condition ? it.skip : it);
+
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
@@ -38,67 +43,79 @@ describe(Regression('Connect to a Test Network'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it('should switch to test Network then dismiss the network education modal', async () => {
-    // Tap to prompt network list
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
-    await Assertions.checkIfElementToHaveText(
-      NetworkEducationModal.networkName,
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-    await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    await Assertions.checkIfVisible(WalletView.container);
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should switch to test Network then dismiss the network education modal',
+    async () => {
+      // Tap to prompt network list
+      await WalletView.tapNetworksButtonOnNavBar();
+      await NetworkListModal.scrollToBottomOfNetworkList();
+      await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+      await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+      await NetworkListModal.changeNetworkTo(
+        CustomNetworks.Sepolia.providerConfig.nickname,
+      );
+      await Assertions.checkIfVisible(NetworkEducationModal.container);
+      await Assertions.checkIfElementToHaveText(
+        NetworkEducationModal.networkName,
+        CustomNetworks.Sepolia.providerConfig.nickname,
+      );
+      await NetworkEducationModal.tapGotItButton();
+      await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+      await Assertions.checkIfVisible(WalletView.container);
 
-    const networkPicker = await WalletView.getNavbarNetworkPicker();
-    await Assertions.checkIfElementHasLabel(
-      networkPicker,
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-  });
+      const networkPicker = await WalletView.getNavbarNetworkPicker();
+      await Assertions.checkIfElementHasLabel(
+        networkPicker,
+        CustomNetworks.Sepolia.providerConfig.nickname,
+      );
+    },
+  );
 
-  it('should not toggle off the Test Network switch while connected to test network', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-    await NetworkListModal.tapTestNetworkSwitch();
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
-  });
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should not toggle off the Test Network switch while connected to test network',
+    async () => {
+      await WalletView.tapNetworksButtonOnNavBar();
+      await NetworkListModal.scrollToBottomOfNetworkList();
+      await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+      await NetworkListModal.tapTestNetworkSwitch();
+      await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+    },
+  );
 
-  it('should disconnect to Test Network', async () => {
-    await NetworkListModal.scrollToTopOfNetworkList();
-    await NetworkListModal.changeNetworkTo(ETHEREUM);
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
-    await Assertions.checkIfElementToHaveText(
-      NetworkEducationModal.networkName,
-      ETHEREUM,
-    );
-    await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    await Assertions.checkIfVisible(WalletView.container);
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should disconnect to Test Network',
+    async () => {
+      await NetworkListModal.scrollToTopOfNetworkList();
+      await NetworkListModal.changeNetworkTo(ETHEREUM);
+      await Assertions.checkIfVisible(NetworkEducationModal.container);
+      await Assertions.checkIfElementToHaveText(
+        NetworkEducationModal.networkName,
+        ETHEREUM,
+      );
+      await NetworkEducationModal.tapGotItButton();
+      await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+      await Assertions.checkIfVisible(WalletView.container);
 
-    const networkPicker = await WalletView.getNavbarNetworkPicker();
-    await Assertions.checkIfElementHasLabel(networkPicker, ETHEREUM);
-  });
+      const networkPicker = await WalletView.getNavbarNetworkPicker();
+      await Assertions.checkIfElementHasLabel(networkPicker, ETHEREUM);
+    },
+  );
 
-  it('should toggle off the Test Network switch', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-    await Assertions.checkIfTextIsDisplayed(
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
-    await NetworkListModal.tapTestNetworkSwitch();
-    await Assertions.checkIfToggleIsOff(NetworkListModal.testNetToggle);
-    await Assertions.checkIfTextIsNotDisplayed(
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-  });
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should toggle off the Test Network switch',
+    async () => {
+      await WalletView.tapNetworksButtonOnNavBar();
+      await NetworkListModal.scrollToBottomOfNetworkList();
+      await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+      await Assertions.checkIfTextIsDisplayed(
+        CustomNetworks.Sepolia.providerConfig.nickname,
+      );
+      await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+      await NetworkListModal.tapTestNetworkSwitch();
+      await Assertions.checkIfToggleIsOff(NetworkListModal.testNetToggle);
+      await Assertions.checkIfTextIsNotDisplayed(
+        CustomNetworks.Sepolia.providerConfig.nickname,
+      );
+    },
+  );
 });

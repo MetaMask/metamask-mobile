@@ -21,6 +21,11 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Custom RPC Tests'), () => {
+  // These tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
+  const isRemoveGlobalNetworkSelectorEnabled =
+    process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
+  const itif = (condition) => (condition ? it.skip : it);
+
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
@@ -40,176 +45,202 @@ describe(Regression('Custom RPC Tests'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it('should go to network', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-  });
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should go to network',
+    async () => {
+      await WalletView.tapNetworksButtonOnNavBar();
+    },
+  );
 
-  it('should add Gnosis network', async () => {
-    // Tap on Add Network button
-    await NetworkView.tapAddNetworkFormButton();
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should add Gnosis network',
+    async () => {
+      // Tap on Add Network button
+      await NetworkView.tapAddNetworkFormButton();
 
-    await NetworkView.typeInNetworkName(
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
+      await NetworkView.typeInNetworkName(
+        CustomNetworks.Gnosis.providerConfig.nickname,
+      );
 
-    await NetworkView.tapRpcDropDownButton();
-    await NetworkView.tapAddRpcButton();
+      await NetworkView.tapRpcDropDownButton();
+      await NetworkView.tapAddRpcButton();
 
-    await TestHelpers.delay(200);
-    await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
-    await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
-    await NetworkView.clearRpcInputBox();
-    await NetworkView.typeInRpcUrl(CustomNetworks.Gnosis.providerConfig.rpcUrl);
+      await TestHelpers.delay(200);
+      await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
+      await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
+      await NetworkView.clearRpcInputBox();
+      await NetworkView.typeInRpcUrl(
+        CustomNetworks.Gnosis.providerConfig.rpcUrl,
+      );
 
-    await NetworkView.tapAddRpcButton();
+      await NetworkView.tapAddRpcButton();
 
-    await NetworkView.typeInNetworkSymbol(
-      `${CustomNetworks.Gnosis.providerConfig.ticker}\n`,
-    );
+      await NetworkView.typeInNetworkSymbol(
+        `${CustomNetworks.Gnosis.providerConfig.ticker}\n`,
+      );
 
-    await NetworkView.typeInChainId(
-      CustomNetworks.Gnosis.providerConfig.chainId,
-    );
+      await NetworkView.typeInChainId(
+        CustomNetworks.Gnosis.providerConfig.chainId,
+      );
 
-    await NetworkView.tapChainIDLabel(); // Focus outside of text input field
-
-    await NetworkView.tapBlockExplorerDownButton();
-    await NetworkView.tapBlockExplorerButton();
-    await NetworkView.typeInNetworkBlockExplorer(
-      `${CustomNetworks.Gnosis.providerConfig.BlockExplorerUrl}\n`,
-    );
-
-    if (device.getPlatform() === 'ios') {
       await NetworkView.tapChainIDLabel(); // Focus outside of text input field
-      await NetworkView.tapChainIDLabel(); // Focus outside of text input field
-    }
-    await NetworkView.tapRpcNetworkAddButton();
-  });
 
-  it('should switch to Gnosis network', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-  });
+      await NetworkView.tapBlockExplorerDownButton();
+      await NetworkView.tapBlockExplorerButton();
+      await NetworkView.typeInNetworkBlockExplorer(
+        `${CustomNetworks.Gnosis.providerConfig.BlockExplorerUrl}\n`,
+      );
 
-  it('should dismiss network education modal', async () => {
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
-    await Assertions.checkIfElementToHaveText(
-      NetworkEducationModal.networkName,
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-    await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    await Assertions.checkIfVisible(WalletView.container);
-    const networkPicker = await WalletView.getNavbarNetworkPicker();
-    await Assertions.checkIfElementHasLabel(
-      networkPicker,
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-  });
+      if (device.getPlatform() === 'ios') {
+        await NetworkView.tapChainIDLabel(); // Focus outside of text input field
+        await NetworkView.tapChainIDLabel(); // Focus outside of text input field
+      }
+      await NetworkView.tapRpcNetworkAddButton();
+    },
+  );
 
-  it('should validate that Gnosis is added to network list', async () => {
-    // Tap to prompt network list
-    await WalletView.tapNetworksButtonOnNavBar();
-    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should switch to Gnosis network',
+    async () => {
+      await WalletView.tapNetworksButtonOnNavBar();
+      await NetworkListModal.changeNetworkTo(
+        CustomNetworks.Gnosis.providerConfig.nickname,
+      );
+    },
+  );
 
-    const networkPicker = await WalletView.getNavbarNetworkPicker();
-    await Assertions.checkIfElementHasLabel(
-      networkPicker,
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-  });
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should dismiss network education modal',
+    async () => {
+      await Assertions.checkIfVisible(NetworkEducationModal.container);
+      await Assertions.checkIfElementToHaveText(
+        NetworkEducationModal.networkName,
+        CustomNetworks.Gnosis.providerConfig.nickname,
+      );
+      await NetworkEducationModal.tapGotItButton();
+      await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+      await Assertions.checkIfVisible(WalletView.container);
+      const networkPicker = await WalletView.getNavbarNetworkPicker();
+      await Assertions.checkIfElementHasLabel(
+        networkPicker,
+        CustomNetworks.Gnosis.providerConfig.nickname,
+      );
+    },
+  );
 
-  it('should switch to Sepolia then dismiss the network education modal', async () => {
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should validate that Gnosis is added to network list',
+    async () => {
+      // Tap to prompt network list
+      await WalletView.tapNetworksButtonOnNavBar();
+      await Assertions.checkIfVisible(NetworkListModal.networkScroll);
 
-    await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    await Assertions.checkIfVisible(WalletView.container);
-    const networkPicker = await WalletView.getNavbarNetworkPicker();
+      const networkPicker = await WalletView.getNavbarNetworkPicker();
+      await Assertions.checkIfElementHasLabel(
+        networkPicker,
+        CustomNetworks.Gnosis.providerConfig.nickname,
+      );
+    },
+  );
 
-    await Assertions.checkIfElementHasLabel(
-      networkPicker,
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-  });
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should switch to Sepolia then dismiss the network education modal',
+    async () => {
+      await NetworkListModal.scrollToBottomOfNetworkList();
+      await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+      await NetworkListModal.changeNetworkTo(
+        CustomNetworks.Sepolia.providerConfig.nickname,
+      );
+      await Assertions.checkIfVisible(NetworkEducationModal.container);
 
-  it('should switch back to Gnosis', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.scrollToBottomOfNetworkList();
+      await NetworkEducationModal.tapGotItButton();
+      await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+      await Assertions.checkIfVisible(WalletView.container);
+      const networkPicker = await WalletView.getNavbarNetworkPicker();
 
-    const networkPicker = await WalletView.getNavbarNetworkPicker();
-    await Assertions.checkIfElementHasLabel(
-      networkPicker,
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
+      await Assertions.checkIfElementHasLabel(
+        networkPicker,
+        CustomNetworks.Sepolia.providerConfig.nickname,
+      );
+    },
+  );
 
-    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-    await NetworkListModal.scrollToTopOfNetworkList();
-    // Change to back to Gnosis Network
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-    await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfElementHasLabel(
-      networkPicker,
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
-    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
-    try {
-      await Assertions.checkIfVisible(ToastModal.container);
-      await Assertions.checkIfNotVisible(ToastModal.container);
-    } catch {
-      // eslint-disable-next-line no-console
-      console.log('Toast is not visible');
-    }
-  });
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should switch back to Gnosis',
+    async () => {
+      await WalletView.tapNetworksButtonOnNavBar();
+      await NetworkListModal.scrollToBottomOfNetworkList();
 
-  it('should go to settings networks and remove xDai network', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
+      const networkPicker = await WalletView.getNavbarNetworkPicker();
+      await Assertions.checkIfElementHasLabel(
+        networkPicker,
+        CustomNetworks.Sepolia.providerConfig.nickname,
+      );
 
-    await WalletView.tapNetworksButtonOnNavBar();
+      await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+      await NetworkListModal.scrollToTopOfNetworkList();
+      // Change to back to Gnosis Network
+      await NetworkListModal.changeNetworkTo(
+        CustomNetworks.Gnosis.providerConfig.nickname,
+      );
+      await Assertions.checkIfVisible(WalletView.container);
+      await Assertions.checkIfElementHasLabel(
+        networkPicker,
+        CustomNetworks.Gnosis.providerConfig.nickname,
+      );
+      await Assertions.checkIfNotVisible(NetworkEducationModal.container);
+      try {
+        await Assertions.checkIfVisible(ToastModal.container);
+        await Assertions.checkIfNotVisible(ToastModal.container);
+      } catch {
+        // eslint-disable-next-line no-console
+        console.log('Toast is not visible');
+      }
+    },
+  );
 
-    await NetworkListModal.longPressOnNetwork(
-      CustomNetworks.Gnosis.providerConfig.nickname,
-    );
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should go to settings networks and remove xDai network',
+    async () => {
+      await WalletView.tapNetworksButtonOnNavBar();
+      await NetworkListModal.scrollToBottomOfNetworkList();
+      await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+      await NetworkListModal.changeNetworkTo(
+        CustomNetworks.Sepolia.providerConfig.nickname,
+      );
 
-    if (device.getPlatform() === 'android') {
-      await device.disableSynchronization();
-    }
+      await WalletView.tapNetworksButtonOnNavBar();
 
-    // delete Gnosis network
-    await NetworkListModal.deleteNetwork();
+      await NetworkListModal.longPressOnNetwork(
+        CustomNetworks.Gnosis.providerConfig.nickname,
+      );
 
-    await TestHelpers.delay(200);
+      if (device.getPlatform() === 'android') {
+        await device.disableSynchronization();
+      }
 
-    await NetworkListModal.tapDeleteButton();
+      // delete Gnosis network
+      await NetworkListModal.deleteNetwork();
 
-    try {
-      await Assertions.checkIfVisible(ToastModal.container);
-      await Assertions.checkIfNotVisible(ToastModal.container);
-    } catch {
-      // eslint-disable-next-line no-console
-      console.log('Toast is not visible');
-    }
+      await TestHelpers.delay(200);
 
-    try {
-      await Assertions.checkIfVisible(ToastModal.container);
-      await Assertions.checkIfNotVisible(ToastModal.container);
-    } catch {
-      // eslint-disable-next-line no-console
-      console.log('Toast is not visible');
-    }
-  });
+      await NetworkListModal.tapDeleteButton();
+
+      try {
+        await Assertions.checkIfVisible(ToastModal.container);
+        await Assertions.checkIfNotVisible(ToastModal.container);
+      } catch {
+        // eslint-disable-next-line no-console
+        console.log('Toast is not visible');
+      }
+
+      try {
+        await Assertions.checkIfVisible(ToastModal.container);
+        await Assertions.checkIfNotVisible(ToastModal.container);
+      } catch {
+        // eslint-disable-next-line no-console
+        console.log('Toast is not visible');
+      }
+    },
+  );
 });

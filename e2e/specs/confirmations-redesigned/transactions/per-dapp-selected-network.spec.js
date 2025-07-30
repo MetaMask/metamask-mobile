@@ -48,63 +48,71 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
     GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations],
   };
 
+  // Some tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
+  const isRemoveGlobalNetworkSelectorEnabled =
+    process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
+  const itif = (condition) => (condition ? it.skip : it);
+
   beforeAll(async () => {
     jest.setTimeout(15000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('submits a transaction to a dApp selected network', async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions([LOCAL_CHAIN_ID]),
-          )
-          .build(),
-        ganacheOptions: defaultGanacheOptions,
-        restartDevice: true,
-        testSpecificMock,
-      },
-      async () => {
-        await loginToApp();
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-        await Browser.waitForBrowserPageToLoad();
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'submits a transaction to a dApp selected network',
+    async () => {
+      await withFixtures(
+        {
+          dapp: true,
+          fixture: new FixtureBuilder()
+            .withGanacheNetwork()
+            .withPermissionControllerConnectedToTestDapp(
+              buildPermissions([LOCAL_CHAIN_ID]),
+            )
+            .build(),
+          ganacheOptions: defaultGanacheOptions,
+          restartDevice: true,
+          testSpecificMock,
+        },
+        async () => {
+          await loginToApp();
+          await TabBarComponent.tapBrowser();
+          await Browser.navigateToTestDApp();
+          await Browser.waitForBrowserPageToLoad();
 
-        // Make sure the dapp is connected to the predefined network in configuration (LOCAL_CHAIN_ID)
-        // by checking chainId text in the test dapp
-        await checkChainIdInTestDapp(LOCAL_CHAIN_ID);
+          // Make sure the dapp is connected to the predefined network in configuration (LOCAL_CHAIN_ID)
+          // by checking chainId text in the test dapp
+          await checkChainIdInTestDapp(LOCAL_CHAIN_ID);
 
-        // Change the network to Ethereum Main Network in app
-        await changeNetworkFromNetworkListModal('Ethereum Main Network');
+          // Change the network to Ethereum Main Network in app
+          await changeNetworkFromNetworkListModal('Ethereum Main Network');
 
-        await TabBarComponent.tapBrowser();
-        // Assert the dapp is still connected the previously selected network (LOCAL_CHAIN_ID)
-        await checkChainIdInTestDapp(LOCAL_CHAIN_ID);
+          await TabBarComponent.tapBrowser();
+          // Assert the dapp is still connected the previously selected network (LOCAL_CHAIN_ID)
+          await checkChainIdInTestDapp(LOCAL_CHAIN_ID);
 
-        // Now do a transaction
-        await TestDApp.tapSendEIP1559Button();
+          // Now do a transaction
+          await TestDApp.tapSendEIP1559Button();
 
-        // Wait for the confirmation modal to appear
-        await Assertions.checkIfVisible(
-          ConfirmationUITypes.ModalConfirmationContainer,
-        );
+          // Wait for the confirmation modal to appear
+          await Assertions.checkIfVisible(
+            ConfirmationUITypes.ModalConfirmationContainer,
+          );
 
-        // Assert the transaction is happening on the correct network
-        await Assertions.checkIfTextIsDisplayed(LOCAL_CHAIN_NAME);
+          // Assert the transaction is happening on the correct network
+          await Assertions.checkIfTextIsDisplayed(LOCAL_CHAIN_NAME);
 
-        // Accept confirmation
-        await ConfirmationFooterActions.tapConfirmButton();
+          // Accept confirmation
+          await ConfirmationFooterActions.tapConfirmButton();
 
-        // Change the network to Localhost in app
-        await changeNetworkFromNetworkListModal(LOCAL_CHAIN_NAME);
+          // Change the network to Localhost in app
+          await changeNetworkFromNetworkListModal(LOCAL_CHAIN_NAME);
 
-        // Check activity tab
-        await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
-      },
-    );
-  });
+          // Check activity tab
+          await TabBarComponent.tapActivity();
+          await Assertions.checkIfTextIsDisplayed('Confirmed');
+        },
+      );
+    },
+  );
 });
