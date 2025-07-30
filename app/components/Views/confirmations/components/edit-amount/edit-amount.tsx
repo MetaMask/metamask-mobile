@@ -1,35 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { TextInput, View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { Box } from '../../../../UI/Box/Box';
-import {
-  Display,
-  JustifyContent,
-  TextAlign,
-} from '../../../../UI/Box/box.types';
-import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useTokenAsset } from '../../hooks/useTokenAsset';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataOrThrow } from '../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  calcTokenAmount,
-  calcTokenValue,
-} from '../../../../../util/transactions';
+import { calcTokenValue } from '../../../../../util/transactions';
 
 export function EditAmount() {
   const { id: transactionId } = useTransactionMetadataOrThrow();
   const tokenAmount = useTokenAmount();
-  const [amount, setAmount] = React.useState(tokenAmount.fiat);
+  const [amount, setAmount] = React.useState<string>();
   const asset = useTokenAsset();
 
+  useEffect(() => {
+    if (!amount && tokenAmount.amountPrecise) {
+      setAmount(tokenAmount.amountPrecise);
+    }
+  }, [amount, tokenAmount.amountPrecise]);
+
   const handleChange = (text: string) => {
-    const value = calcTokenValue(text, asset.asset.decimals);
+    const value = calcTokenValue(text.slice(0), asset.asset.decimals);
 
     const newData = new Interface(abiERC20).encodeFunctionData('transfer', [
       '0x0000000000000000000000000000000000000000', // Placeholder address
@@ -46,7 +42,7 @@ export function EditAmount() {
   return (
     <View style={{ paddingTop: 40, paddingBottom: 40 }}>
       <TextInput
-        value={amount}
+        value={'$' + amount}
         onChangeText={handleChange}
         keyboardType="numeric"
         placeholder="Enter amount"
