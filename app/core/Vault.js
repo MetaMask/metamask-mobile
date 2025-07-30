@@ -1,22 +1,6 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { withLedgerKeyring } from './Ledger/Ledger';
-import {
-  MultichainWalletSnapFactory,
-  WalletClientType,
-} from './SnapKeyring/MultichainWalletSnapClient';
-import {
-  BtcAccountType,
-  BtcScope,
-  SolAccountType,
-  SolScope,
-} from '@metamask/keyring-api';
 import ReduxService from './redux';
-import {
-  SeedlessOnboardingControllerError,
-  SeedlessOnboardingControllerErrorType,
-} from './Engine/controllers/seedless-onboarding-controller/error';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 import { Authentication } from './Authentication/Authentication';

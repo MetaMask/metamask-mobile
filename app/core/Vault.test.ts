@@ -10,6 +10,7 @@ import {
 import ReduxService, { ReduxStore } from './redux';
 import { RootState } from '../reducers';
 import { RecursivePartial } from './Authentication/Authentication.test';
+import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
 
 const mockAddNewKeyring = jest.fn();
 const mockWithKeyring = jest.fn();
@@ -282,6 +283,57 @@ describe('Vault', () => {
         mockEngine.context.KeyringController.changePassword,
       ).toHaveBeenCalledWith('new-password');
       expect(mockEngine.setSelectedAddress).toHaveBeenCalledWith('0x123');
+
+      expect(
+        mockEngine.context.SeedlessOnboardingController.changePassword,
+      ).toHaveBeenCalled();
+
+      expect(
+        mockEngine.context.SeedlessOnboardingController
+          .storeKeyringEncryptionKey,
+      ).toHaveBeenCalled();
+    });
+
+    it('should restore when seedless change password failed if seedless onboarding flow is active', async () => {
+      // mock redux state
+      const mockReduxState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'valid vault data',
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+
+      // mock Redux store
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockReduxState),
+      } as unknown as ReduxStore);
+
+      mockEngine.context.SeedlessOnboardingController.changePassword.mockRejectedValue(
+        new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
+      );
+
+      await expect(
+        recreateVaultWithNewPassword('old-password', 'new-password', '0x123'),
+      ).rejects.toThrow(
+        new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
+      );
+
+      expect(
+        mockEngine.context.KeyringController.changePassword,
+      ).toHaveBeenCalledWith('new-password');
+      expect(
+        mockEngine.context.SeedlessOnboardingController.changePassword,
+      ).toHaveBeenCalled();
+      expect(
+        mockEngine.context.KeyringController.changePassword,
+      ).toHaveBeenCalledWith('old-password');
+
+      expect(mockEngine.setSelectedAddress).not.toHaveBeenCalledWith('0x123');
     });
   });
 });
