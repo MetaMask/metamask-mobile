@@ -30,10 +30,6 @@ import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-
 import {
   default as MorphText,
   TextVariant,
@@ -63,6 +59,8 @@ import {
   BadgeWrapperPosition,
   BadgeWrapperPositionAnchorShape,
   BadgeWrapper,
+  ButtonIcon,
+  ButtonIconSize,
 } from '@metamask/design-system-react-native';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
@@ -244,7 +242,7 @@ export function getNavigationOptionsTitle(
     headerRight: () =>
       isFullScreenModal ? (
         <ButtonIcon
-          size={ButtonIconSizes.Lg}
+          size={ButtonIconSize.Lg}
           iconName={IconName.Close}
           onPress={navigationPop}
           style={innerStyles.accessories}
@@ -254,7 +252,7 @@ export function getNavigationOptionsTitle(
     headerLeft: () =>
       isFullScreenModal ? null : (
         <ButtonIcon
-          size={ButtonIconSizes.Lg}
+          size={ButtonIconSize.Lg}
           iconName={IconName.ArrowLeft}
           onPress={navigationPop}
           style={innerStyles.accessories}
@@ -400,7 +398,7 @@ export function getPaymentRequestOptionsTitle(
     headerRight: () => (
       <ButtonIcon
         iconName={IconName.Close}
-        size={ButtonIconSizes.Md}
+        size={ButtonIconSize.Md}
         onPress={() => navigation.pop()}
         style={innerStyles.headerCloseButton}
         testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
@@ -954,11 +952,7 @@ export function getWalletNavbarOptions(
       backgroundColor: themeColors.background,
       borderBottomWidth: 1,
       borderBottomColor: themeColors.border.muted,
-      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingLeft: 16,
-      paddingRight: 0,
     },
     headerIcon: {
       color: themeColors.primary.default,
@@ -970,6 +964,26 @@ export function getWalletNavbarOptions(
       justifyContent: 'center',
       alignItems: 'center',
       flex: 1,
+    },
+    startAccessoryContainer: {
+      marginLeft: 16,
+    },
+    endAccessoryContainer: {
+      marginRight: 16,
+    },
+    networkPickerStyle: {
+      alignSelf: 'flex-start',
+    },
+    actionButtonsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    // Minimum 44px touch area for accessibility
+    touchAreaSlop: {
+      top: 12,
+      bottom: 12,
+      left: 12,
+      right: 12,
     },
   });
 
@@ -1011,140 +1025,89 @@ export function getWalletNavbarOptions(
 
   const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
 
+  // Action buttons for right side
+  const actionButtons = (
+    <View style={innerStyles.actionButtonsContainer}>
+      <View testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}>
+        <AddressCopy
+          account={selectedInternalAccount}
+          hitSlop={innerStyles.touchAreaSlop}
+        />
+      </View>
+      {isNotificationsFeatureEnabled() && (
+        <BadgeWrapper
+          position={BadgeWrapperPosition.TopRight}
+          positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+          badge={
+            isNotificationEnabled && unreadNotificationCount > 0 ? (
+              <BadgeStatus status={BadgeStatusStatus.Active} />
+            ) : null
+          }
+        >
+          <ButtonIcon
+            iconProps={{ color: IconColor.Default }}
+            onPress={handleNotificationOnPress}
+            iconName={IconName.Notification}
+            size={ButtonIconSize.Lg}
+            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+            hitSlop={innerStyles.touchAreaSlop}
+          />
+        </BadgeWrapper>
+      )}
+    </View>
+  );
+
+  // Account picker component
+  const accountPicker = (
+    <PickerAccount
+      ref={accountActionsRef}
+      accountAddress={formattedAddress}
+      accountName={accountName}
+      onPress={() => {
+        trace({
+          name: TraceName.AccountList,
+          tags: getTraceTags(store.getState()),
+          op: TraceOperation.AccountList,
+        });
+        navigation.navigate(...createAccountSelectorNavDetails({}));
+      }}
+      accountTypeLabel={getLabelTextByAddress(formattedAddress) || undefined}
+      showAddress={false}
+      cellAccountContainerStyle={styles.account}
+      testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+      hitSlop={innerStyles.touchAreaSlop}
+    />
+  );
+
+  // Network picker component
+  const networkPicker = (
+    <PickerNetwork
+      onPress={onPressTitle}
+      label={networkName}
+      imageSource={networkImageSource}
+      testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+      hideNetworkName
+      hitSlop={innerStyles.touchAreaSlop}
+      style={innerStyles.networkPickerStyle}
+    />
+  );
+
   return {
     header: () => (
-      <SafeAreaView style={{ backgroundColor: themeColors.background }}>
-        <View style={innerStyles.headerContainer}>
-          {!isFeatureFlagEnabled ? (
-            // Old layout: PickerNetwork on left, PickerAccount in middle, Action buttons on right
-            <>
-              {/* Left side - Network Picker */}
-              <View style={innerStyles.headerLeftContainer}>
-                <PickerNetwork
-                  onPress={onPressTitle}
-                  label={networkName}
-                  imageSource={networkImageSource}
-                  testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-                  hideNetworkName
-                />
-              </View>
-
-              {/* Middle - Account Picker */}
-              <View style={innerStyles.headerMiddleContainer}>
-                <PickerAccount
-                  ref={accountActionsRef}
-                  accountAddress={formattedAddress}
-                  accountName={accountName}
-                  onPress={() => {
-                    trace({
-                      name: TraceName.AccountList,
-                      tags: getTraceTags(store.getState()),
-                      op: TraceOperation.AccountList,
-                    });
-                    navigation.navigate(...createAccountSelectorNavDetails({}));
-                  }}
-                  accountTypeLabel={
-                    getLabelTextByAddress(formattedAddress) || undefined
-                  }
-                  showAddress={false}
-                  cellAccountContainerStyle={styles.account}
-                  testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-                />
-              </View>
-
-              {/* Right side - Action buttons */}
-              <View style={[styles.rightElementContainer]}>
-                <View
-                  testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
-                >
-                  <AddressCopy account={selectedInternalAccount} />
-                </View>
-                {isNotificationsFeatureEnabled() && (
-                  <BadgeWrapper
-                    position={BadgeWrapperPosition.TopRight}
-                    positionAnchorShape={
-                      BadgeWrapperPositionAnchorShape.Circular
-                    }
-                    badge={
-                      isNotificationEnabled && unreadNotificationCount > 0 ? (
-                        <BadgeStatus status={BadgeStatusStatus.Active} />
-                      ) : null
-                    }
-                  >
-                    <ButtonIcon
-                      iconColor={IconColor.Default}
-                      onPress={handleNotificationOnPress}
-                      iconName={IconName.Notification}
-                      size={IconSize.Xl}
-                      testID={
-                        WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
-                      }
-                    />
-                  </BadgeWrapper>
-                )}
-              </View>
-            </>
-          ) : (
-            // New layout: PickerAccount on left, Action buttons on right only
-            <>
-              {/* Left side - Account Picker */}
-              <View style={innerStyles.headerLeftContainer}>
-                <PickerAccount
-                  ref={accountActionsRef}
-                  accountAddress={formattedAddress}
-                  accountName={accountName}
-                  onPress={() => {
-                    trace({
-                      name: TraceName.AccountList,
-                      tags: getTraceTags(store.getState()),
-                      op: TraceOperation.AccountList,
-                    });
-                    navigation.navigate(...createAccountSelectorNavDetails({}));
-                  }}
-                  accountTypeLabel={
-                    getLabelTextByAddress(formattedAddress) || undefined
-                  }
-                  showAddress={false}
-                  cellAccountContainerStyle={styles.account}
-                  testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-                />
-              </View>
-
-              {/* Right side - Action buttons */}
-              <View style={[styles.rightElementContainer]}>
-                <View
-                  testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
-                >
-                  <AddressCopy account={selectedInternalAccount} />
-                </View>
-                {isNotificationsFeatureEnabled() && (
-                  <BadgeWrapper
-                    position={BadgeWrapperPosition.TopRight}
-                    positionAnchorShape={
-                      BadgeWrapperPositionAnchorShape.Circular
-                    }
-                    badge={
-                      isNotificationEnabled && unreadNotificationCount > 0 ? (
-                        <BadgeStatus status={BadgeStatusStatus.Active} />
-                      ) : null
-                    }
-                  >
-                    <ButtonIcon
-                      iconColor={IconColor.Default}
-                      onPress={handleNotificationOnPress}
-                      iconName={IconName.Notification}
-                      size={IconSize.Xl}
-                      testID={
-                        WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
-                      }
-                    />
-                  </BadgeWrapper>
-                )}
-              </View>
-            </>
-          )}
-        </View>
-      </SafeAreaView>
+      <HeaderBase
+        includesTopInset
+        style={innerStyles.headerContainer}
+        startAccessory={
+          <View style={innerStyles.startAccessoryContainer}>
+            {!isFeatureFlagEnabled ? networkPicker : accountPicker}
+          </View>
+        }
+        endAccessory={
+          <View style={innerStyles.endAccessoryContainer}>{actionButtons}</View>
+        }
+      >
+        {!isFeatureFlagEnabled ? accountPicker : null}
+      </HeaderBase>
     ),
   };
 }
@@ -1209,7 +1172,7 @@ export function getImportTokenNavbarOptions(
         <ButtonIcon
           iconName={IconName.Close}
           iconColor={IconColor.Default}
-          size={ButtonIconSizes.Lg}
+          size={ButtonIconSize.Lg}
           onPress={
             onClose
               ? () => onClose()
@@ -1366,7 +1329,7 @@ export function getNetworkNavbarOptions(
             style={styles.headerLeftButton}
             onPress={() => navigation.pop()}
             testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-            size={ButtonIconSizes.Lg}
+            size={ButtonIconSize.Lg}
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
           />
@@ -1376,7 +1339,7 @@ export function getNetworkNavbarOptions(
             <ButtonIcon
               style={styles.headerRightButton}
               onPress={onRightPress}
-              size={ButtonIconSizes.Lg}
+              size={ButtonIconSize.Lg}
               iconName={IconName.MoreVertical}
               iconColor={IconColor.Default}
             />
@@ -1933,7 +1896,7 @@ export function getDepositNavbarOptions(
           <TouchableOpacity style={styles.closeButton}>
             <ButtonIcon
               iconName={IconName.Close}
-              size={ButtonIconSizes.Lg}
+              size={ButtonIconSize.Lg}
               onPress={() => {
                 navigation.dangerouslyGetParent()?.pop();
                 onClose?.();
@@ -2050,7 +2013,7 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
     headerRight: () => (
       <ButtonIcon
         iconName={IconName.Close}
-        size={ButtonIconSizes.Lg}
+        size={ButtonIconSize.Lg}
         onPress={goBack}
         style={styles.closeButton}
       />
@@ -2165,7 +2128,7 @@ export function getStakingNavbar(
     headerLeft: () =>
       hasBackButton ? (
         <ButtonIcon
-          size={ButtonIconSizes.Lg}
+          size={ButtonIconSize.Lg}
           iconName={IconName.ArrowLeft}
           onPress={handleBackPress}
           style={innerStyles.headerLeft}
@@ -2211,7 +2174,7 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
         style={styles.headerLeftButton}
         onPress={() => navigation.pop()}
         testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-        size={ButtonIconSizes.Lg}
+        size={ButtonIconSize.Lg}
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
       />

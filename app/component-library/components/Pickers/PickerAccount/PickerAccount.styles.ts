@@ -29,6 +29,14 @@ const styleSheet = (params: {
       padding: 0,
       borderWidth: 0,
     },
+    basePressed: {
+      ...(style as ViewStyle),
+      flexDirection: 'row',
+      padding: 8,
+      borderWidth: 0,
+      borderRadius: 2,
+      backgroundColor: colors.background.pressed,
+    },
     accountAvatar: {
       marginRight: 8,
     },
@@ -53,6 +61,22 @@ const styleSheet = (params: {
     pickerAccountContainer: {
       justifyContent: 'center',
       alignItems: 'center',
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      minHeight: 44,
+      minWidth: 80,
+      backgroundColor: colors.background.default,
+    },
+    pickerAccountContainerPressed: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      minHeight: 44,
+      minWidth: 80,
+      backgroundColor: colors.error.default, // Use design system error color for visibility
     },
     dropDownIcon: {
       marginLeft: 8,
