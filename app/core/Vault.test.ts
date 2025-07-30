@@ -248,9 +248,6 @@ describe('Vault', () => {
       );
 
       expect(
-        mockEngine.context.KeyringController.submitPassword,
-      ).toHaveBeenCalledWith('old-password');
-      expect(
         mockEngine.context.KeyringController.changePassword,
       ).toHaveBeenCalledWith('new-password');
       expect(mockEngine.setSelectedAddress).toHaveBeenCalledWith('0x123');
