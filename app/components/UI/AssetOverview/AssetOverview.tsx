@@ -287,7 +287,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     () =>
       !isNonEvmAsset
         ? ['1d', '1w', '1m', '3m', '1y', '3y']
-        : ['1d', '1w', '1m', '3m', '1y'],
+        : ['1d', '1w', '1m', '3m', '1y', 'all'],
     [isNonEvmAsset],
   );
 

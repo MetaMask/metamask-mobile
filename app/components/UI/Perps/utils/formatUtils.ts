@@ -4,6 +4,25 @@
 import { formatWithThreshold } from '../../../../util/assets';
 
 /**
+ * Formats a balance value as USD currency with appropriate decimal places
+ * Uses the existing formatWithThreshold utility for consistency
+ * @param balance - The balance value to format (string or number)
+ * @returns Formatted balance string with currency symbol (e.g., "$1,234.56")
+ */
+export const formatPerpsFiat = (balance: string | number): string => {
+  const num = typeof balance === 'string' ? parseFloat(balance) : balance;
+
+  if (isNaN(num)) {
+    return '$0.00';
+  }
+
+  return formatWithThreshold(num, 0.01, 'en-US', {
+    style: 'currency',
+    currency: 'USD',
+  });
+};
+
+/**
  * Formats a price value as USD currency with appropriate decimal places
  * Uses the existing formatWithThreshold utility for consistency
  * @param price - The price value to format (string or number)
@@ -144,4 +163,22 @@ export const formatLeverage = (leverage: string | number): string => {
   }
 
   return `${num.toFixed(1)}x`;
+};
+
+/**
+ * Parses a formatted currency string to a number
+ * Handles currency symbols and comma separators
+ * @param formattedValue - The formatted currency string (e.g., "$1,234.56")
+ * @returns Parsed numeric value
+ */
+export const parseCurrencyString = (formattedValue: string): number => {
+  if (!formattedValue) return 0;
+
+  // Remove currency symbols and commas
+  const cleanedValue = formattedValue
+    .replace(/[^0-9.-]/g, '') // Keep only numbers, decimal point, and minus sign
+    .trim();
+
+  const parsed = parseFloat(cleanedValue);
+  return isNaN(parsed) ? 0 : parsed;
 };

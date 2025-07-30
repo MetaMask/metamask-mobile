@@ -522,7 +522,9 @@
       "view_order_history": "View order history",
       "contact_support": "Contact support",
       "log_out": "Log out",
-      "logged_out_success": "Successfully logged out"
+      "logged_out_success": "Successfully logged out",
+      "error_sdk_not_initialized": "SDK not initialized",
+      "logged_out_error": "Error logging out"
     },
     "region_modal": {
       "select_a_region": "Select a region",
@@ -544,9 +546,25 @@
     "unsupported_region_modal": {
       "title": "Region not supported",
       "location_prefix": "It looks like you're in:",
-      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to get crypto.",
       "change_region": "Change region",
       "buy_crypto": "Buy Crypto"
+    },
+    "unsupported_state_modal": {
+      "title": "Region not supported",
+      "location_prefix": "You've selected:",
+      "description": "We're working hard to expand coverage to your region. In the meantime, there are other ways for you to get crypto.",
+      "change_state": "Change region",
+      "try_another_option": "Try another option"
+    },
+    "incompatible_token_acount_modal": {
+      "title": "Switch your account",
+      "description": "The {{networkName}} account you’re on doesn't support the selected token. Switch your account or token to continue.",
+      "cta": "I understand"
+    },
+    "ssn_info_modal": {
+      "title": "Why we ask",
+      "description": "U.S. laws require Transak to check your identity before changing dollars into crypto. This means U.S. customers need to provide a Social Security number."
     },
     "get_started": {
       "navbar_title": "Deposit",
@@ -590,7 +608,7 @@
       "navbar_title": "Deposit",
       "description_1": "To deposit cash for the first time, your identity must be verified.",
       "description_2_transak": "Transak",
-      "description_2_rest": " will facilitate your deposit, and we work with them to ensure your privacy. We never store your data, and Transak never sells your data.",
+      "description_2_rest": " will facilitate your deposit and your data is sent directly to Transak. We do not process the data you share.",
       "description_3_part1": "Check out our ",
       "description_3_privacy_policy": "privacy policy",
       "description_3_part2": " to learn more.",
@@ -745,6 +763,19 @@
   },
   "perps": {
     "title": "Perps Trading",
+    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
+    "manage_balance": "Manage Balance",
+    "total_balance": "Total Balance",
+    "available_balance": "Available Balance",
+    "margin_used": "Margin Used",
+    "unrealized_pnl": "Unrealized PnL",
+    "withdraw": "Withdraw",
+    "refresh_balance": "Refresh Balance",
+    "add_funds": "Add funds",
+    "perpetuals": "Perpetuals",
+    "your_positions": "Your positions",
+    "loading_positions": "Loading positions...",
+    "refreshing_positions": "Refreshing positions...",
     "deposit": {
       "title": "Amount to deposit",
       "pay_with": "Pay with",
@@ -812,6 +843,48 @@
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
       }
+    },
+    "withdrawal": {
+      "title": "Withdraw",
+      "insufficient_funds": "Insufficient funds",
+      "enter_amount": "Enter amount",
+      "review": "Review withdrawal",
+      "withdraw": "Withdraw",
+      "withdraw_usdc": "Withdraw USDC",
+      "minimum_amount_error": "Minimum withdrawal amount is ${{amount}}",
+      "amount_too_low": "Amount must be greater than ${{minAmount}} to cover fees",
+      "confirm": "Confirm withdrawal",
+      "processing_title": "Withdrawal initiated",
+      "processing_description": "Your USDC will arrive in approximately 5 minutes",
+      "success_title": "Withdrawal successful",
+      "success_description": "Your {{amount}} USDC has been withdrawn from Hyperliquid",
+      "network_fee": "Network fee",
+      "metamask_fee": "MetaMask fee",
+      "total_fees": "Total fees",
+      "receiving_amount": "You will receive",
+      "estimated_time": "Estimated time",
+      "done": "Done",
+      "initiated": "Withdrawal initiated",
+      "wait_time_message": "Your funds should arrive within 5 minutes",
+      "error": "Withdrawal failed",
+      "success_toast": "{{amount}} {{symbol}} withdrawal initiated",
+      "arrival_time": "Funds will arrive within 5 minutes",
+      "bridge_info": "HyperLiquid validators are processing your withdrawal",
+      "error_generic": "An error occurred during withdrawal",
+      "invalid_amount": "Please enter a valid amount",
+      "completed": "Withdrawal Complete",
+      "max": "Max",
+      "percentage_10": "10%",
+      "percentage_25": "25%"
+    },
+    "quote": {
+      "network_fee": "Network fee",
+      "estimated_time": "Estimated time",
+      "rate": "Rate",
+      "metamask_fee": "MetaMask fee",
+      "metamask_fee_tooltip": "MetaMask does not charge any fees for Hyperliquid transactions",
+      "metamask_fee_tooltip_deposit": "MetaMask does not charge any fees for deposits to Hyperliquid",
+      "metamask_fee_tooltip_withdrawal": "MetaMask does not charge any fees for withdrawals from Hyperliquid"
     },
     "order": {
       "title": "New Order",
@@ -933,6 +1006,7 @@
         "amountPositive": "Amount must be a positive number"
       },
       "withdrawValidation": {
+        "missingParams": "Missing required parameters for withdrawal",
         "assetIdRequired": "assetId is required for withdrawals",
         "amountRequired": "amount is required for withdrawals",
         "amountPositive": "Amount must be a positive number",
@@ -1017,7 +1091,7 @@
     "chart": {
       "no_data": "No chart data available"
     },
-    "perpetual_markets": "Perpetual Markets",
+    "perpetual_markets": "Perpetual markets",
     "search": "Search",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
@@ -1092,6 +1166,7 @@
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "defi": "DeFi",
+    "perps": "Perpetuals",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
@@ -2034,6 +2109,7 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
     "perps_button": "Perpetuals",
+    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -2043,11 +2119,13 @@
       "buy": "Buying not supported for this account",
       "sell": "Selling not supported for this account",
       "swap": "Swapping not supported for this account",
+      "deposit": "Depositing not supported for this account",
       "bridge": "Bridging not supported for this account",
       "send": "Sending not supported for this account",
       "action": "This action is not supported for this account",
       "earn": "Earning not supported for this account",
-      "perps": "Perpetuals trading not supported for this account"
+      "perps": "Perpetuals trading not supported for this account",
+      "perps_sandbox": "Perps sandbox not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Total Supply",
@@ -2057,7 +2135,8 @@
     "troubleshooting_missing": "troubleshooting missing balances",
     "for_help": "for help.",
     "troubleshoot": "Troubleshoot",
-    "buy_description": "Buy crypto with cash",
+    "deposit_description": "Low-cost card or bank transfer",
+    "buy_description": "Good for buying a specific token",
     "sell_description": "Sell crypto for cash",
     "swap_description": "Exchange between tokens",
     "bridge_description": "Transfer tokens between networks",
@@ -2065,6 +2144,7 @@
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
     "perps_description": "Trade perpetual contracts",
+    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",
@@ -2072,7 +2152,8 @@
       "1m": "Past month",
       "3m": "Past 3 months",
       "1y": "Past year",
-      "3y": "Past 3 years"
+      "3y": "Past 3 years",
+      "all": "All"
     },
     "chart_time_period_navigation": {
       "1d": "1D",
@@ -2081,7 +2162,8 @@
       "1m": "1M",
       "3m": "3M",
       "1y": "1Y",
-      "3y": "3Y"
+      "3y": "3Y",
+      "all": "All"
     },
     "no_chart_data": {
       "title": "No chart data",
@@ -2143,7 +2225,7 @@
     "allow_camera_dialog_message": "We need your permission to scan QR codes",
     "scanning": "scanning...",
     "ok": "Ok",
-      "continue": "Continue",
+    "continue": "Continue",
     "cancel": "Cancel",
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Looks like you're trying to scan a QR code, you need to unlock your wallet to be able to use it.",
@@ -2165,7 +2247,7 @@
   "transaction": {
     "transaction_id": "Transaction ID",
     "alert": "ALERT",
-        "amount": "Amount",
+    "amount": "Amount",
     "details": "Details",
     "next": "Next",
     "back": "Back",
@@ -2487,7 +2569,7 @@
     "multichain_priority_fee": "Priority Fee",
     "max_fee": "Max Fee Per Gas",
     "total": "Total",
-    "view_on": "VIEW ON",
+    "view_on": "View on",
     "view_on_etherscan": "View on Etherscan",
     "view_full_history_on": "View full history on",
     "view_full_history_on_etherscan": "View full history on Etherscan",
@@ -3368,8 +3450,8 @@
     "date": "Date",
     "from": "From",
     "to": "To",
-        "status": "Status",
-        "completed": "Completed",
+    "status": "Status",
+    "completed": "Completed",
     "pending": "Pending",
     "failed": "Failed",
     "cancelled": "Canceled",
@@ -3940,7 +4022,7 @@
     "low": "Low",
     "medium": "Medium",
     "high": "High",
-      "market": "Market",
+    "market": "Market",
     "aggressive": "Aggressive",
     "low_fee_warning": "Take note of your processing time. Future transactions will queue after this one.",
     "edit_priority": "Edit priority",
@@ -4414,7 +4496,7 @@
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
     "not_enough_token": "Not enough {{ticker}}",
-      "balance": "Balance",
+    "balance": "Balance",
     "stake_eth_and_earn": "Stake ETH and earn",
     "how_it_works": "How it works",
     "stake_any_amount_of_eth": "Stake any amount of ETH.",
@@ -4891,6 +4973,9 @@
     "asset_selector": {
       "title": "Select an asset"
     },
+    "account_selector": {
+      "title": "Select account"
+    },
     "hideSentitiveInfo": {
       "message": "Hide sensitive information"
     },
@@ -5000,5 +5085,9 @@
   },
   "pay_with_modal": {
     "title": "Select payment method"
+  },
+  "time": {
+    "minutes_format": "{{count}} minute",
+    "minutes_format_plural": "{{count}} minutes"
   }
 }

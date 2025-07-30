@@ -99,6 +99,16 @@ export const getPerpsPayWithRowSelector = {
 };
 
 // ========================================
+// PERPS MARKET LIST VIEW SELECTORS
+// ========================================
+
+export const PerpsMarketListViewSelectorsIDs = {
+  SEARCH_TOGGLE_BUTTON: 'search-toggle-button',
+  CLOSE_BUTTON: 'close-button',
+  SEARCH_CLEAR_BUTTON: 'search-clear-button',
+};
+
+// ========================================
 // PERPS ORDER HEADER SELECTORS
 // ========================================
 
@@ -142,4 +152,15 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 // Helper functions for dynamic view selectors
 export const getPerpsViewSelector = {
   buttonIcon: (iconName: string) => `button-icon-${iconName.toLowerCase()}`,
+};
+
+// ========================================
+// PERPS WITHDRAW VIEW SELECTORS
+// ========================================
+
+export const PerpsWithdrawViewSelectorsIDs = {
+  BACK_BUTTON: 'withdraw-back-button',
+  SOURCE_TOKEN_AREA: 'source-token-area',
+  DEST_TOKEN_AREA: 'dest-token-area',
+  CONTINUE_BUTTON: 'continue-button',
 };
