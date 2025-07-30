@@ -11,7 +11,7 @@ import { SendContextProvider } from '../../../context/send-context';
 import { SendRoot } from './send-root';
 import Engine from '../../../../../../core/Engine';
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('../../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
@@ -23,7 +23,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock(
-  '../../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
+  '../../../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
   () => ({
     useGasFeeEstimates: () => ({
       gasFeeEstimates: { medium: { suggestedMaxFeePerGas: 1.5 } },
