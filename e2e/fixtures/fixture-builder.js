@@ -9,6 +9,7 @@ import { SolScope } from '@metamask/keyring-api';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  getEthAccounts,
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
@@ -28,6 +29,9 @@ export const DEFAULT_FIXTURE_ACCOUNT_2 =
 
 export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
   '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b';
+
+export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
+  'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
 
 const DAPP_URL = 'localhost';
 
@@ -802,6 +806,17 @@ class FixtureBuilder {
       isMultichainOrigin: false,
     };
 
+    const incomingEthAccounts = getEthAccounts(caip25CaveatValue);
+    const permittedEthAccounts =
+      incomingEthAccounts.length > 0
+        ? incomingEthAccounts
+        : [DEFAULT_FIXTURE_ACCOUNT];
+
+    const basePermissionCaveatValue = setEthAccounts(
+      caip25CaveatValue,
+      permittedEthAccounts,
+    );
+
     const basePermissions = {
       [Caip25EndowmentPermissionName]: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
@@ -810,7 +825,7 @@ class FixtureBuilder {
         caveats: [
           {
             type: Caip25CaveatType,
-            value: setEthAccounts(caip25CaveatValue, [DEFAULT_FIXTURE_ACCOUNT]),
+            value: basePermissionCaveatValue,
           },
         ],
         date: 1664388714636,
@@ -922,6 +937,43 @@ class FixtureBuilder {
 
     this.withPermissionController(
       this.createPermissionControllerConfig(chainPermission),
+    );
+    return this;
+  }
+
+  /**
+   * Adds Solana account permissions for default fixture account.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withSolanaAccountPermission() {
+    const caveatValue = {
+      optionalScopes: {
+        [SolScope.Mainnet]: {
+          accounts: [`${SolScope.Mainnet}:${DEFAULT_SOLANA_FIXTURE_ACCOUNT}`],
+        },
+      },
+      requiredScopes: {},
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    };
+
+    const permissionConfig = {
+      [Caip25EndowmentPermissionName]: {
+        id: 'Lde5rzDG2bUF6HbXl4xxT',
+        parentCapability: Caip25EndowmentPermissionName,
+        invoker: 'localhost',
+        caveats: [
+          {
+            type: Caip25CaveatType,
+            value: caveatValue,
+          },
+        ],
+        date: 1732715918637,
+      },
+    };
+
+    this.withPermissionController(
+      this.createPermissionControllerConfig(permissionConfig),
     );
     return this;
   }
@@ -1084,6 +1136,17 @@ class FixtureBuilder {
 
     // Ensure Solana feature modal is suppressed
     return this.ensureSolanaModalSuppressed();
+  }
+
+  /**
+   * Disables smart transactions
+   * @returns FixtureBuilder
+   */
+  withDisabledSmartTransactions() {
+    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
+      smartTransactionsOptInStatus: false,
+    });
+    return this;
   }
 
   withPreferencesController(data) {

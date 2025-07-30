@@ -125,19 +125,20 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -350,7 +351,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={17}
+              handlerTag={18}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -802,6 +803,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -1944,19 +1946,20 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -2169,7 +2172,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={19}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2621,6 +2624,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -3763,19 +3767,20 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -3988,7 +3993,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={21}
+              handlerTag={22}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4440,6 +4445,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -5582,19 +5588,20 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -7378,19 +7385,20 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -9173,19 +9181,20 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -10969,19 +10978,20 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -12765,19 +12775,20 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>

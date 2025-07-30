@@ -93,6 +93,60 @@ const SecureKeychain = {
     return Keychain.getSupportedBiometryType();
   },
 
+  /**
+   * Clears all secure data for a specific scope
+   * @param scopeOptions - Keychain options that define the scope to clear
+   * @returns Promise that resolves when the scope is cleared
+   */
+  async clearSecureScope(scopeOptions: Keychain.Options) {
+    return Keychain.resetGenericPassword(scopeOptions);
+  },
+
+  /**
+   * Securely stores a key-value pair in the keychain with encryption
+   * @param key - The key to store
+   * @param value - The value to store (will be encrypted)
+   * @param scopeOptions - Keychain options that define the storage scope
+   * @returns Promise that resolves when the item is stored
+   */
+  async setSecureItem(
+    key: string,
+    value: string,
+    scopeOptions: Keychain.Options,
+  ) {
+    const encryptedValue = await instance.encryptPassword(value);
+    return Keychain.setGenericPassword(key, encryptedValue, scopeOptions);
+  },
+
+  /**
+   * Retrieves and decrypts a secure item from the keychain
+   * @param scopeOptions - Keychain options that define the scope to retrieve from
+   * @returns Promise that resolves to an object with key and value, or null if not found
+   */
+  async getSecureItem(scopeOptions: Keychain.Options) {
+    if (instance) {
+      try {
+        instance.isAuthenticating = true;
+        const keychainObject = await Keychain.getGenericPassword(scopeOptions);
+        if (keychainObject && keychainObject.password) {
+          const encryptedValue = keychainObject.password;
+          const decryptedValue = await instance.decryptPassword(encryptedValue);
+          instance.isAuthenticating = false;
+
+          return {
+            key: keychainObject.username,
+            value: decryptedValue.password,
+          };
+        }
+        instance.isAuthenticating = false;
+      } catch (error) {
+        instance.isAuthenticating = false;
+        throw new Error((error as Error).message);
+      }
+    }
+    return null;
+  },
+
   async resetGenericPassword() {
     const options = { service: defaultOptions.service };
     await StorageWrapper.removeItem(BIOMETRY_CHOICE);

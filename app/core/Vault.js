@@ -77,8 +77,8 @@ export const recreateVaultWithNewPassword = async (
         '[recreateVaultWithNewPassword] seedless onboarding pw change error',
       );
       seedlessChangePasswordError = new SeedlessOnboardingControllerError(
-        error || 'Password change failed',
         SeedlessOnboardingControllerErrorType.ChangePasswordError,
+        error || 'Password change failed',
       );
 
       captureException(seedlessChangePasswordError);

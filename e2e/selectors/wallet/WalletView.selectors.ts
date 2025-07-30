@@ -72,6 +72,12 @@ export const WalletViewSelectorsIDs = {
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
+  // Wallet-specific action buttons to avoid conflicts with TokenOverview
+  WALLET_BUY_BUTTON: 'wallet-buy-button',
+  WALLET_SWAP_BUTTON: 'wallet-swap-button',
+  WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
+  WALLET_SEND_BUTTON: 'wallet-send-button',
+  WALLET_RECEIVE_BUTTON: 'wallet-receive-button',
 } as const;
 
 export const WalletViewSelectorsText = {
@@ -85,7 +91,8 @@ export const WalletViewSelectorsText = {
   PERMISSIONS_SUMMARY_TAB: 'Permissions',
   ACCOUNTS_SUMMARY_TAB: 'Accounts',
   DEFI_TAB: enContent.wallet.defi,
-  DEFI_NO_POSITIONS: enContent.defi_positions.no_positions,
+  DEFI_NO_VISIBLE_POSITIONS: enContent.defi_positions.no_visible_positions,
+  DEFI_NOT_SUPPORTED: enContent.defi_positions.not_supported,
   DEFI_ERROR_CANNOT_LOAD_PAGE: enContent.defi_positions.error_cannot_load_page,
   DEFI_ERROR_VISIT_AGAIN: enContent.defi_positions.error_visit_again,
 } as const;
