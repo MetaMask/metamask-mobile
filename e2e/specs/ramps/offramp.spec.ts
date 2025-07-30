@@ -1,45 +1,29 @@
-'use strict';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import TestHelpers from '../../helpers';
-import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
+import { getMockServerPort } from '../../fixtures/utils';
 import { SmokeTrade } from '../../tags';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import QuotesView from '../../pages/Ramps/QuotesView';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { startMockServer } from '../../api-mocking/mock-server';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { getEventsPayloads } from '../analytics/helpers';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import TestHelpers from '../../helpers';
 
-const fixtureServer = new FixtureServer();
-
-const franceRegion = {
-  currencies: ['/currencies/fiat/eur'],
-  emoji: '🇫🇷',
-  id: '/regions/fr',
-  name: 'France',
-  support: { buy: true, sell: true, recurringBuy: true },
-  unsupported: false,
-  recommended: false,
-  detected: false,
-};
-
-let mockServer;
-let mockServerPort;
+let mockServer: Mockttp;
+let mockServerPort: number;
 
 describe(SmokeTrade('Off-Ramp'), () => {
   let shouldCheckProviderSelectedEvents = true;
+  const eventsToCheck: EventPayload[] = [];
 
   beforeAll(async () => {
     const segmentMock = {
@@ -48,66 +32,64 @@ describe(SmokeTrade('Off-Ramp'), () => {
 
     mockServerPort = getMockServerPort();
     mockServer = await startMockServer(segmentMock, mockServerPort);
-
-    await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
-      .withRampsSelectedRegion(franceRegion)
-      .withMetaMetricsOptIn()
-      .build();
-    await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
-      permissions: { notifications: 'YES' },
-      launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
-        mockServerPort,
-      },
-    });
-    await loginToApp();
-  });
-
-  afterAll(async () => {
-    await stopFixtureServer(fixtureServer);
-    await stopMockServer(mockServer);
   });
 
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
 
-  it('should get to the Amount to sell screen, after selecting Get Started', async () => {
-    await TabBarComponent.tapWallet();
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSellButton();
-    await SellGetStartedView.tapGetStartedButton();
-    await Assertions.checkIfVisible(BuildQuoteView.amountToSellLabel);
-    await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
-    await BuildQuoteView.tapCancelButton();
-  });
-
-  it('should show quotes', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSellButton();
-    await BuildQuoteView.enterAmount('2');
-    await BuildQuoteView.tapGetQuotesButton();
-    await Assertions.checkIfVisible(QuotesView.quotes);
-  });
-
-  it('should expand the quotes section', async () => {
-    // Disabling synchronization to avoid race conditions
-    await device.disableSynchronization();
-    try {
-      await QuotesView.tapExploreMoreOptions();
-      await Assertions.checkIfVisible(QuotesView.expandedQuotesSection);
-      await Assertions.checkIfVisible(QuotesView.continueWithProvider);
-      await QuotesView.tapContinueWithProvider();
-      await TestHelpers.pause(650); // Waiting for the last event to be sent
-    } catch (error) {
-      // We're ok catching this as there were not enough providers to select from
-      shouldCheckProviderSelectedEvents = false;
-      console.warn('No provider will be selected');
-    }
+  it('should get to the Amount to sell screen, get quotes and expand the quotes section', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+          .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.FRANCE])
+          .withMetaMetricsOptIn()
+          .build(),
+        restartDevice: true,
+        mockServerInstance: mockServer,
+        endTestfn: async ({ mockServer: mockServerInstance }) => {
+          const events = await getEventsPayloads(mockServerInstance);
+          eventsToCheck.push(...events);
+        },
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapWallet();
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapSellButton();
+        await SellGetStartedView.tapGetStartedButton();
+        await Assertions.expectElementToBeVisible(
+          BuildQuoteView.amountToSellLabel,
+        );
+        await Assertions.expectElementToBeVisible(
+          BuildQuoteView.getQuotesButton,
+        );
+        await BuildQuoteView.tapCancelButton();
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapSellButton();
+        await BuildQuoteView.enterAmount('2');
+        await BuildQuoteView.tapGetQuotesButton();
+        await Assertions.expectElementToBeVisible(QuotesView.quotes);
+        // Disabling synchronization to avoid race conditions
+        await device.disableSynchronization();
+        try {
+          await QuotesView.tapExploreMoreOptions();
+          await Assertions.expectElementToBeVisible(
+            QuotesView.expandedQuotesSection,
+          );
+          await Assertions.expectElementToBeVisible(
+            QuotesView.continueWithProvider,
+          );
+          await QuotesView.tapContinueWithProvider();
+          await TestHelpers.delay(650);
+        } catch (error) {
+          // We're ok catching this as there were not enough providers to select from
+          shouldCheckProviderSelectedEvents = false;
+          console.warn('No provider will be selected');
+        }
+      },
+    );
   });
 
   it('should validate segment/metametric events for a successful offramp flow', async () => {
@@ -122,36 +104,25 @@ describe(SmokeTrade('Off-Ramp'), () => {
       OFFRAMP_PROVIDER_SELECTED: 'Off-ramp Provider Selected',
     };
 
-    const events = await getEventsPayloads(mockServer, [
-      expectedEvents.SELL_BUTTON_CLICKED,
-      expectedEvents.OFFRAMP_CANCELED,
-      expectedEvents.OFFRAMP_GET_STARTED_CLICKED,
-      expectedEvents.OFFRAMP_QUOTES_REQUESTED,
-      expectedEvents.OFFRAMP_QUOTES_RECEIVED,
-      expectedEvents.OFFRAMP_QUOTE_ERROR,
-      expectedEvents.OFFRAMP_QUOTES_EXPANDED,
-      expectedEvents.OFFRAMP_PROVIDER_SELECTED,
-    ]);
-
     const softAssert = new SoftAssert();
 
     // Find all events
-    const sellButtonClicked = events.find(
+    const sellButtonClicked = eventsToCheck.find(
       (event) => event.event === expectedEvents.SELL_BUTTON_CLICKED,
     );
-    const offRampCanceled = events.find(
+    const offRampCanceled = eventsToCheck.find(
       (event) => event.event === expectedEvents.OFFRAMP_CANCELED,
     );
-    const offRampGetStartedClicked = events.find(
+    const offRampGetStartedClicked = eventsToCheck.find(
       (event) => event.event === expectedEvents.OFFRAMP_GET_STARTED_CLICKED,
     );
-    const offRampQuotesRequested = events.find(
+    const offRampQuotesRequested = eventsToCheck.find(
       (event) => event.event === expectedEvents.OFFRAMP_QUOTES_REQUESTED,
     );
-    const offRampQuotesReceived = events.find(
+    const offRampQuotesReceived = eventsToCheck.find(
       (event) => event.event === expectedEvents.OFFRAMP_QUOTES_RECEIVED,
     );
-    const offRampQuoteError = events.find(
+    const offRampQuoteError = eventsToCheck.find(
       (event) => event.event === expectedEvents.OFFRAMP_QUOTE_ERROR,
     );
 
@@ -181,7 +152,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
     const checkOffRampQuotesRequestedProperties = softAssert.checkAndCollect(
       async () => {
         await Assertions.checkIfObjectHasKeysAndValidValues(
-          offRampQuotesRequested.properties,
+          offRampQuotesRequested?.properties ?? {},
           {
             payment_method_id: 'string',
             amount: 'number',
@@ -205,7 +176,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
     const checkOffRampQuotesReceivedProperties = softAssert.checkAndCollect(
       async () => {
         await Assertions.checkIfObjectHasKeysAndValidValues(
-          offRampQuotesReceived.properties,
+          offRampQuotesReceived?.properties ?? {},
           {
             amount: 'string',
             payment_method_id: 'string',
@@ -243,7 +214,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
     const checkOffRampQuoteErrorProperties = softAssert.checkAndCollect(
       async () => {
         await Assertions.checkIfObjectHasKeysAndValidValues(
-          offRampQuoteError.properties,
+          offRampQuoteError?.properties ?? {},
           {
             amount: 'string',
             payment_method_id: 'string',
@@ -272,12 +243,12 @@ describe(SmokeTrade('Off-Ramp'), () => {
     ];
 
     // Conditional assertions for provider selected events
-    let conditionalAssertions = [];
+    let conditionalAssertions: Promise<void>[] = [];
     if (shouldCheckProviderSelectedEvents) {
-      const offRampQuotesExpanded = events.find(
+      const offRampQuotesExpanded = eventsToCheck.find(
         (event) => event.event === expectedEvents.OFFRAMP_QUOTES_EXPANDED,
       );
-      const offRampProviderSelected = events.find(
+      const offRampProviderSelected = eventsToCheck.find(
         (event) => event.event === expectedEvents.OFFRAMP_PROVIDER_SELECTED,
       );
 
@@ -291,7 +262,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
       const checkOffRampQuotesExpandedProperties = softAssert.checkAndCollect(
         async () => {
           await Assertions.checkIfObjectHasKeysAndValidValues(
-            offRampQuotesExpanded.properties,
+            offRampQuotesExpanded?.properties ?? {},
             {
               payment_method_id: 'string',
               amount: 'string',
@@ -319,7 +290,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
       const checkOffRampProviderSelectedProperties = softAssert.checkAndCollect(
         async () => {
           await Assertions.checkIfObjectHasKeysAndValidValues(
-            offRampProviderSelected.properties,
+            offRampProviderSelected?.properties ?? {},
             {
               refresh_count: 'number',
               quote_position: 'number',
@@ -329,14 +300,13 @@ describe(SmokeTrade('Off-Ramp'), () => {
               gas_fee: 'number',
               processing_fee: 'number',
               exchange_rate: 'number',
-              amount: 'number',
+              amount: 'string',
               is_best_rate: 'boolean',
               is_recommended: 'boolean',
               currency_source: 'string',
               currency_destination: 'string',
-              provider_onramp: 'string',
-              crypto_out: 'number',
-              chain_id_destination: 'string',
+              fiat_out: 'number',
+              chain_id_source: 'string',
             },
           );
         },
@@ -352,6 +322,9 @@ describe(SmokeTrade('Off-Ramp'), () => {
     }
 
     await Promise.all([...baseAssertions, ...conditionalAssertions]);
+    if (shouldCheckProviderSelectedEvents) {
+      console.log('eventsToCheck', eventsToCheck);
+    }
 
     softAssert.throwIfErrors();
   });
