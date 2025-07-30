@@ -85,7 +85,7 @@ export const validateAmount = ({
     weiBalance = hexToBN(account?.balance ?? '0');
   } else {
     weiValue = toTokenMinimalUnit(amount, asset.decimals);
-    weiBalance = hexToBN(contractBalances[asset.address as Hex] ?? 0x0);
+    weiBalance = hexToBN(contractBalances[asset.address as Hex] ?? '0x0');
   }
   if (weiBalance.cmp(weiValue) === -1) {
     return strings('transaction.insufficient');
