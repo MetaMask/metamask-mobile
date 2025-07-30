@@ -184,7 +184,7 @@ export const useBridgeQuoteData = ({
         setBlockaidError(null);
       }
     } else {
-      setBlockaidError('Example error');
+      setBlockaidError(null);
     }
   }, [activeQuote, isSolanaSwap, isSolanaToEvm, validateBridgeTx]);
 
