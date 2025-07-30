@@ -305,7 +305,7 @@ function App() {
 
 ## useSharedValue
 Purpose:
-useSharedValue is a hook that creates a SharedValue instance, which can be read from and written to by both the JavaScript thread and the worklet thread simultaneously.
+`useSharedValue` is a hook that creates a SharedValue instance, which can be read from and written to by both the JavaScript thread and the worklet thread simultaneously.
 
 For arrays and objects, useSharedValue creates a C++-based proxy implementation, ensuring that all read and write operations on these data structures are thread-safe.
 
