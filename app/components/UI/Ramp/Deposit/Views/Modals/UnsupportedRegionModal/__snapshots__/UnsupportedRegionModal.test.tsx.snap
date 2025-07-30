@@ -570,7 +570,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                 }
                               }
                             >
-                              We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.
+                              We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to get crypto.
                                
                             </Text>
                           </View>
@@ -1247,7 +1247,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                 }
                               }
                             >
-                              We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.
+                              We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to get crypto.
                                
                             </Text>
                           </View>
