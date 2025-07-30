@@ -134,9 +134,9 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
 
     // Navigate to bridge view with deep link parameters
     const params: BridgeRouteParams = {
-      sourceToken,
-      destToken,
-      sourceAmount,
+      sourceToken: sourceToken ?? undefined,
+      destToken: destToken ?? undefined,
+      sourceAmount: sourceAmount ?? undefined,
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
     };
