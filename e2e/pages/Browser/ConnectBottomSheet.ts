@@ -50,37 +50,37 @@ class ConnectBottomSheet {
 
   async tapCancelButton(): Promise<void> {
     await Gestures.waitAndTap(this.cancelButton, {
-      elemDescription: 'Tap on the cancel button',
+      elemDescription: 'Cancel button',
     });
   }
 
   async tapConnectButton(): Promise<void> {
     await Gestures.waitAndTap(this.connectButton, {
-      elemDescription: 'Tap on the connect button',
+      elemDescription: 'Connect button',
     });
   }
 
   async tapConnectMultipleAccountsButton(): Promise<void> {
     await Gestures.waitAndTap(this.connectAccountsButton, {
-      elemDescription: 'Tap on the connect multiple accounts button',
+      elemDescription: 'Connect multiple accounts button',
     });
   }
 
   async tapImportAccountOrHWButton(): Promise<void> {
     await Gestures.waitAndTap(this.importButton, {
-      elemDescription: 'Tap on the import account or hardware wallet button',
+      elemDescription: 'Import account or hardware wallet button',
     });
   }
 
   async tapSelectAllButton(): Promise<void> {
     await Gestures.waitAndTap(this.selectAllButton, {
-      elemDescription: 'Tap on the select all button',
+      elemDescription: 'Select all button',
     });
   }
 
   async tapAccountConnectMultiSelectButton(): Promise<void> {
     await Gestures.waitAndTap(this.selectMultiButton, {
-      elemDescription: 'Tap on the account connect multi select button',
+      elemDescription: 'Account connect multi select button',
     });
   }
 
