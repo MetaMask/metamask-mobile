@@ -3,7 +3,8 @@ import {
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import useAmountValidation, {
+import {
+  useAmountValidation,
   validateAmountFn,
   ValidateAmountArgs,
 } from './useAmountValidation';

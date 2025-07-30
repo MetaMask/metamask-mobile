@@ -1,18 +1,14 @@
-import { RouteProp, useRoute } from '@react-navigation/native';
 import { useEffect } from 'react';
 
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { AssetType } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 
-const useRouteParams = () => {
-  const route =
-    useRoute<RouteProp<Record<string, { asset: AssetType }>, string>>();
-  const paramsAsset = route?.params?.asset;
+export const useRouteParams = () => {
+  const { asset: paramsAsset } = useParams<{ asset: AssetType }>();
   const { updateAsset } = useSendContext();
 
   useEffect(() => {
     updateAsset(paramsAsset);
   }, [paramsAsset, updateAsset]);
 };
-
-export default useRouteParams;

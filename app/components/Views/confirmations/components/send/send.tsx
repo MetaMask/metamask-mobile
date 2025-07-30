@@ -9,13 +9,13 @@ import Button, {
 import Text from '../../../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { useStyles } from '../../../../hooks/useStyles';
-import useRouteParams from '../../hooks/send/useRouteParams';
-import useSendActions from '../../hooks/send/useSendActions';
-import useSendDisabled from '../../hooks/send/useSendDisabled';
+import { useRouteParams } from '../../hooks/send/useRouteParams';
+import { useSendActions } from '../../hooks/send/useSendActions';
+import { useSendDisabled } from '../../hooks/send/useSendDisabled';
 import Amount from './amount';
 import Asset from './asset';
-import To from './to';
-import styleSheet from './send.styles';
+import SendTo from './send-to';
+import { styleSheet } from './send.styles';
 
 export const Send = () => {
   const from = useSelector(selectSelectedInternalAccount);
@@ -31,7 +31,7 @@ export const Send = () => {
         <Text>From:</Text>
         <Text>{from?.address}</Text>
       </View>
-      <To />
+      <SendTo />
       <Amount />
       <Button
         label="Cancel"

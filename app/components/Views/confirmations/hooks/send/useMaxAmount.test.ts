@@ -3,11 +3,12 @@ import {
   ProviderValues,
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
-import useMaxAmount, {
+import {
   GasFeeEstimatesType,
   getEstimatedTotalGas,
   GetMaxValueArgs,
   getMaxValueFn,
+  useMaxAmount,
 } from './useMaxAmount';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({

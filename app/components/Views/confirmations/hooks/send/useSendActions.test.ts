@@ -3,7 +3,7 @@ import {
   ProviderValues,
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
-import useSendActions from './useSendActions';
+import { useSendActions } from './useSendActions';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();

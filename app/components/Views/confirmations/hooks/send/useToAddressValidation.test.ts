@@ -8,9 +8,10 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import * as ENSUtils from '../../../../../util/ENSUtils';
 // eslint-disable-next-line import/no-namespace
 import * as ConfusablesUtils from '../../../../../util/confusables';
-import useToAddressValidation, {
+import {
   shouldSkipValidation,
   ShouldSkipValidationArgs,
+  useToAddressValidation,
   validateToAddress,
 } from './useToAddressValidation';
 

@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
 import { useSendContext } from '../../context/send-context';
-import useAmountValidation from './useAmountValidation';
+import { useAmountValidation } from './useAmountValidation';
 
-const useSendDisabled = () => {
+export const useSendDisabled = () => {
   const { amountError } = useAmountValidation();
   const { to, value } = useSendContext();
 
@@ -19,5 +19,3 @@ const useSendDisabled = () => {
 
   return { sendDisabled };
 };
-
-export default useSendDisabled;

@@ -4,11 +4,12 @@ import {
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
 import { AssetType } from '../../types/token';
-import useConversions, {
+import {
   getFiatDisplayValueFn,
   getFiatValueFn,
   getNativeDisplayValueFn,
   getNativeValueFn,
+  useConversions,
 } from './useConversions';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({

@@ -3,7 +3,7 @@ import {
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import useSendDisabled from './useSendDisabled';
+import { useSendDisabled } from './useSendDisabled';
 
 const mockState = {
   state: {
