@@ -18,7 +18,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, View } from 'react-native';
+import { SafeAreaView, ScrollView, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { toHex } from '@metamask/controller-utils';
@@ -68,7 +68,6 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
 } from '../../../../../util/number';
-import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../../UI/Box/Box';
 import {
   MAX_INPUT_LENGTH,
@@ -509,8 +508,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const { top } = useSafeAreaInsets();
 
   return (
-    // @ts-expect-error The type is incorrect, this will work
-    <ScreenView contentContainerStyle={[styles.screen, { paddingTop: top }]}>
+    <SafeAreaView style={[styles.screen, { marginTop: top }]}>
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon
@@ -666,7 +664,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           </View>
         )}
       </View>
-    </ScreenView>
+    </SafeAreaView>
   );
 };
 
