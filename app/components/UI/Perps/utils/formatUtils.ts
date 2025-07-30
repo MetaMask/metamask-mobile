@@ -5,9 +5,11 @@ import { formatWithThreshold } from '../../../../util/assets';
 
 /**
  * Formats a balance value as USD currency with appropriate decimal places
- * Uses the existing formatWithThreshold utility for consistency
- * @param balance - The balance value to format (string or number)
- * @returns Formatted balance string with currency symbol (e.g., "$1,234.56")
+ * @param balance - Raw numeric balance value (e.g., 1234.56, not token minimal denomination)
+ * @returns USD formatted string: "$X,XXX.XX" (always 2 decimal places with commas for thousands)
+ * @example formatPerpsFiat(1234.56) => "$1,234.56"
+ * @example formatPerpsFiat(0.01) => "$0.01"
+ * @example formatPerpsFiat(50000) => "$50,000.00"
  */
 export const formatPerpsFiat = (balance: string | number): string => {
   const num = typeof balance === 'string' ? parseFloat(balance) : balance;
@@ -23,12 +25,16 @@ export const formatPerpsFiat = (balance: string | number): string => {
 };
 
 /**
- * Formats a price value as USD currency with appropriate decimal places
- * Uses the existing formatWithThreshold utility for consistency
- * @param price - The price value to format (string or number)
+ * Formats a price value as USD currency with variable decimal places based on magnitude
+ * @param price - Raw numeric price value
  * @param options - Optional formatting options
- * @param options.minimumDecimals - Minimum number of decimal places (default: 2, use 0 for whole numbers)
- * @returns Formatted price string with currency symbol
+ * @param options.minimumDecimals - Minimum decimal places (default: 2, use 0 for whole numbers)
+ * @returns USD formatted string with variable decimals:
+ * - Prices >= $1000: "$X,XXX.XX" (2-4 decimals)
+ * - Prices < $1000: "$X.XXXX" (up to 4 decimals)
+ * @example formatPrice(1234.5678) => "$1,234.57"
+ * @example formatPrice(0.1234) => "$0.1234"
+ * @example formatPrice(50000, { minimumDecimals: 0 }) => "$50,000"
  */
 export const formatPrice = (
   price: string | number,
@@ -61,9 +67,12 @@ export const formatPrice = (
 };
 
 /**
- * Formats a PnL (Profit and Loss) value with appropriate sign and currency
- * @param pnl - The PnL value to format (string or number)
- * @returns Formatted PnL string with + or - prefix
+ * Formats a PnL (Profit and Loss) value with sign prefix
+ * @param pnl - Raw numeric PnL value (positive for profit, negative for loss)
+ * @returns Format: "+$X,XXX.XX" or "-$X,XXX.XX" (always shows sign, 2 decimals)
+ * @example formatPnl(1234.56) => "+$1,234.56"
+ * @example formatPnl(-500) => "-$500.00"
+ * @example formatPnl(0) => "+$0.00"
  */
 export const formatPnl = (pnl: string | number): string => {
   const num = typeof pnl === 'string' ? parseFloat(pnl) : pnl;
@@ -83,9 +92,12 @@ export const formatPnl = (pnl: string | number): string => {
 };
 
 /**
- * Formats a percentage value with appropriate sign and % symbol
- * @param value - The percentage value to format (string or number)
- * @returns Formatted percentage string with + or - prefix
+ * Formats a percentage value with sign prefix
+ * @param value - Raw percentage value (e.g., 5.25 for 5.25%, not 0.0525)
+ * @returns Format: "+X.XX%" or "-X.XX%" (always shows sign, 2 decimals)
+ * @example formatPercentage(5.25) => "+5.25%"
+ * @example formatPercentage(-2.75) => "-2.75%"
+ * @example formatPercentage(0) => "+0.00%"
  */
 export const formatPercentage = (value: string | number): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -98,9 +110,12 @@ export const formatPercentage = (value: string | number): string => {
 };
 
 /**
- * Formats a large number for display (e.g., 1000 -> 1K, 1000000 -> 1M)
- * @param value - The number to format
- * @returns Formatted number string with suffix
+ * Formats large numbers with magnitude suffixes
+ * @param value - Raw numeric value
+ * @returns Format: "X.XB" / "X.XM" / "X.XK" / "X.XX" (1 decimal for suffixed, 2 for raw)
+ * @example formatLargeNumber(1500000) => "1.5M"
+ * @example formatLargeNumber(1234) => "1.2K"
+ * @example formatLargeNumber(999) => "999.00"
  */
 export const formatLargeNumber = (value: string | number): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -123,9 +138,15 @@ export const formatLargeNumber = (value: string | number): string => {
 };
 
 /**
- * Formats a position size with appropriate decimal places
- * @param size - The position size to format (string or number)
- * @returns Formatted size string
+ * Formats position size with variable decimal precision based on magnitude
+ * @param size - Raw position size value
+ * @returns Format varies by size:
+ * - Size < 0.01: "X.XXXXXX" (6 decimals)
+ * - Size < 1: "X.XXXX" (4 decimals)
+ * - Size >= 1: "X.XX" (2 decimals)
+ * @example formatPositionSize(0.001234) => "0.001234"
+ * @example formatPositionSize(0.5678) => "0.5678"
+ * @example formatPositionSize(123.456) => "123.46"
  */
 export const formatPositionSize = (size: string | number): string => {
   const num = typeof size === 'string' ? parseFloat(size) : size;
@@ -151,9 +172,12 @@ export const formatPositionSize = (size: string | number): string => {
 };
 
 /**
- * Formats a leverage value with 'x' suffix
- * @param leverage - The leverage value to format (string or number)
- * @returns Formatted leverage string with 'x' suffix
+ * Formats leverage value with 'x' suffix
+ * @param leverage - Raw leverage multiplier value
+ * @returns Format: "X.Xx" (1 decimal place with 'x' suffix)
+ * @example formatLeverage(5) => "5.0x"
+ * @example formatLeverage(10.5) => "10.5x"
+ * @example formatLeverage(1) => "1.0x"
  */
 export const formatLeverage = (leverage: string | number): string => {
   const num = typeof leverage === 'string' ? parseFloat(leverage) : leverage;
@@ -166,17 +190,57 @@ export const formatLeverage = (leverage: string | number): string => {
 };
 
 /**
- * Parses a formatted currency string to a number
- * Handles currency symbols and comma separators
- * @param formattedValue - The formatted currency string (e.g., "$1,234.56")
- * @returns Parsed numeric value
+ * Parses formatted currency strings back to numeric values
+ * @param formattedValue - Formatted currency string (handles $, commas, negative values)
+ * @returns Raw numeric value
+ * @example parseCurrencyString("$1,234.56") => 1234.56
+ * @example parseCurrencyString("-$500.00") => -500
+ * @example parseCurrencyString("$-123.45") => -123.45
  */
 export const parseCurrencyString = (formattedValue: string): number => {
   if (!formattedValue) return 0;
 
-  // Remove currency symbols and commas
+  // Check for negative values (can be -$123.45 or $-123.45)
+  const isNegative = formattedValue.includes('-');
+
+  // Remove all non-numeric characters except dots
+  // This regex removes currency symbols ($, €, etc.), commas, minus signs, and other formatting
   const cleanedValue = formattedValue
-    .replace(/[^0-9.-]/g, '') // Keep only numbers, decimal point, and minus sign
+    .replace(/[^0-9.]/g, '') // Remove everything except digits and dots
+    .trim();
+
+  // Handle multiple dots by keeping only the last one as decimal separator
+  // NOTE: This assumes US format (comma for thousands, dot for decimal)
+  // Numbers with dots as thousand separators (e.g., European format) will be parsed incorrectly
+  const parts = cleanedValue.split('.');
+  const integerPart = parts[0] || '0';
+  const decimalPart = parts.length > 1 ? parts[parts.length - 1] : '';
+
+  const finalValue = decimalPart
+    ? `${integerPart}.${decimalPart}`
+    : integerPart;
+  const parsed = parseFloat(finalValue);
+
+  if (isNaN(parsed)) return 0;
+
+  return isNegative ? -parsed : parsed;
+};
+
+/**
+ * Parses formatted percentage strings back to numeric values
+ * @param formattedValue - Formatted percentage string (handles %, +/- signs)
+ * @returns Raw numeric percentage value
+ * @example parsePercentageString("+2.50%") => 2.5
+ * @example parsePercentageString("-10.75%") => -10.75
+ * @example parsePercentageString("5%") => 5
+ */
+export const parsePercentageString = (formattedValue: string): number => {
+  if (!formattedValue) return 0;
+
+  // Remove percentage sign and any spaces
+  const cleanedValue = formattedValue
+    .replace(/%/g, '')
+    .replace(/\s/g, '')
     .trim();
 
   const parsed = parseFloat(cleanedValue);

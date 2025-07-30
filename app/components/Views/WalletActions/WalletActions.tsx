@@ -397,6 +397,16 @@ const WalletActions = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
+        {isDepositEnabled && (
+          <WalletAction
+            actionType={WalletActionType.Deposit}
+            iconName={IconName.Cash}
+            onPress={onDeposit}
+            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+          />
+        )}
         {isNetworkRampSupported && (
           <WalletAction
             actionType={WalletActionType.Buy}
@@ -416,16 +426,6 @@ const WalletActions = () => {
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
-          />
-        )}
-        {isDepositEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Deposit}
-            iconName={IconName.Cash}
-            onPress={onDeposit}
-            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
           />
         )}
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
