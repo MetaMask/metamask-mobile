@@ -12,6 +12,7 @@ import React, {
   useState,
 } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
@@ -124,6 +125,7 @@ const PerpsOrderView: React.FC = () => {
   const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  const { top } = useSafeAreaInsets();
   const toastContext = useContext(ToastContext);
 
   const toastRef = toastContext?.toastRef;
@@ -627,7 +629,7 @@ const PerpsOrderView: React.FC = () => {
   ]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { marginTop: top }]}>
       {/* Header */}
       <PerpsOrderHeader
         asset={orderForm.asset}

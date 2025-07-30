@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
-index 84e7c48..b43fd13 100644
+index 1e16c96..e015c2b 100644
 --- a/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
 +++ b/node_modules/@metamask/bridge-status-controller/dist/bridge-status-controller.cjs
-@@ -317,7 +317,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -408,7 +408,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
              }
              return finalTransactionMeta;
          });
@@ -11,7 +11,7 @@ index 84e7c48..b43fd13 100644
              const { approval } = quoteResponse;
              if (approval) {
                  const approveTx = async () => {
-@@ -327,6 +327,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -418,6 +418,7 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
                              ? transaction_controller_1.TransactionType.bridgeApproval
                              : transaction_controller_1.TransactionType.swapApproval,
                          trade: approval,
@@ -19,7 +19,7 @@ index 84e7c48..b43fd13 100644
                      });
                      await (0, transaction_1.handleLineaDelay)(quoteResponse);
                      return approvalTxMeta;
-@@ -521,8 +522,12 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -612,8 +613,12 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
                          return tradeMeta;
                      }
                      // Set approval time and id if an approval tx is needed
