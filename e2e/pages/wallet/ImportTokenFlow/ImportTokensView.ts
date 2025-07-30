@@ -4,6 +4,7 @@ import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
 } from '../../../selectors/wallet/ImportTokenView.selectors';
+import { CellComponentSelectorsIDs } from '../../../selectors/wallet/CellComponent.selectors';
 
 class ImportTokensView {
   get searchTokenResult(): DetoxElement {
@@ -42,6 +43,10 @@ class ImportTokensView {
 
   get searchTokenBar(): DetoxElement {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+  }
+
+  get networkList(): DetoxElement {
+    return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, 0);
   }
 
   async tapSymbolInput(): Promise<void> {
@@ -99,6 +104,31 @@ class ImportTokensView {
   async tapOnNetworkInput(): Promise<void> {
     await Gestures.waitAndTap(this.networkInput, {
       elemDescription: 'Network input field',
+    });
+  }
+
+  async tapOnNextButtonWithFallback() {
+    try {
+      await Gestures.tapAtIndex(this.nextButton, 0, {
+        elemDescription: 'Next Button by Text',
+      });
+    } catch (error) {
+      try {
+        await Gestures.tapAtIndex(this.nextButton, 1, {
+          elemDescription: 'Next Button by Text - Fallback',
+        });
+      } catch (secondError) {
+        await Gestures.waitAndTap(this.nextButton, {
+          elemDescription: 'Next Button by Text - Fallback 2',
+        });
+      }
+    }
+  }
+  async swipeNetworkList(): Promise<void> {
+    await Gestures.swipe(this.networkList, 'up', {
+      elemDescription: 'Scroll network list',
+      speed: 'fast',
+      percentage: 0.7,
     });
   }
 

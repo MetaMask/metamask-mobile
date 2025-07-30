@@ -56,7 +56,7 @@ const PopularNetworksList = {
       chainId: toHex('137'),
       rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
       nickname: 'Polygon Mainnet',
-      ticker: 'MATIC',
+      ticker: 'POL',
     },
   },
   Palm: {
