@@ -1,4 +1,4 @@
-import React, { useCallback, memo } from 'react';
+import React, { useCallback } from 'react';
 import Keypad, {
   type KeypadButtonProps,
   type KeypadContainerProps,
@@ -164,9 +164,6 @@ function KeypadComponent({
   );
 }
 
-const MemoizedKeypadComponent = memo(KeypadComponent);
-MemoizedKeypadComponent.displayName = 'KeypadComponent';
-
 export { Keys };
 export type { KeypadChangeData, KeypadComponentProps };
-export default MemoizedKeypadComponent;
+export default KeypadComponent;
