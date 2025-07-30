@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, DependencyList, useEffect } from 'react';
 
 /**
@@ -49,7 +48,7 @@ export function useAsyncResult<T>(
     return () => {
       cancelled = true;
     };
-  }, dependencies);
+  }, [asyncFn, ...dependencies]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return result;
 }

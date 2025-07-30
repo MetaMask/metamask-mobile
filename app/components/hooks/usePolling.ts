@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 
 interface UsePollingOptions<PollingInput> {
   startPolling: (input: PollingInput) => string;
@@ -14,33 +14,34 @@ const usePolling = <PollingInput>(
 ) => {
   const pollingTokens = useRef<Map<string, string>>(new Map());
 
-  useEffect(
-    () => {
-      // start new polls
-      for (const input of usePollingOptions.input) {
-        const key = JSON.stringify(input);
-        if (!pollingTokens.current.has(key)) {
-          const token = usePollingOptions.startPolling(input);
-          pollingTokens.current.set(key, token);
-        }
-      }
-
-      // stop existing polls
-      for (const [inputKey, token] of pollingTokens.current.entries()) {
-        const exists = usePollingOptions.input.some(
-          (i) => inputKey === JSON.stringify(i),
-        );
-
-        if (!exists) {
-          usePollingOptions.stopPollingByPollingToken(token);
-          pollingTokens.current.delete(inputKey);
-        }
-      }
-    },
-    // stringified for deep equality
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [usePollingOptions.input && JSON.stringify(usePollingOptions.input)],
+  // Memoize the stringified input for deep equality checking
+  const stringifiedInput = useMemo(
+    () => JSON.stringify(usePollingOptions.input),
+    [usePollingOptions.input],
   );
+
+  useEffect(() => {
+    // start new polls
+    for (const input of usePollingOptions.input) {
+      const key = JSON.stringify(input);
+      if (!pollingTokens.current.has(key)) {
+        const token = usePollingOptions.startPolling(input);
+        pollingTokens.current.set(key, token);
+      }
+    }
+
+    // stop existing polls
+    for (const [inputKey, token] of pollingTokens.current.entries()) {
+      const exists = usePollingOptions.input.some(
+        (i) => inputKey === JSON.stringify(i),
+      );
+
+      if (!exists) {
+        usePollingOptions.stopPollingByPollingToken(token);
+        pollingTokens.current.delete(inputKey);
+      }
+    }
+  }, [usePollingOptions, stringifiedInput]);
 
   // stop all polling on dismount
   useEffect(
@@ -49,9 +50,7 @@ const usePolling = <PollingInput>(
         usePollingOptions.stopPollingByPollingToken(token);
       }
     },
-    // Intentionally empty to trigger on dismount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [usePollingOptions],
   );
 };
 

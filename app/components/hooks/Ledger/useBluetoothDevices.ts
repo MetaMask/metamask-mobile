@@ -53,7 +53,6 @@ const useBluetoothDevices = (
     return () => {
       subscription?.unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasBluetoothPermissions, bluetoothOn]);
 
   useEffect(() => {

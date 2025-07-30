@@ -49,11 +49,14 @@ export const useGetTokenStandardAndDetails = (
 
   const { decimals, standard } = details || {};
 
-  if (standard === TokenStandard.ERC20) {
-    const parsedDecimals =
-      parseTokenDetailDecimals(decimals) ?? ERC20_DEFAULT_DECIMALS;
-    details.decimalsNumber = parsedDecimals;
-  }
+  const finalDetails =
+    standard === TokenStandard.ERC20
+      ? {
+          ...details,
+          decimalsNumber:
+            parseTokenDetailDecimals(decimals) ?? ERC20_DEFAULT_DECIMALS,
+        }
+      : details;
 
-  return { details, isPending: isPendingRef.current };
+  return { details: finalDetails, isPending: isPendingRef.current };
 };

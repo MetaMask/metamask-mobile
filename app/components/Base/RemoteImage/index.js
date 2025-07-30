@@ -82,7 +82,6 @@ const RemoteImage = (props) => {
   const [dimensions, setDimensions] = useState(null);
 
   useEffect(() => {
-    resolveIpfsUrl();
     async function resolveIpfsUrl() {
       try {
         const url = new URL(props.source.uri);
@@ -97,6 +96,8 @@ const RemoteImage = (props) => {
         setResolvedIpfsUrl(false);
       }
     }
+
+    resolveIpfsUrl();
   }, [props.source.uri, ipfsGateway]);
 
   useEffect(() => {
@@ -173,7 +174,7 @@ const RemoteImage = (props) => {
   }
 
   if (isSVG) {
-    const style = props.style || {};
+    const style = { ...(props.style || {}) };
     if (source.__packager_asset && typeof style !== 'number') {
       if (!style.width) {
         style.width = source.width;

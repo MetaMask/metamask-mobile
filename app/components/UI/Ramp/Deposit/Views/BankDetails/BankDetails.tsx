@@ -112,9 +112,7 @@ const BankDetails = () => {
     if (order?.state === FIAT_ORDER_STATES.CREATED && shouldUpdate) {
       handleOnRefresh();
     }
-    // only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [order?.state, shouldUpdate, handleOnRefresh]);
 
   useEffect(() => {
     if (order?.state === FIAT_ORDER_STATES.CANCELLED) {

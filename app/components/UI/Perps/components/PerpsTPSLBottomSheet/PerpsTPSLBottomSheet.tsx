@@ -148,8 +148,16 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         setStopLossPercentage(percentage.toFixed(2));
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isVisible]); // Only run when visibility changes, not on price updates
+  }, [
+    isVisible,
+    currentPrice,
+    initialTakeProfitPrice,
+    takeProfitPercentage,
+    initialStopLossPrice,
+    stopLossPercentage,
+    setTakeProfitPercentage,
+    setStopLossPercentage,
+  ]);
 
   // Recalculate prices when current price changes but only if using percentage mode
   useEffect(() => {
@@ -182,8 +190,17 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         setStopLossPrice(formatPrice(price));
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPrice, actualDirection]); // Update prices when current price changes
+  }, [
+    currentPrice,
+    actualDirection,
+    isVisible,
+    tpUsingPercentage,
+    takeProfitPercentage,
+    slUsingPercentage,
+    stopLossPercentage,
+    setTakeProfitPrice,
+    setStopLossPrice,
+  ]);
 
   const handleConfirm = () => {
     // Parse the formatted prices back to plain numbers for storage

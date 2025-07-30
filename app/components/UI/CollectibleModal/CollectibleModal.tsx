@@ -40,6 +40,7 @@ const CollectibleModal = () => {
   const { contractName, collectible } = useParams<CollectibleModalParams>();
 
   const modalRef = useRef<ReusableModalRef>(null);
+  const hasTrackedOpenEvent = useRef(false);
 
   const [mediaZIndex, setMediaZIndex] = useState(20);
   const [overviewZIndex, setOverviewZIndex] = useState(10);
@@ -69,15 +70,15 @@ const CollectibleModal = () => {
   }, [handleUpdateCollectible]);
 
   useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED)
-        .addProperties({ chain_id: getDecimalChainId(chainId) })
-        .build(),
-    );
-    // The linter wants `trackEvent` to be added as a dependency,
-    // But the event fires twice if I do that.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId]);
+    if (!hasTrackedOpenEvent.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED)
+          .addProperties({ chain_id: getDecimalChainId(chainId) })
+          .build(),
+      );
+      hasTrackedOpenEvent.current = true;
+    }
+  }, [chainId, trackEvent, createEventBuilder]);
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));

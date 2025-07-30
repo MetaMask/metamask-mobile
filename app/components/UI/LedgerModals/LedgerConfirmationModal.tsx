@@ -70,7 +70,7 @@ const LedgerConfirmationModal = ({
     hasBluetoothPermissions,
   );
 
-  const connectLedger = () => {
+  const connectLedger = useCallback(() => {
     try {
       ledgerLogicToRun(async () => {
         await onConfirmation();
@@ -87,7 +87,7 @@ const LedgerConfirmationModal = ({
           .build(),
       );
     }
-  };
+  }, [ledgerLogicToRun, onConfirmation, trackEvent, createEventBuilder]);
 
   // In case of manual rejection
   const onReject = () => {
@@ -123,8 +123,12 @@ const LedgerConfirmationModal = ({
       bluetoothOn &&
       !permissionErrorShown &&
       connectLedger();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasBluetoothPermissions, bluetoothOn]);
+  }, [
+    hasBluetoothPermissions,
+    bluetoothOn,
+    permissionErrorShown,
+    connectLedger,
+  ]);
 
   useEffect(() => {
     if (isSendingLedgerCommands && !delayClose && !completeClose) {
@@ -275,13 +279,13 @@ const LedgerConfirmationModal = ({
     ) {
       setErrorDetails(undefined);
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     ledgerError,
     bluetoothConnectionError,
     bluetoothPermissionError,
     permissionErrorShown,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   if (errorDetails) {

@@ -1214,9 +1214,7 @@ const App: React.FC = () => {
     startApp().catch((error) => {
       Logger.error(error, 'Error starting app');
     });
-    // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [existingUser]);
 
   return (
     <>

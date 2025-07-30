@@ -72,6 +72,7 @@ const SwitchAccountTypeModal = () => {
             <View>
               {network7702List?.map((networkConfiguration) => (
                 <AccountNetworkRow
+                  key={networkConfiguration.chainId}
                   network={networkConfiguration}
                   address={address}
                 />

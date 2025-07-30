@@ -81,6 +81,7 @@ module.exports = {
       files: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'off',
+        'react-compiler/react-compiler': 'warn', // Less strict for test files
       },
     },
     {
@@ -170,7 +171,7 @@ module.exports = {
 
   rules: {
     // Set to error once all warnings reported by React Compiler are resolved
-    'react-compiler/react-compiler': 'warn',
+    'react-compiler/react-compiler': 'error',
     'no-catch-shadow': 0,
     'no-console': ['error', { allow: ['warn', 'error'] }],
     quotes: [

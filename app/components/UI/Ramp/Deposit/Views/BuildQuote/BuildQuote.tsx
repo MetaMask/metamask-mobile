@@ -203,8 +203,7 @@ const BuildQuote = () => {
         setCryptoCurrency(supportedTokens[0]);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId, supportedTokens]);
+  }, [chainId, supportedTokens, cryptoCurrency, setCryptoCurrency]);
 
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());

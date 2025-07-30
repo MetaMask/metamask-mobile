@@ -112,8 +112,7 @@ const DepositOrderDetails = () => {
     if (order?.state === FIAT_ORDER_STATES.CREATED) {
       handleOnRefresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [order?.state, handleOnRefresh]);
 
   useInterval(() => handleOnRefresh({ fromInterval: true }), {
     delay:

@@ -140,9 +140,9 @@ const RootRPCMethodsUI = (props) => {
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
 
-  const initializeWalletConnect = () => {
+  const initializeWalletConnect = useCallback(() => {
     WalletConnect.init();
-  };
+  }, []);
 
   const trackSwaps = useCallback(
     async (event, transactionMeta, swapsTransactions) => {
@@ -515,8 +515,7 @@ const RootRPCMethodsUI = (props) => {
       Engine.context.TokensController?.hub?.removeAllListeners();
       WalletConnect?.hub?.removeAllListeners();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initializeWalletConnect]);
 
   return (
     <React.Fragment>

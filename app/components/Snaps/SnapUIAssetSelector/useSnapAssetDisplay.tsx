@@ -91,11 +91,14 @@ export const useSnapAssetSelectorData = ({
    * @param balance - The balance to format.
    * @returns The formatted balance.
    */
-  const formatFiatBalance = (balance: number | null = 0) =>
-    formatWithThreshold(balance, 0.01, locale, {
-      style: 'currency',
-      currency: currentCurrency.toUpperCase(),
-    });
+  const formatFiatBalance = useCallback(
+    (balance: number | null = 0) =>
+      formatWithThreshold(balance, 0.01, locale, {
+        style: 'currency',
+        currency: currentCurrency.toUpperCase(),
+      }),
+    [locale, currentCurrency],
+  );
 
   /**
    * Formats an asset balance.
@@ -103,13 +106,16 @@ export const useSnapAssetSelectorData = ({
    * @param balance - The balance to format.
    * @returns The formatted balance.
    */
-  const formatAssetBalance = (balance: string) => {
-    const parsedBalance = parseFloat(balance);
-    return formatWithThreshold(parsedBalance, 0.00001, locale, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 5,
-    });
-  };
+  const formatAssetBalance = useCallback(
+    (balance: string) => {
+      const parsedBalance = parseFloat(balance);
+      return formatWithThreshold(parsedBalance, 0.00001, locale, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 5,
+      });
+    },
+    [locale],
+  );
 
   /**
    * Formats a non-EVM asset for the SnapUIAssetSelector.
@@ -117,26 +123,29 @@ export const useSnapAssetSelectorData = ({
    * @param asset - The asset to format.
    * @returns The formatted asset.
    */
-  const formatAsset = (asset: TokenWithFiatAmount) => {
-    const networkName =
-      NETWORK_TO_SHORT_NETWORK_NAME_MAP[
-        asset.chainId as AllowedBridgeChainIds
-      ] ?? networks[asset.chainId]?.name;
+  const formatAsset = useCallback(
+    (asset: TokenWithFiatAmount) => {
+      const networkName =
+        NETWORK_TO_SHORT_NETWORK_NAME_MAP[
+          asset.chainId as AllowedBridgeChainIds
+        ] ?? networks[asset.chainId]?.name;
 
-    return {
-      icon: asset.image,
-      symbol: asset.symbol,
-      name: asset.name,
-      balance: formatAssetBalance(asset.balance),
-      networkName,
-      networkIcon: getNonEvmNetworkImageSourceByChainId(
-        asset.chainId as CaipChainId,
-      ),
-      fiat: formatFiatBalance(Number(asset.secondary)),
-      chainId: asset.chainId as CaipChainId,
-      address: asset.address as CaipAssetType,
-    };
-  };
+      return {
+        icon: asset.image,
+        symbol: asset.symbol,
+        name: asset.name,
+        balance: formatAssetBalance(asset.balance),
+        networkName,
+        networkIcon: getNonEvmNetworkImageSourceByChainId(
+          asset.chainId as CaipChainId,
+        ),
+        fiat: formatFiatBalance(Number(asset.secondary)),
+        chainId: asset.chainId as CaipChainId,
+        address: asset.address as CaipAssetType,
+      };
+    },
+    [networks, formatAssetBalance, formatFiatBalance],
+  );
 
   // Filter the chain IDs to only include the requested ones.
   const requestedChainIds = parsedAccounts
@@ -161,8 +170,7 @@ export const useSnapAssetSelectorData = ({
     const formatted: SnapUIAsset[] = filteredAssets.map(formatAsset);
 
     return formatted;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assets]);
+  }, [assets, requestedChainIds, formatAsset]);
 
   return formattedAssets;
 };

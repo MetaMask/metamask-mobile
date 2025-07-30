@@ -77,12 +77,13 @@ const Scan = ({
     ) {
       onScanningErrorStateChanged(undefined);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     bluetoothPermissionError,
     bluetoothConnectionError,
     deviceScanError,
     ledgerError,
+    permissionErrorShown,
+    onScanningErrorStateChanged,
   ]);
 
   useEffect(() => {
@@ -166,12 +167,13 @@ const Scan = ({
         },
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     deviceScanError,
     bluetoothPermissionError,
     bluetoothConnectionError,
     permissionErrorShown,
+    checkPermissions,
+    onScanningErrorStateChanged,
   ]);
 
   useEffect(() => {

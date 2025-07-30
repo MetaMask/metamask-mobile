@@ -795,13 +795,15 @@ const Wallet = ({
       }
     };
     importAllDetectedTokens();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isTokenDetectionEnabled,
     evmNetworkConfigurations,
     chainId,
     currentDetectedTokens,
     selectedNetworkClientId,
+    trackEvent,
+    createEventBuilder,
+    getTokenAddedAnalyticsParams,
   ]);
 
   const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {

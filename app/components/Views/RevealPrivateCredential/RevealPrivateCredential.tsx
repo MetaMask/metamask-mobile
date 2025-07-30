@@ -147,7 +147,7 @@ const RevealPrivateCredential = ({
 
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
-  const updateNavBar = () => {
+  const updateNavBar = useCallback(() => {
     if (!hasNavigation || !shouldUpdateNav) {
       return;
     }
@@ -160,7 +160,7 @@ const RevealPrivateCredential = ({
         MetaMetricsEvents.GO_BACK_SRP_SCREEN,
       ),
     );
-  };
+  }, [hasNavigation, shouldUpdateNav, navigation, colors, credentialSlug]);
 
   const tryUnlockWithPassword = useCallback(
     async (pswd: string, privCredentialName?: string) => {
@@ -250,8 +250,14 @@ const RevealPrivateCredential = ({
     };
 
     unlockWithBiometrics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    createEventBuilder,
+    isPrivateKey,
+    passwordSet,
+    trackEvent,
+    tryUnlockWithPassword,
+    updateNavBar,
+  ]);
 
   const navigateBack = () => {
     if (hasNavigation && shouldUpdateNav) {

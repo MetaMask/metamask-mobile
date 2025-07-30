@@ -111,6 +111,17 @@ const createStyles = (colors) =>
   });
 
 const Main = (props) => {
+  const {
+    navigation,
+    providerType,
+    setInfuraAvailabilityBlocked,
+    setInfuraAvailabilityNotBlocked,
+    networkConfigurations,
+    showTransactionNotification,
+    hideCurrentNotification,
+    showSimpleNotification,
+    removeNotificationById,
+  } = props;
   const [forceReload, setForceReload] = useState(false);
   const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
@@ -181,29 +192,28 @@ const Main = (props) => {
   useEffect(() => {
     stopIncomingTransactionPolling();
     startIncomingTransactionPolling();
-  }, [chainId, networkClientId, props.networkConfigurations]);
+  }, [chainId, networkClientId, networkConfigurations]);
 
   const checkInfuraAvailability = useCallback(async () => {
-    if (props.providerType !== 'rpc') {
+    if (providerType !== 'rpc') {
       try {
         const ethQuery = getGlobalEthQuery();
         await query(ethQuery, 'blockNumber', []);
-        props.setInfuraAvailabilityNotBlocked();
+        setInfuraAvailabilityNotBlocked();
       } catch (e) {
         if (e.message === AppConstants.ERRORS.INFURA_BLOCKED_MESSAGE) {
-          props.navigation.navigate('OfflineModeView');
-          props.setInfuraAvailabilityBlocked();
+          navigation.navigate('OfflineModeView');
+          setInfuraAvailabilityBlocked();
         }
       }
     } else {
-      props.setInfuraAvailabilityNotBlocked();
+      setInfuraAvailabilityNotBlocked();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    props.navigation,
-    props.providerType,
-    props.setInfuraAvailabilityBlocked,
-    props.setInfuraAvailabilityNotBlocked,
+    navigation,
+    providerType,
+    setInfuraAvailabilityBlocked,
+    setInfuraAvailabilityNotBlocked,
   ]);
 
   const handleAppStateChange = useCallback(
@@ -251,13 +261,11 @@ const Main = (props) => {
     });
   };
 
-  const navigation = useNavigation();
-
   const toggleRemindLater = () => {
     props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
       params: {
-        onConfirm: () => navigation.goBack(),
+        onConfirm: () => props.navigation.goBack(),
         onCancel: skipAccountModalSecureNow,
       },
     });
@@ -267,7 +275,6 @@ const Main = (props) => {
    * Current network
    */
   const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkName = useSelector(selectNetworkName);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const previousProviderConfig = useRef(undefined);
@@ -401,11 +408,11 @@ const Main = (props) => {
 
     setTimeout(() => {
       NotificationManager.init({
-        navigation: props.navigation,
-        showTransactionNotification: props.showTransactionNotification,
-        hideCurrentNotification: props.hideCurrentNotification,
-        showSimpleNotification: props.showSimpleNotification,
-        removeNotificationById: props.removeNotificationById,
+        navigation,
+        showTransactionNotification,
+        hideCurrentNotification,
+        showSimpleNotification,
+        removeNotificationById,
       });
       checkInfuraAvailability();
       removeConnectionStatusListener.current = NetInfo.addEventListener(
@@ -418,14 +425,22 @@ const Main = (props) => {
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectionChangeHandler]);
+  }, [
+    connectionChangeHandler,
+    handleAppStateChange,
+    navigation,
+    showTransactionNotification,
+    hideCurrentNotification,
+    showSimpleNotification,
+    removeNotificationById,
+    checkInfuraAvailability,
+  ]);
 
   const termsOfUse = useCallback(async () => {
-    if (props.navigation) {
-      await navigateTermsOfUse(props.navigation.navigate);
+    if (navigation) {
+      await navigateTermsOfUse(navigation.navigate);
     }
-  }, [props.navigation]);
+  }, [navigation]);
 
   useEffect(() => {
     termsOfUse();

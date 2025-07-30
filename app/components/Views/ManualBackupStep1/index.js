@@ -156,8 +156,7 @@ const ManualBackupStep1 = ({
     }
 
     setReady(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [seedPhrase, route.params?.words, words.length]);
 
   useEffect(() => {
     updateNavBar();

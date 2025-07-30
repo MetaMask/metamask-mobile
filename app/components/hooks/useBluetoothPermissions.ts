@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from 'react';
+import { useState, useRef, useLayoutEffect, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { getSystemVersion } from 'react-native-device-info';
 import {
@@ -18,7 +18,7 @@ const useBluetoothPermissions = () => {
     useState<BluetoothPermissionErrors>();
   const deviceOSVersion = Number(getSystemVersion()) || 0;
 
-  const checkIosPermission = async () => {
+  const checkIosPermission = useCallback(async () => {
     const bluetoothPermissionStatus = await request(
       PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL,
     );
@@ -32,9 +32,9 @@ const useBluetoothPermissions = () => {
         BluetoothPermissionErrors.BluetoothAccessBlocked,
       );
     }
-  };
+  }, []);
 
-  const checkAndroidPermission = async () => {
+  const checkAndroidPermission = useCallback(async () => {
     let hasError = false;
 
     if (deviceOSVersion >= 12) {
@@ -69,10 +69,10 @@ const useBluetoothPermissions = () => {
       setHasBluetoothPermissions(true);
       setBluetoothPermissionError(undefined);
     }
-  };
+  }, [deviceOSVersion]);
 
   // Checking if app has required permissions every time the app becomes active
-  const checkPermissions = async () => {
+  const checkPermissions = useCallback(async () => {
     if (Device.isIos()) {
       await checkIosPermission();
     }
@@ -80,7 +80,7 @@ const useBluetoothPermissions = () => {
     if (Device.isAndroid()) {
       await checkAndroidPermission();
     }
-  };
+  }, [checkIosPermission, checkAndroidPermission]);
 
   // External permission changes must be picked up by the app by tracking the app state
   useLayoutEffect(() => {
@@ -104,8 +104,7 @@ const useBluetoothPermissions = () => {
     return () => {
       subscription.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [checkPermissions]);
 
   return {
     hasBluetoothPermissions,

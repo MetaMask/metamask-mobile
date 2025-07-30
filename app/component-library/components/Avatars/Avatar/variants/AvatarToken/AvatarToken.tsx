@@ -38,12 +38,12 @@ const AvatarToken = ({
     isHaloEnabled,
     showFallback,
   });
-  let isIpfsGatewayEnabled = false;
 
-  if (!isIpfsGatewayCheckBypassed) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
-  }
+  // Always call useSelector, but conditionally use its result
+  const ipfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const isIpfsGatewayEnabled = isIpfsGatewayCheckBypassed
+    ? false
+    : ipfsGatewayEnabled;
 
   const tokenNameFirstLetter = name?.[0] ?? DEFAULT_AVATARTOKEN_ERROR_TEXT;
 

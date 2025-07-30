@@ -229,14 +229,18 @@ const EarnLendingWithdrawalConfirmationView = () => {
     ],
   );
 
+  const hasTrackedConfirmationView = useRef(false);
+
   useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_CONFIRMATION_PAGE_VIEWED)
-        .addProperties(getTrackEventProperties('withdrawal'))
-        .build(),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!hasTrackedConfirmationView.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_CONFIRMATION_PAGE_VIEWED)
+          .addProperties(getTrackEventProperties('withdrawal'))
+          .build(),
+      );
+      hasTrackedConfirmationView.current = true;
+    }
+  }, [trackEvent, createEventBuilder, getTrackEventProperties]);
 
   const emitTxMetaMetric = useCallback(
     (txType: TransactionType) =>

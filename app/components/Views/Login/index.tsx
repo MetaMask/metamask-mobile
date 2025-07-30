@@ -166,26 +166,29 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
-  const track = (
-    event: IMetaMetricsEvent,
-    properties: Record<string, string | boolean | number>,
-  ) => {
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-      saveOnboardingEvent,
-    );
-  };
+  const track = useCallback(
+    (
+      event: IMetaMetricsEvent,
+      properties: Record<string, string | boolean | number>,
+    ) => {
+      trackOnboarding(
+        MetricsEventBuilder.createEventBuilder(event)
+          .addProperties(properties)
+          .build(),
+        saveOnboardingEvent,
+      );
+    },
+    [saveOnboardingEvent],
+  );
 
-  const handleBackPress = () => {
+  const handleBackPress = useCallback(() => {
     if (!oauthLoginSuccess) {
       Authentication.lockApp();
     } else {
       navigation.goBack();
     }
     return false;
-  };
+  }, [oauthLoginSuccess, navigation]);
 
   useEffect(() => {
     trace({
@@ -244,8 +247,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    handleBackPress,
+    route?.params?.locked,
+    route?.params?.onboardingTraceCtx,
+    track,
+  ]);
 
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';

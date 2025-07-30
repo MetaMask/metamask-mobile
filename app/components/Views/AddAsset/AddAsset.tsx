@@ -147,14 +147,17 @@ const AddAsset = () => {
     });
   };
 
-  const onFilterControlsBottomSheetPress = (option: FilterOption) => {
-    handleFilterControlsPress({
-      option,
-      allNetworksEnabled,
-      chainId,
-    });
-    setOpenNetworkFilter(false);
-  };
+  const onFilterControlsBottomSheetPress = useCallback(
+    (option: FilterOption) => {
+      handleFilterControlsPress({
+        option,
+        allNetworksEnabled,
+        chainId,
+      });
+      setOpenNetworkFilter(false);
+    },
+    [allNetworksEnabled, chainId, setOpenNetworkFilter],
+  );
 
   const renderTabBar = (props: TabBarProps) => <TabBar {...props} />;
 
@@ -167,8 +170,7 @@ const AddAsset = () => {
         sheetRef={sheetRef}
       />
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [openNetworkSelector, networkConfigurations, selectedNetwork],
+    [selectedNetwork, setSelectedNetwork, setOpenNetworkSelector, sheetRef],
   );
 
   const renderNetworkFilterSelector = useCallback(
@@ -179,8 +181,7 @@ const AddAsset = () => {
         sheetRef={sheetRef}
       />
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [allNetworksEnabled, onFilterControlsBottomSheetPress],
+    [onFilterControlsBottomSheetPress, setOpenNetworkFilter, sheetRef],
   );
 
   return (

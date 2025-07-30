@@ -64,15 +64,7 @@ export const usePerpsLiquidationPrice = (params: LiquidationPriceParams) => {
     };
 
     calculatePrice();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    // Destructure params to avoid re-renders when object reference changes
-    params.entryPrice,
-    params.leverage,
-    params.direction,
-    params.asset,
-    calculateLiquidationPrice,
-  ]);
+  }, [params, calculateLiquidationPrice]);
 
   return {
     liquidationPrice,

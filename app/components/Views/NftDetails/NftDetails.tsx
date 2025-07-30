@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   NativeSyntheticEvent,
   SafeAreaView,
@@ -98,18 +98,20 @@ const NftDetails = () => {
     updateNavBar();
   }, [updateNavBar]);
 
+  const hasTrackedNftDetailsOpen = useRef(false);
+
   useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-    // The linter wants `trackEvent` to be added as a dependency,
-    // But the event fires twice if I do that.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId]);
+    if (!hasTrackedNftDetailsOpen.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED)
+          .addProperties({
+            chain_id: getDecimalChainId(chainId),
+          })
+          .build(),
+      );
+      hasTrackedNftDetailsOpen.current = true;
+    }
+  }, [chainId, trackEvent, createEventBuilder]);
 
   const viewHighestFloorPriceSource = () => {
     const url =
