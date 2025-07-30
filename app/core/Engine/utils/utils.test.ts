@@ -58,6 +58,7 @@ import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
 import { perpsControllerInit } from '../controllers/perps-controller';
+import { multichainAccountServiceInit } from '../controllers/multichain-account-service/multichain-account-service-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -140,6 +141,9 @@ describe('initModularizedControllers', () => {
   );
   const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
   const mockPerpsControllerInit = jest.mocked(perpsControllerInit);
+  const mockMultichainAccountServiceInit = jest.mocked(
+    multichainAccountServiceInit,
+  );
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -163,6 +167,7 @@ describe('initModularizedControllers', () => {
           MultichainAssetsRatesController:
             mockMultichainAssetsRatesControllerInit,
           MultichainBalancesController: mockMultichainBalancesControllerInit,
+          MultichainAccountService: mockMultichainAccountServiceInit,
           NotificationServicesController:
             mockNotificationServicesControllerInit,
           NotificationServicesPushController:
