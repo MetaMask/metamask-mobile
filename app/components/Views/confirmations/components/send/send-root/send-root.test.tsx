@@ -3,13 +3,13 @@ import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { act, fireEvent } from '@testing-library/react-native';
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 // eslint-disable-next-line import/no-namespace
-import * as TransactionUtils from '../../../../../util/transaction-controller';
-import { SendContextProvider } from '../../context/send-context';
-import { Send } from './send';
-import Engine from '../../../../../core/Engine';
+import * as TransactionUtils from '../../../../../../util/transaction-controller';
+import { SendContextProvider } from '../../../context/send-context';
+import { SendRoot } from './send-root';
+import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -51,7 +51,7 @@ jest.mock('@react-navigation/native', () => ({
 const renderComponent = () =>
   renderWithProvider(
     <SendContextProvider>
-      <Send />
+      <SendRoot />
     </SendContextProvider>,
     {
       state: {
@@ -112,7 +112,7 @@ const renderComponent = () =>
     },
   );
 
-describe('Send', () => {
+describe('SendRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
