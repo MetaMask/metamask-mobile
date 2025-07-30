@@ -110,6 +110,10 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
+jest.mock('../../../multichain-accounts/AccountTreeInitService', () => ({
+  initializeAccountTree: jest.fn().mockResolvedValue(undefined),
+}));
+
 describe('Login test suite 2', () => {
   describe('handleVaultCorruption', () => {
     beforeEach(() => {
