@@ -1,19 +1,15 @@
-'use strict';
 import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../../fixtures/fixture-helper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { SmokeConfirmations } from '../../../tags';
-import TestHelpers from '../../../helpers';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../../fixtures/utils';
+import { DappVariants } from '../../../framework/Constants';
 
 describe(SmokeConfirmations('Typed Sign'), () => {
   const testSpecificMock = {
@@ -22,13 +18,16 @@ describe(SmokeConfirmations('Typed Sign'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await TestHelpers.reverseServerPort();
   });
 
   it('should sign typed message', async () => {
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
@@ -36,7 +35,6 @@ describe(SmokeConfirmations('Typed Sign'), () => {
           )
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
         testSpecificMock,
       },
       async () => {
@@ -46,16 +44,28 @@ describe(SmokeConfirmations('Typed Sign'), () => {
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapTypedSignButton();
-        await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
+        await Assertions.expectElementToBeVisible(
+          SigningBottomSheet.typedRequest,
+        );
         await SigningBottomSheet.tapCancelButton();
-        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
-        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
+        await Assertions.expectElementToNotBeVisible(
+          SigningBottomSheet.typedRequest,
+        );
+        await Assertions.expectElementToNotBeVisible(
+          SigningBottomSheet.personalRequest,
+        );
 
         await TestDApp.tapTypedSignButton();
-        await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
+        await Assertions.expectElementToBeVisible(
+          SigningBottomSheet.typedRequest,
+        );
         await SigningBottomSheet.tapSignButton();
-        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
-        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
+        await Assertions.expectElementToNotBeVisible(
+          SigningBottomSheet.typedRequest,
+        );
+        await Assertions.expectElementToNotBeVisible(
+          SigningBottomSheet.personalRequest,
+        );
       },
     );
   });
