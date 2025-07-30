@@ -6,13 +6,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  StatusBar,
-} from 'react-native';
+  type EdgeInsets,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
@@ -44,7 +42,7 @@ interface IConnectQRHardwareProps {
   navigation: any;
 }
 
-const createStyles = (colors: ThemeColors) =>
+const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -52,7 +50,7 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'center',
     },
     header: {
-      marginTop: StatusBar.currentHeight ?? 50,
+      marginTop: insets.top,
       flexDirection: 'row',
       width: '100%',
       paddingHorizontal: 32,
@@ -139,7 +137,8 @@ async function initiateQRHardwareConnection(
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(colors, insets);
 
   const KeyringController = useMemo(() => {
     // TODO: Replace "any" with type
