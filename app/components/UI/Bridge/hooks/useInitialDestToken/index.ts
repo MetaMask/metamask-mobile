@@ -11,7 +11,10 @@ import { getNativeSourceToken } from '../useInitialSourceToken';
 
 // Need to pass in the initial source token to avoid a race condition with useInitialSourceToken
 // Can't just use selectSourceToken because of race condition
-export const useInitialDestToken = (initialSourceToken?: BridgeToken) => {
+export const useInitialDestToken = (
+  initialSourceToken?: BridgeToken,
+  initialDestToken?: BridgeToken,
+) => {
   const dispatch = useDispatch();
   const chainId = useSelector(selectChainId);
   const destToken = useSelector(selectDestToken);
@@ -22,6 +25,11 @@ export const useInitialDestToken = (initialSourceToken?: BridgeToken) => {
     bridgeViewMode === BridgeViewMode.Unified;
 
   if (destToken) return;
+
+  if (initialDestToken) {
+    dispatch(setDestToken(initialDestToken));
+    return;
+  }
 
   let defaultDestToken = DefaultSwapDestTokens[chainId];
 
