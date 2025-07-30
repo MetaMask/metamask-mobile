@@ -98,10 +98,12 @@ export const recreateVaultWithNewPassword = async (
   if (isSeedlessFlow) {
     try {
       await seedlessChangePassword(newPassword, password);
-    } catch {
+    } catch (error) {
       await KeyringController.changePassword(password);
+      throw error;
+    } finally {
+      await Authentication.syncKeyringEncryptionKey();
     }
-    await Authentication.syncKeyringEncryptionKey();
   }
 
   Engine.setSelectedAddress(selectedAddress);
