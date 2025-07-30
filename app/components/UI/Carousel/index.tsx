@@ -13,19 +13,12 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
+///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
   selectSelectedInternalAccount,
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
   selectLastSelectedSolanaAccount,
-  ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors/accountsController';
-import {
-  isEvmAccountType,
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  SolAccountType,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/keyring-api';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
+import { isEvmAccountType, SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
@@ -59,8 +52,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
   const dismissedBanners = useSelector(selectDismissedBanners);
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
   const lastSelectedSolanaAccount = useSelector(
     selectLastSelectedSolanaAccount,
   );
@@ -120,18 +113,17 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
       ) {
         return false;
       }
-      ///: END:ONLY_INCLUDE_IF
-
-      if (slide.id === 'fund' && isZeroBalance) {
-        return true;
-      }
-
       if (
         slide.id === 'smartAccount' &&
         selectedAccount?.type &&
         !isEvmAccountType(selectedAccount.type)
       ) {
         return false;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      if (slide.id === 'fund' && isZeroBalance) {
+        return true;
       }
 
       return isCurrentlyActive && !dismissedBanners.includes(slide.id);
