@@ -11,6 +11,7 @@ import {
   formatPositionSize,
   formatLeverage,
   parseCurrencyString,
+  parsePercentageString,
 } from './formatUtils';
 
 // Mock the formatWithThreshold utility
@@ -279,6 +280,37 @@ describe('formatUtils', () => {
       expect(parseCurrencyString(null as any)).toBe(0);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(parseCurrencyString(undefined as any)).toBe(0);
+    });
+  });
+
+  describe('parsePercentageString', () => {
+    it('should parse formatted percentage strings', () => {
+      expect(parsePercentageString('+2.50%')).toBe(2.5);
+      expect(parsePercentageString('-10.75%')).toBe(-10.75);
+      expect(parsePercentageString('5%')).toBe(5);
+      expect(parsePercentageString('0%')).toBe(0);
+      expect(parsePercentageString('+0.00%')).toBe(0);
+    });
+
+    it('should handle strings without percentage symbols', () => {
+      expect(parsePercentageString('2.5')).toBe(2.5);
+      expect(parsePercentageString('-10.75')).toBe(-10.75);
+      expect(parsePercentageString('+5')).toBe(5);
+    });
+
+    it('should handle spaces in the string', () => {
+      expect(parsePercentageString('+ 2.50 %')).toBe(2.5);
+      expect(parsePercentageString(' -10.75% ')).toBe(-10.75);
+    });
+
+    it('should handle invalid inputs', () => {
+      expect(parsePercentageString('')).toBe(0);
+      expect(parsePercentageString('abc')).toBe(0);
+      expect(parsePercentageString('%')).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parsePercentageString(undefined as any)).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parsePercentageString(null as any)).toBe(0);
     });
   });
 });
