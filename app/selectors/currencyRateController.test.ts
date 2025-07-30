@@ -4,6 +4,7 @@ import {
   selectCurrencyRates,
   selectConversionRateByChainId,
   selectCurrencyRateForChainId,
+  getUSDConversionRateByChainId,
 } from './currencyRateController';
 import { isTestNet } from '../../app/util/networks';
 import { CurrencyRateState } from '@metamask/assets-controllers';
@@ -19,8 +20,8 @@ jest.mock('../../app/util/networks', () => ({
 describe('CurrencyRateController Selectors', () => {
   const mockCurrencyRateState = {
     currencyRates: {
-      ETH: { conversionRate: 3000 },
-      BTC: { conversionRate: 60000 },
+      ETH: { conversionRate: 3000, usdConversionRate: 3000 },
+      BTC: { conversionRate: 60000, usdConversionRate: 60000 },
     },
     currentCurrency: 'USD',
   };
@@ -221,4 +222,250 @@ describe('CurrencyRateController Selectors', () => {
       expect(mockSelectNetworkConfigurationByChainId).toHaveBeenCalledTimes(0);
     });
   });
+
+  describe('getUSDConversionRateByChainId', () => {
+    const chainId = '0x1';
+    const nativeCurrency = 'ETH';
+    const usdConversionRate = 3000;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    const createMockState = (
+      currencyRates = mockCurrencyRateState.currencyRates,
+    ): RootState =>
+      ({
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currencyRates,
+            },
+          },
+        },
+      } as unknown as RootState);
+
+    it('returns the correct USD conversion rate for a valid chain ID and native currency', () => {
+      jest
+        .spyOn(
+          NetworkControllerSelectors,
+          'selectNetworkConfigurationByChainId',
+        )
+        .mockReturnValue({
+          nativeCurrency,
+        } as MultichainNetworkConfiguration);
+
+      const selector = getUSDConversionRateByChainId(chainId);
+      const result = selector(createMockState());
+      expect(result).toBe(usdConversionRate);
+    });
+
+    it('returns undefined if network configuration is not found', () => {
+      jest
+        .spyOn(
+          NetworkControllerSelectors,
+          'selectNetworkConfigurationByChainId',
+        )
+        .mockReturnValue(
+          undefined as unknown as MultichainNetworkConfiguration,
+        );
+
+      const selector = getUSDConversionRateByChainId(chainId);
+      const result = selector(createMockState());
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined if usdConversionRate is not available', () => {
+      jest
+        .spyOn(
+          NetworkControllerSelectors,
+          'selectNetworkConfigurationByChainId',
+        )
+        .mockReturnValue({
+          nativeCurrency: 'UNKNOWN',
+        } as MultichainNetworkConfiguration);
+
+      const selector = getUSDConversionRateByChainId(chainId);
+      const result = selector(createMockState());
+      expect(result).toBeUndefined();
+    });
+
+    it('handles edge case where native currency is an empty string', () => {
+      const mockNetworkConfig = {
+        nativeCurrency: '',
+      } as MultichainNetworkConfiguration;
+
+      jest
+        .spyOn(
+          NetworkControllerSelectors,
+          'selectNetworkConfigurationByChainId',
+        )
+        .mockReturnValue(mockNetworkConfig);
+
+      const selector = getUSDConversionRateByChainId(chainId);
+      const result = selector(createMockState());
+
+      expect(result).toBeUndefined();
+    });
+  });
+  //   beforeEach(() => {
+  //     jest.clearAllMocks();
+  //   });
+
+  //   const createMockState = (currencyRates = mockCurrencyRateState.currencyRates): RootState => ({
+  //     engine: {
+  //       backgroundState: {
+  //         CurrencyRateController: {
+  //           currencyRates,
+  //         },
+  //       },
+  //     },
+  //   } as unknown as RootState);
+
+  //   it('returns USD conversion rate for a valid chain ID with network configuration', () => {
+  //     const chainId = '0x1';
+  //     const mockState = createMockState();
+
+  //     const mockNetworkConfig = {
+  //       nativeCurrency: 'ETH',
+  //     } as MultichainNetworkConfiguration;
+
+  //     jest
+  //       .spyOn(NetworkControllerSelectors, 'selectNetworkConfigurationByChainId')
+  //       .mockReturnValue(mockNetworkConfig);
+
+  //     const selector = getUSDConversionRateByChainId(chainId);
+  //     const result = selector(mockState);
+
+  //     expect(result).toBe(3000);
+  //   });
+
+  //   it('returns undefined when network configuration is not found', () => {
+  //     const chainId = '0x999';
+  //     const mockState = createMockState();
+
+  //     jest
+  //       .spyOn(NetworkControllerSelectors, 'selectNetworkConfigurationByChainId')
+  //       .mockReturnValue(undefined as unknown as MultichainNetworkConfiguration);
+
+  //     const selector = getUSDConversionRateByChainId(chainId);
+  //     const result = selector(mockState);
+
+  //     expect(result).toBeUndefined();
+  //   });
+
+  //   it('returns undefined when currency rates do not contain the native currency', () => {
+  //     const chainId = '0x89';
+  //     const mockState = createMockState();
+
+  //     const mockNetworkConfig = {
+  //       nativeCurrency: 'UNKNOWN_TOKEN',
+  //     } as MultichainNetworkConfiguration;
+
+  //     jest
+  //       .spyOn(NetworkControllerSelectors, 'selectNetworkConfigurationByChainId')
+  //       .mockReturnValue(mockNetworkConfig);
+
+  //     const selector = getUSDConversionRateByChainId(chainId);
+  //     const result = selector(mockState);
+
+  //     expect(result).toBeUndefined();
+  //   });
+
+  //   it('returns undefined when currency rates is undefined', () => {
+  //     const chainId = '0x1';
+  //     const mockState = {
+  //       engine: {
+  //         backgroundState: {
+  //           CurrencyRateController: {
+  //             currencyRates: undefined,
+  //           },
+  //         },
+  //       },
+  //     } as unknown as RootState;
+
+  //     const mockNetworkConfig = {
+  //       nativeCurrency: 'ETH',
+  //     } as MultichainNetworkConfiguration;
+
+  //     jest
+  //       .spyOn(NetworkControllerSelectors, 'selectNetworkConfigurationByChainId')
+  //       .mockReturnValue(mockNetworkConfig);
+
+  //     const selector = getUSDConversionRateByChainId(chainId);
+  //     const result = selector(mockState);
+
+  //     expect(result).toBeUndefined();
+  //   });
+
+  //   it('handles different chain IDs and their respective native currencies', () => {
+  //     const mockState = createMockState();
+
+  //     // Mock different network configurations for different chains
+  //     jest
+  //       .spyOn(NetworkControllerSelectors, 'selectNetworkConfigurationByChainId')
+  //       .mockImplementation((_state, chainId) => {
+  //         const configs = {
+  //           '0x1': { nativeCurrency: 'ETH' },
+  //           '0x89': { nativeCurrency: 'MATIC' },
+  //         };
+  //         return configs[chainId as keyof typeof configs] as MultichainNetworkConfiguration;
+  //       });
+
+  //     // Test Ethereum mainnet
+  //     const ethSelector = getUSDConversionRateByChainId('0x1');
+  //     const ethResult = ethSelector(mockState);
+  //     expect(ethResult).toBe(3000);
+
+  //     // Test Polygon
+  //     const maticSelector = getUSDConversionRateByChainId('0x89');
+  //     const maticResult = maticSelector(mockState);
+  //     expect(maticResult).toBe(1.5);
+  //   });
+
+  //   it('creates different selectors for different chain IDs', () => {
+  //     const selector1 = getUSDConversionRateByChainId('0x1');
+  //     const selector2 = getUSDConversionRateByChainId('0x89');
+
+  //     // Selectors should be different instances
+  //     expect(selector1).not.toBe(selector2);
+  //   });
+
+  //   it('calls selectNetworkConfigurationByChainId with correct parameters', () => {
+  //     const chainId = '0x1';
+  //     const mockState = createMockState();
+
+  //     const mockSelectNetworkConfigurationByChainId = jest
+  //       .spyOn(NetworkControllerSelectors, 'selectNetworkConfigurationByChainId')
+  //       .mockReturnValue({
+  //         nativeCurrency: 'ETH',
+  //       } as MultichainNetworkConfiguration);
+
+  //     const selector = getUSDConversionRateByChainId(chainId);
+  //     selector(mockState);
+
+  //     expect(mockSelectNetworkConfigurationByChainId).toHaveBeenCalledWith(
+  //       mockState,
+  //       chainId
+  //     );
+  //   });
+
+  //   it('handles edge case where native currency is an empty string', () => {
+  //     const chainId = '0x1';
+  //     const mockState = createMockState();
+
+  //     const mockNetworkConfig = {
+  //       nativeCurrency: '',
+  //     } as MultichainNetworkConfiguration;
+
+  //     jest
+  //       .spyOn(NetworkControllerSelectors, 'selectNetworkConfigurationByChainId')
+  //       .mockReturnValue(mockNetworkConfig);
+
+  //     const selector = getUSDConversionRateByChainId(chainId);
+  //     const result = selector(mockState);
+
+  //     expect(result).toBeUndefined();
+  //   });
+  // });
 });

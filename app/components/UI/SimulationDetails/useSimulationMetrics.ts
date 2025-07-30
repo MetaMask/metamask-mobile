@@ -170,7 +170,7 @@ function getProperties(changes: BalanceChange[], prefix: string) {
 }
 
 function getSensitiveProperties(changes: BalanceChange[], prefix: string) {
-  const fiatAmounts = changes.map((change) => change.fiatAmount);
+  const fiatAmounts = changes.map((change) => change.usdAmount);
   const totalFiat = calculateTotalFiat(fiatAmounts);
   const totalValue = totalFiat ? totalFiat.abs().toNumber() : undefined;
 
