@@ -164,3 +164,21 @@ export const formatLeverage = (leverage: string | number): string => {
 
   return `${num.toFixed(1)}x`;
 };
+
+/**
+ * Parses a formatted currency string to a number
+ * Handles currency symbols and comma separators
+ * @param formattedValue - The formatted currency string (e.g., "$1,234.56")
+ * @returns Parsed numeric value
+ */
+export const parseCurrencyString = (formattedValue: string): number => {
+  if (!formattedValue) return 0;
+
+  // Remove currency symbols and commas
+  const cleanedValue = formattedValue
+    .replace(/[^0-9.-]/g, '') // Keep only numbers, decimal point, and minus sign
+    .trim();
+
+  const parsed = parseFloat(cleanedValue);
+  return isNaN(parsed) ? 0 : parsed;
+};

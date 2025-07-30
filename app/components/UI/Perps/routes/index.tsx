@@ -5,12 +5,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsDepositAmountView from '../Views/PerpsDepositAmountView';
-import PerpsDepositPreviewView from '../Views/PerpsDepositPreviewView';
-import PerpsDepositProcessingView from '../Views/PerpsDepositProcessingView';
-import PerpsDepositSuccessView from '../Views/PerpsDepositSuccessView';
 import PerpsView from '../Views/PerpsView';
 import PerpsPositionDetailsView from '../Views/PerpsPositionDetailsView';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
+import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 
@@ -65,33 +63,15 @@ const PerpsScreenStack = () => (
         }}
       />
 
+      {/* Withdrawal flow screens */}
       <Stack.Screen
-        name={Routes.PERPS.DEPOSIT_PREVIEW}
-        component={PerpsDepositPreviewView}
+        name={Routes.PERPS.WITHDRAW}
+        component={PerpsWithdrawView}
         options={{
-          title: strings('perps.deposit.preview.title'),
+          title: strings('perps.withdrawal.title'),
           headerShown: false,
         }}
       />
-
-      <Stack.Screen
-        name={Routes.PERPS.DEPOSIT_PROCESSING}
-        component={PerpsDepositProcessingView}
-        options={{
-          title: strings('perps.deposit.processing.title'),
-          headerShown: false,
-        }}
-      />
-
-      <Stack.Screen
-        name={Routes.PERPS.DEPOSIT_SUCCESS}
-        component={PerpsDepositSuccessView}
-        options={{
-          title: strings('perps.deposit.success.title'),
-          headerShown: false,
-        }}
-      />
-
       <Stack.Screen
         name={Routes.PERPS.POSITIONS}
         component={PerpsPositionsView}
