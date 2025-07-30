@@ -12,7 +12,7 @@ import {
   selectIsSolanaSwap,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus } from '@metamask/bridge-controller';
-import { useCallback, useMemo, useEffect, useState } from 'react';
+import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
@@ -57,6 +57,8 @@ export const useBridgeQuoteData = ({
   const { validateBridgeTx } = useValidateBridgeTx();
 
   const [blockaidError, setBlockaidError] = useState<string | null>(null);
+  // Ref to track the current validation ID to prevent race conditions
+  const currentValidationIdRef = useRef<number>(0);
 
   const {
     quoteFetchError,
@@ -161,11 +163,21 @@ export const useBridgeQuoteData = ({
   );
 
   const validateQuote = useCallback(async () => {
+    // Increment validation ID for this request
+    const validationId = ++currentValidationIdRef.current;
+
     if (activeQuote && (isSolanaSwap || isSolanaToEvm)) {
       try {
         const validationResult = await validateBridgeTx({
           quoteResponse: activeQuote,
         });
+
+        // Check if this is still the current validation after async operation
+        if (validationId !== currentValidationIdRef.current) {
+          // This validation is outdated, ignore the result
+          return;
+        }
+
         if (validationResult.status === 'ERROR') {
           const isValidationError = !!validationResult.result.validation.reason;
           const { error_details } = validationResult;
@@ -180,6 +192,12 @@ export const useBridgeQuoteData = ({
           setBlockaidError(null);
         }
       } catch (error) {
+        // Check if this is still the current validation after async operation
+        if (validationId !== currentValidationIdRef.current) {
+          // This validation is outdated, ignore the result
+          return;
+        }
+
         console.error('Validation error:', error);
         setBlockaidError(null);
       }
