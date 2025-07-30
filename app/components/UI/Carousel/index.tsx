@@ -120,7 +120,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
       }
 
       if (
-        slide.id === 'fund' &&
+        slide.id === 'smartAccount' &&
         selectedAccount?.type &&
         !isEvmAccountType(selectedAccount.type)
       ) {
