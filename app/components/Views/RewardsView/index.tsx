@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NavigationProp } from '@react-navigation/native';
+import { StyleSheet, ScrollView, ActivityIndicator, View } from 'react-native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import type { Colors } from '../../../util/theme/models';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,14 +20,25 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       backgroundColor: colors.background.default,
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
+    },
   });
 
+interface RootStackParamList {
+  [key: string]: undefined;
+}
+
 const RewardsView: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<any>>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const { isLoggedIn, login, logout } = useRewardsAuth();
+  const { isLoggedIn, isLoading, login, logout, loginError, clearLoginError } =
+    useRewardsAuth();
 
   useEffect(() => {
     navigation.setOptions(
@@ -41,20 +51,31 @@ const RewardsView: React.FC = () => {
     );
   }, [colors, navigation]);
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.wrapper}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary.default} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.wrapper}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{ flexGrow: 1 }}
-      >
+      <ScrollView style={styles.container}>
         {isLoggedIn ? (
           <RewardsDashboard handleSignOut={logout} />
         ) : (
-          <RewardsHero onOptIn={login} />
+          <RewardsHero
+            onOptIn={login}
+            loginError={loginError}
+            onClearError={clearLoginError}
+          />
         )}
       </ScrollView>
     </SafeAreaView>
-  );
+    );
 };
 
 export default RewardsView;
