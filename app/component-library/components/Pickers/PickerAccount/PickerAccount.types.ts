@@ -18,16 +18,6 @@ export interface PickerAccountProps extends Omit<PickerBaseProps, 'children'> {
    * Account type label.
    */
   accountTypeLabel?: string | null;
-
-  /**
-   * Extends the touchable area for accessibility.
-   */
-  hitSlop?: {
-    top?: number;
-    bottom?: number;
-    left?: number;
-    right?: number;
-  };
 }
 
 /**

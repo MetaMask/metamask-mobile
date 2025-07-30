@@ -77,7 +77,7 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
       <ButtonIcon
         iconName={IconName.Copy}
         size={ButtonIconSize.Lg}
-        iconProps={iconColor ? { color: iconColor } : undefined}
+        iconProps={iconColor && { color: iconColor }}
         onPress={copyAccountToClipboard}
         testID={WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON}
         hitSlop={hitSlop}
