@@ -5,7 +5,8 @@ import {
   getLocalTestDappPort,
   getMockServerPort,
   getSecondTestDappPort,
-} from './fixtures/utils';
+  AnvilPort,
+} from './framework/fixtures/FixtureUtils';
 import Utilities from './utils/Utilities';
 import { resolveConfig } from 'detox/internals';
 
