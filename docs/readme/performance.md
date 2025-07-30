@@ -205,7 +205,7 @@ By default, Metro may cache parts of the compiled code especially when using the
 
 ## Worklets (background JS threads)
 
-[Worklets](https://github.com/margelo/react-native-worklets-core) are small JavaScript functions that can be executed on a separate JavaScript Thread so they don't clog the main JS Thread. Perfect for heavy computations and processing. Find below how to use them.
+[Worklets](https://github.com/margelo/react-native-worklets-core) are small JavaScript functions that can be executed on a separate JavaScript Thread so that they don't clog the main JS Thread. Perfect for heavy computations and processing. Find out how to read them below.
 
 ## runAsync
 
