@@ -6,7 +6,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  StatusBar,
+} from 'react-native';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
@@ -19,7 +25,6 @@ import Alert, { AlertType } from '../../Base/Alert';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { fontStyles } from '../../../styles/common';
@@ -43,12 +48,11 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      marginTop: 10,
       flexDirection: 'column',
       alignItems: 'center',
     },
     header: {
-      marginTop: Device.isIphoneX() ? 50 : 20,
+      marginTop: StatusBar.currentHeight ?? 50,
       flexDirection: 'row',
       width: '100%',
       paddingHorizontal: 32,

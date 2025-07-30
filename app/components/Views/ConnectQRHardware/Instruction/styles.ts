@@ -40,9 +40,7 @@ export const createStyles = (theme: Theme) =>
       ...fontStyles.bold,
     },
     bottom: {
-      alignItems: 'center',
-      height: 80,
-      justifyContent: 'space-between',
+      marginBottom: 50,
     },
     button: {
       padding: 5,
