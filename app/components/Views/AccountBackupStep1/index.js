@@ -27,7 +27,8 @@ import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboard
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import SRPDesign from '../../../images/secure_wallet.png';
+import SRPDesignLight from '../../../images/secure_wallet.png';
+import SRPDesignDark from '../../../images/secure_wallet_dark.png';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
@@ -41,6 +42,7 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
+import { AppThemeKey } from '../../../util/theme/models';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -108,7 +110,7 @@ const createStyles = (colors) =>
  */
 const AccountBackupStep1 = (props) => {
   const [hasFunds, setHasFunds] = useState(false);
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
@@ -226,7 +228,14 @@ const AccountBackupStep1 = (props) => {
             >
               {strings('account_backup_step_1.title')}
             </Text>
-            <Image source={SRPDesign} style={styles.srpDesign} />
+            <Image
+              source={
+                themeAppearance === AppThemeKey.dark
+                  ? SRPDesignDark
+                  : SRPDesignLight
+              }
+              style={styles.srpDesign}
+            />
             <View style={styles.text}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('account_backup_step_1.info_text_1_1')}{' '}
