@@ -1,27 +1,25 @@
-'use strict';
-import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
+import { DappVariants } from '../../framework/Constants';
 import { PermissionSummaryBottomSheetSelectorsText } from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
 
 describe(Regression('Permission System - Default Permissions'), () => {
-  beforeAll(async () => {
-    jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
-  });
-
   it('should display default account and chain permissions in permission summary', async () => {
     // Test setup with fixtures
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
           .withChainPermission() // Initialize with Ethereum mainnet only
@@ -40,10 +38,11 @@ describe(Regression('Permission System - Default Permissions'), () => {
 
         // Step 3: Verify account permissions
         const accountLabelElement =
-          await PermissionSummaryBottomSheet.accountPermissionLabelContainer;
+          (await PermissionSummaryBottomSheet.accountPermissionLabelContainer) as IndexableNativeElement;
         const accountLabelAttributes =
           await accountLabelElement.getAttributes();
-        const accountLabel = accountLabelAttributes.label;
+        const accountLabel = (accountLabelAttributes as { label: string })
+          .label;
 
         await Assertions.checkIfTextMatches(
           accountLabel,

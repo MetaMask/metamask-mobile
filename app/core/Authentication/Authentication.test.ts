@@ -142,6 +142,10 @@ jest.mock('../BackupVault/backupVault', () => ({
   clearAllVaultBackups: jest.fn(),
 }));
 
+jest.mock('../../multichain-accounts/AccountTreeInitService', () => ({
+  initializeAccountTree: jest.fn().mockResolvedValue(undefined),
+}));
+
 const mockUint8ArrayToMnemonic = jest
   .fn()
   .mockImplementation((uint8Array: Uint8Array) => uint8Array.toString());
