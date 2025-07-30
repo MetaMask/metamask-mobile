@@ -310,7 +310,7 @@ Purpose:
 For arrays and objects, useSharedValue creates a C++-based proxy implementation, ensuring that all read and write operations on these data structures are thread-safe.
 
 When to use:
-Use useSharedValue when you need to share state between the JavaScript thread and the worklet thread.
+Use `useSharedValue` when you need to share state between the JavaScript thread and the worklet thread.
 
 Example:
 ```
