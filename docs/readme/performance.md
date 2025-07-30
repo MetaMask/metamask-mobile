@@ -239,7 +239,7 @@ console.log(`Fibonacci of 50 is ${result}`)
 ```
 
 ## runOnJS
-Purpose: runOnJS is used to call a JavaScript function from within a worklet. Since worklets run on a separate thread, they cannot directly call JavaScript functions. runOnJS bridges this gap by allowing you to invoke JavaScript functions on the JavaScript thread.
+Purpose: `runOnJS` is used to call a JavaScript function from within a worklet. Since worklets run on a separate thread, they cannot directly call JavaScript functions. `runOnJS` bridges this gap by allowing you to invoke JavaScript functions on the JavaScript thread.
 
 When to use: Use it when you need to communicate from the worklet thread back to the JavaScript thread.
 
