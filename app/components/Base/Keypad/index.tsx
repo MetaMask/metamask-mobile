@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, memo } from 'react';
+import React, { useCallback, memo } from 'react';
 import Keypad, {
   type KeypadButtonProps,
   type KeypadContainerProps,
@@ -68,57 +68,94 @@ function KeypadComponent({
     [decimalSeparator, handler, onChange, value],
   );
 
-  const buttonHandlers = useMemo(
-    () => ({
-      digit1: () => handleKeypadPress(Keys.Digit1),
-      digit2: () => handleKeypadPress(Keys.Digit2),
-      digit3: () => handleKeypadPress(Keys.Digit3),
-      digit4: () => handleKeypadPress(Keys.Digit4),
-      digit5: () => handleKeypadPress(Keys.Digit5),
-      digit6: () => handleKeypadPress(Keys.Digit6),
-      digit7: () => handleKeypadPress(Keys.Digit7),
-      digit8: () => handleKeypadPress(Keys.Digit8),
-      digit9: () => handleKeypadPress(Keys.Digit9),
-      digit0: () => handleKeypadPress(Keys.Digit0),
-      period: () => decimalSeparator && handleKeypadPress(Keys.Period),
-      back: () => handleKeypadPress(Keys.Back),
-      longBack: () => handleKeypadPress(Keys.Initial),
-    }),
-    [handleKeypadPress, decimalSeparator],
+  const handleKeypadPress1 = useCallback(
+    () => handleKeypadPress(Keys.Digit1),
+    [handleKeypadPress],
+  );
+  const handleKeypadPress2 = useCallback(
+    () => handleKeypadPress(Keys.Digit2),
+    [handleKeypadPress],
+  );
+  const handleKeypadPress3 = useCallback(
+    () => handleKeypadPress(Keys.Digit3),
+    [handleKeypadPress],
+  );
+  const handleKeypadPress4 = useCallback(
+    () => handleKeypadPress(Keys.Digit4),
+    [handleKeypadPress],
+  );
+  const handleKeypadPress5 = useCallback(
+    () => handleKeypadPress(Keys.Digit5),
+    [handleKeypadPress],
+  );
+  const handleKeypadPress6 = useCallback(
+    () => handleKeypadPress(Keys.Digit6),
+    [handleKeypadPress],
+  );
+  const handleKeypadPress7 = useCallback(
+    () => handleKeypadPress(Keys.Digit7),
+    [handleKeypadPress],
+  );
+  const handleKeypadPress8 = useCallback(
+    () => handleKeypadPress(Keys.Digit8),
+    [handleKeypadPress],
+  );
+  const handleKeypadPress9 = useCallback(
+    () => handleKeypadPress(Keys.Digit9),
+    [handleKeypadPress],
+  );
+  const handleKeypadPress0 = useCallback(
+    () => handleKeypadPress(Keys.Digit0),
+    [handleKeypadPress],
+  );
+  const handleKeypadPressPeriod = useCallback(
+    () => decimalSeparator && handleKeypadPress(Keys.Period),
+    [decimalSeparator, handleKeypadPress],
+  );
+  const handleKeypadPressBack = useCallback(
+    () => handleKeypadPress(Keys.Back),
+    [handleKeypadPress],
+  );
+  const handleKeypadLongPressBack = useCallback(
+    () => handleKeypadPress(Keys.Initial),
+    [handleKeypadPress],
+  );
+
+  const periodButtonClassName = useCallback(
+    (pressed: boolean) => `bg-transparent ${pressed && 'bg-pressed'}`,
+    [],
   );
 
   return (
     <Keypad {...props}>
       <Keypad.Row>
-        <Keypad.Button onPress={buttonHandlers.digit1}>1</Keypad.Button>
-        <Keypad.Button onPress={buttonHandlers.digit2}>2</Keypad.Button>
-        <Keypad.Button onPress={buttonHandlers.digit3}>3</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress1}>1</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress2}>2</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress3}>3</Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
-        <Keypad.Button onPress={buttonHandlers.digit4}>4</Keypad.Button>
-        <Keypad.Button onPress={buttonHandlers.digit5}>5</Keypad.Button>
-        <Keypad.Button onPress={buttonHandlers.digit6}>6</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress4}>4</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress5}>5</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress6}>6</Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
-        <Keypad.Button onPress={buttonHandlers.digit7}>7</Keypad.Button>
-        <Keypad.Button onPress={buttonHandlers.digit8}>8</Keypad.Button>
-        <Keypad.Button onPress={buttonHandlers.digit9}>9</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress7}>7</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress8}>8</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
         <Keypad.Button
-          onPress={buttonHandlers.period}
-          twClassName={(pressed: boolean) =>
-            `bg-transparent ${pressed && 'bg-pressed'}`
-          }
+          onPress={handleKeypadPressPeriod}
+          twClassName={periodButtonClassName}
           {...periodButtonProps}
         >
           {decimalSeparator}
         </Keypad.Button>
-        <Keypad.Button onPress={buttonHandlers.digit0}>0</Keypad.Button>
+        <Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>
         <Keypad.DeleteButton
           testID="keypad-delete-button"
-          onPress={buttonHandlers.back}
-          onLongPress={buttonHandlers.longBack}
+          onPress={handleKeypadPressBack}
+          onLongPress={handleKeypadLongPressBack}
           delayLongPress={500}
           {...deleteButtonProps}
         />
