@@ -62,6 +62,7 @@ import { bridgeControllerInit } from '../controllers/bridge-controller/bridge-co
 import { bridgeStatusControllerInit } from '../controllers/bridge-status-controller/bridge-status-controller-init';
 import { BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
+import { multichainAccountServiceInit } from '../controllers/multichain-account-service/multichain-account-service-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -152,6 +153,9 @@ describe('initModularizedControllers', () => {
   const mockBridgeStatusControllerInit = jest.mocked(
     bridgeStatusControllerInit,
   );
+  const mockMultichainAccountServiceInit = jest.mocked(
+    multichainAccountServiceInit,
+  );
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -175,6 +179,7 @@ describe('initModularizedControllers', () => {
           MultichainAssetsRatesController:
             mockMultichainAssetsRatesControllerInit,
           MultichainBalancesController: mockMultichainBalancesControllerInit,
+          MultichainAccountService: mockMultichainAccountServiceInit,
           NotificationServicesController:
             mockNotificationServicesControllerInit,
           NotificationServicesPushController:
