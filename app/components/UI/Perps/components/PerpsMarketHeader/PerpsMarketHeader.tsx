@@ -21,6 +21,7 @@ import {
   formatPnl,
   formatPrice,
   parseCurrencyString,
+  parsePercentageString,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsMarketHeader.styles';
 
@@ -46,7 +47,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
 
   const displayPrice = currentPrice || parseCurrencyString(market.price || '0');
   const displayChange =
-    priceChange24h || parseCurrencyString(market.change24hPercent || '0');
+    priceChange24h ?? parsePercentageString(market.change24hPercent);
   const isPositiveChange = displayChange >= 0;
 
   // Calculate fiat change amount
