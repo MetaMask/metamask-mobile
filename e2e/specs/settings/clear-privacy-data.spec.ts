@@ -1,32 +1,32 @@
-'use strict';
-import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
-
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import Assertions from '../../utils/Assertions';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import Assertions from '../../framework/Assertions';
 import ClearPrivacyModal from '../../pages/Settings/SecurityAndPrivacy/ClearPrivacyModal';
 import BrowserView from '../../pages/Browser/BrowserView';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
+import { DappVariants } from '../../framework/Constants';
 
 describe(Regression('Clear Privacy data'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
   });
 
   it('should clear all dapp connections', async () => {
     await withFixtures(
       {
-        dapp: true,
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
           .build(),
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         restartDevice: true,
       },
       async () => {
@@ -35,7 +35,7 @@ describe(Regression('Clear Privacy data'), () => {
         await TabBarComponent.tapBrowser();
         await BrowserView.navigateToTestDApp();
         await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.checkIfVisible(ConnectedAccountsModal.title);
+        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.scrollToBottomOfModal();
 
         // should go to settings then security & privacy
@@ -44,12 +44,14 @@ describe(Regression('Clear Privacy data'), () => {
         await SecurityAndPrivacyView.scrollToClearPrivacyData();
         await SecurityAndPrivacyView.tapClearPrivacyData();
 
-        await Assertions.checkIfVisible(ClearPrivacyModal.container);
+        await Assertions.expectElementToBeVisible(ClearPrivacyModal.container);
         await ClearPrivacyModal.tapClearButton();
 
         await TabBarComponent.tapBrowser();
         await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+        await Assertions.expectElementToNotBeVisible(
+          ConnectedAccountsModal.title,
+        );
       },
     );
   });

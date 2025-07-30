@@ -12,7 +12,7 @@ import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import { startMockServer } from '../../api-mocking/mock-server';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { getMockServerPort } from '../../fixtures/utils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
@@ -58,6 +58,15 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
     jest.setTimeout(150000);
     mockServerPort = getMockServerPort();
     mockServer = await startMockServer(segmentMock, mockServerPort);
+  });
+
+  // We need to manually stop the mock server after all the tests as each test
+  // will create a new instance of the mockServer and the segment validation
+  // does not require the app to be launched
+  afterAll(async () => {
+    if (mockServer) {
+      await stopMockServer(mockServer);
+    }
   });
 
   it('should select currency and verify display', async () => {

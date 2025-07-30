@@ -10,7 +10,7 @@ import Assertions from '../../framework/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import QuotesView from '../../pages/Ramps/QuotesView';
-import { startMockServer } from '../../api-mocking/mock-server';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
@@ -36,6 +36,12 @@ describe(SmokeTrade('Off-Ramp'), () => {
 
   beforeEach(async () => {
     jest.setTimeout(150000);
+  });
+
+  afterAll(async () => {
+    if (mockServer) {
+      await stopMockServer(mockServer);
+    }
   });
 
   it('should get to the Amount to sell screen, get quotes and expand the quotes section', async () => {
@@ -82,6 +88,8 @@ describe(SmokeTrade('Off-Ramp'), () => {
             QuotesView.continueWithProvider,
           );
           await QuotesView.tapContinueWithProvider();
+
+          // This delay is needed to ensure that the provider selected event is captured
           await TestHelpers.delay(650);
         } catch (error) {
           // We're ok catching this as there were not enough providers to select from

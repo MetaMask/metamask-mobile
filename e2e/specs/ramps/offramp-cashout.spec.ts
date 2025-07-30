@@ -8,7 +8,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import { startMockServer } from '../../api-mocking/mock-server';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { getMockServerPort } from '../../fixtures/utils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
@@ -44,6 +44,12 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
 
   beforeEach(async () => {
     jest.setTimeout(150000);
+  });
+
+  afterAll(async () => {
+    if (mockServer) {
+      await stopMockServer(mockServer);
+    }
   });
 
   it('should change cashout destination', async () => {

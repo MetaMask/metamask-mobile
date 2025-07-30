@@ -1,17 +1,16 @@
-'use strict';
 import { TransactionType } from '@metamask/transaction-controller';
 import { SmokeWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import Assertions from '../../framework/Assertions';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../fixtures/fixture-builder';
+} from '../../framework/fixtures/FixtureBuilder';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ToastModal from '../../pages/wallet/ToastModal';
+import { MockApiEndpoint } from '../../framework/types';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
@@ -64,11 +63,16 @@ const RESPONSE_OUTGOING_TRANSACTION_MOCK = {
   from: DEFAULT_FIXTURE_ACCOUNT,
 };
 
-function mockAccountsApi(transactions) {
+function mockAccountsApi(
+  transactions: Record<string, unknown>[] = [],
+): MockApiEndpoint {
   return {
     urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1,0x89,0x38,0xe708,0x2105,0xa,0xa4b1,0x82750&sortDirection=ASC`,
     response: {
-      data: transactions ?? [RESPONSE_STANDARD_MOCK, RESPONSE_STANDARD_2_MOCK],
+      data:
+        transactions.length > 0
+          ? transactions
+          : [RESPONSE_STANDARD_MOCK, RESPONSE_STANDARD_2_MOCK],
       pageInfo: {
         count: 2,
         hasNextPage: false,
@@ -160,8 +164,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await TestHelpers.delay(2000);
-        await Assertions.checkIfTextIsNotDisplayed('Received ETH');
+        await Assertions.expectTextNotDisplayed('Received ETH');
       },
     );
   });
@@ -187,8 +190,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await TestHelpers.delay(2000);
-        await Assertions.checkIfTextIsNotDisplayed('Received ETH');
+        await Assertions.expectTextNotDisplayed('Received ETH');
       },
     );
   });
@@ -204,8 +206,8 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await Assertions.checkIfElementToHaveText(
-          await ToastModal.notificationTitle,
+        await Assertions.expectElementToHaveText(
+          ToastModal.notificationTitle,
           'You received 1.23 ETH',
         );
       },

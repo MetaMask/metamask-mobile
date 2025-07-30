@@ -1135,6 +1135,19 @@ class FixtureBuilder {
   }
 
   /**
+   * Sets the privacy mode preferences in the fixture's asyncState.
+   * This indicates that the user has agreed to MetaMetrics data collection.
+   *
+   * @returns {FixtureBuilder} The current instance for method chaining.
+   */
+  withPrivacyModePreferences(privacyMode: boolean) {
+    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
+      privacyMode,
+    });
+    return this;
+  }
+
+  /**
    * Disables smart transactions
    * @returns FixtureBuilder
    */
@@ -1258,6 +1271,135 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Enables profile syncing in the fixture.
+   * @returns {this} The current instance for method chaining.
+   */
+  withKeyringControllerOfMultipleAccounts() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: ['0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6'],
+          metadata: { id: '01JYMQCWV547WJ1X7X8KA72BHB', name: null },
+          type: 'HD Key Tree',
+        },
+        // {
+        //   accounts: ['C8WwCAxqd7CsdF2nmQWaMqj8bc6b4RtTZEmaQCAusgkh'],
+        //   metadata: { id: '01JYMQCXJR780W8479CHWADRMW', name: null },
+        //   type: 'Snap Keyring',
+        // },
+        {
+          accounts: [],
+          metadata: { id: '01JYMQD2ZW9MH3QDV97J1T9H9A', name: null },
+          type: 'QR Hardware Wallet Device',
+        },
+      ],
+      vault:
+        '{"cipher":"DUx7iAsJoxlE+MKGopEvRQBL50daKCxL5stSFkxjZl4ZA3DMv4tLxUs1yAr31VMwM9rDuTFDZmZmTLj/WVNnPUgu8PXioD+Qufj3NP6cFmU3oTN1mw+sneI+9CSVlPYnuTzBOWaCXhxHEqTe4jfjPRc0rEeiBAzvJvvnZh93BNoBO7aqr5LNEx32cIuNqefG4mBzNbKq8ytfWHRsKZOZRl9yROpPtUtCaiuk8tuSAtTbtEOT5Btbiha/gAEYT5JjLsMe2Gw96oqyqS8Oza4WagQSVCIJvT/kJDPuO+KZJiIV2VZXmpck+UF02xiw2qvrnm9gu/hZ20t19alx3nbKsF3Q/Kxrfxt02MS/5Z+XKgRDl6qrNmD2K7NkMphuiWI4TdKT8yEU7ZWucJ83XLdQwAhyG2T1ugoe5dwbN9QvY4Fcyw92kba3A3ILKlV3XLnDnel1ZG6V9GAa4SRRCs7z/+lTzfj/h1QpO24ETznMi+PqJF4gtp/RNtgu/aTHwAqj0zkenZYtSME44lYe5hgbJCZXdK5zUTC1czqXshkVotccoKBly9kyML/ajAfO9RIGhSjglrrRUsCco7yyUafz2jLZYuQvFFAuVVukgbAEdINimRlHbYGran1klp9YVaMDADrTB31IVnDCAuNMb5RVoiiS7J0iCuvJWLAVrV5sukHFMi9oA6XMRYCYE6v6jvHgOPXRhJfxV8k7U96Vgv6o7VXkaA9s10y/tuYUhnQpH8AuhOqtQthytlt1FeTF1c74G+Vt/fLfWd3B2p6Iyqrf+XMOT+e/4fAZc0jTsmMM9cfoYoVd8ofyAmRGhql19cAYUEAwvMNfu3QAiOLl00EicHdX8IK8EzoObwLHO+008erBUKbjRvJ1ePl9Dvx83BZkqb2wlP5GmXSQjy9JmUDrCS6TuquVVNHpVKA8EoBwORN68p3B1hnP29yC79Kq7hc8K94K/Xofm0T0wj+Tzspru2iFxA0aZhEAoe13CGy9hBq9QqT285XPGby7vvek9wifIgvwA1yBXjU6lQ5ObyYCKitp8NLXPb5U0UXEOho7mu0QE+GwhoI3uxjtcKyIWkZlPldYsh2eZfcP/mfNhuFsqqlRin+SWynNUY9HMyaDw3FvtPkDZ6VgYMymP3DnWbmiOUa82iKJ2uGKuVgzvKzOlP5pf/GyWSdBz9ZjPNWMTEW/WYPvTkfGDdDCbTWxAG7fKU9locF+D09CV9mboSAQGTbZSI2f7d48Uo+77rntE6ODcumD++qASMZrGHOapCRtv0a4fHbMa3dWDtx6GHLlbvViDbvCsec7ChOUBoL39sgZEyWrC5JiOgYuRUWnU7xkaZHtYha7yKEVLWg4UFtXnLliYQLQseDa/k2/SDbSqLrz9ACVHgKpS3vtY6mSdhNWyrBkWamwVPXinb1Wjni3OQUqN0R7TeQ/QmRRp20atkY5OoFUuYOkBWU4HgyJHg0wEiYOXkscktGS1vl6RvOHyoTPKiWPJFgtz46NOP5ynmlBqS2+srespbKPh2GEN5EGhbdFWGAXSUoecbvjzizxRQdzm8nLNWtx2eDHo54fv3IahvWQNvmDIL265Ezfo+ZEYhOeHTerWvuVBzg78ZeHpOd1ZwTZz/k5JVtW9BZDoJoO1DZ98Bliew7i2uaN0De2ZP10RMQzH5GL636aptqRiUw9mwbavkaI2xC8f2Y9J2jsgtZ8Gjp48lGjBMxWpG4xywu3J8aUi+rLEiOthEK1Ob6LjkUEBeKC8eFreM1LeB9adIuWpdre84RdWTfWvirzCpvyStNc6USpZtgMKTYGmbqgFtZouphiNEvW2zbUi82Qp5v9XqhXB/zGnJwHRFs+Qk/k20tTLnp1U1+5uIjm+uzbXkLix5KGHNwdDpsx4GrZs04HHN2aRcBHnPZokGajwtcv/1PDHW4VMLKb0bttZSYr1tiYYuFp/0p1EcsCJ1cUcQTdTm8xmjKJWune9L2L","iv":"9e427fa9c50d74903acc326dc5f57f32","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"r6Ta3qV3uqZgiXbnJ6bmT5oJhqKpH3ojd2NUzmc2ZLU="}',
+    });
+
+    // Update AccountsController to only include Ethereum account (hide Solana account)
+    this.fixture.state.engine.backgroundState.AccountsController = {
+      internalAccounts: {
+        accounts: {
+          // Ethereum Account 1 only
+          '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
+            address: '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
+            id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            type: 'eip155:eoa',
+            scopes: ['eip155:1'],
+          },
+        },
+        selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1', // Default to Ethereum account
+      },
+    };
+    // this.fixture.state.engine.backgroundState.PreferencesController.identities = {
+    //   '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6': {
+    //     address: '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
+    //     name: 'Account 1',
+    //     importTime: 1684232000456,
+    //   },
+    // };
+    // this.fixture.state.engine.backgroundState.PreferencesController.selectedAddress = '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6';
+
+    // Configure for Ethereum mainnet only
+    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
+      selectedMultichainNetworkChainId: 'eip155:1', // Default to Ethereum mainnet
+      multichainNetworkConfigurationsByChainId: {
+        'eip155:1': {
+          chainId: 'eip155:1',
+          name: 'Ethereum Mainnet',
+          nativeCurrency: 'ETH',
+          isEvm: true,
+        },
+      },
+      isEvmSelected: true, // Default to EVM mode
+      networksWithTransactionActivity: {},
+    };
+
+    return this;
+  }
+
+  /**
+   * Enables profile syncing in the fixture.
+   * @returns {this} The current instance for method chaining.
+   */
+  withProfileSyncingEnabled() {
+    // Enable AuthenticationController - user must be signed in for profile syncing
+    merge(this.fixture.state.engine.backgroundState.AuthenticationController, {
+      isSignedIn: true,
+    });
+
+    // Enable UserStorageController with all profile syncing features
+    merge(this.fixture.state.engine.backgroundState.UserStorageController, {
+      isBackupAndSyncEnabled: true,
+      isBackupAndSyncUpdateLoading: false,
+      isAccountSyncingEnabled: true,
+      isContactSyncingEnabled: true,
+      hasAccountSyncingSyncedAtLeastOnce: true,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
+      isContactSyncingInProgress: false,
+    });
+
+    // Enable basic functionality in settings (required for profile syncing)
+    merge(this.fixture.state.settings, {
+      basicFunctionalityEnabled: true,
+    });
+
+    return this;
+  }
+
+  /**
+   * Disables profile syncing in the fixture.
+   * @returns {this} The current instance for method chaining.
+   */
+  withProfileSyncingDisabled() {
+    merge(this.fixture.state.engine.backgroundState.UserStorageController, {
+      isBackupAndSyncEnabled: false,
+      isAccountSyncingEnabled: false,
+      isContactSyncingEnabled: false,
+      basicFunctionalityEnabled: false,
+    });
+
+    return this;
+  }
+
   // Mirrors the vault contents from the extension fixture.
   withMultiSRPKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
@@ -1286,7 +1428,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withTransactions(transactions: Record<string, unknown>) {
+  withTransactions(transactions: Record<string, unknown>[]) {
     merge(this.fixture.state.engine.backgroundState.TransactionController, {
       transactions,
     });

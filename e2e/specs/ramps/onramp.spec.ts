@@ -11,7 +11,7 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import QuotesView from '../../pages/Ramps/QuotesView';
 import SoftAssert from '../../utils/SoftAssert';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import { startMockServer } from '../../api-mocking/mock-server';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { getMockServerPort } from '../../fixtures/utils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { Mockttp } from 'mockttp';
@@ -57,6 +57,12 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
 
     mockServerPort = getMockServerPort();
     mockServer = await startMockServer(segmentMock, mockServerPort);
+  });
+
+  afterAll(async () => {
+    if (mockServer) {
+      await stopMockServer(mockServer);
+    }
   });
 
   it('should get to the Amount to buy screen, after selecting Get Started', async () => {
@@ -108,6 +114,7 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
     });
   });
 
+  // Keep this test at the end of the suite
   it('should validate segment/metametric events for a successful onramp flow', async () => {
     const expectedEvents = {
       BUY_BUTTON_CLICKED: 'Buy Button Clicked',
