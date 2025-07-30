@@ -1,13 +1,15 @@
-/* eslint-disable no-console, import/no-nodejs-modules */
 import { loginToApp } from '../../../viewHelper';
 import { SmokePerformance } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { withFixtures } from '../../../fixtures/fixture-helper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import NetworkListModal from '../../../pages/Network/NetworkListModal';
-import { CORE_USER_STATE, POWER_USER_STATE } from '../../../fixtures/constants';
+import {
+  CORE_USER_STATE,
+  POWER_USER_STATE,
+} from '../../../framework/fixtures/constants';
 import {
   PerformanceTestReporter,
   createUserProfileTests,
@@ -71,12 +73,16 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             console.log('Starting network switching test...');
 
             await WalletView.tapNetworksButtonOnNavBar();
-            await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+            await Assertions.expectElementToBeVisible(
+              NetworkListModal.networkScroll,
+            );
             console.log('Network list became visible');
 
             const startTime = Date.now();
             await NetworkListModal.changeNetworkTo('Polygon Mainnet', false);
-            await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
+            await Assertions.expectElementToNotBeVisible(
+              NetworkListModal.networkScroll,
+            );
             const endTime = Date.now();
             console.log('Network switched and list is not visible');
 
