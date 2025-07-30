@@ -18,7 +18,7 @@ import {
   selectSelectedInternalAccount,
   selectLastSelectedSolanaAccount,
 } from '../../../selectors/accountsController';
-import { SolAccountType } from '@metamask/keyring-api';
+import { isEvmAccountType, SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
@@ -52,8 +52,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
   const dismissedBanners = useSelector(selectDismissedBanners);
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const lastSelectedSolanaAccount = useSelector(
     selectLastSelectedSolanaAccount,
   );
@@ -117,6 +117,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
 
       if (slide.id === 'fund' && isZeroBalance) {
         return true;
+      }
+
+      if (
+        slide.id === 'fund' &&
+        selectedAccount?.type &&
+        !isEvmAccountType(selectedAccount.type)
+      ) {
+        return false;
       }
 
       return isCurrentlyActive && !dismissedBanners.includes(slide.id);
