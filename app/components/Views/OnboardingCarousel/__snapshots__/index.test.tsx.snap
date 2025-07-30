@@ -455,7 +455,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -470,7 +470,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -955,7 +955,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -970,7 +970,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1455,7 +1455,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -1470,7 +1470,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1955,7 +1955,7 @@ exports[`OnboardingCarousel Image Padding should use android medium device 1`] =
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 40,
@@ -1970,7 +1970,7 @@ exports[`OnboardingCarousel Image Padding should use android medium device 1`] =
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2455,7 +2455,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -2470,7 +2470,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2964,7 +2964,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -2979,7 +2979,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "fontWeight": "500",
@@ -3465,7 +3465,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -3480,7 +3480,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3965,7 +3965,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -3980,7 +3980,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4465,7 +4465,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -4480,7 +4480,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4965,7 +4965,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -4980,7 +4980,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -5465,7 +5465,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -5480,7 +5480,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -5965,7 +5965,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -5980,7 +5980,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,

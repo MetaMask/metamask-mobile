@@ -169,6 +169,9 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
       textAlign: 'center',
       paddingVertical: 16,
     },
+    blackButton: {
+      backgroundColor: constColors.btnBlack,
+    },
   });
 
 const onboarding_carousel_1 = require('../../../images/onboarding-carousel-1.png'); // eslint-disable-line
@@ -387,11 +390,19 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
         <View style={styles.ctas}>
           <Button
             variant={ButtonVariants.Primary}
-            label={strings('onboarding_carousel.get_started')}
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={constColors.btnBlackText}
+              >
+                {strings('onboarding_carousel.get_started')}
+              </Text>
+            }
             onPress={onPressGetStarted}
             width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
+            style={styles.blackButton}
           />
         </View>
       </OnboardingScreenWithBg>
