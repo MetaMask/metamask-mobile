@@ -48,9 +48,7 @@ export function createMockUuidFromAddress(address: string): AccountId {
  * @param accountType - The type of account (ETH, BTC, or Solana)
  * @returns Array of scopes corresponding to the account type
  */
-function getAccountTypeScopes(
-  accountType: Omit<KeyringAccountType, AnyAccountType.Account>,
-): CaipChainId[] {
+function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
   // Define scope mappings
   const scopeMappings: Record<KeyringAccountType, CaipChainId[]> = {
     // Ethereum account types
@@ -73,7 +71,7 @@ function getAccountTypeScopes(
     [AnyAccountType.Account]: ['any:scope'],
   };
 
-  const scopes = scopeMappings[accountType as keyof typeof scopeMappings];
+  const scopes = scopeMappings[accountType];
   if (!scopes) {
     throw new Error(`Unsupported account type: ${accountType}`);
   }
@@ -85,10 +83,7 @@ export function createMockInternalAccount(
   address: string,
   nickname: string,
   keyringType: KeyringTypes = KeyringTypes.hd,
-  accountType: Omit<
-    KeyringAccountType,
-    AnyAccountType.Account
-  > = EthAccountType.Eoa,
+  accountType: KeyringAccountType = EthAccountType.Eoa,
 ): InternalAccount {
   const genericMetadata = {
     name: nickname,
@@ -121,7 +116,7 @@ export function createMockInternalAccount(
       EthMethod.SignTypedDataV3,
       EthMethod.SignTypedDataV4,
     ],
-    type: accountType as InternalAccount['type'],
+    type: accountType,
     scopes: getAccountTypeScopes(accountType),
   };
 }
