@@ -1,1 +1,1 @@
-export { SendRoot } from './send-root';
+export { Send } from './send';

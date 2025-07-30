@@ -12,9 +12,9 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
 import { useSendDisabled } from '../../../hooks/send/useSendDisabled';
-import Amount from '../amount';
-import Asset from '../asset';
-import SendTo from '../send-to';
+import { Amount } from '../amount';
+import { Asset } from '../asset';
+import { SendTo } from '../send-to';
 import { styleSheet } from './send-root.styles';
 
 export const SendRoot = () => {
