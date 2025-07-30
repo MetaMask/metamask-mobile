@@ -209,7 +209,7 @@ By default, Metro may cache parts of the compiled code especially when using the
 
 ## runAsync
 
-Purpose: runAsync is used to execute code on a different thread without blocking the main JS thread.
+Purpose: `runAsync` is used to execute code on a different thread without blocking the main JS thread.
 
 When to use: Use it to offload functions to a background thread.
 
