@@ -7,6 +7,7 @@ import {
 } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Text, {
   TextVariant,
   TextColor,
@@ -22,7 +23,6 @@ import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsTPSLUpdate } from '../../hooks';
 import { createStyles } from './PerpsPositionDetailsView.styles';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface PositionDetailsRouteParams {
   position: Position;
@@ -78,7 +78,7 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   if (!position) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { marginTop: top }]}>
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Error}>
             {strings('perps.position.details.error_message')}
@@ -89,8 +89,8 @@ const PerpsPositionDetailsView: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={[styles.container, { paddingTop: top }]}>
+    <SafeAreaView style={[styles.container, { marginTop: top }]}>
+      <ScrollView>
         {/* Position Header */}
         <PerpsPositionHeader
           position={position}

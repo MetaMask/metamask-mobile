@@ -104,10 +104,8 @@ export const usePerpsMarketStats = (symbol: string): MarketStats => {
 
     return {
       // 24h high/low from candlestick data, with fallback estimates
-      // The 1.02 and 0.98 multipliers represent ±2% from current price as reasonable defaults
-      // when historical data is unavailable (e.g., for new markets or during initialization)
-      high24h: high > 0 ? formatPrice(high) : formatPrice(currentPrice * 1.02),
-      low24h: low > 0 ? formatPrice(low) : formatPrice(currentPrice * 0.98),
+      high24h: high > 0 ? formatPrice(high) : formatPrice(currentPrice),
+      low24h: low > 0 ? formatPrice(low) : formatPrice(currentPrice),
       volume24h: marketData.volume24h
         ? formatLargeNumber(marketData.volume24h)
         : '$0.00',

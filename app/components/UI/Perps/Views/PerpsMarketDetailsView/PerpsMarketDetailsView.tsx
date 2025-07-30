@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -39,6 +40,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market } = route.params || {};
+  const { top } = useSafeAreaInsets();
 
   const [selectedInterval, setSelectedInterval] = useState('1h');
 
@@ -75,7 +77,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   if (!market) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { paddingTop: top }]}>
         <View
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
@@ -90,7 +92,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   return (
     <SafeAreaView
-      style={styles.container}
+      style={[styles.container, { marginTop: top }]}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
       <ScrollView style={styles.container}>
