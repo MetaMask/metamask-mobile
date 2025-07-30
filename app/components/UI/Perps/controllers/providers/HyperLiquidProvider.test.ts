@@ -2481,11 +2481,12 @@ describe('HyperLiquidProvider', () => {
       describe('placeholder methods for future implementation', () => {
         it('should have getUserVolume method returning 0', async () => {
           // Access private method for testing
-          interface HyperLiquidProviderTestable extends HyperLiquidProvider {
+          interface ProviderWithPrivateMethods {
             getUserVolume(): Promise<number>;
+            getUserStaking(): Promise<number>;
           }
           const testableProvider =
-            provider as unknown as HyperLiquidProviderTestable;
+            provider as unknown as ProviderWithPrivateMethods;
           const getUserVolume = testableProvider.getUserVolume;
           expect(getUserVolume).toBeDefined();
           const volume = await getUserVolume.call(provider);
@@ -2494,11 +2495,12 @@ describe('HyperLiquidProvider', () => {
 
         it('should have getUserStaking method returning 0', async () => {
           // Access private method for testing
-          interface HyperLiquidProviderTestable extends HyperLiquidProvider {
+          interface ProviderWithPrivateMethods {
+            getUserVolume(): Promise<number>;
             getUserStaking(): Promise<number>;
           }
           const testableProvider =
-            provider as unknown as HyperLiquidProviderTestable;
+            provider as unknown as ProviderWithPrivateMethods;
           const getUserStaking = testableProvider.getUserStaking;
           expect(getUserStaking).toBeDefined();
           const staking = await getUserStaking.call(provider);

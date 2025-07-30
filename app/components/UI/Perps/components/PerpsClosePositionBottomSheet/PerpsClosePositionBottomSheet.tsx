@@ -21,7 +21,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
-import type { Position } from '../../controllers/types';
+import type { Position, OrderType } from '../../controllers/types';
 import { createStyles } from './PerpsClosePositionBottomSheet.styles';
 import { usePerpsPrices, usePerpsOrderFees } from '../../hooks';
 import PerpsSlider from '../PerpsSlider/PerpsSlider';
@@ -31,7 +31,7 @@ interface PerpsClosePositionBottomSheetProps {
   onClose: () => void;
   onConfirm: (
     size: string, // Amount to close
-    orderType: 'market' | 'limit',
+    orderType: OrderType,
     limitPrice?: string,
   ) => void;
   position: Position;
@@ -47,7 +47,7 @@ const PerpsClosePositionBottomSheet: React.FC<
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   // State for order type tabs
-  const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
+  const [orderType, setOrderType] = useState<OrderType>('market');
 
   // State for close amount
   const [closePercentage, setClosePercentage] = useState(100); // Default to 100% (full close)

@@ -229,14 +229,19 @@ describe('usePerpsOrderFees', () => {
 
   describe('Loading states', () => {
     it('should show loading state during fee calculation', async () => {
-      // Create a promise that we can control
-      let resolveCalculation: (value: FeeCalculationResult) => void;
-      const calculationPromise = new Promise<FeeCalculationResult>(
-        (resolve) => {
-          resolveCalculation = resolve;
-        },
-      );
-      mockCalculateFees.mockReturnValue(calculationPromise);
+      // Create a deferred promise that we can control
+      const deferred: {
+        promise: Promise<FeeCalculationResult>;
+        resolve: (value: FeeCalculationResult) => void;
+      } = (() => {
+        let resolve: (value: FeeCalculationResult) => void = () => true;
+        const promise = new Promise<FeeCalculationResult>((res) => {
+          resolve = res;
+        });
+        return { promise, resolve };
+      })();
+
+      mockCalculateFees.mockReturnValue(deferred.promise);
 
       const { result } = renderHook(() =>
         usePerpsOrderFees({
@@ -250,7 +255,7 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.isLoadingMetamaskFee).toBe(true);
 
       // Resolve the calculation
-      resolveCalculation({
+      deferred.resolve({
         feeRate: 0.00045,
         feeAmount: 45,
       });
