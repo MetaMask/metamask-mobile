@@ -176,7 +176,7 @@ export const usePerpsDepositQuote = ({
     [willRefresh, refreshRate, quoteFetchedTime],
   );
 
-  const arbitrumChainIdHex = toHex(ARBITRUM_MAINNET_CHAIN_ID);
+  const arbitrumChainIdHex = toHex(parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10));
   const isDirectDeposit =
     selectedToken?.symbol === USDC_SYMBOL &&
     selectedToken?.chainId === arbitrumChainIdHex &&
@@ -455,7 +455,9 @@ export const usePerpsDepositQuote = ({
     }
 
     const srcChainId = getDecimalChainId(selectedToken.chainId);
-    const destChainId = getDecimalChainId(toHex(ARBITRUM_MAINNET_CHAIN_ID));
+    const destChainId = getDecimalChainId(
+      toHex(parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10)),
+    );
 
     const params: GenericQuoteRequest = {
       srcChainId,
