@@ -31,7 +31,7 @@ function getServerPort(defaultPort) {
  * @returns {string} The URL for the second test dapp
  */
 export function getSecondTestDappLocalUrl() {
-  const host = device.getPlatform() === 'android' ? '10.0.2.2' : 'localhost';
+  const host = device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
   return `http://${host}:${getSecondTestDappPort()}`;
 }
 
