@@ -95,7 +95,7 @@ describe('MultichainAddressRowsList Utils', () => {
 
       const sorted = sortNetworkAddressItems(items);
       expect(sorted[0].chainId).toBe(`eip155:${CHAIN_IDS.MAINNET}`);
-      expect(sorted[sorted.length - 1].chainId).toBe('0xaa36a7');
+      expect(sorted[sorted.length - 1].chainId).toBe('eip155:0xaa36a7');
     });
 
     it('sorts networks alphabetically within same priority', () => {

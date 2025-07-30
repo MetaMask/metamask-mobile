@@ -6,13 +6,13 @@ import { CaipChainId, toCaipChainId } from '@metamask/utils';
 
 import { useStyles } from '../../../hooks';
 import styleSheet from './MultichainAddressRowsList.styles';
-import Text, { TextVariant, TextColor } from '../../Texts/Text';
-import TextFieldSearch from '../../Form/TextFieldSearch';
+import Text, { TextVariant, TextColor } from '../../../components/Texts/Text';
+import TextFieldSearch from '../../../components/Form/TextFieldSearch';
+import { TextFieldSize } from '../../../components/Form/TextField/TextField.types';
 import { strings } from '../../../../../locales/i18n';
 import MultichainAddressRow from '../MultichainAddressRow';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
-import { TextFieldSize } from '../../Form/TextField/TextField.types';
 import {
   NetworkAddressItem,
   sortNetworkAddressItems,
