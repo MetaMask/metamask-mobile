@@ -119,7 +119,11 @@ import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
-import { toChecksumAddress, toFormattedAddress } from '../../../util/address';
+import {
+  isValidHexAddress,
+  toChecksumAddress,
+  toFormattedAddress,
+} from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
@@ -677,9 +681,14 @@ const Wallet = ({
       return false;
     }
 
-    return cardholderAccounts.includes(
-      toChecksumAddress(selectedInternalAccount.address),
-    );
+    if (
+      selectedInternalAccount.type === 'eip155:eoa' &&
+      isValidHexAddress(selectedInternalAccount.address)
+    ) {
+      return cardholderAccounts.includes(
+        toChecksumAddress(selectedInternalAccount.address),
+      );
+    }
   }, [cardholderAccounts, selectedInternalAccount]);
 
   useEffect(() => {

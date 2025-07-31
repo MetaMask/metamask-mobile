@@ -278,6 +278,7 @@ export class CardSDK {
         supportedTokensAddresses,
         spenders,
       );
+    Logger.log('========== CALL PERFORMED ==========');
 
     return supportedTokensAddresses.map((tokenAddress, index) => {
       const [globalAllowanceTuple, usAllowanceTuple] =

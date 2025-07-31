@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useCardSDK } from '../sdk';
 import { AllowanceState, CardTokenAllowance } from '../types';
-import Engine from '../../../../core/Engine';
 import { Hex } from '@metamask/utils';
 import { renderFromTokenMinimalUnit } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
 import { useGetAllowances } from './useGetAllowances';
-import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../../selectors/networkController';
 import BigNumber from 'bignumber.js';
 import {
   endTrace,
@@ -15,6 +12,9 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { useSelector } from 'react-redux';
+import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 
 /**
  * React hook to fetch and determine the priority card token for a given user address.
@@ -36,21 +36,18 @@ import {
  */
 export const useGetPriorityCardToken = (
   selectedAddress?: string,
-  shouldFetchOnLoad?: boolean,
+  shouldFetch?: boolean,
 ) => {
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const { fetchAllowances } = useGetAllowances(selectedAddress);
-  const chainId = useSelector(selectChainId);
   const [priorityToken, setPriorityToken] = useState<CardTokenAllowance | null>(
     null,
   );
 
   // Extract controller state
-  const {
-    state: { tokenBalances: allTokenBalances },
-  } = Engine.context.TokenBalancesController;
+  const allTokenBalances = useSelector(selectAllTokenBalances);
 
   // Helpers
   const filterNonZeroAllowances = (
@@ -88,6 +85,11 @@ export const useGetPriorityCardToken = (
         return null;
       }
 
+      if (priorityToken) {
+        setIsLoading(false);
+        return priorityToken;
+      }
+
       try {
         trace({
           name: TraceName.Card,
@@ -106,7 +108,7 @@ export const useGetPriorityCardToken = (
               ...supportedTokens[0],
               allowanceState: AllowanceState.NotEnabled,
               isStaked: false,
-              chainId,
+              chainId: LINEA_CHAIN_ID,
             } as CardTokenAllowance;
           }
 
@@ -178,15 +180,21 @@ export const useGetPriorityCardToken = (
       } finally {
         setIsLoading(false);
       }
-    }, [sdk, selectedAddress, fetchAllowances, getBalancesForChain, chainId]);
+    }, [
+      sdk,
+      selectedAddress,
+      fetchAllowances,
+      getBalancesForChain,
+      priorityToken,
+    ]);
 
   useEffect(() => {
-    if (selectedAddress && shouldFetchOnLoad) {
+    if (selectedAddress && shouldFetch) {
       fetchPriorityToken().then((token) => {
         setPriorityToken(token);
       });
     }
-  }, [selectedAddress, fetchPriorityToken, shouldFetchOnLoad]);
+  }, [selectedAddress, fetchPriorityToken, shouldFetch]);
 
   return { fetchPriorityToken, isLoading, error, priorityToken };
 };
