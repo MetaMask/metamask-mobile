@@ -8,6 +8,8 @@ import type {
   ClosePositionParams,
   DepositParams,
   DepositResult,
+  FeeCalculationParams,
+  FeeCalculationResult,
   GetAccountStateParams,
   LiquidationPriceParams,
   MaintenanceMarginParams,
@@ -152,6 +154,14 @@ export function usePerpsTrading() {
     [],
   );
 
+  const calculateFees = useCallback(
+    async (params: FeeCalculationParams): Promise<FeeCalculationResult> => {
+      const controller = Engine.context.PerpsController;
+      return controller.calculateFees(params);
+    },
+    [],
+  );
+
   return {
     placeOrder,
     cancelOrder,
@@ -170,5 +180,6 @@ export function usePerpsTrading() {
     calculateMaintenanceMargin,
     getMaxLeverage,
     updatePositionTPSL,
+    calculateFees,
   };
 }
