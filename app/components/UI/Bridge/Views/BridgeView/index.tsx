@@ -130,8 +130,9 @@ const BridgeView = () => {
   const updateQuoteParams = useBridgeQuoteRequest();
 
   const initialSourceToken = route.params?.sourceToken;
+  const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
-  useInitialSourceToken(initialSourceToken);
+  useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
 
   useEffect(() => {

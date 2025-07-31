@@ -12,6 +12,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { BridgeRouteParams } from '../../../components/UI/Bridge/Views/BridgeView';
 import { fetchAssetMetadata } from '../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import { isSolanaChainId } from '@metamask/bridge-controller';
+import { ethers } from 'ethers';
 
 interface HandleSwapUrlParams {
   swapPath: string;
@@ -53,31 +54,6 @@ const validateAndLookupToken = async (
 };
 
 /**
- * Processes amount parameter from deep link
- */
-const processAmount = (
-  amount: string,
-  tokenDecimals: number,
-): string | undefined => {
-  try {
-    // Only accept decimal string format (digits only)
-    if (!/^\d+$/.test(amount)) {
-      return undefined;
-    }
-
-    // Convert from minimal divisible units to display units
-    const minimalUnits = parseFloat(amount);
-    const divisor = Math.pow(10, tokenDecimals);
-    const displayAmount = (minimalUnits / divisor).toString();
-
-    return parseFloat(displayAmount) > 0 ? displayAmount : undefined;
-  } catch (error) {
-    // Amount processing failed - return undefined to indicate invalid amount
-    return undefined;
-  }
-};
-
-/**
  * Handles deeplinks for the unified swap/bridge experience
  *
  * @param params Object containing the swap path
@@ -101,7 +77,7 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
 
     const fromCaip = urlParams.get('from');
     const toCaip = urlParams.get('to');
-    const amount = urlParams.get('amount');
+    const atomicAmount = urlParams.get('amount');
 
     // Validate and lookup tokens
     const sourceToken =
@@ -116,8 +92,8 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
 
     // Process amount
     const sourceAmount =
-      amount && sourceToken?.decimals !== undefined
-        ? processAmount(amount, sourceToken.decimals)
+      atomicAmount && sourceToken?.decimals !== undefined
+        ? ethers.utils.formatUnits(atomicAmount, sourceToken.decimals)
         : undefined;
 
     // Navigate to bridge view with deep link parameters

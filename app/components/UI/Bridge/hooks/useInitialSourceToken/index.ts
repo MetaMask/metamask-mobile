@@ -1,5 +1,6 @@
 import {
   selectSourceToken,
+  setSourceAmount,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
@@ -38,7 +39,10 @@ export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   return nativeSourceTokenFormatted;
 };
 
-export const useInitialSourceToken = (initialSourceToken?: BridgeToken) => {
+export const useInitialSourceToken = (
+  initialSourceToken?: BridgeToken,
+  initialSourceAmount?: string,
+) => {
   const dispatch = useDispatch();
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -76,6 +80,11 @@ export const useInitialSourceToken = (initialSourceToken?: BridgeToken) => {
   } else {
     // Set the source token
     dispatch(setSourceToken(initialSourceToken));
+  }
+
+  // Set source amount if provided
+  if (initialSourceAmount) {
+    dispatch(setSourceAmount(initialSourceAmount));
   }
 
   // Change network if necessary
