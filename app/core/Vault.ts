@@ -7,9 +7,13 @@ import { Authentication } from './Authentication/Authentication';
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
- * Returns current vault seed phrase
- * It does it using an empty password or a password set by the user
- * depending on the state the app is currently in
+ * Return the seed phrase from vault for the provided `keyringId`.
+ * If the wallet is unlocked, the password can be an empty string. Otherwise, a password
+ * is required to retrieve the seed phrase from the vault.
+ *
+ * @param {string} password - Password to retrieve the seed phrase from the vault
+ * @param {string} keyringId - Keyring ID to retrieve the seed phrase from the vault
+ * @returns {Promise<string>} - Seed phrase from the vault
  */
 export const getSeedPhrase = async (password: string, keyringId: string) => {
   const { KeyringController } = Engine.context;
@@ -22,7 +26,7 @@ export const getSeedPhrase = async (password: string, keyringId: string) => {
  * @param {string} newPassword - new password
  * @param {string} password - current password
  */
-export const seedlessChangePassword = async (
+export const recreateSeedlessVaultWithNewPassword = async (
   newPassword: string,
   password: string,
 ) => {
@@ -52,7 +56,6 @@ export const seedlessChangePassword = async (
       error as Error,
       '[recreateVaultWithNewPassword] seedless onboarding pw change error',
     );
-    // restore keyring with old password if seedless onboarding pw change fails
 
     throw error;
   } finally {
@@ -68,7 +71,7 @@ export const seedlessChangePassword = async (
  *
  * @param password - current password
  * @param newPassword - new password
- * @param selectedAddress - selected address
+ * @param selectedAddress - current selected address in wallet.
  */
 export const recreateVaultWithNewPassword = async (
   password: string,
@@ -85,7 +88,7 @@ export const recreateVaultWithNewPassword = async (
     // if it succed seedless change password but fail on the change password on local, we will prompt user password out of date
     // and ask user to login with new password
     if (isSeedlessFlow) {
-      await seedlessChangePassword(newPassword, password);
+      await recreateSeedlessVaultWithNewPassword(newPassword, password);
     }
 
     await KeyringController.changePassword(newPassword);
