@@ -1,6 +1,6 @@
 import { SmokeAccounts } from '../../tags.js';
-import WalletView from '../../pages/wallet/WalletView';
-import { loginToApp } from '../../viewHelper';
+import WalletView from '../../pages/wallet/WalletView.js';
+import { loginToApp } from '../../viewHelper.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../framework/Assertions.ts';
 import TestHelpers from '../../helpers.js';
@@ -8,7 +8,7 @@ import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
 import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent.ts';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js';
 
 describe(SmokeAccounts('Create wallet accounts'), () => {
   beforeAll(async () => {

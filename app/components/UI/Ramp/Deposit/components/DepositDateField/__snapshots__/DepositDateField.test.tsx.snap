@@ -107,7 +107,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
             onBlur={[Function]}
             onFocus={[Function]}
             placeholder="01/01/2000"
-            placeholderTextColor="#b7bbc8"
+            placeholderTextColor="#9ca1af"
             pointerEvents="none"
             readOnly={true}
             style={
@@ -252,7 +252,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
             onBlur={[Function]}
             onFocus={[Function]}
             placeholder="01/01/2000"
-            placeholderTextColor="#b7bbc8"
+            placeholderTextColor="#9ca1af"
             pointerEvents="none"
             readOnly={true}
             style={
@@ -377,7 +377,7 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
                       "textAlign": "center",
                     },
                     {
-                      "color": "#b7bbc8",
+                      "color": "#9ca1af",
                     },
                   ]
                 }
@@ -554,7 +554,7 @@ exports[`DepositDateField render matches snapshot 1`] = `
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="01/01/2000"
-          placeholderTextColor="#b7bbc8"
+          placeholderTextColor="#9ca1af"
           pointerEvents="none"
           readOnly={true}
           style={
@@ -685,7 +685,7 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="01/01/2000"
-          placeholderTextColor="#b7bbc8"
+          placeholderTextColor="#9ca1af"
           pointerEvents="none"
           readOnly={true}
           style={
@@ -816,7 +816,7 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="01/01/2000"
-          placeholderTextColor="#b7bbc8"
+          placeholderTextColor="#9ca1af"
           pointerEvents="none"
           readOnly={true}
           style={
@@ -962,7 +962,7 @@ exports[`DepositDateField render matches snapshot with empty value 1`] = `
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="01/01/2000"
-          placeholderTextColor="#b7bbc8"
+          placeholderTextColor="#9ca1af"
           pointerEvents="none"
           readOnly={true}
           style={

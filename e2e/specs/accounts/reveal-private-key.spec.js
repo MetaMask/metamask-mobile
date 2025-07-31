@@ -10,14 +10,14 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper.js';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import SettingsView from '../../pages/Settings/SettingsView';
+import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import Assertions from '../../utils/Assertions.js';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView.js';
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
-import WalletView from '../../pages/wallet/WalletView';
+import WalletView from '../../pages/wallet/WalletView.js';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 

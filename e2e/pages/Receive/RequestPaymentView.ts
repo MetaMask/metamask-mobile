@@ -52,4 +52,4 @@ class RequestPaymentView {
   }
 }
 
-export default new RequestPaymentView();
+export default new RequestPaymentView(); 

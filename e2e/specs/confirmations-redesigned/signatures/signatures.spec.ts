@@ -7,7 +7,7 @@ import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import TestHelpers from '../../../helpers.js';
-import { loginToApp } from '../../../viewHelper';
+import { loginToApp } from '../../../viewHelper.js';
 import {
   withFixtures,
   defaultGanacheOptions,

@@ -200,6 +200,7 @@ export const checkActiveAccountAndChainId = async ({
       const perOriginChainId = selectPerOriginChainId(store.getState(), origin);
 
       activeChainId = perOriginChainId;
+
     } else if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {

@@ -585,7 +585,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                   style={
                     [
                       {
-                        "color": "#457a39",
+                        "color": "#1c7e33",
                         "fontSize": 15,
                       },
                       undefined,

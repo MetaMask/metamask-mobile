@@ -901,23 +901,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     /**
-     * Check if any iFrame URLs are prohibited
-     */
-    const checkIFrameUrls = useCallback(
-      async (iframeUrls: string[]) => {
-        for (const iframeUrl of iframeUrls) {
-          const { origin: iframeOrigin } = new URLParse(iframeUrl);
-          const isAllowed = await isAllowedOrigin(iframeOrigin);
-          if (!isAllowed) {
-            handleNotAllowedUrl(iframeOrigin);
-            return;
-          }
-        }
-      },
-      [isAllowedOrigin, handleNotAllowedUrl],
-    );
-
-    /**
      * Handle message from website
      */
     const onMessage = ({ nativeEvent }: WebViewMessageEvent) => {
@@ -934,20 +917,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
         const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
         if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
-          return;
-        }
-        if (
-          dataParsed.type === 'IFRAME_DETECTED' &&
-          Array.isArray(dataParsed.iframeUrls) &&
-          dataParsed.iframeUrls.length > 0
-        ) {
-          const validIframeUrls = dataParsed.iframeUrls.filter(
-            (url: unknown): url is string =>
-              typeof url === 'string' && url.trim().length > 0,
-          );
-          if (validIframeUrls.length > 0) {
-            checkIFrameUrls(validIframeUrls);
-          }
           return;
         }
         if (dataParsed.name) {

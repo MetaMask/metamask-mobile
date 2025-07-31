@@ -127,7 +127,7 @@ const createStyles = (colors) =>
       textAlignVertical: 'center',
       fontSize: Device.isIphone5() ? 30 : 40,
       height: Device.isIphone5() ? 40 : 50,
-      lineHeight: Device.isIphone5() ? 33 : 44,
+      lineHeight: Device.isIphone5() ? 40 : 50,
     },
     amountInvalid: {
       color: colors.error.default,

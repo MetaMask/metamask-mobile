@@ -1614,7 +1614,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1630,7 +1630,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1644,7 +1644,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1658,7 +1658,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1672,7 +1672,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1686,7 +1686,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1700,7 +1700,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1714,7 +1714,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,

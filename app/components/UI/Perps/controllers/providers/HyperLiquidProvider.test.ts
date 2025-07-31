@@ -1,9 +1,4 @@
-import {
-  ClosePositionParams,
-  DepositParams,
-  LiveDataConfig,
-  OrderParams,
-} from '../types';
+import { ClosePositionParams, LiveDataConfig, OrderParams } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
 import type { CaipAssetId, Hex } from '@metamask/utils';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
@@ -12,7 +7,6 @@ import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscr
 import {
   validateOrderParams,
   validateWithdrawalParams,
-  validateDepositParams,
   validateCoinExists,
   validateAssetSupport,
   validateBalance,
@@ -25,7 +19,6 @@ jest.mock('../../services/HyperLiquidSubscriptionService');
 jest.mock('../../utils/hyperLiquidValidation', () => ({
   validateOrderParams: jest.fn(),
   validateWithdrawalParams: jest.fn(),
-  validateDepositParams: jest.fn(),
   validateCoinExists: jest.fn(),
   validateAssetSupport: jest.fn(),
   validateBalance: jest.fn(),
@@ -61,9 +54,6 @@ const mockValidateWithdrawalParams =
   validateWithdrawalParams as jest.MockedFunction<
     typeof validateWithdrawalParams
   >;
-const mockValidateDepositParams = validateDepositParams as jest.MockedFunction<
-  typeof validateDepositParams
->;
 const mockValidateCoinExists = validateCoinExists as jest.MockedFunction<
   typeof validateCoinExists
 >;
@@ -182,7 +172,6 @@ describe('HyperLiquidProvider', () => {
     // Mock validation
     mockValidateOrderParams.mockReturnValue({ isValid: true });
     mockValidateWithdrawalParams.mockReturnValue({ isValid: true });
-    mockValidateDepositParams.mockReturnValue({ isValid: true });
     mockValidateCoinExists.mockReturnValue({ isValid: true });
     mockValidateAssetSupport.mockReturnValue({ isValid: true });
     mockValidateBalance.mockReturnValue({ isValid: true });
@@ -667,253 +656,6 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('No position found for BTC');
-    });
-  });
-
-  describe('validateDeposit', () => {
-    it('should validate valid deposit parameters', () => {
-      mockValidateDepositParams.mockReturnValue({ isValid: true });
-
-      const params: DepositParams = {
-        amount: '100',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(true);
-      expect(result.error).toBeUndefined();
-    });
-
-    it('should reject empty amount', () => {
-      mockValidateDepositParams.mockReturnValue({
-        isValid: false,
-        error: 'Amount is required and must be greater than 0',
-      });
-
-      const params: DepositParams = {
-        amount: '',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(false);
-      expect(result.error).toBe(
-        'Amount is required and must be greater than 0',
-      );
-    });
-
-    it('should reject zero amount', () => {
-      mockValidateDepositParams.mockReturnValue({
-        isValid: false,
-        error: 'Amount is required and must be greater than 0',
-      });
-
-      const params: DepositParams = {
-        amount: '0',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(false);
-      expect(result.error).toBe(
-        'Amount is required and must be greater than 0',
-      );
-    });
-
-    it('should reject negative amount', () => {
-      mockValidateDepositParams.mockReturnValue({
-        isValid: false,
-        error: 'Amount is required and must be greater than 0',
-      });
-
-      const params: DepositParams = {
-        amount: '-10',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(false);
-      expect(result.error).toBe(
-        'Amount is required and must be greater than 0',
-      );
-    });
-
-    it('should reject invalid amount format', () => {
-      mockValidateDepositParams.mockReturnValue({
-        isValid: false,
-        error: 'Amount is required and must be greater than 0',
-      });
-
-      const params: DepositParams = {
-        amount: 'abc',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(false);
-      expect(result.error).toBe(
-        'Amount is required and must be greater than 0',
-      );
-    });
-
-    it('should reject amount below minimum for mainnet', () => {
-      mockClientService.isTestnetMode.mockReturnValue(false);
-      mockValidateDepositParams.mockReturnValue({
-        isValid: false,
-        error: 'Minimum deposit amount is 5 USDC',
-      });
-
-      const params: DepositParams = {
-        amount: '4.99',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Minimum deposit amount is 5 USDC');
-    });
-
-    it('should reject amount below minimum for testnet', () => {
-      mockClientService.isTestnetMode.mockReturnValue(true);
-      mockValidateDepositParams.mockReturnValue({
-        isValid: false,
-        error: 'Minimum deposit amount is 10 USDC',
-      });
-
-      const params: DepositParams = {
-        amount: '9.99',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Minimum deposit amount is 10 USDC');
-    });
-
-    it('should accept amount at minimum for mainnet', () => {
-      mockClientService.isTestnetMode.mockReturnValue(false);
-      mockValidateDepositParams.mockReturnValue({ isValid: true });
-
-      const params: DepositParams = {
-        amount: '5',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(true);
-      expect(result.error).toBeUndefined();
-    });
-
-    it('should accept amount at minimum for testnet', () => {
-      mockClientService.isTestnetMode.mockReturnValue(true);
-      mockValidateDepositParams.mockReturnValue({ isValid: true });
-
-      const params: DepositParams = {
-        amount: '10',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(true);
-      expect(result.error).toBeUndefined();
-    });
-
-    it('should reject empty assetId', () => {
-      mockValidateDepositParams.mockReturnValue({
-        isValid: false,
-        error: 'AssetId is required for deposit validation',
-      });
-
-      const params: DepositParams = {
-        amount: '100',
-        assetId: '' as CaipAssetId,
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(false);
-      expect(result.error).toBe('AssetId is required for deposit validation');
-    });
-
-    it('should reject unsupported assetId', () => {
-      mockValidateDepositParams.mockReturnValue({
-        isValid: false,
-        error: 'Asset not supported',
-      });
-
-      const params: DepositParams = {
-        amount: '100',
-        assetId:
-          'eip155:1/erc20:0x1234567890123456789012345678901234567890/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(false);
-      expect(result.error).toContain('not supported');
-    });
-
-    it('should handle decimal amounts correctly', () => {
-      mockValidateDepositParams.mockReturnValue({ isValid: true });
-
-      const params: DepositParams = {
-        amount: '100.123456',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(true);
-      expect(result.error).toBeUndefined();
-    });
-
-    it('should handle large amounts correctly', () => {
-      mockValidateDepositParams.mockReturnValue({ isValid: true });
-
-      const params: DepositParams = {
-        amount: '1000000',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(true);
-      expect(result.error).toBeUndefined();
-    });
-
-    it('should handle scientific notation', () => {
-      mockValidateDepositParams.mockReturnValue({ isValid: true });
-
-      const params: DepositParams = {
-        amount: '1e6',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
-      };
-
-      const result = provider.validateDeposit(params);
-
-      expect(result.isValid).toBe(true);
-      expect(result.error).toBeUndefined();
     });
   });
 });

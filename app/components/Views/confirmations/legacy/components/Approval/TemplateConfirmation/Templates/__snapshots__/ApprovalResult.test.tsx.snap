@@ -251,7 +251,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#457a391a",
+            "backgroundColor": "#1c7e331a",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",
@@ -260,7 +260,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         }
       >
         <SvgMock
-          color="#457a39"
+          color="#1c7e33"
           fill="currentColor"
           height={24}
           name="Confirmation"

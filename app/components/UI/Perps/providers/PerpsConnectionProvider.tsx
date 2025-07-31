@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
-import { strings } from '../../../../../locales/i18n';
 
 interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -212,7 +211,9 @@ export const PerpsConnectionProvider: React.FC<
 export const usePerpsConnection = (): PerpsConnectionContextValue => {
   const context = useContext(PerpsConnectionContext);
   if (!context) {
-    throw new Error(strings('perps.errors.connectionRequired'));
+    throw new Error(
+      'usePerpsConnection must be used within a PerpsConnectionProvider',
+    );
   }
   return context;
 };

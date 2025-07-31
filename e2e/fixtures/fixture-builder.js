@@ -1185,9 +1185,9 @@ class FixtureBuilder {
     return this;
   }
 
-  withPrivacyModePreferences(privacyMode) {
+  withIncomingTransactionPreferences(incomingTransactionPreferences) {
     merge(this.fixture.state.engine.backgroundState.PreferencesController, {
-      privacyMode,
+      showIncomingTransactions: incomingTransactionPreferences,
     });
     return this;
   }
