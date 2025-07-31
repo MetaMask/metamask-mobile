@@ -226,12 +226,6 @@ async function handleLocalNodes(
           localNode = new Ganache();
           localNodeSpecificOptions = nodeOptions as GanacheNodeOptions;
 
-          // Allocate a port for the Ganache server
-          localNodeSpecificOptions.port =
-            PortAllocator.getInstance().allocatePort(
-              `test-${nodeType}`,
-              getGanachePort(),
-            );
           // Check if mnemonic and/or hardfork are provided, otherwise use defaultGanacheOptions
           if (
             (!localNodeSpecificOptions?.mnemonic &&
@@ -252,6 +246,13 @@ async function handleLocalNodes(
                 defaultGanacheOptions.hardfork;
             }
           }
+
+          // Allocate a port for the Ganache server
+          localNodeSpecificOptions.port =
+            PortAllocator.getInstance().allocatePort(
+              `test-${nodeType}`,
+              getGanachePort(),
+            );
           await localNode.start(localNodeSpecificOptions);
           localNodes.push(localNode);
           break;
