@@ -21,23 +21,18 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
+    await TestHelpers.launchApp({
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+    });
+    await loginToApp();
   });
 
   afterAll(async () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  afterEach(async () => {
-    await TestHelpers.terminateApp();
-  });
-
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.setTimeout(150_000);
-
-    await TestHelpers.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-    });
-    await loginToApp();
   });
 
   it('runs the `onInstall` lifecycle hook when the Snap is installed', async () => {
@@ -52,6 +47,13 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
   });
 
   it('runs the `onStart` lifecycle hook when the client is started', async () => {
+    TestHelpers.terminateApp();
+
+    await TestHelpers.launchApp({
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+    });
+    await loginToApp();
+
     await Assertions.checkIfTextIsDisplayed(
       'The client was started successfully, and the "onStart" handler was called.',
     );
