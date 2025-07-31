@@ -25,9 +25,9 @@ import { prepareEVMTransaction, validateAmount } from './utils.ts';
 export interface SendContextType {
   amountError?: string;
   asset?: AssetType;
-  cancelSend: () => void;
+  handleCancelPress: () => void;
+  handleSubmitPress: () => void;
   sendDisabled: boolean;
-  submitSend: () => void;
   transactionParams?: TransactionParams;
   updateAsset: (asset: AssetType) => void;
   updateTransactionParams: (params: Partial<TransactionParams>) => void;
@@ -36,9 +36,9 @@ export interface SendContextType {
 export const SendContext = createContext<SendContextType>({
   amountError: undefined,
   asset: undefined,
-  cancelSend: () => undefined,
+  handleCancelPress: () => undefined,
+  handleSubmitPress: () => undefined,
   sendDisabled: false,
-  submitSend: () => undefined,
   transactionParams: undefined,
   updateAsset: () => undefined,
   updateTransactionParams: () => undefined,
@@ -84,7 +84,7 @@ export const SendContextProvider: React.FC<{
     );
   }, [amountError, transactionParams]);
 
-  const submitSend = useCallback(async () => {
+  const handleSubmitPress = useCallback(async () => {
     if (!chainId || !asset) {
       return;
     }
@@ -102,7 +102,7 @@ export const SendContextProvider: React.FC<{
     );
   }, [asset, chainId, NetworkController, navigation, transactionParams]);
 
-  const cancelSend = useCallback(() => {
+  const handleCancelPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
@@ -115,9 +115,9 @@ export const SendContextProvider: React.FC<{
       value={{
         amountError,
         asset,
-        cancelSend,
+        handleCancelPress,
+        handleSubmitPress,
         sendDisabled,
-        submitSend,
         transactionParams,
         updateAsset,
         updateTransactionParams,
