@@ -5,7 +5,7 @@ import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 import { DappVariants } from '../../framework/Constants';
 import { PermissionSummaryBottomSheetSelectorsText } from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
@@ -50,7 +50,7 @@ describe(Regression('Permission System - Default Permissions'), () => {
         );
 
         // Step 4: Verify chain permissions
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
           PermissionSummaryBottomSheet.ethereumMainnetText,
         );
       },
