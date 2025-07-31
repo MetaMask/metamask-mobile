@@ -212,7 +212,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     });
   });
 
-  it('Should display redireced URL after redirect on website', async () => {
+  it('Should display redirected URL after redirect on website', async () => {
     await withBrowser(async () => {
       await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
         description: 'Browser screen is visible',
