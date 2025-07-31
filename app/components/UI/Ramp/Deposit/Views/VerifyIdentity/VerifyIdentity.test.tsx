@@ -4,17 +4,13 @@ import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockDispatch = jest.fn();
 const mockLinkingOpenURL = jest.fn();
-
-const mockQuote = {
-  quoteId: 'test-quote-id',
-} as BuyQuote;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -27,9 +23,6 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
-    }),
-    useRoute: () => ({
-      params: { quote: mockQuote },
     }),
   };
 });
@@ -51,14 +44,6 @@ const mockUseDepositSDK = jest.fn().mockReturnValue({
 
 jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
-}));
-
-const mockNavigateToEnterEmail = jest.fn();
-
-jest.mock('../../hooks/useDepositRouting', () => ({
-  useDepositRouting: () => ({
-    navigateToEnterEmail: mockNavigateToEnterEmail,
-  }),
 }));
 
 function render(Component: React.ComponentType) {
@@ -96,13 +81,13 @@ describe('VerifyIdentity Component', () => {
     );
   });
 
-  it('calls navigateToEnterEmail when "Agree and continue" button is pressed', async () => {
+  it('navigates to EnterEmail when "Agree and continue" button is pressed', async () => {
     render(VerifyIdentity);
     fireEvent.press(screen.getByRole('button', { name: 'Agree and continue' }));
     await waitFor(() => {
-      expect(mockNavigateToEnterEmail).toHaveBeenCalledWith({
-        quote: mockQuote,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createEnterEmailNavDetails({}),
+      );
     });
   });
 
