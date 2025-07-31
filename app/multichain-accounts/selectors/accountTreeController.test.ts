@@ -15,9 +15,9 @@ const WALLET_ID_NONEXISTENT = 'keyring:nonexistent' as const;
 const WALLET_ID_WITH_GROUPS = 'keyring:wallet-with-groups' as const;
 const WALLET_ID_EMPTY = 'keyring:empty-wallet' as const;
 
-const ACCOUNT_ID_1 = 'account1';
-const ACCOUNT_ID_2 = 'account2';
-const ACCOUNT_ID_3 = 'account3';
+const ACCOUNT_ID_1 = 'entropy:1/1';
+const ACCOUNT_ID_2 = 'entropy:2/1';
+const ACCOUNT_ID_3 = 'entropy:3/1';
 const ACCOUNT_ID_NONEXISTENT = 'nonexistent-account';
 
 /**
@@ -75,10 +75,10 @@ describe('AccountTreeController Selectors', () => {
                 name: 'Wallet 1',
               },
               groups: {
-                'keyring:1:ethereum': {
+                'keyring:1/ethereum': {
                   accounts: ['account1'],
                 },
-                'keyring:2:ethereum': {
+                'keyring:2/ethereum': {
                   accounts: ['account2'],
                 },
               },
@@ -88,7 +88,7 @@ describe('AccountTreeController Selectors', () => {
                 name: 'Wallet 2',
               },
               groups: {
-                'keyring:3:ethereum': {
+                'keyring:3/ethereum': {
                   accounts: [],
                 },
               },
@@ -103,10 +103,10 @@ describe('AccountTreeController Selectors', () => {
           title: 'Wallet 1',
           wallet: {
             groups: {
-              'keyring:1:ethereum': {
+              'keyring:1/ethereum': {
                 accounts: ['account1'],
               },
-              'keyring:2:ethereum': {
+              'keyring:2/ethereum': {
                 accounts: ['account2'],
               },
             },
@@ -120,7 +120,7 @@ describe('AccountTreeController Selectors', () => {
           title: 'Wallet 2',
           wallet: {
             groups: {
-              'keyring:3:ethereum': {
+              'keyring:3/ethereum': {
                 accounts: [],
               },
             },
@@ -180,7 +180,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_1,
         metadata: { name: 'Wallet 1' },
         groups: {
-          'keyring:1:ethereum': {
+          'keyring:1/ethereum': {
             accounts: ['account1'],
           },
         },
@@ -239,7 +239,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_1,
         metadata: { name: 'First Wallet' },
         groups: {
-          'keyring:1:ethereum': {
+          'keyring:1/ethereum': {
             accounts: ['eth1'],
           },
         },
@@ -249,7 +249,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_2,
         metadata: { name: 'Second Wallet' },
         groups: {
-          'snap:solana:mainnet': {
+          'snap:solana/mainnet': {
             accounts: ['sol1'],
           },
         },
@@ -280,10 +280,10 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_WITH_GROUPS,
         metadata: { name: 'Test Wallet with Groups' },
         groups: {
-          'keyring:1:ethereum': {
+          'keyring:1/ethereum': {
             accounts: ['eth1', 'eth2'],
           },
-          'snap:solana:mainnet': {
+          'snap:solana/mainnet': {
             accounts: ['sol1'],
           },
         },
@@ -311,10 +311,10 @@ describe('AccountTreeController Selectors', () => {
       expect(walletWithGroups).toEqual(mockWalletWithGroups);
       expect(walletWithGroups?.metadata.name).toBe('Test Wallet with Groups');
       expect(
-        walletWithGroups?.groups['keyring:1:ethereum'].accounts,
+        walletWithGroups?.groups['keyring:1/ethereum'].accounts,
       ).toHaveLength(2);
       expect(
-        walletWithGroups?.groups['snap:solana:mainnet'].accounts,
+        walletWithGroups?.groups['snap:solana/mainnet'].accounts,
       ).toHaveLength(1);
 
       // Test wallet with empty groups
@@ -374,7 +374,7 @@ describe('AccountTreeController Selectors', () => {
                 id: WALLET_ID_1,
                 metadata: { name: 'Wallet 1' },
                 groups: {
-                  'keyring:1:ethereum': {
+                  'keyring:1/ethereum': {
                     accounts: [ACCOUNT_ID_1],
                   },
                 },
@@ -410,7 +410,7 @@ describe('AccountTreeController Selectors', () => {
               id: WALLET_ID_1,
               metadata: { name: 'Wallet 1' },
               groups: {
-                'keyring:1:ethereum': {
+                'keyring:1/ethereum': {
                   accounts: [ACCOUNT_ID_1],
                 },
               },
@@ -429,7 +429,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_1,
         metadata: { name: 'Wallet 1' },
         groups: {
-          'keyring:1:ethereum': {
+          'keyring:1/ethereum': {
             accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
           },
         },
@@ -453,10 +453,10 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_1,
         metadata: { name: 'Wallet 1' },
         groups: {
-          'keyring:1:ethereum': {
+          'keyring:1/ethereum': {
             accounts: [ACCOUNT_ID_1],
           },
-          'snap:solana:mainnet': {
+          'snap:solana/mainnet': {
             accounts: [ACCOUNT_ID_2],
           },
         },
@@ -486,7 +486,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_1,
         metadata: { name: 'First Wallet' },
         groups: {
-          'keyring:1:ethereum': {
+          'keyring:1/ethereum': {
             accounts: [ACCOUNT_ID_1],
           },
         },
@@ -496,7 +496,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_2,
         metadata: { name: 'Second Wallet' },
         groups: {
-          'snap:solana:mainnet': {
+          'snap:solana/mainnet': {
             accounts: [ACCOUNT_ID_2],
           },
         },
@@ -547,7 +547,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_1,
         metadata: { name: 'Wallet 1' },
         groups: {
-          'keyring:1:ethereum': {
+          'keyring:1/ethereum': {
             accounts: [],
           },
         },
@@ -557,7 +557,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_2,
         metadata: { name: 'Wallet 2' },
         groups: {
-          'keyring:2:ethereum': {
+          'keyring:2/ethereum': {
             accounts: [ACCOUNT_ID_1],
           },
         },
@@ -582,7 +582,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_A,
         metadata: { name: 'Wallet A' },
         groups: {
-          'keyring:1:ethereum': {
+          'keyring:1/ethereum': {
             accounts: [ACCOUNT_ID_1],
           },
         },
@@ -592,7 +592,7 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_B,
         metadata: { name: 'Wallet B' },
         groups: {
-          'keyring:2:ethereum': {
+          'keyring:2/ethereum': {
             accounts: [ACCOUNT_ID_2, ACCOUNT_ID_3],
           },
         },
@@ -622,13 +622,13 @@ describe('AccountTreeController Selectors', () => {
         id: WALLET_ID_WITH_GROUPS,
         metadata: { name: 'Complex Wallet' },
         groups: {
-          'keyring:1:ethereum': {
+          'keyring:1/ethereum': {
             accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
           },
-          'snap:solana:mainnet': {
+          'snap:solana/mainnet': {
             accounts: [ACCOUNT_ID_3],
           },
-          'keyring:2:ethereum': {
+          'keyring:2/ethereum': {
             accounts: [],
           },
         },

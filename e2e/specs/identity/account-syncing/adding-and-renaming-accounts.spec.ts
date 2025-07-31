@@ -2,7 +2,6 @@ import {
   importWalletWithRecoveryPhrase,
   loginToApp,
 } from '../../../viewHelper';
-import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
@@ -16,8 +15,8 @@ import {
 } from '../utils/user-storage/userStorageMockttpController.ts';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
-import FixtureBuilder from '../../../fixtures/fixture-builder.js';
-import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { defaultGanacheOptions } from '../../../framework/Constants';
 import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(
@@ -26,7 +25,6 @@ describe(
     let sharedUserStorageController: UserStorageMockttpController;
 
     beforeAll(async () => {
-      await TestHelpers.reverseServerPort();
       sharedUserStorageController = createUserStorageController();
     });
 

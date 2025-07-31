@@ -29,6 +29,7 @@ import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
 import { isPerDappSelectedNetworkEnabled } from '../networks';
 import { isLegacyTransaction } from '../transactions';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 export type AllowedActions = never;
 
@@ -364,8 +365,10 @@ class SmartTransactionHook {
       this.#approvalController.state.pendingApprovals,
     ).filter(
       ({ origin: pendingApprovalOrigin, type, requestState }) =>
-        // MM_FOX_CODE is the origin for MM Swaps
-        pendingApprovalOrigin === process.env.MM_FOX_CODE &&
+        // MM_FOX_CODE is the origin for MM Legacy Swaps
+        // ORIGIN_METAMASK is the origin for Unified Swaps and Bridge
+        (pendingApprovalOrigin === process.env.MM_FOX_CODE ||
+          pendingApprovalOrigin === ORIGIN_METAMASK) &&
         type === ApprovalTypes.SMART_TRANSACTION_STATUS &&
         requestState?.isInSwapFlow &&
         requestState?.isSwapApproveTx,

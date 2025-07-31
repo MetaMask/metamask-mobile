@@ -105,15 +105,6 @@ const BridgeView = () => {
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
-  const {
-    activeQuote,
-    isLoading,
-    destTokenAmount,
-    quoteFetchError,
-    isNoQuotesAvailable,
-    isExpired,
-    willRefresh,
-  } = useBridgeQuoteData();
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
   const selectedAddress = useSelector(
@@ -152,14 +143,26 @@ const BridgeView = () => {
 
   const hasDestinationPicker = isEvmSolanaBridge;
 
-  const hasQuoteDetails = activeQuote && !isLoading;
-
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
     balance: sourceToken?.balance,
   });
+
+  const {
+    activeQuote,
+    isLoading,
+    destTokenAmount,
+    quoteFetchError,
+    isNoQuotesAvailable,
+    isExpired,
+    willRefresh,
+  } = useBridgeQuoteData({
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+
+  const hasQuoteDetails = activeQuote && !isLoading;
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -175,6 +178,7 @@ const BridgeView = () => {
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
@@ -280,20 +284,21 @@ const BridgeView = () => {
           const validationResult = await validateBridgeTx({
             quoteResponse: activeQuote,
           });
-          if (
-            validationResult.error ||
-            validationResult.result.validation.reason
-          ) {
+          if (validationResult.status === 'ERROR') {
             displayValidationError = true;
             const isValidationError =
               !!validationResult.result.validation.reason;
+            const { error_details } = validationResult;
+            const fallbackErrorMessage = isValidationError
+              ? validationResult.result.validation.reason
+              : validationResult.error;
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
               params: {
                 errorType: isValidationError ? 'validation' : 'simulation',
-                errorMessage: isValidationError
-                  ? validationResult.result.validation.reason
-                  : validationResult.error,
+                errorMessage: error_details?.message
+                  ? `The ${error_details.message}.`
+                  : fallbackErrorMessage,
               },
             });
             return;
@@ -393,14 +398,12 @@ const BridgeView = () => {
       activeQuote &&
       quotesLastFetched && (
         <Box style={styles.buttonContainer}>
-          {isHardwareAddress && (
+          {isHardwareAddress && isSolanaSourced && (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
-              description={
-                isSolanaSourced
-                  ? strings('bridge.hardware_wallet_not_supported_solana')
-                  : strings('bridge.hardware_wallet_not_supported')
-              }
+              description={strings(
+                'bridge.hardware_wallet_not_supported_solana',
+              )}
             />
           )}
           <Button
@@ -409,7 +412,9 @@ const BridgeView = () => {
             onPress={handleContinue}
             style={styles.button}
             isDisabled={
-              hasInsufficientBalance || isSubmittingTx || isHardwareAddress
+              hasInsufficientBalance ||
+              isSubmittingTx ||
+              (isHardwareAddress && isSolanaSourced)
             }
           />
           <Button
@@ -455,6 +460,7 @@ const BridgeView = () => {
                 dispatch(setSourceAmount(latestSourceBalance.displayBalance));
               }
             }}
+            latestAtomicBalance={latestSourceBalance?.atomicBalance}
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
@@ -507,7 +513,7 @@ const BridgeView = () => {
               >
                 <Keypad
                   style={styles.keypad}
-                  value={sourceAmount}
+                  value={sourceAmount || '0'}
                   onChange={handleKeypadChange}
                   currency={sourceToken?.symbol || 'ETH'}
                   decimals={sourceToken?.decimals || 18}

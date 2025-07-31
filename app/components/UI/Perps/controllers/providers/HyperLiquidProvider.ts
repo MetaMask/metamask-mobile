@@ -1,7 +1,17 @@
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
-import type { Hex } from '@metamask/utils';
+import { type Hex } from '@metamask/utils';
+import { v4 as uuidv4 } from 'uuid';
+import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { getBridgeInfo, getChainId } from '../../constants/hyperLiquidConfig';
+import {
+  getBridgeInfo,
+  getChainId,
+  HYPERLIQUID_WITHDRAWAL_MINUTES,
+} from '../../constants/hyperLiquidConfig';
+import {
+  PERPS_CONSTANTS,
+  WITHDRAWAL_CONSTANTS,
+} from '../../constants/perpsConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -38,12 +48,12 @@ import type {
   GetSupportedPathsParams,
   InitializeResult,
   IPerpsProvider,
-  LiveDataConfig,
   LiquidationPriceParams,
+  LiveDataConfig,
   MaintenanceMarginParams,
-  PerpsMarketData,
   MarketInfo,
   OrderResult,
+  PerpsMarketData,
   OrderParams as PerpsOrderParams,
   Position,
   ReadyToTradeResult,
@@ -55,8 +65,6 @@ import type {
   WithdrawParams,
   WithdrawResult,
 } from '../types';
-import { strings } from '../../../../../../locales/i18n';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 /**
  * HyperLiquid provider implementation
@@ -138,6 +146,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
       assetId,
       chainId: bridgeInfo.chainId,
       contractAddress: bridgeInfo.contractAddress,
+      constraints: {
+        minAmount: WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+        estimatedTime: strings('time.minutes_format', {
+          count: HYPERLIQUID_WITHDRAWAL_MINUTES,
+        }),
+        fees: {
+          fixed: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT,
+          token: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_TOKEN,
+        },
+      },
     }));
   }
 
@@ -994,26 +1012,68 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Withdraw funds from HyperLiquid trading account
    *
    * This initiates a withdrawal request via HyperLiquid's API (withdraw3 endpoint).
-   * The actual funds transfer happens on HyperLiquid's side after API confirmation.
+   *
+   * HyperLiquid Bridge Process:
+   * - Funds are immediately deducted from L1 balance on HyperLiquid
+   * - Validators sign the withdrawal (2/3 of staking power required)
+   * - Bridge contract on destination chain processes the withdrawal
+   * - After dispute period, USDC is sent to destination address
+   * - Total time: ~5 minutes
+   * - Fee: 1 USDC (covers Arbitrum gas costs)
+   * - No ETH required from user
+   *
+   * Note: Withdrawals won't appear as incoming transactions until the
+   * finalization phase completes (~5 minutes after initiation)
+   *
+   * @param params Withdrawal parameters
+   * @returns Result with txHash (HyperLiquid internal) and withdrawal ID
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
     try {
-      DevLogger.log('Withdrawing funds:', params);
+      DevLogger.log('🚀 HyperLiquidProvider: STARTING WITHDRAWAL', {
+        params,
+        timestamp: new Date().toISOString(),
+        assetId: params.assetId,
+        amount: params.amount,
+        destination: params.destination,
+        isTestnet: this.clientService.isTestnetMode(),
+      });
 
-      // Validate withdrawal parameters
+      // Step 1: Validate withdrawal parameters
+      DevLogger.log('🔍 HyperLiquidProvider: VALIDATING PARAMETERS');
       const validation = validateWithdrawalParams(params);
       if (!validation.isValid) {
+        DevLogger.log('❌ HyperLiquidProvider: PARAMETER VALIDATION FAILED', {
+          error: validation.error,
+          params,
+          validationResult: validation,
+        });
         throw new Error(validation.error);
       }
+      DevLogger.log('✅ HyperLiquidProvider: PARAMETERS VALIDATED');
 
-      // Get supported withdrawal routes and validate asset
+      // Step 2: Get supported withdrawal routes and validate asset
+      DevLogger.log('🔍 HyperLiquidProvider: CHECKING ASSET SUPPORT');
       const supportedRoutes = this.getWithdrawalRoutes();
+      DevLogger.log('📋 HyperLiquidProvider: SUPPORTED WITHDRAWAL ROUTES', {
+        routeCount: supportedRoutes.length,
+        routes: supportedRoutes.map((route) => ({
+          assetId: route.assetId,
+          chainId: route.chainId,
+          contractAddress: route.contractAddress,
+        })),
+      });
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.assetId) {
-        throw new Error(
-          strings('perps.errors.withdrawValidation.assetIdRequired'),
+        const error = strings(
+          'perps.errors.withdrawValidation.assetIdRequired',
         );
+        DevLogger.log('❌ HyperLiquidProvider: MISSING ASSET ID', {
+          error,
+          params,
+        });
+        throw new Error(error);
       }
 
       const assetValidation = validateAssetSupport(
@@ -1021,61 +1081,145 @@ export class HyperLiquidProvider implements IPerpsProvider {
         supportedRoutes,
       );
       if (!assetValidation.isValid) {
+        DevLogger.log('❌ HyperLiquidProvider: ASSET NOT SUPPORTED', {
+          error: assetValidation.error,
+          assetId: params.assetId,
+          supportedAssets: supportedRoutes.map((r) => r.assetId),
+        });
         throw new Error(assetValidation.error);
       }
+      DevLogger.log('✅ HyperLiquidProvider: ASSET SUPPORTED', {
+        assetId: params.assetId,
+      });
 
-      // Validate destination address if provided
+      // Step 3: Determine destination address
+      DevLogger.log('🔍 HyperLiquidProvider: DETERMINING DESTINATION ADDRESS');
       let destination: Hex;
       if (params.destination) {
         destination = params.destination;
+        DevLogger.log('📍 HyperLiquidProvider: USING PROVIDED DESTINATION', {
+          destination,
+        });
       } else {
         destination = await this.walletService.getUserAddressWithDefault();
+        DevLogger.log('📍 HyperLiquidProvider: USING USER WALLET ADDRESS', {
+          destination,
+        });
       }
 
-      // Ensure client is ready
+      // Step 4: Ensure client is ready
+      DevLogger.log('🔌 HyperLiquidProvider: ENSURING CLIENT READY');
       await this.ensureReady();
       const exchangeClient = this.clientService.getExchangeClient();
+      DevLogger.log('✅ HyperLiquidProvider: CLIENT READY');
 
-      // Validate amount against account balance
+      // Step 5: Validate amount against account balance
+      DevLogger.log('🔍 HyperLiquidProvider: CHECKING ACCOUNT BALANCE');
       const accountState = await this.getAccountState();
       const availableBalance = parseFloat(accountState.availableBalance);
+      DevLogger.log('💰 HyperLiquidProvider: ACCOUNT BALANCE', {
+        availableBalance,
+        totalBalance: accountState.totalBalance,
+        marginUsed: accountState.marginUsed,
+        unrealizedPnl: accountState.unrealizedPnl,
+      });
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.amount) {
-        throw new Error(
-          strings('perps.errors.withdrawValidation.amountRequired'),
-        );
+        const error = strings('perps.errors.withdrawValidation.amountRequired');
+        DevLogger.log('❌ HyperLiquidProvider: MISSING AMOUNT', {
+          error,
+          params,
+        });
+        throw new Error(error);
       }
 
       const withdrawAmount = parseFloat(params.amount);
+      DevLogger.log('🔢 HyperLiquidProvider: WITHDRAWAL AMOUNT', {
+        requestedAmount: withdrawAmount,
+        availableBalance,
+        sufficientBalance: withdrawAmount <= availableBalance,
+      });
 
       const balanceValidation = validateBalance(
         withdrawAmount,
         availableBalance,
       );
       if (!balanceValidation.isValid) {
+        DevLogger.log('❌ HyperLiquidProvider: INSUFFICIENT BALANCE', {
+          error: balanceValidation.error,
+          requestedAmount: withdrawAmount,
+          availableBalance,
+          difference: withdrawAmount - availableBalance,
+        });
         throw new Error(balanceValidation.error);
       }
+      DevLogger.log('✅ HyperLiquidProvider: BALANCE SUFFICIENT');
 
-      // Execute withdrawal via HyperLiquid SDK (API call)
+      // Step 6: Execute withdrawal via HyperLiquid SDK (API call)
+      DevLogger.log('📡 HyperLiquidProvider: CALLING WITHDRAW3 API', {
+        destination,
+        amount: params.amount,
+        endpoint: 'withdraw3',
+        timestamp: new Date().toISOString(),
+      });
+
       const result = await exchangeClient.withdraw3({
         destination,
         amount: params.amount,
       });
 
+      DevLogger.log('📊 HyperLiquidProvider: WITHDRAW3 API RESPONSE', {
+        status: result.status,
+        response: result,
+        timestamp: new Date().toISOString(),
+      });
+
       if (result.status === 'ok') {
+        DevLogger.log(
+          '✅ HyperLiquidProvider: WITHDRAWAL SUBMITTED SUCCESSFULLY',
+          {
+            destination,
+            amount: params.amount,
+            assetId: params.assetId,
+            status: result.status,
+          },
+        );
+
+        const now = Date.now();
+        const withdrawalId = `hl_${uuidv4()}`;
+
         return {
           success: true,
-          txHash: 'Withdrawal submitted successfully',
+          withdrawalId,
+          estimatedArrivalTime: now + 5 * 60 * 1000, // HyperLiquid typically takes ~5 minutes
+          // Don't set txHash if we don't have a real transaction hash
+          // HyperLiquid's withdraw3 API doesn't return a transaction hash immediately
         };
       }
 
+      const errorMessage = `Withdrawal failed: ${result.status}`;
+      DevLogger.log('❌ HyperLiquidProvider: WITHDRAWAL FAILED', {
+        error: errorMessage,
+        status: result.status,
+        response: result,
+        params,
+      });
       return {
         success: false,
-        error: `Withdrawal failed: ${result.status}`,
+        error: errorMessage,
       };
     } catch (error) {
-      DevLogger.log('Withdrawal failed:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      DevLogger.log('💥 HyperLiquidProvider: WITHDRAWAL EXCEPTION', {
+        error: errorMessage,
+        errorType:
+          error instanceof Error ? error.constructor.name : typeof error,
+        stack: error instanceof Error ? error.stack : undefined,
+        params,
+        timestamp: new Date().toISOString(),
+      });
       return createErrorResult(error, { success: false });
     }
   }
