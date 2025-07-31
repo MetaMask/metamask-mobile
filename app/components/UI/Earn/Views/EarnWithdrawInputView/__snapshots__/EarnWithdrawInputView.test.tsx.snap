@@ -743,7 +743,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]
@@ -1309,7 +1309,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]
@@ -1875,7 +1875,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]
@@ -2441,7 +2441,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]

@@ -857,7 +857,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]
@@ -1423,7 +1423,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]
@@ -1989,7 +1989,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]
@@ -2555,7 +2555,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]
@@ -4021,7 +4021,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]
@@ -4587,7 +4587,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]
@@ -5153,7 +5153,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]
@@ -5719,7 +5719,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   "display": "flex",
                                   "flexDirection": "row",
                                   "gap": 12,
-                                  "justifyContent": "space-around",
+                                  "justifyContent": "space-between",
                                 },
                                 undefined,
                               ]

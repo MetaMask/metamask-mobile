@@ -7134,7 +7134,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -7700,7 +7700,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -8266,7 +8266,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -8832,7 +8832,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -13981,7 +13981,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -14547,7 +14547,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -15113,7 +15113,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -15679,7 +15679,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -18261,7 +18261,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -18827,7 +18827,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -19393,7 +19393,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]
@@ -19959,7 +19959,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     "display": "flex",
                                     "flexDirection": "row",
                                     "gap": 12,
-                                    "justifyContent": "space-around",
+                                    "justifyContent": "space-between",
                                   },
                                   undefined,
                                 ]

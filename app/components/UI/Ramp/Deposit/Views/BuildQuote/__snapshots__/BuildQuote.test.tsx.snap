@@ -992,7 +992,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -1558,7 +1558,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -2124,7 +2124,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -2690,7 +2690,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -4273,7 +4273,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -4839,7 +4839,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -5405,7 +5405,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -5971,7 +5971,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -7554,7 +7554,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -8120,7 +8120,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -8686,7 +8686,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -9252,7 +9252,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -10811,7 +10811,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -11377,7 +11377,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -11943,7 +11943,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -12509,7 +12509,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -14068,7 +14068,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -14634,7 +14634,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -15200,7 +15200,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -15766,7 +15766,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -17324,7 +17324,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -17890,7 +17890,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -18456,7 +18456,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -19022,7 +19022,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -20581,7 +20581,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -21147,7 +21147,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -21713,7 +21713,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -22279,7 +22279,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -23838,7 +23838,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -24404,7 +24404,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -24970,7 +24970,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
@@ -25536,7 +25536,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                       "display": "flex",
                                       "flexDirection": "row",
                                       "gap": 12,
-                                      "justifyContent": "space-around",
+                                      "justifyContent": "space-between",
                                     },
                                     undefined,
                                   ]
