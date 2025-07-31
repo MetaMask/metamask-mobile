@@ -109,7 +109,7 @@ export class AndroidAppleLoginHandler
       }
       throw new OAuthError(
         'handleAndroidAppleLogin: Unknown error',
-        OAuthErrorType.AppleLoginError,
+        OAuthErrorType.UnknownError,
       );
     }
     if (result.type === 'cancel') {
@@ -126,7 +126,7 @@ export class AndroidAppleLoginHandler
     }
     throw new OAuthError(
       'handleAndroidAppleLogin: Unknown error',
-      OAuthErrorType.AppleLoginError,
+      OAuthErrorType.UnknownError,
     );
   }
 

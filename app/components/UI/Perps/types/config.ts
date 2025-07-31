@@ -64,5 +64,12 @@ export interface FeeRatesConfig {
   limit: number;
 }
 
+// Risk management interface
+export interface RiskManagementConfig {
+  maintenanceMargin: number;
+  fallbackMaxLeverage: number;
+  fallbackBalancePercent: number;
+}
+
 // Network type helper
 export type HyperLiquidNetwork = 'mainnet' | 'testnet';

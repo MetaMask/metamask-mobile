@@ -1,5 +1,5 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import { SendLinkViewSelectorsIDs } from '../../selectors/Receive/SendLinkView.selectors';
 
 class SendLinkView {
@@ -11,28 +11,24 @@ class SendLinkView {
     return Matchers.getElementByID(SendLinkViewSelectorsIDs.QR_MODAL);
   }
 
-  get closeSendLinkButton(): DetoxElement {
+  get closeSendLinkButton(): TappableElement {
     return Matchers.getElementByID(
       SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON,
-    );
+    ) as TappableElement;
   }
 
-  get qrCodeButton(): DetoxElement {
+  get qrCodeButton(): TappableElement {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByLabel(SendLinkViewSelectorsIDs.QR_CODE_BUTTON)
       : Matchers.getElementByID(SendLinkViewSelectorsIDs.QR_CODE_BUTTON);
   }
 
   async tapQRCodeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.qrCodeButton, {
-      elemDescription: 'QR Code Button in Send Link View',
-    });
+    await Gestures.waitAndTap(this.qrCodeButton);
   }
 
   async tapCloseSendLinkButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeSendLinkButton, {
-      elemDescription: 'Close Send Link Button in Send Link View',
-    });
+    await Gestures.waitAndTap(this.closeSendLinkButton);
   }
 }
 

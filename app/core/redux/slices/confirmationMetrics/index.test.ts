@@ -4,43 +4,38 @@ import reducer, {
   selectConfirmationMetrics,
   ConfirmationMetrics,
   selectConfirmationMetricsById,
-  setTransactionPayToken,
-  TransactionPayToken,
-  selectTransactionPayToken,
 } from './index';
 import { RootState } from '../../../../reducers';
 
-const ID_MOCK = '123-456';
-
-const PAY_TOKEN_MOCK: TransactionPayToken = {
-  address: '0x456',
-  chainId: '0x123',
-};
-
 describe('confirmationMetrics slice', () => {
-  describe('updateConfirmationMetric', () => {
-    it('adds new metric', () => {
+  describe('reducer', () => {
+    it('returns the initial state', () => {
+      expect(reducer(undefined, { type: 'unknown' })).toEqual(initialState);
+    });
+
+    it('handles updateConfirmationMetric for new metric', () => {
+      const id = 'test-id';
       const params: ConfirmationMetrics = {
         properties: { testProp: 'value' },
         sensitiveProperties: { sensitiveProp: 'secret' },
       };
 
-      const action = updateConfirmationMetric({ id: ID_MOCK, params });
+      const action = updateConfirmationMetric({ id, params });
       const state = reducer(initialState, action);
 
-      expect(state.metricsById[ID_MOCK]).toEqual(params);
+      expect(state.metricsById[id]).toEqual(params);
     });
 
-    it('updates existing metric', () => {
+    it('handles updateConfirmationMetric for existing metric', () => {
+      const id = 'test-id';
       const initialParams: ConfirmationMetrics = {
         properties: { existingProp: 'value' },
         sensitiveProperties: { existingSensitive: 'secret' },
       };
 
       const existingState = {
-        ...initialState,
         metricsById: {
-          [ID_MOCK]: initialParams,
+          [id]: initialParams,
         },
       };
 
@@ -49,13 +44,10 @@ describe('confirmationMetrics slice', () => {
         sensitiveProperties: { newSensitive: 'new-secret' },
       };
 
-      const action = updateConfirmationMetric({
-        id: ID_MOCK,
-        params: newParams,
-      });
+      const action = updateConfirmationMetric({ id, params: newParams });
       const state = reducer(existingState, action);
 
-      expect(state.metricsById[ID_MOCK]).toEqual({
+      expect(state.metricsById[id]).toEqual({
         properties: {
           existingProp: 'value',
           newProp: 'new-value',
@@ -68,20 +60,21 @@ describe('confirmationMetrics slice', () => {
     });
 
     it('initializes empty properties when not provided', () => {
+      const id = 'test-id';
       const params: ConfirmationMetrics = {}; // Empty params
 
-      const action = updateConfirmationMetric({ id: ID_MOCK, params });
+      const action = updateConfirmationMetric({ id, params });
       const state = reducer(initialState, action);
 
-      expect(state.metricsById[ID_MOCK]).toEqual({
+      expect(state.metricsById[id]).toEqual({
         properties: {},
         sensitiveProperties: {},
       });
     });
   });
 
-  describe('selectConfirmationMetrics', () => {
-    it('returns confirmation metrics', () => {
+  describe('selectors', () => {
+    it('selects confirmation metrics', () => {
       const metricsById = {
         'id-1': {
           properties: { prop1: 'value1' },
@@ -99,12 +92,10 @@ describe('confirmationMetrics slice', () => {
 
       expect(selectConfirmationMetrics(state)).toEqual(metricsById);
     });
-  });
 
-  describe('selectConfirmationMetricsById', () => {
-    it('returns confirmation metrics by ID', () => {
+    it('selects confirmation metrics by ID', () => {
       const metricsById = {
-        [ID_MOCK]: {
+        'id-1': {
           properties: { prop1: 'value1' },
           sensitiveProperties: { sensitive: 'secret' },
         },
@@ -118,33 +109,9 @@ describe('confirmationMetrics slice', () => {
         confirmationMetrics: { metricsById },
       } as unknown as RootState;
 
-      expect(selectConfirmationMetricsById(state, ID_MOCK)).toEqual(
-        metricsById[ID_MOCK],
+      expect(selectConfirmationMetricsById(state, 'id-1')).toEqual(
+        metricsById['id-1'],
       );
-    });
-  });
-
-  describe('setTransactionPayToken', () => {
-    it('updates transaction pay token for ID', () => {
-      const action = setTransactionPayToken({
-        transactionId: ID_MOCK,
-        payToken: PAY_TOKEN_MOCK,
-      });
-      const state = reducer(initialState, action);
-
-      expect(state.transactionPayTokenById[ID_MOCK]).toEqual(PAY_TOKEN_MOCK);
-    });
-  });
-
-  describe('selectTransactionPayToken', () => {
-    it('returns transaction pay token', () => {
-      const state = {
-        confirmationMetrics: {
-          transactionPayTokenById: { [ID_MOCK]: PAY_TOKEN_MOCK },
-        },
-      } as unknown as RootState;
-
-      expect(selectTransactionPayToken(state, ID_MOCK)).toEqual(PAY_TOKEN_MOCK);
     });
   });
 });

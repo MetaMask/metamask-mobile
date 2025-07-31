@@ -9,9 +9,6 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 import Engine from '../../../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
-import { strings } from '../../../../../locales/i18n';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { toHexadecimal } from '../../../../util/number';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK
@@ -42,21 +39,11 @@ export class HyperLiquidWalletService {
               store.getState(),
             );
             if (!selectedAddress) {
-              throw new Error(strings('perps.errors.noAccountSelected'));
+              throw new Error(
+                'No account selected. Please ensure MetaMask has an active account.',
+              );
             }
             return [selectedAddress];
-          }
-          case 'eth_chainId': {
-            // Return Arbitrum chain ID in hex format
-            // HyperLiquid operates on Arbitrum
-            const chainId = getChainId(this.isTestnet);
-            const hexChainId = `0x${toHexadecimal(chainId)}`;
-            DevLogger.log('HyperLiquidWalletService: eth_chainId requested', {
-              isTestnet: this.isTestnet,
-              decimalChainId: chainId,
-              hexChainId,
-            });
-            return hexChainId;
           }
 
           case 'eth_signTypedData_v4': {
@@ -67,12 +54,14 @@ export class HyperLiquidWalletService {
 
             // Check if account is selected
             if (!selectedAddress) {
-              throw new Error(strings('perps.errors.noAccountSelected'));
+              throw new Error('No account selected');
             }
 
             // Verify the signing address matches the selected account
             if (address.toLowerCase() !== selectedAddress.toLowerCase()) {
-              throw new Error(strings('perps.errors.noAccountSelected'));
+              throw new Error(
+                'Signing address does not match selected account',
+              );
             }
 
             // Parse the JSON string if needed
@@ -93,11 +82,7 @@ export class HyperLiquidWalletService {
           }
 
           default:
-            throw new Error(
-              strings('perps.errors.unsupportedMethod', {
-                method: args.method,
-              }),
-            );
+            throw new Error(`Unsupported method: ${args.method}`);
         }
       },
     };
@@ -112,7 +97,9 @@ export class HyperLiquidWalletService {
     );
 
     if (!selectedAddress) {
-      throw new Error(strings('perps.errors.noAccountSelected'));
+      throw new Error(
+        'No account selected. Please ensure MetaMask has an active account.',
+      );
     }
 
     const chainId = getChainId(this.isTestnet);
@@ -129,9 +116,7 @@ export class HyperLiquidWalletService {
     const address = parsed.address as Hex;
 
     if (!isValidHexAddress(address)) {
-      throw new Error(
-        strings('perps.errors.invalidAddressFormat', { address }),
-      );
+      throw new Error(`Invalid address format: ${address}`);
     }
 
     return address;

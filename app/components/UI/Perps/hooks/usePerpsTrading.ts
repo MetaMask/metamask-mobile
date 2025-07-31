@@ -9,8 +9,6 @@ import type {
   DepositParams,
   DepositResult,
   GetAccountStateParams,
-  LiquidationPriceParams,
-  MaintenanceMarginParams,
   MarketInfo,
   OrderParams,
   OrderResult,
@@ -18,9 +16,6 @@ import type {
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
   SubscribePricesParams,
-  UpdatePositionTPSLParams,
-  WithdrawParams,
-  WithdrawResult,
 } from '../controllers/types';
 
 /**
@@ -115,43 +110,6 @@ export function usePerpsTrading() {
     controller.resetDepositState();
   }, []);
 
-  const withdraw = useCallback(
-    async (params: WithdrawParams): Promise<WithdrawResult> => {
-      const controller = Engine.context.PerpsController;
-      return controller.withdraw(params);
-    },
-    [],
-  );
-
-  const calculateLiquidationPrice = useCallback(
-    async (params: LiquidationPriceParams): Promise<string> => {
-      const controller = Engine.context.PerpsController;
-      return controller.calculateLiquidationPrice(params);
-    },
-    [],
-  );
-
-  const calculateMaintenanceMargin = useCallback(
-    async (params: MaintenanceMarginParams): Promise<number> => {
-      const controller = Engine.context.PerpsController;
-      return controller.calculateMaintenanceMargin(params);
-    },
-    [],
-  );
-
-  const getMaxLeverage = useCallback(async (asset: string): Promise<number> => {
-    const controller = Engine.context.PerpsController;
-    return controller.getMaxLeverage(asset);
-  }, []);
-
-  const updatePositionTPSL = useCallback(
-    async (params: UpdatePositionTPSLParams): Promise<OrderResult> => {
-      const controller = Engine.context.PerpsController;
-      return controller.updatePositionTPSL(params);
-    },
-    [],
-  );
-
   return {
     placeOrder,
     cancelOrder,
@@ -165,10 +123,5 @@ export function usePerpsTrading() {
     deposit,
     getDepositRoutes,
     resetDepositState,
-    withdraw,
-    calculateLiquidationPrice,
-    calculateMaintenanceMargin,
-    getMaxLeverage,
-    updatePositionTPSL,
   };
 }

@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
-import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextVariant,
@@ -27,7 +26,6 @@ import {
 import { US_STATES } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { createUnsupportedStateModalNavigationDetails } from '../UnsupportedStateModal/UnsupportedStateModal';
 
 const MAX_STATE_RESULTS = 20;
 
@@ -45,7 +43,7 @@ export const createStateSelectorModalNavigationDetails =
 function StateSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<{ code: string; name: string }>>(null);
-  const navigation = useNavigation();
+
   const { selectedState, onStateSelect } =
     useParams<StateSelectorModalParams>();
   const [searchString, setSearchString] = useState('');
@@ -90,22 +88,10 @@ function StateSelectorModal() {
 
   const handleOnStatePressCallback = useCallback(
     (state: { code: string; name: string }) => {
-      if (state.code === 'NY') {
-        sheetRef.current?.onCloseBottomSheet(() => {
-          navigation.navigate(
-            ...createUnsupportedStateModalNavigationDetails({
-              stateCode: state.code,
-              stateName: state.name,
-              onStateSelect,
-            }),
-          );
-        });
-      } else {
-        onStateSelect(state.code);
-        sheetRef.current?.onCloseBottomSheet();
-      }
+      onStateSelect(state.code);
+      sheetRef.current?.onCloseBottomSheet();
     },
-    [navigation, onStateSelect],
+    [onStateSelect],
   );
 
   const renderStateItem = useCallback(

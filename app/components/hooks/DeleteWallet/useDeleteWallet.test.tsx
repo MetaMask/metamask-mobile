@@ -4,7 +4,6 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { Authentication } from '../../../core';
-import { resetProviderToken as depositResetProviderToken } from '../../UI/Ramp/Deposit/utils/ProviderTokenVault';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -42,10 +41,6 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
-jest.mock('../../UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
-  resetProviderToken: jest.fn(),
-}));
-
 describe('useDeleteWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -71,7 +66,6 @@ describe('useDeleteWallet', () => {
       'clearState',
     );
     const loggerSpy = jest.spyOn(Logger, 'log');
-    const resetProviderTokenSpy = jest.mocked(depositResetProviderToken);
 
     await resetWalletState();
 
@@ -80,7 +74,6 @@ describe('useDeleteWallet', () => {
     });
     expect(clearStateSpy).toHaveBeenCalledTimes(1);
     expect(loggerSpy).not.toHaveBeenCalled();
-    expect(resetProviderTokenSpy).toHaveBeenCalledTimes(1);
   });
 
   test('it should handle errors gracefully when resetWalletState fails', async () => {

@@ -68,11 +68,6 @@ export interface Account {
    * Account scopes.
    */
   scopes: CaipChainId[];
-
-  /**
-   * Optional snap ID that the account belongs to.
-   */
-  snapId?: string;
 }
 
 /**

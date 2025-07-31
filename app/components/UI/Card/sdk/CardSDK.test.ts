@@ -38,7 +38,6 @@ jest.mock('ethers', () => ({
 // Mock Logger
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
-  log: jest.fn(),
 }));
 
 // Mock network utilities
@@ -54,8 +53,6 @@ describe('CardSDK', () => {
   let mockCardFeatureFlag: CardFeatureFlag;
   let mockProvider: jest.Mocked<ethers.providers.JsonRpcProvider>;
   let mockContract: jest.Mocked<ethers.Contract>;
-
-  const mockTestAddress = 'eip155:0:0x1234567890123456789012345678901234567890';
 
   const mockSupportedTokens: SupportedToken[] = [
     {
@@ -76,20 +73,15 @@ describe('CardSDK', () => {
     jest.clearAllMocks();
 
     mockCardFeatureFlag = {
-      constants: {
-        onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
-        accountsApiUrl: 'https://accounts.api.cx.metamask.io',
-      },
-      chains: {
-        'eip155:59144': {
-          enabled: true,
-          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
-          foxConnectAddresses: {
-            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
-            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
-          },
-          tokens: mockSupportedTokens,
+      'eip155:59144': {
+        enabled: true,
+        balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
+        foxConnectAddresses: {
+          global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+          us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
         },
+        onRampApi: 'https://on-ramp.uat-api.cx.metamask.io',
+        tokens: mockSupportedTokens,
       },
     };
 
@@ -130,14 +122,9 @@ describe('CardSDK', () => {
 
     it('should return false when card is disabled for the chain', () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
-        constants: {
-          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
-        },
-        chains: {
-          'eip155:59144': {
-            enabled: false,
-            tokens: [],
-          },
+        'eip155:59144': {
+          enabled: false,
+          tokens: [],
         },
       };
 
@@ -168,14 +155,9 @@ describe('CardSDK', () => {
 
     it('should return empty array when card is disabled', () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
-        constants: {
-          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
-        },
-        chains: {
-          'eip155:59144': {
-            enabled: false,
-            tokens: mockSupportedTokens,
-          },
+        'eip155:59144': {
+          enabled: false,
+          tokens: mockSupportedTokens,
         },
       };
 
@@ -189,14 +171,9 @@ describe('CardSDK', () => {
 
     it('should return empty array when tokens array is undefined', () => {
       const noTokensCardFeatureFlag: CardFeatureFlag = {
-        constants: {
-          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
-        },
-        chains: {
-          'eip155:59144': {
-            enabled: true,
-            // tokens property is undefined
-          },
+        'eip155:59144': {
+          enabled: true,
+          // tokens property is undefined
         },
       };
 
@@ -210,17 +187,12 @@ describe('CardSDK', () => {
   });
 
   describe('error handling for private getters', () => {
-    it('should handle error when foxConnectAddresses are missing in getSupportedTokensAllowances', async () => {
+    it('should throw error when foxConnectAddresses are missing', async () => {
       const missingFoxConnectFeatureFlag: CardFeatureFlag = {
-        constants: {
-          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
-        },
-        chains: {
-          'eip155:59144': {
-            enabled: true,
-            tokens: mockSupportedTokens,
-            // foxConnectAddresses is missing
-          },
+        'eip155:59144': {
+          enabled: true,
+          tokens: mockSupportedTokens,
+          // foxConnectAddresses is missing
         },
       };
 
@@ -229,30 +201,24 @@ describe('CardSDK', () => {
         rawChainId: '0xe708',
       });
 
-      // This should throw an error when trying to access foxConnectAddresses
-      await expect(
-        missingFoxConnectSDK.getSupportedTokensAllowances(
-          '0x1234567890123456789012345678901234567890',
-        ),
-      ).rejects.toThrow(
-        'FoxConnect addresses are not defined for the current chain',
-      );
+      const testAddress = '0x1234567890123456789012345678901234567890';
+
+      // This should handle the error gracefully and return false
+      const result = await missingFoxConnectSDK.isCardHolder(testAddress);
+      expect(result).toBe(false);
+      expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('should handle error when balanceScannerAddress is missing in getSupportedTokensAllowances', async () => {
+    it('should throw error when balanceScannerAddress is missing', async () => {
       const missingBalanceScannerFeatureFlag: CardFeatureFlag = {
-        constants: {
-          accountsApiUrl: 'https://accounts.api.cx.metamask.io',
-        },
-        chains: {
-          'eip155:59144': {
-            enabled: true,
-            tokens: mockSupportedTokens,
-            foxConnectAddresses: {
-              global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
-              us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
-            },
+        'eip155:59144': {
+          enabled: true,
+          tokens: mockSupportedTokens,
+          foxConnectAddresses: {
+            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
           },
+          // balanceScannerAddress is missing
         },
       };
 
@@ -261,14 +227,12 @@ describe('CardSDK', () => {
         rawChainId: '0xe708',
       });
 
-      // This should throw an error when trying to access balanceScannerAddress
-      await expect(
-        missingBalanceScannerSDK.getSupportedTokensAllowances(
-          '0x1234567890123456789012345678901234567890',
-        ),
-      ).rejects.toThrow(
-        'Balance scanner address is not defined for the current chain',
-      );
+      const testAddress = '0x1234567890123456789012345678901234567890';
+
+      // This should handle the error gracefully and return false
+      const result = await missingBalanceScannerSDK.isCardHolder(testAddress);
+      expect(result).toBe(false);
+      expect(Logger.error).toHaveBeenCalled();
     });
   });
 
@@ -292,13 +256,13 @@ describe('CardSDK', () => {
   });
 
   describe('isCardHolder', () => {
-    it('should return empty array when card is not enabled', async () => {
+    const testAddress = '0x1234567890123456789012345678901234567890';
+
+    it('should return false when card is not enabled', async () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
-        chains: {
-          'eip155:59144': {
-            enabled: false,
-            tokens: [],
-          },
+        'eip155:59144': {
+          enabled: false,
+          tokens: [],
         },
       };
 
@@ -307,226 +271,67 @@ describe('CardSDK', () => {
         rawChainId: '0xe708',
       });
 
-      const result = await disabledCardholderSDK.isCardHolder([
-        mockTestAddress,
+      const result = await disabledCardholderSDK.isCardHolder(testAddress);
+      expect(result).toBe(false);
+    });
+
+    it('should return true when address has non-zero allowances', async () => {
+      mockContract.spendersAllowancesForTokens.mockResolvedValue([
+        [
+          [true, '1000'],
+          [true, '0'],
+        ],
+        [
+          [true, '0'],
+          [true, '500'],
+        ],
       ]);
-      expect(result).toEqual({
-        cardholderAccounts: [],
-      });
-    });
 
-    it('should return empty array when no accounts provided', async () => {
-      const result = await cardSDK.isCardHolder([]);
-      expect(result).toEqual({
-        cardholderAccounts: [],
-      });
-    });
+      const result = await cardSDK.isCardHolder(testAddress);
+      expect(result).toBe(true);
 
-    it('should return empty array when accounts array is null or undefined', async () => {
-      const result = await cardSDK.isCardHolder(
-        undefined as unknown as `eip155:${string}:0x${string}`[],
-      );
-      expect(result).toEqual({
-        cardholderAccounts: [],
-      });
-    });
-
-    it('should handle single batch (≤50 accounts) correctly', async () => {
-      const singleBatchAccounts = Array(30).fill(
-        mockTestAddress,
-      ) as `eip155:${string}:0x${string}`[];
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({
-          is: [mockTestAddress.toLowerCase()],
-        }),
-      });
-
-      const result = await cardSDK.isCardHolder(singleBatchAccounts);
-      expect(result).toEqual({
-        cardholderAccounts: [mockTestAddress.toLowerCase()],
-      });
-
-      // Should call fetch only once for single batch
-      expect(global.fetch).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle multiple batches (up to 150 accounts)', async () => {
-      const multiBatchAccounts = Array(100).fill(
-        mockTestAddress,
-      ) as `eip155:${string}:0x${string}`[];
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({
-          is: [mockTestAddress.toLowerCase()],
-        }),
-      });
-
-      const result = await cardSDK.isCardHolder(multiBatchAccounts);
-      expect(result).toEqual({
-        cardholderAccounts: [
-          mockTestAddress.toLowerCase(),
-          mockTestAddress.toLowerCase(),
-        ],
-      });
-
-      // Should call fetch twice for 100 accounts (2 batches of 50)
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-    });
-
-    it('should limit processing to maximum 3 batches (150 accounts)', async () => {
-      const manyAccounts = Array(200).fill(
-        mockTestAddress,
-      ) as `eip155:${string}:0x${string}`[];
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({
-          is: [mockTestAddress.toLowerCase()],
-        }),
-      });
-
-      const result = await cardSDK.isCardHolder(manyAccounts);
-      expect(result).toEqual({
-        cardholderAccounts: [
-          mockTestAddress.toLowerCase(),
-          mockTestAddress.toLowerCase(),
-          mockTestAddress.toLowerCase(),
-        ],
-      });
-
-      // Should call fetch only 3 times maximum, even with 200 accounts
-      expect(global.fetch).toHaveBeenCalledTimes(3);
-    });
-
-    it('should return cardholder accounts when API returns accounts in is array', async () => {
-      const multipleAccounts = [
-        'eip155:59144:0x1111111111111111111111111111111111111111',
-        'eip155:59144:0x2222222222222222222222222222222222222222',
-      ] as `eip155:${string}:0x${string}`[];
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({
-          is: [
-            multipleAccounts[0].toLowerCase(),
-            multipleAccounts[1].toLowerCase(),
+      expect(mockContract.spendersAllowancesForTokens).toHaveBeenCalledWith(
+        testAddress,
+        cardSDK.supportedTokens.map((token) => token.address as `0x${string}`),
+        expect.arrayContaining([
+          [
+            mockCardFeatureFlag['eip155:59144']?.foxConnectAddresses?.global,
+            mockCardFeatureFlag['eip155:59144']?.foxConnectAddresses?.us,
           ],
-        }),
-      });
+          [
+            mockCardFeatureFlag['eip155:59144']?.foxConnectAddresses?.global,
+            mockCardFeatureFlag['eip155:59144']?.foxConnectAddresses?.us,
+          ],
+        ]),
+      );
+    });
 
-      const result = await cardSDK.isCardHolder(multipleAccounts);
-      expect(result).toEqual({
-        cardholderAccounts: [
-          multipleAccounts[0].toLowerCase(),
-          multipleAccounts[1].toLowerCase(),
+    it('should return false when address has zero allowances', async () => {
+      mockContract.spendersAllowancesForTokens.mockResolvedValue([
+        [
+          [true, '0'],
+          [true, '0'],
         ],
-      });
+        [
+          [true, '0'],
+          [true, '0'],
+        ],
+      ]);
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          href: expect.stringContaining('v1/metadata'),
-        }),
-      );
+      const result = await cardSDK.isCardHolder(testAddress);
+      expect(result).toBe(false);
     });
 
-    it('should return empty array when API returns empty is array', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({
-          is: [],
-        }),
-      });
+    it('should handle contract call errors and return false', async () => {
+      const error = new Error('Contract call failed');
+      mockContract.spendersAllowancesForTokens.mockRejectedValue(error);
 
-      const result = await cardSDK.isCardHolder([mockTestAddress]);
-      expect(result).toEqual({
-        cardholderAccounts: [],
-      });
-    });
-
-    it('should handle API error responses with status code', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 404,
-      });
-
-      const result = await cardSDK.isCardHolder([mockTestAddress]);
-      expect(result).toEqual({
-        cardholderAccounts: [],
-      });
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'Failed to check if address is a card holder',
-      );
-    });
-
-    it('should handle network errors and return empty array', async () => {
-      const error = new Error('Network error');
-      (global.fetch as jest.Mock).mockRejectedValue(error);
-
-      const result = await cardSDK.isCardHolder([mockTestAddress]);
-      expect(result).toEqual({
-        cardholderAccounts: [],
-      });
+      const result = await cardSDK.isCardHolder(testAddress);
+      expect(result).toBe(false);
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         'Failed to check if address is a card holder',
       );
-    });
-
-    it('should handle missing accountsApiUrl gracefully', async () => {
-      const missingAccountsApiFeatureFlag: CardFeatureFlag = {
-        chains: {
-          'eip155:59144': {
-            enabled: true,
-            tokens: mockSupportedTokens,
-            // accountsApiUrl is missing from constants
-          },
-        },
-      };
-
-      const missingAccountsApiSDK = new CardSDK({
-        cardFeatureFlag: missingAccountsApiFeatureFlag,
-        rawChainId: '0xe708',
-      });
-
-      const result = await missingAccountsApiSDK.isCardHolder([
-        mockTestAddress,
-      ]);
-      expect(result).toEqual({
-        cardholderAccounts: [],
-      });
-      expect(Logger.error).toHaveBeenCalled();
-    });
-
-    it('should construct correct API request with proper parameters', async () => {
-      const testAccounts = [
-        'eip155:59144:0x1111111111111111111111111111111111111111',
-        'eip155:59144:0x2222222222222222222222222222222222222222',
-      ] as `eip155:${string}:0x${string}`[];
-
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({
-          is: [],
-        }),
-      });
-
-      await cardSDK.isCardHolder(testAccounts);
-
-      const expectedUrl = new URL(
-        'v1/metadata',
-        mockCardFeatureFlag.constants?.accountsApiUrl,
-      );
-      expectedUrl.searchParams.set(
-        'accountIds',
-        testAccounts.join(',').toLowerCase(),
-      );
-      expectedUrl.searchParams.set('label', 'card_user');
-
-      expect(global.fetch).toHaveBeenCalledWith(expectedUrl);
     });
   });
 
@@ -543,7 +348,7 @@ describe('CardSDK', () => {
       expect(global.fetch).toHaveBeenCalledWith(
         new URL(
           'geolocation',
-          mockCardFeatureFlag.constants?.onRampApiUrl || '',
+          mockCardFeatureFlag['eip155:59144']?.onRampApi || '',
         ),
       );
     });
@@ -576,14 +381,9 @@ describe('CardSDK', () => {
 
     it('should throw error when card is not enabled', async () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
-        constants: {
-          onRampApiUrl: '',
-        },
-        chains: {
-          'eip155:59144': {
-            enabled: false,
-            tokens: [],
-          },
+        'eip155:59144': {
+          enabled: false,
+          tokens: [],
         },
       };
 
@@ -599,15 +399,13 @@ describe('CardSDK', () => {
 
     it('should return empty array when no supported tokens', async () => {
       const emptyTokensCardFeatureFlag: CardFeatureFlag = {
-        chains: {
-          'eip155:59144': {
-            enabled: true,
-            tokens: [],
-            balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
-            foxConnectAddresses: {
-              global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
-              us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
-            },
+        'eip155:59144': {
+          enabled: true,
+          tokens: [],
+          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
+          foxConnectAddresses: {
+            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
           },
         },
       };
@@ -657,11 +455,9 @@ describe('CardSDK', () => {
 
     it('should throw error when card is not enabled', async () => {
       const disabledCardFeatureFlag: CardFeatureFlag = {
-        chains: {
-          'eip155:59144': {
-            enabled: false,
-            tokens: [],
-          },
+        'eip155:59144': {
+          enabled: false,
+          tokens: [],
         },
       };
 
@@ -792,11 +588,9 @@ describe('CardSDK', () => {
 
     it('should return null when no supported tokens and no logs', async () => {
       const emptyCardFeatureFlag: CardFeatureFlag = {
-        chains: {
-          'eip155:59144': {
-            enabled: true,
-            tokens: [],
-          },
+        'eip155:59144': {
+          enabled: true,
+          tokens: [],
         },
       };
 

@@ -1,18 +1,24 @@
+import TestHelpers from '../../helpers';
+
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { withFixtures } from '../../fixtures/fixture-helper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../utils/Assertions';
 import { SmokeConfirmations } from '../../tags';
-import { MockApiEndpoint } from '../../framework/types';
 
 describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
   const BENIGN_ADDRESS_MOCK = '0x50587E46C5B96a3F6f9792922EC647F13E6EFAE4';
+
+  beforeAll(async () => {
+    jest.setTimeout(2500000);
+    await TestHelpers.reverseServerPort();
+  });
 
   const defaultFixture = new FixtureBuilder().withGanacheNetwork().build();
 
@@ -28,8 +34,8 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
   const runTest = async (
     testSpecificMock: {
-      GET?: MockApiEndpoint[];
-      POST?: MockApiEndpoint[];
+      GET?: Record<string, unknown>[];
+      POST?: Record<string, unknown>[];
     },
     alertAssertion: () => Promise<void>,
   ) => {
@@ -60,7 +66,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
     await runTest(testSpecificMock, async () => {
       try {
-        await Assertions.expectElementToNotBeVisible(
+        await Assertions.checkIfNotVisible(
           TransactionConfirmationView.securityAlertBanner,
         );
       } catch (e) {
@@ -90,7 +96,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
-      await Assertions.expectElementToBeVisible(
+      await Assertions.checkIfVisible(
         TransactionConfirmationView.securityAlertBanner,
       );
     });
@@ -104,9 +110,6 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
           urlEndpoint:
             'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
           responseCode: 500,
-          response: {
-            message: 'Internal Server Error',
-          },
         },
       ],
       POST: [
@@ -124,7 +127,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
-      await Assertions.expectElementToBeVisible(
+      await Assertions.checkIfVisible(
         TransactionConfirmationView.securityAlertResponseFailedBanner,
       );
     });

@@ -49,7 +49,6 @@ interface SourceNetworksButtonProps {
   networkConfigurations: ReturnType<typeof selectNetworkConfigurations>;
   selectedSourceChainIds: (Hex | CaipChainId)[];
   enabledSourceChains: ReturnType<typeof selectEnabledSourceChains>;
-  onPress?: () => void;
 }
 
 export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
@@ -57,7 +56,6 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
   networkConfigurations,
   selectedSourceChainIds,
   enabledSourceChains,
-  onPress,
 }) => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
@@ -97,7 +95,7 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
 
   return (
     <Button
-      onPress={onPress ?? navigateToNetworkSelector}
+      onPress={navigateToNetworkSelector}
       variant={ButtonVariants.Secondary}
       label={
         <Box

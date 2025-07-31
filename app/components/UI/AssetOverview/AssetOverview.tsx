@@ -75,7 +75,6 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -235,16 +234,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    if (isSendRedesignEnabled()) {
-      navigation.navigate(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ROOT,
-        params: {
-          asset,
-        },
-      });
-    } else {
-      navigation.navigate('SendFlowView', {});
-    }
+    navigation.navigate('SendFlowView', {});
   };
 
   const onBuy = () => {
@@ -295,7 +285,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     () =>
       !isNonEvmAsset
         ? ['1d', '1w', '1m', '3m', '1y', '3y']
-        : ['1d', '1w', '1m', '3m', '1y', 'all'],
+        : ['1d', '1w', '1m', '3m', '1y'],
     [isNonEvmAsset],
   );
 

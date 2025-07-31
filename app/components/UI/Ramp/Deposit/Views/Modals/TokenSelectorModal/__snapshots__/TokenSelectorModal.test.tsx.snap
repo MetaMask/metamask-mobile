@@ -609,6 +609,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             data={
                               [
                                 {
+                                  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                                   "assetId": "eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                                   "chainId": "eip155:1",
                                   "decimals": 6,
@@ -617,6 +618,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "symbol": "USDC",
                                 },
                                 {
+                                  "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
                                   "assetId": "eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7",
                                   "chainId": "eip155:1",
                                   "decimals": 6,
@@ -650,7 +652,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "height": 533.6,
+                                "maxHeight": 533.6,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -850,21 +852,21 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          USDC
+                                          USD Coin
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          USDC
                                         </Text>
                                       </View>
                                     </View>
@@ -1092,21 +1094,21 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             }
                                           }
                                         >
-                                          USDT
+                                          Tether USD
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#121314",
                                               "fontFamily": "Geist Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
-                                          Ethereum
+                                          USDT
                                         </Text>
                                       </View>
                                     </View>

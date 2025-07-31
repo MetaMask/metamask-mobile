@@ -135,7 +135,6 @@ interface BridgeTokenSelectorBaseProps {
   tokensList: BridgeToken[];
   pending?: boolean;
   chainIdToFetchMetadata?: Hex | CaipChainId;
-  title?: string;
 }
 
 export const BridgeTokenSelectorBase: React.FC<
@@ -146,7 +145,6 @@ export const BridgeTokenSelectorBase: React.FC<
   tokensList,
   pending,
   chainIdToFetchMetadata: chainId,
-  title,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
   const safeAreaInsets = useSafeAreaInsets();
@@ -247,7 +245,7 @@ export const BridgeTokenSelectorBase: React.FC<
               justifyContent={JustifyContent.center}
             >
               <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
-                {title ?? strings('bridge.select_token')}
+                {strings('bridge.select_token')}
               </Text>
               <Box style={[styles.closeButton, styles.closeIconBox]}>
                 <TouchableOpacity

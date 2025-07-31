@@ -66,12 +66,15 @@ const createStyles = (colors) =>
       right: 0,
     },
     addressWrapper: {
+      paddingHorizontal: 16,
       paddingTop: 16,
     },
     rowWrapper: {
       paddingHorizontal: 16,
     },
-    buttonWrapper: {},
+    buttonWrapper: {
+      paddingVertical: 20,
+    },
     textInput: {
       borderWidth: 1,
       borderRadius: 8,
@@ -110,7 +113,7 @@ const createStyles = (colors) =>
       color: colors.error.default,
       paddingBottom: 8,
     },
-    tokenDetectionBanner: { marginTop: 20 },
+    tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20 },
     tokenDetectionDescription: { color: colors.text.default },
     tokenDetectionLink: { color: colors.primary.default },
     tokenDetectionIcon: {
@@ -122,7 +125,7 @@ const createStyles = (colors) =>
       color: colors.primary.default,
       ...fontStyles.normal,
       position: 'relative',
-      width: '100%',
+      width: '90%',
       alignSelf: 'center',
     },
     textWrapper: {
@@ -133,7 +136,7 @@ const createStyles = (colors) =>
       marginBottom: 16,
       marginTop: 4,
       borderColor: colors.border.default,
-      borderRadius: 8,
+      borderRadius: 2,
       flexDirection: 'row',
       alignItems: 'center',
       padding: 16,
@@ -727,15 +730,17 @@ class AddCustomToken extends PureComponent {
             </View>
           ) : null}
         </ScrollView>
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          label={strings('transaction.next')}
-          style={styles.import}
-          onPress={this.goToConfirmAddToken}
-          isDisabled={isDisabled}
-          testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
-        />
+        <View style={styles.buttonWrapper}>
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            label={strings('transaction.next')}
+            style={styles.import}
+            onPress={this.goToConfirmAddToken}
+            isDisabled={isDisabled}
+            testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
+          />
+        </View>
       </View>
     );
   };

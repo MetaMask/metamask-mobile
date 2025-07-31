@@ -728,7 +728,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('do not show error sheet for OAuth user dismissal', async () => {
+    it('should show error sheet for OAuth user dismissal', async () => {
       const dismissError = new OAuthError(OAuthErrorType.UserDismissed);
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
@@ -760,7 +760,7 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockNavigate).not.toHaveBeenCalledWith(
+      expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,

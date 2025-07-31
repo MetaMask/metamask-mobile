@@ -34,11 +34,11 @@ import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { VALIDATION_REGEX } from '../../constants/constants';
 import { getCryptoCurrencyFromTransakId } from '../../utils';
 import Logger from '../../../../../../util/Logger';
-import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface EnterAddressParams {
   formData: BasicInfoFormData;
   quote: BuyQuote;
+  kycUrl?: string;
 }
 
 export const createEnterAddressNavDetails =
@@ -56,12 +56,14 @@ interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { formData: basicInfoFormData, quote } =
-    useParams<EnterAddressParams>();
+  const {
+    formData: basicInfoFormData,
+    quote,
+    kycUrl,
+  } = useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const trackEvent = useAnalytics();
 
   const addressLine1InputRef = useRef<TextInput>(null);
   const addressLine2InputRef = useRef<TextInput>(null);
@@ -69,15 +71,13 @@ const EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(
-    quote.cryptoCurrency,
-    quote.network,
-  );
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
 
-  const { routeAfterAuthentication } = useDepositRouting({
-    cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
-    paymentMethodId: quote.paymentMethod,
-  });
+  const { navigateToAdditionalVerification, navigateToKycProcessing } =
+    useDepositRouting({
+      cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
+      paymentMethodId: quote.paymentMethod,
+    });
 
   const initialFormData: AddressFormData = {
     addressLine1: '',
@@ -175,6 +175,15 @@ const EnterAddress = (): JSX.Element => {
     throws: true,
   });
 
+  const [, submitPurpose] = useDepositSdkMethod(
+    {
+      method: 'submitPurposeOfUsageForm',
+      onMount: false,
+      throws: true,
+    },
+    ['Buying/selling crypto for investments'],
+  );
+
   const [, submitSsnDetails] = useDepositSdkMethod({
     method: 'submitSsnDetails',
     onMount: false,
@@ -194,12 +203,6 @@ const EnterAddress = (): JSX.Element => {
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
 
-    trackEvent('RAMPS_ADDRESS_ENTERED', {
-      region: selectedRegion?.isoCode || '',
-      ramp_type: 'DEPOSIT',
-      kyc_type: 'SIMPLE',
-    });
-
     try {
       setLoading(true);
       const combinedFormData = {
@@ -213,7 +216,13 @@ const EnterAddress = (): JSX.Element => {
         await submitSsnDetails(basicInfoFormData.ssn);
       }
 
-      await routeAfterAuthentication(quote);
+      await submitPurpose();
+
+      if (kycUrl) {
+        navigateToAdditionalVerification({ quote, kycUrl });
+      } else {
+        navigateToKycProcessing({ quote });
+      }
     } catch (submissionError) {
       setLoading(false);
       setError(
@@ -233,11 +242,12 @@ const EnterAddress = (): JSX.Element => {
     basicInfoFormData,
     formData,
     postKycForm,
+    submitPurpose,
     quote,
+    kycUrl,
+    navigateToAdditionalVerification,
     submitSsnDetails,
-    routeAfterAuthentication,
-    selectedRegion?.isoCode,
-    trackEvent,
+    navigateToKycProcessing,
   ]);
 
   return (

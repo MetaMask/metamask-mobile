@@ -23,12 +23,6 @@ export interface AssetDetailsActionsProps {
   goToBridge: () => void;
   onSend: () => void;
   onReceive: () => void;
-  // Optional custom action IDs to avoid test ID conflicts
-  buyButtonActionID?: string;
-  swapButtonActionID?: string;
-  bridgeButtonActionID?: string;
-  sendButtonActionID?: string;
-  receiveButtonActionID?: string;
 }
 
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
@@ -41,11 +35,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   goToBridge,
   onSend,
   onReceive,
-  buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
-  swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
-  bridgeButtonActionID = TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
-  sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
-  receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -61,7 +50,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
             disabled={!canSignTransactions}
-            actionID={buyButtonActionID}
+            actionID={TokenOverviewSelectorsIDs.BUY_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.buy_button')}
@@ -77,7 +66,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
             disabled={!canSignTransactions || !swapsIsLive}
-            actionID={swapButtonActionID}
+            actionID={TokenOverviewSelectorsIDs.SWAP_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.swap')}
@@ -93,7 +82,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
             disabled={!canSignTransactions}
-            actionID={bridgeButtonActionID}
+            actionID={TokenOverviewSelectorsIDs.BRIDGE_BUTTON}
           />
           <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.bridge')}
@@ -108,7 +97,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           containerStyle={styles.containerStyle}
           iconSize={AvatarSize.Lg}
           disabled={!canSignTransactions}
-          actionID={sendButtonActionID}
+          actionID={TokenOverviewSelectorsIDs.SEND_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.send_button')}
@@ -122,7 +111,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           containerStyle={styles.containerStyle}
           iconSize={AvatarSize.Lg}
           disabled={false}
-          actionID={receiveButtonActionID}
+          actionID={TokenOverviewSelectorsIDs.RECEIVE_BUTTON}
         />
         <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.receive_button')}

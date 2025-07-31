@@ -26,28 +26,6 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-// Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
-jest.mock('../../components/PerpsTPSLBottomSheet', () => ({
-  __esModule: true,
-  default: ({
-    isVisible,
-    onClose,
-  }: {
-    isVisible: boolean;
-    onClose: () => void;
-  }) => {
-    if (!isVisible) return null;
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    return (
-      <View testID="perps-tpsl-bottomsheet">
-        <TouchableOpacity onPress={onClose}>
-          <Text>Close</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  },
-}));
-
 // Mock the wagmi charts library to fix missing getDomain function
 jest.mock('react-native-wagmi-charts', () => {
   const { View } = jest.requireActual('react-native');
@@ -362,19 +340,13 @@ describe('PerpsPositionDetailsView', () => {
     it('handles edit TP/SL action', () => {
       // Act
       render(<PerpsPositionDetailsView />);
-
-      // Bottom sheet should not be visible initially
-      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
-
-      // Press edit button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
       );
 
-      // Assert - Bottom sheet should be visible
-      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeDefined();
-
-      // Component should still be on screen
+      // Assert
+      // Since handleEditTPSL just logs, we can't assert much here
+      // But we can ensure the component doesn't crash
       expect(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD),
       ).toBeOnTheScreen();

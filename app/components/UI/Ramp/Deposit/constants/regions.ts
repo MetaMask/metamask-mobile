@@ -1,5 +1,3 @@
-const DEFAULT_REGION_ISO_CODE = 'US';
-
 export interface DepositRegion {
   isoCode: string;
   flag: string;
@@ -2585,7 +2583,3 @@ export const US_STATES = [
   { code: 'PR', name: 'Puerto Rico' },
   { code: 'VI', name: 'U.S. Virgin Islands' },
 ];
-
-export const DEFAULT_REGION = DEPOSIT_REGIONS.find(
-  (region) => region.isoCode === DEFAULT_REGION_ISO_CODE,
-) as DepositRegion;

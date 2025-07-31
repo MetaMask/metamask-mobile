@@ -20,6 +20,7 @@ import {
   selectMultichainBalances,
 } from '../../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { selectSelectedNonEvmNetworkChainId } from '../../../../selectors/multichainNetworkController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CaipAssetType } from '@metamask/keyring-api';
 import { getCalculatedTokenAmount1dAgo } from './AggregatedPercentageCrossChains';
@@ -42,6 +43,7 @@ const NonEvmAggregatedPercentage = ({
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainAssets = useSelector(selectMultichainAssets);
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+  const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
   // refactor this to memoize
   const nonEvmAccountBalance = useMemo(
@@ -51,8 +53,15 @@ const NonEvmAggregatedPercentage = ({
         multichainBalances,
         multichainAssets,
         multichainAssetsRates,
+        nonEvmChainId,
       ),
-    [account, multichainBalances, multichainAssets, multichainAssetsRates],
+    [
+      account,
+      multichainBalances,
+      multichainAssets,
+      multichainAssetsRates,
+      nonEvmChainId,
+    ],
   );
 
   const nonEvmFiatBalancesArray = useMemo(() => {

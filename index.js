@@ -17,9 +17,6 @@ import {
   setReactNativeDefaultHandler,
 } from './app/core/ErrorHandler';
 
-import { enableFreeze } from 'react-native-screens';
-enableFreeze(true);
-
 // Setup Sentry
 setupSentry();
 

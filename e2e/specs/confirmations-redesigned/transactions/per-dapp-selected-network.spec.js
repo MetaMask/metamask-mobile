@@ -1,7 +1,12 @@
+'use strict';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../../fixtures/fixture-helper';
 import { buildPermissions } from '../../../fixtures/utils';
+import TestHelpers from '../../../helpers';
 import Browser from '../../../pages/Browser/BrowserView';
 import ConfirmationFooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
@@ -13,10 +18,9 @@ import WalletView from '../../../pages/wallet/WalletView';
 import { BrowserViewSelectorsIDs } from '../../../selectors/Browser/BrowserView.selectors';
 import { TestDappSelectorsWebIDs } from '../../../selectors/Browser/TestDapp.selectors';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import Assertions from '../../../framework/Assertions';
-import Matchers from '../../../framework/Matchers';
+import Assertions from '../../../utils/Assertions';
+import Matchers from '../../../utils/Matchers';
 import { loginToApp } from '../../../viewHelper';
-import { DappVariants } from '../../../framework/Constants';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
@@ -46,22 +50,20 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(15000);
+    await TestHelpers.reverseServerPort();
   });
 
   it('submits a transaction to a dApp selected network', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions([LOCAL_CHAIN_ID]),
           )
           .build(),
+        ganacheOptions: defaultGanacheOptions,
         restartDevice: true,
         testSpecificMock,
       },
@@ -69,6 +71,7 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
+        await Browser.waitForBrowserPageToLoad();
 
         // Make sure the dapp is connected to the predefined network in configuration (LOCAL_CHAIN_ID)
         // by checking chainId text in the test dapp
@@ -85,12 +88,12 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
         await TestDApp.tapSendEIP1559Button();
 
         // Wait for the confirmation modal to appear
-        await Assertions.expectElementToBeVisible(
+        await Assertions.checkIfVisible(
           ConfirmationUITypes.ModalConfirmationContainer,
         );
 
         // Assert the transaction is happening on the correct network
-        await Assertions.expectTextDisplayed(LOCAL_CHAIN_NAME);
+        await Assertions.checkIfTextIsDisplayed(LOCAL_CHAIN_NAME);
 
         // Accept confirmation
         await ConfirmationFooterActions.tapConfirmButton();
@@ -100,7 +103,7 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Confirmed');
+        await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );
   });

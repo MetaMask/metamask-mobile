@@ -1,11 +1,7 @@
 // Core hooks (direct controller access)
-export { usePerpsDeposit } from './usePerpsDeposit';
-export { usePerpsDepositQuote } from './usePerpsDepositQuote';
-export { usePerpsMarkets } from './usePerpsMarkets';
-export { usePerpsNetwork } from './usePerpsNetwork';
-export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsTrading } from './usePerpsTrading';
-export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
+export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
+export { usePerpsNetwork } from './usePerpsNetwork';
 
 // Connection management hooks
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
@@ -15,28 +11,10 @@ export { usePerpsAccount } from './usePerpsAccount';
 
 // Live data hooks (WebSocket subscriptions)
 export { usePerpsPositionData } from './usePerpsPositionData';
-export { usePerpsPrices } from './usePerpsPrices';
+// - usePerpsPrices (removed with Live Market Prices component)
 
-// Asset metadata hooks
-export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
-
-// Payment token hooks
-export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
-
-// Market data and calculation hooks
-export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
-export { usePerpsMarketData } from './usePerpsMarketData';
-
-// Withdrawal specific hooks
-export { useWithdrawTokens } from './useWithdrawTokens';
-export { useWithdrawValidation } from './useWithdrawValidation';
-
-// UI utility hooks
-export { useBalanceComparison } from './useBalanceComparison';
-export { useColorPulseAnimation } from './useColorPulseAnimation';
-export { usePerpsPositions } from './usePerpsPositions';
-export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
-
+// Removed for minimal PR:
+// - usePerpsPositions (positions management)
 // - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)

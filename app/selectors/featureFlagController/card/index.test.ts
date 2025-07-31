@@ -32,26 +32,17 @@ const mockedSupportedToken: SupportedToken = {
 
 const mockedSupportedChain: SupportedChain = {
   enabled: true,
-  balanceScannerAddress: '0xabc',
-  foxConnectAddresses: {
-    global: '0xdef',
-    us: '0xghi',
-  },
   tokens: [mockedSupportedToken],
 };
 
 const mockedCardFeatureFlag: CardFeatureFlag = {
-  constants: {
-    onRampApiUrl: 'https://api.onramp.metamask.io',
-    accountsApiUrl: 'https://api.accounts.metamask.io',
+  '1': mockedSupportedChain, // Ethereum mainnet
+  '137': {
+    // Polygon
+    enabled: false,
+    tokens: null,
   },
-  chains: {
-    '1': mockedSupportedChain,
-    '137': {
-      enabled: false,
-      tokens: null,
-    },
-  },
+  '56': undefined, // BSC - undefined chain
 };
 
 const mockedStateWithCardFeatureFlag = {
@@ -65,8 +56,7 @@ const mockedStateWithCardFeatureFlag = {
       },
     },
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any;
+};
 
 const mockedStateWithPartialCardFeatureFlag = {
   engine: {
@@ -74,16 +64,13 @@ const mockedStateWithPartialCardFeatureFlag = {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
           cardFeature: {
-            constants: {},
-            chains: {
-              '1': {
-                enabled: true,
-                // tokens is undefined
-              },
-              '137': {
-                // enabled is undefined
-                tokens: [],
-              },
+            '1': {
+              enabled: true,
+              // tokens is undefined
+            },
+            '137': {
+              // enabled is undefined
+              tokens: [],
             },
           },
         },
@@ -91,19 +78,16 @@ const mockedStateWithPartialCardFeatureFlag = {
       },
     },
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any;
+};
 
 describe('Card Feature Flag Selector', () => {
   it('returns null when feature flag state is empty', () => {
     const result = selectCardFeatureFlag(mockedEmptyFlagsState);
-
     expect(result).toEqual(null);
   });
 
   it('returns null when RemoteFeatureFlagController state is undefined', () => {
     const result = selectCardFeatureFlag(mockedUndefinedFlagsState);
-
     expect(result).toEqual(null);
   });
 
@@ -121,31 +105,31 @@ describe('Card Feature Flag Selector', () => {
       },
     };
 
-    const result = selectCardFeatureFlag(stateWithNullCardFlag);
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = selectCardFeatureFlag(stateWithNullCardFlag as any);
     expect(result).toBeNull();
   });
 
   it('returns card feature flag when properly configured', () => {
-    const result = selectCardFeatureFlag(mockedStateWithCardFeatureFlag);
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = selectCardFeatureFlag(mockedStateWithCardFeatureFlag as any);
     expect(result).toEqual(mockedCardFeatureFlag);
   });
 
   it('handles partial configuration correctly', () => {
-    const result = selectCardFeatureFlag(mockedStateWithPartialCardFeatureFlag);
+    const result = selectCardFeatureFlag(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockedStateWithPartialCardFeatureFlag as any,
+    );
 
     expect(result).toEqual({
-      constants: {},
-      chains: {
-        '1': {
-          enabled: true,
-          tokens: undefined,
-        },
-        '137': {
-          enabled: undefined,
-          tokens: [],
-        },
+      '1': {
+        enabled: true,
+        tokens: undefined,
+      },
+      '137': {
+        enabled: undefined,
+        tokens: [],
       },
     });
   });
@@ -157,13 +141,10 @@ describe('Card Feature Flag Selector', () => {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               cardFeature: {
-                constants: {},
-                chains: {
-                  '1': undefined,
-                  '137': {
-                    enabled: true,
-                    tokens: [mockedSupportedToken],
-                  },
+                '1': undefined,
+                '137': {
+                  enabled: true,
+                  tokens: [mockedSupportedToken],
                 },
               },
             },
@@ -171,19 +152,16 @@ describe('Card Feature Flag Selector', () => {
           },
         },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    };
 
-    const result = selectCardFeatureFlag(stateWithUndefinedChain);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = selectCardFeatureFlag(stateWithUndefinedChain as any);
 
     expect(result).toEqual({
-      constants: {},
-      chains: {
-        '1': undefined,
-        '137': {
-          enabled: true,
-          tokens: [mockedSupportedToken],
-        },
+      '1': undefined,
+      '137': {
+        enabled: true,
+        tokens: [mockedSupportedToken],
       },
     });
   });
@@ -195,20 +173,18 @@ describe('Card Feature Flag Selector', () => {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               cardFeature: {
-                chains: {
-                  '1': {
-                    enabled: true,
-                    tokens: [
-                      mockedSupportedToken,
-                      {
-                        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-                        decimals: 6,
-                        enabled: false,
-                        name: 'Another Token',
-                        symbol: 'ANOTHER',
-                      },
-                    ],
-                  },
+                '1': {
+                  enabled: true,
+                  tokens: [
+                    mockedSupportedToken,
+                    {
+                      address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+                      decimals: 6,
+                      enabled: false,
+                      name: 'Another Token',
+                      symbol: 'ANOTHER',
+                    },
+                  ],
                 },
               },
             },
@@ -216,14 +192,14 @@ describe('Card Feature Flag Selector', () => {
           },
         },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    };
 
-    const result = selectCardFeatureFlag(stateWithMultipleTokens);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = selectCardFeatureFlag(stateWithMultipleTokens as any);
 
-    expect(result?.chains?.['1']?.tokens).toHaveLength(2);
-    expect(result?.chains?.['1']?.tokens?.[0]).toEqual(mockedSupportedToken);
-    expect(result?.chains?.['1']?.tokens?.[1]).toEqual({
+    expect(result?.['1']?.tokens).toHaveLength(2);
+    expect(result?.['1']?.tokens?.[0]).toEqual(mockedSupportedToken);
+    expect(result?.['1']?.tokens?.[1]).toEqual({
       address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       decimals: 6,
       enabled: false,
@@ -239,11 +215,9 @@ describe('Card Feature Flag Selector', () => {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               cardFeature: {
-                chains: {
-                  '1': {
-                    enabled: false,
-                    tokens: null,
-                  },
+                '1': {
+                  enabled: false,
+                  tokens: null,
                 },
               },
             },
@@ -256,7 +230,7 @@ describe('Card Feature Flag Selector', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = selectCardFeatureFlag(stateWithDisabledChain as any);
 
-    expect(result?.chains?.['1']?.enabled).toBe(false);
-    expect(result?.chains?.['1']?.tokens).toBeNull();
+    expect(result?.['1']?.enabled).toBe(false);
+    expect(result?.['1']?.tokens).toBeNull();
   });
 });

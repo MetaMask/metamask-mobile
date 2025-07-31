@@ -4,7 +4,7 @@ import {
 } from '../../selectors/Common/ForgotPasswordModal.selectors';
 import Matchers from '../../framework/Matchers.ts';
 import Gestures from '../../framework/Gestures.ts';
-import { OnboardingSelectorText } from '../../selectors/Onboarding/Onboarding.selectors';
+import { OnboardingSelectorText } from '../../selectors/Onboarding/Onboarding.selectors.js';
 
 class ForgotPasswordModalView {
   get container(): DetoxElement {

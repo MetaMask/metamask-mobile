@@ -1,14 +1,14 @@
+'use strict';
 import TestHelpers from '../../../../helpers';
 import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
-import Assertions from '../../../../framework/Assertions';
-import { DappVariants } from '../../../../framework/Constants';
+import Assertions from '../../../../utils/Assertions';
 
 describe(SmokeNetworkExpansion('Account Permission Management'), () => {
   beforeAll(async () => {
@@ -19,11 +19,7 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
   it('revokes dapp access for single account while maintaining other connections', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
           .build(),
@@ -32,7 +28,7 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+        await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
@@ -42,12 +38,8 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToNotBeVisible(
-          ConnectedAccountsModal.title,
-        );
-        await Assertions.expectElementToBeVisible(
-          NetworkListModal.networkScroll,
-        );
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
       },
     );
   });

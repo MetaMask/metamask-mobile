@@ -1,24 +1,22 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import { MultichainDeleteAccountSelectors } from '../../selectors/MultichainAccounts/DeleteAccount.selectors';
 
 class DeleteAccount {
-  get container(): DetoxElement {
+  get container() {
     return Matchers.getElementByID(
       MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER,
     );
   }
 
-  get deleteAccountButton(): DetoxElement {
+  get deleteAccountButton() {
     return Matchers.getElementByID(
       MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
     );
   }
 
-  async tapDeleteAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.deleteAccountButton, {
-      elemDescription: 'Delete Account Button in Delete Account',
-    });
+  async tapDeleteAccount() {
+    await Gestures.waitAndTap(this.deleteAccountButton);
   }
 }
 

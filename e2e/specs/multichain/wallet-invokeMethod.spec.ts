@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+'use strict';
 /**
  * E2E tests for wallet_invokeMethod API
  * Tests invoking RPC methods on specific chains, including read/write operations
@@ -18,21 +20,22 @@
  * 2. Result elements are created in the DOM
  * 3. Results appear in the expected format (truncated vs non-truncated)
  */
+import TestHelpers from '../../helpers';
 import { SmokeMultiChainAPI } from '../../tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+} from '../../fixtures/fixture-helper';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import MultichainUtilities from '../../utils/MultichainUtilities';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../utils/Assertions';
 import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import { waitFor } from 'detox';
 import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { isHexString } from '@metamask/utils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { DappVariants } from '../../framework/Constants';
-import { LocalNodeType } from '../../framework';
-import { AnvilNodeOptions } from '../../framework/types';
 
 const ANVIL_NODE_OPTIONS_WITH_GATOR = [
   {
@@ -48,15 +51,15 @@ const REMOTE_FEATURE_EIP_7702_MOCK = {
 };
 
 describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
+  beforeEach(() => {
+    jest.setTimeout(150000); // 2.5 minute timeout for stability
+  });
+
   describe('Read operations: calling different methods on each connected scope', () => {
     it('should match selected method to the expected output for eth_chainId', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-            },
-          ],
+          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
           fixture: new FixtureBuilder().withPopularNetworks().build(),
           restartDevice: true,
         },
@@ -84,6 +87,8 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
               `Session validation failed. Expected ${networksToTest.length} chains, got ${sessionAssertions.chainCount}`,
             );
           }
+
+          await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
           const method = 'eth_chainId';
 
@@ -141,11 +146,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     it('should successfully call eth_getBalance method and return balance', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-            },
-          ],
+          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
           fixture: new FixtureBuilder().withPopularNetworks().build(),
           restartDevice: true,
         },
@@ -155,6 +156,8 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
           const networksToTest =
             MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
           await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+
+          await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
           const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
           const method = 'eth_getBalance';
@@ -196,11 +199,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     it('should successfully call eth_gasPrice method and return gas price', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-            },
-          ],
+          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
           fixture: new FixtureBuilder().withPopularNetworks().build(),
           restartDevice: true,
         },
@@ -210,6 +209,8 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
           const networksToTest =
             MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
           await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+
+          await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
           const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
           const method = 'eth_gasPrice';
@@ -253,11 +254,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     it('should trigger eth_sendTransaction confirmation dialog and reject transaction', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-            },
-          ],
+          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
           fixture: new FixtureBuilder().withPopularNetworks().build(),
           restartDevice: true,
         },
@@ -267,6 +264,8 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
           const networksToTest =
             MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
           await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+
+          await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
           const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
           const method = 'eth_sendTransaction';
@@ -299,11 +298,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     it('should verify transaction methods require confirmation', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-            },
-          ],
+          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
           fixture: new FixtureBuilder().withPopularNetworks().build(),
           restartDevice: true,
         },
@@ -313,6 +308,8 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
           const networksToTest =
             MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
           await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+
+          await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
           const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
           const writeOperations = ['eth_sendTransaction', 'personal_sign'];
@@ -350,11 +347,7 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     it('should handle multiple method calls in sequence', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-            },
-          ],
+          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
           fixture: new FixtureBuilder().withPopularNetworks().build(),
           restartDevice: true,
         },
@@ -364,6 +357,8 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
           const networksToTest =
             MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
           await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+
+          await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
           const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
           const methodsToTest = [
@@ -411,6 +406,8 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
                 `${method} returned invalid result. Expected hex string, got: ${resultText}`,
               );
             }
+
+            await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.DEFAULT_DELAY);
           }
         },
       );
@@ -421,20 +418,11 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     it('should be able to call: wallet_getCapabilties', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-            },
-          ],
+          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
           fixture: new FixtureBuilder().withDefaultFixture().build(),
           restartDevice: true,
-          localNodeOptions: [
-            {
-              type: LocalNodeType.anvil,
-              options: ANVIL_NODE_OPTIONS_WITH_GATOR[0]
-                .options as AnvilNodeOptions,
-            },
-          ],
+          //@ts-expect-error - localNodeOptions is not typed
+          localNodeOptions: ANVIL_NODE_OPTIONS_WITH_GATOR,
           testSpecificMock: REMOTE_FEATURE_EIP_7702_MOCK,
         },
         async () => {
@@ -442,6 +430,8 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
 
           const chainId = MultichainUtilities.CHAIN_IDS.LOCALHOST;
           await MultichainTestDApp.createSessionWithNetworks([chainId]);
+
+          await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
           const method = 'wallet_getCapabilities';
 
@@ -468,20 +458,11 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     it('should be able to call: wallet_sendCalls', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-            },
-          ],
+          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
           fixture: new FixtureBuilder().withDefaultFixture().build(),
           restartDevice: true,
-          localNodeOptions: [
-            {
-              type: LocalNodeType.anvil,
-              options: ANVIL_NODE_OPTIONS_WITH_GATOR[0]
-                .options as AnvilNodeOptions,
-            },
-          ],
+          //@ts-expect-error - localNodeOptions is not typed
+          localNodeOptions: ANVIL_NODE_OPTIONS_WITH_GATOR,
           testSpecificMock: REMOTE_FEATURE_EIP_7702_MOCK,
         },
         async () => {
@@ -513,20 +494,11 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
     it('should be able to call: wallet_getCallsStatus', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-            },
-          ],
+          ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
           fixture: new FixtureBuilder().withDefaultFixture().build(),
           restartDevice: true,
-          localNodeOptions: [
-            {
-              type: LocalNodeType.anvil,
-              options: ANVIL_NODE_OPTIONS_WITH_GATOR[0]
-                .options as AnvilNodeOptions,
-            },
-          ],
+          //@ts-expect-error - localNodeOptions is not typed
+          localNodeOptions: ANVIL_NODE_OPTIONS_WITH_GATOR,
           testSpecificMock: REMOTE_FEATURE_EIP_7702_MOCK,
         },
         async () => {
@@ -556,6 +528,8 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
             );
           }
 
+          await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
+
           // Now call wallet_getCallsStatus with the batch ID
           const getStatusMethod = 'wallet_getCallsStatus';
 
@@ -572,12 +546,12 @@ describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
           const getStatusResult = JSON.parse(getStatusResultText ?? '{}');
 
           Assertions.checkIfObjectHasKeysAndValidValues(getStatusResult, {
-            version: (value: unknown) =>
+            version: (value: string) =>
               typeof value === 'string' && value.length > 0,
             id: isHexString,
             chainId: isHexString,
             atomic: Boolean,
-            status: (value: unknown) => value === 200,
+            status: 200,
             receipts: Array.isArray,
           });
         },

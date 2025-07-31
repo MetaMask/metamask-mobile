@@ -1,3 +1,4 @@
+'use strict';
 /**
  * E2E tests for Solana methods using Multichain API
  */
@@ -6,19 +7,21 @@ import TestHelpers from '../../../helpers';
 import { SmokeMultiChainAPI } from '../../../tags';
 import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+} from '../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../viewHelper';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../utils/Assertions';
 import MultichainTestDApp from '../../../pages/Browser/MultichainTestDApp';
 import SolanaNewFeatureSheet from '../../../pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import Gestures from '../../../framework/Gestures';
-import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../utils/Gestures';
+import Matchers from '../../../utils/Matchers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
-import { DappVariants } from '../../../framework/Constants';
 
 const SOLANA_MAINNET_CHAIN_ID = SolScope.Mainnet;
 
@@ -26,15 +29,11 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
   it('should be able to call method: signIn', async () => {
     await withFixtures(
       {
+        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
         fixture: new FixtureBuilder()
           .withSolanaFixture()
           .withSolanaFeatureSheetDisplayed()
           .build(),
-        dapps: [
-          {
-            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-          },
-        ],
         restartDevice: true,
       },
       async () => {
@@ -44,15 +43,13 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
         await SolanaNewFeatureSheet.tapNotNowButton();
 
         await WalletView.tapIdenticon();
-        await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.accountList,
-        );
+        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapAddSolanaAccount();
         await AddNewHdAccountComponent.tapConfirm();
 
         await TabBarComponent.tapBrowser();
-        await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+        await Assertions.checkIfVisible(Browser.browserScreenID);
 
         await MultichainTestDApp.navigateToMultichainTestDApp();
 
@@ -67,9 +64,8 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
           method,
         );
 
-        // This needs to be turned into a PageObject for consistency
         const buttonElement = await Matchers.getElementByText('Confirm');
-        await Gestures.waitAndTap(buttonElement as unknown as DetoxElement);
+        await Gestures.waitAndTap(buttonElement);
 
         const resultText = await MultichainTestDApp.getInvokeMethodResult(
           SOLANA_MAINNET_CHAIN_ID,

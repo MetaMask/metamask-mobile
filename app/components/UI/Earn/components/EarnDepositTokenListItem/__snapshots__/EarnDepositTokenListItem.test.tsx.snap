@@ -167,7 +167,7 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#457a39",
+          "color": "#1c7e33",
           "fontFamily": "Geist Bold",
           "fontSize": 16,
           "letterSpacing": 0,

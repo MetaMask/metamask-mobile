@@ -90,7 +90,7 @@ exports[`HintModal should render correctly 1`] = `
         multiline={true}
         onChangeText={[Function]}
         placeholder="e.g. Mom's house"
-        placeholderTextColor="#b7bbc8"
+        placeholderTextColor="#9ca1af"
         style={
           {
             "borderColor": "#b7bbc8",

@@ -58,7 +58,7 @@ import {
   selectInternalAccounts,
   selectInternalAccountsById,
 } from '../../../selectors/accountsController';
-import { AccountWalletObject } from '@metamask/account-tree-controller';
+import { AccountWallet } from '@metamask/account-tree-controller';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 
 /**
@@ -310,7 +310,7 @@ const EvmAccountSelectorList = ({
   );
 
   const onNavigateToWalletDetails = useCallback(
-    (wallet: AccountWalletObject) => {
+    (wallet: AccountWallet) => {
       navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
         walletId: wallet.id,
       });
@@ -319,7 +319,7 @@ const EvmAccountSelectorList = ({
   );
 
   const renderSectionHeader = useCallback(
-    ({ title, wallet }: { title: string; wallet?: AccountWalletObject }) => (
+    ({ title, wallet }: { title: string; wallet?: AccountWallet }) => (
       <View style={styles.sectionHeader}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {title}

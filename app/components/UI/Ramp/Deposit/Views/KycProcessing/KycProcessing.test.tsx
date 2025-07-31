@@ -2,16 +2,15 @@ import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import KycProcessing from './KycProcessing';
 import Routes from '../../../../../../constants/navigation/Routes';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { KycStatus } from '../../constants';
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
-import initialRootState from '../../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockStopPolling = jest.fn();
 const mockStartPolling = jest.fn();
-const mockRouteAfterAuthentication = jest.fn();
+const mockHandleApprovedKycFlow = jest.fn();
 
 const mockTrackEvent = jest.fn();
 
@@ -71,20 +70,20 @@ jest.mock('../../hooks/useUserDetailsPolling', () => {
   return mockHook;
 });
 
+jest.mock('../../../../../UI/Navbar', () => ({
+  getDepositNavbarOptions: jest.fn().mockReturnValue({
+    title: 'KYC Processing',
+  }),
+}));
+
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
-    routeAfterAuthentication: mockRouteAfterAuthentication,
+    handleApprovedKycFlow: mockHandleApprovedKycFlow,
   })),
 }));
 
 function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    { name: Routes.DEPOSIT.KYC_PROCESSING },
-    {
-      state: initialRootState,
-    },
-  );
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.KYC_PROCESSING);
 }
 
 describe('KycProcessing Component', () => {
@@ -96,7 +95,7 @@ describe('KycProcessing Component', () => {
     mockUseUserDetailsPolling.userDetails = null;
     mockUseUserDetailsPolling.loading = false;
     mockUseUserDetailsPolling.error = null;
-    mockRouteAfterAuthentication.mockClear();
+    mockHandleApprovedKycFlow.mockClear();
     mockTrackEvent.mockClear();
   });
 
@@ -107,7 +106,11 @@ describe('KycProcessing Component', () => {
 
   it('calls setOptions when the component mounts', () => {
     render(KycProcessing);
-    expect(mockSetNavigationOptions).toHaveBeenCalled();
+    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'KYC Processing',
+      }),
+    );
   });
 
   it('renders loading state snapshot', () => {
@@ -153,15 +156,15 @@ describe('KycProcessing Component', () => {
       };
     });
 
-    it('calls routeAfterAuthentication when continue button is pressed', async () => {
-      mockRouteAfterAuthentication.mockResolvedValueOnce(undefined);
+    it('calls handleApprovedKycFlow when continue button is pressed', async () => {
+      mockHandleApprovedKycFlow.mockResolvedValueOnce(undefined);
       render(KycProcessing);
 
       const continueButton = screen.getByText('Complete your order');
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
+        expect(mockHandleApprovedKycFlow).toHaveBeenCalledWith(mockQuote);
       });
     });
   });

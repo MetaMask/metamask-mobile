@@ -19,13 +19,11 @@ import CandlestickChartComponent from '../../components/PerpsCandlestickChart/Pe
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPositionHeader from '../../components/PerpsPostitionHeader/PerpsPositionHeader';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
-import { usePerpsTPSLUpdate } from '../../hooks';
 import { createStyles } from './PerpsPositionDetailsView.styles';
-import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 
 interface PositionDetailsRouteParams {
   position: Position;
-  action?: 'close' | 'edit_tpsl';
+  action?: 'close' | 'edit';
 }
 
 const PerpsPositionDetailsView: React.FC = () => {
@@ -37,13 +35,6 @@ const PerpsPositionDetailsView: React.FC = () => {
   const { position } = route.params || {};
 
   const [selectedInterval, setSelectedInterval] = useState('1h');
-  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
-    onSuccess: () => {
-      // Navigate back to refresh the position
-      navigation.goBack();
-    },
-  });
   const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
     coin: position?.coin || '',
     selectedInterval,
@@ -62,16 +53,15 @@ const PerpsPositionDetailsView: React.FC = () => {
     navigation.goBack();
   };
 
-  // Handle initial navigation action
+  // Initialize TP/SL values from current position
   useEffect(() => {
-    if (route.params?.action === 'edit_tpsl') {
-      setIsTPSLVisible(true);
-    }
-  }, [route.params?.action]);
+    // TODO: Get current TP/SL from position when available in Position type
+    // setTakeProfitPrice(position.takeProfitPrice || '');
+    // setStopLossPrice(position.stopLossPrice || '');
+  }, [position]);
 
   const handleEditTPSL = () => {
-    DevLogger.log('PerpsPositionDetailsView: handleEditTPSL called');
-    setIsTPSLVisible(true);
+    DevLogger.log('PerpsPositionDetails: handleEditTPSL not implemented');
   };
 
   if (!position) {
@@ -116,31 +106,10 @@ const PerpsPositionDetailsView: React.FC = () => {
             position={position}
             onClose={handleClosePosition}
             onEdit={handleEditTPSL}
+            disabled
           />
         </View>
       </ScrollView>
-
-      {/* TP/SL Bottom Sheet */}
-      {isTPSLVisible && (
-        <PerpsTPSLBottomSheet
-          isVisible
-          onClose={() => setIsTPSLVisible(false)}
-          onConfirm={async (takeProfitPrice, stopLossPrice) => {
-            await handleUpdateTPSL(position, takeProfitPrice, stopLossPrice);
-            setIsTPSLVisible(false);
-          }}
-          asset={position.coin}
-          position={position}
-          currentPrice={
-            priceData?.price
-              ? parseFloat(priceData.price)
-              : parseFloat(position.entryPrice) // Fallback to entry price
-          }
-          initialTakeProfitPrice={position.takeProfitPrice}
-          initialStopLossPrice={position.stopLossPrice}
-          isUpdating={isUpdating}
-        />
-      )}
     </SafeAreaView>
   );
 };

@@ -2,9 +2,8 @@ import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import BankDetails from './BankDetails';
 import Routes from '../../../../../../constants/navigation/Routes';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
-import initialRootState from '../../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -65,6 +64,7 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => mockOrderData),
+  useDispatch: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -86,6 +86,10 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => ({ orderId: 'test-order-id' })),
 }));
 
+jest.mock('../../../index', () => ({
+  processFiatOrder: jest.fn(),
+}));
+
 jest.mock('../../../Aggregator/sdk', () => ({
   RampSDKProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -100,13 +104,7 @@ jest.mock('../../sdk', () => ({
 }));
 
 function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    {
-      name: Routes.DEPOSIT.BANK_DETAILS,
-    },
-    { state: initialRootState },
-  );
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.BANK_DETAILS);
 }
 
 describe('BankDetails Component', () => {

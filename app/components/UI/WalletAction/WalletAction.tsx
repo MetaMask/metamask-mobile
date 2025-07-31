@@ -46,8 +46,8 @@ const WalletAction = ({
     // TODO(deposit): Add i18n once we have official copy
     [WalletActionType.Deposit]: {
       title: 'Deposit',
-      description: strings('asset_overview.deposit_description'),
-      disabledDescription: strings('asset_overview.disabled_button.deposit'),
+      description: 'Convert cash to stablecoins',
+      disabledDescription: 'Disabled Deposit',
     },
     [WalletActionType.Swap]: {
       title: strings('asset_overview.swap'),
@@ -78,13 +78,6 @@ const WalletAction = ({
       title: strings('asset_overview.perps_button'),
       description: strings('asset_overview.perps_description'),
       disabledDescription: strings('asset_overview.disabled_button.perps'),
-    },
-    [WalletActionType.PerpsSandbox]: {
-      title: strings('asset_overview.perps_sandbox_button'),
-      description: strings('asset_overview.perps_sandbox_description'),
-      disabledDescription: strings(
-        'asset_overview.disabled_button.perps_sandbox',
-      ),
     },
   };
 

@@ -1,9 +1,11 @@
+import TestHelpers from '../../../helpers';
 import BrowserView from '../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../../../pages/Browser/ConnectedAccountsModal';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import Assertions from '../../../framework/Assertions';
+import { SOLANA_TEST_TIMEOUTS } from '../../../selectors/Browser/SolanaTestDapp.selectors';
+import Assertions from '../../../utils/Assertions';
 
 export const account1Short = 'CEQ8...Yrrd';
 export const account2Short = '9Wa2...Dj2U';
@@ -14,12 +16,9 @@ export const account2Short = '9Wa2...Dj2U';
  * @param options.selectAllAccounts - Whether we connect with all accounts or only the default one
  */
 export const connectSolanaTestDapp = async (
-  options: {
-    selectAllAccounts?: boolean;
-    assert?: () => Promise<void>;
-  } = {},
+  options: { selectAllAccounts?: boolean } = {},
 ): Promise<void> => {
-  const { selectAllAccounts, assert } = options;
+  const { selectAllAccounts } = options;
 
   const header = SolanaTestDApp.getHeader();
   await header.connect();
@@ -31,16 +30,14 @@ export const connectSolanaTestDapp = async (
     await ConnectBottomSheet.tapAccountConnectMultiSelectButton();
   }
 
-  if (assert) {
-    await assert();
-  }
-
+  // Click connect button
+  await TestHelpers.delay(SOLANA_TEST_TIMEOUTS.CONNECTION);
   await ConnectBottomSheet.tapConnectButton();
 };
 
 export const navigateToSolanaTestDApp = async (): Promise<void> => {
   await TabBarComponent.tapBrowser();
-  await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
+  await Assertions.checkIfVisible(BrowserView.browserScreenID);
   await SolanaTestDApp.navigateToSolanaTestDApp();
 };
 

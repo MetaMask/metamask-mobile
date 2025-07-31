@@ -2,21 +2,21 @@ import {
   QuotesModalSelectorIDs,
   QuotesModalSelectorsTexts,
 } from '../../selectors/swaps/QuotesModal.selectors.js';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
 class QuotesModal {
-  get closeButton(): DetoxElement {
+  get closeButton() {
     return Matchers.getElementByID(QuotesModalSelectorIDs.QUOTES_MODAL_CLOSE);
   }
 
-  get header(): DetoxElement {
+  get header() {
     return Matchers.getElementByText(QuotesModalSelectorsTexts.QUOTES_OVERVIEW);
   }
 
-  async close(): Promise<void> {
+  async close() {
     await Gestures.waitAndTap(this.closeButton, {
-      elemDescription: 'Close Button in Quotes Modal',
+      experimentalWaitForStability: true,
     });
   }
 }

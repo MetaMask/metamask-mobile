@@ -76,6 +76,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
@@ -83,8 +85,6 @@ import {
   trace,
   TraceOperation,
 } from '../../../util/trace';
-import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
-import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -515,6 +515,7 @@ class ChoosePassword extends PureComponent {
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
+        password_strength: getPasswordStrengthWord(this.state.passwordStrength),
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',

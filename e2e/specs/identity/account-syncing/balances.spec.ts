@@ -1,10 +1,11 @@
 import {
   importWalletWithRecoveryPhrase,
   loginToApp,
-} from '../../../viewHelper';
-import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../framework/Assertions';
+} from '../../../viewHelper.js';
+import TestHelpers from '../../../helpers.js';
+import WalletView from '../../../pages/wallet/WalletView.js';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
+import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
@@ -13,18 +14,19 @@ import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../framework/fixtures/FixtureBuilder';
-import { defaultGanacheOptions } from '../../../framework/Constants';
+} from '../../../fixtures/fixture-builder.js';
+import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
 import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(SmokeIdentity('Account syncing - Accounts with Balances'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {
+    await TestHelpers.reverseServerPort();
     sharedUserStorageController = createUserStorageController();
   });
 

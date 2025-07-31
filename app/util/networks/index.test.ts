@@ -31,7 +31,6 @@ import {
   LINEA_SEPOLIA,
   MEGAETH_TESTNET,
   MONAD_TESTNET,
-  BASE_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
@@ -121,7 +120,6 @@ describe('network-utils', () => {
       expect(allNetworks).toStrictEqual([
         MAINNET,
         LINEA_MAINNET,
-        BASE_MAINNET,
         SEPOLIA,
         LINEA_SEPOLIA,
         MEGAETH_TESTNET,

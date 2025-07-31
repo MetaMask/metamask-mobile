@@ -1,11 +1,10 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 import EnterEmail from './EnterEmail';
-import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
-import initialRootState from '../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -57,13 +56,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    { name: Routes.DEPOSIT.ENTER_EMAIL },
-    {
-      state: initialRootState,
-    },
-  );
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_EMAIL);
 }
 
 describe('EnterEmail Component', () => {

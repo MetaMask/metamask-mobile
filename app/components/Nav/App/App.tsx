@@ -5,11 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  useNavigation,
-  useRoute,
-  useNavigationState,
-} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -39,6 +35,7 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
+import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
@@ -158,8 +155,6 @@ import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
-import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
-import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -894,24 +889,21 @@ const AppFlow = () => {
           name={Routes.SMART_ACCOUNT_OPT_IN}
           component={ModalSmartAccountOptIn}
         />
-        <Stack.Screen
-          name={Routes.CONFIRMATION_PAY_WITH_MODAL}
-          component={PayWithModal}
-        />
-        <Stack.Screen
-          name={Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL}
-          component={PayWithNetworkModal}
-        />
       </Stack.Navigator>
     </>
   );
 };
 
+interface DeepLinkQueuedItem {
+  uri: string;
+  func: () => void;
+}
+
 const App: React.FC = () => {
   const navigation = useNavigation();
   const userLoggedIn = useSelector(selectUserLoggedIn);
-  const routes = useNavigationState((state) => state.routes);
   const [onboarded, setOnboarded] = useState(false);
+  const queueOfHandleDeeplinkFunctions = useRef<DeepLinkQueuedItem[]>([]);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
@@ -961,13 +953,6 @@ const App: React.FC = () => {
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
-          // Check if we came from Settings screen to skip auto-authentication
-          const previousRoute = routes[routes.length - 2]?.name;
-
-          if (previousRoute === Routes.SETTINGS_VIEW) {
-            return;
-          }
-
           // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
@@ -1025,7 +1010,8 @@ const App: React.FC = () => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
     // existingUser and isMetaMetricsUISeen are not present in the dependency array because they are not needed to re-run the effect when they change and it will cause a bug.
-  }, [navigation]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigation, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(
     ({ uri }: { uri?: string }) => {
@@ -1041,15 +1027,43 @@ const App: React.FC = () => {
     [dispatch],
   );
 
-  // Subscribe to incoming deeplinks
-  // Ex. SDK and WalletConnect deeplinks will funnel through here when opening the app from the device's camera
+  // on Android devices, this creates a listener
+  // to deeplinks used to open the app
+  // when it is in background (so not closed)
+  // When the app is closed, the deeplink is received in the initialURL promise
+  // Documentation: https://reactnative.dev/docs/linking#handling-deep-links
   useEffect(() => {
-    Linking.addEventListener('url', (params) => {
-      const { url } = params;
-      if (url) {
+    const handleURL = (url: string) => {
+      if (url && sdkInit.current) {
         handleDeeplink({ uri: url });
+      } else {
+        DevLogger.log(`android handleDeeplink:: adding ${url} to queue`);
+        queueOfHandleDeeplinkFunctions.current =
+          queueOfHandleDeeplinkFunctions.current.concat([
+            {
+              uri: url,
+              func: () => {
+                handleDeeplink({ uri: url });
+              },
+            },
+          ]);
       }
+    };
+
+    Linking.getInitialURL().then((url) => {
+      if (!url) {
+        return;
+      }
+      DevLogger.log(`handleDeeplink:: got initial URL ${url}`);
+      handleURL(url);
     });
+
+    if (Device.isAndroid()) {
+      Linking.addEventListener('url', (params) => {
+        const { url } = params;
+        handleURL(url);
+      });
+    }
   }, [handleDeeplink]);
 
   // Subscribe to incoming Branch deeplinks
@@ -1091,7 +1105,25 @@ const App: React.FC = () => {
         trackErrorAsAnalytics(error, 'Branch:');
       }
 
-      getBranchDeeplink(opts.uri);
+      if (sdkInit.current) {
+        handleDeeplink(opts);
+      } else {
+        const uri = opts.params?.['+non_branch_link'] as string || opts.uri || null;
+        if (!uri) {
+          return;
+        }
+
+        DevLogger.log(`branch.io handleDeeplink:: adding ${uri} to queue. Got ${JSON.stringify(opts)} from branch.io`);
+        queueOfHandleDeeplinkFunctions.current =
+          queueOfHandleDeeplinkFunctions.current.concat([
+            {
+              uri,
+              func: () => {
+                handleDeeplink(opts);
+              },
+            },
+          ]);
+      }
     });
   }, [dispatch, handleDeeplink, navigation]);
 
@@ -1116,7 +1148,16 @@ const App: React.FC = () => {
             context: 'Nav/App',
             navigation: NavigationService.navigation,
           });
-          await SDKConnect.getInstance().postInit();
+          await SDKConnect.getInstance().postInit(() => {
+            const processedItems = new Set<string>();
+            queueOfHandleDeeplinkFunctions.current.forEach((item) => {
+              if (!processedItems.has(item.uri)) {
+                processedItems.add(item.uri);
+                item.func();
+              }
+            });
+            queueOfHandleDeeplinkFunctions.current = [];
+          });
           sdkInit.current = true;
         } catch (err) {
           sdkInit.current = undefined;

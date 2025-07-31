@@ -83,9 +83,16 @@ describe('perps controller init', () => {
       accountState: null,
       pendingOrders: [],
       depositStatus: 'idle',
+      depositFlowType: null,
       currentDepositTxHash: null,
       depositError: null,
-      activeDepositTransactions: {},
+      requiresModalDismissal: false,
+      depositSteps: {
+        totalSteps: 0,
+        currentStep: 0,
+        stepNames: [],
+        stepTxHashes: [],
+      },
       lastError: null,
       lastUpdateTimestamp: Date.now(),
     };

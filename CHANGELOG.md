@@ -7,17 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [7.51.1]
-
-### Added
-
-- migrate BSC network RPC to bsc-mainnet.infura.io ([#16824](https://github.com/MetaMask/metamask-mobile/pull/16824))
-- feat: allow multiple provider connections ([#16699](https://github.com/MetaMask/metamask-mobile/pull/16699))
+## [7.50.1]
 
 ### Fixed
-
-- fix: cp-7.51.1 fox size adjustments ([#17569](https://github.com/MetaMask/metamask-mobile/pull/17569))
-
 ## [7.51.0]
 
 ### Added
@@ -183,6 +175,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: Hero NFT redesign confirmation ([#15878](https://github.com/MetaMask/metamask-mobile/pull/15878))
 - feat: Enable `transfer` and `contractInteraction` redesigned confirmations ([#15958](https://github.com/MetaMask/metamask-mobile/pull/15958))
 - feat: multichain api analytics ([#15854](https://github.com/MetaMask/metamask-mobile/pull/15854))
+- feat: cp-7.47.0 fetch all tokens for bridge input ([#15993](https://github.com/MetaMask/metamask-mobile/pull/15993))
 - feat: add spam filtering for wallet_sendCalls ([#15853](https://github.com/MetaMask/metamask-mobile/pull/15853))
 - feat: Add user setting to dismiss prompt for smart account upgrade ([#15791](https://github.com/MetaMask/metamask-mobile/pull/15791))
 - feat: New Onboarding UI - Carousel and Terms of Use UI ([#15665](https://github.com/MetaMask/metamask-mobile/pull/15665))
@@ -200,6 +193,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: Add `ConfirmationAssetPollingProvider` into redesigned transactions ([#15843](https://github.com/MetaMask/metamask-mobile/pull/15843))
 - feat: Implement redesigned gas fee modal ([#15234](https://github.com/MetaMask/metamask-mobile/pull/15234))
 - feat: extend TokenHero support for all ERC20 tokens - transfer transactions ([#15259](https://github.com/MetaMask/metamask-mobile/pull/15259))
+- feat: cp-7.47.0 add "hardware wallets not supported" error when attempting sola… ([#15743](https://github.com/MetaMask/metamask-mobile/pull/15743))
 - feat: Add signed or submitted general alert to alert system ([#15779](https://github.com/MetaMask/metamask-mobile/pull/15779))
 - feat: Implementing features in simulation section for batched transactions ([#15442](https://github.com/MetaMask/metamask-mobile/pull/15442))
 - feat: Adding metrics for batched confirmations ([#15689](https://github.com/MetaMask/metamask-mobile/pull/15689))
@@ -619,11 +613,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- fix(bridge): prevent quote polling when "quote expired" modal is open ([#15602](https://github.com/MetaMask/metamask-mobile/issues/15602))
-- feat(bridge): improve bridge screen layout and user experience ([#15425](https://github.com/MetaMask/metamask-mobile/pull/15425))
-- fix(browser): fix browser PermissionsSummary origin spoofing when browser redirects issue ([#13394](https://github.com/MetaMask/metamask-mobile/pull/13394))
-- feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
-- feat(identity): rebrand "Profile syncing" to "Backup and sync", adding a dedicated settings menu and more ([#15003](https://github.com/MetaMask/metamask-mobile/pull/15003))
 - feat(bridge): implement quote expiration handling in Bridge feature ([#14872](https://github.com/MetaMask/metamask-mobile/pull/14872))
 - feat(bridge): use dynamic slippage for single-chain Solana swaps ([#14805](https://github.com/MetaMask/metamask-mobile/pull/14805))
 - feat(bridge): enhance bridging with network fee estimation and UI improvements ([#14786](https://github.com/MetaMask/metamask-mobile/pull/14786))
@@ -654,6 +643,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 
 ### Fixed
+<<<<<<< HEAD
+
+=======
+>>>>>>> stable
 - fix(bridge): keyboard not appearing when error banner is displayed ([#14862](https://github.com/MetaMask/metamask-mobile/pull/14862))
 - fix(bridge): fix not switching networks when selecting source token ([#14712](https://github.com/MetaMask/metamask-mobile/pull/14712))
 - fix: updates a padding style specifically for Android devices ([#14725](https://github.com/MetaMask/metamask-mobile/pull/14725))
@@ -6021,8 +6014,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.1...HEAD
-[7.51.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.0...v7.51.1  
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.52.0...HEAD
+[7.52.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.0...v7.52.0  
 [7.51.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.2...v7.51.0  
 [7.50.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.1...v7.50.2  
 [7.50.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.0...v7.50.1

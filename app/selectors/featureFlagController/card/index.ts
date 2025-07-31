@@ -2,8 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 
 export interface CardFeatureFlag {
-  constants?: Record<string, string>;
-  chains?: Record<string, SupportedChain>;
+  [chainId: string]: SupportedChain | undefined;
 }
 
 export interface SupportedChain {
@@ -13,6 +12,7 @@ export interface SupportedChain {
     global?: `0x${string}` | null;
     us?: `0x${string}` | null;
   };
+  onRampApi?: string | null;
   tokens?: SupportedToken[] | null;
 }
 

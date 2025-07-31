@@ -49,12 +49,9 @@ const KycProcessing = () => {
   const { quote } = useParams<KycProcessingParams>();
   const trackEvent = useAnalytics();
 
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(
-    quote.cryptoCurrency,
-    quote.network,
-  );
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
 
-  const { routeAfterAuthentication } = useDepositRouting({
+  const { handleApprovedKycFlow } = useDepositRouting({
     cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
     paymentMethodId: quote.paymentMethod,
   });
@@ -98,14 +95,14 @@ const KycProcessing = () => {
 
   const handleContinue = useCallback(async () => {
     try {
-      await routeAfterAuthentication(quote);
+      await handleApprovedKycFlow(quote);
     } catch (error) {
       Logger.error(error as Error, {
         message: 'KycProcessing::handleContinue error',
         quote,
       });
     }
-  }, [routeAfterAuthentication, quote]);
+  }, [handleApprovedKycFlow, quote]);
 
   const error = userDetailsError || kycFormsError;
   const hasPendingForms = kycForms && kycForms.forms.length > 0;
