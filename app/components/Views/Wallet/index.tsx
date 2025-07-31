@@ -120,8 +120,7 @@ import { prepareNftDetectionEvents } from '../../../util/assets';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 import {
-  isValidHexAddress,
-  toChecksumAddress,
+  safeToChecksumAddress,
   toFormattedAddress,
 } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
@@ -681,13 +680,15 @@ const Wallet = ({
       return false;
     }
 
+    const checksumInternalAccount = safeToChecksumAddress(
+      selectedInternalAccount.address,
+    );
+
     if (
       selectedInternalAccount.type === 'eip155:eoa' &&
-      isValidHexAddress(selectedInternalAccount.address)
+      checksumInternalAccount
     ) {
-      return cardholderAccounts.includes(
-        toChecksumAddress(selectedInternalAccount.address),
-      );
+      return cardholderAccounts.includes(checksumInternalAccount);
     }
   }, [cardholderAccounts, selectedInternalAccount]);
 
