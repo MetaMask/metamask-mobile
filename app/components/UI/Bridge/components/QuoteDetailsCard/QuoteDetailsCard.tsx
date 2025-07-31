@@ -340,12 +340,8 @@ const QuoteDetailsCard = () => {
                 },
                 ...(shouldShowPriceImpactWarning && {
                   tooltip: {
-                    title:
-                      strings('bridge.price_impact_warning_title') ||
-                      'Price Impact Warning',
-                    content:
-                      strings('bridge.price_impact_warning_content') ||
-                      'High price impact detected',
+                    title: strings('bridge.price_impact_warning_title'),
+                    content: strings('bridge.price_impact_normal_warning'),
                     onPress: handlePriceImpactWarningPress,
                     size: TooltipSizes.Sm,
                   },
