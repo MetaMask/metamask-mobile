@@ -494,5 +494,6 @@ export async function withFixtures(
     }
 
     await stopFixtureServer(fixtureServer);
+    PortAllocator.getInstance().reset();
   }
 }
