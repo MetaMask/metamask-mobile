@@ -51,7 +51,7 @@ const slice = createSlice({
       })
       .addCase(loadCardholderAccounts.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload as string;
+        state.error = action?.error?.message ?? null;
         state.isLoaded = true;
       });
   },

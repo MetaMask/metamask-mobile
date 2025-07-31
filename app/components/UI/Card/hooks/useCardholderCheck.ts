@@ -24,11 +24,11 @@ export const useCardholderCheck = () => {
   const accounts = useSelector(selectInternalAccountsWithCaipAccountId);
 
   const checkCardholderAccounts = useCallback(() => {
-    const formattedAccounts = Object.values(accounts)
-      .filter((account) => account.type === 'eip155:eoa')
+    const formattedAccounts = accounts
+      ?.filter((account) => account.type === 'eip155:eoa')
       .map((account) => account.caipAccountId);
 
-    if (!formattedAccounts.length) {
+    if (!formattedAccounts?.length) {
       return;
     }
 

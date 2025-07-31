@@ -206,7 +206,9 @@ describe('Card Reducer', () => {
         const errorMessage = 'Failed to load accounts';
         const action = {
           type: loadCardholderAccounts.rejected.type,
-          payload: errorMessage,
+          error: {
+            message: errorMessage,
+          },
         };
         const state = cardReducer(
           {

@@ -33,5 +33,6 @@ export const getCardholder = async ({
       error instanceof Error ? error : new Error(String(error)),
       'getCardholder::Error loading cardholder accounts',
     );
+    return [];
   }
 };
