@@ -1,7 +1,7 @@
 name: Test iOS Build QA App
 
 on:
-  push:
+#   push:
   workflow_dispatch:
     inputs:
       retention_days:
