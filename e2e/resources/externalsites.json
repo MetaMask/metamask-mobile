@@ -7,6 +7,8 @@
   "PORTFOLIO": "https://portfolio.metamask.io",
   "ENS_WEBSITE": "vitalik.eth",
   "UNISWAP_WEBSITE": "https://uniswap.org",
+  "OPENSEA_WEBSITE": "https://opensea.io",
+  "PANCAKESWAP_WEBSITE": "https://pancakeswap.finance/swap",
   "DOWNLOAD_BLOB_FILE_WEBSITE": "https://tyschenko.github.io/download_blob_file.html",
   "DOWNLOAD_BASE64_FILE_WEBSITE": "https://tyschenko.github.io/download_base64_file.html"
 }

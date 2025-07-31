@@ -4,13 +4,17 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import ExternalSites from '../../resources/externalsites.json';
 import Browser from '../../pages/Browser/BrowserView';
+import EnsWebsite from '../../pages/Browser/ExternalWebsites/EnsWebsite.ts';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
-import TestHelpers from '../../helpers';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors.ts';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet.ts';
-import Matchers from '../../framework/Matchers';
-import Utilities from '../../framework/Utilities.ts';
+import RedirectWebsite from '../../pages/Browser/ExternalWebsites/RedirectWebsite.ts';
+import UniswapWebsite from '../../pages/Browser/ExternalWebsites/UniswapWebsite.ts';
+import OpenseaWebsite from '../../pages/Browser/ExternalWebsites/OpenseaWebsite.ts';
+import PancakeSwapWebsite from '../../pages/Browser/ExternalWebsites/PancakeSwapWebsite.ts';
+import DownloadFile from '../../pages/Browser/DownloadFile.ts';
+import DownloadFileWebsite from '../../pages/Browser/ExternalWebsites/DownloadFileWebsite.ts';
+import TestHelpers from '../../helpers';
 
 const getHostFromURL = (url: string): string => {
   try {
@@ -76,7 +80,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     });
   });
 
-  it.skip('should test phishing sites', async () => {
+  it('should test phishing sites', async () => {
     await withBrowser(async () => {
       await Browser.tapBottomSearchBar();
       // Clear text & Navigate to URL
@@ -132,38 +136,9 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
 
       await Browser.tapUrlInputBox();
       await Browser.navigateToURL(url);
-      const downloadButton = await Matchers.getElementByXPath(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-        "//button[@id='download_button']",
-      );
-      await downloadButton.tap();
-
-      if (device.getPlatform() === 'ios') {
-        // For iOS, we need a small delay before animated dialog is displayed
-        await TestHelpers.delay(300);
-      }
-
-      // Verify Download button in dialog is disabled for first 500ms to prevent Tapjacking
-      const downloadButtonInDialog =
-        device.getPlatform() === 'android'
-          ? Matchers.getElementByText('Download')
-          : Matchers.getElementByLabel('Download');
-      await Utilities.checkElementDisabled(downloadButtonInDialog);
-      await TestHelpers.delay(600);
-      await Utilities.checkElementEnabled(downloadButtonInDialog);
-      await (await downloadButtonInDialog).tap();
-
-      if (device.getPlatform() === 'ios') {
-        await TestHelpers.delay(500);
-        // Verify for iOS that system file saving dialog is visible
-        waitFor(await Matchers.getElementByLabel('Save')).toBeVisible();
-      } else {
-        await TestHelpers.delay(3600);
-        // Verify for Android that toast after successful downloading is visible
-        waitFor(
-          await Matchers.getElementByText('Downloaded successfully'),
-        ).toBeVisible();
-      }
+      await DownloadFileWebsite.tapDownloadFileButton();
+      await DownloadFile.verifyTapjackingAndClickDownloadButton();
+      await DownloadFile.verifySuccessStateVisible();
     });
   }
 
@@ -175,36 +150,47 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
 
       await Browser.tapUrlInputBox();
       await Browser.navigateToURL(ExternalSites.UNISWAP_WEBSITE);
-
-      // Click Connect button
-      const connectButton = await Matchers.getElementByXPath(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-        "//button[.//span[text()='Connect']]",
-      );
-      await connectButton.tap();
-
-      // Click Other wallets button
-      const otherWalletsButton = await Matchers.getElementByXPath(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-        "//*[.//span[text()='Other wallets']][@class][@style or contains(@class, '_cursor-pointer')]",
-      );
-      await otherWalletsButton.tap();
-
-      // Click MetaMask wallet option
-      const metaMaskWalletOption = await Matchers.getElementByXPath(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-        "//*[.//span[text()='MetaMask'] and contains(@class, '_cursor-pointer')]",
-      );
-      await metaMaskWalletOption.tap();
-
+      await UniswapWebsite.tapConnectButton();
+      await UniswapWebsite.tapOtherWalletsButton();
+      await UniswapWebsite.tapMetaMaskWalletOptionButton();
       await ConnectBottomSheet.tapConnectButton();
-
       // Click Select a token button which is displayed only if the wallet is connected
-      const selectTokenButton = await Matchers.getElementByXPath(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-        "//button[.//span[contains(text(),'Select a token')]]",
-      );
-      await selectTokenButton.tap();
+      await UniswapWebsite.tapSelectTokenButton();
+    });
+  });
+
+  it('Should connect to Opensea', async () => {
+    await withBrowser(async () => {
+      await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+        description: 'Browser screen is visible',
+      });
+
+      await Browser.tapUrlInputBox();
+      await Browser.navigateToURL(ExternalSites.OPENSEA_WEBSITE);
+      await OpenseaWebsite.tapGetStartedButton();
+      await OpenseaWebsite.tapCloseButton();
+      await OpenseaWebsite.tapConnectButton();
+      await OpenseaWebsite.tapMetaMaskOptionButton();
+      await OpenseaWebsite.tapEthereumButton();
+      await ConnectBottomSheet.tapConnectButton();
+      // Click Notifications button which is displayed only if the wallet is connected
+      await OpenseaWebsite.tapNotificationButton();
+    });
+  });
+
+  it('Should connect to PancakeSwap', async () => {
+    await withBrowser(async () => {
+      await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+        description: 'Browser screen is visible',
+      });
+
+      await Browser.tapUrlInputBox();
+      await Browser.navigateToURL(ExternalSites.PANCAKESWAP_WEBSITE);
+      await PancakeSwapWebsite.tapConnectButton();
+      await PancakeSwapWebsite.tapMetaMaskButton();
+      await ConnectBottomSheet.tapConnectButton();
+      // Click Enter an amount button which is displayed only if the wallet is connected
+      await PancakeSwapWebsite.tapEnterAmountButton();
     });
   });
 
@@ -215,13 +201,12 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       });
       await Browser.tapUrlInputBox();
       await Browser.navigateToURL(ExternalSites.ENS_WEBSITE);
-      await TestHelpers.delay(1000); // Wait for a website to load
+      if (device.getPlatform() === 'android') {
+        // Due to additional redirects in ENS website we need to wait on Android for the element to appear in DOM
+        await TestHelpers.delay(1000);
+      }
       // Click General to interact with vitalik website and make sure it's loaded
-      const generalLink = await Matchers.getElementByXPath(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-        "//a[@href='./categories/general.html']",
-      );
-      await generalLink.tap();
+      await EnsWebsite.tapGeneralButton();
     });
   });
 
@@ -240,11 +225,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
             'URL input box has the correct text from the initial website',
         },
       );
-      const redirectButton = await Matchers.getElementByXPath(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-        "//button[@id='redirect_button']",
-      );
-      await redirectButton.tap(); // Click button to redirect to http://portfolio.metamask.io website
+      await RedirectWebsite.tapRedirectButton();
       await Assertions.expectElementToHaveText(
         Browser.urlInputBoxID,
         getHostFromURL(ExternalSites.PORTFOLIO),
