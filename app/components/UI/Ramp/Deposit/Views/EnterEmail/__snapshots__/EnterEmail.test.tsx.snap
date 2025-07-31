@@ -628,7 +628,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                     returnKeyType="done"
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
+                                        "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
@@ -1354,7 +1354,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                     returnKeyType="done"
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
+                                        "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
@@ -2094,7 +2094,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                     returnKeyType="done"
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
+                                        "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
@@ -2820,7 +2820,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                     returnKeyType="done"
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
+                                        "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
