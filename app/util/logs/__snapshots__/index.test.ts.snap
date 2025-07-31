@@ -350,6 +350,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "currentDepositTxHash": null,
         "depositError": null,
         "depositStatus": "idle",
+        "isEligible": false,
         "isTestnet": false,
         "lastError": null,
         "lastUpdateTimestamp": 0,
