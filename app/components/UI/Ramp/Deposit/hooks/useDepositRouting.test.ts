@@ -148,6 +148,19 @@ jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockUseHandleNewOrder = jest.mocked(useHandleNewOrder);
 
+const mockPreviousFormData = {
+  addressLine1: undefined,
+  addressLine2: undefined,
+  city: undefined,
+  countryCode: undefined,
+  dob: undefined,
+  firstName: undefined,
+  lastName: undefined,
+  mobileNumber: undefined,
+  postCode: undefined,
+  state: undefined,
+};
+
 describe('useDepositRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -330,6 +343,7 @@ describe('useDepositRouting', () => {
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
+        previousFormData: mockPreviousFormData,
       });
     });
 
@@ -361,6 +375,7 @@ describe('useDepositRouting', () => {
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
+        previousFormData: mockPreviousFormData,
       });
     });
 
@@ -392,6 +407,7 @@ describe('useDepositRouting', () => {
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
+        previousFormData: mockPreviousFormData,
       });
     });
 
@@ -553,6 +569,7 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycForms).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
+        previousFormData: mockPreviousFormData,
       });
     });
 

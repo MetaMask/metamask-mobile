@@ -416,4 +416,30 @@ describe('EnterAddress Component', () => {
       expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
+
+  it('prefills form data when previousFormData is provided', () => {
+    const mockPreviousFormData = {
+      firstName: 'John',
+      lastName: 'Doe',
+      mobileNumber: '+1234567890',
+      dob: '1993-03-25T00:00:00.000Z',
+      ssn: '123456789',
+      addressLine1: '456 Oak Street',
+      addressLine2: 'Apt 2B',
+      city: 'New York',
+      state: 'NY',
+      postCode: '10002',
+      countryCode: 'US',
+    };
+
+    mockUseParamsReturnValue = {
+      formData: mockFormData,
+      quote: mockQuote,
+      previousFormData: mockPreviousFormData,
+    };
+
+    render(EnterAddress);
+
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
 });
