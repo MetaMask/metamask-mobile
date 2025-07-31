@@ -46,6 +46,7 @@ import {
   selectDestToken,
   selectSourceToken,
   selectIsEvmSolanaBridge,
+  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 
 const ANIMATION_DURATION_MS = 50;
@@ -95,6 +96,7 @@ const QuoteDetailsCard = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
   const isSameChainId = sourceToken?.chainId === destToken?.chainId;
   // Initialize expanded state based on whether destination is Solana or it's a Solana swap
@@ -139,6 +141,15 @@ const QuoteDetailsCard = () => {
     });
   };
 
+  const handlePriceImpactWarningPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL,
+      params: {
+        isGasIncluded: !!activeQuote?.quote.gasIncluded,
+      },
+    });
+  };
+
   // Early return for invalid states
   if (
     !sourceToken?.chainId ||
@@ -151,6 +162,19 @@ const QuoteDetailsCard = () => {
 
   const { networkFee, estimatedTime, rate, priceImpact, slippage } =
     formattedQuoteData;
+
+  // Check if price impact warning should be shown
+  const gasIncluded = !!activeQuote?.quote.gasIncluded;
+  const rawPriceImpact = activeQuote?.quote.priceData?.priceImpact;
+  const shouldShowPriceImpactWarning =
+    rawPriceImpact !== undefined &&
+    bridgeFeatureFlags?.priceImpactThresholds &&
+    ((gasIncluded &&
+      Number(rawPriceImpact) >=
+        bridgeFeatureFlags.priceImpactThresholds.gasless) ||
+      (!gasIncluded &&
+        Number(rawPriceImpact) >=
+          bridgeFeatureFlags.priceImpactThresholds.normal));
 
   return (
     <Box>
@@ -314,11 +338,26 @@ const QuoteDetailsCard = () => {
                   text: strings('bridge.price_impact') || 'Price Impact',
                   variant: TextVariant.BodyMDMedium,
                 },
+                ...(shouldShowPriceImpactWarning && {
+                  tooltip: {
+                    title:
+                      strings('bridge.price_impact_warning_title') ||
+                      'Price Impact Warning',
+                    content:
+                      strings('bridge.price_impact_warning_content') ||
+                      'High price impact detected',
+                    onPress: handlePriceImpactWarningPress,
+                    size: TooltipSizes.Sm,
+                  },
+                }),
               }}
               value={{
                 label: {
                   text: priceImpact,
                   variant: TextVariant.BodyMD,
+                  color: shouldShowPriceImpactWarning
+                    ? TextColor.Error
+                    : undefined,
                 },
               }}
             />
