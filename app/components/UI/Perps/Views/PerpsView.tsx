@@ -1,20 +1,35 @@
+/**
+ * PerpsView - Debug/Development View for Perps Trading
+ *
+ * This is a development and testing view that provides direct access to
+ * controller functionality and debug information. This view is NOT intended
+ * for production use and should not be visible to end users in the final app.
+ *
+ * Features:
+ * - Account balance monitoring
+ * - Network switching (testnet/mainnet)
+ * - Direct access to deposit/withdraw flows
+ * - Market grid for quick trading access
+ * - Withdrawal status monitoring
+ * - Debug output for testing controller methods
+ */
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, TouchableOpacity, type DimensionValue } from 'react-native';
+import { TouchableOpacity, View, type DimensionValue } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
+import Routes from '../../../../constants/navigation/Routes';
 import type { Theme } from '../../../../util/theme/models';
 import ScreenView from '../../../Base/ScreenView';
-import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 
 // Import PerpsController hooks
 import {
@@ -22,14 +37,15 @@ import {
   usePerpsConnection,
   usePerpsNetwork,
   usePerpsNetworkConfig,
-  usePerpsTrading,
   usePerpsPrices,
+  usePerpsTrading,
 } from '../hooks';
 
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import PerpsLoader from '../components/PerpsLoader';
 import { PerpsNavigationParamList } from '../types/navigation';
+import { parseCurrencyString } from '../utils/formatUtils';
 
 interface PerpsViewProps {}
 
@@ -160,6 +176,15 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   // Get real-time prices for popular assets
   const priceData = usePerpsPrices(POPULAR_ASSETS);
 
+  // Parse available balance to check if withdrawal should be enabled
+  const hasAvailableBalance = useCallback((): boolean => {
+    if (!cachedAccountState?.availableBalance) return false;
+    const availableAmount = parseCurrencyString(
+      cachedAccountState.availableBalance,
+    );
+    return availableAmount > 0;
+  }, [cachedAccountState?.availableBalance]);
+
   const getAccountBalance = useCallback(async () => {
     setIsLoading(true);
     setResult('');
@@ -248,6 +273,14 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     navigation.navigate(Routes.PERPS.POSITIONS);
   };
 
+  const handleDepositNavigation = () => {
+    navigation.navigate(Routes.PERPS.DEPOSIT);
+  };
+
+  const handleWithdrawNavigation = () => {
+    navigation.navigate(Routes.PERPS.WITHDRAW);
+  };
+
   // Show connection error screen if there's an error
   if (connectionError) {
     return (
@@ -278,7 +311,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
       <View style={styles.content}>
         <View style={styles.headerContainer}>
           <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
-            Perps Trading (Minimal)
+            Perps Trading (Dev Mode)
           </Text>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
             Core Controller & Services Testing
@@ -333,9 +366,21 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             label={strings('perps.buttons.deposit_funds')}
-            onPress={() => navigation.navigate(Routes.PERPS.DEPOSIT)}
+            onPress={handleDepositNavigation}
             style={styles.button}
           />
+
+          {/* Show withdraw button only if there's available balance */}
+          {hasAvailableBalance() && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('perps.withdrawal.title')}
+              onPress={handleWithdrawNavigation}
+              style={styles.button}
+            />
+          )}
 
           <Button
             variant={ButtonVariants.Secondary}

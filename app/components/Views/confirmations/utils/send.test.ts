@@ -1,5 +1,13 @@
 import { AssetType } from '../types/token';
-import { prepareEVMTransaction } from './send';
+import { handleSendPageNavigation, prepareEVMTransaction } from './send';
+
+describe('handleSendPageNavigation', () => {
+  it('navigates to send page', () => {
+    const mockNavigate = jest.fn();
+    handleSendPageNavigation(mockNavigate, { name: 'ETHEREUM' } as AssetType);
+    expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
+  });
+});
 
 describe('prepareEVMTransaction', () => {
   it('prepares transaction for native token', () => {

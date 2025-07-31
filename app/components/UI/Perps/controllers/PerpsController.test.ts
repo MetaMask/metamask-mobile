@@ -8,7 +8,7 @@ import {
   type PerpsControllerState,
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import { CaipAssetId, CaipChainId } from '@metamask/utils';
+import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { DepositStatus } from './types';
 
 // Mock the HyperLiquid SDK first
@@ -27,6 +27,16 @@ jest.mock('../services/HyperLiquidWalletService');
 jest.mock('../utils/hyperLiquidAdapter');
 jest.mock('../utils/hyperLiquidValidation');
 jest.mock('../constants/hyperLiquidConfig');
+
+// Mock parseCaipAssetId from @metamask/utils
+jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
+  parseCaipAssetId: jest.fn((_assetId) => ({
+    chainId: 'eip155:42161',
+    assetNamespace: 'erc20',
+    assetReference: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+  })),
+}));
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -94,6 +104,10 @@ describe('PerpsController', () => {
       setLiveDataConfig: jest.fn(),
       disconnect: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      calculateLiquidationPrice: jest.fn(),
+      calculateMaintenanceMargin: jest.fn(),
+      getMaxLeverage: jest.fn(),
+      getMarketDataWithPrices: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -764,9 +778,80 @@ describe('PerpsController', () => {
     it('should handle withdraw operation', async () => {
       const withdrawParams = {
         amount: '100',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
         destination: '0x1234567890123456789012345678901234567890' as any,
       };
 
+      const mockPendingWithdrawal = {
+        withdrawalId: 'hl_test-uuid-123',
+        provider: 'hyperliquid',
+        amount: '100',
+        asset: 'USDC',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        sourceChainId: 'eip155:999' as CaipChainId,
+        destinationChainId: 'eip155:42161' as CaipChainId,
+        destinationAddress: '0x1234567890123456789012345678901234567890' as Hex,
+        initiatedAt: Date.now(),
+        status: 'pending' as const,
+        providerTxHash: undefined,
+        estimatedArrivalTime: Date.now() + 5 * 60 * 1000,
+        metadata: {
+          isTestnet: false,
+        },
+      };
+
+      const mockWithdrawResult = {
+        success: true,
+        txHash: '0xabcdef123456789',
+        withdrawalId: 'hl_test-uuid-123',
+        estimatedArrivalTime: mockPendingWithdrawal.estimatedArrivalTime,
+        pendingWithdrawal: mockPendingWithdrawal,
+      };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.withdraw.mockResolvedValue(mockWithdrawResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        mockHyperLiquidProvider.getWithdrawalRoutes.mockReturnValue([
+          {
+            assetId:
+              'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+            chainId: 'eip155:42161' as CaipChainId,
+            contractAddress:
+              '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+            constraints: {
+              minAmount: '1.01',
+              estimatedTime: '5 minutes',
+              fees: {
+                fixed: 1,
+                token: 'USDC',
+              },
+            },
+          },
+        ]);
+
+        await controller.initializeProviders();
+        const result = await controller.withdraw(withdrawParams);
+
+        // Verify result returned from provider
+        expect(result).toEqual(mockWithdrawResult);
+
+        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
+          withdrawParams,
+        );
+      });
+    });
+
+    it('should handle withdraw when provider does not return pendingWithdrawal', async () => {
+      const withdrawParams = {
+        amount: '100',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        destination: '0x1234567890123456789012345678901234567890' as any,
+      };
+
+      // Provider returns success but no pendingWithdrawal (legacy behavior)
       const mockWithdrawResult = {
         success: true,
         txHash: '0xabcdef123456789',
@@ -775,14 +860,205 @@ describe('PerpsController', () => {
       withController(async ({ controller }) => {
         mockHyperLiquidProvider.withdraw.mockResolvedValue(mockWithdrawResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        mockHyperLiquidProvider.getWithdrawalRoutes.mockReturnValue([
+          {
+            assetId:
+              'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+            chainId: 'eip155:42161' as CaipChainId,
+            contractAddress:
+              '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+            constraints: {
+              minAmount: '1.01',
+              estimatedTime: '5 minutes',
+              fees: {
+                fixed: 1,
+                token: 'USDC',
+              },
+            },
+          },
+        ]);
 
         await controller.initializeProviders();
         const result = await controller.withdraw(withdrawParams);
 
+        // Verify result returned from provider
         expect(result).toEqual(mockWithdrawResult);
+
+        // Verify provider was called correctly
         expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
           withdrawParams,
         );
+      });
+    });
+
+    it('should validate withdrawal requires assetId', async () => {
+      const withdrawParams = {
+        amount: '100',
+        // Missing assetId
+        destination: '0x1234567890123456789012345678901234567890' as any,
+      };
+
+      withController(async ({ controller }) => {
+        // Mock the withdraw method to return an error for missing assetId
+        mockHyperLiquidProvider.withdraw.mockResolvedValue({
+          success: false,
+          error: 'assetId is required for withdrawals',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        const result = await controller.withdraw(withdrawParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('assetId is required for withdrawals');
+        expect(controller.state.lastError).toContain(
+          'assetId is required for withdrawals',
+        );
+
+        // Provider should be called since controller doesn't validate
+        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
+          withdrawParams,
+        );
+      });
+    });
+
+    it('should validate withdrawal requires positive amount', async () => {
+      const withdrawParamsZero = {
+        amount: '0',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        destination: '0x1234567890123456789012345678901234567890' as any,
+      };
+
+      withController(async ({ controller }) => {
+        // Mock the withdraw method to return validation errors
+        mockHyperLiquidProvider.withdraw
+          .mockResolvedValueOnce({
+            success: false,
+            error: 'Amount must be a positive number',
+          })
+          .mockResolvedValueOnce({
+            success: false,
+            error: 'Amount must be a positive number',
+          })
+          .mockResolvedValueOnce({
+            success: false,
+            error: 'Amount must be a positive number',
+          });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        // Test zero amount
+        const resultZero = await controller.withdraw(withdrawParamsZero);
+        expect(resultZero.success).toBe(false);
+        expect(resultZero.error).toContain('Amount must be a positive number');
+        expect(controller.state.lastError).toContain(
+          'Amount must be a positive number',
+        );
+
+        // Test negative amount
+        const withdrawParamsNegative = { ...withdrawParamsZero, amount: '-10' };
+        const resultNegative = await controller.withdraw(
+          withdrawParamsNegative,
+        );
+        expect(resultNegative.success).toBe(false);
+        expect(resultNegative.error).toContain(
+          'Amount must be a positive number',
+        );
+
+        // Test missing amount
+        const withdrawParamsMissing = {
+          assetId: withdrawParamsZero.assetId,
+          destination: withdrawParamsZero.destination,
+          amount: undefined as any,
+        };
+        const resultMissing = await controller.withdraw(withdrawParamsMissing);
+        expect(resultMissing.success).toBe(false);
+        expect(resultMissing.error).toContain(
+          'Amount must be a positive number',
+        );
+
+        // Provider should be called since controller doesn't validate
+        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledTimes(3);
+      });
+    });
+
+    it('should handle withdrawal provider error result', async () => {
+      const withdrawParams = {
+        amount: '100',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        destination: '0x1234567890123456789012345678901234567890' as any,
+      };
+
+      const mockErrorResult = {
+        success: false,
+        error: 'Insufficient balance in trading account',
+      };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.withdraw.mockResolvedValue(mockErrorResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        const result = await controller.withdraw(withdrawParams);
+
+        expect(result).toEqual(mockErrorResult);
+        expect(controller.state.lastError).toBe(
+          'Insufficient balance in trading account',
+        );
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('should handle withdrawal provider exception', async () => {
+      const withdrawParams = {
+        amount: '100',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        destination: '0x1234567890123456789012345678901234567890' as any,
+      };
+
+      const errorMessage = 'Network connection failed';
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.withdraw.mockRejectedValue(
+          new Error(errorMessage),
+        );
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        const result = await controller.withdraw(withdrawParams);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe(errorMessage);
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('should handle withdrawal with provider returning error without message', async () => {
+      const withdrawParams = {
+        amount: '100',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+      };
+
+      const mockErrorResult = {
+        success: false,
+        // No error message
+      };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.withdraw.mockResolvedValue(mockErrorResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        const result = await controller.withdraw(withdrawParams);
+
+        expect(result).toEqual(mockErrorResult);
+        // Should use default error message when no error provided
+        expect(controller.state.lastError).toBeTruthy();
       });
     });
   });

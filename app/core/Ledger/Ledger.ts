@@ -17,6 +17,7 @@ import {
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
+import { removeAccountsFromPermissions } from '../Permissions';
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -94,6 +95,14 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  */
 export const forgetLedger = async (): Promise<void> => {
   await withLedgerKeyring(async ({ keyring }) => {
+    // Permissions need to be updated before the hardware wallet is forgotten.
+    // This is because `removeAccountsFromPermissions` relies on the account
+    // existing in AccountsController in order to resolve a hex address
+    // back into CAIP Account Id. Hex addresses are used in
+    // `removeAccountsFromPermissions` because too many places in the UI still
+    // operate on hex addresses rather than CAIP Account Id.
+    const accounts = await keyring.getAccounts();
+    removeAccountsFromPermissions(accounts);
     keyring.forgetDevice();
   });
 };

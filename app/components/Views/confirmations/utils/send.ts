@@ -1,10 +1,34 @@
 import { BNToHex, toHex } from '@metamask/controller-utils';
+import { Nft } from '@metamask/assets-controllers';
 import { TransactionParams } from '@metamask/transaction-controller';
 
+import Routes from '../../../../constants/navigation/Routes';
 import { generateTransferData } from '../../../../util/transactions';
 import { toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType } from '../types/token';
 import { isNativeToken } from '../utils/generic';
+
+export const isSendRedesignEnabled = () =>
+  process.env.MM_SEND_REDESIGN_ENABLED === 'true';
+
+export const handleSendPageNavigation = (
+  navigate: <RouteName extends string>(
+    screenName: RouteName,
+    params?: object,
+  ) => void,
+  asset: AssetType | Nft,
+) => {
+  if (isSendRedesignEnabled()) {
+    navigate(Routes.SEND.DEFAULT, {
+      screen: Routes.SEND.ROOT,
+      params: {
+        asset,
+      },
+    });
+  } else {
+    navigate('SendFlowView');
+  }
+};
 
 export const prepareEVMTransaction = (
   asset: AssetType,

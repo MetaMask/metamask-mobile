@@ -22,6 +22,27 @@ import {
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
 jest.mock('../../services/HyperLiquidSubscriptionService');
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
+    if (key === 'time.minutes_format' && params?.count) {
+      return params.count === 1
+        ? `${params.count} minute`
+        : `${params.count} minutes`;
+    }
+    return key;
+  }),
+}));
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AccountsController: {
+      getSelectedAccount: jest.fn().mockReturnValue({
+        address: '0xdefaultaddress',
+        id: 'mock-account-id',
+        metadata: { name: 'Test Account' },
+      }),
+    },
+  },
+}));
 jest.mock('../../utils/hyperLiquidValidation', () => ({
   validateOrderParams: jest.fn(),
   validateWithdrawalParams: jest.fn(),
@@ -279,14 +300,38 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('Route Management', () => {
-    it('should get deposit routes', () => {
+    it('should get deposit routes with constraints', () => {
       const routes = provider.getDepositRoutes();
       expect(Array.isArray(routes)).toBe(true);
+
+      // Check that routes have constraints
+      if (routes.length > 0) {
+        const route = routes[0];
+        expect(route.constraints).toBeDefined();
+        expect(route.constraints?.minAmount).toBe('1.01');
+        expect(route.constraints?.estimatedTime).toBe('5 minutes');
+        expect(route.constraints?.fees).toEqual({
+          fixed: 1,
+          token: 'USDC',
+        });
+      }
     });
 
-    it('should get withdrawal routes', () => {
+    it('should get withdrawal routes with constraints', () => {
       const routes = provider.getWithdrawalRoutes();
       expect(Array.isArray(routes)).toBe(true);
+
+      // Check that routes have constraints (same as deposit routes)
+      if (routes.length > 0) {
+        const route = routes[0];
+        expect(route.constraints).toBeDefined();
+        expect(route.constraints?.minAmount).toBe('1.01');
+        expect(route.constraints?.estimatedTime).toBe('5 minutes');
+        expect(route.constraints?.fees).toEqual({
+          fixed: 1,
+          token: 'USDC',
+        });
+      }
     });
 
     it('should filter routes by parameters', () => {
