@@ -2,14 +2,27 @@ import { getCardholder } from './getCardholder';
 import { CardSDK } from '../sdk/CardSDK';
 import Logger from '../../../../util/Logger';
 import { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
-import { toChecksumAddress } from '../../../../util/address';
+import {
+  isValidHexAddress,
+  safeToChecksumAddress,
+} from '../../../../util/address';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 // Mock dependencies
 jest.mock('../sdk/CardSDK');
 jest.mock('../../../../util/Logger');
+jest.mock('../../../../util/address');
+jest.mock('@metamask/swaps-controller/dist/constants', () => ({
+  LINEA_CHAIN_ID: '0xe708',
+}));
 
 const MockedCardSDK = CardSDK as jest.MockedClass<typeof CardSDK>;
 const mockedLogger = Logger as jest.Mocked<typeof Logger>;
+const mockedIsValidHexAddress = isValidHexAddress as jest.MockedFunction<
+  typeof isValidHexAddress
+>;
+const mockedSafeToChecksumAddress =
+  safeToChecksumAddress as jest.MockedFunction<typeof safeToChecksumAddress>;
 
 describe('getCardholder', () => {
   const mockCardFeatureFlag: CardFeatureFlag = {
@@ -53,6 +66,12 @@ describe('getCardholder', () => {
     } as unknown as jest.Mocked<CardSDK>;
 
     MockedCardSDK.mockImplementation(() => mockCardSDKInstance);
+
+    // Mock address utilities
+    mockedIsValidHexAddress.mockReturnValue(true);
+    mockedSafeToChecksumAddress.mockImplementation(
+      (address) => address as `0x${string}`,
+    );
   });
 
   describe('successful scenarios', () => {
@@ -72,12 +91,12 @@ describe('getCardholder', () => {
       });
 
       expect(result).toEqual([
-        toChecksumAddress('0x1234567890abcdef1234567890abcdef12345678'),
-        toChecksumAddress('0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'),
+        '0x1234567890abcdef1234567890abcdef12345678',
+        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       ]);
       expect(MockedCardSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
-        rawChainId: '0xe708',
+        rawChainId: LINEA_CHAIN_ID,
       });
       expect(mockCardSDKInstance.isCardHolder).toHaveBeenCalledWith(
         mockFormattedAccounts,
@@ -98,9 +117,7 @@ describe('getCardholder', () => {
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
-      expect(result).toEqual([
-        toChecksumAddress('0x1234567890abcdef1234567890abcdef12345678'),
-      ]);
+      expect(result).toEqual(['0x1234567890abcdef1234567890abcdef12345678']);
     });
 
     it('should return empty array when no accounts are cardholders', async () => {
@@ -259,7 +276,7 @@ describe('getCardholder', () => {
     });
   });
 
-  describe('address extraction', () => {
+  describe('address extraction and validation', () => {
     it('should correctly extract addresses from CAIP account identifiers', async () => {
       const mockResult = {
         cardholderAccounts: [
@@ -281,6 +298,59 @@ describe('getCardholder', () => {
         '0x2222222222222222222222222222222222222222',
         '0x3333333333333333333333333333333333333333',
       ]);
+      expect(mockedSafeToChecksumAddress).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle invalid CAIP-10 format and log errors', async () => {
+      const mockResult = {
+        cardholderAccounts: [
+          'invalid:format',
+          'eip155:59144:0x1111111111111111111111111111111111111111',
+          'also:invalid',
+        ] as `eip155:${string}:0x${string}`[],
+      };
+
+      mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
+
+      const result = await getCardholder({
+        formattedAccounts: mockFormattedAccounts,
+        cardFeatureFlag: mockCardFeatureFlag,
+      });
+
+      expect(result).toEqual(['0x1111111111111111111111111111111111111111']);
+      expect(mockedLogger.log).toHaveBeenCalledWith(
+        'getCardholder::Invalid account format: invalid:format. Expected format is CAIP-10',
+      );
+      expect(mockedLogger.log).toHaveBeenCalledWith(
+        'getCardholder::Invalid account format: also:invalid. Expected format is CAIP-10',
+      );
+    });
+
+    it('should filter out invalid hex addresses', async () => {
+      const mockResult = {
+        cardholderAccounts: [
+          'eip155:59144:0x1111111111111111111111111111111111111111',
+          'eip155:59144:0xinvalidhexaddress',
+          'eip155:59144:0x2222222222222222222222222222222222222222',
+        ] as `eip155:${string}:0x${string}`[],
+      };
+
+      mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
+      mockedIsValidHexAddress
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true);
+
+      const result = await getCardholder({
+        formattedAccounts: mockFormattedAccounts,
+        cardFeatureFlag: mockCardFeatureFlag,
+      });
+
+      expect(result).toEqual([
+        '0x1111111111111111111111111111111111111111',
+        '0x2222222222222222222222222222222222222222',
+      ]);
+      expect(mockedIsValidHexAddress).toHaveBeenCalledTimes(3);
     });
   });
 });
