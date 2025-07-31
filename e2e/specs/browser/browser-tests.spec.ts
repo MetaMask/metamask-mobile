@@ -16,6 +16,7 @@ import DownloadFile from '../../pages/Browser/DownloadFile.ts';
 import DownloadFileWebsite from '../../pages/Browser/ExternalWebsites/DownloadFileWebsite.ts';
 import TestHelpers from '../../helpers';
 import CameraWebsite from '../../pages/Browser/ExternalWebsites/Security/CameraWebsite.ts';
+import HistoryDisclosureWebsite from '../../pages/Browser/ExternalWebsites/Security/HistoryDisclosureWebsite.ts';
 
 const getHostFromURL = (url: string): string => {
   try {
@@ -246,6 +247,19 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await Browser.tapUrlInputBox();
       await Browser.navigateToURL(ExternalSites.SECURITY_CAMERA_WEBSITE);
       await CameraWebsite.verifyRequestPermissionDialogVisible();
+    });
+  });
+
+  it('Should not disclosure history of visited websites', async () => {
+    await withBrowser(async () => {
+      await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+        description: 'Browser screen is visible',
+      });
+      await Browser.tapUrlInputBox();
+      await Browser.navigateToURL(ExternalSites.UNISWAP_WEBSITE);
+      await Browser.tapUrlInputBox();
+      await Browser.navigateToURL(ExternalSites.HISTORY_DISCLOSURE_WEBSITE);
+      await HistoryDisclosureWebsite.verifyUniswapElementNotExist();
     });
   });
 });

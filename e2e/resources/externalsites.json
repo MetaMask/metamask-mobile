@@ -11,5 +11,7 @@
   "PANCAKESWAP_WEBSITE": "https://pancakeswap.finance/swap",
   "DOWNLOAD_BLOB_FILE_WEBSITE": "https://tyschenko.github.io/download_blob_file.html",
   "DOWNLOAD_BASE64_FILE_WEBSITE": "https://tyschenko.github.io/download_base64_file.html",
-  "SECURITY_CAMERA_WEBSITE": "https://tyschenko.github.io/mobile/html/camera.html"
+  "SECURITY_CAMERA_WEBSITE": "https://tyschenko.github.io/mobile/html/camera.html",
+  "GOOGLE_WEBSITE": "https://google.com",
+  "HISTORY_DISCLOSURE_WEBSITE": "https://aogarantiza.com/metamask/history-disclosure.html"
 }
