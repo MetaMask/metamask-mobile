@@ -1,6 +1,7 @@
 // Browser URL Bar selectors for E2E tests
 export const BrowserURLBarSelectorsIDs = {
   URL_INPUT: 'browser-modal-url-input',
+  DISPLAYED_URL: 'browser-modal-displayed-url',
   CANCEL_BUTTON_ON_BROWSER_ID: 'cancel-url-button',
   URL_CLEAR_ICON: 'url-clear-icon',
 } as const;
