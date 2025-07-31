@@ -15005,7 +15005,7 @@ append-transform@^2.0.0:
   dependencies:
     default-require-extensions "^3.0.0"
 
-appium-adb@^12.0.0, appium-adb@^12.12.0:
+appium-adb@^12.0.0, appium-adb@^12.12.0, appium-adb@^12.12.6:
   version "12.12.6"
   resolved "https://registry.yarnpkg.com/appium-adb/-/appium-adb-12.12.6.tgz#a895a70d5fedc314d607c4fa03e15b36454ecf84"
   integrity sha512-JrR3tiXcpCgbw40XQvbRuVZDgd7RT+Ak0eIOq3TbXP6MZCyErseyLaGrxA8yessaqbMePrtl1AxJOPEb1x23qA==
@@ -15038,6 +15038,30 @@ appium-adb@^9.11.4:
     source-map-support "^0.x"
     teen_process "^2.0.1"
 
+appium-android-driver@^10.3.10:
+  version "10.3.10"
+  resolved "https://registry.yarnpkg.com/appium-android-driver/-/appium-android-driver-10.3.10.tgz#9aa60c7602ab84294a7bccd7f9f24c997bdfe20c"
+  integrity sha512-Toso7ibWlhbD0/7/nEQUopNJHhdk/WJ8Xje7sDs19qJkjTzByRNdGzklTgXyRUOrlkF5RrXPzH6IuMjkQDZC3Q==
+  dependencies:
+    "@appium/support" "^6.0.0"
+    "@colors/colors" "^1.6.0"
+    appium-adb "^12.12.6"
+    appium-chromedriver "^7.0.6"
+    asyncbox "^3.0.0"
+    axios "^1.x"
+    bluebird "^3.4.7"
+    io.appium.settings "^5.14.8"
+    lodash "^4.17.4"
+    lru-cache "^10.0.1"
+    moment "^2.24.0"
+    moment-timezone "^0.x"
+    portscanner "^2.2.0"
+    semver "^7.0.0"
+    source-map-support "^0.x"
+    teen_process "^2.0.0"
+    type-fest "^4.4.0"
+    ws "^8.0.0"
+
 appium-android-driver@^9.15.0:
   version "9.15.1"
   resolved "https://registry.yarnpkg.com/appium-android-driver/-/appium-android-driver-9.15.1.tgz#e32c67b1a1f36f02f3449f842687b7a217741e15"
@@ -15062,7 +15086,7 @@ appium-android-driver@^9.15.0:
     type-fest "^4.4.0"
     ws "^8.0.0"
 
-appium-chromedriver@^7.0.0:
+appium-chromedriver@^7.0.0, appium-chromedriver@^7.0.6:
   version "7.0.33"
   resolved "https://registry.yarnpkg.com/appium-chromedriver/-/appium-chromedriver-7.0.33.tgz#93e234952aef09bc7a7f4ba7d8181fcc740c5adf"
   integrity sha512-T4cmHHkpCow+66W0kdqqDj+3CG+HPxRKMIBDtUqLJnEytGOzkmLQTqitYPI5vHYAbZna1TUtIyHhvhNLQnIKvg==
@@ -15160,7 +15184,26 @@ appium-uiautomator2-driver@^3.8.0:
     teen_process "^2.2.0"
     type-fest "^4.4.0"
 
-appium-uiautomator2-server@^7.0.24:
+appium-uiautomator2-driver@^4.2.7:
+  version "4.2.7"
+  resolved "https://registry.yarnpkg.com/appium-uiautomator2-driver/-/appium-uiautomator2-driver-4.2.7.tgz#7c3b7b29f0850b48d8e0ebaedf71b18815694d90"
+  integrity sha512-IfT5khaSLxyp+qM3F5hpCX42D5SBlC5SPfSjp63Ye6pl7hqunSuvqU9PIC9qzpYZ9ROVfwpjgPfQfHcCIQXKlQ==
+  dependencies:
+    appium-adb "^12.12.0"
+    appium-android-driver "^10.3.10"
+    appium-uiautomator2-server "^7.7.0"
+    asyncbox "^3.0.0"
+    axios "^1.6.5"
+    bluebird "^3.5.1"
+    css-selector-parser "^3.0.0"
+    io.appium.settings "^5.14.3"
+    lodash "^4.17.4"
+    portscanner "^2.2.0"
+    source-map-support "^0.x"
+    teen_process "^2.2.0"
+    type-fest "^4.4.0"
+
+appium-uiautomator2-server@^7.0.24, appium-uiautomator2-server@^7.7.0:
   version "7.7.0"
   resolved "https://registry.yarnpkg.com/appium-uiautomator2-server/-/appium-uiautomator2-server-7.7.0.tgz#8de77a06394f8e5ffd3cae05d13035acce920527"
   integrity sha512-C5Lc+lbAYyL8myXl6bKWRIeouYB6UfL2t1abt0vNq05nuEew9vKVaeLJ+HFQnjtyi6CrQ1ws1UrOvCDJqOZBbw==
@@ -22945,7 +22988,7 @@ invariant@*, invariant@2.2.4, invariant@^2.2.4:
   dependencies:
     loose-envify "^1.0.0"
 
-io.appium.settings@^5.12.22:
+io.appium.settings@^5.12.22, io.appium.settings@^5.14.3, io.appium.settings@^5.14.8:
   version "5.14.14"
   resolved "https://registry.yarnpkg.com/io.appium.settings/-/io.appium.settings-5.14.14.tgz#1dabe9426a71496bed3018696c80eafd14b8da22"
   integrity sha512-Zw2zoQ612ygHPpv+So49DqfXwWWC4S2zF5zD0Otml+hP7XM7QcBnzh7aSkd0IpEqkd7MGtOVgNBtSVeCLH/gNg==

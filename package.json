@@ -311,6 +311,7 @@
     "@walletconnect/utils": "^2.19.2",
     "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
+    "appium-uiautomator2-driver": "^4.2.7",
     "asyncstorage-down": "4.2.0",
     "axios": "^1.8.2",
     "base-64": "1.0.0",
