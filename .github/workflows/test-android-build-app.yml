@@ -17,7 +17,6 @@ permissions:
 jobs:
   android-build:
     name: Test Android Build QA App
-    # runs-on: ubuntu-latest
     #runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-large
     runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
     outputs:
