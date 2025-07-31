@@ -45,7 +45,6 @@ interface TokenAmount {
   amount: string | undefined;
   fiat: string | undefined;
   isNative: boolean | undefined;
-  pending: boolean;
   updateTokenAmount: (amount: string) => void;
   usdValue: string | null;
 }
@@ -65,9 +64,9 @@ const useTokenDecimals = (
 
   const tokenDecimals = token?.decimals;
 
-  return useAsyncResult(async () => {
+  const { value, pending } = useAsyncResult(async () => {
     if (tokenDecimals !== undefined) {
-      return tokenDecimals;
+      return undefined;
     }
 
     return (
@@ -75,6 +74,11 @@ const useTokenDecimals = (
       ERC20_DEFAULT_DECIMALS
     );
   }, [tokenAddress, tokenDecimals, networkClientId]);
+
+  return {
+    value: tokenDecimals ?? value,
+    pending: tokenDecimals === undefined && pending,
+  };
 };
 
 export const useTokenAmount = ({
@@ -135,7 +139,6 @@ export const useTokenAmount = ({
       amount: undefined,
       fiat: undefined,
       isNative: undefined,
-      pending: true,
       usdValue: null,
       updateTokenAmount,
     };
@@ -195,7 +198,6 @@ export const useTokenAmount = ({
     amount: formatAmount(I18n.locale, amount),
     fiat: fiat !== undefined ? fiatFormatter(fiat) : undefined,
     isNative,
-    pending: false,
     updateTokenAmount,
     usdValue,
   };

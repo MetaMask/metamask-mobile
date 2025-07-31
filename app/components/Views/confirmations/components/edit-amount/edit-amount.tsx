@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './edit-amount.styles';
-import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 
 export interface EditAmountProps {
   prefix?: string;
@@ -11,19 +10,13 @@ export interface EditAmountProps {
 
 export function EditAmount({ prefix = '' }: EditAmountProps) {
   const { styles } = useStyles(styleSheet, {});
-  const [amountHuman, setAmountHuman] = useState<string>();
 
-  const {
-    amountPrecise: transactionAmountHuman,
-    pending,
-    updateTokenAmount,
-  } = useTokenAmount();
+  const { amountPrecise: transactionAmountHuman, updateTokenAmount } =
+    useTokenAmount();
 
-  useEffect(() => {
-    if (!amountHuman && transactionAmountHuman) {
-      setAmountHuman(transactionAmountHuman);
-    }
-  }, [amountHuman, transactionAmountHuman]);
+  const [amountHuman, setAmountHuman] = useState<string | undefined>(
+    transactionAmountHuman,
+  );
 
   const handleChange = useCallback(
     (text: string) => {
@@ -34,23 +27,17 @@ export function EditAmount({ prefix = '' }: EditAmountProps) {
     [prefix, updateTokenAmount],
   );
 
-  const isFirstLoad = !amountHuman && pending;
-  const inputValue = `${prefix}${amountHuman ?? '0'}`;
+  const inputValue = `${prefix}${amountHuman}`;
 
   return (
     <View style={styles.container}>
-      {isFirstLoad ? (
-        <AnimatedSpinner size={SpinnerSize.SM} />
-      ) : (
-        <TextInput
-          testID="edit-amount-input"
-          value={inputValue}
-          onChangeText={handleChange}
-          keyboardType="numeric"
-          placeholder="Enter amount"
-          style={styles.input}
-        />
-      )}
+      <TextInput
+        testID="edit-amount-input"
+        value={inputValue}
+        onChangeText={handleChange}
+        keyboardType="numeric"
+        style={styles.input}
+      />
     </View>
   );
 }
