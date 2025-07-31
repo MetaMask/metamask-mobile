@@ -1,7 +1,10 @@
 import NavigationService from '../../NavigationService';
 import {
   CaipAssetType,
+  CaipChainId,
+  Hex,
   isCaipAssetType,
+  isCaipChainId,
   parseCaipAssetType,
 } from '@metamask/utils';
 import {
@@ -13,6 +16,8 @@ import { BridgeRouteParams } from '../../../components/UI/Bridge/Views/BridgeVie
 import { fetchAssetMetadata } from '../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
+import Engine from '../../Engine';
+import { isHex } from 'viem';
 
 interface HandleSwapUrlParams {
   swapPath: string;
@@ -53,6 +58,23 @@ const validateAndLookupToken = async (
   }
 };
 
+const isChainAvailable = (chainId: Hex | CaipChainId) => {
+  if (isHex(chainId)) {
+    return Boolean(
+      Engine.context.NetworkController.getNetworkConfigurationByChainId(
+        chainId,
+      ),
+    );
+  } else if (isCaipChainId(chainId)) {
+    return Boolean(
+      Engine.context.MultichainNetworkController.state
+        .multichainNetworkConfigurationsByChainId[chainId],
+    );
+  }
+
+  return false;
+};
+
 /**
  * Handles deeplinks for the unified swap/bridge experience
  *
@@ -84,6 +106,11 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       fromCaip && isCaipAssetType(fromCaip)
         ? await validateAndLookupToken(fromCaip)
         : undefined;
+
+    // Check if user has added the source chain to their wallet
+    if (sourceToken?.chainId && !isChainAvailable(sourceToken?.chainId)) {
+      throw new Error('Chain not available');
+    }
 
     const destToken =
       toCaip && isCaipAssetType(toCaip)
