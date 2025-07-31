@@ -10,6 +10,12 @@ jest.mock('../../core/SnapKeyring/utils/sendMultichainTransaction');
 jest.mock('../../core/SnapKeyring/utils/snaps');
 jest.mock('@metamask/keyring-api');
 jest.mock('../../util/Logger');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
 
 const mockedSendMultichainTransaction =
   sendMultichainTransaction as jest.MockedFunction<
@@ -23,8 +29,19 @@ const mockedIsEvmAccountType = isEvmAccountType as jest.MockedFunction<
 
 describe('useSendNonEvmAsset', () => {
   const mockAsset = {
-    chainId: 'solana:mainnet',
     address: 'test-token-address',
+    aggregators: [],
+    balance: '400',
+    balanceFiat: '1500',
+    chainId: 'solana:mainnet',
+    decimals: 18,
+    hasBalanceError: false,
+    image: '',
+    isETH: undefined,
+    isNative: true,
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
+    name: 'Ethereum',
+    symbol: 'ETH',
   };
 
   const mockCloseModal = jest.fn();

@@ -20,10 +20,10 @@ import { styleSheet } from './amount.styles';
 export const Amount = () => {
   const { styles } = useStyles(styleSheet, {});
   const { updateValue } = useSendContext();
-  const { getMaxAmount } = useMaxAmount();
+  const { getMaxAmount, isMaxAmountSupported } = useMaxAmount();
   const [amount, updateAmount] = useState('');
   const { amountError } = useAmountValidation();
-  const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
+  const primaryCurrency = useSelector(selectPrimaryCurrency);
   const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
   const {
     getFiatDisplayValue,
@@ -44,8 +44,10 @@ export const Amount = () => {
 
   const updateToMaxAmount = useCallback(() => {
     const maxAmount = getMaxAmount();
-    updateAmount(fiatMode ? getFiatValue(maxAmount).toString() : maxAmount);
-    updateValue(maxAmount);
+    if (maxAmount !== undefined) {
+      updateAmount(fiatMode ? getFiatValue(maxAmount).toString() : maxAmount);
+      updateValue(maxAmount);
+    }
   }, [fiatMode, getFiatValue, getMaxAmount, updateAmount, updateValue]);
 
   const updateToNewAmount = useCallback(
@@ -80,11 +82,13 @@ export const Amount = () => {
         testID="fiat_toggle"
       />
       <Text color={TextColor.Error}>{amountError}</Text>
-      <Button
-        label="Max"
-        onPress={updateToMaxAmount}
-        variant={ButtonVariants.Secondary}
-      />
+      {isMaxAmountSupported && (
+        <Button
+          label="Max"
+          onPress={updateToMaxAmount}
+          variant={ButtonVariants.Secondary}
+        />
+      )}
     </View>
   );
 };

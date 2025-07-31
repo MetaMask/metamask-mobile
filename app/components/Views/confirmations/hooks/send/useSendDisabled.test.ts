@@ -1,7 +1,4 @@
-import {
-  ProviderValues,
-  renderHookWithProvider,
-} from '../../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useSendDisabled } from './useSendDisabled';
 
@@ -13,7 +10,7 @@ describe('useSendDisabled', () => {
   it('return field for sendDisabled', () => {
     const { result } = renderHookWithProvider(
       () => useSendDisabled(),
-      mockState as ProviderValues,
+      mockState,
     );
     expect(result.current).toStrictEqual({ sendDisabled: true });
   });

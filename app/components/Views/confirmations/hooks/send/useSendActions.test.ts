@@ -1,7 +1,4 @@
-import {
-  ProviderValues,
-  renderHookWithProvider,
-} from '../../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useSendActions } from './useSendActions';
 
@@ -30,7 +27,7 @@ describe('useSendActions', () => {
   it('return function submitSend, cancelSend', () => {
     const { result } = renderHookWithProvider(
       () => useSendActions(),
-      mockState as ProviderValues,
+      mockState,
     );
     expect(result.current.handleSubmitPress).toBeDefined();
     expect(result.current.handleCancelPress).toBeDefined();
@@ -39,7 +36,7 @@ describe('useSendActions', () => {
   it('call navigation.goBack when cancelSend is invoked', () => {
     const { result } = renderHookWithProvider(
       () => useSendActions(),
-      mockState as ProviderValues,
+      mockState,
     );
     result.current.handleCancelPress();
     expect(mockGoBack).toHaveBeenCalled();
