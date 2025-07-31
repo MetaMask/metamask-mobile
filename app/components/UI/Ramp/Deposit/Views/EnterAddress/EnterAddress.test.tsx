@@ -1,13 +1,12 @@
 import React from 'react';
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
-import EnterAddress from './EnterAddress';
+import EnterAddress, { AddressFormData } from './EnterAddress';
 import Routes from '../../../../../../constants/navigation/Routes';
 
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
-import { AddressFormData } from '../Address/Address';
 
 const mockTrackEvent = jest.fn();
 
