@@ -1,27 +1,29 @@
-'use strict';
 import { ethers } from 'ethers';
 import { MockttpServer } from 'mockttp';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import WalletView from '../../pages/wallet/WalletView';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
+} from '../../framework/fixtures/FixtureHelper';
 import {
   CustomNetworks,
   PopularNetworksList,
 } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
-import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
+import FixtureServer from '../../framework/fixtures/FixtureServer';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import StakeView from '../../pages/Stake/StakeView';
 import StakeConfirmView from '../../pages/Stake/StakeConfirmView';
 import SendView from '../../pages/Send/SendView';
@@ -246,10 +248,15 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await Assertions.checkIfNotVisible(WalletView.stakedEthereumLabel);
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
+
+    // Scroll to top first to ensure consistent starting position
+    await WalletView.scrollToBottomOfTokensList();
+
     // 3rd one is Linea Network
+    await WalletView.scrollToToken('Ethereum');
+
     await WalletView.tapOnToken('Ethereum', THIRD_ONE);
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(3000);
     await Assertions.checkIfNotVisible(TokenOverview.stakedBalance);
     await Assertions.checkIfNotVisible(TokenOverview.unstakingBanner);
     await Assertions.checkIfNotVisible(TokenOverview.unstakeButton);

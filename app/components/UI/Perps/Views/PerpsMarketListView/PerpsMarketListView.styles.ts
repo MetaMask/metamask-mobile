@@ -16,7 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 8,
-      marginTop: 32,
       marginBottom: 16,
     },
     headerTitle: {

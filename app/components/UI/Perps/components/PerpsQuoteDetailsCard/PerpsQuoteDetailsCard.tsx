@@ -7,11 +7,14 @@ import { TooltipSizes } from '../../../../../component-library/components-temp/K
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PerpsQuoteDetailsCard.styles';
 
+export type QuoteDirection = 'deposit' | 'withdrawal';
+
 interface PerpsQuoteDetailsCardProps {
   networkFee: string;
   estimatedTime?: string;
   rate: string;
   metamaskFee?: string;
+  direction?: QuoteDirection;
 }
 
 const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
@@ -19,6 +22,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
   estimatedTime,
   rate,
   metamaskFee = '$0.00',
+  direction = 'deposit',
 }) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -28,7 +32,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         <KeyValueRow
           field={{
             label: {
-              text: strings('perps.deposit.network_fee'),
+              text: strings('perps.quote.network_fee'),
               variant: TextVariant.BodyMDMedium,
             },
           }}
@@ -44,12 +48,12 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         <KeyValueRow
           field={{
             label: {
-              text: strings('perps.deposit.metamask_fee'),
+              text: strings('perps.quote.metamask_fee'),
               variant: TextVariant.BodyMDMedium,
             },
             tooltip: {
-              title: strings('perps.deposit.metamask_fee'),
-              content: strings('perps.deposit.metamask_fee_tooltip'),
+              title: strings('perps.quote.metamask_fee'),
+              content: strings(`perps.quote.metamask_fee_tooltip_${direction}`),
               size: TooltipSizes.Sm,
             },
           }}
@@ -66,7 +70,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           <KeyValueRow
             field={{
               label: {
-                text: strings('perps.deposit.estimated_time'),
+                text: strings('perps.quote.estimated_time'),
                 variant: TextVariant.BodyMDMedium,
               },
             }}
@@ -83,7 +87,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         <KeyValueRow
           field={{
             label: {
-              text: strings('perps.deposit.rate'),
+              text: strings('perps.quote.rate'),
               variant: TextVariant.BodyMDMedium,
             },
           }}
