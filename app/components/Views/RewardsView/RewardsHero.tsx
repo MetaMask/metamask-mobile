@@ -47,13 +47,13 @@ const createStyles = (colors: Colors) =>
     contentContainer: {
       paddingHorizontal: 16,
     },
-    heroTitle: {
+    seasonTitle: {
       fontSize: 28,
       color: colors.text.default,
       marginBottom: 12,
       fontWeight: 500,
     },
-    heroDescription: {
+    seasonDescription: {
       fontSize: 18,
       color: colors.text.default,
       lineHeight: 28,
@@ -116,9 +116,9 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({
             <Text style={styles.liveBadgeText}>Live</Text>
           </View>
         )}
-        <Text style={styles.heroTitle}>{name}</Text>
+        <Text style={styles.seasonTitle}>{name}</Text>
 
-        <Text style={styles.heroDescription}>
+        <Text style={styles.seasonDescription}>
           Join thousands of users earning rewards through staking, liquidity
           provision, and exclusive MetaMask programs.
         </Text>
