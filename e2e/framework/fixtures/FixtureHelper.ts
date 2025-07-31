@@ -7,7 +7,9 @@ import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import createStaticServer from '../../create-static-server';
 import {
+  AnvilPort,
   getFixturesServerPort,
+  getGanachePort,
   getLocalTestDappPort,
   getMockServerPort,
 } from './FixtureUtils';
@@ -36,6 +38,7 @@ import {
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
+import { PortAllocator } from '../PortAllocator';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -96,10 +99,21 @@ async function handleDapps(
           `Unsupported dapp variant: '${dapp.dappVariant}'. Cannot start the server.`,
         );
     }
-    dappServer[i].listen(`${dappBasePort + i}`);
-    await new Promise((resolve, reject) => {
-      dappServer[i].on('listening', resolve);
-      dappServer[i].on('error', reject);
+
+    const port = PortAllocator.getInstance().allocatePort(
+      `dapp-server-${i}`,
+      dappBasePort + i,
+    );
+    dappServer[i].listen(`${port}`);
+    await new Promise<void>((resolve, reject) => {
+      dappServer[i].on('listening', () => {
+        logger.debug(`Dapp server listening on port ${port}`);
+        resolve();
+      });
+      dappServer[i].on('error', (error) => {
+        logger.error(`Error starting dapp server: ${error}`);
+        reject(error);
+      });
     });
   }
 }
@@ -172,6 +186,13 @@ async function handleLocalNodes(
         case LocalNodeType.anvil:
           localNode = new AnvilManager();
           localNodeSpecificOptions = nodeOptions as AnvilNodeOptions;
+
+          // Allocate a port for the Anvil server
+          localNodeSpecificOptions.port =
+            PortAllocator.getInstance().allocatePort(
+              `test-${nodeType}`,
+              AnvilPort(),
+            );
           await localNode.start(localNodeSpecificOptions);
           localNodes.push(localNode);
           break;
@@ -179,6 +200,13 @@ async function handleLocalNodes(
         case LocalNodeType.ganache:
           localNode = new Ganache();
           localNodeSpecificOptions = nodeOptions as GanacheNodeOptions;
+
+          // Allocate a port for the Ganache server
+          localNodeSpecificOptions.port =
+            PortAllocator.getInstance().allocatePort(
+              `test-${nodeType}`,
+              getGanachePort(),
+            );
           // Check if mnemonic and/or hardfork are provided, otherwise use defaultGanacheOptions
           if (
             (!localNodeSpecificOptions?.mnemonic &&
@@ -203,6 +231,11 @@ async function handleLocalNodes(
           localNodes.push(localNode);
           break;
         case LocalNodeType.bitcoin:
+          logger.error('Bitcoin is not supported yet');
+          break;
+
+        case LocalNodeType.solana:
+          logger.error('Solana is not supported yet');
           break;
 
         default:
