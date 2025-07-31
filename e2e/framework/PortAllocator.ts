@@ -33,16 +33,30 @@ export class PortAllocator {
    */
   private initializePortRange(forceCI?: boolean): void {
     const isCI = forceCI || process.env.CI === 'true';
+    const MAX_VALID_PORT = 65535;
 
     if (isCI) {
       const pid = process.pid;
       // Use PID to create a unique base port (keep within valid port range 1024-65535)
-      const pidOffset = (pid % 100) * this.PORT_RANGE_SIZE;
+      const pidOffset = (pid % 50) * this.PORT_RANGE_SIZE; // Reduced from 100 to 50 to ensure we stay within limits
       this.MIN_PORT = 10000 + pidOffset;
-      this.MAX_PORT = this.MIN_PORT + this.PORT_RANGE_SIZE - 1;
+
+      const calculatedMax = this.MIN_PORT + this.PORT_RANGE_SIZE - 1;
+      this.MAX_PORT = Math.min(calculatedMax, MAX_VALID_PORT);
+
+      if (this.MAX_PORT < calculatedMax) {
+        const desiredMin = Math.max(
+          1024,
+          this.MAX_PORT - this.PORT_RANGE_SIZE + 1,
+        );
+        this.MIN_PORT = desiredMin;
+        this.logger.debug(
+          `Adjusted port range to maintain size: ${this.MIN_PORT}-${this.MAX_PORT}`,
+        );
+      }
 
       this.logger.debug(
-        `CI environment detected. Using PID ${pid} to calculate port range.`,
+        `CI environment detected. Using PID ${pid} to calculate port range: ${this.MIN_PORT}-${this.MAX_PORT}`,
       );
     } else {
       this.MIN_PORT = 8000;
