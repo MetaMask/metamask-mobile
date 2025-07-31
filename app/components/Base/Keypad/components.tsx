@@ -13,6 +13,7 @@ import {
   type BoxProps,
   type ButtonProps,
   FontWeight,
+  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 
 interface KeypadContainerProps extends BoxProps {
@@ -31,8 +32,8 @@ interface KeypadRowProps {
 const KeypadRow: React.FC<KeypadRowProps> = (props) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
+    justifyContent={BoxJustifyContent.Between}
     gap={3}
-    twClassName="justify-around"
     {...props}
   />
 );
