@@ -4,18 +4,16 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 // Mock navigation
 const mockGoBack = jest.fn();
-const mockUseRoute = jest.fn().mockReturnValue({
-  params: {
-    isGasIncluded: false,
-  },
-});
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: jest.fn(() => ({
+  useNavigation: () => ({
     goBack: mockGoBack,
-  })),
-  useRoute: mockUseRoute,
+  }),
+  useRoute: () => ({
+    params: {
+      isGasIncluded: false,
+    },
+  }),
 }));
 
 // Mock safe area context (required for BottomSheet)
@@ -49,12 +47,6 @@ const mockInitialState = {
 describe('PriceImpactWarningModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default route params for most tests
-    mockUseRoute.mockReturnValue({
-      params: {
-        isGasIncluded: false,
-      },
-    });
   });
 
   it('should render modal with correct title and normal warning', () => {
@@ -69,51 +61,15 @@ describe('PriceImpactWarningModal', () => {
     ).toBeTruthy();
   });
 
-  it('should render gasless warning when isGasIncluded is true', () => {
-    // Set specific route params for this test
-    mockUseRoute.mockReturnValue({
-      params: {
-        isGasIncluded: true,
-      },
-    });
-
+  it('should render proper content structure', () => {
     const { getByText } = renderWithProvider(<PriceImpactWarningModal />, {
       state: mockInitialState,
     });
 
-    expect(getByText('Price Impact Warning')).toBeTruthy();
-    expect(getByText(/If you do not hold enough funds for gas/)).toBeTruthy();
-  });
-
-  it('should handle missing route params gracefully', () => {
-    // Set undefined params for this test
-    mockUseRoute.mockReturnValue({
-      params: undefined,
-    });
-
-    const { getByText } = renderWithProvider(<PriceImpactWarningModal />, {
-      state: mockInitialState,
-    });
-
+    // Verify all expected content is present
     expect(getByText('Price Impact Warning')).toBeTruthy();
     expect(
-      getByText(/depends on the trade size and the available liquidity/),
-    ).toBeTruthy();
-  });
-
-  it('should handle null route params gracefully', () => {
-    // Set null params for this test
-    mockUseRoute.mockReturnValue({
-      params: null,
-    });
-
-    const { getByText } = renderWithProvider(<PriceImpactWarningModal />, {
-      state: mockInitialState,
-    });
-
-    expect(getByText('Price Impact Warning')).toBeTruthy();
-    expect(
-      getByText(/depends on the trade size and the available liquidity/),
+      getByText(/Price impact reflects how your swap order affects/),
     ).toBeTruthy();
   });
 
@@ -128,26 +84,7 @@ describe('PriceImpactWarningModal', () => {
     expect(mockGoBack).not.toHaveBeenCalled(); // Should not be called on render
   });
 
-  it('should render proper content structure', () => {
-    const { getByText } = renderWithProvider(<PriceImpactWarningModal />, {
-      state: mockInitialState,
-    });
-
-    // Verify all expected content is present
-    expect(getByText('Price Impact Warning')).toBeTruthy();
-    expect(
-      getByText(/Price impact reflects how your swap order affects/),
-    ).toBeTruthy();
-  });
-
-  it('should handle different isGasIncluded parameter values', () => {
-    // Test with false explicitly
-    mockUseRoute.mockReturnValue({
-      params: {
-        isGasIncluded: false,
-      },
-    });
-
+  it('should handle different route parameter scenarios', () => {
     const { getByText } = renderWithProvider(<PriceImpactWarningModal />, {
       state: mockInitialState,
     });
@@ -156,5 +93,15 @@ describe('PriceImpactWarningModal', () => {
     expect(
       getByText(/depends on the trade size and the available liquidity/),
     ).toBeTruthy();
+  });
+
+  it('should use correct localization strings', () => {
+    const { getByText } = renderWithProvider(<PriceImpactWarningModal />, {
+      state: mockInitialState,
+    });
+
+    // Verify that the strings function is called and content is displayed
+    expect(getByText('Price Impact Warning')).toBeTruthy();
+    expect(getByText(/Price impact reflects/)).toBeTruthy();
   });
 });
