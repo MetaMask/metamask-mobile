@@ -2,7 +2,7 @@ import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { TokensControllerState, Token } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
-import { createDeepEqualResultSelector, createDeepEqualSelector } from './util';
+import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
 import { isPortfolioViewEnabled } from '../util/networks';
 import {
@@ -217,23 +217,4 @@ export const selectTransformedTokens = createSelector(
 
     return flatList;
   },
-);
-
-export const selectTokensByAddressAndChain = createDeepEqualResultSelector(
-  selectAllTokens,
-  selectSelectedInternalAccountAddress,
-  (_state: RootState, requests: { address: Hex; chainId: Hex }[]) => requests,
-  (
-    tokensByAccountByChain,
-    selectedAddress,
-    requests,
-  ) =>
-    requests.map((request: { address: Hex; chainId: Hex }) => {
-      const { address, chainId } = request;
-      const tokensForChain = tokensByAccountByChain[chainId]?.[selectedAddress ?? ''] || {};
-
-      return Object.values(tokensForChain).find(
-        (t) => t.address.toLowerCase() === address.toLowerCase(),
-      );
-    }),
 );
