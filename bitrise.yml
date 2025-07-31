@@ -121,7 +121,7 @@ pipelines:
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline
-      stages:
+    stages:
       - set_main_target_stage: {}
       - pr_cache_check_stage: {}
       - build_regression_e2e_ios_android_stage: {}
