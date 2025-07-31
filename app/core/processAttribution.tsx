@@ -36,13 +36,13 @@ export function processAttribution({
   if (currentDeeplink) {
     const { params } = extractURLParams(currentDeeplink);
     const {
-      attributionId = undefined,
-      utm_source = undefined,
-      utm_medium = undefined,
-      utm_campaign = undefined,
-      utm_term = undefined,
-      utm_content = undefined,
-    }: DeeplinkUrlParams = params;
+      attributionId,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+    } = params;
 
     return {
       attributionId,

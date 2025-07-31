@@ -33,7 +33,7 @@ function extractURLParams(url: string) {
       .replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`, `${PROTOCOLS.DAPP}/`),
   );
 
-  let params: DeeplinkUrlParams = {
+  let params: Partial<DeeplinkUrlParams> = {
     pubkey: '',
     uri: '',
     redirect: '',
@@ -53,21 +53,12 @@ function extractURLParams(url: string) {
 
   if (urlObj.query.length) {
     try {
-      const parsedParams = qs.parse(
-        urlObj.query.substring(1),
-      ) as Partial<DeeplinkUrlParams>;
+      const parsedParams = qs.parse(urlObj.query.substring(1));
       params = { ...params, ...parsedParams };
 
       if (params.message) {
         params.message = params.message?.replace(/ /g, '+');
       }
-
-      // Ensure UTM parameters are properly set in the params object
-      params.utm_source = params.utm_source || undefined;
-      params.utm_medium = params.utm_medium || undefined;
-      params.utm_campaign = params.utm_campaign || undefined;
-      params.utm_term = params.utm_term || undefined;
-      params.utm_content = params.utm_content || undefined;
     } catch (e) {
       if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
     }
