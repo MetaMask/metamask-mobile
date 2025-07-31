@@ -5073,6 +5073,11 @@
       "description": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
       "get_started": "Get started",
       "learn_more": "Learn more"
+    },
+    "address_rows_list": {
+      "search_placeholder": "Search networks",
+      "no_networks_found": "No networks found",
+      "no_networks_available": "No networks available"
     }
   },
   "deep_link_modal": {
