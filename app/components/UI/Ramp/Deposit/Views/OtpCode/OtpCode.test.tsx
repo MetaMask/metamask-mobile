@@ -170,7 +170,7 @@ describe('OtpCode Screen', () => {
     await waitFor(() => {
       expect(mockVerifyUserOtp).toHaveBeenCalled();
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.BUILD_QUOTE, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.BUILD_QUOTE, {
         shouldRouteImmediately: true,
       });
     });
