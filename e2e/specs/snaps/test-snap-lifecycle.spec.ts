@@ -47,7 +47,7 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
   });
 
   it('runs the `onStart` lifecycle hook when the client is started', async () => {
-    TestHelpers.terminateApp();
+    await TestHelpers.terminateApp();
 
     await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
