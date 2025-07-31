@@ -49,7 +49,6 @@ import { getEnvironment } from './utils';
 
 const ON_RAMP_GEO_BLOCKING_URLS = {
   DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-  UAT: 'https://on-ramp.uat-api.cx.metamask.io/geolocation',
   PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
 };
 
@@ -284,7 +283,7 @@ export class PerpsController extends BaseController<
     });
 
     this.refreshEligibility().catch((error) => {
-      DevLogger.log('PerpsController: Error initializing providers', {
+      DevLogger.log('PerpsController: Error refreshing eligibility', {
         error:
           error instanceof Error
             ? error.message
