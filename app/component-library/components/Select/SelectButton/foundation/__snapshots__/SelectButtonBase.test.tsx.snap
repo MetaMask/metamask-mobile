@@ -42,7 +42,7 @@ exports[`SelectButtonBase should render snapshot correctly 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
               "overflow": "hidden",
               "width": 32,
@@ -61,7 +61,9 @@ exports[`SelectButtonBase should render snapshot correctly 1`] = `
                   "height": 32,
                   "width": 32,
                 },
-                undefined,
+                {
+                  "borderRadius": 8,
+                },
               ]
             }
           >
