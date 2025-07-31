@@ -11,13 +11,14 @@ import {
   SIGNATURE_LEGACY,
   SIGNATURE_PERMIT2,
 } from '../constants/approvals';
+import { ApproveMethod } from '../types/approve';
 import { parseStandardTokenTransactionData } from './transaction';
 
 export interface ParsedApprovalTransactionData {
   amountOrTokenId?: BigNumber;
   isApproveAll?: boolean;
   isRevokeAll?: boolean;
-  name: string;
+  name: ApproveMethod;
   tokenAddress?: Hex;
 }
 
@@ -51,7 +52,7 @@ export function parseApprovalTransactionData(
     amountOrTokenId,
     isApproveAll,
     isRevokeAll,
-    name,
+    name: name as ApproveMethod,
     tokenAddress,
   };
 }
