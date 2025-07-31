@@ -81,6 +81,7 @@ jobs:
           echo "🚀 Finishing Android Setup..."
           yarn setup:github-ci --no-build-ios
           echo "🏗 Building Android APP..."
+          export NODE_OPTIONS="--max-old-space-size=4096"
           yarn build:android:qa
         shell: bash
         env:
@@ -92,7 +93,7 @@ jobs:
           GITHUB_CI: "true"
           CI: "true"
 
-          GRADLE_OPTS: "-Xmx20480m -Dorg.gradle.jvmargs='-Xmx20480m'"
+          GRADLE_OPTS: "-Xmx4096m -Dorg.gradle.jvmargs='-Xmx4096m'"
           NODE_OPTIONS: "--max-old-space-size=4096" # Increase memory limit for build, specially on GH Runners
 
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
