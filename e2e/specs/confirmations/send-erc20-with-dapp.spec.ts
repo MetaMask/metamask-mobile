@@ -126,7 +126,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
           await TestHelpers.delay(3000);
 
           // Accept confirmation
-          await FooterActions.tapConfirmButton();
+          await TestDApp.tapConfirmButton();
           await TestHelpers.delay(3000);
 
           // Check activity tab

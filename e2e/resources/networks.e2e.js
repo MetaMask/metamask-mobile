@@ -181,5 +181,15 @@ const CustomNetworks = {
         BlockExplorerUrl: 'https://testnet.monadexplorer.com',
       },
     },
+    SeiTestNet: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: '0x1329',
+        rpcUrl: 'https://sei-mainnet.infura.io',
+        nickname: 'Sei Testnet',
+        ticker: 'SEI',
+        BlockExplorerUrl: 'https://seitrace.com/',
+      },
+    },
 };
 export { CustomNetworks, PopularNetworksList };

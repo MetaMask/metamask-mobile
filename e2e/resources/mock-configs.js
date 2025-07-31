@@ -4,6 +4,7 @@ import { mockEvents } from '../api-mocking/mock-config/mock-events';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
+const SEI_TESTNET = CustomNetworks.SeiTestNet.providerConfig;
 
 /**
  * Shared mock configuration for all network tests
@@ -36,6 +37,14 @@ export const monadLocalConfig = {
   gasLimit: '0x5f5e100',
 };
 
+export const seiLocalConfig = {
+  ...defaultGanacheOptions,
+  chainId: parseInt(SEI_TESTNET.chainId, 16),
+  networkId: parseInt(SEI_TESTNET.chainId, 16),
+  gasPrice: '0x1',
+  gasLimit: '0x5f5e100',
+};
+
 /**
  * Mega ETH provider configuration
  */
@@ -58,6 +67,14 @@ export const monadProviderConfig = {
   type: 'custom',
 };
 
+export const seiProviderConfig = {
+  chainId: '0x539',
+  rpcUrl: 'http://localhost:8545',      // Local Ganache
+  ticker: SEI_TESTNET.ticker,         // "SEI" ticker (for display)
+  nickname: `${SEI_TESTNET.nickname} (Local)`, // "Sei Testnet (Local)"
+  type: 'custom',
+};
+
 /**
  * Permission configurations for different networks
  */
@@ -72,6 +89,7 @@ export const permissionConfigs = {
    */
   megaEth: [MEGAETH_TESTNET.chainId],
   monad: [MONAD_TESTNET.chainId],
+  sei: [SEI_TESTNET.chainId],
 };
 
 /**
@@ -98,6 +116,15 @@ export const testConfigurations = {
     permissions: permissionConfigs.monad,
     testSpecificMock,
   },
+  /**
+   * Sei test configuration
+   */ 
+  sei: {
+    ganacheOptions: seiLocalConfig,
+    providerConfig: seiProviderConfig,
+    permissions: permissionConfigs.sei,
+    testSpecificMock,
+  },
 };
 
 /**
@@ -121,13 +148,12 @@ export const NETWORK_TEST_CONFIGS = [
     permissions: [MONAD_TESTNET.chainId],
     testSpecificMock,
   },
-  // Add new networks here:
-  // {
-  //   name: 'Polygon',
-  //   networkConfig: POLYGON_TESTNET,
-  //   ganacheOptions: polygonLocalConfig,
-  //   providerConfig: polygonProviderConfig,
-  //   permissions: [POLYGON_TESTNET.chainId],
-  //   testSpecificMock,
-  // },
+  {
+    name: 'Sei',
+    networkConfig: SEI_TESTNET,
+    ganacheOptions: seiLocalConfig,
+    providerConfig: seiProviderConfig,
+    permissions: [SEI_TESTNET.chainId],
+    testSpecificMock,
+  },
 ];

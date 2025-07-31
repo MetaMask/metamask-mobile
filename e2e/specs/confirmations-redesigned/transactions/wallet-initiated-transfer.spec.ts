@@ -24,6 +24,7 @@ import WalletView from '../../../pages/wallet/WalletView';
 import NetworkListModal from '../../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
 import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
+import TestDApp from '../../../pages/Browser/TestDApp';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const AMOUNT = '1';
@@ -154,7 +155,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
           await AmountView.typeInTransactionAmount(SMALL_AMOUNT);
           await AmountView.tapNextButton();
 
-          await FooterActions.tapConfirmButton();
+          await TestDApp.tapConfirmButton();
           await TestHelpers.delay(3000);
           await TabBarComponent.tapActivity();
 

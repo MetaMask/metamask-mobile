@@ -15,7 +15,6 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
-import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
 import { NETWORK_TEST_CONFIGS } from '../../resources/mock-configs';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
@@ -80,12 +79,6 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
 // Table-driven tests for all networks
   for (const networkConfig of NETWORK_TEST_CONFIGS) {
     it(`send an ERC721 token from a dapp using ${networkConfig.name} (local)`, async () => {
-      const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
-    };
-
       await withFixtures(
         {
           dapp: true,
@@ -122,7 +115,7 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
           await TestHelpers.delay(3000);
 
           // Accept confirmation
-          await FooterActions.tapConfirmButton();
+          await TestDApp.tapConfirmButton();
           await TestHelpers.delay(3000);
 
           // Check activity tab
