@@ -116,8 +116,6 @@ const RewardsTerms: React.FC = () => {
     },
   });
 
-  console.log('isLoading', isLoading)
-
   const handleAccept = useCallback(async () => {
     if (!address) return;
 
