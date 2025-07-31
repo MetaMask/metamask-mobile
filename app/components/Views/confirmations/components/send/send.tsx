@@ -18,7 +18,8 @@ import styleSheet from './send.styles';
 export const Send = () => {
   const from = useSelector(selectSelectedInternalAccount);
   const { styles } = useStyles(styleSheet, {});
-  const { handleCancelPress, handleSubmitPress } = useSendContext();
+  const { handleCancelPress, handleSubmitPress, sendDisabled } =
+    useSendContext();
 
   return (
     <View style={styles.container}>
@@ -37,6 +38,7 @@ export const Send = () => {
       />
       <Button
         label="Confirm"
+        disabled={sendDisabled}
         onPress={handleSubmitPress}
         variant={ButtonVariants.Primary}
         size={ButtonSize.Lg}

@@ -83,6 +83,14 @@ describe('Send', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it('confirm button is disabled for invalid amount value', async () => {
+    const mockAddTransaction = jest.spyOn(TransactionUtils, 'addTransaction');
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), 'abc');
+    expect(getByText('Invalid amount')).toBeTruthy();
+    expect(mockAddTransaction).not.toHaveBeenCalled();
+  });
+
   it('when confirm is clicked create transaction for ERC20 token', async () => {
     const mockAddTransaction = jest
       .spyOn(TransactionUtils, 'addTransaction')
