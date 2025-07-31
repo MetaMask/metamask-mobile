@@ -16,6 +16,8 @@ import { useBridgeQuoteData } from '.';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { waitFor } from '@testing-library/react-native';
 import { BigNumber } from 'ethers';
+import { SolScope } from '@metamask/keyring-api';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../utils/quoteUtils', () => ({
   isQuoteExpired: jest.fn(),
@@ -550,5 +552,183 @@ describe('useBridgeQuoteData', () => {
     });
 
     expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+  });
+
+  // Validation logic coverage
+  it('executes validation for Solana swaps and handles success', async () => {
+    const mockQuote = { ...mockQuoteWithMetadata };
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuote,
+      alternativeQuotes: [],
+    }));
+
+    mockValidateBridgeTx.mockResolvedValue({
+      status: 'SUCCESS',
+    });
+
+    const bridgeReducerOverrides = {
+      sourceToken: {
+        symbol: 'SOL',
+        chainId: SolScope.Mainnet,
+        address: '11111111111111111111111111111112',
+        decimals: 9,
+      },
+      destToken: {
+        symbol: 'USDC',
+        chainId: SolScope.Mainnet,
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6,
+      },
+    };
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides,
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    await waitFor(() => {
+      expect(result.current.blockaidError).toBe(null);
+    });
+
+    expect(mockValidateBridgeTx).toHaveBeenCalledWith({
+      quoteResponse: mockQuote,
+    });
+  });
+
+  it('executes validation for Solana to EVM bridges and handles error', async () => {
+    const mockQuote = { ...mockQuoteWithMetadata };
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuote,
+      alternativeQuotes: [],
+    }));
+
+    mockValidateBridgeTx.mockResolvedValue({
+      status: 'ERROR',
+      result: {
+        validation: {
+          reason: 'Transaction validation failed',
+        },
+      },
+      error_details: {
+        message: 'transaction contains suspicious activity',
+      },
+    });
+
+    const bridgeReducerOverrides = {
+      sourceToken: {
+        symbol: 'SOL',
+        chainId: SolScope.Mainnet,
+        address: '11111111111111111111111111111112',
+        decimals: 9,
+      },
+      destToken: {
+        symbol: 'ETH',
+        chainId: CHAIN_IDS.MAINNET,
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+      },
+    };
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides,
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    await waitFor(() => {
+      expect(result.current.blockaidError).toBe(
+        'The transaction contains suspicious activity.',
+      );
+    });
+  });
+
+  it('handles validation error without error_details message', async () => {
+    const mockQuote = { ...mockQuoteWithMetadata };
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuote,
+      alternativeQuotes: [],
+    }));
+
+    mockValidateBridgeTx.mockResolvedValue({
+      status: 'ERROR',
+      result: {
+        validation: {
+          reason: 'Fallback validation error',
+        },
+      },
+    });
+
+    const bridgeReducerOverrides = {
+      sourceToken: {
+        symbol: 'SOL',
+        chainId: SolScope.Mainnet,
+        address: '11111111111111111111111111111112',
+        decimals: 9,
+      },
+      destToken: {
+        symbol: 'USDC',
+        chainId: SolScope.Mainnet,
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6,
+      },
+    };
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides,
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    await waitFor(() => {
+      expect(result.current.blockaidError).toBe('Fallback validation error');
+    });
+  });
+
+  it('handles validation exception in catch block', async () => {
+    const mockQuote = { ...mockQuoteWithMetadata };
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuote,
+      alternativeQuotes: [],
+    }));
+
+    mockValidateBridgeTx.mockRejectedValue(new Error('Network timeout'));
+
+    const bridgeReducerOverrides = {
+      sourceToken: {
+        symbol: 'SOL',
+        chainId: SolScope.Mainnet,
+        address: '11111111111111111111111111111112',
+        decimals: 9,
+      },
+      destToken: {
+        symbol: 'USDC',
+        chainId: SolScope.Mainnet,
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6,
+      },
+    };
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides,
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    await waitFor(() => {
+      expect(result.current.blockaidError).toBe(null);
+    });
   });
 });
