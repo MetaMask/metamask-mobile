@@ -21,7 +21,7 @@ class PancakeSwapWebsite {
   async tapEnterAmountButton(): Promise<void> {
     const enterAmountButton = await Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      "//button[normalize-space(text())='Enter an amount']\n",
+      "//button[normalize-space(text())='Enter an amount']",
     );
     await enterAmountButton.tap();
   }
