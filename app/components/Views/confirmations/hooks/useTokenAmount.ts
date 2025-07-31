@@ -41,8 +41,9 @@ interface TokenAmountProps {
 }
 
 interface TokenAmount {
-  amountPrecise: string | undefined;
   amount: string | undefined;
+  amountPrecise: string | undefined;
+  amountUnformatted: string | undefined;
   fiat: string | undefined;
   isNative: boolean | undefined;
   updateTokenAmount: (amount: string) => void;
@@ -135,8 +136,9 @@ export const useTokenAmount = ({
 
   if (pending) {
     return {
-      amountPrecise: undefined,
       amount: undefined,
+      amountPrecise: undefined,
+      amountUnformatted: undefined,
       fiat: undefined,
       isNative: undefined,
       usdValue: null,
@@ -194,8 +196,9 @@ export const useTokenAmount = ({
   }
 
   return {
-    amountPrecise: formatAmountMaxPrecision(I18n.locale, amount),
     amount: formatAmount(I18n.locale, amount),
+    amountPrecise: formatAmountMaxPrecision(I18n.locale, amount),
+    amountUnformatted: amount.toString(),
     fiat: fiat !== undefined ? fiatFormatter(fiat) : undefined,
     isNative,
     updateTokenAmount,
