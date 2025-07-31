@@ -255,8 +255,10 @@ describe('CurrencyRateController Selectors', () => {
           nativeCurrency,
         } as MultichainNetworkConfiguration);
 
-      const selector = selectUSDConversionRateByChainId(chainId);
-      const result = selector(createMockState());
+      const result = selectUSDConversionRateByChainId(
+        createMockState(),
+        chainId,
+      );
       expect(result).toBe(usdConversionRate);
     });
 
@@ -270,8 +272,10 @@ describe('CurrencyRateController Selectors', () => {
           undefined as unknown as MultichainNetworkConfiguration,
         );
 
-      const selector = selectUSDConversionRateByChainId(chainId);
-      const result = selector(createMockState());
+      const result = selectUSDConversionRateByChainId(
+        createMockState(),
+        chainId,
+      );
       expect(result).toBeUndefined();
     });
 
@@ -285,8 +289,10 @@ describe('CurrencyRateController Selectors', () => {
           nativeCurrency: 'UNKNOWN',
         } as MultichainNetworkConfiguration);
 
-      const selector = selectUSDConversionRateByChainId(chainId);
-      const result = selector(createMockState());
+      const result = selectUSDConversionRateByChainId(
+        createMockState(),
+        chainId,
+      );
       expect(result).toBeUndefined();
     });
 
@@ -302,9 +308,10 @@ describe('CurrencyRateController Selectors', () => {
         )
         .mockReturnValue(mockNetworkConfig);
 
-      const selector = selectUSDConversionRateByChainId(chainId);
-      const result = selector(createMockState());
-
+      const result = selectUSDConversionRateByChainId(
+        createMockState(),
+        chainId,
+      );
       expect(result).toBeUndefined();
     });
   });

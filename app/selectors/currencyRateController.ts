@@ -108,16 +108,18 @@ export const selectUsdConversionRate = createSelector(
     currencyRates?.[currentCurrency]?.usdConversionRate,
 );
 
-export const selectUSDConversionRateByChainId = (chainId: string) =>
-  createSelector(
+export const selectUSDConversionRateByChainId = createSelector(
+  [
     selectCurrencyRates,
-    (state) => selectNetworkConfigurationByChainId(state, chainId),
-    (currencyRates, networkConfiguration) => {
-      if (!networkConfiguration) {
-        return undefined;
-      }
-
-      const { nativeCurrency } = networkConfiguration;
-      return currencyRates[nativeCurrency]?.usdConversionRate;
-    },
-  );
+    (_state: RootState, chainId: string) => chainId,
+    (state: RootState, chainId: string) =>
+      selectNetworkConfigurationByChainId(state, chainId),
+  ],
+  (currencyRates, _chainId, networkConfiguration) => {
+    if (!networkConfiguration) {
+      return undefined;
+    }
+    const { nativeCurrency } = networkConfiguration;
+    return currencyRates?.[nativeCurrency]?.usdConversionRate;
+  },
+);

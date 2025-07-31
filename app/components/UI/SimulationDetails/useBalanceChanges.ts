@@ -240,9 +240,9 @@ export default function useBalanceChanges({
     selectConversionRateByChainId(state, chainId),
   ) as number;
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const nativeUsdRate = useSelector((state) =>
-    selectUSDConversionRateByChainId(chainId)(state),
-  );
+  const nativeUsdRate = useSelector((state: RootState) =>
+    selectUSDConversionRateByChainId(state, chainId),
+  ) as number;
 
   const { nativeBalanceChange, tokenBalanceChanges = [] } =
     simulationData ?? {};
