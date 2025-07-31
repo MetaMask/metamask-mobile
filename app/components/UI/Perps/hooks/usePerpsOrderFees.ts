@@ -103,8 +103,9 @@ export function usePerpsOrderFees({
         setError(
           err instanceof Error ? err.message : 'Failed to fetch protocol fees',
         );
-        // Fallback to a reasonable default
-        setProtocolFeeRate(0.00045); // 0.045% taker fee as fallback
+        // Don't set a fallback - let the UI handle the error state
+        // This maintains protocol agnosticism
+        setProtocolFeeRate(0);
       } finally {
         setIsLoadingProtocolFee(false);
       }

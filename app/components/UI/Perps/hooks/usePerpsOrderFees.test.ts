@@ -203,8 +203,8 @@ describe('usePerpsOrderFees', () => {
       });
 
       expect(result.current.error).toBe('Network error');
-      expect(result.current.protocolFeeRate).toBe(0.00045); // Default fallback
-      expect(result.current.protocolFee).toBe(45); // 100000 * 0.00045
+      expect(result.current.protocolFeeRate).toBe(0); // No fallback - error state
+      expect(result.current.protocolFee).toBe(0); // 100000 * 0
     });
 
     it('should handle non-Error rejection', async () => {
@@ -223,7 +223,7 @@ describe('usePerpsOrderFees', () => {
       });
 
       expect(result.current.error).toBe('Failed to fetch protocol fees');
-      expect(result.current.protocolFeeRate).toBe(0.00045); // Default fallback
+      expect(result.current.protocolFeeRate).toBe(0); // No fallback - error state
     });
   });
 
