@@ -1,4 +1,8 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, TextStyle, Platform } from 'react-native';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { Theme } from '../../../util/theme/models';
 
 const createStyles = (params: {
@@ -10,7 +14,7 @@ const createStyles = (params: {
   };
 }) => {
   const { theme, vars } = params;
-  const { colors } = theme;
+  const { colors, typography } = theme;
   const { isRenderedAsBottomSheet, nonTabView, fullNonTabView } = vars;
 
   const tabHeight = fullNonTabView ? 400 : 325;
@@ -166,6 +170,26 @@ const createStyles = (params: {
     tabsContainer: {
       flex: 1,
       paddingHorizontal: 16,
+    },
+    base: {
+      paddingHorizontal: 16,
+    },
+    tabStyle: {
+      paddingVertical: 16,
+    },
+    tabUnderlineStyle: {
+      height: 2,
+      backgroundColor: colors.primary.default,
+    },
+    tabUnderlineStyleInactive: {
+      backgroundColor: colors.text.muted,
+    },
+    textStyle: {
+      ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
+    },
+    tabBar: {
+      marginBottom: 8,
     },
     // Header
     connectionTitle: {

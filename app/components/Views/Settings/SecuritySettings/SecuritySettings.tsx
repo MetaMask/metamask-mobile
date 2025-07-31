@@ -80,6 +80,7 @@ import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSetti
 import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
 import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
+import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
@@ -583,6 +584,7 @@ const Settings: React.FC = () => {
           {strings('app_settings.transactions_subheading')}
         </Text>
         <BatchAccountBalanceSettings />
+        <IncomingTransactionsSettings />
         {renderHistoryModal()}
         {renderUseTransactionSimulations()}
         <Text

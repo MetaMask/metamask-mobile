@@ -2,9 +2,9 @@ import {
   CreateNewWallet,
   importWalletWithRecoveryPhrase,
   loginToApp,
-} from '../../../viewHelper';
+} from '../../../viewHelper.js';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView';
+import WalletView from '../../../pages/wallet/WalletView.js';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';
@@ -14,9 +14,9 @@ import { UserStorageMockttpController } from '../utils/user-storage/userStorageM
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet.js';
 import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
-import SettingsView from '../../../pages/Settings/SettingsView';
+import SettingsView from '../../../pages/Settings/SettingsView.js';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import LoginView from '../../../pages/wallet/LoginView';
+import LoginView from '../../../pages/wallet/LoginView.js';
 import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView.ts';
 import { createUserStorageController } from '../utils/mocks.ts';
 import FixtureBuilder from '../../../fixtures/fixture-builder.js';

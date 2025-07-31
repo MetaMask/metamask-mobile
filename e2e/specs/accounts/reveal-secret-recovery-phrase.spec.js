@@ -2,9 +2,9 @@
 
 import { SmokeAccounts } from '../../tags.js';
 import TestHelpers from '../../helpers.js';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper.js';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import SettingsView from '../../pages/Settings/SettingsView';
+import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
 import {

@@ -61,10 +61,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {
       return null;
     }
-    return getCryptoCurrencyFromTransakId(
-      order.data.cryptoCurrency,
-      order.data.network,
-    );
+    return getCryptoCurrencyFromTransakId(order.data.cryptoCurrency);
   };
 
   const cryptoToken = getCryptoToken();

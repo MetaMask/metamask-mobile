@@ -66,7 +66,10 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
+import {
+  selectShowIncomingTransactionNetworks,
+  selectTokenNetworkFilter,
+} from '../../../selectors/preferencesController';
 
 import useNotificationHandler from '../../../util/notifications/hooks';
 import {
@@ -124,28 +127,40 @@ const Main = (props) => {
   );
 
   useEffect(() => {
-    if (isSeedlessPasswordOutdated) {
-      // show seedless password outdated modal and force user to lock app
-      props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('login.seedless_password_outdated_modal_title'),
-          description: strings(
-            'login.seedless_password_outdated_modal_content',
-          ),
-          primaryButtonLabel: strings(
-            'login.seedless_password_outdated_modal_confirm',
-          ),
-          type: 'error',
-          icon: IconName.Danger,
-          isInteractable: false,
-          onPrimaryButtonPress: async () => {
-            await Authentication.lockApp({ locked: true });
+    const checkIsSeedlessPasswordOutdated = async () => {
+      if (isSeedlessPasswordOutdated) {
+        // Check for latest seedless password outdated state
+        // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
+        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
+          false,
+        );
+        if (!isOutdated) {
+          return;
+        }
+
+        // show seedless password outdated modal and force user to lock app
+        props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings('login.seedless_password_outdated_modal_title'),
+            description: strings(
+              'login.seedless_password_outdated_modal_content',
+            ),
+            primaryButtonLabel: strings(
+              'login.seedless_password_outdated_modal_confirm',
+            ),
+            type: 'error',
+            icon: IconName.Danger,
+            isInteractable: false,
+            onPrimaryButtonPress: async () => {
+              await Authentication.lockApp({ locked: true });
+            },
+            closeOnPrimaryButtonPress: true,
           },
-          closeOnPrimaryButtonPress: true,
-        },
-      });
-    }
+        });
+      }
+    };
+    checkIsSeedlessPasswordOutdated();
   }, [isSeedlessPasswordOutdated, props.navigation]);
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
@@ -156,7 +171,7 @@ const Main = (props) => {
   useIdentityEffects();
   useMinimumVersions();
 
-  const { chainId, networkClientId } = props;
+  const { chainId, networkClientId, showIncomingTransactionsNetworks } = props;
 
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
@@ -169,7 +184,12 @@ const Main = (props) => {
   useEffect(() => {
     stopIncomingTransactionPolling();
     startIncomingTransactionPolling();
-  }, [chainId, networkClientId, props.networkConfigurations]);
+  }, [
+    chainId,
+    networkClientId,
+    showIncomingTransactionsNetworks,
+    props.networkConfigurations,
+  ]);
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
@@ -496,6 +516,10 @@ Main.propTypes = {
   hideCurrentNotification: PropTypes.func,
   removeNotificationById: PropTypes.func,
   /**
+   * Indicates whether networks allows incoming transactions
+   */
+  showIncomingTransactionsNetworks: PropTypes.object,
+  /**
    * Network provider type
    */
   providerType: PropTypes.string,
@@ -530,6 +554,8 @@ Main.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
+  showIncomingTransactionsNetworks:
+    selectShowIncomingTransactionNetworks(state),
   providerType: selectProviderType(state),
   chainId: selectChainId(state),
   networkClientId: selectNetworkClientId(state),

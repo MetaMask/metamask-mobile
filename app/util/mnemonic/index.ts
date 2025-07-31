@@ -52,3 +52,33 @@ export const uint8ArrayToMnemonic = (
 
   return recoveredIndices.map((i) => wordlist[i]).join(' ');
 };
+
+/**
+ * Converts a BIP-39 mnemonic stored as indices of words in the English wordlist to a buffer of Unicode code points.
+ *
+ * @param wordlistIndices - Indices to specific words in the BIP-39 English wordlist.
+ * @param wordlist - BIP-39 wordlist.
+ * @returns The BIP-39 mnemonic formed from the words in the English wordlist, encoded as a list of Unicode code points.
+ */
+export const convertEnglishWordlistIndicesToCodepoints = (
+  wordlistIndices: Uint8Array,
+  wordlist: string[],
+): Buffer => Buffer.from(uint8ArrayToMnemonic(wordlistIndices, wordlist));
+
+/**
+ * Encodes a BIP-39 mnemonic as the indices of words in the English BIP-39 wordlist.
+ *
+ * @param mnemonic - The BIP-39 mnemonic.
+ * @param wordlist - BIP-39 wordlist.
+ * @returns The Unicode code points for the seed phrase formed from the words in the wordlist.
+ */
+export const convertMnemonicToWordlistIndices = (
+  mnemonic: Buffer,
+  wordlist: string[],
+): Uint8Array => {
+  const indices = mnemonic
+    .toString()
+    .split(' ')
+    .map((word) => wordlist.indexOf(word));
+  return new Uint8Array(new Uint16Array(indices).buffer);
+};

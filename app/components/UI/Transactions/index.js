@@ -1,4 +1,3 @@
-import { providerErrors } from '@metamask/rpc-errors';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
@@ -14,26 +13,12 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
-import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
-import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
-import { getDeviceId } from '../../../core/Ledger/Ledger';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
-import {
-  CancelTransactionError,
-  SpeedupTransactionError,
-  TransactionError,
-} from '../../../core/Transaction/TransactionError';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import {
   selectChainId,
   selectNetworkClientId,
@@ -42,9 +27,10 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
+import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
-import { decGWEIToHexWEI } from '../../../util/conversions';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {
@@ -55,22 +41,35 @@ import {
 } from '../../../util/networks';
 import { addHexPrefix, hexToBN, renderFromWei } from '../../../util/number';
 import { mockTheme, ThemeContext } from '../../../util/theme';
+import { validateTransactionActionBalance } from '../../../util/transactions';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import TransactionActionModal from '../TransactionActionModal';
+import TransactionElement from '../TransactionElement';
+import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
+import RetryModal from './RetryModal';
+import TransactionsFooter from './TransactionsFooter';
+import PriceChartContext, {
+  PriceChartProvider,
+} from '../AssetOverview/PriceChart/PriceChart.context';
+import { providerErrors } from '@metamask/rpc-errors';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import {
+  TransactionError,
+  CancelTransactionError,
+  SpeedupTransactionError,
+} from '../../../core/Transaction/TransactionError';
+import { getDeviceId } from '../../../core/Ledger/Ledger';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import {
   speedUpTransaction,
   updateIncomingTransactions,
 } from '../../../util/transaction-controller';
-import { validateTransactionActionBalance } from '../../../util/transactions';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
-import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
-import PriceChartContext, {
-  PriceChartProvider,
-} from '../AssetOverview/PriceChart/PriceChart.context';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import TransactionActionModal from '../TransactionActionModal';
-import TransactionElement from '../TransactionElement';
-import RetryModal from './RetryModal';
-import TransactionsFooter from './TransactionsFooter';
-import { filterDuplicateOutgoingTransactions } from './utils';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
+import { decGWEIToHexWEI } from '../../../util/conversions';
+import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
+import { isNonEvmChainId } from '../../../core/Multichain/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -744,9 +743,6 @@ class Transactions extends PureComponent {
             .concat(confirmedTransactions)
         : this.props.transactions;
 
-    const filteredTransactions =
-      filterDuplicateOutgoingTransactions(transactions);
-
     const renderRetryGas = (rate) => {
       if (!this.existingGas) return null;
 
@@ -773,7 +769,7 @@ class Transactions extends PureComponent {
               testID={ActivitiesViewSelectorsIDs.CONTAINER}
               ref={this.flatList}
               getItemLayout={this.getItemLayout}
-              data={filteredTransactions}
+              data={transactions}
               extraData={this.state}
               keyExtractor={this.keyExtractor}
               refreshControl={
@@ -790,9 +786,7 @@ class Transactions extends PureComponent {
               onEndReachedThreshold={0.5}
               ListHeaderComponent={header}
               ListFooterComponent={
-                filteredTransactions.length > 0
-                  ? this.footer
-                  : this.renderEmpty()
+                transactions.length > 0 ? this.footer : this.renderEmpty()
               }
               style={baseStyles.flexGrow}
               scrollIndicatorInsets={{ right: 1 }}

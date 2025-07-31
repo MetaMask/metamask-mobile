@@ -1,6 +1,6 @@
 import { CaipChainId, Json, SnapId } from '@metamask/snaps-sdk';
 import { KeyringClient, Sender } from '@metamask/keyring-snap-client';
-import { EntropySourceId, SolScope } from '@metamask/keyring-api';
+import { BtcScope, EntropySourceId, SolScope } from '@metamask/keyring-api';
 import { captureException } from '@sentry/react-native';
 import {
   BITCOIN_WALLET_SNAP_ID,
@@ -74,6 +74,7 @@ export abstract class MultichainWalletSnapClient {
     return this.snapName;
   }
 
+  abstract getScope(): CaipChainId;
   abstract getClientType(): WalletClientType;
   protected abstract getSnapSender(): Sender;
 
@@ -202,14 +203,10 @@ export abstract class MultichainWalletSnapClient {
    * This method discovers accounts for the configured scopes and adds them to the keyring.
    *
    * @param entropySource - The source of entropy to use for account discovery
-   * @param scope - The CAIP-2 chain ID to discover accounts for
    * @returns A Promise that resolves when all accounts have been added
    * @throws Error if account discovery or addition fails
    */
-  async addDiscoveredAccounts(
-    entropySource: EntropySourceId,
-    scope: CaipChainId,
-  ) {
+  async addDiscoveredAccounts(entropySource: EntropySourceId) {
     this.startTrace(
       TraceName.SnapDiscoverAccounts,
       TraceOperation.DiscoverAccounts,
@@ -219,7 +216,7 @@ export abstract class MultichainWalletSnapClient {
 
     for (let index = 0; ; index++) {
       const discoveredAccounts = await this.discoverAccounts(
-        [scope],
+        [this.getScope()],
         entropySource,
         index,
       );
@@ -231,7 +228,7 @@ export abstract class MultichainWalletSnapClient {
           try {
             await this.createAccount(
               {
-                scope,
+                scope: this.getScope(),
                 entropySource,
               },
               {
@@ -253,7 +250,7 @@ export abstract class MultichainWalletSnapClient {
         try {
           await this.createAccount(
             {
-              scope,
+              scope: this.getScope(),
               derivationPath: account.derivationPath,
               entropySource,
             },
@@ -279,6 +276,10 @@ export abstract class MultichainWalletSnapClient {
 export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
   constructor(snapKeyringOptions: SnapKeyringOptions) {
     super(BITCOIN_WALLET_SNAP_ID, BITCOIN_WALLET_NAME, snapKeyringOptions);
+  }
+
+  getScope(): CaipChainId {
+    return BtcScope.Mainnet;
   }
 
   getClientType(): WalletClientType {

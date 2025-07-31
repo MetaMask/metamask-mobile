@@ -236,7 +236,7 @@ describe('CandlestickChartComponent', () => {
         PerpsCandlestickChartSelectorsIDs.CANDLES,
       );
       // The colors come from the actual theme system
-      expect(candles).toHaveProp('data-positive-color', '#457a39'); // Actual success color
+      expect(candles).toHaveProp('data-positive-color', '#1c7e33'); // Actual success color
       expect(candles).toHaveProp('data-negative-color', '#ca3542'); // Actual error color
     });
   });

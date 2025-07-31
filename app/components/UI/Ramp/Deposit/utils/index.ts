@@ -1,19 +1,9 @@
 import { DepositOrder } from '@consensys/native-ramps-sdk';
 import {
-  ALL_DEPOSIT_TOKENS,
   DepositCryptoCurrency,
   DepositFiatCurrency,
   DepositPaymentMethod,
-  USDC_BASE_TOKEN,
-  USDC_BSC_TOKEN,
-  USDC_LINEA_TOKEN,
-  USDC_SOLANA_TOKEN,
-  USDC_TOKEN,
-  USDT_BASE_TOKEN,
-  USDT_BSC_TOKEN,
-  USDT_LINEA_TOKEN,
-  USDT_SOLANA_TOKEN,
-  USDT_TOKEN,
+  SUPPORTED_DEPOSIT_TOKENS,
 } from '../constants';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
@@ -21,7 +11,6 @@ import { renderNumber } from '../../../../../util/number';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { AppThemeKey, Colors } from '../../../../../util/theme/models';
-import { CaipAssetReference } from '@metamask/utils';
 
 const emailRegex =
   /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
@@ -32,16 +21,8 @@ export const validateEmail = function (email: string) {
 };
 
 const TRANSAK_CRYPTO_IDS: Record<string, string> = {
-  [USDC_TOKEN.assetId]: 'USDC',
-  [USDC_LINEA_TOKEN.assetId]: 'USDC',
-  [USDC_BASE_TOKEN.assetId]: 'USDC',
-  [USDC_BSC_TOKEN.assetId]: 'USDC',
-  [USDC_SOLANA_TOKEN.assetId]: 'USDC',
-  [USDT_TOKEN.assetId]: 'USDT',
-  [USDT_LINEA_TOKEN.assetId]: 'USDT',
-  [USDT_BASE_TOKEN.assetId]: 'USDT',
-  [USDT_BSC_TOKEN.assetId]: 'USDT',
-  [USDT_SOLANA_TOKEN.assetId]: 'USDT',
+  'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 'USDC',
+  'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7': 'USDT',
 };
 
 const TRANSAK_FIAT_IDS: Record<string, string> = {
@@ -51,10 +32,6 @@ const TRANSAK_FIAT_IDS: Record<string, string> = {
 
 const TRANSAK_CHAIN_IDS: Record<string, string> = {
   'eip155:1': 'ethereum',
-  'eip155:59144': 'linea',
-  'eip155:8453': 'base',
-  'eip155:56': 'bsc',
-  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': 'solana',
 };
 
 const TRANSAK_PAYMENT_METHOD_IDS: Record<string, string> = {
@@ -221,21 +198,12 @@ export const getNotificationDetails = (fiatOrder: FiatOrder) => {
   }
 };
 
-const TRANSAK_ID_TO_ASSET_ID: Record<
-  `${string}/${string}`,
-  CaipAssetReference
-> = {
-  'ethereum/usdc': USDC_TOKEN.assetId,
-  'linea/usdc': USDC_LINEA_TOKEN.assetId,
-  'base/usdc': USDC_BASE_TOKEN.assetId,
-  'bsc/usdc': USDC_BSC_TOKEN.assetId,
-  'solana/usdc': USDC_SOLANA_TOKEN.assetId,
-  'ethereum/usdt': USDT_TOKEN.assetId,
-  'linea/usdt': USDT_LINEA_TOKEN.assetId,
-  'base/usdt': USDT_BASE_TOKEN.assetId,
-  'bsc/usdt': USDT_BSC_TOKEN.assetId,
-  'solana/usdt': USDT_SOLANA_TOKEN.assetId,
-};
+const TRANSAK_ID_TO_ASSET_ID: Record<string, string> = Object.fromEntries(
+  Object.entries(TRANSAK_CRYPTO_IDS).map(([assetId, transakId]) => [
+    transakId,
+    assetId,
+  ]),
+);
 
 /**
  * Transforms Transak crypto currency ID back to our internal crypto currency object
@@ -244,17 +212,16 @@ const TRANSAK_ID_TO_ASSET_ID: Record<
  */
 export function getCryptoCurrencyFromTransakId(
   transakCryptoId: string,
-  transakNetworkId: string,
 ): DepositCryptoCurrency | null {
-  const combinedId =
-    `${transakNetworkId}/${transakCryptoId}`.toLowerCase() as `${string}/${string}`;
-  const assetId = TRANSAK_ID_TO_ASSET_ID[combinedId];
+  const assetId = TRANSAK_ID_TO_ASSET_ID[transakCryptoId];
 
   if (!assetId) {
     return null;
   }
 
-  return ALL_DEPOSIT_TOKENS.find((token) => token.assetId === assetId) || null;
+  return (
+    SUPPORTED_DEPOSIT_TOKENS.find((token) => token.assetId === assetId) || null
+  );
 }
 
 /**

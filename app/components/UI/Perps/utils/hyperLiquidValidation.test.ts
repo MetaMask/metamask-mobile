@@ -73,7 +73,7 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: 'Unknown error occurred',
+        error: 'Unknown error',
         data: null,
       });
     });

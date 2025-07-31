@@ -414,7 +414,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -548,7 +547,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -1594,6 +1592,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "height": 64,
+                                              "paddingHorizontal": 16,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -1918,7 +1917,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                     style={
                                       {
                                         "0": {
-                                          "color": "#b7bbc8",
+                                          "color": "#9ca1af",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -2411,7 +2410,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -2545,7 +2543,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -3591,6 +3588,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "height": 64,
+                                              "paddingHorizontal": 16,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -3915,7 +3913,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                     style={
                                       {
                                         "0": {
-                                          "color": "#b7bbc8",
+                                          "color": "#9ca1af",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -4408,7 +4406,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -4542,7 +4539,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -5588,6 +5584,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "height": 64,
+                                              "paddingHorizontal": 16,
                                             }
                                           }
                                           testID="asset-USDC"
@@ -5951,7 +5948,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                     style={
                                       {
                                         "0": {
-                                          "color": "#b7bbc8",
+                                          "color": "#9ca1af",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -6444,7 +6441,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -6578,7 +6574,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -7624,6 +7619,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "height": 64,
+                                              "paddingHorizontal": 16,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -7948,7 +7944,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                     style={
                                       {
                                         "0": {
-                                          "color": "#b7bbc8",
+                                          "color": "#9ca1af",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -8441,7 +8437,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -8575,7 +8570,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -9621,6 +9615,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "height": 64,
+                                              "paddingHorizontal": 16,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -9945,7 +9940,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                     style={
                                       {
                                         "0": {
-                                          "color": "#b7bbc8",
+                                          "color": "#9ca1af",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -10438,7 +10433,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -10572,7 +10566,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -11618,6 +11611,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "height": 64,
+                                              "paddingHorizontal": 16,
                                             }
                                           }
                                           testID="asset-UNKNOWN"
@@ -11981,7 +11975,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                     style={
                                       {
                                         "0": {
-                                          "color": "#b7bbc8",
+                                          "color": "#9ca1af",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -12907,7 +12901,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -13041,7 +13034,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -14087,6 +14079,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "height": 64,
+                                              "paddingHorizontal": 16,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -14411,7 +14404,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                     style={
                                       {
                                         "0": {
-                                          "color": "#b7bbc8",
+                                          "color": "#9ca1af",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -14904,7 +14897,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
-                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -15038,7 +15030,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
-                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -16084,6 +16075,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               "flex": 1,
                                               "flexDirection": "row",
                                               "height": 64,
+                                              "paddingHorizontal": 16,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -16408,7 +16400,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                     style={
                                       {
                                         "0": {
-                                          "color": "#b7bbc8",
+                                          "color": "#9ca1af",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",

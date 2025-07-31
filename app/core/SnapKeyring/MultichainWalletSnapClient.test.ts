@@ -203,7 +203,7 @@ describe('MultichainWalletSnapClient', () => {
         },
       );
 
-      await client.addDiscoveredAccounts(mockEntropySource, SolScope.Mainnet);
+      await client.addDiscoveredAccounts(mockEntropySource);
 
       expect(mockSnapKeyring.createAccount).toHaveBeenCalledTimes(1);
       expect(mockSnapKeyring.createAccount).toHaveBeenCalledWith(
@@ -281,6 +281,11 @@ describe('Wallet Client Implementations', () => {
     it('should create a BitcoinWalletSnapClient', () => {
       const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
       expect(bitcoinClient).toBeDefined();
+    });
+
+    it('getScope returns bitcoin network', () => {
+      const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
+      expect(bitcoinClient.getScope()).toEqual(BtcScope.Mainnet);
     });
 
     it('adds synchronize parameter to createAccount', async () => {

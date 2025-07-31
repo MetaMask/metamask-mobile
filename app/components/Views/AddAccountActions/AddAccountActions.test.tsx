@@ -108,6 +108,7 @@ describe('AddAccountActions', () => {
     // Check for multichain options
     expect(screen.getByText('Solana account')).toBeDefined();
     expect(screen.getByText('Bitcoin account')).toBeDefined();
+    expect(screen.getByText('Bitcoin testnet account ')).toBeDefined();
   });
 
   it('creates new ETH account when clicking add new account', async () => {
@@ -237,6 +238,12 @@ describe('AddAccountActions', () => {
       {
         button: AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
         scope: MultichainNetwork.Bitcoin,
+        clientType: WalletClientType.Bitcoin,
+      },
+      {
+        button:
+          AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON,
+        scope: MultichainNetwork.BitcoinTestnet,
         clientType: WalletClientType.Bitcoin,
       },
       {

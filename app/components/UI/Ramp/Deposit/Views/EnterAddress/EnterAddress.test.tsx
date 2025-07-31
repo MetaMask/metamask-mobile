@@ -6,8 +6,6 @@ import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-const mockTrackEvent = jest.fn();
-
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
@@ -105,8 +103,6 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParamsReturnValue,
 }));
 
-jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
-
 function render(Component: React.ComponentType) {
   return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_ADDRESS);
 }
@@ -166,7 +162,6 @@ describe('EnterAddress Component', () => {
     ];
     mockNavigateToKycProcessing.mockClear();
     mockNavigateToAdditionalVerification.mockClear();
-    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -420,24 +415,6 @@ describe('EnterAddress Component', () => {
       });
       expect(mockSsnFunction).not.toHaveBeenCalled();
       expect(mockPurposeFunction).toHaveBeenCalled();
-    });
-  });
-
-  it('tracks analytics event when continue button is pressed with valid form data', async () => {
-    render(EnterAddress);
-
-    fillFormAndSubmit();
-
-    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ADDRESS_ENTERED', {
-      region: 'US',
-      ramp_type: 'DEPOSIT',
-      kyc_type: 'SIMPLE',
-    });
-
-    await waitFor(() => {
-      expect(mockNavigateToKycProcessing).toHaveBeenCalledWith({
-        quote: mockQuote,
-      });
     });
   });
 });

@@ -6,10 +6,6 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import {
-  DEBIT_CREDIT_PAYMENT_METHOD,
-  WIRE_TRANSFER_PAYMENT_METHOD,
-} from '../../constants';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -84,11 +80,6 @@ jest.mock('../../hooks/useDepositRouting', () => ({
     navigateToVerifyIdentity: mockNavigateToVerifyIdentity,
   })),
 }));
-
-const mockUsePaymentMethods = jest
-  .fn()
-  .mockReturnValue([DEBIT_CREDIT_PAYMENT_METHOD, WIRE_TRANSFER_PAYMENT_METHOD]);
-jest.mock('../../hooks/usePaymentMethods', () => () => mockUsePaymentMethods());
 
 // Mock the analytics hook like in the aggregator test
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
