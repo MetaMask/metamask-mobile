@@ -134,19 +134,10 @@ export const useDepositRouting = ({
     [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
   );
 
-  const navigateToEnterEmailCallback = useCallback(
-    ({ quote }: { quote: BuyQuote }) => {
-      popToBuildQuote();
-      navigation.navigate(
-        ...createEnterEmailNavDetails({
-          quote,
-          paymentMethodId,
-          cryptoCurrencyChainId,
-        }),
-      );
-    },
-    [navigation, paymentMethodId, cryptoCurrencyChainId, popToBuildQuote],
-  );
+  const navigateToEnterEmailCallback = useCallback(() => {
+    popToBuildQuote();
+    navigation.navigate(...createEnterEmailNavDetails({}));
+  }, [navigation, popToBuildQuote]);
 
   const navigateToBasicInfoCallback = useCallback(
     ({ quote }: { quote: BuyQuote }) => {
@@ -471,7 +462,7 @@ export const useDepositRouting = ({
       } catch (error) {
         if ((error as AxiosError).status === 401) {
           await logoutFromProvider(false);
-          navigateToEnterEmailCallback({ quote });
+          navigateToEnterEmailCallback();
           return;
         }
         throw error;

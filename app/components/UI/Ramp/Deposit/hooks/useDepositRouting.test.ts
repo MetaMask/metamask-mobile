@@ -787,11 +787,7 @@ describe('useDepositRouting', () => {
         [
           [
             "EnterEmail",
-            {
-              "cryptoCurrencyChainId": "eip155:1",
-              "paymentMethodId": "credit_debit_card",
-              "quote": {},
-            },
+            {},
           ],
         ]
       `);
@@ -1076,7 +1072,6 @@ describe('useDepositRouting', () => {
     });
 
     it('should call popToBuildQuote before navigating in navigateToEnterEmail', () => {
-      const mockQuote = {} as BuyQuote;
       const mockParams = {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
@@ -1084,14 +1079,10 @@ describe('useDepositRouting', () => {
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
-      result.current.navigateToEnterEmail({ quote: mockQuote });
+      result.current.navigateToEnterEmail();
 
       verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('EnterEmail', {
-        quote: mockQuote,
-        paymentMethodId: 'credit_debit_card',
-        cryptoCurrencyChainId: 'eip155:1',
-      });
+      expect(mockNavigate).toHaveBeenCalledWith('EnterEmail', {});
     });
 
     it('should call popToBuildQuote before navigating in navigateToKycWebview', () => {
