@@ -150,3 +150,10 @@ CLAUDE.md
 /CLAUDE.md
 temp/
 /temp/
+
+
+# appwright
+appwright/report
+playwright-report/*
+test-results/
+*.apk
