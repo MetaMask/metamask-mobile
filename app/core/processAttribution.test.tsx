@@ -79,7 +79,9 @@ describe('processAttribution', () => {
         attributionId: 'test123',
         utm_source: 'facebook',
         utm_medium: 'social',
-        // utm_campaign, utm_term, utm_content are undefined
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
       },
     });
 
@@ -92,9 +94,9 @@ describe('processAttribution', () => {
       attributionId: 'test123',
       utm_source: 'facebook',
       utm_medium: 'social',
-      utm_campaign: undefined,
-      utm_term: undefined,
-      utm_content: undefined,
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
     });
   });
 
@@ -105,11 +107,11 @@ describe('processAttribution', () => {
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {
         attributionId: 'test123',
-        utm_source: undefined,
-        utm_medium: undefined,
-        utm_campaign: undefined,
-        utm_term: undefined,
-        utm_content: undefined,
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
       },
     });
 
@@ -119,11 +121,11 @@ describe('processAttribution', () => {
     });
     expect(result).toEqual({
       attributionId: 'test123',
-      utm_source: undefined,
-      utm_medium: undefined,
-      utm_campaign: undefined,
-      utm_term: undefined,
-      utm_content: undefined,
+      utm_source: '',
+      utm_medium: '',
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
     });
   });
 });

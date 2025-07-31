@@ -45,11 +45,11 @@ describe('extractURLParams', () => {
       pubkey: 'abc',
       v: '2',
       attributionId: '',
-      utm_source: undefined,
-      utm_medium: undefined,
-      utm_campaign: undefined,
-      utm_term: undefined,
-      utm_content: undefined,
+      utm_source: '',
+      utm_medium: '',
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
     };
 
     mockUrlParser.mockImplementation(
@@ -189,11 +189,11 @@ describe('extractURLParams', () => {
       sdkVersion: '',
       pubkey: 'xyz',
       attributionId: '',
-      utm_source: undefined,
-      utm_medium: undefined,
-      utm_campaign: undefined,
-      utm_term: undefined,
-      utm_content: undefined,
+      utm_source: '',
+      utm_medium: '',
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
     };
 
     mockUrlParser.mockImplementation(
