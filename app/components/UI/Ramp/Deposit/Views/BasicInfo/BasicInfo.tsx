@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, TextInput, Keyboard, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
@@ -39,6 +39,8 @@ import PoweredByTransak from '../../components/PoweredByTransak';
 import PrivacySection from '../../components/PrivacySection';
 import { timestampToTransakFormat } from '../../utils';
 import useAnalytics from '../../../hooks/useAnalytics';
+import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import Logger from '../../../../../../util/Logger';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -61,6 +63,8 @@ const BasicInfo = (): JSX.Element => {
   const trackEvent = useAnalytics();
   const { quote } = useParams<BasicInfoParams>();
   const { selectedRegion } = useDepositSDK();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -130,6 +134,18 @@ const BasicInfo = (): JSX.Element => {
     [handleChange],
   );
 
+  const [, postKycForm] = useDepositSdkMethod({
+    method: 'patchUser',
+    onMount: false,
+    throws: true,
+  });
+
+  const [, submitSsnDetails] = useDepositSdkMethod({
+    method: 'submitSsnDetails',
+    onMount: false,
+    throws: true,
+  });
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -140,30 +156,57 @@ const BasicInfo = (): JSX.Element => {
     );
   }, [navigation, theme]);
 
-  const handleOnPressContinue = useCallback(() => {
-    if (validateFormData()) {
-      trackEvent('RAMPS_BASIC_INFO_ENTERED', {
-        region: selectedRegion?.isoCode || '',
-        ramp_type: 'DEPOSIT',
-        kyc_type: 'SIMPLE',
-      });
+  const handleOnPressContinue = useCallback(async () => {
+    if (!validateFormData()) return;
 
-      navigation.navigate(
-        ...createEnterAddressNavDetails({
-          formData: {
-            ...formData,
-            dob: formData.dob.trim()
-              ? timestampToTransakFormat(formData.dob)
-              : '',
-          },
-          quote,
-        }),
+    trackEvent('RAMPS_BASIC_INFO_ENTERED', {
+      region: selectedRegion?.isoCode || '',
+      ramp_type: 'DEPOSIT',
+      kyc_type: 'SIMPLE',
+    });
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Prepare the form data with proper date formatting
+      const basicInfoData = {
+        ...formData,
+        dob: formData.dob.trim()
+          ? timestampToTransakFormat(formData.dob)
+          : '',
+      };
+
+      // Submit the basic info form data
+      await postKycForm(basicInfoData);
+
+      // If SSN is provided, submit it separately
+      if (formData.ssn) {
+        await submitSsnDetails(formData.ssn);
+      }
+
+      // Navigate to EnterAddress without passing form data as params
+      navigation.navigate(...createEnterAddressNavDetails({ quote }));
+    } catch (submissionError) {
+      setLoading(false);
+      setError(
+        submissionError instanceof Error && submissionError.message
+          ? submissionError.message
+          : strings('deposit.basic_info.unexpected_error'),
       );
+      Logger.error(
+        submissionError as Error,
+        'Unexpected error during basic info form submission',
+      );
+    } finally {
+      setLoading(false);
     }
   }, [
-    navigation,
     validateFormData,
     formData,
+    postKycForm,
+    submitSsnDetails,
+    navigation,
     quote,
     selectedRegion?.isoCode,
     trackEvent,
@@ -179,6 +222,7 @@ const BasicInfo = (): JSX.Element => {
   const handleFieldChange = useCallback(
     (field: keyof BasicInfoFormData, nextAction?: () => void) =>
       (value: string) => {
+        setError(null);
         const currentValue = formData[field] || '';
         const isAutofill = value.length - currentValue.length > 1;
 
@@ -328,6 +372,7 @@ const BasicInfo = (): JSX.Element => {
                 }}
               />
             )}
+            {error && <Text style={styles.error}>{error}</Text>}
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
       </ScreenLayout.Body>
@@ -341,6 +386,8 @@ const BasicInfo = (): JSX.Element => {
             label={strings('deposit.basic_info.continue')}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
+            isDisabled={loading || !!error}
+            loading={loading}
             testID="continue-button"
           />
           <PoweredByTransak name="powered-by-transak-logo" />

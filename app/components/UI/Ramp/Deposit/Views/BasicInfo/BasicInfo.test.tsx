@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BasicInfo from './BasicInfo';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -10,6 +10,8 @@ import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
 import { timestampToTransakFormat } from '../../utils';
 
 const mockTrackEvent = jest.fn();
+const mockPostKycForm = jest.fn();
+const mockSubmitSsnDetails = jest.fn();
 
 const FIXED_DATE = new Date(2024, 0, 1);
 const FIXED_TIMESTAMP = FIXED_DATE.getTime();
@@ -50,6 +52,18 @@ jest.mock('../../sdk', () => ({
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+jest.mock('../../hooks/useDepositSdkMethod', () => ({
+  useDepositSdkMethod: (config: any) => {
+    if (config.method === 'patchUser') {
+      return [{}, mockPostKycForm];
+    }
+    if (config.method === 'submitSsnDetails') {
+      return [{}, mockSubmitSsnDetails];
+    }
+    return [{}, jest.fn()];
+  },
+}));
+
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
@@ -75,12 +89,17 @@ describe('BasicInfo Component', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: mockSelectedRegion,
     });
+
+    mockPostKycForm.mockResolvedValue(undefined);
+    mockSubmitSsnDetails.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     mockNavigate.mockClear();
     mockSetNavigationOptions.mockClear();
     mockTrackEvent.mockClear();
+    mockPostKycForm.mockClear();
+    mockSubmitSsnDetails.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -95,7 +114,7 @@ describe('BasicInfo Component', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates to address page when form is valid and continue is pressed', () => {
+  it('navigates to address page when form is valid and continue is pressed', async () => {
     const dob = new Date('1990-01-01').getTime().toString();
     render(BasicInfo);
 
@@ -112,17 +131,13 @@ describe('BasicInfo Component', () => {
     );
     fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
     expect(screen.toJSON()).toMatchSnapshot();
-    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith(
       ...createEnterAddressNavDetails({
-        formData: {
-          dob: timestampToTransakFormat(dob),
-          firstName: 'John',
-          lastName: 'Smith',
-          mobileNumber: '+1234567890',
-          ssn: '123456789',
-        },
         quote: mockQuote,
       }),
     );

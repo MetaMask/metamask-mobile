@@ -18,7 +18,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositProgressBar from '../../components/DepositProgressBar';
-import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import PoweredByTransak from '../../components/PoweredByTransak';
@@ -37,7 +36,6 @@ import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface EnterAddressParams {
-  formData: BasicInfoFormData;
   quote: BuyQuote;
 }
 
@@ -56,7 +54,7 @@ interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { formData: basicInfoFormData, quote } =
+  const { quote } =
     useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
@@ -175,12 +173,6 @@ const EnterAddress = (): JSX.Element => {
     throws: true,
   });
 
-  const [, submitSsnDetails] = useDepositSdkMethod({
-    method: 'submitSsnDetails',
-    onMount: false,
-    throws: true,
-  });
-
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -200,18 +192,9 @@ const EnterAddress = (): JSX.Element => {
       kyc_type: 'SIMPLE',
     });
 
-    try {
-      setLoading(true);
-      const combinedFormData = {
-        ...basicInfoFormData,
-        ...formData,
-      };
-
-      await postKycForm(combinedFormData);
-
-      if (basicInfoFormData.ssn) {
-        await submitSsnDetails(basicInfoFormData.ssn);
-      }
+          try {
+        setLoading(true);
+        await postKycForm(formData);
 
       await routeAfterAuthentication(quote);
     } catch (submissionError) {
@@ -230,11 +213,9 @@ const EnterAddress = (): JSX.Element => {
     }
   }, [
     validateFormData,
-    basicInfoFormData,
     formData,
     postKycForm,
     quote,
-    submitSsnDetails,
     routeAfterAuthentication,
     selectedRegion?.isoCode,
     trackEvent,
