@@ -242,7 +242,6 @@ export const BaseWalletDetails = ({
         >
           <View style={styles.listContainer}>
             <FlashList
-              estimatedItemSize={18}
               data={accounts}
               keyExtractor={(item) => item.id}
               renderItem={renderAccountItem}

@@ -230,7 +230,6 @@ const PerpsMarketListView = ({
             )}
             keyExtractor={(item: PerpsMarketData) => item.symbol}
             contentContainerStyle={styles.flashListContent}
-            estimatedItemSize={80}
             refreshing={
               activeTab === 'markets'
                 ? isRefreshingMarkets
