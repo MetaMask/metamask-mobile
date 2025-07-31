@@ -50,11 +50,12 @@ import {
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
+import { ThemeProvider, Theme } from '@metamask/design-system-twrnc-preset';
 import fox from '../../../animations/Searching_Fox.json';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
@@ -62,6 +63,23 @@ import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandler
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import ErrorBoundary from '../ErrorBoundary';
+import { lightTheme } from '@metamask/design-tokens';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
+
+// Light theme locked button components
+const LightThemeButtonInner = ({ children, ...props }) => (
+  <Button {...props}>{children}</Button>
+);
+
+LightThemeButtonInner.propTypes = {
+  children: PropTypes.node,
+};
+
+const LightThemeButton = (props) => (
+  <ThemeProvider theme={Theme.Light}>
+    <LightThemeButtonInner {...props} />
+  </ThemeProvider>
+);
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -206,15 +224,6 @@ const createStyles = (colors) =>
       borderWidth: 1,
       color: colors.text.default,
     },
-    blackButton: {
-      backgroundColor: importedColors.btnBlack,
-    },
-    blackButtonText: {
-      color: importedColors.btnBlackText,
-    },
-    inverseBlackButton: {
-      backgroundColor: importedColors.btnBlackInverse,
-    },
   });
 
 /**
@@ -324,7 +333,7 @@ class Onboarding extends PureComponent {
         colors,
         importedColors.gettingStartedPageBackgroundColor,
         true,
-        importedColors.btnBlack,
+        lightTheme.colors.icon.default,
       ),
     );
   };
@@ -666,7 +675,10 @@ class Onboarding extends PureComponent {
         </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText} color={importedColors.btnBlack}>
+          <Text
+            style={styles.loadingText}
+            color={lightTheme.colors.text.default}
+          >
             {this.props.loadingMsg}
           </Text>
         </View>
@@ -701,40 +713,26 @@ class Onboarding extends PureComponent {
         </View>
 
         <View style={styles.createWrapper}>
-          <Button
-            variant={ButtonVariants.Primary}
+          <LightThemeButton
+            variant={ButtonVariant.Primary}
             onPress={() => this.handleCtaActions('create')}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            label={
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={importedColors.btnBlackText}
-              >
-                {strings('onboarding.start_exploring_now')}
-              </Text>
-            }
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            style={styles.blackButton}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
+          >
+            {strings('onboarding.start_exploring_now')}
+          </LightThemeButton>
+          <LightThemeButton
+            variant={ButtonVariant.Secondary}
             onPress={() => this.handleCtaActions('existing')}
             testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            label={
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={importedColors.btnBlack}
-              >
-                {SEEDLESS_ONBOARDING_ENABLED
-                  ? strings('onboarding.import_using_srp_social_login')
-                  : strings('onboarding.import_using_srp')}
-              </Text>
-            }
-            style={styles.inverseBlackButton}
-          />
+          >
+            {SEEDLESS_ONBOARDING_ENABLED
+              ? strings('onboarding.import_using_srp_social_login')
+              : strings('onboarding.import_using_srp')}
+          </LightThemeButton>
         </View>
       </View>
     );
@@ -808,13 +806,13 @@ class Onboarding extends PureComponent {
 
             {existingUser && !loading && (
               <View style={styles.footer}>
-                <Button
-                  variant={ButtonVariants.Link}
+                <ButtonLink
                   onPress={this.onLogin}
-                  label={strings('onboarding.unlock')}
-                  width={ButtonWidthTypes.Full}
+                  isFullWidth
                   size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-                />
+                >
+                  {strings('onboarding.unlock')}
+                </ButtonLink>
               </View>
             )}
           </ScrollView>

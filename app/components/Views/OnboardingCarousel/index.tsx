@@ -8,8 +8,8 @@ import React, {
 import {
   View,
   ScrollView,
-  StyleSheet,
-  Image,
+  StyleSheet as RNStyleSheet,
+  Image as RNImage,
   Dimensions,
   Platform,
 } from 'react-native';
@@ -18,11 +18,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
+import { ThemeProvider, Theme } from '@metamask/design-system-twrnc-preset';
 import {
   baseStyles,
   onboardingCarouselColors,
@@ -49,7 +50,7 @@ import {
 } from '../../../actions/onboarding';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { USE_TERMS } from '../../../constants/storage';
-import Text, {
+import ComponentText, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -75,7 +76,7 @@ const carouselSize = getCarouselSize();
 
 const ctaIosPaddingBottom = Device.isIphoneX() ? 40 : 20;
 const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
-  StyleSheet.create({
+  RNStyleSheet.create({
     scroll: {
       flexGrow: 1,
       justifyContent: 'space-between',
@@ -169,9 +170,6 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
       textAlign: 'center',
       paddingVertical: 16,
     },
-    blackButton: {
-      backgroundColor: constColors.btnBlack,
-    },
   });
 
 const onboarding_carousel_1 = require('../../../images/onboarding-carousel-1.png'); // eslint-disable-line
@@ -183,6 +181,20 @@ const carousel_images = [
   onboarding_carousel_2,
   onboarding_carousel_3,
 ];
+
+// Light theme locked button components
+const LightThemeButtonInner: React.FC<React.ComponentProps<typeof Button>> = ({
+  children,
+  ...props
+}) => <Button {...props}>{children}</Button>;
+
+const LightThemeButton: React.FC<React.ComponentProps<typeof Button>> = (
+  props,
+) => (
+  <ThemeProvider theme={Theme.Light}>
+    <LightThemeButtonInner {...props} />
+  </ThemeProvider>
+);
 
 interface OnboardingCarouselProps {
   navigation: NavigationProp<ParamListBase>;
@@ -206,8 +218,8 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const styles = createStyles(safeAreaInsets);
 
   const track = useCallback(
-    (event: ITrackingEvent) => {
-      trackOnboarding(event, saveOnboardingEvent);
+    (trackingEvent: ITrackingEvent) => {
+      trackOnboarding(trackingEvent, saveOnboardingEvent);
     },
     [saveOnboardingEvent],
   );
@@ -333,7 +345,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                       {isTest && (
                         // This Text component is used to grab the App Start Time for our E2E test
                         // ColdStartToOnboardingScreen.feature
-                        <Text
+                        <ComponentText
                           variant={TextVariant.BodySM}
                           color={TextColor.Alternative}
                           style={styles.metricsData}
@@ -342,11 +354,11 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                           }
                         >
                           {appStartTime}
-                        </Text>
+                        </ComponentText>
                       )}
                     </View>
                     <View style={styles.carouselImageWrapper}>
-                      <Image
+                      <RNImage
                         source={carousel_images[index]}
                         style={[styles.carouselImage, styles[imgStyleKey]]}
                         resizeMethod={'auto'}
@@ -354,14 +366,14 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                       />
                     </View>
                     <View style={styles.carouselTextWrapper}>
-                      <Text
+                      <ComponentText
                         variant={TextVariant.BodyMD}
                         style={styles.title}
                         color={onboardingCarouselColors[value].color}
                       >
                         {strings(`onboarding_carousel.title${key}`)}
-                      </Text>
-                      <Text
+                      </ComponentText>
+                      <ComponentText
                         variant={
                           Device.isMediumDevice()
                             ? TextVariant.BodySM
@@ -371,7 +383,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         style={styles.subtitle}
                       >
                         {strings(`onboarding_carousel.subtitle${key}`)}
-                      </Text>
+                      </ComponentText>
                     </View>
                   </View>
                 );
@@ -388,22 +400,15 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
           </View>
         </ScrollView>
         <View style={styles.ctas}>
-          <Button
-            variant={ButtonVariants.Primary}
-            label={
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={constColors.btnBlackText}
-              >
-                {strings('onboarding_carousel.get_started')}
-              </Text>
-            }
+          <LightThemeButton
+            variant={ButtonVariant.Primary}
             onPress={onPressGetStarted}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
-            style={styles.blackButton}
-          />
+          >
+            {strings('onboarding_carousel.get_started')}
+          </LightThemeButton>
         </View>
       </OnboardingScreenWithBg>
       <FadeOutOverlay />

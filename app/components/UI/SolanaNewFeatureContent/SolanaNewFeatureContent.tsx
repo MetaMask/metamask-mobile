@@ -23,6 +23,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { lightTheme } from '@metamask/design-tokens';
 
 const SolanaNewFeatureContent = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -120,7 +121,14 @@ const SolanaNewFeatureContent = () => {
                 testID={
                   SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
                 }
-                label={strings('solana_new_feature_content.import_your_wallet')}
+                label={
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={lightTheme.colors.primary.inverse}
+                  >
+                    {strings('solana_new_feature_content.import_your_wallet')}
+                  </Text>
+                }
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
                 style={styles.importWalletButton}
