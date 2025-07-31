@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import { DeepPartial } from 'redux';
@@ -102,25 +101,27 @@ describe('accounts selectors', () => {
     });
 
     it('returns the whole string when account group ID has no slash', () => {
-      const result = getWalletIdFromAccountGroup('invalid-group-id' as any);
+      // @ts-expect-error - we want to test the error case
+      const result = getWalletIdFromAccountGroup('invalid-group-id');
       expect(result).toBe('invalid-group-id');
     });
 
     it('throws error when account group ID is empty before slash', () => {
       expect(() => {
-        getWalletIdFromAccountGroup('/ethereum' as any);
+        // @ts-expect-error - we want to test the error case
+        getWalletIdFromAccountGroup('/ethereum');
       }).toThrow('Invalid account group ID');
     });
 
     it('throws error when account group ID is completely empty', () => {
       expect(() => {
-        getWalletIdFromAccountGroup('' as any);
+        // @ts-expect-error - we want to test the error case
+        getWalletIdFromAccountGroup('');
       }).toThrow('Invalid account group ID');
     });
 
     it('handles complex wallet IDs correctly', () => {
-      const complexGroupId =
-        'keyring:my-complex-wallet-123/ethereum-mainnet' as any;
+      const complexGroupId = 'keyring:my-complex-wallet-123/1';
       const result = getWalletIdFromAccountGroup(complexGroupId);
       expect(result).toBe('keyring:my-complex-wallet-123');
     });
