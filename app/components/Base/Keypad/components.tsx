@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Box,
   BoxFlexDirection,
@@ -12,6 +12,7 @@ import {
   type ButtonBaseProps,
   type BoxProps,
   type ButtonProps,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 
 interface KeypadContainerProps extends BoxProps {
@@ -52,6 +53,7 @@ const KeypadButton: React.FC<KeypadButtonProps> = ({
       isFullWidth
       textProps={{
         variant: TextVariant.DisplayMd,
+        fontWeight: FontWeight.Medium,
       }}
       {...props}
       variant={ButtonVariant.Secondary} // Can't override variant
@@ -78,25 +80,32 @@ const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
   testID,
   boxWrapperProps,
   ...props
-}) => (
-  // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-  <Box twClassName="flex-1" {...boxWrapperProps}>
-    <ButtonBase
-      isFullWidth
-      textProps={{
-        variant: TextVariant.DisplayMd,
-      }}
-      onPress={onPress}
-      onLongPress={onLongPress}
-      delayLongPress={delayLongPress}
-      testID={testID}
-      twClassName={(pressed) => `bg-transparent ${pressed && 'bg-pressed'}`}
-      {...props}
-    >
-      <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
-    </ButtonBase>
-  </Box>
-);
+}) => {
+  const deleteButtonClassName = useCallback(
+    (pressed: boolean) => `bg-transparent ${pressed && 'bg-pressed'}`,
+    [],
+  );
+  return (
+    // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
+    <Box twClassName="flex-1" {...boxWrapperProps}>
+      <ButtonBase
+        isFullWidth
+        textProps={{
+          variant: TextVariant.DisplayMd,
+          fontWeight: FontWeight.Medium,
+        }}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={delayLongPress}
+        testID={testID}
+        twClassName={deleteButtonClassName}
+        {...props}
+      >
+        <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
+      </ButtonBase>
+    </Box>
+  );
+};
 
 type KeypadType = React.FC<KeypadContainerProps> & {
   Row: React.FC<KeypadRowProps>;
