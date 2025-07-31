@@ -105,6 +105,14 @@ pipelines:
       - run_smoke_e2e_performance_ios_android_stage: {}
       - notify: {}
 
+  #Pipeline for running regression and smoke tests triggered on merge into release branch 
+  pr_regression_smoke_e2e_pipeline:
+    stages:
+      - pr_cache_check_stage: {}
+      - build_regression_e2e_ios_android_stage: {}
+      - run_regression_e2e_ios_android_stage: {}
+      - run_smoke_e2e_ios_android_stage: {}
+      - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
@@ -115,8 +123,11 @@ pipelines:
   #App launch times pipeline. Runs on browserstack
   app_launch_times_and_expo_pipeline:
     stages:
-      - create_build_qa_and_expo: {}
+      - create_build_qa: {}
       - app_launch_times_test_stage: {}
+      - build_smoke_e2e_ios_android_stage: {}
+      - create_build_main_expo: {}
+
   #Main expo pipeline
   expo_main_pipeline:
     stages:
@@ -200,12 +211,9 @@ stages:
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
-  create_build_qa_and_expo:
+  create_build_qa:
     workflows:
-      - build_android_devbuild: {}
       - build_android_qa: {}
-      - build_ios_devbuild: {}
-      - build_ios_simbuild: {}
       - build_ios_qa: {}
   create_build_main_expo:
     workflows:
@@ -741,9 +749,17 @@ workflows:
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection
   ios_build_regression_tests:
+    meta:
+      bitrise.io:
+        stack: $IOS_BUILD_STACK
+        machine_type_id: $IOS_BUILD_MACHINE_TYPE_ID
     after_run:
       - ios_e2e_build
   ios_run_regression_tests:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: 'Regression'
     after_run:
@@ -897,12 +913,20 @@ workflows:
 
   ### Separating workflows so they run concurrently during smoke runs
   run_tag_smoke_multichain_api_ios:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: '.*SmokeMultiChainAPI.*'
     after_run:
       - ios_e2e_test
 
   run_network_expansion_swimlane_ios_smoke:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: '.*NetworkExpansion.*'
     after_run:
@@ -918,6 +942,10 @@ workflows:
       - android_e2e_test
 
   run_wallet_platform_swimlane_ios_smoke:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
     after_run:
@@ -933,6 +961,10 @@ workflows:
       - android_e2e_test
 
   run_network_abstraction_swimlane_ios_smoke:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: '.*SmokeNetworkAbstraction.*'
     after_run:
@@ -947,6 +979,10 @@ workflows:
     after_run:
       - android_e2e_test
   run_trade_swimlane_ios_smoke:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: '.*SmokeTrade.*'
     after_run:
@@ -961,9 +997,17 @@ workflows:
     after_run:
       - android_e2e_test
   run_ios_api_specs:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     after_run:
       - ios_api_specs
   run_tag_smoke_confirmations_ios:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: 'SmokeConfirmations '
     after_run:
@@ -978,11 +1022,19 @@ workflows:
     after_run:
       - android_e2e_test
   run_tag_smoke_confirmations_redesigned_ios:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned'
     after_run:
       - ios_e2e_test
   run_tag_smoke_performance_ios:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: '.*SmokePerformance.*'
     after_run:
@@ -997,6 +1049,10 @@ workflows:
     after_run:
       - android_e2e_test
   run_tag_multichain_permissions_ios:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
@@ -1011,6 +1067,10 @@ workflows:
     after_run:
       - android_e2e_test
   run_tag_flask_build_tests_ios:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: '.*FlaskBuildTests.*'
     after_run:
@@ -1025,6 +1085,10 @@ workflows:
     after_run:
       - android_e2e_test
   run_tag_smoke_identity_ios:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: 'SmokeIdentity'
     after_run:
@@ -1039,6 +1103,10 @@ workflows:
     after_run:
       - android_e2e_test
   run_tag_smoke_accounts_ios:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     envs:
       - TEST_SUITE_TAG: 'SmokeAccounts'
     after_run:
@@ -1073,6 +1141,10 @@ workflows:
         stack: linux-docker-android-22.04
 
   run_single_ios_e2e_test:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     run_if: '{{ or (ne "$E2E_TEST_FILE" "") (ne "$TEST_SUITE_TAG" "") }}'
     after_run:
       - ios_e2e_test
@@ -1555,6 +1627,10 @@ workflows:
                 ANDROID_PR_BUILD_CACHE_KEY
 
   ios_e2e_build:
+    meta:
+      bitrise.io:
+        stack: $IOS_BUILD_STACK
+        machine_type_id: $IOS_BUILD_MACHINE_TYPE_ID
     before_run:
       - install_applesimutils
       - code_setup
@@ -1659,6 +1735,10 @@ workflows:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   ios_e2e_test:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     before_run:
       - setup
       - install_applesimutils
@@ -2750,6 +2830,10 @@ workflows:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   # iOS Builds
   _ios_build_template:
+    meta:
+      bitrise.io:
+        stack: $IOS_BUILD_STACK
+        machine_type_id: $IOS_BUILD_MACHINE_TYPE_ID
     before_run:
       - code_setup
     after_run:
@@ -3193,6 +3277,11 @@ workflows:
 
 app:
   envs:
+    # iOS Machine Configuration
+    - IOS_BUILD_MACHINE_TYPE_ID: g2.mac.4large
+    - IOS_BUILD_STACK: osx-xcode-16.2.x
+    - IOS_TEST_MACHINE_TYPE_ID: g2.mac.4large
+    - IOS_TEST_STACK: osx-xcode-16.2.x
     - opts:
         is_expand: false
       MM_NOTIFICATIONS_UI_ENABLED: true
@@ -3293,10 +3382,11 @@ app:
     - opts:
         is_expand: false
       SEEDLESS_ONBOARDING_ENABLED: true
+#Default global machine configuration
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x
-    machine_type_id: g2.mac.4large
+    machine_type_id: g2.mac.medium
 trigger_map:
   - push_branch: release/*
     pipeline: pr_regression_e2e_pipeline
