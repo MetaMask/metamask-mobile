@@ -12,7 +12,7 @@ export const getCardholder = async ({
   cardFeatureFlag,
 }: {
   formattedAccounts: `eip155:${string}:0x${string}`[];
-  cardFeatureFlag: CardFeatureFlag;
+  cardFeatureFlag: CardFeatureFlag | null;
 }) => {
   try {
     if (!cardFeatureFlag || !formattedAccounts?.length) {
