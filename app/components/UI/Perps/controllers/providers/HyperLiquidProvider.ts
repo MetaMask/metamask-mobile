@@ -19,18 +19,15 @@ import {
   validateAssetSupport,
   validateBalance,
   validateCoinExists,
-  validateDepositParams,
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
-import { transformMarketData } from '../../utils/marketDataTransform';
 import type {
   AccountState,
   AssetRoute,
   CancelOrderParams,
   CancelOrderResult,
   ClosePositionParams,
-  DepositParams,
   DisconnectResult,
   EditOrderParams,
   GetAccountStateParams,
@@ -39,7 +36,6 @@ import type {
   InitializeResult,
   IPerpsProvider,
   LiveDataConfig,
-  PerpsMarketData,
   MarketInfo,
   OrderResult,
   OrderParams as PerpsOrderParams,
@@ -52,7 +48,6 @@ import type {
   WithdrawParams,
   WithdrawResult,
 } from '../types';
-import { strings } from '../../../../../../locales/i18n';
 
 /**
  * HyperLiquid provider implementation
@@ -124,7 +119,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         coins: Array.from(this.coinToAssetId.keys()),
       });
     } catch (error) {
-      DevLogger.log(strings('perps.errors.assetMappingFailed'), error);
+      DevLogger.log('Failed to build asset mapping:', error);
       throw error;
     }
   }
@@ -586,54 +581,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
   }
 
-  /**
-   * Get market data with prices, volumes, and 24h changes
-   */
-  async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
-    try {
-      DevLogger.log('Getting market data with prices via HyperLiquid SDK');
-
-      await this.ensureReady();
-
-      const infoClient = this.clientService.getInfoClient();
-
-      // Fetch all required data in parallel for better performance
-      const [perpsMeta, allMids] = await Promise.all([
-        infoClient.meta(),
-        infoClient.allMids(),
-      ]);
-
-      if (!perpsMeta?.universe || !allMids) {
-        throw new Error('Failed to fetch market data - no data received');
-      }
-
-      // Also fetch asset contexts for additional data like volume and previous day prices
-      const metaAndCtxs = await infoClient.metaAndAssetCtxs();
-      const assetCtxs = metaAndCtxs?.[1] || [];
-
-      // Transform to UI-friendly format using standalone utility
-      return transformMarketData({
-        universe: perpsMeta.universe,
-        assetCtxs,
-        allMids,
-      });
-    } catch (error) {
-      DevLogger.log('Error getting market data with prices:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Validate deposit parameters according to HyperLiquid-specific rules
-   * This method enforces protocol-specific requirements like minimum amounts
-   */
-  validateDeposit(params: DepositParams): { isValid: boolean; error?: string } {
-    return validateDepositParams({
-      amount: params.amount,
-      assetId: params.assetId,
-      isTestnet: this.clientService.isTestnetMode(),
-    });
-  }
+  // NOTE: deposit() method removed from provider - handled by PerpsController routing
+  // withdraw() method stays here since it's a HyperLiquid API operation
 
   /**
    * Withdraw funds from HyperLiquid trading account
@@ -656,9 +605,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.assetId) {
-        throw new Error(
-          strings('perps.errors.withdrawValidation.assetIdRequired'),
-        );
+        throw new Error('assetId is required for withdrawals');
       }
 
       const assetValidation = validateAssetSupport(
@@ -687,9 +634,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.amount) {
-        throw new Error(
-          strings('perps.errors.withdrawValidation.amountRequired'),
-        );
+        throw new Error('amount is required for withdrawals');
       }
 
       const withdrawAmount = parseFloat(params.amount);
@@ -823,10 +768,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         ready: false,
         walletConnected: false,
         networkSupported: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : strings('perps.errors.unknownError'),
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }

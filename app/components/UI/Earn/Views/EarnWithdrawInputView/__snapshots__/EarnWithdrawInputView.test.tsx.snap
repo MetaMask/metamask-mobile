@@ -481,7 +481,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#b7bbc8",
+                                      "color": "#9ca1af",
                                       "fontFamily": "Geist Bold",
                                       "fontSize": 32,
                                       "letterSpacing": 0,

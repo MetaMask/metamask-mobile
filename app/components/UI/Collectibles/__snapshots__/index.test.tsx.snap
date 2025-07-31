@@ -76,6 +76,7 @@ exports[`Collectibles should render correctly collectibles 1`] = `
               "flex": 1,
               "flexDirection": "row",
               "height": 64,
+              "paddingHorizontal": 16,
             }
           }
           testID="asset-undefined"
@@ -274,7 +275,7 @@ exports[`Collectibles should render empty collectibles correctly 1`] = `
         <Text
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#9ca1af",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 20,
               "fontWeight": "400",

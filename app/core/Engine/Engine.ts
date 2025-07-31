@@ -982,8 +982,6 @@ export class Engine {
       messenger: userStorageControllerMessenger,
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
-      // @ts-expect-error Controller uses string for names rather than enum
-      trace,
       config: {
         accountSyncing: {
           onAccountAdded: (profileId) => {
@@ -1202,6 +1200,7 @@ export class Engine {
           'SnapController:handleRequest',
           'TransactionController:getState',
           'RemoteFeatureFlagController:getState',
+          'BridgeController:stopPollingForQuotes',
         ],
         allowedEvents: [
           'TransactionController:transactionConfirmed',

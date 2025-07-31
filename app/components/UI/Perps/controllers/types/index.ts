@@ -102,41 +102,6 @@ export interface MarketInfo {
   isDelisted?: true; // HyperLiquid: delisted status (optional, only when true)
 }
 
-/**
- * Market data with prices for UI display
- * Protocol-agnostic interface for market information with formatted values
- */
-export interface PerpsMarketData {
-  /**
-   * Token symbol (e.g., 'BTC', 'ETH')
-   */
-  symbol: string;
-  /**
-   * Full token name (e.g., 'Bitcoin', 'Ethereum')
-   */
-  name: string;
-  /**
-   * Maximum leverage available as formatted string (e.g., '40x', '25x')
-   */
-  maxLeverage: string;
-  /**
-   * Current price as formatted string (e.g., '$50,000.00')
-   */
-  price: string;
-  /**
-   * 24h price change as formatted string (e.g., '+$1,250.00', '-$850.50')
-   */
-  change24h: string;
-  /**
-   * 24h price change percentage as formatted string (e.g., '+2.5%', '-1.8%')
-   */
-  change24hPercent: string;
-  /**
-   * Trading volume as formatted string (e.g., '$1.2B', '$850M')
-   */
-  volume: string;
-}
-
 export interface ToggleTestnetResult {
   success: boolean;
   isTestnet: boolean;
@@ -301,10 +266,8 @@ export interface IPerpsProvider {
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
   getMarkets(): Promise<MarketInfo[]>;
-  getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
-  validateDeposit(params: DepositParams): { isValid: boolean; error?: string }; // Protocol-specific deposit validation
 
   // Live data subscriptions → Direct UI (NO Redux, maximum speed)
   subscribeToPrices(params: SubscribePricesParams): () => void;

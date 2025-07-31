@@ -1,10 +1,14 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 export type NotificationListStyles = ReturnType<typeof createStyles>;
 
-export const createStyles = ({ colors }: Theme) =>
+export const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -62,6 +66,23 @@ export const createStyles = ({ colors }: Theme) =>
     menuItemContainer: {
       flexDirection: 'row',
       gap: 16,
+    },
+
+    tabUnderlineStyle: {
+      height: 2,
+      backgroundColor: colors.primary.default,
+    },
+    tabStyle: {
+      paddingBottom: 0,
+      paddingVertical: 8,
+    },
+    tabBar: {
+      borderColor: colors.background.default,
+    },
+    textStyle: {
+      ...typography.sBodyMDMedium,
+      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
+      fontWeight: '500',
     },
     loader: {
       backgroundColor: colors.background.default,

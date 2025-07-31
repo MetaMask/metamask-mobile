@@ -6,6 +6,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
+    base: {
+      paddingHorizontal: 32,
+    },
     bottomSheetWrapper: {
       alignItems: 'flex-start',
     },
@@ -28,9 +31,20 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       marginTop: 10,
     },
-    tabContainer: {
-      paddingHorizontal: 16,
-      flex: 1,
+    tabUnderlineStyle: {
+      height: 2,
+      backgroundColor: colors.primary.default,
+    },
+    tabBar: {
+      borderColor: colors.border.muted,
+    },
+    tabStyle: {
+      paddingBottom: 0,
+      paddingVertical: 8,
+    },
+    textStyle: {
+      ...params.theme.typography.sBodyMD,
+      fontWeight: '500',
     },
     networkImageContainer: {
       position: 'absolute',

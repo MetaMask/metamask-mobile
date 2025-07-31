@@ -993,7 +993,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#457a391a",
+                                    "backgroundColor": "#1c7e331a",
                                     "borderRadius": 40,
                                     "height": 40,
                                     "justifyContent": "center",
@@ -1003,7 +1003,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#457a39"
+                                  color="#1c7e33"
                                   fill="currentColor"
                                   height={32}
                                   name="CheckBold"

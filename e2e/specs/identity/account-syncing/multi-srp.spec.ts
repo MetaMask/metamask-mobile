@@ -1,6 +1,6 @@
-import { loginToApp } from '../../../viewHelper';
+import { loginToApp } from '../../../viewHelper.js';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView';
+import WalletView from '../../../pages/wallet/WalletView.js';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
 import Assertions from '../../../framework/Assertions.ts';
 import { SmokeIdentity } from '../../../tags.js';

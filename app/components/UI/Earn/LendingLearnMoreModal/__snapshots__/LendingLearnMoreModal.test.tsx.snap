@@ -332,7 +332,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#457a39",
+                    "color": "#1c7e33",
                     "fontFamily": "Geist Bold",
                     "fontSize": 24,
                     "letterSpacing": 0,
@@ -448,7 +448,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4282743353,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -460,7 +460,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                           gradient={
                             [
                               0,
-                              860191289,
+                              857505331,
                               1,
                               872415231,
                             ]

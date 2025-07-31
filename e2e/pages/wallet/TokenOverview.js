@@ -6,7 +6,7 @@ import {
 } from '../../selectors/wallet/TokenOverview.selectors';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors.js';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors.js';
 
 class TokenOverview {
   get container() {
