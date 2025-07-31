@@ -469,7 +469,6 @@ const Main = (props) => {
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
-        <CardVerification />
         <RampOrders />
         <SwapsLiveness />
         <BackupAlert
