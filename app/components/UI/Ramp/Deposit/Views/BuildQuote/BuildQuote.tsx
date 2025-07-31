@@ -464,10 +464,10 @@ const BuildQuote = () => {
 
   useEffect(() => {
     if (shouldRouteImmediately) {
-      handleOnPressContinue();
       navigation.setParams({
         shouldRouteImmediately: false,
       });
+      handleOnPressContinue();
     }
   }, [handleOnPressContinue, shouldRouteImmediately, navigation]);
 
