@@ -2,6 +2,7 @@ import ReadOnlyNetworkStore from '../util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isE2E } from '../util/test/utils';
 import { MMKV } from 'react-native-mmkv';
+import { EventEmitter2 } from 'eventemitter2';
 
 /**
  * Wrapper class for MMKV.
@@ -24,7 +25,7 @@ import { MMKV } from 'react-native-mmkv';
  * // Clear all items
  * await StorageWrapper.clearAll();
  */
-class StorageWrapper {
+class StorageWrapper extends EventEmitter2 {
   private static instance: StorageWrapper | null = null;
   private storage: typeof ReadOnlyNetworkStore | MMKV;
 
@@ -33,6 +34,7 @@ class StorageWrapper {
    * Initializes the storage based on the environment (E2E test or production).
    */
   private constructor() {
+    super();
     /**
      * The underlying storage implementation.
      * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
@@ -85,17 +87,25 @@ class StorageWrapper {
    *   console.error('Failed to save user preferences:', error);
    * }
    */
-  async setItem(key: string, value: string) {
+  async setItem(key: string, value: string, opts = { emitEvent: true }) {
     try {
       if (typeof value !== 'string')
         throw new Error(
           `MMKV value must be a string, received value ${value} for key ${key}`,
         );
-      return await this.storage.set(key, value);
+
+      const result = await this.storage.set(key, value);
+      if (opts.emitEvent) {
+        this.emit(`storage.changed.${key}`, { key, value, action: 'set' });
+      }
+      return result;
     } catch (error) {
       if (isE2E) {
-        // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
-        return await AsyncStorage.setItem(key, value);
+        const result = await AsyncStorage.setItem(key, value);
+        if (opts.emitEvent) {
+          this.emit(`storage.changed.${key}`, { key, value, action: 'set' });
+        }
+        return result;
       }
       throw error;
     }
@@ -141,6 +151,20 @@ class StorageWrapper {
    */
   async clearAll() {
     await this.storage.clearAll();
+  }
+
+  /**
+   * Subscribe to specific key changes
+   * @param key - The storage key to watch
+   * @param callback - Function to call when the key's value changes
+   * @returns Unsubscribe function
+   */
+  onKeyChange(
+    key: string,
+    callback: (event: { key: string; value: string; action: 'set' }) => void,
+  ) {
+    this.on(`storage.changed.${key}`, callback);
+    return () => this.off(`storage.changed.${key}`, callback);
   }
 
   /**
