@@ -27,6 +27,7 @@ interface RewardsHeroProps {
   onOptIn: () => void;
   loginError?: string | null;
   onClearError?: () => void;
+  isLoading?: boolean;
 }
 
 const createStyles = (colors: Colors) =>
@@ -41,6 +42,7 @@ const createStyles = (colors: Colors) =>
       height: 400,
       resizeMode: 'cover',
       marginBottom: 24,
+      borderRadius: 8,
     },
     contentContainer: {
       paddingHorizontal: 16,
@@ -89,6 +91,7 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({
   onOptIn,
   loginError,
   onClearError,
+  isLoading,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -147,6 +150,7 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({
             width={ButtonWidthTypes.Full}
             onPress={onOptIn}
             disabled={isSolanaAccount}
+            loading={isLoading}
           />
         </View>
       </View>

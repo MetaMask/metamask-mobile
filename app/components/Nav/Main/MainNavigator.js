@@ -48,6 +48,8 @@ import { Confirm as RedesignedConfirm } from '../../Views/confirmations/componen
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsView from '../../Views/RewardsView';
+import RewardsTerms from '../../Views/RewardsView/RewardsTerms';
+import RewardsDashboard from '../../Views/RewardsView/RewardsDashboard';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -244,6 +246,16 @@ const RewardsHome = () => (
     <Stack.Screen
       name={Routes.REWARDS_VIEW}
       component={RewardsView}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.REWARDS_TERMS}
+      component={RewardsTerms}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.REWARDS_DASHBOARD}
+      component={RewardsDashboard}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>

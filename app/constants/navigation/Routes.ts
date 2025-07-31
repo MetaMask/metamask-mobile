@@ -64,6 +64,8 @@ const Routes = {
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   REWARDS_VIEW: 'RewardsView',
+  REWARDS_TERMS: 'RewardsTerms',
+  REWARDS_DASHBOARD: 'RewardsDashboard',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',

@@ -15,19 +15,24 @@ import Engine from '../../../../Engine';
 
 export const REWARDS_SIGNUP_PREFIX = 'metaMaskRewardsSignup';
 
-export const useRewardsAuth = () => {
+export const useRewardsAuth = ({
+  onLoginSuccess,
+}: {
+  onLoginSuccess?: () => void;
+} = {}) => {
   const address = useSelector(selectSelectedInternalAccountAddress);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginLoading, setLoginLoading] = useState<boolean>(false);
 
-  const [generateChallenge, generateChallengeResult] =
-    useGenerateChallengeMutation();
-  const [login, loginResult] = useLoginMutation();
+  const [generateChallenge] = useGenerateChallengeMutation();
+  const [login] = useLoginMutation();
   const [logout, logoutResult] = useLogoutMutation();
 
   const handleLogin = useCallback(async () => {
     if (!address) return;
 
     try {
+      setLoginLoading(true);
       setLoginError(null);
       const challengeResponse = await generateChallenge({ address }).unwrap();
 
@@ -51,37 +56,29 @@ export const useRewardsAuth = () => {
 
       await login({ challengeId: challengeResponse.id, signature });
       await AsyncStorage.setItem(`${REWARDS_SIGNUP_PREFIX}-${address}`, 'true');
+      onLoginSuccess?.();
     } catch (error) {
       setLoginError(handleRewardsErrorMessage(error));
+    } finally {
+      setLoginLoading(false);
     }
-  }, [address, generateChallenge, login]);
+  }, [address, generateChallenge, login, onLoginSuccess]);
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     logout();
+    await AsyncStorage.clear();
   }, [logout]);
 
   const clearLoginError = useCallback(() => setLoginError(null), []);
 
-  const {
-    subscription,
-    isLoading: subscriptionIsLoading,
-    isSuccess: subscriptionIsSuccess,
-    isFetching: subscriptionIsFetching,
-  } = useRewardsSubscription();
-
-  console.log('subscription', subscription);
-  console.log('subscriptionIsSuccess', subscriptionIsSuccess);
+  const { isLoading: subscriptionIsLoading, isSuccess: subscriptionIsSuccess } =
+    useRewardsSubscription();
 
   return {
     login: handleLogin,
     logout: handleLogout,
-    isLoggedIn:
-      subscriptionIsSuccess || (!!subscription && subscriptionIsFetching),
-    isLoading:
-      generateChallengeResult.isLoading ||
-      loginResult.isLoading ||
-      logoutResult.isLoading ||
-      subscriptionIsLoading,
+    isLoggedIn: subscriptionIsSuccess,
+    isLoading: loginLoading || logoutResult.isLoading || subscriptionIsLoading,
     loginError,
     clearLoginError,
   };

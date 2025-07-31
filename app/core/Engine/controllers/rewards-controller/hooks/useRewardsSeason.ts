@@ -1,6 +1,6 @@
 import { useGetSeasonQuery, useGetSeasonStatusQuery } from '../services';
 
-export const useRewardsSeason = () => {
+export const useRewardsSeason = (skipSeasonData: boolean = true) => {
   const { data: seasonData } = useGetSeasonQuery(undefined, {
     refetchOnMountOrArgChange: 60 * 10, // 10 minutes
     refetchOnFocus: false,
@@ -10,7 +10,7 @@ export const useRewardsSeason = () => {
     seasonData?.id || '',
     {
       refetchOnMountOrArgChange: 30, // 30 seconds
-      skip: !seasonData?.id,
+      skip: skipSeasonData || !seasonData?.id,
     },
   );
 

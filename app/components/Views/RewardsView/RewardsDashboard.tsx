@@ -1,11 +1,18 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, View, Text } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import type { Colors } from '../../../util/theme/models';
-import { useRewardsSeason } from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsSeason';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
-import { useRewardsSubscription } from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsSubscription';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import { strings } from '../../../../locales/i18n';
+import { useRewardsAuth } from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsAuth';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -54,64 +61,77 @@ const createStyles = (colors: Colors) =>
       fontWeight: '600',
       marginBottom: 8,
     },
-    signOutButton: {
-      backgroundColor: colors.error.default,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 6,
-    },
-    signOutButtonText: {
-      color: colors.error.inverse,
-      fontSize: 14,
-      fontWeight: '500',
+    signOutButtonContainer: {
+      marginTop: 8,
     },
     signedInContainer: {
       alignItems: 'center',
     },
+    wrapper: {
+      flex: 1,
+      backgroundColor: colors.background.default,
+    },
   });
 
-interface RewardsDashboardProps {
-  handleSignOut: () => void;
-}
-
-const RewardsDashboard: React.FC<RewardsDashboardProps> = ({
-  handleSignOut,
-}) => {
+const RewardsDashboard: React.FC = () => {
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { seasonData } = useRewardsSeason();
-  const { subscription, accounts } = useRewardsSubscription();
-  const address = useSelector(selectSelectedInternalAccountAddress);
-  console.log('seasonData:', seasonData);
-  console.log('currentAddress', address);
-  console.log('subscription', subscription);
-  console.log('accounts', accounts);
+  const { isLoggedIn, isLoading, logout } = useRewardsAuth();
+
+  // Redirect to main rewards view if not logged in
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigation.navigate(Routes.REWARDS_VIEW);
+    }
+  }, [isLoggedIn, navigation]);
+
+  // Set navigation title
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.rewards_title') || 'Rewards',
+        navigation,
+        false,
+        colors,
+      ),
+    );
+  }, [colors, navigation]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Your Rewards</Text>
-        <View style={styles.rewardCard}>
-          <Text style={styles.rewardAmount}>0 ETH</Text>
-          <Text style={styles.rewardLabel}>Total Earned</Text>
+    <SafeAreaView style={styles.wrapper}>
+      <View style={styles.container}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Your Rewards</Text>
+          <View style={styles.rewardCard}>
+            <Text style={styles.rewardAmount}>0 ETH</Text>
+            <Text style={styles.rewardLabel}>Total Earned</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Reward History</Text>
-        <View style={styles.historyItem}>
-          <Text style={styles.historyText}>No rewards history yet</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Reward History</Text>
+          <View style={styles.historyItem}>
+            <Text style={styles.historyText}>No rewards history yet</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.signedInContainer}>
-        <Text style={styles.signedInText}>
-          ✓ You&apos;re signed in to rewards!
-        </Text>
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutButtonText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+        <View style={styles.signedInContainer}>
+          <Text style={styles.signedInText}>
+            ✓ You&apos;re signed in to rewards!
+          </Text>
+          <View style={styles.signOutButtonContainer}>
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              width={ButtonWidthTypes.Auto}
+              label="Sign Out"
+              onPress={logout}
+              loading={isLoading}
+            />
+          </View>
+        </View>
+       </View>
+     </SafeAreaView>
+   );
 };
 
 export default RewardsDashboard;
