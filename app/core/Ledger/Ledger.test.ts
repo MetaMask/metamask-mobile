@@ -21,6 +21,7 @@ import {
   LEDGER_LEGACY_PATH,
   LEDGER_LIVE_PATH,
 } from './constants';
+import { removeAccountsFromPermissions } from '../../core/Permissions';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -39,6 +40,14 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 const MockEngine = jest.mocked(Engine);
+
+jest.mock('../../core/Permissions', () => ({
+  removeAccountsFromPermissions: jest.fn(),
+}));
+
+const MockRemoveAccountsFromPermissions = jest.mocked(
+  removeAccountsFromPermissions,
+);
 
 interface mockKeyringType {
   addAccounts: jest.Mock;
@@ -179,6 +188,14 @@ describe('Ledger core', () => {
   });
 
   describe('forgetLedger', () => {
+    it('removes the accounts from existing permissions', async () => {
+      await forgetLedger();
+      expect(MockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+      ]);
+    });
+
     it('calls keyring.forgetDevice', async () => {
       await forgetLedger();
       expect(ledgerKeyring.forgetDevice).toHaveBeenCalled();
