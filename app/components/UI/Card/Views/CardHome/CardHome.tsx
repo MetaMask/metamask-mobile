@@ -219,7 +219,12 @@ const CardHome = () => {
     [isLoadingPriorityToken, isLoadingNetworkChange],
   );
 
-  if (errorPriorityToken || error || (!isLoading && !priorityToken)) {
+  const hasError = useMemo(
+    () => errorPriorityToken || error || (!isLoading && !priorityToken),
+    [errorPriorityToken, error, isLoading, priorityToken],
+  );
+
+  if (hasError) {
     return (
       <View style={styles.errorContainer}>
         <Icon
