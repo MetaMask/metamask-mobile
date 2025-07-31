@@ -2,7 +2,10 @@ import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import { CardSDK } from '../sdk/CardSDK';
 import Logger from '../../../../util/Logger';
-import { isValidHexAddress, toChecksumAddress } from '../../../../util/address';
+import {
+  isValidHexAddress,
+  safeToChecksumAddress,
+} from '../../../../util/address';
 
 export const getCardholder = async ({
   formattedAccounts,
@@ -36,7 +39,7 @@ export const getCardholder = async ({
         return null;
       }
 
-      return toChecksumAddress(address);
+      return safeToChecksumAddress(address);
     });
 
     const cardholderAddresses = mappedAccounts.filter(Boolean) as string[];
