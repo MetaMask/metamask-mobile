@@ -1,7 +1,10 @@
 // In appwright.config.ts
+const dotenv = require('dotenv');
+dotenv.config({ path: '.e2e.env' });
 import { defineConfig, Platform } from 'appwright';
 export default defineConfig({
   testDir: './tests',
+  //reporter: [['./reporters/custom-reporter.js']],
   projects: [
     {
       name: 'android',
@@ -33,7 +36,7 @@ export default defineConfig({
           name: 'Samsung Galaxy S23 Ultra', // this can changed
           osVersion: '13.0', // this can changed
         },
-        buildPath: 'app-qa-release.apk', // Path to Browserstack url bs:// link
+        buildPath: 'bs://ea381b24b190dd9a578d3ac9351474e20b4372df', // Path to Browserstack url bs:// link
       },
     },
     {
@@ -45,7 +48,7 @@ export default defineConfig({
           name: 'iPhone 14 Pro Max', // this can changed
           osVersion: '16.0', // this can changed
         },
-        buildPath: '', // Path to Browserstack url bs:// link
+        buildPath: 'bs://ffbc9a9f506c5d0a94eaf2dfaf39f16d0aff948d', // Path to Browserstack url bs:// link
       },
     },
   ],

@@ -14,12 +14,13 @@ export class WalletAccountScreen extends CommonScreen {
     return WalletViewSelectorsIDs.ACCOUNT_OVERVIEW;
   }
 
-  async tapOnAggreeCheckBox() {
-    await this.tapOnElement(this.checkbox);
+
+  get accountIcon() {
+    return WalletViewSelectorsIDs.ACCOUNT_ICON;
   }
 
-  async tapOnScrollEndArrowButton() {
-    await this.tapOnElement(this.scrollEndArrowButton);
+  async tapOnAccountIcon() {
+    await this.tapOnElement(this.accountNameLabelText);
   }
 
   async isAccountNameLabelEqualTo(expectedAccountName) {

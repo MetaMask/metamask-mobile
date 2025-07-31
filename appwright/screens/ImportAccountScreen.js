@@ -1,14 +1,14 @@
 import { CommonScreen } from './CommonScreen';
-import { ImportFromSeedSelectorsIDs } from '../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
+import { ImportFromSeedSelectorsIDs } from '../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectorss';
 
 
-export class ImportSrpOnboardingScreen extends CommonScreen {
-  get screenTitle() {
+export class ImportAccountScreen extends CommonScreen {
+  get seedPhraseInput() {
     return ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID;
   }
 
-  get seedPhraseInput() {
-    return ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID;
+  get closeButton() {
+    return ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON;
   }
 
   get continueButton() {

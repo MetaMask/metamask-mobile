@@ -1,3 +1,4 @@
+import { expect } from "appwright";
 import { TermsOfUseModalSelectorsIDs } from "../../e2e/selectors/Onboarding/TermsOfUseModal.selectors";
 import { CommonScreen } from "./CommonScreen";
 
@@ -21,6 +22,10 @@ export class TermsOfUseScreen extends CommonScreen {
 
   get webview() {
     return TermsOfUseModalSelectorsIDs.WEBVIEW;
+  }
+
+  async isDisplayed() {
+    await this.isElementByIdVisible(this.container);
   }
 
   async tapOnAggreeCheckBox() {

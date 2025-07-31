@@ -1,5 +1,3 @@
-import Selectors from '../../wdio/helpers/Selectors';
-import { OnboardingCarouselSelectorIDs } from '../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import { expect } from 'appwright';
 
 export class CommonScreen {
@@ -13,6 +11,7 @@ export class CommonScreen {
   }
 
   async tapOnElement(id) {
+    await new Promise(resolve => setTimeout(resolve, 5000));
     (await this.isIOS())
       ? await this.device.getById(id).tap()
       : await this.device.getByXpath(`//*[@resource-id='${id}']`).tap();
@@ -31,6 +30,14 @@ export class CommonScreen {
           .getByXpath(`//*[@resource-id='${inputId}']`)
           .fill(value);
   }
+
+  /*async fillInput(inputId, value) {
+    (await this.isIOS())
+      ? await this.device.getById(inputId).fill(value)
+      : await this.device
+          .getByXpath(`//*[@resource-id='${inputId}']`)
+          .fill(value);
+  }*/
 
   async isElementByIdVisible(element) {
     (await this.isIOS())
