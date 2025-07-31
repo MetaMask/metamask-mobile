@@ -34,7 +34,10 @@ import {
  * - isLoading: indicates loading state during the fetch
  * - error: any error encountered while fetching
  */
-export const useGetPriorityCardToken = (selectedAddress?: string) => {
+export const useGetPriorityCardToken = (
+  selectedAddress?: string,
+  shouldFetchOnLoad?: boolean,
+) => {
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
@@ -178,12 +181,12 @@ export const useGetPriorityCardToken = (selectedAddress?: string) => {
     }, [sdk, selectedAddress, fetchAllowances, getBalancesForChain, chainId]);
 
   useEffect(() => {
-    if (selectedAddress) {
+    if (selectedAddress && shouldFetchOnLoad) {
       fetchPriorityToken().then((token) => {
         setPriorityToken(token);
       });
     }
-  }, [selectedAddress, fetchPriorityToken]);
+  }, [selectedAddress, fetchPriorityToken, shouldFetchOnLoad]);
 
   return { fetchPriorityToken, isLoading, error, priorityToken };
 };

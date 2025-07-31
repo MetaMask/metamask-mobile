@@ -74,7 +74,6 @@ import {
   NETWORKS_CHAIN_ID,
 } from '../../../constants/network';
 import WarningAlert from '../../../components/UI/WarningAlert';
-import { CardVerification } from '../../../components/UI/Card/sdk';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
 import {
   updateIncomingTransactions,
@@ -469,7 +468,6 @@ const Main = (props) => {
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
-        <CardVerification />
         <RampOrders />
         <SwapsLiveness />
         <BackupAlert

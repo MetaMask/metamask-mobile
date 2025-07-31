@@ -939,7 +939,6 @@ export function getOfflineModalNavbar() {
  * @param {number} unreadNotificationCount - The number of unread notifications
  * @param {number} readNotificationCount - The number of read notifications
  * @param {boolean} isNonEvmSelected - Whether a non evm network is selected
- * @param {boolean} isCardholder - Whether user is a cardholder or not
  * @returns {Object} An object containing the navbar options for the wallet screen
  */
 export function getWalletNavbarOptions(
@@ -1027,15 +1026,14 @@ export function getWalletNavbarOptions(
   };
 
   function openQRScanner() {
-    navigation.navigate(Routes.CARD.ROOT);
-    // navigation.navigate(Routes.QR_TAB_SWITCHER, {
-    //   onScanSuccess,
-    // });
-    // trackEvent(
-    //   MetricsEventBuilder.createEventBuilder(
-    //     MetaMetricsEvents.WALLET_QR_SCANNER,
-    //   ).build(),
-    // );
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      onScanSuccess,
+    });
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_QR_SCANNER,
+      ).build(),
+    );
   }
 
   function handleNotificationOnPress() {
@@ -1080,6 +1078,15 @@ export function getWalletNavbarOptions(
     return <View style={styles.leftElementContainer}>{networkPicker}</View>;
   };
 
+  const handleCardPress = () => {
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CARD_HOME_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.CARD.ROOT);
+  };
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -1116,7 +1123,7 @@ export function getWalletNavbarOptions(
             // This will be replaced with a Cardholder button in the future
             <ButtonIcon
               iconColor={IconColor.Default}
-              onPress={() => navigation.navigate(Routes.CARD.ROOT)}
+              onPress={handleCardPress}
               iconName={IconName.Card}
               size={IconSize.Xl}
               testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}

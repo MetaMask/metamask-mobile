@@ -189,7 +189,7 @@ describe('getCardholder', () => {
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual([]);
       expect(mockedLogger.error).toHaveBeenCalledWith(
         mockError,
         'getCardholder::Error loading cardholder accounts',
@@ -205,7 +205,7 @@ describe('getCardholder', () => {
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual([]);
       expect(mockedLogger.error).toHaveBeenCalledWith(
         mockError,
         'getCardholder::Error loading cardholder accounts',
@@ -221,7 +221,7 @@ describe('getCardholder', () => {
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual([]);
       expect(mockedLogger.error).toHaveBeenCalledWith(
         new Error(mockErrorString),
         'getCardholder::Error loading cardholder accounts',
@@ -236,7 +236,7 @@ describe('getCardholder', () => {
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual([]);
       expect(mockedLogger.error).toHaveBeenCalledWith(
         new Error('null'),
         'getCardholder::Error loading cardholder accounts',
@@ -251,7 +251,7 @@ describe('getCardholder', () => {
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
-      expect(result).toBeUndefined();
+      expect(result).toEqual([]);
       expect(mockedLogger.error).toHaveBeenCalledWith(
         new Error('undefined'),
         'getCardholder::Error loading cardholder accounts',

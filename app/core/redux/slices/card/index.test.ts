@@ -1,11 +1,15 @@
 import { RootState } from '../../../../reducers';
-import {
+import cardReducer, {
   CardSliceState,
   selectCardholderAccounts,
   selectIsCardholder,
   selectIsCardDataLoaded,
   selectCardLoading,
   selectCardError,
+  loadCardholderAccounts,
+  resetCardState,
+  clearCardError,
+  initialState,
 } from '.';
 
 const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
@@ -137,6 +141,118 @@ describe('Card Selectors', () => {
       } as unknown as RootState;
 
       expect(selectCardError(mockRootState)).toBe(null);
+    });
+  });
+});
+
+describe('Card Reducer', () => {
+  describe('extraReducers', () => {
+    describe('loadCardholderAccounts', () => {
+      it('should set loading to true and clear error when pending', () => {
+        const action = { type: loadCardholderAccounts.pending.type };
+        const state = cardReducer(
+          {
+            ...initialState,
+            error: 'Previous error',
+            isLoading: false,
+          },
+          action,
+        );
+
+        expect(state.isLoading).toBe(true);
+        expect(state.error).toBe(null);
+      });
+
+      it('should set cardholder accounts and update state when fulfilled', () => {
+        const mockAccounts = ['0x123', '0x456'];
+        const action = {
+          type: loadCardholderAccounts.fulfilled.type,
+          payload: mockAccounts,
+        };
+        const state = cardReducer(
+          {
+            ...initialState,
+            isLoading: true,
+          },
+          action,
+        );
+
+        expect(state.isLoading).toBe(false);
+        expect(state.cardholderAccounts).toEqual(mockAccounts);
+        expect(state.isLoaded).toBe(true);
+        expect(state.error).toBe(null);
+        expect(state.lastUpdated).toBeCloseTo(Date.now(), -2);
+      });
+
+      it('should handle empty payload when fulfilled', () => {
+        const action = {
+          type: loadCardholderAccounts.fulfilled.type,
+          payload: null,
+        };
+        const state = cardReducer(
+          {
+            ...initialState,
+            isLoading: true,
+          },
+          action,
+        );
+
+        expect(state.cardholderAccounts).toEqual([]);
+        expect(state.isLoaded).toBe(true);
+        expect(state.error).toBe(null);
+      });
+
+      it('should set error and update state when rejected', () => {
+        const errorMessage = 'Failed to load accounts';
+        const action = {
+          type: loadCardholderAccounts.rejected.type,
+          error: {
+            message: errorMessage,
+          },
+        };
+        const state = cardReducer(
+          {
+            ...initialState,
+            isLoading: true,
+          },
+          action,
+        );
+
+        expect(state.isLoading).toBe(false);
+        expect(state.error).toBe(errorMessage);
+        expect(state.isLoaded).toBe(true);
+      });
+    });
+  });
+
+  describe('reducers', () => {
+    it('should reset card state', () => {
+      const currentState: CardSliceState = {
+        cardholderAccounts: ['0x123'],
+        lastUpdated: 123456789,
+        isLoading: true,
+        error: 'Some error',
+        isLoaded: true,
+      };
+
+      const state = cardReducer(currentState, resetCardState());
+
+      expect(state).toEqual(initialState);
+    });
+
+    it('should clear card error', () => {
+      const currentState: CardSliceState = {
+        ...initialState,
+        error: 'Some error',
+      };
+
+      const state = cardReducer(currentState, clearCardError());
+
+      expect(state.error).toBe(null);
+      expect(state).toEqual({
+        ...currentState,
+        error: null,
+      });
     });
   });
 });

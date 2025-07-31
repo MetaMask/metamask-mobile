@@ -123,7 +123,6 @@ import { toChecksumAddress, toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-import { selectCardholderAccounts } from '../../../core/redux/slices/card';
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import {
   useSwapBridgeNavigation,
@@ -145,6 +144,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import { selectCardholderAccounts } from '../../../core/redux/slices/card';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -294,8 +294,6 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-
-  const cardholderAccounts = useSelector(selectCardholderAccounts);
 
   /**
    * Object containing the balance of the current selected account
@@ -673,6 +671,7 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
+  const cardholderAccounts = useSelector(selectCardholderAccounts);
   const isCardholder = useMemo(() => {
     if (!selectedInternalAccount?.address || !cardholderAccounts?.length) {
       return false;

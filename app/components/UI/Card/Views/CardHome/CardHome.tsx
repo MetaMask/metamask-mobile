@@ -106,17 +106,32 @@ const CardHome = () => {
     [evmTokens, tokenFiatBalances],
   );
 
+  const {
+    priorityToken,
+    fetchPriorityToken,
+    isLoading: isLoadingPriorityToken,
+    error: errorPriorityToken,
+  } = useGetPriorityCardToken(
+    cardholderAddresses?.[0],
+    selectedChainId === LINEA_CHAIN_ID,
+  );
+
   useFocusEffect(
     useCallback(() => {
       (async () => {
         if (selectedChainId !== LINEA_CHAIN_ID) {
-          const id =
+          const networkClientId =
             NetworkController.findNetworkClientIdByChainId(LINEA_CHAIN_ID);
 
+          Logger.log(networkClientId);
+
           try {
-            if (id) {
+            if (networkClientId) {
               setIsLoadingNetworkChange(true);
-              await NetworkController.setActiveNetwork(id);
+              NetworkController.setActiveNetwork(networkClientId).then(() => {
+                setError(false);
+                fetchPriorityToken();
+              });
             }
           } catch (err) {
             const mappedError =
@@ -128,15 +143,9 @@ const CardHome = () => {
           }
         }
       })();
-    }, [NetworkController, selectedChainId]),
+    }, [NetworkController, selectedChainId, fetchPriorityToken]),
   );
 
-  const {
-    priorityToken,
-    fetchPriorityToken,
-    isLoading: isLoadingPriorityToken,
-    error: errorPriorityToken,
-  } = useGetPriorityCardToken(cardholderAddresses?.[0]);
   const { balanceFiat, asset } = useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { goToSwaps } = useSwapBridgeNavigation({
