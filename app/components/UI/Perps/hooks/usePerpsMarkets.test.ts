@@ -76,9 +76,17 @@ const mockProvider = {
   calculateLiquidationPrice: jest.fn(),
   calculateMaintenanceMargin: jest.fn(),
   getMaxLeverage: jest.fn(),
+  calculateFees: jest.fn().mockResolvedValue({
+    feeRate: 0.00045,
+    feeAmount: 45,
+  }),
   updatePositionTPSL: jest.fn().mockResolvedValue({
     success: true,
     orderId: '123',
+  }),
+  checkWithdrawalStatus: jest.fn().mockResolvedValue({
+    status: 'pending',
+    metadata: {},
   }),
 } as const;
 

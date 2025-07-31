@@ -22,7 +22,6 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../core/AppConstants';
 import {
@@ -60,8 +59,6 @@ export function* authStateMachine() {
     yield take(UserActionType.LOGIN);
     const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
     LockManagerService.startListening();
-    //TODO: Move this logic to the Engine when the account tree state will be persisted
-    AccountTreeInitService.initializeAccountTree();
     // Listen to app lock behavior.
     yield take(UserActionType.LOGOUT);
     LockManagerService.stopListening();

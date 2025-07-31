@@ -29,7 +29,7 @@ function runHook({
 
   if (payToken) {
     mockState.confirmationMetrics = {
-      metricsById: {},
+      ...ConfirmationMetricsReducer.initialState,
       transactionPayTokenById: {
         [TRANSACTION_ID_MOCK]: payToken,
       },

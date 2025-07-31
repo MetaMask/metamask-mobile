@@ -17,6 +17,7 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
+import LegacyGestures from '../../utils/Gestures';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 
 export const TEST_SNAPS_URL =
@@ -132,11 +133,20 @@ class TestSnaps {
   ): Promise<void> {
     await this.tapButton(buttonLocator);
 
-    await Gestures.waitAndTap(this.getConnectSnapButton);
+    await Gestures.tap(this.getConnectSnapButton, {
+      elemDescription: 'Connect Snap button',
+      waitForElementToDisappear: true,
+    });
 
-    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton);
+    await Gestures.tap(this.getApproveSnapPermissionsRequestButton, {
+      elemDescription: 'Approve permission for Snap button',
+      waitForElementToDisappear: true,
+    });
 
-    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton);
+    await Gestures.tap(this.getConnectSnapInstallOkButton, {
+      elemDescription: 'OK button',
+      waitForElementToDisappear: true,
+    });
   }
 
   async fillMessage(
@@ -147,17 +157,16 @@ class TestSnaps {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
     ) as Promise<IndexableWebElement>;
-    await Gestures.typeText(webElement, message, {
-      hideKeyboard: true,
-    });
+    // New gestures currently don't support web elements
+    await LegacyGestures.typeInWebElement(webElement, message);
   }
 
   async approveSignRequest() {
-    await Gestures.waitAndTap(this.getApproveSignRequestButton);
+    await Gestures.tap(this.getApproveSignRequestButton);
   }
 
   async approveNativeConfirmation() {
-    await Gestures.waitAndTap(this.confirmSignatureButton);
+    await Gestures.tap(this.confirmSignatureButton);
   }
 
   async waitForWebSocketUpdate(state: {
