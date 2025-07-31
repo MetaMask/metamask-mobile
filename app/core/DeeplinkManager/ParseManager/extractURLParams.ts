@@ -33,7 +33,7 @@ function extractURLParams(url: string) {
       .replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`, `${PROTOCOLS.DAPP}/`),
   );
 
-  let params: Partial<DeeplinkUrlParams> = {
+  let params: DeeplinkUrlParams = {
     pubkey: '',
     uri: '',
     redirect: '',
