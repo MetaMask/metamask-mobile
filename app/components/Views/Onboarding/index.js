@@ -516,7 +516,7 @@ class Onboarding extends PureComponent {
         loginHandler,
       ).catch((error) => {
         this.props.unsetLoading();
-        this.handleLoginError(error, 'google');
+        this.handleLoginError(error, provider);
         return { type: 'error', error, existingUser: false };
       });
       this.handlePostSocialLogin(result, createWallet, provider);
