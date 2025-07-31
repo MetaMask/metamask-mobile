@@ -90,17 +90,18 @@ export const fetchAssetMetadata = async (
   }
 
   try {
-    const [assetMetadata]: AssetMetadata[] = await handleFetch(
-      `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${assetId}`,
-    );
+    const url = `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${assetId}`;
+    const [assetMetadata]: AssetMetadata[] = await handleFetch(url);
 
     const commonFields = {
       symbol: assetMetadata.symbol,
       decimals: assetMetadata.decimals,
+      name: assetMetadata.name,
       image: getAssetImageUrl(assetId, chainIdInCaip),
       assetId,
     };
 
+    // Solana
     if (chainId === MultichainNetwork.Solana && assetId) {
       const { assetReference } = parseCaipAssetType(assetId);
       return {
@@ -111,6 +112,7 @@ export const fetchAssetMetadata = async (
       };
     }
 
+    // EVM
     const { reference } = parseCaipChainId(chainIdInCaip);
     return {
       ...commonFields,

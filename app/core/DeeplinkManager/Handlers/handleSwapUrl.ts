@@ -1,15 +1,13 @@
 import NavigationService from '../../NavigationService';
-import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { isCaipAssetType } from '@metamask/utils';
 import { createTokenFromCaip } from '../../../components/UI/Bridge/utils/tokenUtils';
-import { fetchBridgeTokens, BridgeClientId } from '@metamask/bridge-controller';
-import { handleFetch } from '@metamask/controller-utils';
-import { BRIDGE_API_BASE_URL } from '../../../constants/bridge';
 import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../components/UI/Bridge/types';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeRouteParams } from '../../../components/UI/Bridge/Views/BridgeView';
+import { fetchAssetMetadata } from '../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 
 interface HandleSwapUrlParams {
   swapPath: string;
@@ -25,25 +23,10 @@ const validateAndLookupToken = async (
     const basicToken = createTokenFromCaip(caipAssetType);
     if (!basicToken) return null;
 
-    const bridgeTokens = await fetchBridgeTokens(
+    const matchingToken = await fetchAssetMetadata(
+      caipAssetType,
       basicToken.chainId,
-      BridgeClientId.MOBILE,
-      handleFetch,
-      BRIDGE_API_BASE_URL,
     );
-
-    // For Solana tokens, extract assetReference for lookup
-    let lookupAddress = basicToken.address;
-    if (
-      basicToken.chainId.startsWith('solana:') &&
-      isCaipAssetType(caipAssetType)
-    ) {
-      const parsedAsset = parseCaipAssetType(caipAssetType);
-      lookupAddress = parsedAsset.assetReference;
-    }
-
-    const matchingToken =
-      bridgeTokens[lookupAddress] || bridgeTokens[lookupAddress.toLowerCase()];
 
     if (!matchingToken) return null;
 
@@ -53,7 +36,7 @@ const validateAndLookupToken = async (
       symbol: matchingToken.symbol,
       name: matchingToken.name,
       decimals: matchingToken.decimals,
-      image: matchingToken.iconUrl || matchingToken.icon || '',
+      image: matchingToken.image || '',
       chainId: basicToken.chainId,
     };
 
