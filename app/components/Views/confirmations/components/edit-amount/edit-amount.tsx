@@ -1,64 +1,56 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { TextInput, View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { Interface } from '@ethersproject/abi';
-import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
-import { useTokenAsset } from '../../hooks/useTokenAsset';
-import Engine from '../../../../../core/Engine';
-import { useTransactionMetadataOrThrow } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { calcTokenValue } from '../../../../../util/transactions';
+import { useStyles } from '../../../../../component-library/hooks';
+import styleSheet from './edit-amount.styles';
+import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 
-export function EditAmount() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
-  const tokenAmount = useTokenAmount();
-  const [amount, setAmount] = React.useState<string>();
-  const asset = useTokenAsset();
+export interface EditAmountProps {
+  prefix?: string;
+}
+
+export function EditAmount({ prefix = '' }: EditAmountProps) {
+  const { styles } = useStyles(styleSheet, {});
+  const [amountHuman, setAmountHuman] = useState<string>();
+
+  const {
+    amountPrecise: transactionAmountHuman,
+    pending,
+    updateTokenAmount,
+  } = useTokenAmount();
 
   useEffect(() => {
-    if (!amount && tokenAmount.amountPrecise) {
-      setAmount(tokenAmount.amountPrecise);
+    if (!amountHuman && transactionAmountHuman) {
+      setAmountHuman(transactionAmountHuman);
     }
-  }, [amount, tokenAmount.amountPrecise]);
+  }, [amountHuman, transactionAmountHuman]);
 
-  const handleChange = (text: string) => {
-    const value = calcTokenValue(text.slice(0), asset.asset.decimals);
+  const handleChange = useCallback(
+    (text: string) => {
+      const newAmount = text.replace(prefix, '').trim();
+      setAmountHuman(newAmount);
+      updateTokenAmount(newAmount);
+    },
+    [prefix, updateTokenAmount],
+  );
 
-    const newData = new Interface(abiERC20).encodeFunctionData('transfer', [
-      '0x0000000000000000000000000000000000000000', // Placeholder address
-      value.toString(10),
-    ]);
-
-    Engine.context.TransactionController.updateEditableParams(transactionId, {
-      data: newData,
-    });
-
-    setAmount(text);
-  };
+  const isFirstLoad = !amountHuman && pending;
+  const inputValue = `${prefix}${amountHuman ?? '0'}`;
 
   return (
-    <View style={{ paddingTop: 40, paddingBottom: 40 }}>
-      <TextInput
-        value={'$' + amount}
-        onChangeText={handleChange}
-        keyboardType="numeric"
-        placeholder="Enter amount"
-        style={{
-          textAlign: 'center',
-          fontSize: 64,
-          fontWeight: '500',
-        }}
-      />
-      <Text
-        variant={TextVariant.BodyMDMedium}
-        color={TextColor.Alternative}
-        style={{ textAlign: 'center' }}
-      >
-        Available: $4.56
-      </Text>
+    <View style={styles.container}>
+      {isFirstLoad ? (
+        <AnimatedSpinner size={SpinnerSize.SM} />
+      ) : (
+        <TextInput
+          testID="edit-amount-input"
+          value={inputValue}
+          onChangeText={handleChange}
+          keyboardType="numeric"
+          placeholder="Enter amount"
+          style={styles.input}
+        />
+      )}
     </View>
   );
 }
