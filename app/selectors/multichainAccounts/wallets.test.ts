@@ -1,4 +1,4 @@
-import { selectMultichainWallets } from './wallets';
+import { selectMultichainWallets, selectWallets } from './wallets';
 import { RootState } from '../../reducers';
 import { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import { DeepPartial } from 'redux';
@@ -64,7 +64,7 @@ describe('selectWallets', () => {
       false,
     );
 
-    const result = selectMultichainWallets(mockState);
+    const result = selectWallets(mockState);
     expect(result).toEqual([]);
   });
 
@@ -98,7 +98,7 @@ describe('selectWallets', () => {
       },
     });
 
-    const result = selectMultichainWallets(mockState);
+    const result = selectWallets(mockState);
     expect(result).toEqual([wallet1, wallet2]);
   });
 
@@ -109,13 +109,13 @@ describe('selectWallets', () => {
       },
     });
 
-    const result = selectMultichainWallets(mockState);
+    const result = selectWallets(mockState);
     expect(result).toEqual([]);
   });
 
   it('returns empty array when accountTree is undefined', () => {
     const mockState = createMockState(undefined);
-    const result = selectMultichainWallets(mockState);
+    const result = selectWallets(mockState);
     expect(result).toEqual([]);
   });
 
@@ -134,7 +134,7 @@ describe('selectWallets', () => {
       },
     });
 
-    const result = selectMultichainWallets(mockState);
+    const result = selectWallets(mockState);
     expect(result).toEqual([walletWithEmptyGroups]);
     expect(result[0].groups).toEqual({});
   });
