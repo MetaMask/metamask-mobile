@@ -5,18 +5,22 @@ import React, {
   useContext,
   useState,
 } from 'react';
+import { isAddress as isEvmAddress } from 'ethers/lib/utils';
+import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { AssetType } from '../../types/token';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export interface SendContextType {
   asset?: AssetType;
-  chainId?: Hex;
-  from: Hex;
-  to?: Hex;
+  chainId?: string;
+  fromAccount: InternalAccount;
+  from: string;
+  to?: string;
   updateAsset: (asset: AssetType) => void;
-  updateTo: (to: Hex) => void;
+  updateTo: (to: string) => void;
   updateValue: (value: string) => void;
   value?: string;
 }
@@ -24,7 +28,8 @@ export interface SendContextType {
 export const SendContext = createContext<SendContextType>({
   asset: undefined,
   chainId: undefined,
-  from: '0x',
+  fromAccount: {} as InternalAccount,
+  from: '',
   to: undefined,
   updateAsset: () => undefined,
   updateTo: () => undefined,
@@ -37,15 +42,19 @@ export const SendContextProvider: React.FC<{
 }> = ({ children }) => {
   const [asset, updateAsset] = useState<AssetType>();
   const from = useSelector(selectSelectedInternalAccount);
-  const [to, updateTo] = useState<Hex>();
+  const [to, updateTo] = useState<string>();
   const [value, updateValue] = useState<string>();
-  const { chainId } = asset ?? { chainId: undefined };
+  const chainId =
+    asset && isEvmAddress(asset.address) && asset.chainId
+      ? toHex(asset.chainId)
+      : asset?.chainId;
 
   return (
     <SendContext.Provider
       value={{
         asset,
         chainId: chainId as Hex | undefined,
+        fromAccount: from as InternalAccount,
         from: from?.address as Hex,
         to,
         updateAsset,

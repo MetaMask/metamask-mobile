@@ -3,16 +3,20 @@ import { useSelector } from 'react-redux';
 import { SnapId } from '@metamask/snaps-sdk';
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
 import { isEvmAccountType } from '@metamask/keyring-api';
+import { useNavigation } from '@react-navigation/native';
+
 import { selectSelectedInternalAccount } from '../../selectors/accountsController';
 import { isMultichainWalletSnap } from '../../core/SnapKeyring/utils/snaps';
 import { sendMultichainTransaction } from '../../core/SnapKeyring/utils/sendMultichainTransaction';
 import Logger from '../../util/Logger';
+import { TokenI } from '../UI/Tokens/types';
+import {
+  handleSendPageNavigation,
+  isSendRedesignEnabled,
+} from '../Views/confirmations/utils/send';
 
 interface UseSendNonEvmAssetParams {
-  asset: {
-    chainId: string;
-    address?: string;
-  };
+  asset: TokenI;
   closeModal?: () => void;
 }
 
@@ -24,6 +28,7 @@ export function useSendNonEvmAsset({
   asset,
   closeModal,
 }: UseSendNonEvmAssetParams) {
+  const navigation = useNavigation();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   const sendNonEvmAsset = useCallback(async (): Promise<boolean> => {
@@ -35,6 +40,12 @@ export function useSendNonEvmAsset({
     // Close modal if provided
     if (closeModal) {
       closeModal();
+    }
+
+    // Validate snap account
+    if (isSendRedesignEnabled()) {
+      handleSendPageNavigation(navigation.navigate, asset);
+      return true;
     }
 
     // Validate snap account
@@ -75,7 +86,7 @@ export function useSendNonEvmAsset({
     }
 
     return true; // Successfully handled non-EVM case
-  }, [selectedAccount, asset, closeModal]);
+  }, [selectedAccount, asset, closeModal, navigation]);
 
   return {
     sendNonEvmAsset,

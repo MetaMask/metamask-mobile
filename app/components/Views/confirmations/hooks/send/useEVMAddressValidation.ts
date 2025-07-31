@@ -1,13 +1,11 @@
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import {
-  areAddressesEqual,
   isENS,
   isValidHexAddress,
   toChecksumAddress,
@@ -19,41 +17,20 @@ import {
   getConfusablesExplanations,
   hasZeroWidthPoints,
 } from '../../../../../util/confusables';
+import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { useSendContext } from '../../context/send-context';
-import { useSendType } from './useSendType';
 
 export interface ShouldSkipValidationArgs {
   toAddress?: string;
   chainId?: string;
+  addressBook: AddressBookControllerState['addressBook'];
   internalAccounts: InternalAccount[];
+  isEvmSendType?: boolean;
 }
 
-export const shouldSkipValidation = ({
-  toAddress,
-  chainId,
-  internalAccounts,
-}: ShouldSkipValidationArgs): boolean => {
-  if (!toAddress || !chainId) {
-    return true;
-  }
-  const address = isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
-    ? toChecksumAddress(toAddress)
-    : toAddress;
-
-  // sending to an internal account
-  const internalAccount = internalAccounts.find((account) =>
-    areAddressesEqual(account.address, address),
-  );
-  if (internalAccount) {
-    return true;
-  }
-
-  return false;
-};
-
-const validateEVMHexAddress = async (
+const validateHexAddress = async (
   toAddress: string,
   chainId?: Hex,
 ): Promise<{
@@ -85,7 +62,7 @@ const validateEVMHexAddress = async (
   return {};
 };
 
-const validateEVMENSAddress = async (
+const validateENSAddress = async (
   toAddress: string,
   chainId?: Hex,
 ): Promise<{
@@ -117,7 +94,7 @@ const validateEVMENSAddress = async (
   return {};
 };
 
-export const validateEVMToAddress = async (
+export const validateToAddress = async (
   toAddress: string,
   chainId?: Hex,
 ): Promise<{
@@ -125,10 +102,10 @@ export const validateEVMToAddress = async (
   warning?: string;
 }> => {
   if (isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })) {
-    return await validateEVMHexAddress(toAddress, chainId);
+    return await validateHexAddress(toAddress, chainId);
   }
   if (isENS(toAddress)) {
-    return await validateEVMENSAddress(toAddress, chainId);
+    return await validateENSAddress(toAddress, chainId);
   }
   // address that is not valid hex or ens is invalid
   return {
@@ -136,56 +113,28 @@ export const validateEVMToAddress = async (
   };
 };
 
-export const validateSolanaToAddress = (toAddress: string) => {
-  if (!isSolanaAddress(toAddress)) {
-    return {
-      error: strings('transaction.invalid_address'),
-    };
-  }
-  // todo: solana sns name validation
-  return {};
-};
-
-// todo: to address validation assumees `to` is the input from the user
-// depending on implementation we may need to have 2 fields for receipient `toInput` and `toResolved`
-export const useToAddressValidation = () => {
+export const useEVMToAddressValidation = () => {
+  const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
   const { chainId, to } = useSendContext();
-  const { isEvmSendType, iSolanaSendType } = useSendType();
 
   const { value } = useAsyncResult<{
     error?: string;
     warning?: string;
   }>(async () => {
-    if (
-      shouldSkipValidation({
-        toAddress: to,
-        chainId,
-        internalAccounts,
-      })
-    ) {
+    // address is present in address book
+    // address book is supported for EVM accounts only
+    const address = toChecksumAddress(to as Hex);
+    const existingContact =
+      address && chainId && addressBook[chainId as Hex]?.[address];
+    if (existingContact) {
       return {};
     }
-    if (isEvmSendType) {
-      return await validateEVMToAddress(to as Hex, chainId as Hex);
-    }
-    if (iSolanaSendType) {
-      return validateSolanaToAddress(to as string);
-    }
-    return {};
-  }, [
-    chainId,
-    isEvmSendType,
-    iSolanaSendType,
-    internalAccounts,
-    to,
-    validateEVMToAddress,
-  ]);
+
+    return await validateToAddress(to as Hex, chainId as Hex);
+  }, [addressBook, chainId, internalAccounts, to]);
 
   const { error, warning } = value ?? {};
 
-  return {
-    toAddressError: error,
-    toAddressWarning: warning,
-  };
+  return { error, warning };
 };

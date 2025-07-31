@@ -1,36 +1,47 @@
+import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
-import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 
-import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import { addTransaction } from '../../../../../util/transaction-controller';
-import { MMM_ORIGIN } from '../../constants/confirmations';
-import { prepareEVMTransaction } from '../../utils/send';
+import {
+  submitEVMTransaction,
+  submitNonEVMTransaction,
+} from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
+import { useSendType } from './useSendType';
 
 export const useSendActions = () => {
-  const { asset, chainId, from, to, value } = useSendContext();
+  const { asset, chainId, fromAccount, from, to, value } = useSendContext();
   const navigation = useNavigation();
-  const { NetworkController } = Engine.context;
+  const { isEvmSendType } = useSendType();
 
   const handleSubmitPress = useCallback(async () => {
     if (!chainId || !asset) {
       return;
     }
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
-      toHex(chainId),
-    );
-    // toHex is added here as sometime chainId in asset is not hexadecimal
-    const trxnParams = prepareEVMTransaction(asset, { from, to, value });
-    await addTransaction(trxnParams, {
-      origin: MMM_ORIGIN,
-      networkClientId,
-    });
+
+    if (isEvmSendType) {
+      await submitEVMTransaction({
+        asset,
+        chainId: chainId as Hex,
+        from: from as Hex,
+        to: to as Hex,
+        value: value as string,
+      });
+    } else {
+      await submitNonEVMTransaction({
+        asset,
+        chainId: chainId as Hex,
+        fromAccount,
+        to: to as Hex,
+        value: value as string,
+      });
+    }
+
     navigation.navigate(
       Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     );
-  }, [asset, chainId, NetworkController, navigation, from, to, value]);
+  }, [asset, chainId, navigation, fromAccount, from, isEvmSendType, to, value]);
 
   const handleCancelPress = useCallback(() => {
     navigation.goBack();
