@@ -510,14 +510,21 @@ class Onboarding extends PureComponent {
     });
 
     const action = async () => {
+      this.props.setLoading();
       const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
       ).catch((error) => {
-        this.handleLoginError(error, 'google');
+        this.props.unsetLoading();
+        this.handleLoginError(error, provider);
         return { type: 'error', error, existingUser: false };
       });
       this.handlePostSocialLogin(result, createWallet, provider);
+
+      // delay unset loading to avoid flash of loading state
+      setTimeout(() => {
+        this.props.unsetLoading();
+      }, 1000);
     };
     this.handleExistingUser(action);
   };
