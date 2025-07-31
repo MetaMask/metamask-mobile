@@ -5,6 +5,13 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { SendContextProvider } from '../../../context/send-context';
 import Amount from './amount';
 
+jest.mock(
+  '../../../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
+  () => ({
+    useGasFeeEstimates: () => ({ gasFeeEstimates: {} }),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -41,5 +48,11 @@ describe('Amount', () => {
     const { getByText } = renderComponent();
 
     expect(getByText('Value:')).toBeTruthy();
+  });
+
+  it('display option to set value to Max', async () => {
+    const { getByText } = renderComponent();
+
+    expect(getByText('Max')).toBeTruthy();
   });
 });

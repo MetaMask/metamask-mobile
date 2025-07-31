@@ -1,3 +1,4 @@
+import { Hex } from '@metamask/utils';
 import React from 'react';
 import { View } from 'react-native';
 
@@ -9,17 +10,17 @@ import styleSheet from './to.styles';
 
 const To = () => {
   const { styles } = useStyles(styleSheet, {});
-  const { transactionParams, updateTransactionParams } = useSendContext();
+  const { to, updateTo } = useSendContext();
 
   return (
     <View>
       <Text>To:</Text>
       <Input
         style={styles.input}
-        onChangeText={(to: string) => {
-          updateTransactionParams({ to });
+        onChangeText={(toAddr: string) => {
+          updateTo(toAddr as Hex);
         }}
-        value={transactionParams?.to}
+        value={to}
         testID="send_to_address"
       />
     </View>

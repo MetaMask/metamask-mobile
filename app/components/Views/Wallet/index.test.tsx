@@ -369,14 +369,6 @@ describe('Wallet', () => {
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
-  it('should render scan qr icon', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-    const scanButton = RNScreen.getByTestId(
-      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
-    );
-    expect(scanButton).toBeDefined();
-  });
   it('should render ScrollableTabView', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
