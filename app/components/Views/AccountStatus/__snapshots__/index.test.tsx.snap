@@ -175,7 +175,7 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
 </RCTSafeAreaView>
 `;
 
-exports[`AccountStatus Snapshots android renders correctly with type="found" 1`] = `
+exports[`AccountStatus Snapshots android renders correctly with type="found and statusbar current height to zero" 1`] = `
 <RCTSafeAreaView>
   <View
     style={
