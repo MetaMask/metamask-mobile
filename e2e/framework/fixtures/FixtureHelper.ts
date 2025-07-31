@@ -165,6 +165,10 @@ async function handleSmartContracts(
  * Handles the local nodes by starting the servers and listening to the ports.
  * @param localNodeOptions - The local node options to use for the test.
  * @returns The local nodes.
+ * @throws {Error} If multiple nodes of the same type are specified.
+ *
+ * Note: Only one node of each type is allowed. For example, you can specify
+ * [anvil, ganache] but not [anvil, anvil].
  */
 async function handleLocalNodes(
   localNodeOptions: LocalNodeOptionsInput,
@@ -174,6 +178,27 @@ async function handleLocalNodes(
       .map((node) => node.type)
       .join(', ')}`,
   );
+
+  // Check for duplicate node types
+  const nodeTypes = localNodeOptions.map((node) => node.type);
+  const uniqueNodeTypes = new Set(nodeTypes);
+
+  if (nodeTypes.length !== uniqueNodeTypes.size) {
+    const counts = new Map<LocalNodeType, number>();
+    const duplicates = [];
+    for (const type of nodeTypes) {
+      counts.set(type, (counts.get(type) || 0) + 1);
+      if (counts.get(type) === 2) {
+        duplicates.push(type);
+      }
+    }
+    throw new Error(
+      `Multiple nodes of the same type detected: ${duplicates.join(
+        ', ',
+      )}. Only one node of each type is allowed.`,
+    );
+  }
+
   try {
     let localNode;
     let localNodeSpecificOptions;
