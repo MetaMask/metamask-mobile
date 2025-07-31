@@ -110,10 +110,18 @@ pipelines:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_performance_ios_android_stage: {}
       - notify: {}
-
-  #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
-  pr_regression_e2e_pipeline:
+  #PR_e2e_smoke and regression (build ios & android), run iOS (regression), emulator Android
+  pr_smoke_regression_e2e_pipeline:
     stages:
+      - set_main_target_stage: {}
+      - pr_cache_check_stage: {}
+      - build_regression_e2e_ios_android_stage: {}
+      - run_smoke_e2e_performance_ios_android_stage: {}
+      - run_regression_e2e_ios_android_stage: {}
+      - notify: {}
+  #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
+  pr_regression_e2e_pipeline
+      stages:
       - set_main_target_stage: {}
       - pr_cache_check_stage: {}
       - build_regression_e2e_ios_android_stage: {}
@@ -3428,7 +3436,7 @@ meta:
     machine_type_id: g2.mac.4large
 trigger_map:
   - push_branch: release/*
-    pipeline: pr_regression_e2e_pipeline
+    pipeline: pr_smoke_regression_e2e_pipeline
   - push_branch: main
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
