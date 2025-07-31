@@ -105,6 +105,7 @@ exports[`WalletRecovery render matches snapshot 1`] = `
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
+                    "width": "100%",
                   }
                 }
               >
@@ -125,7 +126,7 @@ exports[`WalletRecovery render matches snapshot 1`] = `
             }
           }
         >
-          Use your google login and MetaMask password to recover your account and secret recovery phrases.
+          Use your Google login and MetaMask password to recover your account and secret recovery phrases.
         </Text>
       </View>
       <View

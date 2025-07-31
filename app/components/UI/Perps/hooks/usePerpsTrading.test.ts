@@ -1,6 +1,6 @@
+import { CaipAssetId } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
-import { usePerpsTrading } from './usePerpsTrading';
 import type {
   AccountState,
   AssetRoute,
@@ -17,7 +17,10 @@ import type {
   SubscribeOrderFillsParams,
   SubscribePositionsParams,
   SubscribePricesParams,
+  WithdrawParams,
+  WithdrawResult,
 } from '../controllers/types';
+import { usePerpsTrading } from './usePerpsTrading';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -35,6 +38,12 @@ jest.mock('../../../../core/Engine', () => ({
       deposit: jest.fn(),
       getDepositRoutes: jest.fn(),
       resetDepositState: jest.fn(),
+      withdraw: jest.fn(),
+      calculateLiquidationPrice: jest.fn(),
+      calculateMaintenanceMargin: jest.fn(),
+      getMaxLeverage: jest.fn(),
+      updatePositionTPSL: jest.fn(),
+      calculateFees: jest.fn(),
     },
   },
 }));
@@ -457,6 +466,210 @@ describe('usePerpsTrading', () => {
     });
   });
 
+  describe('withdraw methods', () => {
+    it('should call PerpsController.withdraw with correct parameters', async () => {
+      const mockWithdrawResult: WithdrawResult = {
+        success: true,
+        txHash:
+          '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      };
+
+      (Engine.context.PerpsController.withdraw as jest.Mock).mockResolvedValue(
+        mockWithdrawResult,
+      );
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '100.00',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default',
+      };
+
+      const response = await result.current.withdraw(withdrawParams);
+
+      expect(Engine.context.PerpsController.withdraw).toHaveBeenCalledWith(
+        withdrawParams,
+      );
+      expect(response).toEqual(mockWithdrawResult);
+    });
+
+    it('should handle withdraw without destination address', async () => {
+      const mockWithdrawResult: WithdrawResult = {
+        success: true,
+        txHash:
+          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      };
+
+      (Engine.context.PerpsController.withdraw as jest.Mock).mockResolvedValue(
+        mockWithdrawResult,
+      );
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '50.00',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+      };
+
+      const response = await result.current.withdraw(withdrawParams);
+
+      expect(Engine.context.PerpsController.withdraw).toHaveBeenCalledWith(
+        withdrawParams,
+      );
+      expect(response).toEqual(mockWithdrawResult);
+    });
+
+    it('should handle withdraw errors', async () => {
+      const mockError = new Error('Insufficient balance');
+      (Engine.context.PerpsController.withdraw as jest.Mock).mockRejectedValue(
+        mockError,
+      );
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '10000',
+      };
+
+      await expect(result.current.withdraw(withdrawParams)).rejects.toThrow(
+        'Insufficient balance',
+      );
+    });
+
+    it('should handle withdrawal with minimum amount validation', async () => {
+      const mockError = new Error(
+        'Amount must be greater than $1.01 to cover fees',
+      );
+      (Engine.context.PerpsController.withdraw as jest.Mock).mockRejectedValue(
+        mockError,
+      );
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '0.5', // Less than the $1 fee
+      };
+
+      await expect(result.current.withdraw(withdrawParams)).rejects.toThrow(
+        'Amount must be greater than $1.01 to cover fees',
+      );
+    });
+  });
+
+  describe('calculateFees', () => {
+    it('should calculate fees successfully', async () => {
+      const mockFeeResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+      };
+
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValue(mockFeeResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const params = {
+        orderType: 'market' as const,
+        isMaker: false,
+        amount: '100000',
+      };
+
+      const response = await result.current.calculateFees(params);
+
+      expect(Engine.context.PerpsController.calculateFees).toHaveBeenCalledWith(
+        params,
+      );
+      expect(response).toEqual(mockFeeResult);
+    });
+
+    it('should return Promise<FeeCalculationResult>', async () => {
+      const mockFeeResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+      };
+
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValue(mockFeeResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const params = {
+        orderType: 'limit' as const,
+        isMaker: true,
+        amount: '100000',
+      };
+
+      const resultPromise = result.current.calculateFees(params);
+      expect(resultPromise).toBeInstanceOf(Promise);
+
+      const response = await resultPromise;
+      expect(response).toHaveProperty('feeRate');
+      expect(response).toHaveProperty('feeAmount');
+      expect(response.feeRate).toBe(0.00015);
+      expect(response.feeAmount).toBe(15);
+    });
+
+    it('should handle fee calculation errors', async () => {
+      const mockError = new Error('Fee calculation failed');
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const params = {
+        orderType: 'market' as const,
+        isMaker: false,
+        amount: '100000',
+      };
+
+      await expect(result.current.calculateFees(params)).rejects.toThrow(
+        'Fee calculation failed',
+      );
+    });
+
+    it('should calculate fees with different order types', async () => {
+      const mockMarketFeeResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+      };
+      const mockLimitFeeResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+      };
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      // Test market order
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValueOnce(mockMarketFeeResult);
+
+      const marketResult = await result.current.calculateFees({
+        orderType: 'market',
+        isMaker: false,
+        amount: '100000',
+      });
+      expect(marketResult).toEqual(mockMarketFeeResult);
+
+      // Test limit order
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValueOnce(mockLimitFeeResult);
+
+      const limitResult = await result.current.calculateFees({
+        orderType: 'limit',
+        isMaker: true,
+        amount: '100000',
+      });
+      expect(limitResult).toEqual(mockLimitFeeResult);
+    });
+  });
+
   describe('hook stability', () => {
     it('should return stable function references', () => {
       const { result, rerender } = renderHook(() => usePerpsTrading());
@@ -493,6 +706,22 @@ describe('usePerpsTrading', () => {
       );
       expect(initialFunctions.resetDepositState).toBe(
         updatedFunctions.resetDepositState,
+      );
+      expect(initialFunctions.withdraw).toBe(updatedFunctions.withdraw);
+      expect(initialFunctions.calculateLiquidationPrice).toBe(
+        updatedFunctions.calculateLiquidationPrice,
+      );
+      expect(initialFunctions.calculateMaintenanceMargin).toBe(
+        updatedFunctions.calculateMaintenanceMargin,
+      );
+      expect(initialFunctions.getMaxLeverage).toBe(
+        updatedFunctions.getMaxLeverage,
+      );
+      expect(initialFunctions.updatePositionTPSL).toBe(
+        updatedFunctions.updatePositionTPSL,
+      );
+      expect(initialFunctions.calculateFees).toBe(
+        updatedFunctions.calculateFees,
       );
     });
   });

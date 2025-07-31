@@ -154,6 +154,7 @@ import { setupCurrencyRateSync } from './controllers/RatesController/subscriptio
 import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
+import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
@@ -232,6 +233,7 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
+import { selectUseTokenDetection } from '../../selectors/preferencesController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1272,6 +1274,7 @@ export class Engine {
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
+        MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         PerpsController: perpsControllerInit,
@@ -1322,6 +1325,7 @@ export class Engine {
       controllersByName.MultichainBalancesController;
     const multichainTransactionsController =
       controllersByName.MultichainTransactionsController;
+    const multichainAccountService = controllersByName.MultichainAccountService;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -1367,6 +1371,7 @@ export class Engine {
           'AssetsContractController:getERC1155TokenURI',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
+          'PhishingController:bulkScanUrls',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -1451,6 +1456,8 @@ export class Engine {
             'TokensController:getState',
             'TokensController:addDetectedTokens',
             'AccountsController:getAccount',
+            'TokensController:addTokens',
+            'NetworkController:findNetworkClientIdByChainId',
           ],
           allowedEvents: [
             'KeyringController:lock',
@@ -1484,6 +1491,8 @@ export class Engine {
         platform: 'mobile',
         useAccountsAPI: true,
         disabled: false,
+        useTokenDetection: () => selectUseTokenDetection(store.getState()),
+        useExternalServices: () => isBasicFunctionalityToggleEnabled(),
       }),
       NftDetectionController: new NftDetectionController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1638,6 +1647,7 @@ export class Engine {
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
+      MultichainAccountService: multichainAccountService,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,

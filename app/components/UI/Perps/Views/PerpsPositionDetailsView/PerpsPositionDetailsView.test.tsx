@@ -20,9 +20,68 @@ jest.mock('../../hooks/usePerpsPositionData', () => ({
   usePerpsPositionData: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePerpsClosePosition', () => ({
+  usePerpsClosePosition: jest.fn(() => ({
+    handleClosePosition: jest.fn(),
+    isClosing: false,
+    error: null,
+  })),
+}));
+
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
+  },
+}));
+
+// Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
+jest.mock('../../components/PerpsTPSLBottomSheet', () => ({
+  __esModule: true,
+  default: ({
+    isVisible,
+    onClose,
+  }: {
+    isVisible: boolean;
+    onClose: () => void;
+  }) => {
+    if (!isVisible) return null;
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-tpsl-bottomsheet">
+        <TouchableOpacity onPress={onClose}>
+          <Text>Close</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+}));
+
+// Mock PerpsClosePositionBottomSheet to avoid PerpsConnectionProvider requirement
+jest.mock('../../components/PerpsClosePositionBottomSheet', () => ({
+  __esModule: true,
+  default: ({
+    isVisible,
+    onClose,
+    onConfirm,
+    position: _position,
+  }: {
+    isVisible: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    position: Position;
+  }) => {
+    if (!isVisible) return null;
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-close-position-bottomsheet">
+        <TouchableOpacity onPress={onClose}>
+          <Text>Close</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onConfirm} testID="confirm-close-position">
+          <Text>Confirm</Text>
+        </TouchableOpacity>
+      </View>
+    );
   },
 }));
 
@@ -340,13 +399,19 @@ describe('PerpsPositionDetailsView', () => {
     it('handles edit TP/SL action', () => {
       // Act
       render(<PerpsPositionDetailsView />);
+
+      // Bottom sheet should not be visible initially
+      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+
+      // Press edit button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
       );
 
-      // Assert
-      // Since handleEditTPSL just logs, we can't assert much here
-      // But we can ensure the component doesn't crash
+      // Assert - Bottom sheet should be visible
+      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeDefined();
+
+      // Component should still be on screen
       expect(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD),
       ).toBeOnTheScreen();

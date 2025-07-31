@@ -10,6 +10,7 @@ import type {
   TransactionControllerTransactionSubmittedEvent,
   TransactionParams,
 } from '@metamask/transaction-controller';
+import { successfulFetch } from '@metamask/controller-utils';
 import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
@@ -27,6 +28,7 @@ import type {
   DepositResult,
   DepositStatus,
   EditOrderParams,
+  FeeCalculationResult,
   GetAccountStateParams,
   GetPositionsParams,
   IPerpsProvider,
@@ -40,9 +42,19 @@ import type {
   SubscribePricesParams,
   SwitchProviderResult,
   ToggleTestnetResult,
+  UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
 } from './types';
+import { getEnvironment } from './utils';
+
+const ON_RAMP_GEO_BLOCKING_URLS = {
+  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
+};
+
+// Unknown is the default/fallback in case the location API call fails
+const DEFAULT_GEO_BLOCKED_REGIONS = ['US', 'CA-ON', 'UNKNOWN'];
 
 /**
  * State shape for PerpsController
@@ -67,6 +79,9 @@ export type PerpsControllerState = {
   depositError: string | null;
   activeDepositTransactions: Record<string, { amount: string; token: string }>; // Track active deposits by tx id
 
+  // Eligibility (Geo-Blocking)
+  isEligible: boolean;
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -89,6 +104,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeDepositTransactions: {},
   lastError: null,
   lastUpdateTimestamp: 0,
+  isEligible: false,
 });
 
 /**
@@ -108,6 +124,7 @@ const metadata = {
   activeDepositTransactions: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
+  isEligible: { persist: false, anonymous: false },
 };
 
 /**
@@ -167,12 +184,20 @@ export type PerpsControllerActions =
       handler: PerpsController['getMarkets'];
     }
   | {
+      type: 'PerpsController:refreshEligibility';
+      handler: PerpsController['refreshEligibility'];
+    }
+  | {
       type: 'PerpsController:toggleTestnet';
       handler: PerpsController['toggleTestnet'];
     }
   | {
       type: 'PerpsController:disconnect';
       handler: PerpsController['disconnect'];
+    }
+  | {
+      type: 'PerpsController:calculateFees';
+      handler: PerpsController['calculateFees'];
     };
 
 /**
@@ -254,6 +279,16 @@ export class PerpsController extends BaseController<
 
     this.initializeProviders().catch((error) => {
       DevLogger.log('PerpsController: Error initializing providers', {
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
+        timestamp: new Date().toISOString(),
+      });
+    });
+
+    this.refreshEligibility().catch((error) => {
+      DevLogger.log('PerpsController: Error refreshing eligibility', {
         error:
           error instanceof Error
             ? error.message
@@ -504,6 +539,24 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Update TP/SL for an existing position
+   */
+  async updatePositionTPSL(
+    params: UpdatePositionTPSLParams,
+  ): Promise<OrderResult> {
+    const provider = this.getActiveProvider();
+    const result = await provider.updatePositionTPSL(params);
+
+    if (result.success) {
+      this.update((state) => {
+        state.lastUpdateTimestamp = Date.now();
+      });
+    }
+
+    return result;
+  }
+
+  /**
    * Deposit funds to trading account
    * Routes deposits based on chain compatibility:
    * - Same chain (Arbitrum): Direct ERC20 transfer to HyperLiquid contract
@@ -622,11 +675,96 @@ export class PerpsController extends BaseController<
 
   /**
    * Withdraw funds from trading account
+   *
+   * The withdrawal process varies by provider and may involve:
+   * - Direct on-chain transfers
+   * - Bridge operations
+   * - Multi-step validation processes
+   *
+   * Check the specific provider documentation for detailed withdrawal flows.
+   *
+   * @param params Withdrawal parameters
+   * @returns WithdrawResult with withdrawal ID and tracking info
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
-    // TODO: not validated yet
-    const provider = this.getActiveProvider();
-    return provider.withdraw(params);
+    try {
+      DevLogger.log('🚀 PerpsController: STARTING WITHDRAWAL', {
+        params,
+        timestamp: new Date().toISOString(),
+        assetId: params.assetId,
+        amount: params.amount,
+        destination: params.destination,
+        activeProvider: this.state.activeProvider,
+        isTestnet: this.state.isTestnet,
+      });
+
+      // Get provider (all validation is handled at the provider level)
+      const provider = this.getActiveProvider();
+      DevLogger.log('📡 PerpsController: DELEGATING TO PROVIDER', {
+        provider: this.state.activeProvider,
+        providerReady: !!provider,
+      });
+
+      // Execute withdrawal through provider
+      const result = await provider.withdraw(params);
+
+      DevLogger.log('📊 PerpsController: WITHDRAWAL RESULT', {
+        success: result.success,
+        error: result.error,
+        txHash: result.txHash,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Update state based on result
+      if (result.success) {
+        this.update((state) => {
+          state.lastError = null;
+          state.lastUpdateTimestamp = Date.now();
+        });
+
+        DevLogger.log('✅ PerpsController: WITHDRAWAL SUCCESSFUL', {
+          txHash: result.txHash,
+          amount: params.amount,
+          assetId: params.assetId,
+          withdrawalId: result.withdrawalId,
+        });
+
+        return result;
+      }
+
+      this.update((state) => {
+        state.lastError =
+          result.error || strings('perps.errors.withdrawFailed');
+        state.lastUpdateTimestamp = Date.now();
+      });
+      DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
+        error: result.error,
+        params,
+      });
+
+      return result;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : strings('perps.errors.withdrawFailed');
+
+      DevLogger.log('💥 PerpsController: WITHDRAWAL EXCEPTION', {
+        error: errorMessage,
+        errorType:
+          error instanceof Error ? error.constructor.name : typeof error,
+        stack: error instanceof Error ? error.stack : undefined,
+        params,
+        timestamp: new Date().toISOString(),
+      });
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      return { success: false, error: errorMessage };
+    }
   }
 
   /**
@@ -786,6 +924,42 @@ export class PerpsController extends BaseController<
       // Re-throw the error so components can handle it appropriately
       throw error;
     }
+  }
+
+  /**
+   * Calculate liquidation price for a position
+   * Uses provider-specific formulas based on protocol rules
+   */
+  async calculateLiquidationPrice(params: {
+    entryPrice: number;
+    leverage: number;
+    direction: 'long' | 'short';
+    positionSize?: number;
+    marginType?: 'isolated' | 'cross';
+    asset?: string;
+  }): Promise<string> {
+    const provider = this.getActiveProvider();
+    return provider.calculateLiquidationPrice(params);
+  }
+
+  /**
+   * Calculate maintenance margin for a specific asset
+   * Returns a percentage (e.g., 0.0125 for 1.25%)
+   */
+  async calculateMaintenanceMargin(params: {
+    asset: string;
+    positionSize?: number;
+  }): Promise<number> {
+    const provider = this.getActiveProvider();
+    return provider.calculateMaintenanceMargin(params);
+  }
+
+  /**
+   * Get maximum leverage allowed for an asset
+   */
+  async getMaxLeverage(asset: string): Promise<number> {
+    const provider = this.getActiveProvider();
+    return provider.getMaxLeverage(asset);
   }
 
   /**
@@ -974,11 +1148,7 @@ export class PerpsController extends BaseController<
       );
 
       // Use lower-level transaction submission to bypass UI confirmation
-      const result = await this.submitTransactionDirectly(
-        transaction,
-        selectedNetworkClientId,
-        params.amount,
-      );
+      const result = await this.submitDirectDepositTransaction(transaction);
       const txHash = result.txHash;
 
       DevLogger.log(
@@ -1023,18 +1193,21 @@ export class PerpsController extends BaseController<
       );
 
       // Submit via TransactionController using Engine.context
-      const { NetworkController } = Engine.context;
+      const { NetworkController, TransactionController } = Engine.context;
 
       // Get current network client ID from state
       const selectedNetworkClientId =
         NetworkController.state.selectedNetworkClientId;
 
-      // Use lower-level transaction submission to bypass UI confirmation
-      const result = await this.submitTransactionDirectly(
-        transaction,
-        selectedNetworkClientId,
-      );
-      const txHash = result.txHash;
+      // Submit the transaction to TransactionController
+      const result = await TransactionController.addTransaction(transaction, {
+        networkClientId: selectedNetworkClientId,
+        requireApproval: false,
+        origin: 'metamask',
+      });
+
+      // Wait for the transaction hash
+      const txHash = await result.result;
 
       DevLogger.log(
         '✅ PerpsController: DIRECT DEPOSIT TRANSACTION SUBMITTED',
@@ -1120,6 +1293,19 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Calculate trading fees for the active provider
+   * Each provider implements its own fee structure
+   */
+  async calculateFees(params: {
+    orderType: 'market' | 'limit';
+    isMaker?: boolean;
+    amount?: string;
+  }): Promise<FeeCalculationResult> {
+    const provider = this.getActiveProvider();
+    return provider.calculateFees(params);
+  }
+
+  /**
    * Disconnect provider and cleanup subscriptions
    * Call this when navigating away from Perps screens to prevent battery drain
    */
@@ -1133,50 +1319,73 @@ export class PerpsController extends BaseController<
 
     const provider = this.getActiveProvider();
     await provider.disconnect();
+
+    // Reset initialization state to ensure proper reconnection
+    this.isInitialized = false;
+    this.initializationPromise = null;
   }
 
   /**
-   * Submit transaction with proper gas estimation and nonce management
+   * Eligibility (Geo-Blocking)
+   * Users in the USA and Ontario (Canada) are not eligible for Perps
    */
-  private async submitTransactionDirectly(
-    transaction: TransactionParams,
-    networkClientId: string,
-    depositAmount?: string,
-  ): Promise<{ success: boolean; txHash?: string; error?: string }> {
+
+  /**
+   * Fetch geo location
+   *
+   * Returned in Country or Country-Region format
+   * Example: FR, DE, US-MI, CA-ON
+   */
+  async #fetchGeoLocation(): Promise<string> {
+    let location = 'UNKNOWN';
+
     try {
-      const { TransactionController } = Engine.context;
+      const environment = getEnvironment();
 
-      const result = await TransactionController.addTransaction(transaction, {
-        origin: 'metamask',
-        requireApproval: false,
-        networkClientId,
+      const response = await successfulFetch(
+        ON_RAMP_GEO_BLOCKING_URLS[environment],
+      );
+
+      location = await response?.text();
+
+      return location;
+    } catch (e) {
+      DevLogger.log('PerpsController: Failed to fetch geo location', {
+        error: e,
       });
+      return location;
+    }
+  }
 
-      // Track this deposit transaction
-      const txMeta = result.transactionMeta;
-      if (txMeta && depositAmount) {
-        this.update((state) => {
-          state.activeDepositTransactions[txMeta.id] = {
-            amount: depositAmount,
-            token: 'USDC', // For now, we only support USDC
-          };
-        });
-      }
+  /**
+   * Refresh eligibility status
+   */
+  async refreshEligibility(
+    blockedLocations = DEFAULT_GEO_BLOCKED_REGIONS,
+  ): Promise<void> {
+    // Default to false in case of error.
+    let isEligible = false;
 
-      const txHash = await result.result;
+    try {
+      DevLogger.log('PerpsController: Refreshing eligibility');
 
-      return {
-        success: true,
-        txHash,
-      };
+      const geoLocation = await this.#fetchGeoLocation();
+
+      isEligible = blockedLocations.every(
+        (blockedLocation) => !geoLocation.startsWith(blockedLocation),
+      );
     } catch (error) {
-      return {
-        success: false,
+      DevLogger.log('PerpsController: Eligibility refresh failed', {
         error:
           error instanceof Error
             ? error.message
-            : 'Transaction submission failed',
-      };
+            : strings('perps.errors.unknownError'),
+        timestamp: new Date().toISOString(),
+      });
+    } finally {
+      this.update((state) => {
+        state.isEligible = isEligible;
+      });
     }
   }
 }

@@ -49,6 +49,7 @@ import {
 import { getTraceTags } from '../../../util/sentry/tags';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { height: screenHeight } = useWindowDimensions();
@@ -70,6 +71,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
   const privacyMode = useSelector(selectPrivacyMode);
   const sheetRef = useRef<BottomSheetRef>(null);
+
+  useSyncSRPs();
 
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(
