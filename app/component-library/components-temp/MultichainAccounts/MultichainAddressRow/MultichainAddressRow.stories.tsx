@@ -1,18 +1,22 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import { View } from 'react-native';
+import { CaipChainId } from '@metamask/utils';
 import { mockTheme } from '../../../../util/theme';
 import { default as MultichainAddressRowComponent } from './MultichainAddressRow';
-import { ProviderConfig } from '../../../../selectors/networkController';
 import { SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS } from './MultichainAddressRow.constants';
 
 const MultichainAddressRowMeta = {
   title: 'Component Library / MultichainAccounts',
   component: MultichainAddressRowComponent,
   argTypes: {
+    chainId: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS.chainId,
+    },
     networkName: {
       control: { type: 'text' },
-      defaultValue: SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS.network.nickname,
+      defaultValue: SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS.networkName,
     },
     address: {
       control: { type: 'text' },
@@ -23,7 +27,11 @@ const MultichainAddressRowMeta = {
 export default MultichainAddressRowMeta;
 
 export const MultichainAddressRow = {
-  render: (args: { networkName: string; address: string }) => (
+  render: (args: {
+    chainId: CaipChainId;
+    networkName: string;
+    address: string;
+  }) => (
     <View
       style={{
         alignItems: 'center',
@@ -33,10 +41,8 @@ export const MultichainAddressRow = {
       }}
     >
       <MultichainAddressRowComponent
-        network={{
-          ...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS.network,
-          nickname: args.networkName,
-        }}
+        chainId={args.chainId}
+        networkName={args.networkName}
         address={args.address}
       />
     </View>
@@ -44,7 +50,7 @@ export const MultichainAddressRow = {
 };
 
 export const WithLongNetworkName = {
-  render: (args: { address: string }) => (
+  render: (args: { chainId: CaipChainId; address: string }) => (
     <View
       style={{
         alignItems: 'center',
@@ -54,10 +60,8 @@ export const WithLongNetworkName = {
       }}
     >
       <MultichainAddressRowComponent
-        network={{
-          ...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS.network,
-          nickname: 'Very Long Network Name That Might Wrap',
-        }}
+        chainId={args.chainId || '0x1'}
+        networkName="Very Long Network Name That Might Wrap"
         address={args.address}
       />
     </View>
@@ -75,15 +79,8 @@ export const WithCustomNetwork = {
       }}
     >
       <MultichainAddressRowComponent
-        network={
-          {
-            nickname: 'Polygon Mainnet',
-            chainId: '0x89',
-            ticker: 'MATIC',
-            type: 'rpc',
-            rpcPrefs: {},
-          } as ProviderConfig
-        }
+        chainId="eip155:137"
+        networkName="Polygon Mainnet"
         address="0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"
       />
     </View>

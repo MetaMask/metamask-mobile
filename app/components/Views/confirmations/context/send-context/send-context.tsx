@@ -3,8 +3,10 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useMemo,
   useState,
 } from 'react';
+import { Hex } from '@metamask/utils';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { toHex } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
@@ -12,66 +14,42 @@ import { useSelector } from 'react-redux';
 
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import { BNToHex, toTokenMinimalUnit, toWei } from '../../../../../util/number';
 import { addTransaction } from '../../../../../util/transaction-controller';
-import { generateTransferData } from '../../../../../util/transactions';
+import { selectAccounts } from '../../../../../selectors/accountTrackerController.ts';
+import { selectContractBalances } from '../../../../../selectors/tokenBalancesController.ts';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { AssetType } from '../../types/token';
 import { MMM_ORIGIN } from '../../constants/confirmations';
-import { isNativeToken } from '../../utils/generic';
+import { prepareEVMTransaction, validateAmount } from './utils.ts';
 
 export interface SendContextType {
+  amountError?: string;
   asset?: AssetType;
-  cancelSend: () => void;
-  submitSend: () => void;
+  handleCancelPress: () => void;
+  handleSubmitPress: () => void;
+  sendDisabled: boolean;
   transactionParams?: TransactionParams;
   updateAsset: (asset: AssetType) => void;
   updateTransactionParams: (params: Partial<TransactionParams>) => void;
 }
 
 export const SendContext = createContext<SendContextType>({
+  amountError: undefined,
   asset: undefined,
-  cancelSend: () => undefined,
-  submitSend: () => undefined,
+  handleCancelPress: () => undefined,
+  handleSubmitPress: () => undefined,
+  sendDisabled: false,
   transactionParams: undefined,
   updateAsset: () => undefined,
   updateTransactionParams: () => undefined,
 });
 
-const prepareTransaction = (
-  asset: AssetType,
-  transactionParams: TransactionParams,
-) => {
-  const { from, to, value } = transactionParams;
-  const trxnParams: TransactionParams = { from };
-  if (isNativeToken(asset)) {
-    trxnParams.data = '0x';
-    trxnParams.to = to;
-    trxnParams.value = BNToHex(toWei(value ?? '0'));
-  } else if (asset.tokenId) {
-    trxnParams.data = generateTransferData('transferFrom', {
-      fromAddress: from,
-      toAddress: to,
-      tokenId: toHex(asset.tokenId),
-    });
-    trxnParams.to = asset.address;
-    trxnParams.value = '0x0';
-  } else {
-    const tokenAmount = toTokenMinimalUnit(value ?? '0', asset.decimals);
-    trxnParams.data = generateTransferData('transfer', {
-      toAddress: to,
-      amount: BNToHex(tokenAmount),
-    });
-    trxnParams.to = asset.address;
-    trxnParams.value = '0x0';
-  }
-  return trxnParams;
-};
-
 export const SendContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
   const navigation = useNavigation();
+  const accounts = useSelector(selectAccounts);
+  const contractBalances = useSelector(selectContractBalances);
   const [asset, updateAsset] = useState<AssetType>();
   const from = useSelector(selectSelectedInternalAccount);
   const [transactionParams, setTransactionParams] = useState<TransactionParams>(
@@ -83,11 +61,30 @@ export const SendContextProvider: React.FC<{
   const { chainId } = asset ?? { chainId: undefined };
   const { NetworkController } = Engine.context;
 
-  const updateTransactionParams = (params: Partial<TransactionParams>) => {
-    setTransactionParams({ ...transactionParams, ...params });
-  };
+  const amountError = useMemo(
+    () =>
+      validateAmount({
+        accounts,
+        amount: transactionParams.value,
+        asset,
+        contractBalances,
+        from: from?.address as Hex,
+      }),
+    [accounts, asset, contractBalances, from?.address, transactionParams],
+  );
 
-  const submitSend = useCallback(async () => {
+  const sendDisabled = useMemo(() => {
+    const { value, to } = transactionParams;
+    return (
+      Boolean(amountError) ||
+      value === undefined ||
+      value === null ||
+      value === '' ||
+      !to
+    );
+  }, [amountError, transactionParams]);
+
+  const handleSubmitPress = useCallback(async () => {
     if (!chainId || !asset) {
       return;
     }
@@ -95,7 +92,7 @@ export const SendContextProvider: React.FC<{
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
       toHex(chainId),
     );
-    const trxnParams = prepareTransaction(asset, transactionParams);
+    const trxnParams = prepareEVMTransaction(asset, transactionParams);
     await addTransaction(trxnParams, {
       origin: MMM_ORIGIN,
       networkClientId,
@@ -105,16 +102,22 @@ export const SendContextProvider: React.FC<{
     );
   }, [asset, chainId, NetworkController, navigation, transactionParams]);
 
-  const cancelSend = useCallback(() => {
+  const handleCancelPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const updateTransactionParams = (params: Partial<TransactionParams>) => {
+    setTransactionParams({ ...transactionParams, ...params });
+  };
 
   return (
     <SendContext.Provider
       value={{
+        amountError,
         asset,
-        cancelSend,
-        submitSend,
+        handleCancelPress,
+        handleSubmitPress,
+        sendDisabled,
         transactionParams,
         updateAsset,
         updateTransactionParams,

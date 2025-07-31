@@ -40,14 +40,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         await TabBarComponent.tapSettings();
         await SettingsView.tapNotifications();
 
-        // Verify initial state - notifications should be disabled
-        await Assertions.expectToggleToBeOff(
+        // Verify initial state - notifications should be enabled
+        await Assertions.expectToggleToBeOn(
           NotificationSettingsView.notificationToggle,
-        );
-
-        // Enable main notification toggle
-        await NotificationSettingsView.tapNotificationToggleAndVerifyState(
-          'on',
         );
 
         // Test push notifications toggle functionality
