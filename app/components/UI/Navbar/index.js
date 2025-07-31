@@ -49,7 +49,7 @@ import PickerAccount from '../../../component-library/components/Pickers/PickerA
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+
 import {
   BadgeStatus,
   BadgeStatusStatus,
@@ -60,10 +60,7 @@ import {
   ButtonIconSize,
   IconColor as MMDSIconColor,
 } from '@metamask/design-system-react-native';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
-///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
@@ -984,14 +981,6 @@ export function getWalletNavbarOptions(
       right: 12,
     },
   });
-
-  let formattedAddress = toChecksumHexAddress(selectedInternalAccount.address);
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  formattedAddress = getFormattedAddressFromInternalAccount(
-    selectedInternalAccount,
-  );
-  ///: END:ONLY_INCLUDE_IF
 
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
