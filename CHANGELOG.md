@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- feat: implement privacy screen when app is inactive ([#17303](https://github.com/MetaMask/metamask-mobile/pull/17303)) 
+
 ## [7.51.1]
 
 ### Added

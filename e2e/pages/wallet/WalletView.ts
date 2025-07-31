@@ -56,7 +56,7 @@ class WalletView {
     );
   }
 
-  async getNavbarNetworkPicker(): Promise<DetoxElement> {
+  get navbarNetworkPicker(): DetoxElement {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
     );
