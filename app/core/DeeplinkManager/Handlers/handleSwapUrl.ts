@@ -1,6 +1,9 @@
 import NavigationService from '../../NavigationService';
-import { isCaipAssetType } from '@metamask/utils';
-import { createTokenFromCaip } from '../../../components/UI/Bridge/utils/tokenUtils';
+import {
+  CaipAssetType,
+  isCaipAssetType,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import {
   BridgeToken,
   BridgeViewMode,
@@ -17,27 +20,26 @@ interface HandleSwapUrlParams {
  * Validates and looks up a token from the bridge token list
  */
 const validateAndLookupToken = async (
-  caipAssetType: string,
+  caipAssetType: CaipAssetType,
 ): Promise<BridgeToken | null> => {
   try {
-    const basicToken = createTokenFromCaip(caipAssetType);
-    if (!basicToken) return null;
+    const parsedCaipAssetType = parseCaipAssetType(caipAssetType);
 
     const matchingToken = await fetchAssetMetadata(
       caipAssetType,
-      basicToken.chainId,
+      parsedCaipAssetType.chainId,
     );
 
     if (!matchingToken) return null;
 
     // Create the token with metadata (balance will be fetched by Bridge view)
     const token: BridgeToken = {
-      address: basicToken.address,
+      address: matchingToken.address,
       symbol: matchingToken.symbol,
       name: matchingToken.name,
       decimals: matchingToken.decimals,
       image: matchingToken.image || '',
-      chainId: basicToken.chainId,
+      chainId: matchingToken.chainId,
     };
 
     return token;

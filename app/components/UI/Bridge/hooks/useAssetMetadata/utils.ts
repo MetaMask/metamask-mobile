@@ -12,9 +12,11 @@ import {
 
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
-import { handleFetch, toHex } from '@metamask/controller-utils';
-import { decimalToHex } from '../../../../../util/conversions';
-import { addHexPrefix } from 'ethereumjs-util';
+import { handleFetch } from '@metamask/controller-utils';
+import {
+  formatAddressToCaipReference,
+  formatChainIdToHex,
+} from '@metamask/bridge-controller';
 
 const TOKEN_API_V3_BASE_URL = 'https://tokens.api.cx.metamask.io/v3';
 const STATIC_METAMASK_BASE_URL = 'https://static.cx.metamask.io';
@@ -114,10 +116,11 @@ export const fetchAssetMetadata = async (
 
     // EVM
     const { reference } = parseCaipChainId(chainIdInCaip);
+
     return {
       ...commonFields,
-      address: toHex(address),
-      chainId: addHexPrefix(decimalToHex(reference).toString()),
+      address: formatAddressToCaipReference(address),
+      chainId: formatChainIdToHex(reference),
     };
   } catch (error) {
     return undefined;
