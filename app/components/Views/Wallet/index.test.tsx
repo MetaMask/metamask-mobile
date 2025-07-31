@@ -54,6 +54,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { isUnifiedSwapsEnvVarEnabled } from '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled';
+import { initialState as cardInitialState } from '../../../core/redux/slices/card';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -190,6 +191,7 @@ const mockInitialState = {
   multichain: {
     dismissedBanners: [], // Added missing property
   },
+  card: cardInitialState,
   engine: {
     backgroundState: {
       ...backgroundState,
