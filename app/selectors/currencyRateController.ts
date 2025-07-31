@@ -108,7 +108,7 @@ export const selectUsdConversionRate = createSelector(
     currencyRates?.[currentCurrency]?.usdConversionRate,
 );
 
-export const getUSDConversionRateByChainId = (chainId: string) =>
+export const selectUSDConversionRateByChainId = (chainId: string) =>
   createSelector(
     selectCurrencyRates,
     (state) => selectNetworkConfigurationByChainId(state, chainId),

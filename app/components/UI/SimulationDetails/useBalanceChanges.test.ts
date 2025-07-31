@@ -21,7 +21,7 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../selectors/currencyRateController', () => ({
   selectConversionRateByChainId: jest.fn(),
   selectCurrentCurrency: jest.fn(),
-  getUSDConversionRateByChainId: jest.fn(() => () => 4),
+  selectUSDConversionRateByChainId: jest.fn(() => () => 4),
 }));
 
 jest.mock('../../../selectors/networkController', () => ({

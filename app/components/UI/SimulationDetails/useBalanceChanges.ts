@@ -22,7 +22,7 @@ import {
 } from './types';
 import { getTokenDetails } from '../../../util/address';
 import {
-  getUSDConversionRateByChainId,
+  selectUSDConversionRateByChainId,
   selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
@@ -241,7 +241,7 @@ export default function useBalanceChanges({
   ) as number;
   const fiatCurrency = useSelector(selectCurrentCurrency);
   const nativeUsdRate = useSelector((state) =>
-    getUSDConversionRateByChainId(chainId)(state),
+    selectUSDConversionRateByChainId(chainId)(state),
   );
 
   const { nativeBalanceChange, tokenBalanceChanges = [] } =
