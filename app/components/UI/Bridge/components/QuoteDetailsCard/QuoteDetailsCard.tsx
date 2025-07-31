@@ -228,7 +228,7 @@ const QuoteDetailsCard = () => {
             justifyContent={JustifyContent.spaceBetween}
           >
             <Text variant={TextVariant.BodyMDMedium}>
-              {strings('bridge.network_fee') || 'Network fee'}
+              {strings('bridge.network_fee')}
             </Text>
             <Box
               flexDirection={FlexDirection.Row}
@@ -236,7 +236,7 @@ const QuoteDetailsCard = () => {
               gap={8}
             >
               <Text variant={TextVariant.BodyMD}>
-                {strings('bridge.included') || 'Included'}
+                {strings('bridge.included')}
               </Text>
               <Text
                 variant={TextVariant.BodyMD}
@@ -250,7 +250,7 @@ const QuoteDetailsCard = () => {
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.network_fee') || 'Network fee',
+                text: strings('bridge.network_fee'),
                 variant: TextVariant.BodyMDMedium,
               },
             }}
@@ -266,7 +266,7 @@ const QuoteDetailsCard = () => {
         <KeyValueRow
           field={{
             label: {
-              text: strings('bridge.time') || 'Time',
+              text: strings('bridge.time'),
               variant: TextVariant.BodyMDMedium,
             },
           }}
@@ -283,7 +283,7 @@ const QuoteDetailsCard = () => {
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.quote') || 'Quote',
+                text: strings('bridge.quote'),
                 variant: TextVariant.BodyMDMedium,
               },
               tooltip: {
@@ -335,7 +335,7 @@ const QuoteDetailsCard = () => {
             <KeyValueRow
               field={{
                 label: {
-                  text: strings('bridge.price_impact') || 'Price Impact',
+                  text: strings('bridge.price_impact'),
                   variant: TextVariant.BodyMDMedium,
                 },
                 ...(shouldShowPriceImpactWarning && {
@@ -373,7 +373,7 @@ const QuoteDetailsCard = () => {
                       style={styles.slippageButton}
                     >
                       <Text variant={TextVariant.BodyMDMedium}>
-                        {strings('bridge.slippage') || 'Slippage'}
+                        {strings('bridge.slippage')}
                       </Text>
                       <Icon
                         name={IconName.Edit}
