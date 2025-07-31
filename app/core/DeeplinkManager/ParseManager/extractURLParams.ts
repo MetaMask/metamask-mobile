@@ -53,7 +53,10 @@ function extractURLParams(url: string) {
 
   if (urlObj.query.length) {
     try {
-      const parsedParams = qs.parse(urlObj.query.substring(1));
+      // Use arrayLimit: 1 to prevent arrays from being returned for duplicate parameters
+      const parsedParams = qs.parse(urlObj.query.substring(1), {
+        arrayLimit: 99,
+      });
       params = { ...params, ...parsedParams };
 
       if (params.message) {
