@@ -225,4 +225,5 @@ export const otherControllersMock = merge(
   preferencesControllerMock,
   tokenListControllerMock,
   tokenRatesControllerMock,
+  tokensControllerMock,
 );
