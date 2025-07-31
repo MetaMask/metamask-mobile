@@ -11,7 +11,9 @@ const useRouteParams = () => {
   const { updateAsset } = useSendContext();
 
   useEffect(() => {
-    updateAsset(paramsAsset);
+    if(paramsAsset) {
+        updateAsset(paramsAsset);
+    }
   }, [paramsAsset, updateAsset]);
 };
 
