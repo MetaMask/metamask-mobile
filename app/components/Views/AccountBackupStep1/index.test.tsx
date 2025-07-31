@@ -12,7 +12,7 @@ import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Routes from '../../../constants/navigation/Routes';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -42,6 +42,21 @@ jest.mock('../../hooks/useMetrics', () => {
     }),
   };
 });
+
+// Mock useTheme hook - default to dark theme
+const mockUseTheme = jest.fn().mockReturnValue({
+  colors: {},
+  themeAppearance: 'dark', // Default to dark theme
+});
+
+jest.mock('../../../util/theme', () => ({
+  useTheme: () => mockUseTheme(),
+  AppThemeKey: {
+    os: 'os',
+    light: 'light',
+    dark: 'dark',
+  },
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -76,6 +91,17 @@ const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
+
+// Use dynamic mocking to avoid native module conflicts
+jest.doMock('react-native', () => {
+  const originalRN = jest.requireActual('react-native');
+  return {
+    ...originalRN,
+    StatusBar: {
+      currentHeight: 42,
+    },
+  };
+});
 
 const mockResetActionOnboardingSuccessWizard = CommonActions.reset({
   index: 1,
@@ -114,9 +140,32 @@ describe('AccountBackupStep1', () => {
     };
   };
 
-  it('render matches snapshot', () => {
-    const { wrapper } = setupTest();
-    expect(wrapper).toMatchSnapshot();
+  describe('Snapshots iOS', () => {
+    it('render matches snapshot', () => {
+      Platform.OS = 'ios';
+      const { wrapper } = setupTest();
+      expect(wrapper).toMatchSnapshot();
+    });
+  });
+
+  describe('Snapshots android', () => {
+    beforeEach(() => {
+      Platform.OS = 'android';
+    });
+
+    it('render matches snapshot', () => {
+      const { wrapper } = setupTest();
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('render matches snapshot with status bar height to zero', () => {
+      const { StatusBar } = jest.requireMock('react-native');
+      const originalCurrentHeight = StatusBar.currentHeight;
+      StatusBar.currentHeight = 0;
+      const { wrapper } = setupTest();
+      expect(wrapper).toMatchSnapshot();
+      StatusBar.currentHeight = originalCurrentHeight;
+    });
   });
 
   it('sets hasFunds to true when Engine.hasFunds returns true', () => {
@@ -399,6 +448,37 @@ describe('AccountBackupStep1', () => {
 
       // Verify navigation to OnboardingSuccess
       expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {});
+    });
+  });
+
+  describe('Theme appearance', () => {
+    afterEach(() => {
+      mockUseTheme.mockReturnValue({
+        colors: {},
+        themeAppearance: 'dark',
+      });
+    });
+
+    it('renders dark SRP design image by default (dark theme)', () => {
+      mockUseTheme.mockReturnValue({
+        colors: {},
+        themeAppearance: 'dark',
+      });
+
+      const { wrapper } = setupTest();
+
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('renders light SRP design image for light theme', () => {
+      mockUseTheme.mockReturnValue({
+        colors: {},
+        themeAppearance: 'light',
+      });
+
+      const { wrapper } = setupTest();
+
+      expect(wrapper).toMatchSnapshot();
     });
   });
 });

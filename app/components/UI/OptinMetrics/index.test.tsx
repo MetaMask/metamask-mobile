@@ -71,7 +71,10 @@ describe('OptinMetrics', () => {
   });
 
   describe('Snapshots android', () => {
-    Platform.OS = 'android';
+    beforeEach(() => {
+      Platform.OS = 'android';
+    });
+
     it('render matches snapshot', () => {
       const { toJSON } = renderScreen(
         OptinMetrics,
