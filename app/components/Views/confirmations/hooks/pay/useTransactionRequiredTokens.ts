@@ -41,13 +41,16 @@ export function useTransactionRequiredTokens() {
     chainIds: [chainId],
   });
 
-  // const gasToken = useGasToken();
-  // const valueToken = useValueToken();
+  const gasToken = useGasToken();
+  const valueToken = useValueToken();
   const tokenTransferToken = useTokenTransferToken();
 
   const requiredTokens = useMemo(
-    () => [tokenTransferToken].filter((t) => t) as TransactionTokenBase[],
-    [tokenTransferToken],
+    () =>
+      [gasToken, tokenTransferToken, valueToken].filter(
+        (t) => t,
+      ) as TransactionTokenBase[],
+    [gasToken, tokenTransferToken, valueToken],
   );
 
   const finalTokens = getPartialTokens(
@@ -156,9 +159,9 @@ function getPartialTokens(
 
     acc.push({
       address: token.address,
-      amountHuman: amountHuman.toString(),
+      amountHuman: amountHuman.toString(10),
       amountRaw: amountRaw.toFixed(0),
-      balanceHuman: balanceHuman.toString(),
+      balanceHuman,
       balanceRaw: balanceRaw.toFixed(0),
       decimals,
       missingHuman: missingHuman.toString(),
