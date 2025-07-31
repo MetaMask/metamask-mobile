@@ -31,6 +31,7 @@ const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
 const mockUseAccountTokenCompatible = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockRequestOtt = jest.fn();
 
 const createMockSDKReturn = (overrides = {}) => ({
   isAuthenticated: false,
@@ -69,6 +70,9 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn().mockImplementation((config) => {
     if (config?.method === 'getBuyQuote' || config === 'getBuyQuote') {
       return [{ error: null }, mockGetQuote];
+    }
+    if (config?.method === 'requestOtt') {
+      return [{ error: null }, mockRequestOtt];
     }
     return [{ error: null }, jest.fn()];
   }),
@@ -588,6 +592,56 @@ describe('BuildQuote Component', () => {
           error_message: 'BuildQuote - Error handling authentication',
           is_authenticated: true,
         });
+      });
+    });
+  });
+
+  describe('OTT Token Management', () => {
+    beforeEach(() => {
+      mockRequestOtt.mockClear();
+    });
+
+    it('fetches OTT token with timestamp when user becomes authenticated', async () => {
+      const mockOttToken = { token: 'test-ott-token' };
+      mockRequestOtt.mockResolvedValue(mockOttToken);
+
+      const mockTimestamp = 1640995200000;
+      jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockRequestOtt).toHaveBeenCalledTimes(1);
+      });
+
+      jest.restoreAllMocks();
+    });
+
+    it('does not fetch OTT token when user is unauthenticated', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: false }),
+      );
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockRequestOtt).not.toHaveBeenCalled();
+      });
+    });
+
+    it('handles OTT token state changes correctly', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockRequestOtt).toHaveBeenCalledTimes(1);
       });
     });
   });

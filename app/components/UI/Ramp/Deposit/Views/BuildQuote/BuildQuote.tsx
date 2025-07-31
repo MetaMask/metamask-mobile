@@ -42,7 +42,7 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
 
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useDepositRouting } from '../../hooks/useDepositRouting';
+import { useDepositRouting, OttToken } from '../../hooks/useDepositRouting';
 import useAnalytics from '../../../hooks/useAnalytics';
 import useSupportedTokens from '../../hooks/useSupportedTokens';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -103,6 +103,7 @@ const BuildQuote = () => {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
+  const [ott, setOtt] = useState<OttToken | null>(null);
 
   const isAccountTokenCompatible = useAccountTokenCompatible(cryptoCurrency);
 
@@ -110,9 +111,16 @@ const BuildQuote = () => {
     useDepositRouting({
       cryptoCurrencyChainId: cryptoCurrency.chainId,
       paymentMethodId: paymentMethod.id,
+      ott,
     });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const [, requestOtt] = useDepositSdkMethod({
+    method: 'requestOtt',
+    onMount: false,
+    throws: true,
+  });
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
@@ -175,6 +183,40 @@ const BuildQuote = () => {
       }
     }
   }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchOtt = async () => {
+      if (isAuthenticated) {
+        try {
+          const ottResult = await requestOtt();
+          if (ottResult && isMounted) {
+            setOtt({
+              token: ottResult.token,
+              timestamp: Date.now(),
+            });
+          }
+        } catch (ottError) {
+          if (isMounted) {
+            Logger.error(
+              ottError as Error,
+              'BuildQuote - Error requesting OTT',
+            );
+          }
+        }
+      } else if (isMounted) {
+        setOtt(null);
+      }
+    };
+
+    fetchOtt();
+
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (supportedTokens.length > 0) {
