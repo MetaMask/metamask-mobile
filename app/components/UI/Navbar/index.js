@@ -18,7 +18,6 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-import { getLabelTextByAddress } from '../../../util/address';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import Device from '../../../util/device';
@@ -1069,7 +1068,6 @@ export function getWalletNavbarOptions(
         });
         navigation.navigate(...createAccountSelectorNavDetails({}));
       }}
-      accountTypeLabel={getLabelTextByAddress(formattedAddress) || undefined}
       testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
       hitSlop={innerStyles.touchAreaSlop}
     />
