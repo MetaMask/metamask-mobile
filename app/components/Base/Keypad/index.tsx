@@ -121,11 +121,6 @@ function KeypadComponent({
     [handleKeypadPress],
   );
 
-  const periodButtonClassName = useCallback(
-    (pressed: boolean) => `bg-transparent ${pressed && 'bg-pressed'}`,
-    [],
-  );
-
   return (
     <Keypad {...props}>
       <Keypad.Row>
@@ -144,11 +139,7 @@ function KeypadComponent({
         <Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
-        <Keypad.Button
-          onPress={handleKeypadPressPeriod}
-          twClassName={periodButtonClassName}
-          {...periodButtonProps}
-        >
+        <Keypad.Button onPress={handleKeypadPressPeriod} {...periodButtonProps}>
           {decimalSeparator}
         </Keypad.Button>
         <Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>

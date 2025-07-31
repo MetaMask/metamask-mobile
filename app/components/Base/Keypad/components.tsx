@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   Box,
   BoxFlexDirection,
@@ -80,32 +80,25 @@ const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
   testID,
   boxWrapperProps,
   ...props
-}) => {
-  const deleteButtonClassName = useCallback(
-    (pressed: boolean) => `bg-transparent ${pressed && 'bg-pressed'}`,
-    [],
-  );
-  return (
-    // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
-    <Box twClassName="flex-1" {...boxWrapperProps}>
-      <ButtonBase
-        isFullWidth
-        textProps={{
-          variant: TextVariant.DisplayMd,
-          fontWeight: FontWeight.Medium,
-        }}
-        onPress={onPress}
-        onLongPress={onLongPress}
-        delayLongPress={delayLongPress}
-        testID={testID}
-        twClassName={deleteButtonClassName}
-        {...props}
-      >
-        <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
-      </ButtonBase>
-    </Box>
-  );
-};
+}) => (
+  // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
+  <Box twClassName="flex-1" {...boxWrapperProps}>
+    <ButtonBase
+      isFullWidth
+      textProps={{
+        variant: TextVariant.DisplayMd,
+        fontWeight: FontWeight.Medium,
+      }}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={delayLongPress}
+      testID={testID}
+      {...props}
+    >
+      <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
+    </ButtonBase>
+  </Box>
+);
 
 type KeypadType = React.FC<KeypadContainerProps> & {
   Row: React.FC<KeypadRowProps>;
