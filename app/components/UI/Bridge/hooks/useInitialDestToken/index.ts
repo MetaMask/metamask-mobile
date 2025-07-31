@@ -40,7 +40,7 @@ export const useInitialDestToken = (
     destTokenTargetChainId === SolScope.Mainnet &&
     initialSourceToken?.address === defaultDestToken?.address
   ) {
-    // Solana addresses care case sensitive
+    // Solana addresses are case sensitive
     defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
   } else if (
     destTokenTargetChainId !== SolScope.Mainnet &&

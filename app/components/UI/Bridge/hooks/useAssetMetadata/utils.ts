@@ -119,6 +119,7 @@ export const fetchAssetMetadata = async (
 
     return {
       ...commonFields,
+      // This is the EVM hex address of the token
       address: formatAddressToCaipReference(address),
       chainId: formatChainIdToHex(reference),
     };
