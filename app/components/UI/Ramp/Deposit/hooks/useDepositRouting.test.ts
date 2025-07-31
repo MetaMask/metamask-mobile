@@ -149,16 +149,16 @@ jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 const mockUseHandleNewOrder = jest.mocked(useHandleNewOrder);
 
 const mockPreviousFormData = {
-  addressLine1: undefined,
-  addressLine2: undefined,
-  city: undefined,
-  countryCode: undefined,
-  dob: undefined,
-  firstName: undefined,
-  lastName: undefined,
-  mobileNumber: undefined,
-  postCode: undefined,
-  state: undefined,
+  addressLine1: '',
+  addressLine2: '',
+  city: '',
+  countryCode: '',
+  dob: '',
+  firstName: '',
+  lastName: '',
+  mobileNumber: '',
+  postCode: '',
+  state: '',
 };
 
 describe('useDepositRouting', () => {

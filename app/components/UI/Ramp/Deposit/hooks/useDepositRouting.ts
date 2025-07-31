@@ -348,16 +348,16 @@ export const useDepositRouting = ({
       try {
         const userDetails = await fetchUserDetails();
         const previousFormData = {
-          firstName: userDetails?.firstName,
-          lastName: userDetails?.lastName,
-          mobileNumber: userDetails?.mobileNumber,
-          dob: userDetails?.dob,
-          addressLine1: userDetails?.address?.addressLine1,
-          addressLine2: userDetails?.address?.addressLine2,
-          city: userDetails?.address?.city,
-          state: userDetails?.address?.state,
-          postCode: userDetails?.address?.postCode,
-          countryCode: userDetails?.address?.countryCode,
+          firstName: userDetails?.firstName || '',
+          lastName: userDetails?.lastName || '',
+          mobileNumber: userDetails?.mobileNumber || '',
+          dob: userDetails?.dob || '',
+          addressLine1: userDetails?.address?.addressLine1 || '',
+          addressLine2: userDetails?.address?.addressLine2 || '',
+          city: userDetails?.address?.city || '',
+          state: userDetails?.address?.state || '',
+          postCode: userDetails?.address?.postCode || '',
+          countryCode: userDetails?.address?.countryCode || '',
         };
         const forms = await fetchKycForms(quote);
         const { forms: requiredForms } = forms || {};

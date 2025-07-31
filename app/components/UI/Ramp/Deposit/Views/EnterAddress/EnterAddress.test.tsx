@@ -7,6 +7,7 @@ import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
+import { AddressFormData } from '../Address/Address';
 
 const mockTrackEvent = jest.fn();
 
@@ -30,6 +31,7 @@ let mockUseParamsReturnValue: {
   formData: BasicInfoFormData;
   quote: BuyQuote;
   kycUrl?: string;
+  previousFormData?: BasicInfoFormData & AddressFormData;
 } = {
   formData: mockFormData,
   quote: mockQuote,
