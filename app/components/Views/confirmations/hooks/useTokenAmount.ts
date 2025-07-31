@@ -118,12 +118,15 @@ export const useTokenAmount = ({
     networkClientId,
   );
 
+  const transactionData = parseStandardTokenTransactionData(txParams?.data);
+  const recipient = transactionData?.args?._to;
+
   const updateTokenAmount = useCallback(
     (amount: string) => {
       const amountRaw = calcTokenValue(amount, decimals);
 
       const newData = generateTransferData('transfer', {
-        toAddress: tokenAddress,
+        toAddress: recipient,
         amount: amountRaw.toString(16),
       });
 
@@ -131,7 +134,7 @@ export const useTokenAmount = ({
         data: newData,
       });
     },
-    [decimals, tokenAddress, transactionId],
+    [decimals, recipient, transactionId],
   );
 
   if (pending) {
@@ -145,8 +148,6 @@ export const useTokenAmount = ({
       updateTokenAmount,
     };
   }
-
-  const transactionData = parseStandardTokenTransactionData(txParams?.data);
 
   const value = amountWei
     ? toBigNumber.dec(amountWei)

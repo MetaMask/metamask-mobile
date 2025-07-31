@@ -12,6 +12,9 @@ import {
   tokenAddress1Mock,
   tokensControllerMock,
 } from '../__mocks__/controllers/other-controllers-mock';
+import { updateEditableParams } from '../../../../util/transaction-controller';
+
+jest.mock('../../../../util/transaction-controller');
 
 jest.mock('./useNetworkInfo', () => ({
   __esModule: true,
@@ -88,6 +91,7 @@ describe('ERC20 token transactions', () => {
   const erc20TokenAddress = '0x6b175474e89094c44da98b954eedeac495271d0f';
   const checksumErc20TokenAddress =
     '0x6B175474E89094C44Da98b954EedeAC495271d0F';
+  const updateEditableParamsMock = jest.mocked(updateEditableParams);
 
   const createERC20State = (contractExchangeRate = 1.5) =>
     merge({}, transferConfirmationState, {
@@ -249,6 +253,27 @@ describe('ERC20 token transactions', () => {
 
     await waitFor(() => {
       expect(result.current.amountUnformatted).toBe('10000000000000');
+    });
+  });
+
+  it('can update transfer amount in transaction data', async () => {
+    const state = merge(
+      createERC20State(),
+      tokensControllerMock,
+      accountsControllerMock,
+    );
+
+    state.engine.backgroundState.TransactionController.transactions[0].txParams.to =
+      tokenAddress1Mock;
+
+    const { result } = renderHookWithProvider(() => useTokenAmount(), {
+      state,
+    });
+
+    result.current.updateTokenAmount('20000000000000');
+
+    expect(updateEditableParamsMock).toHaveBeenCalledWith(expect.any(String), {
+      data: '0xa9059cbb000000000000000000000000d8da6bf26964af9d7eed9e03e53415d37aa9604500000000000000000000000000000000000000000000000002c68af0bb140000',
     });
   });
 });
