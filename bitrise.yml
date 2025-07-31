@@ -443,6 +443,9 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
+    meta:
+      bitrise.io:
+        machine_type_id: g2.mac.4x-large
   prep_environment:
     steps:
       - restore-cache@2:
