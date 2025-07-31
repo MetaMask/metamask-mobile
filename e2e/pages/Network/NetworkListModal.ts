@@ -80,6 +80,7 @@ class NetworkListModal {
   async scrollToBottomOfNetworkList(): Promise<void> {
     await Gestures.swipe(this.networkScroll, 'up', {
       speed: 'fast',
+      checkStability: true,
     });
   }
 
@@ -91,12 +92,15 @@ class NetworkListModal {
   }
 
   async tapTestNetworkSwitch(): Promise<void> {
-    await Gestures.waitAndTap(this.testNetToggle);
+    await Gestures.tap(this.testNetToggle, {
+      elemDescription: 'Test Network Switch',
+      delay: 1500, // 1.5 seconds to ensure the network list is stable
+    });
   }
 
   async longPressOnNetwork(networkName: string): Promise<void> {
     const network = Matchers.getElementByText(networkName);
-    await Gestures.tapAndLongPress(network);
+    await Gestures.longPress(network);
   }
 
   async SearchNetworkName(networkName: string): Promise<void> {

@@ -1,15 +1,16 @@
-/* eslint-disable no-console, import/no-nodejs-modules */
-
 import { loginToApp } from '../../../viewHelper';
 import { SmokePerformance } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { withFixtures } from '../../../fixtures/fixture-helper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { CORE_USER_STATE, POWER_USER_STATE } from '../../../fixtures/constants';
+import {
+  CORE_USER_STATE,
+  POWER_USER_STATE,
+} from '../../../framework/fixtures/constants';
 import {
   PerformanceTestReporter,
   createUserProfileTests,
@@ -31,10 +32,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const PERFORMANCE_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 5000, // 5 seconds max for Android
+              TOTAL_TIME: 5900, // 5.9 seconds max for Android
             }
           : {
-              TOTAL_TIME: 5000, // 5 seconds max for iOS
+              TOTAL_TIME: 4000, // 4 seconds max for iOS
             };
 
         console.log(
@@ -59,16 +60,18 @@ describe(SmokePerformance('Account List Load Testing'), () => {
           async () => {
             await loginToApp();
 
-            await Assertions.checkIfVisible(WalletView.container);
+            await Assertions.expectElementToBeVisible(WalletView.container);
             // Measure time to navigate to account list
             const startTime = Date.now();
 
             await WalletView.tapIdenticon();
 
             // Check if account list is visible
-            await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+            );
 
-            await Assertions.checkIfTextIsDisplayed('Account 1');
+            await Assertions.expectTextDisplayed('Account 1');
 
             const endTime = Date.now();
             const totalTime = endTime - startTime;
@@ -81,7 +84,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
 
             // Performance assertions with warnings
             if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME) {
-              console.warn(
+              throw new Error(
                 `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
               );
             }
@@ -124,10 +127,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const HEAVY_LOAD_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 5000, // 5 seconds max for Android
+              TOTAL_TIME: 4200, // 4.2 seconds max for Android
             }
           : {
-              TOTAL_TIME: 5000, // 5 seconds max for iOS
+              TOTAL_TIME: 4200, // 4.2 seconds max for iOS
             };
 
         let result: Partial<TestResult> = {};
@@ -139,8 +142,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
               .withUserProfileSnapUnencryptedState(userState)
               .withUserProfileSnapPermissions(userState)
               .withPopularNetworks()
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              .withTokensForAllPopularNetworks(heavyTokenLoad, userState as any)
+              .withTokensForAllPopularNetworks(heavyTokenLoad, userState)
               .build(),
             restartDevice: true,
           },
@@ -151,9 +153,11 @@ describe(SmokePerformance('Account List Load Testing'), () => {
 
             const startTime = Date.now();
             await WalletView.tapIdenticon();
-            await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+            );
 
-            await Assertions.checkIfTextIsDisplayed('Account 1');
+            await Assertions.expectTextDisplayed('Account 1');
 
             const endTime = Date.now();
             const totalTime = endTime - startTime;
@@ -165,7 +169,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
             );
 
             if (totalTime > HEAVY_LOAD_THRESHOLDS.TOTAL_TIME) {
-              console.warn(
+              throw new Error(
                 `Heavy load test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${HEAVY_LOAD_THRESHOLDS.TOTAL_TIME}ms)`,
               );
             }
@@ -193,10 +197,10 @@ describe(SmokePerformance('Account List Load Testing'), () => {
         const isAndroid = device.getPlatform() === 'android';
         const BASELINE_THRESHOLDS = isAndroid
           ? {
-              TOTAL_TIME: 5000, // 5 seconds max for Android
+              TOTAL_TIME: 3800, // 3.8 seconds max for Android
             }
           : {
-              TOTAL_TIME: 5000, // 5 seconds max for iOS
+              TOTAL_TIME: 3800, // 3.8 seconds max for iOS
             };
         // Baseline test with minimal tokens for comparison
         const minimalTokens = [
@@ -237,9 +241,11 @@ describe(SmokePerformance('Account List Load Testing'), () => {
 
             const startTime = Date.now();
             await WalletView.tapIdenticon();
-            await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+            );
 
-            await Assertions.checkIfTextIsDisplayed('Account 1');
+            await Assertions.expectTextDisplayed('Account 1');
 
             const endTime = Date.now();
             const totalTime = endTime - startTime;
@@ -250,7 +256,7 @@ describe(SmokePerformance('Account List Load Testing'), () => {
 
             // Baseline should be very fast
             if (totalTime > BASELINE_THRESHOLDS.TOTAL_TIME) {
-              console.warn(
+              throw new Error(
                 `Baseline test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${BASELINE_THRESHOLDS.TOTAL_TIME}ms)`,
               );
             }
