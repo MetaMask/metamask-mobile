@@ -15,6 +15,7 @@ import {
   ChannelId,
   notificationChannels,
 } from '../../../util/notifications/androidChannels';
+import { isE2E } from '../../test/utils';
 import { withTimeout } from '../methods';
 import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
@@ -66,8 +67,8 @@ class NotificationsService {
         await withTimeout(this.createChannel(channel), 5000),
     );
     await Promise.allSettled(promises);
-    const permission: 'authorized' | 'denied' = await withTimeout(
-      this.requestPermission(),
+    let permission: 'authorized' | 'denied' = await withTimeout(
+      this.hasPerimssion(),
       5000,
     );
 
@@ -75,13 +76,19 @@ class NotificationsService {
       this.getBlockedNotifications(),
       5000,
     );
+
+    // E2E tests do not play well with OS push permissions
+    if (isE2E) {
+      return { permission: 'authorized' };
+    }
+
     if (
       (permission !== 'authorized' || blockedNotifications.size !== 0) &&
       shouldOpenSettings
     ) {
-      await this.requestPushNotificationsPermission();
+      permission = await this.requestPermission();
     }
-    return { permission, blockedNotifications };
+    return { permission };
   }
 
   async isDeviceNotificationEnabled() {
@@ -160,6 +167,14 @@ class NotificationsService {
 
   async requestPermission() {
     const settings = await notifee.requestPermission();
+    return settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+      settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
+      ? ('authorized' as const)
+      : ('denied' as const);
+  }
+
+  async hasPerimssion() {
+    const settings = await notifee.getNotificationSettings();
     return settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
       settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
       ? ('authorized' as const)
