@@ -452,9 +452,12 @@ describe('useDepositRouting', () => {
           { id: 'idProof', isSubmitted: false },
         ],
       });
-      mockFetchKycFormData = jest
-        .fn()
-        .mockResolvedValue({ data: { kycUrl: 'test-kyc-url' } });
+      mockFetchKycFormData = jest.fn().mockResolvedValue({
+        data: {
+          kycUrl: 'test-kyc-url',
+          workFlowRunId: 'test-workflow-run-id',
+        },
+      });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
@@ -472,6 +475,7 @@ describe('useDepositRouting', () => {
       expect(mockNavigate).toHaveBeenCalledWith('AdditionalVerification', {
         quote: mockQuote,
         kycUrl: 'test-kyc-url',
+        kycWorkflowRunId: 'test-workflow-run-id',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       });
@@ -1102,6 +1106,7 @@ describe('useDepositRouting', () => {
       result.current.navigateToKycWebview({
         quote: mockQuote,
         kycUrl: 'test-url',
+        kycWorkflowRunId: 'test-workflow-id',
       });
 
       verifyPopToBuildQuoteCalled();
@@ -1110,6 +1115,7 @@ describe('useDepositRouting', () => {
         params: {
           quote: mockQuote,
           sourceUrl: 'test-url',
+          kycWorkflowRunId: 'test-workflow-id',
           cryptoCurrencyChainId: 'eip155:1',
           paymentMethodId: 'credit_debit_card',
         },

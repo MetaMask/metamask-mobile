@@ -1444,10 +1444,10 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/native-ramps-sdk@^1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.1.4.tgz#b248f658047c91d629f59384db96ec676cd0c791"
-  integrity sha512-4isXxCuGK7GYUxyKtDU6uc3+rGQQdUb90GIia/9ThlkgiQoh4dfgSrITykp/inv8VFgNc/omcT8EvPJNvQPCnw==
+"@consensys/native-ramps-sdk@1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.2.0.tgz#826f2e7af611d9608cf1654caa9502e2fb913989"
+  integrity sha512-UlT+S736irlSb0dwxc2ZKJQlir9VmF4KqqVmIlWvst9SEC/haESN8b9E+Fu3nCpV9lHMxGwtPphwFKw5pB/wSA==
   dependencies:
     async "^3.2.3"
     axios "^1.10.0"
