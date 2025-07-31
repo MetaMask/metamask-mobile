@@ -1,8 +1,9 @@
 import { selectAccountTreeControllerState } from './accountTreeController';
 import { selectMultichainAccountsState1Enabled } from '../featureFlagController/multichainAccounts';
 import { createDeepEqualSelector } from '../util';
+import { AccountWalletCategory } from '@metamask/account-api';
 
-export const selectMultichainWallets = createDeepEqualSelector(
+export const selectWallets = createDeepEqualSelector(
   [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
   (accountTreeState, multichainAccountsState1Enabled) => {
     if (!multichainAccountsState1Enabled) {
@@ -15,4 +16,12 @@ export const selectMultichainWallets = createDeepEqualSelector(
 
     return Object.values(accountTreeState.accountTree.wallets);
   },
+);
+
+export const selectMultichainWallets = createDeepEqualSelector(
+  [selectWallets],
+  (wallets) =>
+    wallets.filter((wallet) =>
+      wallet.id.startsWith(AccountWalletCategory.Entropy),
+    ),
 );

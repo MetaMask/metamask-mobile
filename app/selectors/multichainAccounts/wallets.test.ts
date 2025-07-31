@@ -5,6 +5,8 @@ import { DeepPartial } from 'redux';
 
 const WALLET_ID_1 = 'keyring:wallet1' as const;
 const WALLET_ID_2 = 'keyring:wallet2' as const;
+const MULTICHAIN_WALLET_ID_1 = 'entropy:wallet1' as const;
+const MULTICHAIN_WALLET_ID_2 = 'entropy:wallet2' as const;
 
 /**
  * Helper function to create a base mock state with RemoteFeatureFlagController
@@ -32,7 +34,7 @@ const createMockState = (
     },
   } as unknown as RootState);
 
-describe('selectMultichainWallets', () => {
+describe('selectWallets', () => {
   it('returns empty array when multichain accounts feature is disabled', () => {
     const mockState = createMockState(
       {
@@ -135,5 +137,31 @@ describe('selectMultichainWallets', () => {
     const result = selectMultichainWallets(mockState);
     expect(result).toEqual([walletWithEmptyGroups]);
     expect(result[0].groups).toEqual({});
+  });
+});
+
+describe('selectMultichainWallets', () => {
+  it('returns empty array when multichain accounts feature is disabled', () => {
+    const mockState = createMockState(undefined, false);
+    const result = selectMultichainWallets(mockState);
+    expect(result).toEqual([]);
+  });
+
+  it('returns multichain wallets when multichain accounts feature is enabled and multichain wallets exist', () => {
+    const mockState = createMockState({
+      accountTree: {
+        wallets: {
+          [MULTICHAIN_WALLET_ID_1]: { id: MULTICHAIN_WALLET_ID_1 },
+          [MULTICHAIN_WALLET_ID_2]: { id: MULTICHAIN_WALLET_ID_2 },
+          [WALLET_ID_1]: { id: WALLET_ID_1 },
+          [WALLET_ID_2]: { id: WALLET_ID_2 },
+        },
+      },
+    });
+    const result = selectMultichainWallets(mockState);
+    expect(result).toEqual([
+      { id: MULTICHAIN_WALLET_ID_1 },
+      { id: MULTICHAIN_WALLET_ID_2 },
+    ]);
   });
 });
