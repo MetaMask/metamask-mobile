@@ -29,6 +29,7 @@ import {
 import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles, theme } = useStyles(createStyles, {});
@@ -140,8 +141,10 @@ const PerpsPositionsView: React.FC = () => {
     );
   };
 
+  const { top } = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingTop: top }]}>
       <View style={styles.header}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}

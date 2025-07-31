@@ -72,6 +72,12 @@ export const WalletViewSelectorsIDs = {
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
+  // Wallet-specific action buttons to avoid conflicts with TokenOverview
+  WALLET_BUY_BUTTON: 'wallet-buy-button',
+  WALLET_SWAP_BUTTON: 'wallet-swap-button',
+  WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
+  WALLET_SEND_BUTTON: 'wallet-send-button',
+  WALLET_RECEIVE_BUTTON: 'wallet-receive-button',
 } as const;
 
 export const WalletViewSelectorsText = {

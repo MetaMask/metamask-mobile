@@ -2,9 +2,11 @@ import React from 'react';
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import EnterAddress from './EnterAddress';
 import Routes from '../../../../../../constants/navigation/Routes';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import initialRootState from '../../../../../../util/test/initial-root-state';
 
 const mockTrackEvent = jest.fn();
 
@@ -88,7 +90,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../sdk', () => ({
-  ...jest.requireActual('../../sdk'),
   useDepositSDK: () => mockUseDepositSDKReturnValue,
 }));
 
@@ -100,7 +101,15 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_ADDRESS);
+  return renderScreen(
+    Component,
+    {
+      name: Routes.DEPOSIT.ENTER_ADDRESS,
+    },
+    {
+      state: initialRootState,
+    },
+  );
 }
 
 function fillFormAndSubmit({

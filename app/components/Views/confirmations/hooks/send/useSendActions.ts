@@ -15,7 +15,7 @@ const useSendActions = () => {
   const { chainId } = asset ?? { chainId: undefined };
   const { NetworkController } = Engine.context;
 
-  const submitSend = useCallback(async () => {
+  const handleSubmitPress = useCallback(async () => {
     if (!chainId || !asset) {
       return;
     }
@@ -33,11 +33,11 @@ const useSendActions = () => {
     );
   }, [asset, chainId, NetworkController, navigation, from, to, value]);
 
-  const cancelSend = useCallback(() => {
+  const handleCancelPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  return { submitSend, cancelSend };
+  return { handleSubmitPress, handleCancelPress };
 };
 
 export default useSendActions;

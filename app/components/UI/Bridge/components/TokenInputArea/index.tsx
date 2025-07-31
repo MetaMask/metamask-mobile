@@ -14,7 +14,7 @@ import {
 } from '../../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { ethers } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
@@ -125,6 +125,7 @@ interface TokenInputAreaProps {
   onBlur?: () => void;
   onInputPress?: () => void;
   onMaxPress?: () => void;
+  latestAtomicBalance?: BigNumber;
 }
 
 export const TokenInputArea = forwardRef<
@@ -146,6 +147,7 @@ export const TokenInputArea = forwardRef<
       onBlur,
       onInputPress,
       onMaxPress,
+      latestAtomicBalance,
     },
     ref,
   ) => {
@@ -192,7 +194,11 @@ export const TokenInputArea = forwardRef<
       selectNetworkConfigurations,
     );
 
-    const isInsufficientBalance = useIsInsufficientBalance({ amount, token });
+    const isInsufficientBalance = useIsInsufficientBalance({
+      amount,
+      token,
+      latestAtomicBalance,
+    });
 
     let nonEvmMultichainAssetRates = {};
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
