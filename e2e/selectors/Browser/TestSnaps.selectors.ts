@@ -10,6 +10,7 @@ export const TestSnapViewSelectorWebIDS = {
   connectGetEntropyButton: 'connectGetEntropySnap',
   connectGetPreferencesButton: 'connectpreferences',
   connectJsonRpcButton: 'connectjson-rpc',
+  connectLifeCycleButton: 'connectlifecycle-hooks',
   connectManageStateButton: 'connectmanage-state',
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
