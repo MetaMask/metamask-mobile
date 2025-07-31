@@ -22,7 +22,6 @@ import {
 import { createKycProcessingNavDetails } from '../Views/KycProcessing/KycProcessing';
 import { createBasicInfoNavDetails } from '../Views/BasicInfo/BasicInfo';
 import { createBankDetailsNavDetails } from '../Views/BankDetails/BankDetails';
-import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { createWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/WebviewModal';
 import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/KycWebviewModal';
 import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
@@ -31,6 +30,7 @@ import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyId
 import useAnalytics from '../../hooks/useAnalytics';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
 import Logger from '../../../../../../app/util/Logger';
+import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
@@ -133,11 +133,6 @@ export const useDepositRouting = ({
     },
     [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
   );
-
-  const navigateToEnterEmailCallback = useCallback(() => {
-    popToBuildQuote();
-    navigation.navigate(...createEnterEmailNavDetails({}));
-  }, [navigation, popToBuildQuote]);
 
   const navigateToBasicInfoCallback = useCallback(
     ({ quote }: { quote: BuyQuote }) => {
@@ -462,13 +457,16 @@ export const useDepositRouting = ({
       } catch (error) {
         if ((error as AxiosError).status === 401) {
           await logoutFromProvider(false);
-          navigateToEnterEmailCallback();
+          popToBuildQuote();
+          navigation.navigate(...createEnterEmailNavDetails({}));
           return;
         }
         throw error;
       }
     },
     [
+      popToBuildQuote,
+      navigation,
       fetchKycForms,
       fetchKycFormData,
       fetchUserDetails,
@@ -479,7 +477,6 @@ export const useDepositRouting = ({
       navigateToKycProcessingCallback,
       submitPurposeOfUsage,
       logoutFromProvider,
-      navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
       trackEvent,
       navigateToAdditionalVerificationCallback,
@@ -497,12 +494,7 @@ export const useDepositRouting = ({
 
   return {
     routeAfterAuthentication,
-
-    // needed for direct route from Additional Verification Page
     navigateToKycWebview: navigateToKycWebviewCallback,
-
-    // needed for direct route from BQ to Verify Identity starter page, then to Enter Email page before the user logs in
     navigateToVerifyIdentity: navigateToVerifyIdentityCallback,
-    navigateToEnterEmail: navigateToEnterEmailCallback,
   };
 };

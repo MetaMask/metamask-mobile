@@ -8,6 +8,7 @@ import {
   REDIRECTION_URL,
 } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
+import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 
 jest.mock('@react-navigation/compat', () => ({
   withNavigation: jest.fn((component) => component),
@@ -210,11 +211,9 @@ describe('useDepositRouting', () => {
     expect(result.current.routeAfterAuthentication).toBeDefined();
     expect(result.current.navigateToKycWebview).toBeDefined();
     expect(result.current.navigateToVerifyIdentity).toBeDefined();
-    expect(result.current.navigateToEnterEmail).toBeDefined();
     expect(typeof result.current.routeAfterAuthentication).toBe('function');
     expect(typeof result.current.navigateToKycWebview).toBe('function');
     expect(typeof result.current.navigateToVerifyIdentity).toBe('function');
-    expect(typeof result.current.navigateToEnterEmail).toBe('function');
   });
 
   describe('Manual bank transfer payment method routing', () => {
@@ -783,14 +782,9 @@ describe('useDepositRouting', () => {
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
 
       verifyPopToBuildQuoteCalled();
-      expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
-        [
-          [
-            "EnterEmail",
-            {},
-          ],
-        ]
-      `);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createEnterEmailNavDetails({}),
+      );
     });
   });
 
@@ -1069,20 +1063,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       });
-    });
-
-    it('should call popToBuildQuote before navigating in navigateToEnterEmail', () => {
-      const mockParams = {
-        cryptoCurrencyChainId: 'eip155:1',
-        paymentMethodId: 'credit_debit_card',
-      };
-
-      const { result } = renderHook(() => useDepositRouting(mockParams));
-
-      result.current.navigateToEnterEmail();
-
-      verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('EnterEmail', {});
     });
 
     it('should call popToBuildQuote before navigating in navigateToKycWebview', () => {
