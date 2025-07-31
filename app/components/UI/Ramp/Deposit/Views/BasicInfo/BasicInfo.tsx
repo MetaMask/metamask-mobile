@@ -72,13 +72,16 @@ const BasicInfo = (): JSX.Element => {
   const dateInputRef = useRef<TextInput>(null);
   const ssnInputRef = useRef<TextInput>(null);
 
+  const utcDateToPrefill = new Date(previousFormData?.dob || '');
+  const localTimestampToUseInternally =
+    utcDateToPrefill.getTime() +
+    utcDateToPrefill.getTimezoneOffset() * 60 * 1000;
+
   const initialFormData: BasicInfoFormData = {
     firstName: previousFormData?.firstName || '',
     lastName: previousFormData?.lastName || '',
     mobileNumber: previousFormData?.mobileNumber || '',
-    dob: previousFormData?.dob
-      ? new Date(previousFormData.dob).getTime().toString()
-      : '',
+    dob: localTimestampToUseInternally.toString(),
     ssn: previousFormData?.ssn || '',
   };
 
