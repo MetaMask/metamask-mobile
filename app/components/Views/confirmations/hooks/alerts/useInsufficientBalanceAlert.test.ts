@@ -135,8 +135,8 @@ describe('useInsufficientBalanceAlert', () => {
     });
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 
-    const callback = result.current[0].action.callback;
-    callback();
+    const callback = result?.current[0]?.action?.callback;
+    callback?.();
     expect(onRejectMock).toHaveBeenCalled();
     expect(onRejectMock).toHaveBeenCalledWith(undefined, true);
   });

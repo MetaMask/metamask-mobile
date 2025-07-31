@@ -19,9 +19,7 @@ export function SelectedGasFeeToken() {
   const { chainId, gasFeeTokens } = transactionMetadata || {};
   const hasGasFeeTokens = Boolean(gasFeeTokens?.length);
 
-  const { styles } = useStyles(styleSheet, {
-    hasGasFeeTokens,
-  });
+  const { styles } = useStyles(styleSheet, {});
 
   const { isSupported: isGaslessSupported, isSmartTransaction } =
     useIsGaslessSupported();
@@ -43,7 +41,7 @@ export function SelectedGasFeeToken() {
 
   const { networkNativeCurrency: nativeCurrency } = useNetworkInfo(chainId);
 
-  const onPress = useCallback(() => {
+  const handlePress = useCallback(() => {
     if (!supportsGasFeeTokens) {
       return;
     }
@@ -57,7 +55,7 @@ export function SelectedGasFeeToken() {
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       style={styles.gasFeeTokenButton}
       testID="selected-gas-fee-token"
     >
