@@ -207,6 +207,8 @@ By default, Metro may cache parts of the compiled code especially when using the
 
 [Worklets](https://github.com/margelo/react-native-worklets-core) are small JavaScript functions that can be executed on a separate JavaScript Thread so that they don't clog the main JS Thread. Perfect for heavy computations and processing. Find out how to use them below.
 
+> **Note on Usage**: Worklets are meant to unclog the main JS thread, not to speed up the computational process itself. By unlcoging the main JS thread, the intent is to improve responsiveness (reduce FPS drops).
+
 ## runAsync
 
 Purpose: `runAsync` is used to execute code on a different thread without blocking the main JS thread.
@@ -251,7 +253,7 @@ const [age, setAge] = useState(30)
 
 function something() {
   'worklet'
-  Worklets.runOnJS(() => setAge(50))
+  runOnJS(() => setAge(50))
 }
 ```
 
@@ -259,7 +261,7 @@ function something() {
 
 Purpose: `useWorklet` is a hook that allows you to define a worklet function directly within your React component. It ensures that the function is properly marked as a worklet and can run on the worklet thread.
 
-When to use: Use this hook when you need to define a function that will execute on the worklet thread.
+When to use: Use this hook on a component when you need to define a function that will execute on the worklet thread.
 
 Example:
 ```
