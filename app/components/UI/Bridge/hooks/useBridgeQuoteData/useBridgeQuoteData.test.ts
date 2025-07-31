@@ -2,7 +2,11 @@ import '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { createBridgeTestState } from '../../testUtils';
-import { isQuoteExpired, getQuoteRefreshRate } from '../../utils/quoteUtils';
+import {
+  isQuoteExpired,
+  getQuoteRefreshRate,
+  shouldRefreshQuote,
+} from '../../utils/quoteUtils';
 import {
   RequestStatus,
   type QuoteResponse,
@@ -10,6 +14,8 @@ import {
 } from '@metamask/bridge-controller';
 import { useBridgeQuoteData } from '.';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import { waitFor } from '@testing-library/react-native';
+import { BigNumber } from 'ethers';
 
 jest.mock('../../utils/quoteUtils', () => ({
   isQuoteExpired: jest.fn(),
@@ -31,6 +37,22 @@ jest.mock('@metamask/bridge-controller', () => {
     selectBridgeQuotes: jest.fn(),
   };
 });
+
+// Mock useValidateBridgeTx hook
+const mockValidateBridgeTx = jest.fn();
+jest.mock('../../../../../util/bridge/hooks/useValidateBridgeTx', () => ({
+  __esModule: true,
+  default: () => ({
+    validateBridgeTx: mockValidateBridgeTx,
+  }),
+}));
+
+// Mock useIsInsufficientBalance hook
+const mockUseIsInsufficientBalance = jest.fn();
+jest.mock('../useInsufficientBalance', () => ({
+  __esModule: true,
+  default: (params: unknown) => mockUseIsInsufficientBalance(params),
+}));
 
 // Mock Engine context
 jest.mock('../../../../../core/Engine', () => ({
@@ -58,7 +80,10 @@ describe('useBridgeQuoteData', () => {
     jest.clearAllMocks();
     (isQuoteExpired as jest.Mock).mockReturnValue(false);
     (getQuoteRefreshRate as jest.Mock).mockReturnValue(5000);
+    (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
     mockSelectPrimaryCurrency.mockReturnValue('ETH');
+    mockUseIsInsufficientBalance.mockReturnValue(false);
+    mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
   });
 
   it('returns quote data when quotes are available', () => {
@@ -97,7 +122,7 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: false,
-      willRefresh: undefined,
+      willRefresh: false,
       blockaidError: null,
     });
   });
@@ -133,7 +158,7 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: true,
       isExpired: false,
-      willRefresh: undefined,
+      willRefresh: false,
       blockaidError: null,
     });
   });
@@ -170,7 +195,7 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: true,
-      willRefresh: undefined,
+      willRefresh: false,
       blockaidError: null,
     });
   });
@@ -203,7 +228,7 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: null,
       isNoQuotesAvailable: false,
       isExpired: false,
-      willRefresh: undefined,
+      willRefresh: false,
       blockaidError: null,
     });
   });
@@ -237,7 +262,7 @@ describe('useBridgeQuoteData', () => {
       quoteFetchError: error,
       isNoQuotesAvailable: false,
       isExpired: false,
-      willRefresh: undefined,
+      willRefresh: false,
       blockaidError: null,
     });
   });
@@ -429,5 +454,101 @@ describe('useBridgeQuoteData', () => {
 
     // Should use USD format when primary currency is not ETH
     expect(result.current.formattedQuoteData?.networkFee).toBe('$10');
+  });
+
+  // Additional coverage tests
+
+  it('handles validation errors gracefully', async () => {
+    const mockQuote = { ...mockQuoteWithMetadata };
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuote,
+      alternativeQuotes: [],
+    }));
+
+    mockValidateBridgeTx.mockRejectedValue(new Error('Network error'));
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    await waitFor(() => {
+      expect(result.current.blockaidError).toBe(null);
+    });
+  });
+
+  it('calculates quote rate correctly when sourceAmount is zero', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata,
+      alternativeQuotes: [],
+    }));
+
+    const bridgeReducerOverrides = {
+      sourceAmount: '0',
+    };
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides,
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.rate).toBe('--');
+  });
+
+  it('formats slippage as "Auto" when slippage is undefined', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata,
+      alternativeQuotes: [],
+    }));
+
+    const bridgeReducerOverrides = {
+      slippage: undefined,
+    };
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides,
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    expect(result.current.formattedQuoteData?.slippage).toBe('Auto');
+  });
+
+  it('works with latestSourceAtomicBalance parameter', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithMetadata,
+      alternativeQuotes: [],
+    }));
+
+    const latestBalance = BigNumber.from('1000000000000000000');
+    mockUseIsInsufficientBalance.mockReturnValue(false);
+
+    const testState = createBridgeTestState({});
+
+    const { result } = renderHookWithProvider(
+      () => useBridgeQuoteData({ latestSourceAtomicBalance: latestBalance }),
+      {
+        state: testState,
+      },
+    );
+
+    expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
+      amount: '1000000000000000000',
+      token: expect.objectContaining({
+        address: expect.any(String),
+        decimals: expect.any(Number),
+        symbol: expect.any(String),
+      }),
+      latestAtomicBalance: latestBalance,
+    });
+
+    expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
   });
 });
