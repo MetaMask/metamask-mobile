@@ -54,7 +54,7 @@ export const recreateSeedlessVaultWithNewPassword = async (
 
     Logger.error(
       error as Error,
-      '[recreateVaultWithNewPassword] seedless onboarding pw change error',
+      '[recreateSeedlessVaultWithNewPassword] seedless onboarding pw change error',
     );
 
     throw error;
