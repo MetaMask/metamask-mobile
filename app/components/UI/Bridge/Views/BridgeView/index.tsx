@@ -37,7 +37,6 @@ import {
   setSlippage,
   selectIsSubmittingTx,
   setIsSubmittingTx,
-  selectIsSolanaToEvm,
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
@@ -73,7 +72,6 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
-import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx.ts';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 
 export interface BridgeRouteParams {
@@ -92,7 +90,6 @@ const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
-  const { validateBridgeTx } = useValidateBridgeTx();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Needed to get gas fee estimates
@@ -116,7 +113,6 @@ const BridgeView = () => {
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
-  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -158,6 +154,7 @@ const BridgeView = () => {
     isNoQuotesAvailable,
     isExpired,
     willRefresh,
+    blockaidError,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -276,34 +273,9 @@ const BridgeView = () => {
   };
 
   const handleContinue = async () => {
-    let displayValidationError = false;
     try {
       if (activeQuote) {
         dispatch(setIsSubmittingTx(true));
-        if (isSolanaSwap || isSolanaToEvm) {
-          const validationResult = await validateBridgeTx({
-            quoteResponse: activeQuote,
-          });
-          if (validationResult.status === 'ERROR') {
-            displayValidationError = true;
-            const isValidationError =
-              !!validationResult.result.validation.reason;
-            const { error_details } = validationResult;
-            const fallbackErrorMessage = isValidationError
-              ? validationResult.result.validation.reason
-              : validationResult.error;
-            navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-              screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-              params: {
-                errorType: isValidationError ? 'validation' : 'simulation',
-                errorMessage: error_details?.message
-                  ? `The ${error_details.message}.`
-                  : fallbackErrorMessage,
-              },
-            });
-            return;
-          }
-        }
         await submitBridgeTx({
           quoteResponse: activeQuote,
         });
@@ -312,9 +284,7 @@ const BridgeView = () => {
       console.error('Error submitting bridge tx', error);
     } finally {
       dispatch(setIsSubmittingTx(false));
-      if (activeQuote && !displayValidationError) {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      }
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
   };
 
@@ -406,6 +376,13 @@ const BridgeView = () => {
               )}
             />
           )}
+          {blockaidError && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              title={strings('bridge.blockaid_error_title')}
+              description={blockaidError}
+            />
+          )}
           <Button
             variant={ButtonVariants.Primary}
             label={getButtonLabel()}
@@ -414,7 +391,8 @@ const BridgeView = () => {
             isDisabled={
               hasInsufficientBalance ||
               isSubmittingTx ||
-              (isHardwareAddress && isSolanaSourced)
+              (isHardwareAddress && isSolanaSourced) ||
+              !!blockaidError
             }
           />
           <Button

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Messenger } from '@metamask/base-controller';
+import { successfulFetch } from '@metamask/controller-utils';
 
 import {
   getDefaultPerpsControllerState,
@@ -66,6 +67,16 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock successfulFetch for geo location testing
+jest.mock('@metamask/controller-utils', () => {
+  const actual = jest.requireActual('@metamask/controller-utils');
+
+  return {
+    ...actual,
+    successfulFetch: jest.fn(),
+  };
+});
+
 // Mock transaction utilities
 jest.mock('../../../../util/transactions', () => ({
   generateTransferData: jest.fn(),
@@ -107,6 +118,7 @@ describe('PerpsController', () => {
       calculateLiquidationPrice: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
+      calculateFees: jest.fn(),
       getMarketDataWithPrices: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
@@ -186,6 +198,7 @@ describe('PerpsController', () => {
         expect(controller.state.positions).toEqual([]);
         expect(controller.state.accountState).toBeNull();
         expect(controller.state.connectionStatus).toBe('disconnected');
+        expect(controller.state.isEligible).toBe(false);
       });
     });
 
@@ -2051,6 +2064,233 @@ describe('PerpsController', () => {
           // Act & Assert
           await expect(controller.updatePositionTPSL(params)).rejects.toThrow();
         });
+      });
+    });
+
+    describe('calculateFees', () => {
+      it('should calculate fees successfully', async () => {
+        const mockFeeResult = {
+          feeRate: 0.00045,
+          feeAmount: 45,
+        };
+
+        const params = {
+          orderType: 'market' as const,
+          isMaker: false,
+          amount: '100000',
+        };
+
+        await withController(async ({ controller }) => {
+          mockHyperLiquidProvider.calculateFees.mockResolvedValue(
+            mockFeeResult,
+          );
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+
+          await controller.initializeProviders();
+          const result = await controller.calculateFees(params);
+
+          expect(result).toEqual(mockFeeResult);
+          expect(mockHyperLiquidProvider.calculateFees).toHaveBeenCalledWith(
+            params,
+          );
+        });
+      });
+
+      it('should delegate to active provider', async () => {
+        const mockFeeResult = {
+          feeRate: 0.00015,
+          feeAmount: 15,
+        };
+
+        const params = {
+          orderType: 'limit' as const,
+          isMaker: true,
+          amount: '100000',
+        };
+
+        await withController(async ({ controller }) => {
+          mockHyperLiquidProvider.calculateFees.mockResolvedValue(
+            mockFeeResult,
+          );
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+
+          await controller.initializeProviders();
+          const result = await controller.calculateFees(params);
+
+          expect(mockHyperLiquidProvider.calculateFees).toHaveBeenCalledWith(
+            params,
+          );
+          expect(result).toEqual(mockFeeResult);
+        });
+      });
+
+      it('should handle provider errors', async () => {
+        const params = {
+          orderType: 'market' as const,
+          isMaker: false,
+          amount: '100000',
+        };
+
+        await withController(async ({ controller }) => {
+          mockHyperLiquidProvider.calculateFees.mockRejectedValue(
+            new Error('Network error'),
+          );
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+
+          await controller.initializeProviders();
+
+          await expect(controller.calculateFees(params)).rejects.toThrow(
+            'Network error',
+          );
+        });
+      });
+
+      it('should throw error when provider is not initialized', async () => {
+        const params = {
+          orderType: 'market' as const,
+          isMaker: false,
+          amount: '100000',
+        };
+
+        await withController(async ({ controller }) => {
+          // Force controller to be uninitialized
+          // @ts-ignore - Accessing private property for testing
+          controller.isInitialized = false;
+
+          await expect(controller.calculateFees(params)).rejects.toThrow(
+            'HyperLiquid SDK clients not properly initialized',
+          );
+        });
+      });
+
+      it('should return Promise<FeeCalculationResult>', async () => {
+        const params = {
+          orderType: 'market' as const,
+          isMaker: false,
+          amount: '100000',
+        };
+
+        await withController(async ({ controller }) => {
+          mockHyperLiquidProvider.calculateFees.mockResolvedValue({
+            feeRate: 0.00045,
+            feeAmount: 45,
+          });
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+
+          await controller.initializeProviders();
+          const resultPromise = controller.calculateFees(params);
+
+          expect(resultPromise).toBeInstanceOf(Promise);
+          const result = await resultPromise;
+          expect(result).toHaveProperty('feeRate');
+          expect(result).toHaveProperty('feeAmount');
+        });
+      });
+    });
+  });
+
+  describe('refreshEligibility', () => {
+    let mockSuccessfulFetch: jest.MockedFunction<typeof successfulFetch>;
+
+    beforeEach(() => {
+      // Get fresh reference to the mocked function
+      mockSuccessfulFetch = jest.mocked(successfulFetch);
+      mockSuccessfulFetch.mockClear();
+    });
+
+    it('should set isEligible to true for eligible region (France)', async () => {
+      // Mock API response for France
+      const mockResponse = {
+        text: jest.fn().mockResolvedValue('FR'),
+      };
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+
+        expect(controller.state.isEligible).toBe(true);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+
+    it('should set isEligible to false for blocked region (United States)', async () => {
+      // Mock API response for United States
+      const mockResponse = {
+        text: jest.fn().mockResolvedValue('US'),
+      };
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+
+        expect(controller.state.isEligible).toBe(false);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+
+    it('should set isEligible to false for blocked region (Ontario, Canada)', async () => {
+      // Mock API response for Ontario, Canada
+      const mockResponse = {
+        text: jest.fn().mockResolvedValue('CA-ON'),
+      };
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+
+        expect(controller.state.isEligible).toBe(false);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+
+    it('should set isEligible to false when API call fails (UNKNOWN fallback)', async () => {
+      // Mock API failure
+      mockSuccessfulFetch.mockRejectedValue(new Error('Network error'));
+
+      withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+
+        expect(controller.state.isEligible).toBe(false);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle custom blocked regions list', async () => {
+      // Mock API response for a region that would normally be allowed
+      const mockResponse = {
+        text: jest.fn().mockResolvedValue('DE'), // Germany
+      };
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      withController(async ({ controller }) => {
+        // Test with custom blocked regions that includes DE
+        await controller.refreshEligibility(['DE', 'FR']);
+
+        expect(controller.state.isEligible).toBe(false);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle region prefix matching correctly', async () => {
+      // Mock API response for US state (should be blocked because it starts with 'US')
+      const mockResponse = {
+        text: jest.fn().mockResolvedValue('US-CA'), // US-California
+      };
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+
+        expect(controller.state.isEligible).toBe(false);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
       });
     });
   });
