@@ -8,7 +8,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { ReactTestInstance } from 'react-test-renderer';
 
@@ -110,6 +110,10 @@ describe('ManualBackupStep2', () => {
   });
 
   describe('with mockWords', () => {
+    beforeEach(() => {
+      Platform.OS = 'ios';
+    });
+
     const mockRoute = jest.fn().mockReturnValue({
       params: {
         words: mockWords,
@@ -233,6 +237,7 @@ describe('ManualBackupStep2', () => {
     };
 
     it('render and handle word selection in grid', () => {
+      Platform.OS = 'android';
       const { wrapper, mockNavigation } = setupTest();
       const gridItems = wrapper.getByTestId(
         `${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-0`,
@@ -242,6 +247,7 @@ describe('ManualBackupStep2', () => {
       fireEvent.press(gridItems);
       expect(gridItems).toHaveStyle({ backgroundColor: expect.any(String) });
       mockNavigation.mockRestore();
+      Platform.OS = 'ios';
     });
 
     it('render SuccessErrorSheet with type error when seed phrase is invalid', () => {

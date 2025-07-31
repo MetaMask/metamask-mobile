@@ -7,6 +7,7 @@ import {
   getBridgeInfo,
   getChainId,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
+  FEE_RATES,
 } from '../../constants/hyperLiquidConfig';
 import {
   PERPS_CONSTANTS,
@@ -43,6 +44,8 @@ import type {
   DepositParams,
   DisconnectResult,
   EditOrderParams,
+  FeeCalculationParams,
+  FeeCalculationResult,
   GetAccountStateParams,
   GetPositionsParams,
   GetSupportedPathsParams,
@@ -742,7 +745,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const isBuy = positionSize < 0;
       const closeSize = params.size || Math.abs(positionSize).toString();
 
-      return this.placeOrder({
+      const result = await this.placeOrder({
         coin: params.coin,
         isBuy,
         size: closeSize,
@@ -750,6 +753,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         price: params.price,
         reduceOnly: true,
       });
+
+      return result;
     } catch (error) {
       DevLogger.log('Position closing failed:', error);
       return createErrorResult(error, { success: false });
@@ -1438,6 +1443,70 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     return assetInfo.maxLeverage;
+  }
+
+  /**
+   * TODO: Fetch user's 14-day rolling volume when API available
+   * @private
+   */
+  private async getUserVolume(): Promise<number> {
+    // Placeholder - return 0 (base tier)
+    return 0;
+  }
+
+  /**
+   * TODO: Fetch user's $HYPE staking info when API available
+   * @private
+   */
+  private async getUserStaking(): Promise<number> {
+    // Placeholder - return 0 (no staking discount)
+    return 0;
+  }
+
+  /**
+   * Calculate fees based on HyperLiquid's fee structure
+   * Returns fee rate as decimal (e.g., 0.00045 for 0.045%)
+   *
+   * HyperLiquid base fees (Tier 0, no discounts):
+   * - Taker: 0.045% (market orders, aggressive limit orders)
+   * - Maker: 0.015% (limit orders that add liquidity)
+   *
+   * TODO: Apply volume and staking discounts when APIs available
+   */
+  async calculateFees(
+    params: FeeCalculationParams,
+  ): Promise<FeeCalculationResult> {
+    const { orderType, isMaker = false, amount } = params;
+
+    // Use base rates from config
+    const baseRate =
+      orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
+
+    // TODO: When APIs available, apply user-specific discounts
+    // const volume = await this.getUserVolume();
+    // const staking = await this.getUserStaking();
+    // const { volumeTier, volumeDiscount, stakingDiscount } = await this.calculateDiscounts(volume, staking);
+    // const finalRate = baseRate * (1 - volumeDiscount) * (1 - stakingDiscount);
+
+    const parsedAmount = amount ? parseFloat(amount) : 0;
+    const feeAmount =
+      amount !== undefined
+        ? isNaN(parsedAmount)
+          ? 0
+          : parsedAmount * baseRate
+        : undefined;
+
+    return {
+      feeRate: baseRate,
+      feeAmount,
+      // Future: Include breakdown when we have user data
+      // breakdown: {
+      //   baseFeeRate: baseRate,
+      //   volumeTier,
+      //   volumeDiscount,
+      //   stakingDiscount,
+      // },
+    };
   }
 
   /**

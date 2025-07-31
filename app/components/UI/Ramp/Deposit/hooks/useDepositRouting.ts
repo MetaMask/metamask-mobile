@@ -185,12 +185,21 @@ export const useDepositRouting = ({
   );
 
   const navigateToAdditionalVerificationCallback = useCallback(
-    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
+    ({
+      quote,
+      kycUrl,
+      kycWorkflowRunId,
+    }: {
+      quote: BuyQuote;
+      kycUrl: string;
+      kycWorkflowRunId: string;
+    }) => {
       popToBuildQuote();
       navigation.navigate(
         ...createAdditionalVerificationNavDetails({
           quote,
           kycUrl,
+          kycWorkflowRunId,
           cryptoCurrencyChainId,
           paymentMethodId,
         }),
@@ -299,12 +308,21 @@ export const useDepositRouting = ({
   );
 
   const navigateToKycWebviewCallback = useCallback(
-    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
+    ({
+      quote,
+      kycUrl,
+      kycWorkflowRunId,
+    }: {
+      quote: BuyQuote;
+      kycUrl: string;
+      kycWorkflowRunId: string;
+    }) => {
       popToBuildQuote();
       navigation.navigate(
         ...createKycWebviewModalNavigationDetails({
           quote,
           sourceUrl: kycUrl,
+          kycWorkflowRunId,
           cryptoCurrencyChainId,
           paymentMethodId,
         }),
@@ -443,6 +461,7 @@ export const useDepositRouting = ({
             navigateToAdditionalVerificationCallback({
               quote,
               kycUrl: idProofData.data.kycUrl,
+              kycWorkflowRunId: idProofData.data.workFlowRunId,
             });
             return;
           }

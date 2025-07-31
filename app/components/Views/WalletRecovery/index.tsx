@@ -25,6 +25,7 @@ import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { AppThemeKey } from '../../../util/theme/models';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { capitalize } from 'lodash';
 
 const SocialNotLinked = () => {
   const { colors } = useTheme();
@@ -300,7 +301,7 @@ const WalletRecovery = () => {
             )}
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {strings('protect_your_wallet.social_login_description', {
-                authConnection: authConnection || 'Google',
+                authConnection: capitalize(authConnection) || 'Google',
               })}
             </Text>
           </View>

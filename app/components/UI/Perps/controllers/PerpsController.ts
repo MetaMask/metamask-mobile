@@ -27,6 +27,7 @@ import type {
   DepositResult,
   DepositStatus,
   EditOrderParams,
+  FeeCalculationResult,
   GetAccountStateParams,
   GetPositionsParams,
   IPerpsProvider,
@@ -174,6 +175,10 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:disconnect';
       handler: PerpsController['disconnect'];
+    }
+  | {
+      type: 'PerpsController:calculateFees';
+      handler: PerpsController['calculateFees'];
     };
 
 /**
@@ -1256,6 +1261,19 @@ export class PerpsController extends BaseController<
       state.depositError = null;
       state.currentDepositTxHash = null;
     });
+  }
+
+  /**
+   * Calculate trading fees for the active provider
+   * Each provider implements its own fee structure
+   */
+  async calculateFees(params: {
+    orderType: 'market' | 'limit';
+    isMaker?: boolean;
+    amount?: string;
+  }): Promise<FeeCalculationResult> {
+    const provider = this.getActiveProvider();
+    return provider.calculateFees(params);
   }
 
   /**

@@ -31,6 +31,23 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+    },
+  },
+}));
+
+jest.mock(
+  '../../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
+  () => ({
+    useGasFeeEstimates: () => ({
+      gasFeeEstimates: { medium: { suggestedMaxFeePerGas: 1.5 } },
+    }),
+  }),
+);
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({

@@ -15,6 +15,11 @@ export const createStyles = ({
       flex: 1,
       backgroundColor: colors.background.default,
     },
+    containerWithPadding: {
+      flex: 1,
+      backgroundColor: colors.background.default,
+      paddingTop: 20,
+    },
     header: {
       flexDirection: 'row',
       alignItems: 'center',

@@ -1,9 +1,7 @@
 import {
   calculatePositionSize,
   calculateMarginRequired,
-  calculateEstimatedFees,
 } from './orderCalculations';
-import { FEE_RATES } from '../constants/hyperLiquidConfig';
 
 describe('orderCalculations', () => {
   describe('calculatePositionSize', () => {
@@ -115,62 +113,6 @@ describe('orderCalculations', () => {
       });
 
       expect(result).toBe('24.69');
-    });
-  });
-
-  describe('calculateEstimatedFees', () => {
-    it('should calculate market order fees correctly', () => {
-      const result = calculateEstimatedFees({
-        amount: '10000',
-        orderType: 'market',
-      });
-
-      expect(result).toBe(10000 * FEE_RATES.market);
-    });
-
-    it('should calculate limit order fees correctly', () => {
-      const result = calculateEstimatedFees({
-        amount: '10000',
-        orderType: 'limit',
-      });
-
-      expect(result).toBe(10000 * FEE_RATES.limit);
-    });
-
-    it('should return 0 for 0 amount', () => {
-      const result = calculateEstimatedFees({
-        amount: '0',
-        orderType: 'market',
-      });
-
-      expect(result).toBe(0);
-    });
-
-    it('should handle empty amount string', () => {
-      const result = calculateEstimatedFees({
-        amount: '',
-        orderType: 'market',
-      });
-
-      expect(result).toBe(0);
-    });
-
-    it('should handle decimal amounts', () => {
-      const result = calculateEstimatedFees({
-        amount: '123.45',
-        orderType: 'market',
-      });
-
-      expect(result).toBeCloseTo(123.45 * FEE_RATES.market, 6);
-    });
-
-    it('should handle very large amounts', () => {
-      const result = calculateEstimatedFees({
-        amount: '1000000',
-        orderType: 'limit',
-      });
-
-      expect(result).toBe(1000000 * FEE_RATES.limit);
     });
   });
 });

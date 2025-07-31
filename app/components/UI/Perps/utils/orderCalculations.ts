@@ -1,6 +1,3 @@
-import { FEE_RATES } from '../constants/hyperLiquidConfig';
-import type { OrderType } from '../controllers/types';
-
 interface PositionSizeParams {
   amount: string;
   price: number;
@@ -9,11 +6,6 @@ interface PositionSizeParams {
 interface MarginRequiredParams {
   amount: string;
   leverage: number;
-}
-
-interface EstimatedFeesParams {
-  amount: string;
-  orderType: OrderType;
 }
 
 /**
@@ -51,22 +43,4 @@ export function calculateMarginRequired(params: MarginRequiredParams): string {
   }
 
   return (amountNum / leverage).toFixed(2);
-}
-
-/**
- * Calculate estimated fees for an order
- * @param params - Order amount and type
- * @returns Estimated fees as a number
- */
-export function calculateEstimatedFees(params: EstimatedFeesParams): number {
-  const { amount, orderType } = params;
-  const amountNum = parseFloat(amount || '0');
-
-  if (isNaN(amountNum)) {
-    return 0;
-  }
-
-  const feeRate = orderType === 'market' ? FEE_RATES.market : FEE_RATES.limit;
-
-  return amountNum * feeRate;
 }

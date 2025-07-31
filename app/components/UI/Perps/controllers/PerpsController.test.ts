@@ -107,6 +107,7 @@ describe('PerpsController', () => {
       calculateLiquidationPrice: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
+      calculateFees: jest.fn(),
       getMarketDataWithPrices: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
@@ -2050,6 +2051,135 @@ describe('PerpsController', () => {
 
           // Act & Assert
           await expect(controller.updatePositionTPSL(params)).rejects.toThrow();
+        });
+      });
+    });
+
+    describe('calculateFees', () => {
+      it('should calculate fees successfully', async () => {
+        const mockFeeResult = {
+          feeRate: 0.00045,
+          feeAmount: 45,
+        };
+
+        const params = {
+          orderType: 'market' as const,
+          isMaker: false,
+          amount: '100000',
+        };
+
+        await withController(async ({ controller }) => {
+          mockHyperLiquidProvider.calculateFees.mockResolvedValue(
+            mockFeeResult,
+          );
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+
+          await controller.initializeProviders();
+          const result = await controller.calculateFees(params);
+
+          expect(result).toEqual(mockFeeResult);
+          expect(mockHyperLiquidProvider.calculateFees).toHaveBeenCalledWith(
+            params,
+          );
+        });
+      });
+
+      it('should delegate to active provider', async () => {
+        const mockFeeResult = {
+          feeRate: 0.00015,
+          feeAmount: 15,
+        };
+
+        const params = {
+          orderType: 'limit' as const,
+          isMaker: true,
+          amount: '100000',
+        };
+
+        await withController(async ({ controller }) => {
+          mockHyperLiquidProvider.calculateFees.mockResolvedValue(
+            mockFeeResult,
+          );
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+
+          await controller.initializeProviders();
+          const result = await controller.calculateFees(params);
+
+          expect(mockHyperLiquidProvider.calculateFees).toHaveBeenCalledWith(
+            params,
+          );
+          expect(result).toEqual(mockFeeResult);
+        });
+      });
+
+      it('should handle provider errors', async () => {
+        const params = {
+          orderType: 'market' as const,
+          isMaker: false,
+          amount: '100000',
+        };
+
+        await withController(async ({ controller }) => {
+          mockHyperLiquidProvider.calculateFees.mockRejectedValue(
+            new Error('Network error'),
+          );
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+
+          await controller.initializeProviders();
+
+          await expect(controller.calculateFees(params)).rejects.toThrow(
+            'Network error',
+          );
+        });
+      });
+
+      it('should throw error when provider is not initialized', async () => {
+        const params = {
+          orderType: 'market' as const,
+          isMaker: false,
+          amount: '100000',
+        };
+
+        await withController(async ({ controller }) => {
+          // Force controller to be uninitialized
+          // @ts-ignore - Accessing private property for testing
+          controller.isInitialized = false;
+
+          await expect(controller.calculateFees(params)).rejects.toThrow(
+            'HyperLiquid SDK clients not properly initialized',
+          );
+        });
+      });
+
+      it('should return Promise<FeeCalculationResult>', async () => {
+        const params = {
+          orderType: 'market' as const,
+          isMaker: false,
+          amount: '100000',
+        };
+
+        await withController(async ({ controller }) => {
+          mockHyperLiquidProvider.calculateFees.mockResolvedValue({
+            feeRate: 0.00045,
+            feeAmount: 45,
+          });
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+
+          await controller.initializeProviders();
+          const resultPromise = controller.calculateFees(params);
+
+          expect(resultPromise).toBeInstanceOf(Promise);
+          const result = await resultPromise;
+          expect(result).toHaveProperty('feeRate');
+          expect(result).toHaveProperty('feeAmount');
         });
       });
     });

@@ -20,6 +20,14 @@ jest.mock('../../hooks/usePerpsPositionData', () => ({
   usePerpsPositionData: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePerpsClosePosition', () => ({
+  usePerpsClosePosition: jest.fn(() => ({
+    handleClosePosition: jest.fn(),
+    isClosing: false,
+    error: null,
+  })),
+}));
+
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
@@ -42,6 +50,35 @@ jest.mock('../../components/PerpsTPSLBottomSheet', () => ({
       <View testID="perps-tpsl-bottomsheet">
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+}));
+
+// Mock PerpsClosePositionBottomSheet to avoid PerpsConnectionProvider requirement
+jest.mock('../../components/PerpsClosePositionBottomSheet', () => ({
+  __esModule: true,
+  default: ({
+    isVisible,
+    onClose,
+    onConfirm,
+    position: _position,
+  }: {
+    isVisible: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    position: Position;
+  }) => {
+    if (!isVisible) return null;
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-close-position-bottomsheet">
+        <TouchableOpacity onPress={onClose}>
+          <Text>Close</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onConfirm} testID="confirm-close-position">
+          <Text>Confirm</Text>
         </TouchableOpacity>
       </View>
     );
