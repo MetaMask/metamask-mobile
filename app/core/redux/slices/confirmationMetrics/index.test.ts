@@ -7,8 +7,11 @@ import reducer, {
   setTransactionPayToken,
   TransactionPayToken,
   selectTransactionPayToken,
+  setTransactionBridgeQuotes,
+  selectTransactionBridgeQuotesById,
 } from './index';
 import { RootState } from '../../../../reducers';
+import { TransactionBridgeQuote } from '../../../../components/Views/confirmations/utils/bridge';
 
 const ID_MOCK = '123-456';
 
@@ -16,6 +19,12 @@ const PAY_TOKEN_MOCK: TransactionPayToken = {
   address: '0x456',
   chainId: '0x123',
 };
+
+const QUOTE_MOCK = {
+  quote: {
+    srcChainId: '0x1',
+  },
+} as unknown as TransactionBridgeQuote;
 
 describe('confirmationMetrics slice', () => {
   describe('updateConfirmationMetric', () => {
@@ -130,6 +139,7 @@ describe('confirmationMetrics slice', () => {
         transactionId: ID_MOCK,
         payToken: PAY_TOKEN_MOCK,
       });
+
       const state = reducer(initialState, action);
 
       expect(state.transactionPayTokenById[ID_MOCK]).toEqual(PAY_TOKEN_MOCK);
@@ -145,6 +155,35 @@ describe('confirmationMetrics slice', () => {
       } as unknown as RootState;
 
       expect(selectTransactionPayToken(state, ID_MOCK)).toEqual(PAY_TOKEN_MOCK);
+    });
+  });
+
+  describe('setTransactionBridgeQuotes', () => {
+    it('updates transaction bridge quotes for ID', () => {
+      const action = setTransactionBridgeQuotes({
+        transactionId: ID_MOCK,
+        quotes: [QUOTE_MOCK],
+      });
+
+      const state = reducer(initialState, action);
+
+      expect(state.transactionBridgeQuotesById[ID_MOCK]).toStrictEqual([
+        QUOTE_MOCK,
+      ]);
+    });
+  });
+
+  describe('selectTransactionBridgeQuotesById', () => {
+    it('returns transaction bridge quotes by ID', () => {
+      const state = {
+        confirmationMetrics: {
+          transactionBridgeQuotesById: { [ID_MOCK]: [QUOTE_MOCK] },
+        },
+      } as unknown as RootState;
+
+      expect(selectTransactionBridgeQuotesById(state, ID_MOCK)).toStrictEqual([
+        QUOTE_MOCK,
+      ]);
     });
   });
 });

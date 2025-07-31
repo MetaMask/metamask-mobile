@@ -19,6 +19,7 @@ const Amount = () => {
   const { value, updateValue } = useSendContext();
   const { updateToMaxAmount } = useMaxAmount();
   const { amountError } = useAmountValidation();
+  // todo: include to address validation
 
   return (
     <View>
@@ -26,9 +27,7 @@ const Amount = () => {
       <Input
         style={styles.input}
         value={value}
-        onChangeText={(val: string) => {
-          updateValue(val);
-        }}
+        onChangeText={updateValue}
         testID="send_amount"
       />
       <Text color={TextColor.Error}>{amountError}</Text>

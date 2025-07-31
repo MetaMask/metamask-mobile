@@ -69,8 +69,8 @@ describe('useSendActions', () => {
       () => useSendActions(),
       mockState as ProviderValues,
     );
-    expect(result.current.submitSend).toBeDefined();
-    expect(result.current.cancelSend).toBeDefined();
+    expect(result.current.handleSubmitPress).toBeDefined();
+    expect(result.current.handleCancelPress).toBeDefined();
   });
 
   it('call navigation.goBack when cancelSend is invoked', () => {
@@ -78,7 +78,7 @@ describe('useSendActions', () => {
       () => useSendActions(),
       mockState as ProviderValues,
     );
-    result.current.cancelSend();
+    result.current.handleCancelPress();
     expect(mockGoBack).toHaveBeenCalled();
   });
 });
