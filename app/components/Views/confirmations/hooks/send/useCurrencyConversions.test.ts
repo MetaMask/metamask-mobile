@@ -9,8 +9,8 @@ import {
   getFiatValueFn,
   getNativeDisplayValueFn,
   getNativeValueFn,
-  useConversions,
-} from './useConversions';
+  useCurrencyConversions,
+} from './useCurrencyConversions';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: () => ({
@@ -101,10 +101,10 @@ describe('getNativeDisplayValueFn', () => {
   });
 });
 
-describe('useConversions', () => {
+describe('useCurrencyConversions', () => {
   it('return function getMaxAmount', () => {
     const { result } = renderHookWithProvider(
-      () => useConversions(),
+      () => useCurrencyConversions(),
       mockState,
     );
     expect(result.current.getFiatDisplayValue).toBeDefined();
