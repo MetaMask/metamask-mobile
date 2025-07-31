@@ -139,7 +139,11 @@ function KeypadComponent({
         <Keypad.Button onPress={handleKeypadPress9}>9</Keypad.Button>
       </Keypad.Row>
       <Keypad.Row>
-        <Keypad.Button onPress={handleKeypadPressPeriod} {...periodButtonProps}>
+        <Keypad.Button
+          onPress={handleKeypadPressPeriod}
+          {...periodButtonProps}
+          twClassName="bg-transparent"
+        >
           {decimalSeparator}
         </Keypad.Button>
         <Keypad.Button onPress={handleKeypadPress0}>0</Keypad.Button>

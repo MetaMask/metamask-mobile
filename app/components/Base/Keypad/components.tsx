@@ -93,6 +93,7 @@ const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
       onPress={onPress}
       onLongPress={onLongPress}
       delayLongPress={delayLongPress}
+      twClassName="bg-transparent"
       testID={testID}
       {...props}
     >
