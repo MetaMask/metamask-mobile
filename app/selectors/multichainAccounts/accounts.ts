@@ -89,9 +89,11 @@ const findInternalAccountByScope = (
     return undefined;
   }
 
-  const accountGroupInternalAccounts = accountGroup.accounts.map(
-    (accountId: AccountId) => internalAccountsMap[accountId],
-  );
+  const accountGroupInternalAccounts = accountGroup.accounts
+    .map((accountId: AccountId) => internalAccountsMap[accountId])
+    // filter out undefined accounts. The accounts should never be undefined
+    // because the accounts in the accountGroup comes from the accounts controller
+    .filter(Boolean);
 
   const isEvmScope = scope.startsWith(KnownCaipNamespace.Eip155);
 
