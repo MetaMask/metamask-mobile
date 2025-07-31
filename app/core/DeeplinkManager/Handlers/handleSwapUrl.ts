@@ -11,6 +11,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeRouteParams } from '../../../components/UI/Bridge/Views/BridgeView';
 import { fetchAssetMetadata } from '../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 interface HandleSwapUrlParams {
   swapPath: string;
@@ -34,7 +35,9 @@ const validateAndLookupToken = async (
 
     // Create the token with metadata (balance will be fetched by Bridge view)
     const token: BridgeToken = {
-      address: matchingToken.address,
+      address: isSolanaChainId(matchingToken.chainId)
+        ? matchingToken.assetId
+        : matchingToken.address,
       symbol: matchingToken.symbol,
       name: matchingToken.name,
       decimals: matchingToken.decimals,
