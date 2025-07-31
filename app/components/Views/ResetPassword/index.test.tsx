@@ -20,6 +20,9 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import Device from '../../../util/device';
 import ReduxService from '../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../core/redux/types';
+import { recreateVaultWithNewPassword } from '../../../core/Vault';
+import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import { NavigationContainerRef } from '@react-navigation/native';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -68,6 +71,7 @@ jest.mock('../../../core/Authentication', () => ({
     .mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100)),
     ),
+  checkIsSeedlessPasswordOutdated: jest.fn().mockResolvedValue(false),
 }));
 
 jest.mock('../../../core/NavigationService', () => ({
@@ -163,6 +167,14 @@ const defaultProps: ResetPasswordProps = {
   route: { params: { [PREVIOUS_SCREEN]: 'ChoosePassword' } },
   navigation: mockNavigation,
 };
+
+jest.mock('../../../core/Vault', () => {
+  const actual = jest.requireActual('../../../core/Vault');
+  return {
+    ...actual,
+    recreateVaultWithNewPassword: jest.fn(),
+  };
+});
 
 describe('ResetPassword', () => {
   beforeEach(() => {
@@ -621,6 +633,109 @@ describe('ResetPassword', () => {
 
     await waitFor(() => {
       expect(confirmPasswordInput.props.secureTextEntry).toBe(false);
+    });
+  });
+
+  describe('reset password error handling', () => {
+    const mockRecreateVaultWithNewPassword = jest.mocked(
+      recreateVaultWithNewPassword,
+    );
+
+    it('show error password is outdated', async () => {
+      mockRecreateVaultWithNewPassword.mockRejectedValueOnce(
+        new Error(SeedlessOnboardingControllerErrorMessage.OutdatedPassword),
+      );
+
+      jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValueOnce(false);
+
+      NavigationService.navigation =
+        mockNavigation as unknown as NavigationContainerRef;
+
+      const component = await renderConfirmPasswordView();
+
+      const currentPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(currentPasswordInput, 'NewPassword123');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      const confirmButton =
+        mockNavigation.navigate.mock.calls[0][1].params.onPrimaryButtonPress;
+      await confirmButton();
+
+      expect(mockRecreateVaultWithNewPassword).toHaveBeenCalled();
+      expect(mockNavigation.navigate.mock.calls[1][1].params.title).toBe(
+        strings('login.seedless_password_outdated_modal_title'),
+      );
+    });
+
+    it('show error change password failed', async () => {
+      mockRecreateVaultWithNewPassword.mockRejectedValueOnce(
+        new Error(
+          SeedlessOnboardingControllerErrorMessage.FailedToChangePassword,
+        ),
+      );
+
+      jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValueOnce(false);
+
+      NavigationService.navigation =
+        mockNavigation as unknown as NavigationContainerRef;
+
+      const component = await renderConfirmPasswordView();
+
+      const currentPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(currentPasswordInput, 'NewPassword123');
+      });
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      const confirmButton =
+        mockNavigation.navigate.mock.calls[0][1].params.onPrimaryButtonPress;
+      await confirmButton();
+
+      expect(mockRecreateVaultWithNewPassword).toHaveBeenCalled();
+
+      expect(mockNavigation.navigate.mock.calls[1][1].params.title).toBe(
+        strings('reset_password.seedless_change_password_error_modal_title'),
+      );
     });
   });
 });
