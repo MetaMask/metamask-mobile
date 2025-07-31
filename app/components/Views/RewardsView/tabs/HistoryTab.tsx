@@ -225,7 +225,11 @@ const mockEvents: PointsEventDto[] = [
   },
 ];
 
-const HistoryTab = () => {
+interface HistoryTabProps {
+  tabLabel?: string;
+}
+
+const HistoryTab: React.FC<HistoryTabProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const { fetchNextPage, hasNextPage, isFetchingNextPage } =
