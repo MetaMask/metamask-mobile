@@ -29,9 +29,7 @@ import {
   fiatOrdersRegionSelectorDeposit,
   setFiatOrdersRegionDeposit,
 } from '../../../../../reducers/fiatOrders';
-import { DepositRegion, DEPOSIT_REGIONS, DEFAULT_REGION } from '../constants';
-import Logger from '../../../../../util/Logger';
-import { strings } from '../../../../../../locales/i18n';
+import { DepositRegion, DEPOSIT_REGIONS } from '../constants';
 
 export interface DepositSDK {
   sdk?: NativeRampsSdk;
@@ -41,7 +39,7 @@ export interface DepositSDK {
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
-  logoutFromProvider: (requireServerInvalidation?: boolean) => Promise<void>;
+  clearAuthToken: () => Promise<void>;
   checkExistingToken: () => Promise<boolean>;
   getStarted: boolean;
   setGetStarted: (seen: boolean) => void;
@@ -61,8 +59,7 @@ if (isDevelopmentOrInternalBuild) {
   environment = TransakEnvironment.Staging;
 }
 
-export const DEPOSIT_ENVIRONMENT = environment;
-export const DepositSDKNoAuth = new NativeRampsSdk({}, environment);
+export const DepositSDKOrders = new NativeRampsSdk({}, environment);
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
   undefined,
@@ -89,8 +86,11 @@ export const DepositSDKProvider = ({
   );
   const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
 
+  const defaultRegion =
+    DEPOSIT_REGIONS.find((region) => region.isoCode === 'US') || null;
+
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
-    INITIAL_SELECTED_REGION,
+    INITIAL_SELECTED_REGION || defaultRegion,
   );
 
   const setGetStartedCallback = useCallback(
@@ -110,26 +110,15 @@ export const DepositSDKProvider = ({
   );
 
   useEffect(() => {
-    async function setRegionByGeolocation() {
-      if (selectedRegion === null) {
-        try {
-          const geo = await DepositSDKNoAuth.getGeolocation();
-          const region = DEPOSIT_REGIONS.find(
-            (r) => r.isoCode === geo?.ipCountryCode,
-          );
-          if (region) {
-            setSelectedRegionCallback(region);
-          } else {
-            setSelectedRegionCallback(DEFAULT_REGION);
-          }
-        } catch (error) {
-          Logger.error(error as Error, 'Error setting region by geolocation:');
-          setSelectedRegionCallback(DEFAULT_REGION);
-        }
-      }
+    if (INITIAL_SELECTED_REGION === null && defaultRegion) {
+      dispatch(setFiatOrdersRegionDeposit(defaultRegion));
     }
-    setRegionByGeolocation();
-  }, [selectedRegion, setSelectedRegionCallback]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    setSelectedRegion(INITIAL_SELECTED_REGION || defaultRegion);
+  }, [INITIAL_SELECTED_REGION, defaultRegion]);
 
   useEffect(() => {
     try {
@@ -193,31 +182,14 @@ export const DepositSDKProvider = ({
     [sdk],
   );
 
-  const logoutFromProvider = useCallback(
-    async (requireServerInvalidation = true) => {
-      if (!sdk) {
-        throw new Error(
-          strings('deposit.configuration_modal.error_sdk_not_initialized'),
-        );
-      }
-
-      requireServerInvalidation
-        ? await sdk.logout()
-        : await sdk
-            .logout()
-            .catch((error) =>
-              Logger.error(
-                error as Error,
-                'SDK logout failed but invalidation was not required. Error:',
-              ),
-            );
-
-      await resetProviderToken();
-      setAuthToken(undefined);
-      setIsAuthenticated(false);
-    },
-    [sdk],
-  );
+  const clearAuthToken = useCallback(async () => {
+    await resetProviderToken();
+    setAuthToken(undefined);
+    setIsAuthenticated(false);
+    if (sdk) {
+      sdk.clearAccessToken();
+    }
+  }, [sdk]);
 
   const contextValue = useMemo(
     (): DepositSDK => ({
@@ -228,7 +200,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthToken: setAuthTokenCallback,
-      logoutFromProvider,
+      clearAuthToken,
       checkExistingToken,
       getStarted,
       setGetStarted: setGetStartedCallback,
@@ -244,7 +216,7 @@ export const DepositSDKProvider = ({
       isAuthenticated,
       authToken,
       setAuthTokenCallback,
-      logoutFromProvider,
+      clearAuthToken,
       checkExistingToken,
       getStarted,
       setGetStartedCallback,

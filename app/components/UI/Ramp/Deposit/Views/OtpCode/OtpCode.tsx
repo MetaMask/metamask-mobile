@@ -140,9 +140,6 @@ const OtpCode = () => {
   }, [resendButtonState, cooldownSeconds]);
 
   const handleResend = useCallback(async () => {
-    setValue('');
-    setError(null);
-    inputRef.current?.focus();
     try {
       if (resetAttemptCount > MAX_RESET_ATTEMPTS) {
         setResendButtonState('contactSupport');
@@ -159,13 +156,7 @@ const OtpCode = () => {
       setResendButtonState('resendError');
       Logger.error(e as Error, 'Error resending OTP code');
     }
-  }, [
-    inputRef,
-    resendOtp,
-    resetAttemptCount,
-    selectedRegion?.isoCode,
-    trackEvent,
-  ]);
+  }, [resendOtp, resetAttemptCount, selectedRegion?.isoCode, trackEvent]);
 
   const handleContactSupport = useCallback(() => {
     Linking.openURL(TRANSAK_SUPPORT_URL);
@@ -181,11 +172,11 @@ const OtpCode = () => {
           throw new Error('No response from submitCode');
         }
         await setAuthToken(response);
+        await routeAfterAuthentication(quote);
         trackEvent('RAMPS_OTP_CONFIRMED', {
           ramp_type: 'DEPOSIT',
           region: selectedRegion?.isoCode || '',
         });
-        await routeAfterAuthentication(quote);
       } catch (e) {
         trackEvent('RAMPS_OTP_FAILED', {
           ramp_type: 'DEPOSIT',

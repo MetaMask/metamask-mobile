@@ -1,6 +1,6 @@
 import TestHelpers from '../../../helpers';
 import QuoteView from '../../../pages/Bridge/QuoteView';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../utils/Assertions';
 
 export async function submitSwapUnifiedUI(
   quantity: string,
@@ -9,7 +9,7 @@ export async function submitSwapUnifiedUI(
   chainId: string,
 ) {
   await device.disableSynchronization();
-  await Assertions.expectElementToBeVisible(QuoteView.selectAmountLabel);
+  await Assertions.checkIfVisible(QuoteView.selectAmountLabel);
   await QuoteView.enterAmount(quantity);
   if (sourceTokenSymbol !== 'ETH') {
     await QuoteView.tapSourceToken();
@@ -19,9 +19,7 @@ export async function submitSwapUnifiedUI(
   await TestHelpers.delay(2000);
   await QuoteView.tapToken(chainId, destTokenSymbol);
 
-  await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
-    timeout: 60000,
-  });
-  await Assertions.expectElementToBeVisible(QuoteView.confirmSwap);
+  await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
+  await Assertions.checkIfVisible(QuoteView.confirmSwap);
   await QuoteView.tapConfirmSwap();
 }

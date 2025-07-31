@@ -91,10 +91,7 @@ export const restoreSnapAccounts = async (accountType, entropySource) => {
       scope = SolScope.Mainnet;
       break;
     }
-    case BtcAccountType.P2pkh:
-    case BtcAccountType.P2sh:
-    case BtcAccountType.P2wpkh:
-    case BtcAccountType.P2tr: {
+    case BtcAccountType.P2wpkh: {
       walletClientType = WalletClientType.Bitcoin;
       scope = BtcScope.Mainnet;
       break;

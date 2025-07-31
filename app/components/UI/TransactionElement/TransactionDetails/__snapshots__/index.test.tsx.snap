@@ -413,7 +413,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   "fontWeight": "600",
                                 },
                                 {
-                                  "color": "#457a39",
+                                  "color": "#1c7e33",
                                 },
                                 undefined,
                                 undefined,
@@ -1521,7 +1521,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             }
                           }
                         >
-                          View on Etherscan
+                          VIEW ON Etherscan
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -1950,7 +1950,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   "fontWeight": "600",
                                 },
                                 {
-                                  "color": "#457a39",
+                                  "color": "#1c7e33",
                                 },
                                 undefined,
                                 undefined,
@@ -3058,7 +3058,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           }
                         >
-                          View on Etherscan
+                          VIEW ON Etherscan
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -3487,7 +3487,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   "fontWeight": "600",
                                 },
                                 {
-                                  "color": "#457a39",
+                                  "color": "#1c7e33",
                                 },
                                 undefined,
                                 undefined,
@@ -4595,7 +4595,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           }
                         >
-                          View on Etherscan
+                          VIEW ON Etherscan
                         </Text>
                       </TouchableOpacity>
                     </View>

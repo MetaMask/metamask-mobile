@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Messenger } from '@metamask/base-controller';
 
@@ -8,8 +7,7 @@ import {
   type PerpsControllerState,
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
-import { DepositStatus } from './types';
+import { CaipAssetId, CaipChainId } from '@metamask/utils';
 
 // Mock the HyperLiquid SDK first
 jest.mock('@deeeed/hyperliquid-node20', () => ({
@@ -28,25 +26,11 @@ jest.mock('../utils/hyperLiquidAdapter');
 jest.mock('../utils/hyperLiquidValidation');
 jest.mock('../constants/hyperLiquidConfig');
 
-// Mock parseCaipAssetId from @metamask/utils
-jest.mock('@metamask/utils', () => ({
-  ...jest.requireActual('@metamask/utils'),
-  parseCaipAssetId: jest.fn((_assetId) => ({
-    chainId: 'eip155:42161',
-    assetNamespace: 'erc20',
-    assetReference: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-  })),
-}));
-
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AccountsController: {
-      getSelectedAccount: jest.fn().mockReturnValue({
-        address: '0x1234567890123456789012345678901234567890',
-        id: 'mock-account-id',
-        metadata: { name: 'Test Account' },
-      }),
+      getSelectedAccount: jest.fn(),
     },
     NetworkController: {
       state: {
@@ -97,17 +81,11 @@ describe('PerpsController', () => {
       withdraw: jest.fn(),
       getDepositRoutes: jest.fn(),
       getWithdrawalRoutes: jest.fn(),
-      validateDeposit: jest.fn(),
       subscribeToPrices: jest.fn(),
       subscribeToPositions: jest.fn(),
       subscribeToOrderFills: jest.fn(),
       setLiveDataConfig: jest.fn(),
       disconnect: jest.fn(),
-      updatePositionTPSL: jest.fn(),
-      calculateLiquidationPrice: jest.fn(),
-      calculateMaintenanceMargin: jest.fn(),
-      getMaxLeverage: jest.fn(),
-      getMarketDataWithPrices: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -164,9 +142,6 @@ describe('PerpsController', () => {
       allowedEvents: [
         'AccountsController:selectedAccountChange' as never,
         'NetworkController:stateChange' as never,
-        'TransactionController:transactionSubmitted' as never,
-        'TransactionController:transactionConfirmed' as never,
-        'TransactionController:transactionFailed' as never,
       ],
     });
 
@@ -437,8 +412,11 @@ describe('PerpsController', () => {
         controller.resetDepositState();
 
         expect(controller.state.depositStatus).toBe('idle');
+        expect(controller.state.depositFlowType).toBeNull();
+        expect(controller.state.depositSteps.totalSteps).toBe(0);
         expect(controller.state.depositError).toBeNull();
         expect(controller.state.currentDepositTxHash).toBeNull();
+        expect(controller.state.requiresModalDismissal).toBe(false);
       });
     });
 
@@ -473,10 +451,9 @@ describe('PerpsController', () => {
       withController(({ controller }) => {
         // Reset the initialization state by setting isInitialized to false
         // This simulates the case where initializeProviders() hasn't been called yet
-        // @ts-ignore - Accessing private property for testing
-        controller.isInitialized = false;
+        (controller as any).isInitialized = false;
         expect(() => controller.getActiveProvider()).toThrow(
-          'HyperLiquid SDK clients not properly initialized',
+          'PerpsController not initialized. Call initialize() first.',
         );
       });
     });
@@ -501,18 +478,6 @@ describe('PerpsController', () => {
     it('should validate deposit parameters', async () => {
       withController(async ({ controller }) => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-
-        // Mock validateDeposit to return validation errors
-        mockHyperLiquidProvider.validateDeposit
-          .mockReturnValueOnce({
-            isValid: false,
-            error: 'Amount is required and must be greater than 0',
-          })
-          .mockReturnValueOnce({
-            isValid: false,
-            error: 'AssetId is required for deposit validation',
-          });
-
         await controller.initializeProviders();
 
         // Test missing amount
@@ -551,15 +516,9 @@ describe('PerpsController', () => {
           },
         ]);
 
-        // Mock validateDeposit to return error for unsupported route
-        mockHyperLiquidProvider.validateDeposit.mockReturnValue({
-          isValid: false,
-          error: 'Only direct deposits are currently supported',
-        });
-
         await controller.initializeProviders();
 
-        // Try to deposit with unsupported asset on chain ID 1 (mainnet) instead of 42161 (Arbitrum)
+        // Mock the analyzeDepositRoute to throw error for unsupported assets
         const result = await controller.deposit({
           amount: '100',
           assetId:
@@ -778,80 +737,9 @@ describe('PerpsController', () => {
     it('should handle withdraw operation', async () => {
       const withdrawParams = {
         amount: '100',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
         destination: '0x1234567890123456789012345678901234567890' as any,
       };
 
-      const mockPendingWithdrawal = {
-        withdrawalId: 'hl_test-uuid-123',
-        provider: 'hyperliquid',
-        amount: '100',
-        asset: 'USDC',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        sourceChainId: 'eip155:999' as CaipChainId,
-        destinationChainId: 'eip155:42161' as CaipChainId,
-        destinationAddress: '0x1234567890123456789012345678901234567890' as Hex,
-        initiatedAt: Date.now(),
-        status: 'pending' as const,
-        providerTxHash: undefined,
-        estimatedArrivalTime: Date.now() + 5 * 60 * 1000,
-        metadata: {
-          isTestnet: false,
-        },
-      };
-
-      const mockWithdrawResult = {
-        success: true,
-        txHash: '0xabcdef123456789',
-        withdrawalId: 'hl_test-uuid-123',
-        estimatedArrivalTime: mockPendingWithdrawal.estimatedArrivalTime,
-        pendingWithdrawal: mockPendingWithdrawal,
-      };
-
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.withdraw.mockResolvedValue(mockWithdrawResult);
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        mockHyperLiquidProvider.getWithdrawalRoutes.mockReturnValue([
-          {
-            assetId:
-              'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-            chainId: 'eip155:42161' as CaipChainId,
-            contractAddress:
-              '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
-            constraints: {
-              minAmount: '1.01',
-              estimatedTime: '5 minutes',
-              fees: {
-                fixed: 1,
-                token: 'USDC',
-              },
-            },
-          },
-        ]);
-
-        await controller.initializeProviders();
-        const result = await controller.withdraw(withdrawParams);
-
-        // Verify result returned from provider
-        expect(result).toEqual(mockWithdrawResult);
-
-        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
-          withdrawParams,
-        );
-      });
-    });
-
-    it('should handle withdraw when provider does not return pendingWithdrawal', async () => {
-      const withdrawParams = {
-        amount: '100',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
-      };
-
-      // Provider returns success but no pendingWithdrawal (legacy behavior)
       const mockWithdrawResult = {
         success: true,
         txHash: '0xabcdef123456789',
@@ -860,205 +748,14 @@ describe('PerpsController', () => {
       withController(async ({ controller }) => {
         mockHyperLiquidProvider.withdraw.mockResolvedValue(mockWithdrawResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        mockHyperLiquidProvider.getWithdrawalRoutes.mockReturnValue([
-          {
-            assetId:
-              'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-            chainId: 'eip155:42161' as CaipChainId,
-            contractAddress:
-              '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
-            constraints: {
-              minAmount: '1.01',
-              estimatedTime: '5 minutes',
-              fees: {
-                fixed: 1,
-                token: 'USDC',
-              },
-            },
-          },
-        ]);
 
         await controller.initializeProviders();
         const result = await controller.withdraw(withdrawParams);
 
-        // Verify result returned from provider
         expect(result).toEqual(mockWithdrawResult);
-
-        // Verify provider was called correctly
         expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
           withdrawParams,
         );
-      });
-    });
-
-    it('should validate withdrawal requires assetId', async () => {
-      const withdrawParams = {
-        amount: '100',
-        // Missing assetId
-        destination: '0x1234567890123456789012345678901234567890' as any,
-      };
-
-      withController(async ({ controller }) => {
-        // Mock the withdraw method to return an error for missing assetId
-        mockHyperLiquidProvider.withdraw.mockResolvedValue({
-          success: false,
-          error: 'assetId is required for withdrawals',
-        });
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
-
-        const result = await controller.withdraw(withdrawParams);
-
-        expect(result.success).toBe(false);
-        expect(result.error).toContain('assetId is required for withdrawals');
-        expect(controller.state.lastError).toContain(
-          'assetId is required for withdrawals',
-        );
-
-        // Provider should be called since controller doesn't validate
-        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledWith(
-          withdrawParams,
-        );
-      });
-    });
-
-    it('should validate withdrawal requires positive amount', async () => {
-      const withdrawParamsZero = {
-        amount: '0',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
-      };
-
-      withController(async ({ controller }) => {
-        // Mock the withdraw method to return validation errors
-        mockHyperLiquidProvider.withdraw
-          .mockResolvedValueOnce({
-            success: false,
-            error: 'Amount must be a positive number',
-          })
-          .mockResolvedValueOnce({
-            success: false,
-            error: 'Amount must be a positive number',
-          })
-          .mockResolvedValueOnce({
-            success: false,
-            error: 'Amount must be a positive number',
-          });
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
-
-        // Test zero amount
-        const resultZero = await controller.withdraw(withdrawParamsZero);
-        expect(resultZero.success).toBe(false);
-        expect(resultZero.error).toContain('Amount must be a positive number');
-        expect(controller.state.lastError).toContain(
-          'Amount must be a positive number',
-        );
-
-        // Test negative amount
-        const withdrawParamsNegative = { ...withdrawParamsZero, amount: '-10' };
-        const resultNegative = await controller.withdraw(
-          withdrawParamsNegative,
-        );
-        expect(resultNegative.success).toBe(false);
-        expect(resultNegative.error).toContain(
-          'Amount must be a positive number',
-        );
-
-        // Test missing amount
-        const withdrawParamsMissing = {
-          assetId: withdrawParamsZero.assetId,
-          destination: withdrawParamsZero.destination,
-          amount: undefined as any,
-        };
-        const resultMissing = await controller.withdraw(withdrawParamsMissing);
-        expect(resultMissing.success).toBe(false);
-        expect(resultMissing.error).toContain(
-          'Amount must be a positive number',
-        );
-
-        // Provider should be called since controller doesn't validate
-        expect(mockHyperLiquidProvider.withdraw).toHaveBeenCalledTimes(3);
-      });
-    });
-
-    it('should handle withdrawal provider error result', async () => {
-      const withdrawParams = {
-        amount: '100',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
-      };
-
-      const mockErrorResult = {
-        success: false,
-        error: 'Insufficient balance in trading account',
-      };
-
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.withdraw.mockResolvedValue(mockErrorResult);
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
-
-        const result = await controller.withdraw(withdrawParams);
-
-        expect(result).toEqual(mockErrorResult);
-        expect(controller.state.lastError).toBe(
-          'Insufficient balance in trading account',
-        );
-        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
-      });
-    });
-
-    it('should handle withdrawal provider exception', async () => {
-      const withdrawParams = {
-        amount: '100',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
-      };
-
-      const errorMessage = 'Network connection failed';
-
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.withdraw.mockRejectedValue(
-          new Error(errorMessage),
-        );
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
-
-        const result = await controller.withdraw(withdrawParams);
-
-        expect(result.success).toBe(false);
-        expect(result.error).toBe(errorMessage);
-        expect(controller.state.lastError).toBe(errorMessage);
-        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
-      });
-    });
-
-    it('should handle withdrawal with provider returning error without message', async () => {
-      const withdrawParams = {
-        amount: '100',
-        assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-      };
-
-      const mockErrorResult = {
-        success: false,
-        // No error message
-      };
-
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.withdraw.mockResolvedValue(mockErrorResult);
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
-
-        const result = await controller.withdraw(withdrawParams);
-
-        expect(result).toEqual(mockErrorResult);
-        // Should use default error message when no error provided
-        expect(controller.state.lastError).toBeTruthy();
       });
     });
   });
@@ -1220,13 +917,14 @@ describe('PerpsController', () => {
     it('should throw error when controller not initialized', async () => {
       withController(async ({ controller }) => {
         // Arrange - don't initialize the controller
-        // @ts-ignore - Accessing private property for testing
-        controller.isInitialized = false;
+        (controller as any).isInitialized = false;
 
         // Act & Assert
         await expect(
           controller.fetchHistoricalCandles('BTC', '1h', 100),
-        ).rejects.toThrow('HyperLiquid SDK clients not properly initialized');
+        ).rejects.toThrow(
+          'PerpsController not initialized. Call initialize() first.',
+        );
       });
     });
 
@@ -1262,795 +960,6 @@ describe('PerpsController', () => {
           '15m',
           50,
         );
-      });
-    });
-  });
-
-  describe('Transaction Event Handlers', () => {
-    describe('handleTransactionSubmitted', () => {
-      it('should update deposit status to depositing when transaction is tracked', () => {
-        // Arrange - Set up initial state with tracked transaction
-        const txId = 'test-tx-id';
-        const txHash = '0xabcdef123456';
-        const depositInfo = {
-          amount: '1000',
-          token: 'USDC',
-          timestamp: Date.now(),
-        };
-
-        const initialState = {
-          activeDepositTransactions: {
-            [txId]: depositInfo,
-          },
-          depositStatus: 'idle' as DepositStatus,
-          currentDepositTxHash: null,
-        };
-
-        withController(
-          ({ controller, messenger }) => {
-            // Create transaction event
-            const txEvent = {
-              transactionMeta: {
-                id: txId,
-                hash: txHash,
-                status: 'submitted',
-                txParams: {
-                  from: '0x123',
-                  to: '0x456',
-                  value: '0x0',
-                },
-              },
-            };
-
-            // Act - Publish transaction submitted event
-            messenger.publish(
-              'TransactionController:transactionSubmitted',
-              // @ts-ignore
-              txEvent,
-            );
-
-            // Assert - Verify state updated correctly
-            expect(controller.state.depositStatus).toBe('depositing');
-            expect(controller.state.currentDepositTxHash).toBe(txHash);
-            expect(controller.state.activeDepositTransactions[txId]).toEqual(
-              depositInfo,
-            );
-          },
-          { state: initialState },
-        );
-      });
-
-      it('should not update state when transaction is not tracked', () => {
-        // Arrange - Set up initial state without tracked transaction
-        const txId = 'untracked-tx-id';
-        const initialState = {
-          depositStatus: 'idle' as DepositStatus,
-          currentDepositTxHash: null,
-          activeDepositTransactions: {},
-        };
-
-        withController(
-          ({ controller, messenger }) => {
-            // Create transaction event for untracked transaction
-            const txEvent = {
-              transactionMeta: {
-                id: txId,
-                hash: '0xabcdef123456',
-                status: 'submitted',
-                txParams: {
-                  from: '0x123',
-                  to: '0x456',
-                  value: '0x0',
-                },
-              },
-            };
-
-            // Act - Publish transaction submitted event
-            messenger.publish(
-              'TransactionController:transactionSubmitted',
-              // @ts-ignore
-              txEvent,
-            );
-
-            // Assert - Verify state unchanged
-            expect(controller.state.depositStatus).toBe('idle');
-            expect(controller.state.currentDepositTxHash).toBe(null);
-            expect(controller.state.activeDepositTransactions).toEqual({});
-          },
-          { state: initialState },
-        );
-      });
-
-      it('should handle transaction without hash', () => {
-        // Arrange - Set up initial state with tracked transaction
-        const txId = 'test-tx-id';
-        const depositInfo = {
-          amount: '1000',
-          token: 'USDC',
-          timestamp: Date.now(),
-        };
-
-        const initialState = {
-          activeDepositTransactions: {
-            [txId]: depositInfo,
-          },
-          depositStatus: 'idle' as DepositStatus,
-          currentDepositTxHash: null,
-        };
-
-        withController(
-          ({ controller, messenger }) => {
-            // Create transaction event without hash
-            const txEvent = {
-              transactionMeta: {
-                id: txId,
-                // No hash property
-                status: 'submitted',
-                txParams: {
-                  from: '0x123',
-                  to: '0x456',
-                  value: '0x0',
-                },
-              },
-            };
-
-            // Act - Publish transaction submitted event
-            messenger.publish(
-              'TransactionController:transactionSubmitted',
-              // @ts-ignore
-              txEvent,
-            );
-
-            // Assert - Verify state updated correctly with null hash
-            expect(controller.state.depositStatus).toBe('depositing');
-            expect(controller.state.currentDepositTxHash).toBe(null);
-          },
-          { state: initialState },
-        );
-      });
-    });
-
-    describe('handleTransactionConfirmed', () => {
-      it('should update deposit status to success and remove from tracking when transaction is confirmed', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const txHash = '0xabcdef123456';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-          });
-
-          // Create transaction confirmed event
-          const txMeta = {
-            id: txId,
-            hash: txHash,
-            status: 'confirmed',
-            txParams: {
-              from: '0x123',
-              to: '0x456',
-              value: '0x0',
-            },
-          };
-
-          // Act - Publish transaction confirmed event
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            txMeta,
-          );
-
-          // Assert - Verify state updated correctly
-          expect(controller.state.depositStatus).toBe('success');
-          expect(controller.state.currentDepositTxHash).toBe(txHash);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should not update state when transaction is not tracked', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state without tracked transaction
-          const txId = 'untracked-tx-id';
-          const initialState = {
-            depositStatus: 'idle' as DepositStatus,
-            currentDepositTxHash: null,
-            activeDepositTransactions: {},
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.depositStatus = initialState.depositStatus;
-            state.currentDepositTxHash = initialState.currentDepositTxHash;
-            state.activeDepositTransactions =
-              initialState.activeDepositTransactions;
-          });
-
-          // Create transaction confirmed event for untracked transaction
-          const txMeta = {
-            id: txId,
-            hash: '0xabcdef123456',
-            status: 'confirmed',
-            txParams: {
-              from: '0x123',
-              to: '0x456',
-              value: '0x0',
-            },
-          };
-
-          // Act - Publish transaction confirmed event
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            txMeta,
-          );
-
-          // Assert - Verify state unchanged
-          expect(controller.state.depositStatus).toBe('idle');
-          expect(controller.state.currentDepositTxHash).toBe(null);
-          expect(controller.state.activeDepositTransactions).toEqual({});
-        });
-      });
-
-      it('should handle transaction without hash', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-          });
-
-          // Create transaction confirmed event without hash
-          const txMeta = {
-            id: txId,
-            // No hash property
-            status: 'confirmed',
-            txParams: {
-              from: '0x123',
-              to: '0x456',
-              value: '0x0',
-            },
-          };
-
-          // Act - Publish transaction confirmed event
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            txMeta,
-          );
-
-          // Assert - Verify state updated correctly with null hash
-          expect(controller.state.depositStatus).toBe('success');
-          expect(controller.state.currentDepositTxHash).toBe(null);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should handle multiple tracked transactions and only update the correct one', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with multiple tracked transactions
-          const txId1 = 'test-tx-id-1';
-          const txId2 = 'test-tx-id-2';
-          const txHash1 = '0xabcdef123456';
-          const depositInfo1 = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-          const depositInfo2 = {
-            amount: '2000',
-            token: 'ETH',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId1] = depositInfo1;
-            state.activeDepositTransactions[txId2] = depositInfo2;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-          });
-
-          // Create transaction confirmed event for first transaction
-          const txMeta = {
-            id: txId1,
-            hash: txHash1,
-            status: 'confirmed',
-            txParams: {
-              from: '0x123',
-              to: '0x456',
-              value: '0x0',
-            },
-          };
-
-          // Act - Publish transaction confirmed event for first transaction
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            txMeta,
-          );
-
-          // Assert - Verify only first transaction removed, second still tracked
-          expect(controller.state.depositStatus).toBe('success');
-          expect(controller.state.currentDepositTxHash).toBe(txHash1);
-          expect(
-            controller.state.activeDepositTransactions[txId1],
-          ).toBeUndefined();
-          expect(controller.state.activeDepositTransactions[txId2]).toEqual(
-            depositInfo2,
-          );
-        });
-      });
-    });
-
-    describe('handleTransactionFailed', () => {
-      it('should update deposit status to error and remove from tracking when transaction fails', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const txHash = '0xabcdef123456';
-          const errorMessage = 'Transaction failed due to insufficient gas';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-            state.depositError = null;
-          });
-
-          // Create transaction failed event
-          const txEvent = {
-            transactionMeta: {
-              id: txId,
-              hash: txHash,
-              status: 'failed',
-              error: {
-                message: errorMessage,
-                code: 'INSUFFICIENT_GAS',
-              },
-              txParams: {
-                from: '0x123',
-                to: '0x456',
-                value: '0x0',
-              },
-            },
-          };
-
-          // Act - Publish transaction failed event
-          // @ts-ignore
-          messenger.publish('TransactionController:transactionFailed', txEvent);
-
-          // Assert - Verify state updated correctly
-          expect(controller.state.depositStatus).toBe('error');
-          expect(controller.state.depositError).toBe(errorMessage);
-          expect(controller.state.currentDepositTxHash).toBe(txHash);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should not update state when transaction is not tracked', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state without tracked transaction
-          const txId = 'untracked-tx-id';
-          const initialState = {
-            depositStatus: 'idle' as DepositStatus,
-            currentDepositTxHash: null,
-            depositError: null,
-            activeDepositTransactions: {},
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.depositStatus = initialState.depositStatus;
-            state.currentDepositTxHash = initialState.currentDepositTxHash;
-            state.depositError = initialState.depositError;
-            state.activeDepositTransactions =
-              initialState.activeDepositTransactions;
-          });
-
-          // Create transaction failed event for untracked transaction
-          const txEvent = {
-            transactionMeta: {
-              id: txId,
-              hash: '0xabcdef123456',
-              status: 'failed',
-              error: {
-                message: 'Transaction failed',
-                code: 'FAILED',
-              },
-              txParams: {
-                from: '0x123',
-                to: '0x456',
-                value: '0x0',
-              },
-            },
-          };
-
-          // Act - Publish transaction failed event
-          // @ts-ignore
-          messenger.publish('TransactionController:transactionFailed', txEvent);
-
-          // Assert - Verify state unchanged
-          expect(controller.state.depositStatus).toBe('idle');
-          expect(controller.state.currentDepositTxHash).toBe(null);
-          expect(controller.state.depositError).toBe(null);
-          expect(controller.state.activeDepositTransactions).toEqual({});
-        });
-      });
-
-      it('should handle transaction without error message', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const txHash = '0xabcdef123456';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-            state.depositError = null;
-          });
-
-          // Create transaction failed event without error message
-          const txEvent = {
-            transactionMeta: {
-              id: txId,
-              hash: txHash,
-              status: 'failed',
-              // No error property
-              txParams: {
-                from: '0x123',
-                to: '0x456',
-                value: '0x0',
-              },
-            },
-          };
-
-          // Act - Publish transaction failed event
-          // @ts-ignore
-          messenger.publish('TransactionController:transactionFailed', txEvent);
-
-          // Assert - Verify state updated with default error message
-          expect(controller.state.depositStatus).toBe('error');
-          expect(controller.state.depositError).toBe('Transaction failed');
-          expect(controller.state.currentDepositTxHash).toBe(txHash);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should handle transaction without hash', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const errorMessage = 'Transaction failed due to network error';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-            state.depositError = null;
-          });
-
-          // Create transaction failed event without hash
-          const txEvent = {
-            transactionMeta: {
-              id: txId,
-              // No hash property
-              status: 'failed',
-              error: {
-                message: errorMessage,
-                code: 'NETWORK_ERROR',
-              },
-              txParams: {
-                from: '0x123',
-                to: '0x456',
-                value: '0x0',
-              },
-            },
-          };
-
-          // Act - Publish transaction failed event
-          // @ts-ignore
-          messenger.publish('TransactionController:transactionFailed', txEvent);
-
-          // Assert - Verify state updated correctly with null hash
-          expect(controller.state.depositStatus).toBe('error');
-          expect(controller.state.depositError).toBe(errorMessage);
-          expect(controller.state.currentDepositTxHash).toBe(null);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should handle multiple tracked transactions and only update the correct one', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with multiple tracked transactions
-          const txId1 = 'test-tx-id-1';
-          const txId2 = 'test-tx-id-2';
-          const txHash1 = '0xabcdef123456';
-          const errorMessage = 'Transaction failed';
-          const depositInfo1 = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-          const depositInfo2 = {
-            amount: '2000',
-            token: 'ETH',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId1] = depositInfo1;
-            state.activeDepositTransactions[txId2] = depositInfo2;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-            state.depositError = null;
-          });
-
-          // Create transaction failed event for first transaction
-          const txEvent = {
-            transactionMeta: {
-              id: txId1,
-              hash: txHash1,
-              status: 'failed',
-              error: {
-                message: errorMessage,
-                code: 'FAILED',
-              },
-              txParams: {
-                from: '0x123',
-                to: '0x456',
-                value: '0x0',
-              },
-            },
-          };
-
-          // Act - Publish transaction failed event for first transaction
-          // @ts-ignore
-          messenger.publish('TransactionController:transactionFailed', txEvent);
-
-          // Assert - Verify only first transaction removed, second still tracked
-          expect(controller.state.depositStatus).toBe('error');
-          expect(controller.state.depositError).toBe(errorMessage);
-          expect(controller.state.currentDepositTxHash).toBe(txHash1);
-          expect(
-            controller.state.activeDepositTransactions[txId1],
-          ).toBeUndefined();
-          expect(controller.state.activeDepositTransactions[txId2]).toEqual(
-            depositInfo2,
-          );
-        });
-      });
-    });
-
-    describe('Edge Cases', () => {
-      it('should handle rapid transaction state changes', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const txHash = '0xabcdef123456';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          (controller as any).update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'idle';
-            state.currentDepositTxHash = null;
-          });
-
-          // Act - Simulate rapid state changes
-          const submittedEvent = {
-            transactionMeta: {
-              id: txId,
-              hash: txHash,
-              status: 'submitted',
-              txParams: { from: '0x123', to: '0x456', value: '0x0' },
-            },
-          };
-
-          const confirmedEvent = {
-            id: txId,
-            hash: txHash,
-            status: 'confirmed',
-            txParams: { from: '0x123', to: '0x456', value: '0x0' },
-          };
-
-          messenger.publish(
-            'TransactionController:transactionSubmitted',
-            // @ts-ignore
-            submittedEvent,
-          );
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            confirmedEvent,
-          );
-
-          // Assert - Verify final state is correct
-          expect(controller.state.depositStatus).toBe('success');
-          expect(controller.state.currentDepositTxHash).toBe(txHash);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should handle empty activeDepositTransactions', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with empty activeDepositTransactions
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions = {};
-            state.depositStatus = 'idle';
-            state.currentDepositTxHash = null;
-          });
-
-          // Act - Publish transaction events for non-existent transactions
-          const submittedEvent = {
-            transactionMeta: {
-              id: 'non-existent-tx',
-              hash: '0xabcdef123456',
-              status: 'submitted',
-              txParams: { from: '0x123', to: '0x456', value: '0x0' },
-            },
-          };
-
-          const confirmedEvent = {
-            id: 'non-existent-tx',
-            hash: '0xabcdef123456',
-            status: 'confirmed',
-            txParams: { from: '0x123', to: '0x456', value: '0x0' },
-          };
-
-          const failedEvent = {
-            transactionMeta: {
-              id: 'non-existent-tx',
-              hash: '0xabcdef123456',
-              status: 'failed',
-              error: { message: 'Failed' },
-              txParams: { from: '0x123', to: '0x456', value: '0x0' },
-            },
-          };
-
-          messenger.publish(
-            'TransactionController:transactionSubmitted',
-            // @ts-ignore
-            submittedEvent,
-          );
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            confirmedEvent,
-          );
-          messenger.publish(
-            'TransactionController:transactionFailed',
-            // @ts-ignore
-            failedEvent,
-          );
-
-          // Assert - Verify state unchanged
-          expect(controller.state.depositStatus).toBe('idle');
-          expect(controller.state.currentDepositTxHash).toBe(null);
-          expect(controller.state.activeDepositTransactions).toEqual({});
-        });
-      });
-    });
-
-    describe('updatePositionTPSL', () => {
-      it('should update position TP/SL successfully', async () => {
-        // Arrange
-        mockHyperLiquidProvider.updatePositionTPSL.mockResolvedValue({
-          success: true,
-          orderId: 'tp:123,sl:456',
-        });
-
-        const params = {
-          coin: 'ETH',
-          takeProfitPrice: '3500',
-          stopLossPrice: '2500',
-        };
-
-        await withController(async ({ controller }) => {
-          // Act
-          const result = await controller.updatePositionTPSL(params);
-
-          // Assert
-          expect(result).toEqual({
-            success: true,
-            orderId: 'tp:123,sl:456',
-          });
-          expect(
-            mockHyperLiquidProvider.updatePositionTPSL,
-          ).toHaveBeenCalledWith(params);
-        });
-      });
-
-      it('should handle TP/SL update errors', async () => {
-        // Arrange
-        mockHyperLiquidProvider.updatePositionTPSL.mockResolvedValue({
-          success: false,
-          error: 'No position found',
-        });
-
-        const params = {
-          coin: 'BTC',
-          takeProfitPrice: '70000',
-        };
-
-        await withController(async ({ controller }) => {
-          // Act
-          const result = await controller.updatePositionTPSL(params);
-
-          // Assert
-          expect(result).toEqual({
-            success: false,
-            error: 'No position found',
-          });
-        });
-      });
-
-      it('should throw error when provider is not initialized', async () => {
-        // Arrange
-        const params = {
-          coin: 'ETH',
-          stopLossPrice: '2000',
-        };
-
-        await withController(async ({ controller }) => {
-          // Force controller to be uninitialized
-          // @ts-ignore - Accessing private property for testing
-          controller.isInitialized = false;
-
-          // Act & Assert
-          await expect(controller.updatePositionTPSL(params)).rejects.toThrow();
-        });
       });
     });
   });

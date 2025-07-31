@@ -1,5 +1,5 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
@@ -10,11 +10,11 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.GET_QUOTES);
   }
 
-  get getNewQuotes(): DetoxElement {
+  get getNewQuotes() {
     return Matchers.getElementByText(QuoteViewSelectorText.GET_NEW_QUOTES);
   }
 
-  get cancelButton(): DetoxElement {
+  get cancelButton() {
     return Matchers.getElementByText(QuoteViewSelectorText.CANCEL);
   }
 
@@ -40,52 +40,48 @@ class QuoteView {
     for (const digit of amount) {
       const button = Matchers.getElementByText(digit);
       await Gestures.waitAndTap(button, {
-        elemDescription: `Digit ${digit} in Swap Amount`,
+        delayBeforeTap: 500,
       });
     }
   }
 
   async tapOnSelectSourceToken() {
     await Gestures.waitAndTap(this.sourceToken, {
-      elemDescription: 'Source Token in Quote View',
+      delayBeforeTap: 1000,
     });
   }
 
   async tapOnSelectDestToken() {
     await Gestures.waitAndTap(this.destToken, {
-      elemDescription: 'Destination Token in Quote View',
+      delayBeforeTap: 1000,
     });
   }
 
   async tapSearchToken() {
     await Gestures.waitAndTap(this.searchToken, {
-      elemDescription: 'Search Token in Quote View',
+      delayBeforeTap: 1000,
     });
   }
 
   async typeSearchToken(symbol: string) {
-    await Gestures.typeText(this.searchToken, symbol, {
-      elemDescription: `Search Token with symbol ${symbol}`,
-    });
+    await Gestures.typeTextAndHideKeyboard(this.searchToken, symbol);
   }
 
   async selectToken(symbol: string, index: number = 1): Promise<void> {
     const token = Matchers.getElementByText(symbol, index);
     await Gestures.waitAndTap(token, {
-      elemDescription: `Token with symbol ${symbol} at index ${index}`,
+      delayBeforeTap: 1000,
     });
   }
 
-  async tapOnGetQuotes(): Promise<void> {
+  async tapOnGetQuotes() {
     await Gestures.waitAndTap(this.getQuotes, {
-      elemDescription: 'Get Quotes Button in Quote View',
+      delayBeforeTap: 1000,
     });
   }
 
-  async tapOnCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButton, {
-      elemDescription: 'Cancel Button in Quote View',
-    });
+  async tapOnCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 

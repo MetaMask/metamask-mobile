@@ -130,36 +130,52 @@ async function handleUniversalLink({
   if (!shouldProceed) {
     return false;
   }
-  const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
+
   if (
     action === SUPPORTED_ACTIONS.BUY_CRYPTO ||
     action === SUPPORTED_ACTIONS.BUY
   ) {
-    const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    const rampPath = urlObj.href
+      .replace(
+        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY_CRYPTO}`,
+        '',
+      )
+      .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`, '');
     instance._handleBuyCrypto(rampPath);
   } else if (
     action === SUPPORTED_ACTIONS.SELL_CRYPTO ||
     action === SUPPORTED_ACTIONS.SELL
   ) {
-    const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    const rampPath = urlObj.href
+      .replace(
+        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SELL_CRYPTO}`,
+        '',
+      )
+      .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SELL}`, '');
     instance._handleSellCrypto(rampPath);
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     instance._handleOpenHome();
     return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
-    const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    const swapPath = urlObj.href.replace(
+      `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${SUPPORTED_ACTIONS.SWAP}`,
+      '',
+    );
     instance._handleSwap(swapPath);
     return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
-    const deeplinkUrl = urlObj.href.replace(
-      `${BASE_URL_ACTION}/`,
-      PREFIXES[ACTIONS.DAPP],
-    );
-    instance._handleBrowserUrl(deeplinkUrl, browserCallBack);
+    // Normal links (same as dapp)
+    instance._handleBrowserUrl(urlObj.href, browserCallBack);
   } else if (action === SUPPORTED_ACTIONS.SEND) {
     const deeplinkUrl = urlObj.href
-      .replace(`${BASE_URL_ACTION}/`, PREFIXES[ACTIONS.SEND])
-      .replace(BASE_URL_ACTION, PREFIXES[ACTIONS.SEND]);
+      .replace(
+        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}/`,
+        PREFIXES[ACTIONS.SEND],
+      )
+      .replace(
+        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`,
+        PREFIXES[ACTIONS.SEND],
+      );
     // loops back to open the link with the right protocol
     instance.parse(deeplinkUrl, { origin: source });
     return;

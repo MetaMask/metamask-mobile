@@ -1,42 +1,38 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import { ShareAddressIds } from '../../selectors/MultichainAccounts/ShareAddress.selectors';
 
 class ShareAddress {
-  get container(): DetoxElement {
+  get container() {
     return Matchers.getElementByID(ShareAddressIds.SHARE_ADDRESS_CONTAINER);
   }
 
-  get qrCode(): DetoxElement {
+  get qrCode() {
     return Matchers.getElementByID(ShareAddressIds.SHARE_ADDRESS_QR_CODE);
   }
 
-  get accountAddress(): DetoxElement {
+  get accountAddress() {
     return Matchers.getElementByID(
       ShareAddressIds.SHARE_ADDRESS_ACCOUNT_ADDRESS,
     );
   }
 
-  get copyButton(): DetoxElement {
+  get copyButton() {
     return Matchers.getElementByID(ShareAddressIds.SHARE_ADDRESS_COPY_BUTTON);
   }
 
-  get viewOnExplorerButton(): DetoxElement {
+  get viewOnExplorerButton() {
     return Matchers.getElementByID(
       ShareAddressIds.SHARE_ADDRESS_VIEW_ON_EXPLORER_BUTTON,
     );
   }
 
-  async tapCopyButton(): Promise<void> {
-    return await Gestures.waitAndTap(this.copyButton, {
-      elemDescription: 'Copy Button in Share Address',
-    });
+  async tapCopyButton() {
+    return await Gestures.waitAndTap(this.copyButton);
   }
 
-  async tapViewOnExplorerButton(): Promise<void> {
-    await Gestures.waitAndTap(this.viewOnExplorerButton, {
-      elemDescription: 'View on Explorer Button in Share Address',
-    });
+  async tapViewOnExplorerButton() {
+    await Gestures.waitAndTap(this.viewOnExplorerButton);
   }
 }
 

@@ -291,7 +291,7 @@ describe('TransactionDetails', () => {
           });
         mocks.mockProps.networkId = '0x1';
       },
-      buttonText: 'View on Etherscan',
+      buttonText: 'VIEW ON Etherscan',
       expectedUrl: 'https://etherscan.io/tx/0x3',
     });
   });
@@ -308,7 +308,7 @@ describe('TransactionDetails', () => {
           });
         mocks.mockProps.networkId = '0xe708';
       },
-      buttonText: 'View on Lineascan',
+      buttonText: 'VIEW ON Lineascan',
       expectedUrl: 'https://lineascan.build/tx/0x3',
     });
   });
@@ -325,7 +325,7 @@ describe('TransactionDetails', () => {
           });
         mocks.mockProps.networkId = '0xaa36a7';
       },
-      buttonText: 'View on Sepolia',
+      buttonText: 'VIEW ON Sepolia',
       expectedUrl: 'https://sepolia.etherscan.io/tx/0x3',
     });
   });
@@ -343,7 +343,7 @@ describe('TransactionDetails', () => {
           });
         mocks.mockProps.networkId = '0x1337';
       },
-      buttonText: 'View on Custom-block-explorer',
+      buttonText: 'VIEW ON Custom-block-explorer',
       expectedUrl: 'https://custom-block-explorer.net/tx/0x3',
     });
   });

@@ -290,7 +290,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             accessibilityRole="text"
             style={
               {
-                "color": "#b7bbc8",
+                "color": "#9ca1af",
                 "fontFamily": "Geist Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
@@ -656,7 +656,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             accessibilityRole="text"
             style={
               {
-                "color": "#b7bbc8",
+                "color": "#9ca1af",
                 "fontFamily": "Geist Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,

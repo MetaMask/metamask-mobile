@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Browser from './BrowserView';
-import Matchers from '../../framework/Matchers';
+import Matchers from '../../utils/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import {
   TestSnapViewSelectorWebIDS,
@@ -9,40 +9,39 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
 } from '../../selectors/Browser/TestSnaps.selectors';
-import Gestures from '../../framework/Gestures';
+import Gestures from '../../utils/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../utils/Assertions';
 import { IndexableWebElement } from 'detox/detox';
-import Utilities from '../../framework/Utilities';
-import LegacyGestures from '../../utils/Gestures';
+import Utilities from '../../utils/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.25.0/';
 
 class TestSnaps {
-  get getConnectSnapButton(): DetoxElement {
+  get getConnectSnapButton() {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
   }
 
-  get getApproveSnapPermissionsRequestButton(): DetoxElement {
+  get getApproveSnapPermissionsRequestButton() {
     return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE);
   }
 
-  get getConnectSnapInstallOkButton(): DetoxElement {
+  get getConnectSnapInstallOkButton() {
     return Matchers.getElementByID(SNAP_INSTALL_OK);
   }
 
-  get getApproveSignRequestButton(): DetoxElement {
+  get getApproveSignRequestButton() {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
     );
   }
 
-  get confirmSignatureButton(): DetoxElement {
+  get confirmSignatureButton() {
     return Matchers.getElementByID(
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
@@ -51,7 +50,7 @@ class TestSnaps {
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
-  ): Promise<void> {
+  ) {
     const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
@@ -64,7 +63,7 @@ class TestSnaps {
   async checkResultSpanIncludes(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
-  ): Promise<void> {
+  ) {
     const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
@@ -76,14 +75,12 @@ class TestSnaps {
     }
   }
 
-  async navigateToTestSnap(): Promise<void> {
+  async navigateToTestSnap() {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
   }
 
-  async tapButton(
-    buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
-  ): Promise<void> {
+  async tapButton(buttonLocator: keyof typeof TestSnapViewSelectorWebIDS) {
     const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapViewSelectorWebIDS[buttonLocator],
@@ -92,10 +89,7 @@ class TestSnaps {
     await Gestures.tapWebElement(webElement);
   }
 
-  async getOptionValueByText(
-    webElement: IndexableWebElement,
-    text: string,
-  ): Promise<string | null> {
+  async getOptionValueByText(webElement: IndexableWebElement, text: string) {
     return await webElement.runScript(
       (el, searchText) => {
         if (!el?.options) return null;
@@ -111,7 +105,7 @@ class TestSnaps {
   async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
-  ): Promise<void> {
+  ) {
     const webElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       EntropyDropDownSelectorWebIDS[selector],
@@ -128,25 +122,14 @@ class TestSnaps {
     );
   }
 
-  async installSnap(
-    buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
-  ): Promise<void> {
+  async installSnap(buttonLocator: keyof typeof TestSnapViewSelectorWebIDS) {
     await this.tapButton(buttonLocator);
 
-    await Gestures.tap(this.getConnectSnapButton, {
-      elemDescription: 'Connect Snap button',
-      waitForElementToDisappear: true,
-    });
+    await Gestures.waitAndTap(this.getConnectSnapButton);
 
-    await Gestures.tap(this.getApproveSnapPermissionsRequestButton, {
-      elemDescription: 'Approve permission for Snap button',
-      waitForElementToDisappear: true,
-    });
+    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton);
 
-    await Gestures.tap(this.getConnectSnapInstallOkButton, {
-      elemDescription: 'OK button',
-      waitForElementToDisappear: true,
-    });
+    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton);
   }
 
   async fillMessage(
@@ -157,23 +140,22 @@ class TestSnaps {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
     ) as Promise<IndexableWebElement>;
-    // New gestures currently don't support web elements
-    await LegacyGestures.typeInWebElement(webElement, message);
+    await Gestures.typeInWebElement(webElement, message);
   }
 
   async approveSignRequest() {
-    await Gestures.tap(this.getApproveSignRequestButton);
+    await Gestures.waitAndTap(this.getApproveSignRequestButton);
   }
 
   async approveNativeConfirmation() {
-    await Gestures.tap(this.confirmSignatureButton);
+    await Gestures.waitAndTap(this.confirmSignatureButton);
   }
 
   async waitForWebSocketUpdate(state: {
     open: boolean;
     origin: string | null;
     blockNumber: string | null;
-  }): Promise<void> {
+  }) {
     const resultElement = (await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
@@ -184,7 +166,6 @@ class TestSnaps {
         try {
           await this.tapButton('getWebSocketState');
 
-          // eslint-disable-next-line no-restricted-syntax
           await TestHelpers.delay(250);
 
           const text = await resultElement.getText();

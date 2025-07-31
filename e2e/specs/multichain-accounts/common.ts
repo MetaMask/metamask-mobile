@@ -1,8 +1,8 @@
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+} from '../../fixtures/fixture-builder';
+import { withFixtures } from '../../fixtures/fixture-helper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
@@ -33,7 +33,7 @@ export const withMultichainAccountDetailsEnabled = async (
   testFn: () => Promise<void>,
 ) => {
   const testSpecificMock = {
-    GET: [mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails()],
+    GET: [mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails],
   };
   return await withFixtures(
     {

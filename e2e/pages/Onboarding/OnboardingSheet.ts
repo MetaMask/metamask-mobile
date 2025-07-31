@@ -1,46 +1,40 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import { OnboardingSheetSelectorIDs } from '../../selectors/Onboarding/OnboardingSheet.selectors';
 
 class OnboardingSheet {
-  get container(): DetoxElement {
+  get container() {
     return Matchers.getElementByID(OnboardingSheetSelectorIDs.CONTAINER_ID);
   }
 
-  get googleLoginButton(): DetoxElement {
+  get googleLoginButton() {
     return Matchers.getElementByID(
       OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON,
     );
   }
 
-  get appleLoginButton(): DetoxElement {
+  get appleLoginButton() {
     return Matchers.getElementByID(
       OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON,
     );
   }
 
-  get importSeedButton(): DetoxElement {
+  get importSeedButton() {
     return Matchers.getElementByID(
       OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON,
     );
   }
 
-  async tapGoogleLoginButton(): Promise<void> {
-    await Gestures.waitAndTap(this.googleLoginButton, {
-      elemDescription: 'Google Login Button in Onboarding Sheet',
-    });
+  async tapGoogleLoginButton() {
+    await Gestures.waitAndTap(this.googleLoginButton);
   }
 
-  async tapAppleLoginButton(): Promise<void> {
-    await Gestures.waitAndTap(this.appleLoginButton, {
-      elemDescription: 'Apple Login Button in Onboarding Sheet',
-    });
+  async tapAppleLoginButton() {
+    await Gestures.waitAndTap(this.appleLoginButton);
   }
 
-  async tapImportSeedButton(): Promise<void> {
-    await Gestures.waitAndTap(this.importSeedButton, {
-      elemDescription: 'Import Seed Button in Onboarding Sheet',
-    });
+  async tapImportSeedButton() {
+    await Gestures.waitAndTap(this.importSeedButton);
   }
 }
 

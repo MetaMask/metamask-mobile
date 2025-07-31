@@ -6,9 +6,6 @@ import SolanaWalletSnap from '@metamask/solana-wallet-snap/dist/preinstalled-sna
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import BitcoinWalletSnap from '@metamask/bitcoin-wallet-snap/dist/preinstalled-snap.json';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(flask)
-import PreinstalledExampleSnap from '@metamask/preinstalled-example-snap/dist/preinstalled-snap.json';
-///: END:ONLY_INCLUDE_IF
 
 const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([
   MessageSigningSnap as unknown as PreinstalledSnap,
@@ -17,9 +14,6 @@ const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   BitcoinWalletSnap as unknown as PreinstalledSnap,
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(flask)
-  PreinstalledExampleSnap as unknown as PreinstalledSnap,
   ///: END:ONLY_INCLUDE_IF
 ]);
 

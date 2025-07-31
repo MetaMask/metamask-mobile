@@ -4,11 +4,12 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
   MultichainWalletSnapFactory,
-  WALLET_SNAP_MAP,
   WalletClientType,
 } from '../../core/SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF
 import {
   endPerformanceTrace,
   startPerformanceTrace,
@@ -83,6 +84,8 @@ export async function importNewSecretRecoveryPhrase(
 
   const { SeedlessOnboardingController } = Engine.context;
 
+  let discoveredAccountsCount = 0;
+
   // TODO: to use loginCompleted
   if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly
@@ -130,17 +133,15 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
-  const discoveredAccountsCount = (
-    await Promise.all(
-      Object.values(WalletClientType).map(async (clientType) => {
-        const snapClient = MultichainWalletSnapFactory.createClient(clientType);
-        return await snapClient.addDiscoveredAccounts(
-          newKeyring.id,
-          WALLET_SNAP_MAP[clientType].discoveryScope,
-        );
-      }),
-    )
-  ).reduce((acc, count) => acc + count || 0, 0);
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  const multichainClient = MultichainWalletSnapFactory.createClient(
+    WalletClientType.Solana,
+  );
+
+  discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
+    newKeyring.id,
+  );
+  ///: END:ONLY_INCLUDE_IF
 
   if (shouldSelectAccount) {
     Engine.setSelectedAddress(newAccountAddress);

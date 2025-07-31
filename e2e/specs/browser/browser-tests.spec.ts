@@ -1,7 +1,7 @@
 import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { withFixtures } from '../../fixtures/fixture-helper';
 import ExternalSites from '../../resources/externalsites.json';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -18,10 +18,12 @@ const getHostFromURL = (url: string): string => {
   }
 };
 
+const fixture = new FixtureBuilder().build();
+
 const withBrowser = async (fn: () => Promise<void>) => {
   await withFixtures(
     {
-      fixture: new FixtureBuilder().build(),
+      fixture,
       restartDevice: true,
     },
     async () => {
@@ -45,6 +47,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
 
       await Browser.tapUrlInputBox();
       await Browser.navigateToURL(ExternalSites.TEST_DAPP);
+      await Browser.waitForBrowserPageToLoad();
       await Assertions.expectElementToHaveText(
         Browser.urlInputBoxID,
         getHostFromURL(ExternalSites.TEST_DAPP),
@@ -60,6 +63,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await Browser.tapBottomSearchBar();
       // Clear text & Navigate to URL
       await Browser.navigateToURL(ExternalSites.INVALID_URL);
+      await Browser.waitForBrowserPageToLoad();
       await Browser.tapReturnHomeButton();
       await Assertions.expectElementToNotHaveText(
         Browser.urlInputBoxID,
@@ -71,11 +75,12 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     });
   });
 
-  it.skip('should test phishing sites', async () => {
+  it('should test phishing sites', async () => {
     await withBrowser(async () => {
       await Browser.tapBottomSearchBar();
       // Clear text & Navigate to URL
       await Browser.navigateToURL(ExternalSites.PHISHING_SITE);
+      await Browser.waitForBrowserPageToLoad();
       await Assertions.expectElementToBeVisible(Browser.backToSafetyButton, {
         description: 'Back to safety button is visible',
       });

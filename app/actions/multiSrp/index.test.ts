@@ -12,7 +12,6 @@ import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 const testAddress = '0x123';
 const mockExpectedAccount = createMockInternalAccount(
@@ -147,17 +146,10 @@ describe('MultiSRP Actions', () => {
         numberOfAccounts: 1,
       });
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
-      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith(
-        'keyring-id-123',
-        BtcScope.Mainnet,
-      );
-      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith(
-        'keyring-id-123',
-        SolScope.Mainnet,
-      );
+      expect(mockAddDiscoveredAccounts).toHaveBeenCalledWith('keyring-id-123');
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 10,
+        discoveredAccountsCount: 5,
       });
     });
 
@@ -295,7 +287,7 @@ describe('MultiSRP Actions', () => {
       );
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 6,
+        discoveredAccountsCount: 3,
       });
     });
 
@@ -339,7 +331,7 @@ describe('MultiSRP Actions', () => {
       expect(mockAddNewSecretData).not.toHaveBeenCalled();
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 4, // bitcoin + solana
+        discoveredAccountsCount: 2, // bitcoin + solana
       });
     });
 
@@ -363,7 +355,7 @@ describe('MultiSRP Actions', () => {
       });
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 2, // bitcoin + solana
+        discoveredAccountsCount: 1,
       });
     });
   });

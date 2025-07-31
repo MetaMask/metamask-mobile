@@ -17,7 +17,6 @@ import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
-import { useConfirmActions } from '../useConfirmActions';
 
 const HEX_ZERO = '0x0';
 
@@ -30,7 +29,6 @@ export const useInsufficientBalanceAlert = () => {
     transactionMetadata?.txParams?.from as string,
   );
   const { maxValueMode } = useSelector(selectTransactionState);
-  const { onReject } = useConfirmActions();
 
   return useMemo(() => {
     if (!transactionMetadata || maxValueMode) {
@@ -68,7 +66,6 @@ export const useInsufficientBalanceAlert = () => {
           }),
           callback: () => {
             navigation.navigate(...createBuyNavigationDetails());
-            onReject(undefined, true);
           },
         },
         isBlocking: true,
@@ -87,7 +84,6 @@ export const useInsufficientBalanceAlert = () => {
     maxValueMode,
     navigation,
     networkConfigurations,
-    onReject,
     transactionMetadata,
   ]);
 };

@@ -1,18 +1,29 @@
+'use strict';
+
 import { SmokeConfirmations } from '../../tags';
+import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
+
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
-import { DappVariants } from '../../framework/Constants';
 
 describe(SmokeConfirmations('Failing contracts'), () => {
   const FAILING_CONTRACT = SMART_CONTRACTS.FAILING;
+
+  beforeAll(async () => {
+    jest.setTimeout(150000);
+    await TestHelpers.reverseServerPort();
+  });
 
   it('sends a failing contract transaction', async () => {
     const testSpecificMock = {
@@ -23,11 +34,7 @@ describe(SmokeConfirmations('Failing contracts'), () => {
     };
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
@@ -35,11 +42,14 @@ describe(SmokeConfirmations('Failing contracts'), () => {
           )
           .build(),
         restartDevice: true,
-        smartContracts: [FAILING_CONTRACT],
+        ganacheOptions: defaultGanacheOptions,
+        smartContract: FAILING_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
-        const failingAddress = await contractRegistry?.getContractAddress(
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
+        const failingAddress = await contractRegistry.getContractAddress(
           FAILING_CONTRACT,
         );
         await loginToApp();
@@ -52,6 +62,7 @@ describe(SmokeConfirmations('Failing contracts'), () => {
 
         // Send a failing transaction
         await TestDApp.tapSendFailingTransactionButton();
+        await TestHelpers.delay(3000);
 
         await TestDApp.tapConfirmButton();
 
@@ -59,10 +70,10 @@ describe(SmokeConfirmations('Failing contracts'), () => {
         await TabBarComponent.tapActivity();
 
         // Assert the failed transaction is displayed
-        await Assertions.expectTextDisplayed(
+        await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION,
         );
-        await Assertions.expectTextDisplayed(
+        await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.FAILED_TEXT,
         );
       },

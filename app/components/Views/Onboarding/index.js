@@ -533,19 +533,12 @@ class Onboarding extends PureComponent {
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
       if (
         error.code !== OAuthErrorType.UserCancelled &&
-        error.code !== OAuthErrorType.UserDismissed &&
-        error.code !== OAuthErrorType.GoogleLoginError &&
-        error.code !== OAuthErrorType.AppleLoginError
+        error.code !== OAuthErrorType.UserDismissed
       ) {
         this.handleOAuthLoginError(error);
         return;
       }
-      if (
-        error.code === OAuthErrorType.UserCancelled ||
-        error.code === OAuthErrorType.UserDismissed ||
-        error.code === OAuthErrorType.GoogleLoginError ||
-        error.code === OAuthErrorType.AppleLoginError
-      ) {
+      if (error.code === OAuthErrorType.UserCancelled) {
         // QA: do not show error sheet if user cancelled
         return;
       }

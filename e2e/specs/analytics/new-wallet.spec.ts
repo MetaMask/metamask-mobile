@@ -3,7 +3,9 @@
 import { SmokeWalletPlatform } from '../../tags';
 import { CreateNewWallet } from '../../viewHelper';
 import TestHelpers from '../../helpers';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../utils/Assertions';
+import { withFixtures } from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
 import { getEventsPayloads, onboardingEvents } from './helpers';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
@@ -11,9 +13,7 @@ import {
   INFURA_MOCK_BALANCE_1_ETH,
 } from '../../api-mocking/mock-responses/balance-mocks';
 import SoftAssert from '../../utils/SoftAssert';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { TestSpecificMock } from '../../framework';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { MockttpServer } from 'mockttp';
 
 const balanceMock = getBalanceMocks([
   {
@@ -24,7 +24,7 @@ const balanceMock = getBalanceMocks([
 
 const testSpecificMock = {
   POST: [...balanceMock, mockEvents.POST.segmentTrack],
-} as TestSpecificMock;
+};
 
 const eventNames = [
   onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
@@ -52,14 +52,8 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
         testSpecificMock,
       },
-      async ({ mockServer }) => {
+      async ({ mockServer }: { mockServer: MockttpServer }) => {
         await CreateNewWallet();
-
-        if (!mockServer) {
-          throw new Error(
-            'Mock server is not defined, check testSpecificMock setup',
-          );
-        }
 
         const events = await getEventsPayloads(mockServer, eventNames);
 
@@ -87,13 +81,9 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           (event) => event.event === 'Wallet Setup Completed',
         );
 
-        const walletSecurityReminderDismissedEvent = events.find(
-          (event) => event.event === 'Wallet Security Reminder Dismissed',
-        );
-
         const checkEventCount = softAssert.checkAndCollect(
-          () => Assertions.checkIfArrayHasLength(events, 8),
-          'Expected 8 events for new wallet onboarding',
+          () => Assertions.checkIfArrayHasLength(events, 7),
+          'Expected 6 events for new wallet onboarding',
         );
 
         const checkAnalyticsPreferenceSelected = softAssert.checkAndCollect(
@@ -155,6 +145,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           Assertions.checkIfValueIsDefined(walletCreatedEvent);
           Assertions.checkIfObjectsMatch(walletCreatedEvent!.properties, {
             biometrics_enabled: false,
+            password_strength: 'weak',
           });
         }, 'Wallet Created: Should be present with correct properties');
 
@@ -173,22 +164,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           'Wallet Setup Completed: Should be present with correct properties',
         );
 
-        const checkWalletSecurityReminderDismissed = softAssert.checkAndCollect(
-          async () => {
-            Assertions.checkIfValueIsDefined(
-              walletSecurityReminderDismissedEvent,
-            );
-            Assertions.checkIfObjectsMatch(
-              walletSecurityReminderDismissedEvent!.properties,
-              {
-                wallet_protection_required: false,
-                source: 'Backup Alert',
-              },
-            );
-          },
-          'Wallet Security Reminder Dismissed: Should be present with correct properties',
-        );
-
         await Promise.all([
           checkEventCount,
           checkAnalyticsPreferenceSelected,
@@ -198,7 +173,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           checkWalletCreationAttempted,
           checkWalletCreated,
           checkWalletSetupCompleted,
-          checkWalletSecurityReminderDismissed,
         ]);
 
         softAssert.throwIfErrors();
@@ -213,16 +187,10 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
         testSpecificMock,
       },
-      async ({ mockServer }) => {
+      async ({ mockServer }: { mockServer: MockttpServer }) => {
         await CreateNewWallet({
           optInToMetrics: false,
         });
-
-        if (!mockServer) {
-          throw new Error(
-            'Mock server is not defined, check testSpecificMock setup',
-          );
-        }
 
         const events = await getEventsPayloads(mockServer);
         await Assertions.checkIfArrayHasLength(events, 0);

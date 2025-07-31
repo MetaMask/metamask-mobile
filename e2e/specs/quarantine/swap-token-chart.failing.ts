@@ -22,12 +22,11 @@ import Assertions from '../../utils/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Ganache from '../../../app/util/test/ganache';
-import { testSpecificMock } from '../swaps/helpers/constants';
+import { localNodeOptions, testSpecificMock } from '../swaps/helpers/constants';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from '../swaps/helpers/swapUnifiedUI';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
 import { startMockServer } from '../swaps/helpers/swap-mocks';
-import { defaultGanacheOptions } from '../../framework/Constants';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
@@ -37,7 +36,7 @@ describe(Regression('Swap from Token view'), (): void => {
 
   beforeAll(async (): Promise<void> => {
     localNode = new Ganache();
-    await localNode.start({ ...defaultGanacheOptions, chainId: 1 });
+    await localNode.start(localNodeOptions);
 
     const mockServerPort = getMockServerPort();
     mockServer = await startMockServer(testSpecificMock, mockServerPort);

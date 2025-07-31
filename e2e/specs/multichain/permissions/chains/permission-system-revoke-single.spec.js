@@ -1,14 +1,14 @@
+'use strict';
 import TestHelpers from '../../../../helpers';
 import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
-import Assertions from '../../../../framework/Assertions';
-import { DappVariants } from '../../../../framework/Constants';
+import Assertions from '../../../../utils/Assertions';
 
 describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {
@@ -19,11 +19,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
   it('removes chain access permission while maintaining account connections', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
           .withChainPermission()
@@ -34,7 +30,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         // Step 1: Navigate to browser view
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+        await Assertions.checkIfVisible(Browser.browserScreenID);
 
         // Step 2: Navigate to test dApp and open network settings
         await Browser.navigateToTestDApp();
@@ -51,16 +47,10 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
 
         // Step 4: Verify UI state after permission removal
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToNotBeVisible(
-          ConnectedAccountsModal.title,
-        );
-        await Assertions.expectElementToBeVisible(
-          NetworkListModal.networkScroll,
-        );
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.swipeToDismissModal();
-        await Assertions.expectElementToNotBeVisible(
-          NetworkListModal.networkScroll,
-        );
+        await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
       },
     );
   });

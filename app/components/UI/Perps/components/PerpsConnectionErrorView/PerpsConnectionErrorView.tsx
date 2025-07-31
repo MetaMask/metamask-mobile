@@ -15,7 +15,7 @@ import ScreenView from '../../../../Base/ScreenView';
 import { createStyles } from './PerpsConnectionErrorView.styles';
 
 interface PerpsConnectionErrorViewProps {
-  error: string | Error;
+  error: string;
   onRetry: () => void;
   isRetrying?: boolean;
 }
@@ -52,7 +52,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
             color={TextColor.Muted}
             style={styles.errorMessage}
           >
-            {error instanceof Error ? error.message : error}
+            {error}
           </Text>
         </View>
 

@@ -82,11 +82,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 
-  const { earnTokenPair, getTokenSnapshot, tokenSnapshot } =
+  const { outputToken, earnToken, getTokenSnapshot, tokenSnapshot } =
     useEarnToken(token);
-
-  const earnToken = earnTokenPair?.earnToken;
-  const outputToken = earnTokenPair?.outputToken;
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const useBlockieIcon = useSelector(
@@ -333,32 +330,34 @@ const EarnLendingWithdrawalConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           if (!earnToken) {
-            try {
-              const tokenNetworkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId: tokenNetworkClientId,
-              }).catch(console.error);
-            } catch (error) {
+            const tokenNetworkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                tokenSnapshot?.chainId as Hex,
+              );
+            Engine.context.TokensController.addToken({
+              decimals: tokenSnapshot?.token?.decimals || 0,
+              symbol: tokenSnapshot?.token?.symbol || '',
+              address: tokenSnapshot?.token?.address || '',
+              name: tokenSnapshot?.token?.name || '',
+              networkClientId: tokenNetworkClientId,
+            }).catch((error) => {
               console.error(
                 error,
-                `error adding counter-token for ${
-                  outputToken?.symbol || outputToken?.ticker || ''
-                } on confirmation`,
+                'error adding counter-token on confirmation',
               );
-            }
+            });
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, tokenSnapshot, earnToken, outputToken, navigation],
+    [
+      emitTxMetaMetric,
+      tokenSnapshot,
+      earnToken,
+      navigation,
+      outputToken?.chainId,
+    ],
   );
 
   // Guards

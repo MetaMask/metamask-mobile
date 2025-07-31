@@ -1,20 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Hex } from '@metamask/utils';
+import { add0x, Hex } from '@metamask/utils';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 
 import { useStyles } from '../../../../../../component-library/hooks';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import { TextFieldWithLabel } from '../../UI/text-field-with-label';
 import { strings } from '../../../../../../../locales/i18n';
-import { hexWEIToDecGWEI } from '../../../../../../util/conversions';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import {
+  hexWEIToDecGWEI,
+  decGWEIToHexWEI,
+} from '../../../../../../util/conversions';
 import { limitToMaximumDecimalPlaces } from '../../../../../../util/number';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { convertGasInputToHexWEI } from '../../../utils/gas';
 import { validateMaxBaseFee } from '../../../utils/validations/gas';
-import { TextFieldWithLabel } from '../../UI/text-field-with-label';
 import styleSheet from './max-base-fee-input.styles';
 
 const InfoLabel = ({ children }: { children: React.ReactNode }) => {
@@ -66,7 +68,7 @@ export const MaxBaseFeeInput = ({
     (text: string) => {
       validateMaxBaseFeeCallback(text);
       setValue(text);
-      const updatedMaxBaseFee = convertGasInputToHexWEI(text);
+      const updatedMaxBaseFee = add0x(decGWEIToHexWEI(text) as Hex);
       onChange(updatedMaxBaseFee);
     },
     [onChange, validateMaxBaseFeeCallback],

@@ -1,5 +1,5 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import { OnBoardingSelectors } from '../../selectors/swaps/OnBoarding.selectors';
 
 class Onboarding {
@@ -7,10 +7,8 @@ class Onboarding {
     return Matchers.getElementByText(OnBoardingSelectors.START_SWAPPING);
   }
 
-  async tapStartSwapping(): Promise<void> {
-    await Gestures.waitAndTap(this.startSwappingButton, {
-      elemDescription: 'Start Swapping Button in Onboarding',
-    });
+  async tapStartSwapping() {
+    await Gestures.waitAndTap(this.startSwappingButton);
   }
 }
 

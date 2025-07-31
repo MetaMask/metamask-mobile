@@ -7,7 +7,6 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { clearAllVaultBackups } from '../../../core/BackupVault';
 import { useMetrics } from '../useMetrics';
 import Engine from '../../../core/Engine';
-import { resetProviderToken as depositResetProviderToken } from '../../UI/Ramp/Deposit/utils/ProviderTokenVault';
 
 const useDeleteWallet = () => {
   const metrics = useMetrics();
@@ -20,8 +19,6 @@ const useDeleteWallet = () => {
       });
 
       Engine.context.SeedlessOnboardingController.clearState();
-
-      await depositResetProviderToken();
 
       await clearAllVaultBackups();
       await Authentication.lockApp();

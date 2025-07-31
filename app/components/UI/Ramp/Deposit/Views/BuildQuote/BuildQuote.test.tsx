@@ -6,10 +6,6 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import {
-  DEBIT_CREDIT_PAYMENT_METHOD,
-  WIRE_TRANSFER_PAYMENT_METHOD,
-} from '../../constants';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -29,7 +25,6 @@ const mockRouteAfterAuthentication = jest.fn();
 const mockNavigateToVerifyIdentity = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
-const mockUseAccountTokenCompatible = jest.fn();
 const mockTrackEvent = jest.fn();
 
 const createMockSDKReturn = (overrides = {}) => ({
@@ -79,22 +74,12 @@ jest.mock(
   () => () => mockUseDepositTokenExchange(),
 );
 
-jest.mock(
-  '../../hooks/useAccountTokenCompatible',
-  () => () => mockUseAccountTokenCompatible(),
-);
-
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
     routeAfterAuthentication: mockRouteAfterAuthentication,
     navigateToVerifyIdentity: mockNavigateToVerifyIdentity,
   })),
 }));
-
-const mockUsePaymentMethods = jest
-  .fn()
-  .mockReturnValue([DEBIT_CREDIT_PAYMENT_METHOD, WIRE_TRANSFER_PAYMENT_METHOD]);
-jest.mock('../../hooks/usePaymentMethods', () => () => mockUsePaymentMethods());
 
 // Mock the analytics hook like in the aggregator test
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
@@ -130,7 +115,6 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
-    mockUseAccountTokenCompatible.mockReturnValue(true);
     // Ensure trackEvent mock is reset
     mockTrackEvent.mockClear();
   });
@@ -375,23 +359,6 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
-      });
-    });
-
-    it('navigates to incompatible token modal when user they are not compatible', async () => {
-      mockUseAccountTokenCompatible.mockReturnValue(false);
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          'DepositModals',
-          expect.objectContaining({
-            screen: 'IncompatibleAccountTokenModal',
-          }),
-        );
       });
     });
 

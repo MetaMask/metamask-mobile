@@ -42,7 +42,6 @@ const MOCK_ACCOUNT_1: Account = {
   caipAccountId: `eip155:0:${MOCK_ACCOUNTS[0].address}`,
   scopes: [EthScope.Eoa],
   isLoadingAccount: false,
-  snapId: undefined,
 };
 const MOCK_ACCOUNT_2: Account = {
   id: MOCK_ACCOUNTS[1].id,
@@ -58,7 +57,6 @@ const MOCK_ACCOUNT_2: Account = {
   caipAccountId: `eip155:0:${MOCK_ACCOUNTS[1].address}`,
   scopes: [EthScope.Eoa],
   isLoadingAccount: false,
-  snapId: undefined,
 };
 
 const MOCK_STORE_STATE = {

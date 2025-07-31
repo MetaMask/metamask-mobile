@@ -33,8 +33,6 @@ import { RecursivePartial } from '../../../core/Authentication/Authentication.te
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
 
-const mockEngine = jest.mocked(Engine);
-
 // Mock useMetrics with a dynamic isEnabled function
 const mockIsEnabled = jest.fn().mockReturnValue(true);
 jest.mock('../../hooks/useMetrics', () => {
@@ -66,6 +64,8 @@ jest.mock('../../../core/Engine', () => ({
     },
   },
 }));
+
+const mockEngine = jest.mocked(Engine);
 
 jest.mock('../../../util/mnemonic', () => ({
   uint8ArrayToMnemonic: jest.fn(),
@@ -109,10 +109,6 @@ jest.mock('../../../util/trace', () => {
     endTrace: (request: EndTraceRequest) => mockEndTrace(request),
   };
 });
-
-jest.mock('../../../multichain-accounts/AccountTreeInitService', () => ({
-  initializeAccountTree: jest.fn().mockResolvedValue(undefined),
-}));
 
 describe('Login test suite 2', () => {
   describe('handleVaultCorruption', () => {

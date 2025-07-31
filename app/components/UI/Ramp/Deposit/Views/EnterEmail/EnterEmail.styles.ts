@@ -13,7 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
       fontWeight: 'bold',
     },
     description: {
-      color: theme.colors.text.alternative,
+      color: theme.colors.text.muted,
     },
     error: {
       color: theme.colors.error.default,

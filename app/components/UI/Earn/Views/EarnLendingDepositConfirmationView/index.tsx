@@ -99,12 +99,8 @@ const EarnLendingDepositConfirmationView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { earnTokenPair, getTokenSnapshot, tokenSnapshot } = useEarnToken(
-    token as TokenI,
-  );
-
-  const earnToken = earnTokenPair?.earnToken;
-  const outputToken = earnTokenPair?.outputToken;
+  const { earnToken, outputToken, getTokenSnapshot, tokenSnapshot } =
+    useEarnToken(token as TokenI);
 
   const needsTokenAllowanceReset = useMemo(() => {
     if (!earnToken?.chainId || !earnToken?.symbol) return false;
@@ -418,26 +414,22 @@ const EarnLendingDepositConfirmationView = () => {
           endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
           if (!outputToken) {
-            try {
-              const networkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId,
-              }).catch(console.error);
-            } catch (error) {
+            const networkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                tokenSnapshot?.chainId as Hex,
+              );
+            Engine.context.TokensController.addToken({
+              decimals: tokenSnapshot?.token?.decimals || 0,
+              symbol: tokenSnapshot?.token?.symbol || '',
+              address: tokenSnapshot?.token?.address || '',
+              name: tokenSnapshot?.token?.name || '',
+              networkClientId,
+            }).catch((error) => {
               console.error(
                 error,
-                `error adding counter-token for ${
-                  earnToken?.symbol || earnToken?.ticker || ''
-                } on confirmation`,
+                'error adding counter-token on confirmation',
               );
-            }
+            });
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
@@ -452,7 +444,13 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, navigation, outputToken, earnToken, tokenSnapshot],
+    [
+      emitTxMetaMetric,
+      navigation,
+      outputToken,
+      tokenSnapshot,
+      earnToken?.chainId,
+    ],
   );
 
   const createTransactionEventListeners = useCallback(

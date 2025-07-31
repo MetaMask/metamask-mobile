@@ -122,10 +122,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
         <DeFiPositionsControlBar />
         <View style={styles.emptyView}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('defi_positions.no_visible_positions')}
-          </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('defi_positions.not_supported')}
+            {strings('defi_positions.no_positions')}
           </Text>
         </View>
       </View>

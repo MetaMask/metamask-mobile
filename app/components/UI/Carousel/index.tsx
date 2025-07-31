@@ -18,7 +18,7 @@ import {
   selectSelectedInternalAccount,
   selectLastSelectedSolanaAccount,
 } from '../../../selectors/accountsController';
-import { isEvmAccountType, SolAccountType } from '@metamask/keyring-api';
+import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
@@ -110,13 +110,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
       if (
         slide.id === 'solana' &&
         selectedAccount?.type === SolAccountType.DataAccount
-      ) {
-        return false;
-      }
-      if (
-        slide.id === 'smartAccount' &&
-        selectedAccount?.type &&
-        !isEvmAccountType(selectedAccount.type)
       ) {
         return false;
       }

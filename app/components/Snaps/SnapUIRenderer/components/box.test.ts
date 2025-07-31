@@ -39,7 +39,7 @@ describe('box UIComponentFactory', () => {
           key: 'mock-key',
           children: [
             {
-              key: expect.any(String),
+              key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_1',
               element: 'Text',
               children: 'Test content',
               props: {

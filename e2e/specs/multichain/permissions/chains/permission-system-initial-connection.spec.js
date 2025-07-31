@@ -1,44 +1,42 @@
+'use strict';
+import TestHelpers from '../../../../helpers';
 import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
-import Assertions from '../../../../framework/Assertions';
+import Assertions from '../../../../utils/Assertions';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
-import { DappVariants } from '../../../../framework/Constants';
 
 describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
+    await TestHelpers.reverseServerPort();
   });
 
   it('grants default permissions to single account and chain on first connect', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder().withPermissionController().build(),
         restartDevice: true,
       },
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+        await Assertions.checkIfVisible(Browser.browserScreenID);
 
         await Browser.navigateToTestDApp();
         await TestDApp.connect();
         await ConnectBottomSheet.tapConnectButton();
 
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
+        await Assertions.checkIfVisible(ConnectedAccountsModal.title);
       },
     );
   });
@@ -46,11 +44,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
   it('allows user to modify permitted chains before completing connection', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder().withPermissionController().build(),
         restartDevice: true,
       },
@@ -58,7 +52,8 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         // Initial setup: Login and navigate to test dapp
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+        await TestHelpers.delay(3000);
+        await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
         // First permission modification: Add Linea Sepolia
         await TestDApp.connect();
@@ -83,7 +78,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
 
         // Open network permissions menu
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
+        await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
@@ -93,7 +88,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         // - Deselecting both should show the disconnect all button
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
         await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
-        await Assertions.expectElementToBeVisible(
+        await Assertions.checkIfVisible(
           ConnectedAccountsModal.disconnectNetworksButton,
         );
       },

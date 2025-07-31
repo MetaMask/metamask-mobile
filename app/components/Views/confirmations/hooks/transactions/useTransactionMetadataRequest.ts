@@ -22,13 +22,3 @@ export function useTransactionMetadataRequest() {
 
   return transactionMetadata as TransactionMeta;
 }
-
-export function useTransactionMetadataOrThrow() {
-  const transactionMetadata = useTransactionMetadataRequest();
-
-  if (!transactionMetadata) {
-    throw new Error('Transaction approval request not found');
-  }
-
-  return transactionMetadata;
-}

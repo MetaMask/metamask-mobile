@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+'use strict';
 /**
  * E2E tests for wallet_notify API
  * Tests receiving notifications for subscribed events on specific chains
@@ -27,13 +29,17 @@
  * 4. Infer state by checking presence/absence of specific elements
  * 5. Check for state changes (empty → has notifications) to prove functionality
  */
+import TestHelpers from '../../helpers';
 import { SmokeMultiChainAPI } from '../../tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+} from '../../fixtures/fixture-helper';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import MultichainUtilities from '../../utils/MultichainUtilities';
-import Assertions from '../../framework/Assertions';
-import { DappVariants } from '../../framework/Constants';
+import Assertions from '../../utils/Assertions';
+import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
 
 describe(SmokeMultiChainAPI('wallet_notify'), () => {
   beforeEach(() => {
@@ -43,11 +49,7 @@ describe(SmokeMultiChainAPI('wallet_notify'), () => {
   it('should receive a notification through the Multichain API for the event subscribed to', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-          },
-        ],
+        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -57,6 +59,8 @@ describe(SmokeMultiChainAPI('wallet_notify'), () => {
         const networksToTest =
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
         await MultichainTestDApp.createSessionWithNetworks(networksToTest);
+
+        await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.METHOD_INVOCATION);
 
         const chainId = MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET;
 
@@ -78,6 +82,8 @@ describe(SmokeMultiChainAPI('wallet_notify'), () => {
         console.log('✅ Successfully subscribed to events');
 
         // Wait for notifications to arrive
+        await TestHelpers.delay(MULTICHAIN_TEST_TIMEOUTS.NOTIFICATION_WAIT);
+
         // Check if we have notifications now
         const hasNotifications = await MultichainTestDApp.hasNotifications();
 

@@ -1,23 +1,28 @@
+/* eslint-disable no-console */
+'use strict';
 /**
  * E2E tests for wallet_createSession API
  * Tests creating sessions with different scope combinations and verifying permissions
  */
-import { DappVariants } from '../../framework/Constants';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+  withFixtures,
+} from '../../fixtures/fixture-helper';
+import TestHelpers from '../../helpers';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import { SmokeMultiChainAPI } from '../../tags';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 
 describe(SmokeMultiChainAPI('wallet_createSession'), () => {
+  beforeEach(() => {
+    jest.setTimeout(150000);
+  });
+
   it('should create a session with Ethereum mainnet scope', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-          },
-        ],
+        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -28,6 +33,8 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM,
         );
 
+        // Wait for session creation and get the data separately
+        await TestHelpers.delay(1000);
         const sessionResult = await MultichainTestDApp.getSessionData();
 
         const assertions = MultichainUtilities.generateSessionAssertions(
@@ -66,11 +73,7 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
   it('should create a session with multiple EVM chains', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-          },
-        ],
+        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -81,6 +84,8 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
           MultichainUtilities.NETWORK_COMBINATIONS.ETHEREUM_POLYGON,
         );
 
+        // Wait for session creation and get the data separately
+        await TestHelpers.delay(1000);
         const sessionResult = await MultichainTestDApp.getSessionData();
 
         const assertions = MultichainUtilities.generateSessionAssertions(
@@ -119,11 +124,7 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
   it('should create a session with all available EVM networks', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-          },
-        ],
+        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -135,6 +136,7 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
         );
 
         // Wait for session creation and get the data separately
+        await TestHelpers.delay(1000);
         const sessionResult = await MultichainTestDApp.getSessionData();
 
         const assertions = MultichainUtilities.generateSessionAssertions(
@@ -173,11 +175,7 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
   it('should handle session creation with no networks selected', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-          },
-        ],
+        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -185,6 +183,9 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
         await MultichainTestDApp.setupAndNavigateToTestDapp('?autoMode=true');
 
         await MultichainTestDApp.createSessionWithNetworks([]);
+
+        // Note: For empty networks, there might not be a result to get
+        await TestHelpers.delay(1000);
 
         // Create a mock empty result for consistency
         const sessionResult = { success: false, sessionScopes: {} };
@@ -215,11 +216,7 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
   it('should get session information after creating a session', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-          },
-        ],
+        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -230,6 +227,8 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM,
         );
 
+        // Wait for session creation and get the data separately
+        await TestHelpers.delay(1000);
         const createResult = await MultichainTestDApp.getSessionData();
 
         const createAssertions = MultichainUtilities.generateSessionAssertions(
@@ -241,6 +240,7 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
           throw new Error('Initial session creation failed');
         }
 
+        await TestHelpers.delay(500);
         const getSessionResult = await MultichainTestDApp.getSessionData();
 
         const getAssertions = MultichainUtilities.generateSessionAssertions(
@@ -256,6 +256,7 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
           throw new Error('Ethereum scope not found in retrieved session');
         }
 
+        await TestHelpers.delay(500);
         const getSessionResult2 = await MultichainTestDApp.getSessionData();
 
         const getAssertions2 = MultichainUtilities.generateSessionAssertions(
@@ -280,11 +281,7 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
   it('should verify session contains expected chains using helper method', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-          },
-        ],
+        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -296,6 +293,8 @@ describe(SmokeMultiChainAPI('wallet_createSession'), () => {
 
         await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
+        // Wait for session creation and get the data separately
+        await TestHelpers.delay(1000);
         const sessionResult = await MultichainTestDApp.getSessionData();
 
         const assertions = MultichainUtilities.generateSessionAssertions(

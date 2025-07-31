@@ -17,7 +17,6 @@ import { NetworkAndOriginRow } from '../../rows/transactions/network-and-origin-
 import FromToRow from '../../rows/transactions/from-to-row';
 import GasFeesDetailsRow from '../../rows/transactions/gas-fee-details-row';
 import AdvancedDetailsRow from '../../rows/transactions/advanced-details-row';
-import { PayWithRow } from '../../rows/pay-with-row';
 
 const Transfer = () => {
   // Set navbar as first to prevent Android navigation flickering
@@ -52,7 +51,6 @@ const Transfer = () => {
       />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
-      {process.env.MM_CONFIRMATION_INTENTS === 'true' && <PayWithRow />}
     </View>
   );
 };

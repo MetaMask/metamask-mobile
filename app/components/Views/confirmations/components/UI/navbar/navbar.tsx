@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { colors as importedColors } from '../../../../../../styles/common';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
@@ -34,8 +33,8 @@ export function getNavbar({
     },
     headerStyle: {
       backgroundColor: theme.colors.background.alternative,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
+      // @ts-expect-error - null is the only way to remove the shadow but it's not typed
+      shadowOffset: null,
     },
   });
 

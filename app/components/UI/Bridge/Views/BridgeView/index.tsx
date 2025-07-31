@@ -508,7 +508,7 @@ const BridgeView = () => {
               >
                 <Keypad
                   style={styles.keypad}
-                  value={sourceAmount || '0'}
+                  value={sourceAmount}
                   onChange={handleKeypadChange}
                   currency={sourceToken?.symbol || 'ETH'}
                   decimals={sourceToken?.decimals || 18}

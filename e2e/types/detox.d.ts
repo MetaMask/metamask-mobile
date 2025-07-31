@@ -20,7 +20,6 @@ declare global {
 
   // Individual element types - useful for specific casting
   type IndexableNativeElement = Detox.IndexableNativeElement;
-  type IndexableWebElement = Detox.IndexableWebElement;
   type NativeElement = Detox.NativeElement;
   type SystemElement = Detox.SystemElement;
 

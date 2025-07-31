@@ -1101,6 +1101,7 @@
   },
   "defi_positions": {
     "loading_positions": "DeFi-Positionen werden geladen ...",
+    "no_positions": "Noch keine Positionen",
     "error_cannot_load_page": "Wir konnten diese Seite nicht laden.",
     "error_visit_again": "Versuchen Sie es später erneut.",
     "single_token": "Nur {{symbol}}",
@@ -1626,6 +1627,8 @@
     "display_nft_media": "NFT-Medien anzeigen",
     "display_nft_media_desc": "Durch die Anzeige von NFT-Medien und -Daten wird Ihre IP-Adresse an OpenSea oder andere Dritte weitergegeben. Die automatische NFT-Erkennung beruht auf dieser Funktion und ist nicht verfügbar, wenn sie deaktiviert ist.",
     "autodetect_nft_desc": "Lassen Sie MetaMask NFTs, die Sie besitzen, anhand von Drittanbieterdiensten (wie OpenSea) hinzufügen. Durch die automatische Erkennung von NFTs werden Ihre IP- und Kontoadresse für diese Dienste offengelegt. Durch die Aktivierung dieser Funktion können eventuell Ihre IP- und Ethereum-Adresse in Verbindung gebracht und gefälschte, von Betrügern per Airdropping abgesetzte NFTs anzeigt werden. Es ist möglich, Tokens manuell hinzufügen, um dieses Risiko zu vermeiden.",
+    "incoming_transactions_title": "Eingehende Transaktionen anzeigen",
+    "incoming_transactions_content": "Dies hängt von dem von Ihnen ausgewählten Netzwerk ab, das Ihre Ethereum-Adresse und IP-Adresse offenlegt.",
     "display_nft_media_desc_new": "Durch die Anzeige von NFT-Medien und -Daten wird Ihre IP-Adresse an OpenSea oder andere Dritte weitergegeben. Die automatische NFT-Erkennung beruht auf dieser Funktion und ist nicht verfügbar, wenn sie deaktiviert ist. Wenn sich die NFT-Medien vollständig auf IPFS befinden, können sie auch dann noch angezeigt werden, wenn diese Funktion deaktiviert ist.",
     "use_safe_chains_list_validation_desc_1": "MetaMask verwendet einen Drittanbieterdienst an namens",
     "use_safe_chains_list_validation_desc_2": "um genaue und standardisierte Netzwerkangaben anzuzeigen. Dies verringert die Wahrscheinlichkeit, dass Sie mit einem böswilligen oder falschen Netzwerk in Verbindungen treten. Wenn Sie diese Funktion benutzen, wird Ihre IP-Adresse  gegenüber offengelegt.",
