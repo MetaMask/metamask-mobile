@@ -30,8 +30,8 @@ export const useAssetBalance = (
 ): {
   asset: TokenI | undefined;
   balanceFiat: string | undefined;
-  mainBalance: string;
-  secondaryBalance: string;
+  mainBalance: string | undefined;
+  secondaryBalance: string | undefined;
 } => {
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedInternalAccountAddress = useSelector(
