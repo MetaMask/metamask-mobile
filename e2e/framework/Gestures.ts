@@ -92,6 +92,7 @@ export default class Gestures {
       checkEnabled = true,
       elemDescription,
       waitForElementToDisappear = false,
+      delay = 500,
     } = options;
 
     const fn = () =>
@@ -101,6 +102,7 @@ export default class Gestures {
         checkEnabled,
         elemDescription,
         waitForElementToDisappear,
+        delay,
       });
     return Utilities.executeWithRetry(fn, {
       timeout,

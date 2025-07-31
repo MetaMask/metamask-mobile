@@ -48,11 +48,14 @@ export interface ApproveTransactionData {
   // ERC721 / ERC1155 specific
   tokenId?: string;
 
+  // Token balance
+  tokenBalance?: string;
+
   // Token standard
   tokenStandard?: TokenStandard;
 
-  // Token balance
-  tokenBalance?: string;
+  // Token Symbol
+  tokenSymbol?: string;
 }
 
 /**
@@ -110,12 +113,13 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
     }
 
     const result: ApproveTransactionData = {
+      approveMethod: undefined,
+      decimals: details?.decimalsNumber,
       isLoading: false,
       isRevoke: false,
       tokenStandard: tokenStandard as TokenStandard,
-      approveMethod: undefined,
       tokenBalance: undefined,
-      decimals: details?.decimalsNumber,
+      tokenSymbol: details?.symbol as string,
     };
 
     switch (fourByteCode) {
@@ -204,6 +208,7 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
     return result;
   }, [
     details.decimalsNumber,
+    details.symbol,
     isTokenStandardPending,
     tokenStandard,
     fourByteCode,

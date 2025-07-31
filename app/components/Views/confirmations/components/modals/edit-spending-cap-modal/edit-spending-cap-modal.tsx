@@ -21,8 +21,9 @@ export interface EditSpendingCapProps {
   approveMethod: ApproveMethod;
   balance: string;
   decimals: number;
-  spendingCap: string;
   onSpendingCapUpdate: (spendingCap: string) => Promise<void>;
+  spendingCap: string;
+  tokenSymbol?: string;
 }
 
 export interface ModalProps {
@@ -36,6 +37,7 @@ export const EditSpendingCapModal = ({
   spendingCap,
   onSpendingCapUpdate,
   onClose,
+  tokenSymbol,
 }: EditSpendingCapProps & ModalProps) => {
   const { styles } = useStyles(styleSheet, {});
   const [newSpendingCap, setNewSpendingCap] = useState(spendingCap);
@@ -57,14 +59,14 @@ export const EditSpendingCapModal = ({
     >
       <View style={styles.container}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {strings('confirm.simulation.edit_approval_limit_title')}
+          {strings('confirm.edit_spending_cap_modal.title')}
         </Text>
         <Text
           variant={TextVariant.BodyMD}
           style={styles.description}
           color={TextColor.Alternative}
         >
-          {strings('confirm.simulation.edit_approval_limit_description')}
+          {strings('confirm.edit_spending_cap_modal.description')}
         </Text>
         <SpendingCapInput
           approveMethod={approveMethod}
@@ -83,7 +85,8 @@ export const EditSpendingCapModal = ({
           style={styles.balanceInfo}
           color={TextColor.Alternative}
         >
-          Account balance : {balance}
+          {strings('confirm.edit_spending_cap_modal.account_balance')} :{' '}
+          {balance} {tokenSymbol ?? ''}
         </Text>
 
         <View style={styles.buttonsContainer}>
@@ -92,14 +95,14 @@ export const EditSpendingCapModal = ({
             size={ButtonSize.Lg}
             isDisabled={isDataUpdating}
             style={styles.button}
-            label={strings('confirm.simulation.cancel')}
+            label={strings('confirm.edit_spending_cap_modal.cancel')}
             onPress={handleCloseModal}
           />
           <Button
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             style={styles.button}
-            label={strings('confirm.simulation.save')}
+            label={strings('confirm.edit_spending_cap_modal.save')}
             isDisabled={!!error}
             testID={ApproveComponentIDs.EDIT_SPENDING_CAP_SAVE_BUTTON}
             onPress={async () => {
