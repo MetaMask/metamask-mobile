@@ -20,9 +20,10 @@ import CandlestickChartComponent from '../../components/PerpsCandlestickChart/Pe
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPositionHeader from '../../components/PerpsPostitionHeader/PerpsPositionHeader';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
-import { usePerpsTPSLUpdate } from '../../hooks';
+import { usePerpsTPSLUpdate, usePerpsClosePosition } from '../../hooks';
 import { createStyles } from './PerpsPositionDetailsView.styles';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
+import PerpsClosePositionBottomSheet from '../../components/PerpsClosePositionBottomSheet';
 
 interface PositionDetailsRouteParams {
   position: Position;
@@ -40,9 +41,16 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const [selectedInterval, setSelectedInterval] = useState('1h');
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
+  const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Navigate back to refresh the position
+      navigation.goBack();
+    },
+  });
+  const { handleClosePosition, isClosing } = usePerpsClosePosition({
+    onSuccess: () => {
+      // Navigate back to positions list after successful close
       navigation.goBack();
     },
   });
@@ -55,9 +63,10 @@ const PerpsPositionDetailsView: React.FC = () => {
     setSelectedInterval(newInterval);
   }, []);
 
-  // Handle position close
-  const handleClosePosition = useCallback(async () => {
-    DevLogger.log('PerpsPositionDetails: handleClosePosition not implemented');
+  // Handle position close button click
+  const handleCloseClick = useCallback(() => {
+    DevLogger.log('PerpsPositionDetails: Opening close position bottom sheet');
+    setIsClosePositionVisible(true);
   }, []);
 
   const handleBackPress = () => {
@@ -68,6 +77,8 @@ const PerpsPositionDetailsView: React.FC = () => {
   useEffect(() => {
     if (route.params?.action === 'edit_tpsl') {
       setIsTPSLVisible(true);
+    } else if (route.params?.action === 'close') {
+      setIsClosePositionVisible(true);
     }
   }, [route.params?.action]);
 
@@ -116,7 +127,7 @@ const PerpsPositionDetailsView: React.FC = () => {
           </Text>
           <PerpsPositionCard
             position={position}
-            onClose={handleClosePosition}
+            onClose={handleCloseClick}
             onEdit={handleEditTPSL}
           />
         </View>
@@ -141,6 +152,20 @@ const PerpsPositionDetailsView: React.FC = () => {
           initialTakeProfitPrice={position.takeProfitPrice}
           initialStopLossPrice={position.stopLossPrice}
           isUpdating={isUpdating}
+        />
+      )}
+
+      {/* Close Position Bottom Sheet */}
+      {isClosePositionVisible && (
+        <PerpsClosePositionBottomSheet
+          isVisible
+          onClose={() => setIsClosePositionVisible(false)}
+          onConfirm={async (size, orderType, limitPrice) => {
+            await handleClosePosition(position, size, orderType, limitPrice);
+            setIsClosePositionVisible(false);
+          }}
+          position={position}
+          isClosing={isClosing}
         />
       )}
     </SafeAreaView>
