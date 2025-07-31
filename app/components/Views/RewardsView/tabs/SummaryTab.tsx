@@ -221,10 +221,6 @@ const SummaryTab: React.FC<SummaryTabProps> = () => {
     };
   }, [orderedTiersDto, currentPoints, currentTierDto]);
 
-  console.log('currentTierDto', currentTierDto);
-  console.log('seasonStatusData', seasonStatusData);
-  console.log('nextTier', nextTier);
-
   return (
     <View style={styles.container}>
       {/* Rank Card */}

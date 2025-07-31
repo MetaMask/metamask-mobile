@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -40,6 +40,7 @@ const RewardsView: React.FC = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const address = useSelector(selectSelectedInternalAccountAddress);
+  const [hasSeenTerms, setHasSeenTerms] = useState<boolean | null>(null);
   const { isLoggedIn, isLoading, login, loginError, clearLoginError } =
     useRewardsAuth({
       onLoginSuccess: () => {
@@ -47,32 +48,40 @@ const RewardsView: React.FC = () => {
       },
     });
 
-  // Navigate to dashboard if already logged in
+  // Fetch hasSeenTerms once when address changes
   useEffect(() => {
-    if (isLoggedIn) {
+    const fetchHasSeenTerms = async () => {
+      if (address) {
+        const seenTerms = await AsyncStorage.getItem(
+          `${REWARDS_SIGNUP_PREFIX}-${address}`,
+        );
+        setHasSeenTerms(!!seenTerms);
+      } else {
+        setHasSeenTerms(null);
+      }
+    };
+    
+    fetchHasSeenTerms();
+  }, [address]);
+
+  // Navigate to dashboard if already logged in (but only on initial mount)
+  useEffect(() => {
+    if (isLoggedIn && hasSeenTerms) {
       navigation.navigate(Routes.REWARDS_DASHBOARD);
     }
-  }, [isLoggedIn, navigation]);
+  }, [isLoggedIn, hasSeenTerms, navigation]);
 
   const handleSignUpClick = useCallback(async () => {
     if (!address) return;
 
-    try {
-      const hasSeenTerms = await AsyncStorage.getItem(
-        `${REWARDS_SIGNUP_PREFIX}-${address}`,
-      );
-      if (hasSeenTerms) {
-        // User has already seen terms, proceed with login
-        login();
-      } else {
-        // Navigate to terms screen first
-        navigation.navigate(Routes.REWARDS_TERMS);
-      }
-    } catch (error) {
-      // If AsyncStorage fails, show terms to be safe
+    if (hasSeenTerms) {
+      // User has already seen terms, proceed with login
+      login();
+    } else {
+      // Navigate to terms screen first
       navigation.navigate(Routes.REWARDS_TERMS);
     }
-  }, [address, login, navigation]);
+  }, [address, hasSeenTerms, login, navigation]);
 
   useEffect(() => {
     navigation.setOptions(

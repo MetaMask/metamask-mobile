@@ -86,18 +86,6 @@ const createStyles = (colors: Colors) =>
     signOutButton: {
       marginTop: 16,
     },
-    tierBadge: {
-      backgroundColor: colors.primary.muted,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 16,
-      marginTop: 8,
-    },
-    tierText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: colors.primary.default,
-    },
   });
 
 interface ProfileTabProps {
@@ -107,7 +95,7 @@ interface ProfileTabProps {
 const ProfileTab: React.FC<ProfileTabProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { isLoggedIn, isLoading, logout } = useRewardsAuth();
+  const { isLoading, logout } = useRewardsAuth();
 
   const profileSettings = [
     {
@@ -139,11 +127,8 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
             <View style={styles.statusIndicator} />
             <Text style={styles.statusText}>✓ Signed In</Text>
             <Text style={styles.statusSubtext}>
-              You're connected to MetaMask Rewards
+              You are connected to MetaMask Rewards
             </Text>
-            <View style={styles.tierBadge}>
-              <Text style={styles.tierText}>BRONZE TIER</Text>
-            </View>
           </View>
         </View>
 
@@ -153,7 +138,9 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
             <View key={setting.id} style={styles.settingItem}>
               <View style={styles.settingInfo}>
                 <Text style={styles.settingTitle}>{setting.title}</Text>
-                <Text style={styles.settingDescription}>{setting.description}</Text>
+                <Text style={styles.settingDescription}>
+                  {setting.description}
+                </Text>
               </View>
               <Text style={styles.settingValue}>{setting.value}</Text>
             </View>

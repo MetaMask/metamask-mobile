@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, View, Text, ScrollView, Image } from 'react-native';
+import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
@@ -9,8 +9,10 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import MorphText, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import rewardsCover from '../../../images/rewards/rewards-1.png';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import Identicon from '../../UI/Identicon';
 import { renderShortAddress } from '../../../util/address';
@@ -29,18 +31,10 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: 16,
       paddingVertical: 24,
     },
-
-    coverImage: {
-      width: '100%',
-      height: 100,
-      resizeMode: 'cover',
-      marginBottom: 24,
-      borderRadius: 8,
+    headerContainer: {
+      marginBottom: 12,
     },
     title: {
-      fontSize: 28,
-      fontWeight: 600,
-      color: colors.text.default,
       marginBottom: 8,
       textAlign: 'center',
     },
@@ -75,10 +69,11 @@ const createStyles = (colors: Colors) =>
     addressContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'space-between',
       marginBottom: 16,
-      paddingHorizontal: 16,
-      gap: 8,
+      padding: 16,
+      backgroundColor: colors.background.muted,
+      borderRadius: 8,
     },
     addressBadge: {
       flexDirection: 'row',
@@ -89,7 +84,7 @@ const createStyles = (colors: Colors) =>
       paddingVertical: 2,
       gap: 8,
     },
-    requestText: {
+    accountText: {
       fontSize: 16,
       color: colors.text.default,
       textAlignVertical: 'center',
@@ -136,12 +131,17 @@ const RewardsTerms: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.wrapper}>
-      <Image source={rewardsCover} style={styles.coverImage} />
-
-      <Text style={styles.title}>Sign up for Rewards?</Text>
+      <View style={styles.headerContainer}>
+        <MorphText variant={TextVariant.HeadingMD} style={styles.title}>
+          Sign up for Rewards
+        </MorphText>
+        <Text style={styles.termsText}>
+          MetaMask wants permission to register you for our rewards product.
+        </Text>
+      </View>
 
       <View style={styles.addressContainer}>
-        <Text style={styles.requestText}>Request for</Text>
+        <Text style={styles.accountText}>Account</Text>
         <View style={styles.addressBadge}>
           <Identicon diameter={20} address={address} />
           <Text style={styles.addressText}>
