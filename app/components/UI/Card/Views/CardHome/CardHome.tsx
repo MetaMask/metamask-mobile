@@ -64,6 +64,8 @@ import {
   selectEvmTokens,
 } from '../../../../../selectors/multichain';
 import { getHighestFiatToken } from '../../util/getHighestFiatToken';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
 
 /**
  * CardHome Component
@@ -85,6 +87,7 @@ const CardHome = () => {
 
   const navigation = useNavigation();
   const theme = useTheme();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const styles = createStyles(theme);
 
@@ -182,8 +185,22 @@ const CardHome = () => {
       }
 
       goToSwaps();
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED)
+          .addProperties({
+            ...generateDeviceAnalyticsMetaData(),
+          })
+          .build(),
+      );
     }
-  }, [goToSwaps, dispatch, swapDestinationToken, swapSourceToken]);
+  }, [
+    goToSwaps,
+    dispatch,
+    swapDestinationToken,
+    swapSourceToken,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
