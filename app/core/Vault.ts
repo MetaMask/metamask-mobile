@@ -11,7 +11,7 @@ import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
  * It does it using an empty password or a password set by the user
  * depending on the state the app is currently in
  */
-export const getSeedPhrase = async (password = '', keyringId) => {
+export const getSeedPhrase = async (password: string, keyringId: string) => {
   const { KeyringController } = Engine.context;
   return await KeyringController.exportSeedPhrase(password, keyringId);
 };
@@ -22,7 +22,10 @@ export const getSeedPhrase = async (password = '', keyringId) => {
  * @param {string} newPassword - new password
  * @param {string} password - current password
  */
-export const seedlessChangePassword = async (newPassword, password) => {
+export const seedlessChangePassword = async (
+  newPassword: string,
+  password: string,
+) => {
   const { SeedlessOnboardingController } = Engine.context;
   let specificTraceSucceeded = false;
   try {
@@ -46,7 +49,7 @@ export const seedlessChangePassword = async (newPassword, password) => {
     });
 
     Logger.error(
-      error,
+      error as Error,
       '[recreateVaultWithNewPassword] seedless onboarding pw change error',
     );
     // restore keyring with old password if seedless onboarding pw change fails
@@ -68,28 +71,29 @@ export const seedlessChangePassword = async (newPassword, password) => {
  * @param selectedAddress - selected address
  */
 export const recreateVaultWithNewPassword = async (
-  password,
-  newPassword,
-  selectedAddress,
+  password: string,
+  newPassword: string,
+  selectedAddress: string,
 ) => {
   const { KeyringController } = Engine.context;
-
-  await KeyringController.changePassword(newPassword);
-
   const isSeedlessFlow = selectSeedlessOnboardingLoginFlow(
     ReduxService.store.getState(),
   );
-  if (isSeedlessFlow) {
-    try {
+
+  try {
+    // we change the password in the seedless flow first
+    // if it succed seedless change password but fail on the change password on local, we will prompt user password out of date
+    // and ask user to login with new password
+    if (isSeedlessFlow) {
       await seedlessChangePassword(newPassword, password);
-    } catch (error) {
-      await KeyringController.changePassword(password);
-      throw error;
-    } finally {
+    }
+
+    await KeyringController.changePassword(newPassword);
+  } finally {
+    if (isSeedlessFlow) {
       await Authentication.syncKeyringEncryptionKey();
     }
   }
-
   Engine.setSelectedAddress(selectedAddress);
 };
 
@@ -99,6 +103,6 @@ export const recreateVaultWithNewPassword = async (
  * @param password - Password to recreate and set the vault with
  */
 export const recreateVaultWithSamePassword = async (
-  password = '',
-  selectedAddress,
+  password: string,
+  selectedAddress: string,
 ) => recreateVaultWithNewPassword(password, password, selectedAddress);

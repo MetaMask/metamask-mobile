@@ -325,13 +325,10 @@ describe('Vault', () => {
 
       expect(
         mockEngine.context.KeyringController.changePassword,
-      ).toHaveBeenCalledWith('new-password');
+      ).not.toHaveBeenCalledWith('new-password');
       expect(
         mockEngine.context.SeedlessOnboardingController.changePassword,
       ).toHaveBeenCalled();
-      expect(
-        mockEngine.context.KeyringController.changePassword,
-      ).toHaveBeenCalledWith('old-password');
 
       expect(mockEngine.setSelectedAddress).not.toHaveBeenCalledWith('0x123');
     });

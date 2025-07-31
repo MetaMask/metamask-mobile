@@ -51,11 +51,6 @@ jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn(),
 }));
 
-// Mock the Vault module
-jest.mock('../Vault', () => ({
-  recreateVaultWithNewPassword: jest.fn(),
-}));
-
 // Mock the accountsController selector
 jest.mock('../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
@@ -1423,9 +1418,7 @@ describe('Authentication', () => {
     const mockSelectedAddress = '0x1234567890abcdef';
 
     let Engine: typeof import('../Engine').default;
-    let recreateVaultWithNewPassword: jest.MockedFunction<
-      typeof import('../Vault').recreateVaultWithNewPassword
-    >;
+
     let selectSelectedInternalAccountFormattedAddress: jest.MockedFunction<
       typeof import('../../selectors/accountsController').selectSelectedInternalAccountFormattedAddress
     >;
@@ -1463,8 +1456,7 @@ describe('Authentication', () => {
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-      recreateVaultWithNewPassword =
-        jest.requireMock('../Vault').recreateVaultWithNewPassword;
+
       selectSelectedInternalAccountFormattedAddress = jest.requireMock(
         '../../selectors/accountsController',
       ).selectSelectedInternalAccountFormattedAddress;
@@ -1497,7 +1489,6 @@ describe('Authentication', () => {
 
     afterEach(() => {
       jest.clearAllMocks();
-      recreateVaultWithNewPassword.mockReset();
       selectSelectedInternalAccountFormattedAddress.mockReset();
     });
 
