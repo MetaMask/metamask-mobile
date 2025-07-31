@@ -168,13 +168,13 @@ const QuoteDetailsCard = () => {
   const rawPriceImpact = activeQuote?.quote.priceData?.priceImpact;
   const shouldShowPriceImpactWarning =
     rawPriceImpact !== undefined &&
-    bridgeFeatureFlags?.priceImpactThresholds &&
+    bridgeFeatureFlags?.priceImpactThreshold &&
     ((gasIncluded &&
       Number(rawPriceImpact) >=
-        bridgeFeatureFlags.priceImpactThresholds.gasless) ||
+        bridgeFeatureFlags.priceImpactThreshold.gasless) ||
       (!gasIncluded &&
         Number(rawPriceImpact) >=
-          bridgeFeatureFlags.priceImpactThresholds.normal));
+          bridgeFeatureFlags.priceImpactThreshold.normal));
 
   return (
     <Box>
