@@ -12,7 +12,7 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
   // This test depends on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
   const isRemoveGlobalNetworkSelectorEnabled =
     process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
-  const itif = (condition) => (condition ? it.skip : it);
+  const itif = (condition: boolean) => (condition ? it.skip : it);
 
   beforeAll(async () => {
     jest.setTimeout(170000);

@@ -18,7 +18,7 @@ describe.skip(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
   // This test depends on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
   const isRemoveGlobalNetworkSelectorEnabled =
     process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
-  const itif = (condition) => (condition ? it.skip : it);
+  const itif = (condition: boolean) => (condition ? it.skip : it);
 
   beforeEach(async () => {
     jest.setTimeout(150000);
