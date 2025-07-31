@@ -7,6 +7,7 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { Platform } from 'react-native';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -54,7 +55,33 @@ describe('AccountStatus', () => {
     mockRoute.params = {};
   });
 
-  describe('Snapshots', () => {
+  describe('Snapshots iOS', () => {
+    beforeEach(() => {
+      Platform.OS = 'ios';
+    });
+
+    it('renders correctly with type="not_exist"', () => {
+      const { toJSON } = renderWithProvider(<AccountStatus type="not_exist" />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('renders correctly with type="found"', () => {
+      const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('renders correctly with accountName in route params', () => {
+      mockRoute.params = { accountName: 'test@example.com' };
+      const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
+  describe('Snapshots android', () => {
+    beforeEach(() => {
+      Platform.OS = 'android';
+    });
+
     it('renders correctly with type="not_exist"', () => {
       const { toJSON } = renderWithProvider(<AccountStatus type="not_exist" />);
       expect(toJSON()).toMatchSnapshot();
