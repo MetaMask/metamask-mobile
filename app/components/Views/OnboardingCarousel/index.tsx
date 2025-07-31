@@ -8,7 +8,7 @@ import React, {
 import {
   View,
   ScrollView,
-  StyleSheet as RNStyleSheet,
+  StyleSheet,
   Image as RNImage,
   Dimensions,
   Platform,
@@ -50,7 +50,7 @@ import {
 } from '../../../actions/onboarding';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { USE_TERMS } from '../../../constants/storage';
-import ComponentText, {
+import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -76,7 +76,7 @@ const carouselSize = getCarouselSize();
 
 const ctaIosPaddingBottom = Device.isIphoneX() ? 40 : 20;
 const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
-  RNStyleSheet.create({
+  StyleSheet.create({
     scroll: {
       flexGrow: 1,
       justifyContent: 'space-between',
@@ -218,8 +218,8 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   const styles = createStyles(safeAreaInsets);
 
   const track = useCallback(
-    (trackingEvent: ITrackingEvent) => {
-      trackOnboarding(trackingEvent, saveOnboardingEvent);
+    (event: ITrackingEvent) => {
+      trackOnboarding(event, saveOnboardingEvent);
     },
     [saveOnboardingEvent],
   );
@@ -345,7 +345,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                       {isTest && (
                         // This Text component is used to grab the App Start Time for our E2E test
                         // ColdStartToOnboardingScreen.feature
-                        <ComponentText
+                        <Text
                           variant={TextVariant.BodySM}
                           color={TextColor.Alternative}
                           style={styles.metricsData}
@@ -354,7 +354,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                           }
                         >
                           {appStartTime}
-                        </ComponentText>
+                        </Text>
                       )}
                     </View>
                     <View style={styles.carouselImageWrapper}>
@@ -366,14 +366,14 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                       />
                     </View>
                     <View style={styles.carouselTextWrapper}>
-                      <ComponentText
+                      <Text
                         variant={TextVariant.BodyMD}
                         style={styles.title}
                         color={onboardingCarouselColors[value].color}
                       >
                         {strings(`onboarding_carousel.title${key}`)}
-                      </ComponentText>
-                      <ComponentText
+                      </Text>
+                      <Text
                         variant={
                           Device.isMediumDevice()
                             ? TextVariant.BodySM
@@ -383,7 +383,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         style={styles.subtitle}
                       >
                         {strings(`onboarding_carousel.subtitle${key}`)}
-                      </ComponentText>
+                      </Text>
                     </View>
                   </View>
                 );
