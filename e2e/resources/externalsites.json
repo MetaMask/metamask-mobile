@@ -10,5 +10,6 @@
   "OPENSEA_WEBSITE": "https://opensea.io",
   "PANCAKESWAP_WEBSITE": "https://pancakeswap.finance/swap",
   "DOWNLOAD_BLOB_FILE_WEBSITE": "https://tyschenko.github.io/download_blob_file.html",
-  "DOWNLOAD_BASE64_FILE_WEBSITE": "https://tyschenko.github.io/download_base64_file.html"
+  "DOWNLOAD_BASE64_FILE_WEBSITE": "https://tyschenko.github.io/download_base64_file.html",
+  "SECURITY_CAMERA_WEBSITE": "https://tyschenko.github.io/mobile/html/camera.html"
 }

@@ -15,6 +15,7 @@ import PancakeSwapWebsite from '../../pages/Browser/ExternalWebsites/PancakeSwap
 import DownloadFile from '../../pages/Browser/DownloadFile.ts';
 import DownloadFileWebsite from '../../pages/Browser/ExternalWebsites/DownloadFileWebsite.ts';
 import TestHelpers from '../../helpers';
+import CameraWebsite from '../../pages/Browser/ExternalWebsites/Security/CameraWebsite.ts';
 
 const getHostFromURL = (url: string): string => {
   try {
@@ -234,6 +235,17 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
             'URL input box has the correct text from the redirected website',
         },
       );
+    });
+  });
+
+  it('Should display camera permission when website is requesting access to camera', async () => {
+    await withBrowser(async () => {
+      await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+        description: 'Browser screen is visible',
+      });
+      await Browser.tapUrlInputBox();
+      await Browser.navigateToURL(ExternalSites.SECURITY_CAMERA_WEBSITE);
+      await CameraWebsite.verifyRequestPermissionDialogVisible();
     });
   });
 });
