@@ -4771,11 +4771,8 @@
       "resources": "Resources"
     },
     "simulation": {
-      "cancel": "Cancel",
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft": "Expect changes only if someone buys your NFTs.",
-      "edit_approval_limit_description": "Enter the amount that you feel comfortable being spent on your behalf.",
-      "edit_approval_limit_title": "Edit approval limit",
       "edit_value_balance_info": "Account balance:",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
       "info_revoke": "You're removing someone's permission to spend tokens from your account.",
@@ -4789,7 +4786,6 @@
       "label_change_type_transfer": "You send",
       "label_change_type_approve": "You approve",
       "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
-      "save": "Save",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
@@ -4816,12 +4812,17 @@
       "success_message": "Your account will be updated to smart account with your next transaction."
     },
     "edit_spending_cap_modal": {
-      "no_zero_error": "Spending cap cannot be 0",
-      "no_empty_error": "Spending cap cannot be empty",
+      "account_balance": "Account balance",
+      "cancel": "Cancel",
+      "description": "Enter the amount that you feel comfortable being spent on your behalf.",
       "invalid_number_error": "Spending cap must be a number",
+      "no_empty_error": "Spending cap cannot be empty",
       "no_extra_decimals_error": "Spending cap cannot have more decimals than the token",
+      "no_zero_error": "Spending cap cannot be 0",
+      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method",
       "no_zero_error_increase_allowance": "0 spending cap has no effect on 'increaseAllowance' method",
-      "no_zero_error_decrease_allowance": "0 spending cap has no effect on 'decreaseAllowance' method"
+      "save": "Save",
+      "title": "Edit approval limit"
     },
     "unlimited": "Unlimited",
     "all": "All",

@@ -24,10 +24,10 @@ Performance tests automatically generate detailed reports using the `Performance
 
 **Configuration**: Multiple accounts, popular networks, profile syncing enabled
 
-| Platform    | Total Max Time | Notes             |
-| ----------- | -------------- | ----------------- |
-| **Android** | 5000ms         | 5 seconds maximum |
-| **iOS**     | 5000ms         | 5 seconds maximum |
+| Platform    | Total Max Time | Notes               |
+| ----------- | -------------- | ------------------- |
+| **Android** | 5900ms         | 5.9 seconds maximum |
+| **iOS**     | 4000ms         | 4 seconds maximum   |
 
 ---
 
@@ -35,10 +35,10 @@ Performance tests automatically generate detailed reports using the `Performance
 
 **Configuration**: Multiple accounts, popular networks, 10 tokens for stress testing
 
-| Platform    | Total Max Time | Notes             |
-| ----------- | -------------- | ----------------- |
-| **Android** | 5000ms         | 5 seconds maximum |
-| **iOS**     | 5000ms         | 5 seconds maximum |
+| Platform    | Total Max Time | Notes               |
+| ----------- | -------------- | ------------------- |
+| **Android** | 4200ms         | 4.2 seconds maximum |
+| **iOS**     | 4200ms         | 4.2 seconds maximum |
 
 ---
 
@@ -46,10 +46,10 @@ Performance tests automatically generate detailed reports using the `Performance
 
 **Configuration**: Minimal accounts, default network, 2 tokens (baseline measurement)
 
-| Platform    | Total Max Time | Notes              |
-| ----------- | -------------- | ------------------ |
-| **Android** | 45,000ms       | 45 seconds maximum |
-| **iOS**     | 15,000ms       | 15 seconds maximum |
+| Platform    | Total Max Time | Notes               |
+| ----------- | -------------- | ------------------- |
+| **Android** | 3800ms         | 3.8 seconds maximum |
+| **iOS**     | 3800ms         | 3.8 seconds maximum |
 
 ---
 

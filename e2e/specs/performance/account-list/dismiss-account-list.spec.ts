@@ -1,15 +1,16 @@
-/* eslint-disable no-console, import/no-nodejs-modules */
-
 import { loginToApp } from '../../../viewHelper';
 import { SmokePerformance } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { withFixtures } from '../../../fixtures/fixture-helper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { CORE_USER_STATE, POWER_USER_STATE } from '../../../fixtures/constants';
+import {
+  CORE_USER_STATE,
+  POWER_USER_STATE,
+} from '../../../framework/fixtures/constants';
 import {
   PerformanceTestReporter,
   createUserProfileTests,
@@ -75,13 +76,15 @@ describe(SmokePerformance('Switching Accounts to Dismiss Load Testing'), () => {
             await loginToApp();
 
             await WalletView.tapIdenticon();
-            await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+            );
 
             console.log('Account list became visible');
             const startTime = Date.now();
             await AccountListBottomSheet.tapAccountByName('Account 3');
 
-            await Assertions.checkIfNotVisible(
+            await Assertions.expectElementToNotBeVisible(
               AccountListBottomSheet.accountList,
             );
             const endTime = Date.now();
