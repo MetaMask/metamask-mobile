@@ -5510,7 +5510,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
 </View>
 `;
 
-exports[`OnboardingCarousel should render the App Start Time text when isTest is true 1`] = `
+exports[`OnboardingCarousel should render the App Start Time text when isTest or isQa is true 1`] = `
 <View
   style={
     {
