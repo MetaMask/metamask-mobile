@@ -1,15 +1,17 @@
 import { StyleSheet } from 'react-native';
-import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
+import Device from '../../../util/device';
 
 const createStyles = () => StyleSheet.create({
     scroll: {
-      flex: 1,
+      flexGrow: 1,
+      minHeight: '100%',
     },
     wrapper: {
       flex: 1,
       alignItems: 'center',
-      paddingVertical: 30,
+      paddingTop: 30,
+      minHeight: '100%',
     },
     largeFoxWrapper: {
       alignItems: 'center',
