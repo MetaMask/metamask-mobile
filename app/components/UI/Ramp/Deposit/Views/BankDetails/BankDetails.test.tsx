@@ -5,10 +5,13 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
+import { StackActions } from '@react-navigation/native';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockReset = jest.fn();
+const mockDispatch = jest.fn();
 
 const mockOrderData = {
   id: 'test-order-id',
@@ -74,6 +77,8 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      reset: mockReset,
+      dispatch: mockDispatch,
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
@@ -184,5 +189,48 @@ describe('BankDetails Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Payment confirmation failed')).toBeTruthy();
     });
+  });
+
+  it('resets navigation when order state is canceled', () => {
+    mockOrderData.state = FIAT_ORDER_STATES.CANCELLED;
+    render(BankDetails);
+
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        {
+          name: Routes.DEPOSIT.BUILD_QUOTE,
+        },
+      ],
+    });
+  });
+
+  it('dispatches replace action when order state is completed, failed or pending', () => {
+    mockDispatch.mockClear();
+    mockOrderData.state = FIAT_ORDER_STATES.COMPLETED;
+    render(BankDetails);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.DEPOSIT.ORDER_PROCESSING, {
+        orderId: 'test-order-id',
+      }),
+    );
+
+    mockDispatch.mockClear();
+    mockOrderData.state = FIAT_ORDER_STATES.FAILED;
+    render(BankDetails);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.DEPOSIT.ORDER_PROCESSING, {
+        orderId: 'test-order-id',
+      }),
+    );
+
+    mockDispatch.mockClear();
+    mockOrderData.state = FIAT_ORDER_STATES.PENDING;
+    render(BankDetails);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.DEPOSIT.ORDER_PROCESSING, {
+        orderId: 'test-order-id',
+      }),
+    );
   });
 });
