@@ -79,6 +79,7 @@ export type ClosePositionParams = {
   size?: string; // Size to close (omit for full close)
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
+  currentPrice?: number; // Current market price for validation
 };
 
 export interface InitializeResult {

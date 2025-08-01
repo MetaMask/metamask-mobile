@@ -675,11 +675,11 @@ describe('usePerpsTrading', () => {
   });
 
   describe('validateOrder', () => {
-    it('should call PerpsController.validateOrder with correct parameters', () => {
+    it('should call PerpsController.validateOrder with correct parameters', async () => {
       const mockValidationResult = { isValid: true };
       (
         Engine.context.PerpsController.validateOrder as jest.Mock
-      ).mockReturnValue(mockValidationResult);
+      ).mockResolvedValue(mockValidationResult);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -690,7 +690,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market',
       };
 
-      const response = result.current.validateOrder(orderParams);
+      const response = await result.current.validateOrder(orderParams);
 
       expect(Engine.context.PerpsController.validateOrder).toHaveBeenCalledWith(
         orderParams,
@@ -698,14 +698,14 @@ describe('usePerpsTrading', () => {
       expect(response).toEqual(mockValidationResult);
     });
 
-    it('should return validation error', () => {
+    it('should return validation error', async () => {
       const mockValidationResult = {
         isValid: false,
         error: 'Minimum order size is $10.00',
       };
       (
         Engine.context.PerpsController.validateOrder as jest.Mock
-      ).mockReturnValue(mockValidationResult);
+      ).mockResolvedValue(mockValidationResult);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -717,7 +717,7 @@ describe('usePerpsTrading', () => {
         currentPrice: 50000,
       };
 
-      const response = result.current.validateOrder(orderParams);
+      const response = await result.current.validateOrder(orderParams);
 
       expect(response.isValid).toBe(false);
       expect(response.error).toBe('Minimum order size is $10.00');
@@ -725,11 +725,11 @@ describe('usePerpsTrading', () => {
   });
 
   describe('validateClosePosition', () => {
-    it('should call PerpsController.validateClosePosition with correct parameters', () => {
+    it('should call PerpsController.validateClosePosition with correct parameters', async () => {
       const mockValidationResult = { isValid: true };
       (
         Engine.context.PerpsController.validateClosePosition as jest.Mock
-      ).mockReturnValue(mockValidationResult);
+      ).mockResolvedValue(mockValidationResult);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -738,7 +738,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market',
       };
 
-      const response = result.current.validateClosePosition(closeParams);
+      const response = await result.current.validateClosePosition(closeParams);
 
       expect(
         Engine.context.PerpsController.validateClosePosition,
@@ -746,14 +746,14 @@ describe('usePerpsTrading', () => {
       expect(response).toEqual(mockValidationResult);
     });
 
-    it('should return validation error for invalid close position', () => {
+    it('should return validation error for invalid close position', async () => {
       const mockValidationResult = {
         isValid: false,
         error: 'Coin is required',
       };
       (
         Engine.context.PerpsController.validateClosePosition as jest.Mock
-      ).mockReturnValue(mockValidationResult);
+      ).mockResolvedValue(mockValidationResult);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -762,7 +762,7 @@ describe('usePerpsTrading', () => {
         orderType: 'market',
       };
 
-      const response = result.current.validateClosePosition(closeParams);
+      const response = await result.current.validateClosePosition(closeParams);
 
       expect(response.isValid).toBe(false);
       expect(response.error).toBe('Coin is required');
@@ -770,11 +770,11 @@ describe('usePerpsTrading', () => {
   });
 
   describe('validateWithdrawal', () => {
-    it('should call PerpsController.validateWithdrawal with correct parameters', () => {
+    it('should call PerpsController.validateWithdrawal with correct parameters', async () => {
       const mockValidationResult = { isValid: true };
       (
         Engine.context.PerpsController.validateWithdrawal as jest.Mock
-      ).mockReturnValue(mockValidationResult);
+      ).mockResolvedValue(mockValidationResult);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -785,7 +785,7 @@ describe('usePerpsTrading', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
       };
 
-      const response = result.current.validateWithdrawal(withdrawParams);
+      const response = await result.current.validateWithdrawal(withdrawParams);
 
       expect(
         Engine.context.PerpsController.validateWithdrawal,
@@ -793,11 +793,11 @@ describe('usePerpsTrading', () => {
       expect(response).toEqual(mockValidationResult);
     });
 
-    it('should handle validation without errors', () => {
+    it('should handle validation without errors', async () => {
       const mockValidationResult = { isValid: true };
       (
         Engine.context.PerpsController.validateWithdrawal as jest.Mock
-      ).mockReturnValue(mockValidationResult);
+      ).mockResolvedValue(mockValidationResult);
 
       const { result } = renderHook(() => usePerpsTrading());
 
@@ -805,7 +805,7 @@ describe('usePerpsTrading', () => {
         amount: '100',
       };
 
-      const response = result.current.validateWithdrawal(withdrawParams);
+      const response = await result.current.validateWithdrawal(withdrawParams);
 
       expect(response.isValid).toBe(true);
       expect(response.error).toBeUndefined();

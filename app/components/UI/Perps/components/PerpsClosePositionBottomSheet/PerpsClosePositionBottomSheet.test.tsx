@@ -38,6 +38,14 @@ jest.mock('../../hooks', () => ({
     isLoadingMetamaskFee: false,
     error: null,
   })),
+  usePerpsTrading: jest.fn(() => ({
+    validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
+  })),
+  useMinimumOrderAmount: jest.fn(() => ({
+    minimumOrderAmount: 10,
+    isLoading: false,
+    error: null,
+  })),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -289,6 +297,62 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       // Verify onConfirm is not called initially
       expect(mockOnConfirm).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Minimum Order Value Validation', () => {
+    it('should show error when closing position value is below minimum', async () => {
+      const smallPosition = {
+        ...mockPosition,
+        size: '0.0001', // Very small position
+      };
+
+      const { getByTestId, getByText } = renderComponent({
+        position: smallPosition,
+      });
+
+      // Wait for validation
+      await waitFor(() => {
+        expect(getByText('perps.order.validation.minimum_amount')).toBeTruthy();
+      });
+
+      // Confirm button should be disabled
+      const confirmButton = getByTestId('close-position-confirm-button');
+      expect(confirmButton.props.disabled).toBe(true);
+    });
+
+    it('should validate partial close order value', async () => {
+      // Mock a smaller position worth $100 (0.00222 BTC at $45,000)
+      const smallPosition = {
+        ...mockPosition,
+        size: '0.00222',
+        positionValue: '100',
+        marginUsed: '10',
+      };
+
+      const { getByTestId } = renderComponent({ position: smallPosition });
+
+      // Set to close only 5% ($5, below $10 minimum)
+      const slider = getByTestId('perps-slider');
+      fireEvent(slider, 'onValueChange', 5);
+
+      await waitFor(() => {
+        const confirmButton = getByTestId('close-position-confirm-button');
+        expect(confirmButton.props.disabled).toBe(true);
+      });
+    });
+
+    it('should allow closing when value meets minimum', async () => {
+      const { getByTestId } = renderComponent();
+
+      // Set to close 25% ($112.5, above $10 minimum)
+      const slider = getByTestId('perps-slider');
+      fireEvent(slider, 'onValueChange', 25);
+
+      await waitFor(() => {
+        const confirmButton = getByTestId('close-position-confirm-button');
+        expect(confirmButton.props.disabled).toBe(false);
+      });
     });
   });
 

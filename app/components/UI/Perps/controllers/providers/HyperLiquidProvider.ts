@@ -4,10 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
+  FEE_RATES,
   getBridgeInfo,
   getChainId,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
-  FEE_RATES,
   TRADING_DEFAULTS,
 } from '../../constants/hyperLiquidConfig';
 import {
@@ -1146,6 +1146,29 @@ export class HyperLiquidProvider implements IPerpsProvider {
         // 2. That remaining size meets minimum order requirements
       }
 
+      // Validate minimum order value if we have the necessary data
+      if (params.currentPrice && params.size) {
+        const closeSize = parseFloat(params.size);
+        const price = parseFloat(params.currentPrice.toString());
+        const orderValueUSD = closeSize * price;
+
+        // Get minimum order size based on network
+        const minimumOrderSize = this.clientService.isTestnetMode()
+          ? TRADING_DEFAULTS.amount.testnet
+          : TRADING_DEFAULTS.amount.mainnet;
+
+        if (orderValueUSD < minimumOrderSize) {
+          return {
+            isValid: false,
+            error: strings('perps.order.validation.minimum_amount', {
+              amount: minimumOrderSize.toString(),
+            }),
+          };
+        }
+      }
+      // Note: For full closes (when size is undefined), the validation
+      // should be done in the UI layer where the full position size is known.
+
       return { isValid: true };
     } catch (error) {
       return {
@@ -1587,17 +1610,33 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Get maximum leverage allowed for an asset
    */
   async getMaxLeverage(asset: string): Promise<number> {
-    await this.ensureReady();
+    try {
+      await this.ensureReady();
 
-    const infoClient = this.clientService.getInfoClient();
-    const meta = await infoClient.meta();
+      const infoClient = this.clientService.getInfoClient();
+      const meta = await infoClient.meta();
 
-    const assetInfo = meta.universe.find((a) => a.name === asset);
-    if (!assetInfo) {
-      throw new Error(`Asset ${asset} not found`);
+      // Check if meta and universe exist
+      if (!meta?.universe) {
+        console.warn(
+          'Meta or universe not available, using default max leverage',
+        );
+        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+      }
+
+      const assetInfo = meta.universe.find((a) => a.name === asset);
+      if (!assetInfo) {
+        DevLogger.log(
+          `Asset ${asset} not found in universe, using default max leverage`,
+        );
+        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+      }
+
+      return assetInfo.maxLeverage;
+    } catch (error) {
+      DevLogger.log('Error getting max leverage:', error);
+      return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
     }
-
-    return assetInfo.maxLeverage;
   }
 
   /**

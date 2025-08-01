@@ -268,26 +268,30 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </Text>
           </View>
         )}
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.market.long')}
-          onPress={handleLongPress}
-          style={[styles.actionButton, styles.longButton]}
-          testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-          disabled={hasExistingPosition}
-        />
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.market.short')}
-          onPress={handleShortPress}
-          style={[styles.actionButton, styles.shortButton]}
-          testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-          disabled={hasExistingPosition}
-        />
+        {!hasExistingPosition && (
+          <>
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('perps.market.long')}
+              onPress={handleLongPress}
+              style={[styles.actionButton, styles.longButton]}
+              testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+              disabled={hasExistingPosition}
+            />
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('perps.market.short')}
+              onPress={handleShortPress}
+              style={[styles.actionButton, styles.shortButton]}
+              testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+              disabled={hasExistingPosition}
+            />
+          </>
+        )}
       </View>
     </SafeAreaView>
   );

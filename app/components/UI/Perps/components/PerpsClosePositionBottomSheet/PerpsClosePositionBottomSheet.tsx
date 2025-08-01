@@ -126,6 +126,7 @@ const PerpsClosePositionBottomSheet: React.FC<
         size: closePercentage === 100 ? undefined : closeAmount.toString(),
         orderType,
         price: orderType === 'limit' ? limitPrice : undefined,
+        currentPrice,
       };
 
       const validation = await validateClosePosition(closeParams);
@@ -141,6 +142,18 @@ const PerpsClosePositionBottomSheet: React.FC<
           error: strings('perps.close_position.minimum_remaining_warning', {
             minimum: minimumOrderAmount.toString(),
             remaining: formatPrice(remainingPositionValue),
+          }),
+        });
+      } else if (
+        validation.isValid &&
+        closingValue > 0 &&
+        closingValue < minimumOrderAmount
+      ) {
+        // Check if the close order value itself meets minimum requirements
+        setValidationResult({
+          isValid: false,
+          error: strings('perps.order.validation.minimum_amount', {
+            amount: minimumOrderAmount.toString(),
           }),
         });
       } else {
@@ -159,6 +172,8 @@ const PerpsClosePositionBottomSheet: React.FC<
     isPartialClose,
     remainingPositionValue,
     minimumOrderAmount,
+    closingValue,
+    currentPrice,
   ]);
 
   useEffect(() => {
