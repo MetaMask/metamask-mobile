@@ -4912,6 +4912,9 @@
     "fee_disclaimer": "Includes 0.875% MM fee",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "Max"
   },
