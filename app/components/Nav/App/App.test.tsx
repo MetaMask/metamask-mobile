@@ -12,7 +12,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
-  ONBOARDING_WIZARD,
 } from '../../../constants/storage';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -653,9 +652,7 @@ describe('App', () => {
         if (key === OPTIN_META_METRICS_UI_SEEN) {
           return true; // OptinMetrics UI has been seen
         }
-        if (key === ONBOARDING_WIZARD) {
-          return true;
-        }
+
         return null; // Default for other keys
       });
 

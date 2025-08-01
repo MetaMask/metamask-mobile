@@ -23,9 +23,6 @@ jest.mock('react-native-scrollable-tab-view', () => ({
 }));
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState: {
       ...backgroundState,

@@ -61,8 +61,6 @@ const mockProps = {
   addToWhitelist: jest.fn(),
   updateTabInfo: jest.fn(),
   showTabs: jest.fn(),
-  setOnboardingWizardStep: jest.fn(),
-  wizardStep: 1,
   isIpfsGatewayEnabled: false,
   chainId: '0x1',
   isInTabsView: false,

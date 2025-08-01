@@ -34,9 +34,6 @@ const renderComponent = (state: any = {}) =>
   );
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState,
   },

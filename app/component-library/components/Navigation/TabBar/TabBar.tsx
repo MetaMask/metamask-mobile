@@ -20,7 +20,6 @@ import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
 import { colors as importedColors } from '../../../../styles/common';
 import { AvatarSize } from '../../Avatars/Avatar';
-import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
 import { selectChainId } from '../../../../selectors/networkController';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
@@ -30,22 +29,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { styles } = useStyles(styleSheet, { bottomInset });
   const chainId = useSelector(selectChainId);
   const tabBarRef = useRef(null);
-  /**
-   * Current onboarding wizard step
-   */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wizardStep = useSelector((reduxState: any) => reduxState.wizard.step);
-  /**
-   * Return current step of onboarding wizard if not step 5 nor 0
-   */
-  const renderOnboardingWizard = useCallback(
-    () =>
-      [4, 5, 6].includes(wizardStep) && (
-        <OnboardingWizard navigation={navigation} coachmarkRef={tabBarRef} />
-      ),
-    [navigation, wizardStep],
-  );
 
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
@@ -149,7 +132,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       <View style={styles.border} />
       <View style={styles.base} ref={tabBarRef}>
         {renderTabBarItems()}
-        {renderOnboardingWizard()}
       </View>
     </>
   );
