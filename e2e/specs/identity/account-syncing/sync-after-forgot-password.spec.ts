@@ -96,12 +96,9 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
         const visibleAccounts = [NEW_ACCOUNT_NAME, SECOND_ACCOUNT_NAME];
 
         for (const accountName of visibleAccounts) {
-          await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountName(accountName),
-            {
-              description: `Account with name "${accountName}" should be visible`,
-            },
-          );
+          await Assertions.expectTextDisplayed(accountName, {
+            description: `Account with name "${accountName}" should be visible`,
+          });
         }
       },
     );
