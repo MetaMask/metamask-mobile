@@ -1595,6 +1595,10 @@ workflows:
                 ANDROID_PR_BUILD_CACHE_KEY
 
   ios_e2e_build:
+    meta:
+      bitrise.io:
+        stack: $IOS_BUILD_STACK
+        machine_type_id: $IOS_BUILD_MACHINE_TYPE_ID
     before_run:
       - install_applesimutils
       - code_setup
@@ -1698,6 +1702,10 @@ workflows:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   ios_e2e_test:
+    meta:
+      bitrise.io:
+        stack: $IOS_TEST_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
     before_run:
       - setup
       - install_applesimutils
@@ -2833,6 +2841,10 @@ workflows:
             - ipa_path: $BITRISE_APP_STORE_IPA_PATH
   # iOS Builds
   _ios_build_template:
+    meta:
+      bitrise.io:
+        stack: $IOS_BUILD_STACK
+        machine_type_id: $IOS_BUILD_MACHINE_TYPE_ID
     before_run:
       - code_setup
     after_run:
@@ -3322,6 +3334,19 @@ workflows:
 
 app:
   envs:
+    # iOS Machine Configuration
+    - opts:
+        is_expand: false
+      IOS_BUILD_MACHINE_TYPE_ID: g2.mac.4large
+    - opts:
+        is_expand: false
+      IOS_BUILD_STACK: osx-xcode-16.2.x
+    - opts:
+        is_expand: false
+      IOS_TEST_MACHINE_TYPE_ID: g2.mac.4large
+    - opts:
+        is_expand: false
+      IOS_TEST_STACK: osx-xcode-16.2.x
     - opts:
         is_expand: false
       MM_NOTIFICATIONS_UI_ENABLED: true
@@ -3425,7 +3450,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x
-    machine_type_id: g2.mac.4x-large
+    machine_type_id: g2.mac.medium
 trigger_map:
   - push_branch: release/*
     pipeline: pr_regression_e2e_pipeline
