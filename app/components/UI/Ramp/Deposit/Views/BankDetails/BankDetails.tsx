@@ -297,7 +297,7 @@ const BankDetails = () => {
       await cancelOrder();
       await handleOnRefresh();
     } catch (fetchError) {
-      Logger.error(fetchError as Error, 'BankDetails: handleBankTransferSent');
+      Logger.error(fetchError as Error, 'BankDetails: handleCancelOrder');
       setCancelOrderError(fetchError as Error);
     } finally {
       setIsLoadingCancelOrder(false);
