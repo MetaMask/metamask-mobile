@@ -23,13 +23,15 @@ export const handleSendPageNavigation = (
     screenName: RouteName,
     params?: object,
   ) => void,
-  asset: AssetType | Nft,
+  asset?: AssetType | Nft,
+  chainId?: string,
 ) => {
   if (isSendRedesignEnabled()) {
     navigate(Routes.SEND.DEFAULT, {
       screen: Routes.SEND.ROOT,
       params: {
         asset,
+        chainId,
       },
     });
   } else {

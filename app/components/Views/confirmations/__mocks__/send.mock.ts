@@ -2,8 +2,10 @@ import { Hex } from '@metamask/utils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
-export const ACCOUNT_ADDRESS_MOCK_1 = '0x12345' as Hex;
-export const TOEKN_ADDRESS_MOCK_1 = '0x123' as Hex;
+export const ACCOUNT_ADDRESS_MOCK_1 =
+  '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a' as Hex;
+export const TOEKN_ADDRESS_MOCK_1 =
+  '0x9Dd7c01d30df0061F228C9b687287B8E490D8880' as Hex;
 
 export const evmSendStateMock = {
   engine: {

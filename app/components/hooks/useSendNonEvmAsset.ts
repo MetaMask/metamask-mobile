@@ -16,7 +16,12 @@ import {
 } from '../Views/confirmations/utils/send';
 
 interface UseSendNonEvmAssetParams {
-  asset: TokenI;
+  asset:
+    | {
+        chainId: string;
+        address?: string;
+      }
+    | TokenI;
   closeModal?: () => void;
 }
 
@@ -44,7 +49,11 @@ export function useSendNonEvmAsset({
 
     // Validate snap account
     if (isSendRedesignEnabled()) {
-      handleSendPageNavigation(navigation.navigate, asset);
+      handleSendPageNavigation(
+        navigation.navigate,
+        asset.address ? (asset as TokenI) : undefined,
+        asset.chainId,
+      );
       return true;
     }
 

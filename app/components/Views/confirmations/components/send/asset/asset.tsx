@@ -6,6 +6,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { useSendContext } from '../../../context/send-context';
 import { styleSheet } from './asset.styles';
 
+// todo: use native asset of chain by default
 export const Asset = () => {
   const { styles } = useStyles(styleSheet, {});
   const { asset } = useSendContext();

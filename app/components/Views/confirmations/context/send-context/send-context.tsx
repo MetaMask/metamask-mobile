@@ -1,4 +1,5 @@
 import { Hex } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import React, {
   ReactElement,
   createContext,
@@ -11,7 +12,6 @@ import { useSelector } from 'react-redux';
 
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { AssetType } from '../../types/token';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export interface SendContextType {
   asset?: AssetType;

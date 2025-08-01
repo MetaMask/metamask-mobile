@@ -47,6 +47,7 @@ jest.mock('@react-navigation/native', () => ({
     params: {
       asset: {
         chainId: '0x1',
+        address: '0x9Dd7c01d30df0061F228C9b687287B8E490D8880',
       },
     },
   }),
@@ -267,6 +268,7 @@ describe('SendRoot', () => {
         asset: {
           isNative: true,
           chainId: '0x1',
+          address: TOEKN_ADDRESS_MOCK_1,
         },
       },
     } as RouteProp<ParamListBase, string>);
@@ -277,6 +279,21 @@ describe('SendRoot', () => {
     expect(getByTestId('send_amount').props.value).toBe('0.9999685');
     expect(getByText('$ 0.99')).toBeTruthy();
   });
+
+  // it('Max option should not be available for non-evm native send', () => {
+  //   (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+  //     params: {
+  //       asset: {
+  //         isNative: true,
+  //         chainId: '0x1',
+  //         address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+  //       },
+  //     },
+  //   } as RouteProp<ParamListBase, string>);
+
+  //   const { queryByText } = renderComponent();
+  //   expect(queryByText('Max')).toBeNull;
+  // });
 
   it('display fiat conversion of amount entered', async () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
