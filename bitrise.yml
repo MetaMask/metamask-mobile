@@ -1697,6 +1697,10 @@ workflows:
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
+    meta:
+      bitrise.io:
+        stack: $IOS_STACK
+        machine_type_id: $IOS_BUILD_MACHINE_TYPE_ID
   ios_e2e_test:
     before_run:
       - setup
@@ -1876,6 +1880,10 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR/performance-results
             - is_compress: true
             - zip_name: E2E_Performance_Results
+    meta:
+      bitrise.io:
+        stack: $IOS_STACK
+        machine_type_id: $IOS_TEST_MACHINE_TYPE_ID
   # Performance-specific iOS E2E test workflow
   ios_e2e_test_performance:
     before_run:
@@ -2947,7 +2955,7 @@ workflows:
           title: Deploy Source Map
     meta:
       bitrise.io:
-        stack: $IOS_BUILD_STACK
+        stack: $IOS_STACK
         machine_type_id: $IOS_BUILD_MACHINE_TYPE_ID
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_release:
@@ -3326,13 +3334,10 @@ app:
       IOS_BUILD_MACHINE_TYPE_ID: "g2.mac.4large"
     - opts:
         is_expand: false
-      IOS_BUILD_STACK: "osx-xcode-16.2.x"
-    - opts:
-        is_expand: false
       IOS_TEST_MACHINE_TYPE_ID: "g2.mac.4large"
     - opts:
         is_expand: false
-      IOS_TEST_STACK: "osx-xcode-16.2.x"
+      IOS_STACK: "osx-xcode-16.2.x"
     - opts:
         is_expand: false
       MM_NOTIFICATIONS_UI_ENABLED: true
