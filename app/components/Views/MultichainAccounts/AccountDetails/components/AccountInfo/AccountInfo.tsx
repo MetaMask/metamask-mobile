@@ -15,7 +15,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import AddressCopy from '../../../../../UI/AddressCopy';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
+import { IconColor } from '@metamask/design-system-react-native';
 import { formatAddress } from '../../../../../../util/address';
 import { getFormattedAddressFromInternalAccount } from '../../../../../../core/Multichain/utils';
 
@@ -48,7 +48,7 @@ export const AccountInfo = ({ account }: AccountInfoProps) => {
         <Text variant={TextVariant.BodyLGMedium} color={colors.primary.default}>
           {formatAddress(formattedAddress, 'short')}
         </Text>
-        <AddressCopy account={account} iconColor={IconColor.Primary} />
+        <AddressCopy account={account} iconColor={IconColor.PrimaryDefault} />
       </Box>
     </Box>
   );

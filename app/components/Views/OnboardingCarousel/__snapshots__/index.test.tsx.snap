@@ -2576,7 +2576,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#686e7d",
                       "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                       "paddingVertical": 16,
@@ -2634,7 +2633,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#190066",
                       "fontFamily": "MM Sans Regular",
                       "fontSize": 40,
-                      "fontWeight": "400",
                       "justifyContent": "center",
                       "letterSpacing": 0,
                       "lineHeight": 40,
@@ -2652,7 +2650,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#190066",
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -2687,7 +2684,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#686e7d",
                       "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                       "paddingVertical": 16,
@@ -2745,7 +2741,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#3D065F",
                       "fontFamily": "MM Sans Regular",
                       "fontSize": 40,
-                      "fontWeight": "400",
                       "justifyContent": "center",
                       "letterSpacing": 0,
                       "lineHeight": 40,
@@ -2763,7 +2758,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#3D065F",
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -2798,7 +2792,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#686e7d",
                       "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                       "paddingVertical": 16,
@@ -2856,7 +2849,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#190066",
                       "fontFamily": "MM Sans Regular",
                       "fontSize": 40,
-                      "fontWeight": "400",
                       "justifyContent": "center",
                       "letterSpacing": 0,
                       "lineHeight": 40,
@@ -2874,7 +2866,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#190066",
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -2982,7 +2973,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
               "color": "#ffffff",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -5510,7 +5500,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
 </View>
 `;
 
-exports[`OnboardingCarousel should render the App Start Time text when isTest is true 1`] = `
+exports[`OnboardingCarousel should render the App Start Time text when isTest or isQa is true 1`] = `
 <View
   style={
     {

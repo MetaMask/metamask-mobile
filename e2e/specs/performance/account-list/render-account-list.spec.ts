@@ -13,6 +13,7 @@ import {
 } from '../../../framework/fixtures/constants';
 import {
   PerformanceTestReporter,
+  PerformanceTestError,
   createUserProfileTests,
   type TestResult,
 } from '../../../utils/PerformanceTestReporter';
@@ -82,23 +83,24 @@ describe(SmokePerformance('Account List Load Testing'), () => {
             console.warn(`⏱️  Total Time: ${totalTime}ms`);
             console.warn('='.repeat(50));
 
-            // Performance assertions with warnings
-            if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME) {
-              throw new Error(
-                `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
-              );
-            }
-
-            console.log('✅ Performance test passed!');
-
-            await AccountListBottomSheet.swipeToDismissAccountsModal();
-
             result = {
               totalTime,
               thresholds: {
                 totalTime: PERFORMANCE_THRESHOLDS.TOTAL_TIME,
               },
             };
+
+            // Performance assertions with warnings
+            if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME) {
+              throw new PerformanceTestError(
+                `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
+                result,
+              );
+            }
+
+            console.log('✅ Performance test passed!');
+
+            await AccountListBottomSheet.swipeToDismissAccountsModal();
           },
         );
 
@@ -168,20 +170,21 @@ describe(SmokePerformance('Account List Load Testing'), () => {
               '=====================================================================',
             );
 
-            if (totalTime > HEAVY_LOAD_THRESHOLDS.TOTAL_TIME) {
-              throw new Error(
-                `Heavy load test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${HEAVY_LOAD_THRESHOLDS.TOTAL_TIME}ms)`,
-              );
-            }
-
-            console.log('✅ Heavy load test passed!');
-
             result = {
               totalTime,
               thresholds: {
                 totalTime: HEAVY_LOAD_THRESHOLDS.TOTAL_TIME,
               },
             };
+
+            if (totalTime > HEAVY_LOAD_THRESHOLDS.TOTAL_TIME) {
+              throw new PerformanceTestError(
+                `Heavy load test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${HEAVY_LOAD_THRESHOLDS.TOTAL_TIME}ms)`,
+                result,
+              );
+            }
+
+            console.log('✅ Heavy load test passed!');
           },
         );
 
@@ -254,22 +257,23 @@ describe(SmokePerformance('Account List Load Testing'), () => {
             console.warn(`⏱️  Total Time: ${totalTime}ms`);
             console.log('==========================================');
 
-            // Baseline should be very fast
-            if (totalTime > BASELINE_THRESHOLDS.TOTAL_TIME) {
-              throw new Error(
-                `Baseline test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${BASELINE_THRESHOLDS.TOTAL_TIME}ms)`,
-              );
-            }
-
-            console.log('✅ Minimal load test passed!');
-            await AccountListBottomSheet.swipeToDismissAccountsModal();
-
             result = {
               totalTime,
               thresholds: {
                 totalTime: BASELINE_THRESHOLDS.TOTAL_TIME,
               },
             };
+
+            // Baseline should be very fast
+            if (totalTime > BASELINE_THRESHOLDS.TOTAL_TIME) {
+              throw new PerformanceTestError(
+                `Baseline test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${BASELINE_THRESHOLDS.TOTAL_TIME}ms)`,
+                result,
+              );
+            }
+
+            console.log('✅ Minimal load test passed!');
+            await AccountListBottomSheet.swipeToDismissAccountsModal();
           },
         );
 

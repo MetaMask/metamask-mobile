@@ -1103,7 +1103,7 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2293,7 +2293,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -3481,7 +3481,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Regular",
+                "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,

@@ -2,6 +2,17 @@
 import fs from 'fs';
 import path from 'path';
 
+// Custom error that carries performance data
+export class PerformanceTestError extends Error {
+  public readonly performanceData: Partial<TestResult>;
+
+  constructor(message: string, performanceData: Partial<TestResult>) {
+    super(message);
+    this.name = 'PerformanceTestError';
+    this.performanceData = performanceData;
+  }
+}
+
 // Test results storage
 export interface TestResult {
   testName: string;
@@ -118,15 +129,42 @@ export class PerformanceTestReporter {
     error: unknown,
     duration: number,
   ): void {
+    let performanceData: Partial<TestResult> = {};
+
+    // If it's our custom PerformanceTestError, use the embedded performance data
+    if (error instanceof PerformanceTestError) {
+      performanceData = error.performanceData;
+    } else if (
+      error instanceof Error &&
+      error.message.includes('Performance test failed')
+    ) {
+      // Fallback: Extract performance time from error message (temporary console.warn)
+      const timeMatch = error.message.match(/Total time \((\d+)ms\)/);
+      const thresholdMatch = error.message.match(
+        /maximum acceptable time \((\d+)ms\)/,
+      );
+
+      if (timeMatch) {
+        performanceData.totalTime = parseInt(timeMatch[1], 10);
+      }
+      if (thresholdMatch) {
+        performanceData.thresholds = {
+          totalTime: parseInt(thresholdMatch[1], 10),
+        };
+      }
+    }
+
     const testResult: TestResult = {
       testName,
       userProfile,
       platform: this.testSuiteResults.platform,
-      totalTime: this.msToSeconds(duration),
+      totalTime: this.msToSeconds(performanceData.totalTime || duration),
       status: 'FAILED',
       error: error instanceof Error ? error.message : String(error),
       timestamp: new Date().toISOString(),
-      thresholds: { totalTime: 0 },
+      thresholds: {
+        totalTime: this.msToSeconds(performanceData.thresholds?.totalTime || 0),
+      },
     };
 
     this.testSuiteResults.results.push(testResult);
@@ -206,13 +244,15 @@ export const createUserProfileTests = (
             userStates.length
           } PASSED: ${testName} - ${name}`,
         );
-        console.warn(`⏱️  Total Duration: ${duration}ms`);
+        console.warn(`⏱️  Performance Time: ${result.totalTime}ms`);
+        console.warn(`🏗️  Test Execution Duration: ${duration}ms`);
         console.warn(`⏰ End Time: ${new Date().toISOString()}`);
       } catch (error) {
         const endTime = Date.now();
         const duration = endTime - startTime;
 
-        // Add failed test result
+        // For performance failures, try to extract actual measured time from error
+        // This provides more accurate reporting than total test execution time
         reporter.addFailedTest(testName, name, error, duration);
 
         console.error(
@@ -220,7 +260,26 @@ export const createUserProfileTests = (
             userStates.length
           } FAILED: ${testName} - ${name}`,
         );
-        console.error(`⏱️  Duration: ${duration}ms`);
+        console.error(`🏗️  Test Execution Duration: ${duration}ms`);
+
+        // Log the actual performance time if available
+        if (error instanceof PerformanceTestError) {
+          console.error(
+            `⚡ Actual Performance Time: ${error.performanceData.totalTime}ms`,
+          );
+          console.error(
+            `🎯 Performance Threshold: ${error.performanceData.thresholds?.totalTime}ms`,
+          );
+        } else if (
+          error instanceof Error &&
+          error.message.includes('Performance test failed')
+        ) {
+          const timeMatch = error.message.match(/Total time \((\d+)ms\)/);
+          if (timeMatch) {
+            console.error(`⚡ Actual Performance Time: ${timeMatch[1]}ms`);
+          }
+        }
+
         console.error(
           `💥 Error: ${error instanceof Error ? error.message : String(error)}`,
         );

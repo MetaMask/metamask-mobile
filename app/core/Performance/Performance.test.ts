@@ -48,6 +48,7 @@ describe('Performance', () => {
   it('should not log performance numbers in production', () => {
     jest.mock('../../util/test/utils', () => ({
       isTest: true, // or false, depending on what you want to test
+      isQa: true,
     }));
 
     // Mock console.info to verify its calls
