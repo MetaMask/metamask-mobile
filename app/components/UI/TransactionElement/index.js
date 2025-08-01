@@ -100,7 +100,7 @@ const createStyles = (colors, typography) =>
       paddingTop: 10,
     },
     listItemDate: {
-      marginBottom: 0,
+      marginBottom: 10,
       paddingBottom: 0,
     },
     listItemContent: {
@@ -287,8 +287,7 @@ class TransactionElement extends PureComponent {
             'transactions.from_device_label',
             // eslint-disable-next-line no-mixed-spaces-and-tabs
           )}`
-        : `${toDateFormat(tx.time)}
-      `
+        : `${toDateFormat(tx.time)}`
     }`;
   };
 
