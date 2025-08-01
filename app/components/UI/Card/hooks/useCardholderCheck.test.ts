@@ -5,17 +5,22 @@ import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import { loadCardholderAccounts } from '../../../../core/redux/slices/card';
 import Logger from '../../../../util/Logger';
 import { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import { isEthAccount } from '../../../../core/Multichain/utils';
 
 jest.mock('react-redux');
 jest.mock('../../../hooks/useThunkDispatch');
 jest.mock('../../../../core/redux/slices/card');
 jest.mock('../../../../util/Logger');
+jest.mock('../../../../core/Multichain/utils');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseThunkDispatch = useThunkDispatch as jest.MockedFunction<
   typeof useThunkDispatch
 >;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
+const mockIsEthAccount = isEthAccount as jest.MockedFunction<
+  typeof isEthAccount
+>;
 
 describe('useCardholderCheck', () => {
   const mockDispatch = jest.fn();
@@ -36,6 +41,11 @@ describe('useCardholderCheck', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseThunkDispatch.mockReturnValue(mockDispatch);
+
+    // Default mock for isEthAccount - returns true for EOA accounts
+    mockIsEthAccount.mockImplementation(
+      (account) => account.type === 'eip155:eoa',
+    );
   });
 
   const defaultMockState = {
@@ -81,7 +91,7 @@ describe('useCardholderCheck', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(
       loadCardholderAccounts({
-        formattedAccounts: ['eip155:1:0x123', 'eip155:1:0x456'],
+        caipAccountIds: ['eip155:1:0x123', 'eip155:1:0x456'],
         cardFeatureFlag: mockCardFeatureFlag,
       }),
     );
@@ -141,7 +151,7 @@ describe('useCardholderCheck', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(
       loadCardholderAccounts({
-        formattedAccounts: ['eip155:1:0x123', 'eip155:1:0x789'],
+        caipAccountIds: ['eip155:1:0x123', 'eip155:1:0x789'],
         cardFeatureFlag: mockCardFeatureFlag,
       }),
     );
@@ -177,7 +187,7 @@ describe('useCardholderCheck', () => {
 
     expect(mockLogger.error).toHaveBeenCalledWith(
       error,
-      'useCardholderCheck::Error loading cardholder accounts',
+      'useCardholderCheck::Error checking cardholder accounts',
     );
   });
 
@@ -192,7 +202,7 @@ describe('useCardholderCheck', () => {
 
     expect(mockLogger.error).toHaveBeenCalledWith(
       new Error(errorMessage),
-      'useCardholderCheck::Error loading cardholder accounts',
+      'useCardholderCheck::Error checking cardholder accounts',
     );
   });
 
@@ -222,7 +232,7 @@ describe('useCardholderCheck', () => {
     expect(mockDispatch).toHaveBeenCalledTimes(2);
     expect(mockDispatch).toHaveBeenLastCalledWith(
       loadCardholderAccounts({
-        formattedAccounts: ['eip155:1:0x999'],
+        caipAccountIds: ['eip155:1:0x999'],
         cardFeatureFlag: mockCardFeatureFlag,
       }),
     );

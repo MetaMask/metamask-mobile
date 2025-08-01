@@ -2,20 +2,16 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
 import { getCardholder } from '../../../../components/UI/Card/util/getCardholder';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import Logger from '../../../../util/Logger';
 
 export interface CardSliceState {
   cardholderAccounts: string[];
-  lastUpdated: number | null;
-  isLoading: boolean;
-  error: string | null;
   isLoaded: boolean;
 }
 
 export const initialState: CardSliceState = {
   cardholderAccounts: [],
-  lastUpdated: null,
-  isLoading: false,
-  error: null,
   isLoaded: false,
 };
 
@@ -32,26 +28,18 @@ const slice = createSlice({
   initialState,
   reducers: {
     resetCardState: () => initialState,
-    clearCardError: (state) => {
-      state.error = null;
-    },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loadCardholderAccounts.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
       .addCase(loadCardholderAccounts.fulfilled, (state, action) => {
-        state.isLoading = false;
         state.cardholderAccounts = action.payload ?? [];
-        state.lastUpdated = Date.now();
         state.isLoaded = true;
-        state.error = null;
       })
       .addCase(loadCardholderAccounts.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action?.error?.message ?? null;
+        Logger.log(
+          'cardSlice::Error loading cardholder accounts',
+          action?.error?.message,
+        );
         state.isLoaded = true;
       });
   },
@@ -71,29 +59,14 @@ export const selectCardholderAccounts = createSelector(
 );
 
 export const selectIsCardholder = createSelector(
-  [selectCardholderAccounts],
-  (cardholderAccounts) => cardholderAccounts.length > 0,
-);
-
-export const selectIsCardDataLoaded = createSelector(
-  [selectCardState],
-  (card) => card.isLoaded,
-);
-
-export const selectCardLoading = createSelector(
-  [selectCardState],
-  (card) => card.isLoading,
-);
-
-export const selectCardError = createSelector(
-  [selectCardState],
-  (card) => card.error,
-);
-
-export const selectCardLastUpdated = createSelector(
-  [selectCardState],
-  (card) => card.lastUpdated,
+  [selectCardholderAccounts, selectSelectedInternalAccountFormattedAddress],
+  (cardholderAccounts, selectedInternalAccountAddress) => {
+    if (!selectedInternalAccountAddress) {
+      return false;
+    }
+    return cardholderAccounts.includes(selectedInternalAccountAddress);
+  },
 );
 
 // Actions
-export const { resetCardState, clearCardError } = actions;
+export const { resetCardState } = actions;

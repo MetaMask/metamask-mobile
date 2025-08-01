@@ -6,16 +6,17 @@ import {
   isValidHexAddress,
   safeToChecksumAddress,
 } from '../../../../util/address';
+import { isCaipAccountId, parseCaipAccountId } from '@metamask/utils';
 
 export const getCardholder = async ({
-  formattedAccounts,
+  caipAccountIds,
   cardFeatureFlag,
 }: {
-  formattedAccounts: `eip155:${string}:0x${string}`[];
+  caipAccountIds: `${string}:${string}:${string}`[];
   cardFeatureFlag: CardFeatureFlag | null;
 }) => {
   try {
-    if (!cardFeatureFlag || !formattedAccounts?.length) {
+    if (!cardFeatureFlag || !caipAccountIds?.length) {
       return [];
     }
 
@@ -24,27 +25,19 @@ export const getCardholder = async ({
       rawChainId: LINEA_CHAIN_ID,
     });
 
-    const result = await cardSDK.isCardHolder(formattedAccounts);
-    const mappedAccounts = result.cardholderAccounts.map((caip10Account) => {
-      const parts = caip10Account.split(':');
-      if (parts.length < 3) {
-        Logger.log(
-          `getCardholder::Invalid account format: ${caip10Account}. Expected format is CAIP-10`,
-        );
-        return null;
-      }
-      const address = parts[2];
+    const cardCaipAccountIds = await cardSDK.isCardHolder(caipAccountIds);
 
-      if (!isValidHexAddress(address)) {
-        return null;
-      }
+    const cardholderAddresses = cardCaipAccountIds.map((cardCaipAccountId) => {
+      if (!isCaipAccountId(cardCaipAccountId)) return null;
+
+      const { address } = parseCaipAccountId(cardCaipAccountId);
+
+      if (!isValidHexAddress(address)) return null;
 
       return safeToChecksumAddress(address);
     });
 
-    const cardholderAddresses = mappedAccounts.filter(Boolean) as string[];
-
-    return cardholderAddresses;
+    return cardholderAddresses.filter(Boolean) as string[];
   } catch (error) {
     Logger.error(
       error instanceof Error ? error : new Error(String(error)),
