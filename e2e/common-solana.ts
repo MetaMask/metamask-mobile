@@ -1,8 +1,5 @@
-import FixtureBuilder from './fixtures/fixture-builder';
-import {
-  DEFAULT_SOLANA_TEST_DAPP_PATH,
-  withFixtures,
-} from './fixtures/fixture-helper';
+import FixtureBuilder from './framework/fixtures/FixtureBuilder';
+import { withFixtures } from './framework/fixtures/FixtureHelper';
 import { loginToApp } from './viewHelper';
 import TestHelpers from './helpers';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
@@ -10,47 +7,59 @@ import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/Ad
 import WalletView from './pages/wallet/WalletView';
 import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from './pages/wallet/AddAccountBottomSheet';
-import Assertions from './utils/Assertions';
+import Assertions from './framework/Assertions';
+import { DappVariants } from './framework/Constants';
 
 export async function withSolanaAccountEnabled(
   {
     numberOfAccounts = 1,
+    solanaAccountPermitted,
+    evmAccountPermitted,
+    dappVariant,
   }: {
     numberOfAccounts?: number;
+    solanaAccountPermitted?: boolean;
+    evmAccountPermitted?: boolean;
+    dappVariant?: DappVariants;
   },
   test: () => Promise<void>,
 ) {
-  const fixtures = new FixtureBuilder()
+  let fixtureBuilder = new FixtureBuilder()
     .withSolanaFixture()
-    .withSolanaFeatureSheetDisplayed()
-    .build();
+    .withSolanaFeatureSheetDisplayed();
+
+  if (solanaAccountPermitted) {
+    fixtureBuilder = fixtureBuilder.withSolanaAccountPermission();
+  }
+  if (evmAccountPermitted) {
+    fixtureBuilder = fixtureBuilder.withChainPermission(['0x1']);
+  }
+  const fixtures = fixtureBuilder.build();
 
   await withFixtures(
     {
       fixture: fixtures,
-      dapp: true,
-      dappPath: DEFAULT_SOLANA_TEST_DAPP_PATH,
+      dapps: [
+        {
+          dappVariant: dappVariant || DappVariants.SOLANA_TEST_DAPP, // Default to the Solana test dapp if no variant is provided
+        },
+      ],
       restartDevice: true,
     },
     async () => {
       await TestHelpers.reverseServerPort();
       await loginToApp();
 
-      // Create 1st Solana account through the new feature sheet
-      await SolanaNewFeatureSheet.tapCreateAccountButton();
-      await AddNewHdAccountComponent.tapConfirm();
-      await Assertions.checkIfElementToHaveText(
-        WalletView.accountName,
-        `Solana Account 1`,
-      );
+      // Dismiss the new feature view
+      await SolanaNewFeatureSheet.tapNotNowButton();
 
-      // Create remaining Solana accounts through the wallet view
-      for (let i = 1; i < numberOfAccounts; i++) {
+      // Create Solana accounts through the wallet view
+      for (let i = 0; i < numberOfAccounts; i++) {
         await WalletView.tapCurrentMainWalletAccountActions();
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapAddSolanaAccount();
         await AddNewHdAccountComponent.tapConfirm();
-        await Assertions.checkIfElementToHaveText(
+        await Assertions.expectElementToHaveText(
           WalletView.accountName,
           `Solana Account ${i + 1}`,
         );

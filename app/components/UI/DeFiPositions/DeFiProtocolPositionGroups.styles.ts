@@ -7,9 +7,12 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     protocolDetailsPositionsWrapper: {
-      display: 'flex',
       flexDirection: 'column',
       paddingHorizontal: 16,
+      flex: 1,
+    },
+    wrapper: {
+      flex: 1,
     },
   });
 

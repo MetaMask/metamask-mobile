@@ -1,8 +1,7 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
-import ReduxService from '../redux';
+import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 
-import { UserActionType } from '../../actions/user';
 import {
   HandleOAuthLoginResult,
   AuthConnection,
@@ -65,9 +64,6 @@ export class OAuthService {
   #dispatchLogin = () => {
     this.resetOauthState();
     this.updateLocalState({ loginInProgress: true });
-    ReduxService.store.dispatch({
-      type: UserActionType.LOADING_SET,
-    });
   };
 
   #dispatchPostLogin = (result: HandleOAuthLoginResult) => {
@@ -82,9 +78,8 @@ export class OAuthService {
       stateToUpdate.oauthLoginError = result.error;
     }
     this.updateLocalState(stateToUpdate);
-    ReduxService.store.dispatch({
-      type: UserActionType.LOADING_UNSET,
-    });
+
+    // move dispatch loading false to onboarding view
   };
 
   handleSeedlessAuthenticate = async (
@@ -111,6 +106,10 @@ export class OAuthService {
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,
           socialLoginEmail: accountName,
+          refreshToken: data.refresh_token,
+          revokeToken: data.revoke_token,
+          accessToken: data.access_token,
+          metadataAccessToken: data.metadata_access_token,
         });
       Logger.log('handleCodeFlow: result', result);
       return {
@@ -140,15 +139,73 @@ export class OAuthService {
     this.#dispatchLogin();
 
     try {
-      const result = await loginHandler.login();
+      let result, data, handleCodeFlowResult;
+      let providerLoginSuccess = false;
+      try {
+        trace({
+          name: TraceName.OnboardingOAuthProviderLogin,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        result = await loginHandler.login();
+        providerLoginSuccess = true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+
+        trace({
+          name: TraceName.OnboardingOAuthProviderLoginError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+
+        throw error;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingOAuthProviderLogin,
+          data: { success: providerLoginSuccess },
+        });
+      }
+
       const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: result', result);
       if (result) {
-        const data = await loginHandler.getAuthTokens(
-          { ...result, web3AuthNetwork },
-          this.config.authServerUrl,
-        );
+        let getAuthTokensSuccess = false;
+        try {
+          trace({
+            name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+            op: TraceOperation.OnboardingSecurityOp,
+          });
+          data = await loginHandler.getAuthTokens(
+            { ...result, web3AuthNetwork },
+            this.config.authServerUrl,
+          );
+          getAuthTokensSuccess = true;
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
+
+          trace({
+            name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage },
+          });
+          endTrace({
+            name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
+          });
+
+          throw error;
+        } finally {
+          endTrace({
+            name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+            data: { success: getAuthTokensSuccess },
+          });
+        }
+
+        if (!data.id_token) {
+          throw new OAuthError('No token found', OAuthErrorType.LoginError);
+        }
 
         const jwtPayload = JSON.parse(
           loginHandler.decodeIdToken(data.id_token),
@@ -160,10 +217,39 @@ export class OAuthService {
           userId,
           accountName,
         });
-        const handleCodeFlowResult = await this.handleSeedlessAuthenticate(
-          data,
-          authConnection,
-        );
+
+        let seedlessAuthSuccess = false;
+        try {
+          trace({
+            name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+            op: TraceOperation.OnboardingSecurityOp,
+          });
+          handleCodeFlowResult = await this.handleSeedlessAuthenticate(
+            data,
+            authConnection,
+          );
+          seedlessAuthSuccess = true;
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
+
+          trace({
+            name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage },
+          });
+          endTrace({
+            name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
+          });
+
+          throw error;
+        } finally {
+          endTrace({
+            name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+            data: { success: seedlessAuthSuccess },
+          });
+        }
+
         this.#dispatchPostLogin(handleCodeFlowResult);
         return handleCodeFlowResult;
       }

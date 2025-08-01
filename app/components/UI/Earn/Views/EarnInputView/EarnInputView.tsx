@@ -172,7 +172,7 @@ const EarnInputView = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   useEndTraceOnMount(TraceName.EarnDepositScreen);
 
   const navigateToLearnMoreModal = () => {
@@ -301,6 +301,12 @@ const EarnInputView = () => {
 
       return isExistingAllowanceLowerThanNeeded;
     })();
+
+    if (needsAllowanceIncrease) {
+      trace({ name: TraceName.EarnDepositSpendingCapScreen });
+    } else {
+      trace({ name: TraceName.EarnDepositReviewScreen });
+    }
 
     const lendingPoolContractAddress =
       CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(earnToken.chainId)] ??
@@ -468,6 +474,12 @@ const EarnInputView = () => {
     };
 
     if (isStakingDepositRedesignedEnabled) {
+      // start trace between user initiating deposit and the redesigned confirmation screen loading
+      trace({
+        name: TraceName.EarnDepositConfirmationScreen,
+        data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+      });
+
       // this prevents the user from adding the transaction deposit into the
       // controller state multiple times
       setIsSubmittingStakeDepositTransaction(true);

@@ -7,13 +7,8 @@ import {
   selectKeyrings,
 } from '../../../../selectors/keyringController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import {
-  selectIsBackupAndSyncEnabled,
-  selectIsSignedIn,
-} from '../../../../selectors/identity';
-import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 /**
  * Custom hook to manage automatically signing in a user based on the app state.
@@ -29,7 +24,6 @@ export function useAutoSignIn(): {
 } {
   const [hasNewKeyrings, setHasNewKeyrings] = useState(false);
   const { signIn } = useSignIn();
-  const { isEnabled } = useMetrics();
 
   // Base prerequisites
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
@@ -50,7 +44,7 @@ export function useAutoSignIn(): {
     }
   }, [keyrings.length]);
 
-  const areBasePrerequisitesMet = useMemo(
+  const shouldAutoSignIn = useMemo(
     () =>
       (!isSignedIn || hasNewKeyrings) &&
       isUnlocked &&
@@ -63,33 +57,6 @@ export function useAutoSignIn(): {
       completedOnboarding,
       hasNewKeyrings,
     ],
-  );
-
-  // Auth dependent features
-  // Since MetaMetrics is not a controller that extends BaseController,
-  // and it is not stored in the redux store, we programmatically trigger `autoSignIn`
-  // in the following file: app/components/Views/Settings/SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection.tsx
-  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
-  const isParticipateInMetaMetrics = isEnabled();
-  const isNotificationServicesEnabled = useSelector(
-    selectIsMetamaskNotificationsEnabled,
-  );
-
-  const isAtLeastOneAuthDependentFeatureEnabled = useMemo(
-    () =>
-      isBackupAndSyncEnabled ||
-      isParticipateInMetaMetrics ||
-      isNotificationServicesEnabled,
-    [
-      isBackupAndSyncEnabled,
-      isParticipateInMetaMetrics,
-      isNotificationServicesEnabled,
-    ],
-  );
-
-  const shouldAutoSignIn = useMemo(
-    () => areBasePrerequisitesMet && isAtLeastOneAuthDependentFeatureEnabled,
-    [areBasePrerequisitesMet, isAtLeastOneAuthDependentFeatureEnabled],
   );
 
   const autoSignIn = useCallback(async () => {

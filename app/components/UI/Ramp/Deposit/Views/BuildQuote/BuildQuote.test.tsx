@@ -6,6 +6,10 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import {
+  DEBIT_CREDIT_PAYMENT_METHOD,
+  WIRE_TRANSFER_PAYMENT_METHOD,
+} from '../../constants';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -13,18 +17,22 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
 
+const mockInteractionManager = {
+  runAfterInteractions: jest.fn((callback) => callback()),
+};
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockSetParams = jest.fn();
 const mockGetQuote = jest.fn();
-const mockFetchKycForms = jest.fn();
-const mockFetchKycFormData = jest.fn();
-const mockFetchUserDetails = jest.fn();
+const mockRouteAfterAuthentication = jest.fn();
+const mockNavigateToVerifyIdentity = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
-const mockCreateReservation = jest.fn();
-const mockCreateOrder = jest.fn();
-const mockHandleNewOrder = jest.fn();
+const mockUseAccountTokenCompatible = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
 
 const createMockSDKReturn = (overrides = {}) => ({
   isAuthenticated: false,
@@ -50,8 +58,10 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+      setParams: mockSetParams,
     }),
     useFocusEffect: jest.fn().mockImplementation((callback) => callback()),
+    useRoute: () => mockUseRoute(),
   };
 });
 
@@ -64,40 +74,42 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
     if (config?.method === 'getBuyQuote' || config === 'getBuyQuote') {
       return [{ error: null }, mockGetQuote];
     }
-    if (config?.method === 'getKYCForms') {
-      return [{ error: null }, mockFetchKycForms];
-    }
-    if (config?.method === 'getKycForm') {
-      return [{ error: null }, mockFetchKycFormData];
-    }
-    if (config?.method === 'getUserDetails') {
-      return [{ error: null }, mockFetchUserDetails];
-    }
-    if (config?.method === 'walletReserve') {
-      return [{ error: null }, mockCreateReservation];
-    }
-    if (config?.method === 'createOrder') {
-      return [{ error: null }, mockCreateOrder];
-    }
     return [{ error: null }, jest.fn()];
   }),
 }));
 
-jest.mock('../../hooks/useDepositTokenExchange', () =>
-  jest.fn(() => mockUseDepositTokenExchange()),
+jest.mock(
+  '../../hooks/useDepositTokenExchange',
+  () => () => mockUseDepositTokenExchange(),
 );
 
-jest.mock('../../hooks/useUserDetailsPolling', () => ({
-  KycStatus: {
-    APPROVED: 'APPROVED',
-    PENDING: 'PENDING',
-    REJECTED: 'REJECTED',
-  },
+jest.mock(
+  '../../hooks/useAccountTokenCompatible',
+  () => () => mockUseAccountTokenCompatible(),
+);
+
+jest.mock('../../hooks/useDepositRouting', () => ({
+  useDepositRouting: jest.fn(() => ({
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+    navigateToVerifyIdentity: mockNavigateToVerifyIdentity,
+  })),
 }));
 
-jest.mock('../../hooks/useHandleNewOrder', () =>
-  jest.fn(() => mockHandleNewOrder()),
-);
+const mockUsePaymentMethods = jest
+  .fn()
+  .mockReturnValue([DEBIT_CREDIT_PAYMENT_METHOD, WIRE_TRANSFER_PAYMENT_METHOD]);
+jest.mock('../../hooks/usePaymentMethods', () => () => mockUsePaymentMethods());
+
+// Mock the analytics hook like in the aggregator test
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+jest.mock('react-native', () => {
+  const actualReactNative = jest.requireActual('react-native');
+  return {
+    ...actualReactNative,
+    InteractionManager: mockInteractionManager,
+  };
+});
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -122,7 +134,9 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
-    mockHandleNewOrder.mockResolvedValue(undefined);
+    mockUseAccountTokenCompatible.mockReturnValue(true);
+    // Ensure trackEvent mock is reset
+    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -188,7 +202,7 @@ describe('BuildQuote Component', () => {
   });
 
   describe('Payment Method Selection', () => {
-    it('navigates to payment method selection payment button is pressed', () => {
+    it('navigates to payment method selection when payment button is pressed', () => {
       render(BuildQuote);
       const payWithButton = screen.getByText('Pay with');
       fireEvent.press(payWithButton);
@@ -198,6 +212,66 @@ describe('BuildQuote Component', () => {
           handleSelectPaymentMethodId: expect.any(Function),
           selectedPaymentMethodId: 'credit_debit_card',
         },
+      });
+    });
+
+    it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
+      render(BuildQuote);
+      const payWithButton = screen.getByText('Pay with');
+      fireEvent.press(payWithButton);
+
+      act(() =>
+        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId(
+          'credit_debit_card',
+        ),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_PAYMENT_METHOD_SELECTED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: 'US',
+          payment_method_id: 'credit_debit_card',
+          is_authenticated: false,
+        },
+      );
+    });
+  });
+
+  describe('Token Selection', () => {
+    it('navigates to token selection when token button is pressed', () => {
+      render(BuildQuote);
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
+      expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+        screen: 'DepositTokenSelectorModal',
+        params: {
+          handleSelectAssetId: expect.any(Function),
+          selectedAssetId:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        },
+      });
+    });
+
+    it('tracks RAMPS_TOKEN_SELECTED event when token is selected', () => {
+      render(BuildQuote);
+      const tokenButton = screen.getByText('USDC');
+      fireEvent.press(tokenButton);
+
+      act(() =>
+        mockNavigate.mock.calls[0][1].params.handleSelectAssetId(
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        ),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+        chain_id: 'eip155:1',
+        currency_destination:
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        currency_source: 'USD',
+        is_authenticated: false,
       });
     });
   });
@@ -226,11 +300,9 @@ describe('BuildQuote Component', () => {
   describe('Continue button functionality', () => {
     it('calls getQuote with transformed parameters using utility functions', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-      const mockForms = { forms: [] };
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
 
       render(BuildQuote);
 
@@ -248,13 +320,11 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('calls fetchKycForms with the quote when getQuote succeeds', async () => {
+    it('tracks RAMPS_ORDER_PROPOSED event when continue is pressed', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-      const mockForms = { forms: [] };
 
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
 
       render(BuildQuote);
 
@@ -262,299 +332,122 @@ describe('BuildQuote Component', () => {
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
-      });
-    });
-
-    it('navigates to ProviderWebview when user is authenticated and no forms are required', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: [] };
-      const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
-
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({ isAuthenticated: true }),
-      );
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchUserDetails).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith('ProviderWebview', {
-          quote: mockQuote,
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_PROPOSED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
+          is_authenticated: false,
         });
       });
     });
 
-    it('navigates to KycProcessing when user is authenticated, no forms required, but KYC not approved', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: [] };
-      const mockUserDetails = { kyc: { l1: { status: 'PENDING' } } };
-
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({ isAuthenticated: true }),
-      );
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchUserDetails).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
-          quote: {
-            id: 'test-quote',
-          },
-        });
-      });
-    });
-
-    it('navigates to BasicInfo when personalDetails form is required', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = {
-        forms: [{ id: 'personalDetails' }, { id: 'idProof' }],
-      };
-      const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
-
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({ isAuthenticated: true }),
-      );
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchKycFormData.mockResolvedValue(mockIdProofData);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
-          id: 'idProof',
-        });
-        expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
-          quote: mockQuote,
-          kycUrl: 'test-kyc-url',
-        });
-      });
-    });
-
-    it('navigates to BasicInfo when address form is required', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = {
-        forms: [{ id: 'address' }, { id: 'idProof' }],
-      };
-      const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
-
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({ isAuthenticated: true }),
-      );
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchKycFormData.mockResolvedValue(mockIdProofData);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
-          id: 'idProof',
-        });
-        expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
-          quote: mockQuote,
-          kycUrl: 'test-kyc-url',
-        });
-      });
-    });
-
-    it('navigates to KycWebview when only idProof form is required', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = {
-        forms: [{ id: 'idProof' }],
-      };
-      const mockIdProofData = { data: { kycUrl: 'test-kyc-url' } };
-
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({ isAuthenticated: true }),
-      );
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchKycFormData.mockResolvedValue(mockIdProofData);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
-          id: 'idProof',
-        });
-        expect(mockNavigate).toHaveBeenCalledWith('KycWebview', {
-          quote: mockQuote,
-          kycUrl: 'test-kyc-url',
-        });
-      });
-    });
-
-    it('handles case when idProof form exists but no form data is returned', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = {
-        forms: [{ id: 'idProof' }],
-      };
-
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({ isAuthenticated: true }),
-      );
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchKycFormData.mockResolvedValue(null);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
-          id: 'idProof',
-        });
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-    });
-
-    it('renders quote fetch error snapshot when getQuote fails', async () => {
-      const mockError = new Error('Failed to fetch quote');
-
-      mockGetQuote.mockRejectedValue(mockError);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await waitFor(() => {
-        expect(screen.toJSON()).toMatchSnapshot();
-      });
-    });
-
-    it('renders KYC forms fetch error snapshot when fetchKycForms fails', async () => {
+    it('calls navigateToVerifyIdentity when user is not authenticated', async () => {
       const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
 
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockRejectedValue(
-        new Error('Failed to fetch KYC forms'),
-      );
-
       render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await waitFor(() => {
-        expect(screen.toJSON()).toMatchSnapshot();
-      });
-    });
-
-    it('renders success state snapshot when quote and KYC forms are fetched successfully', async () => {
-      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
-      const mockForms = { forms: [] };
-
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-
-      render(BuildQuote);
-
-      const continueButton = screen.getByText('Continue');
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await waitFor(() => {
-        expect(screen.toJSON()).toMatchSnapshot();
-      });
-    });
-
-    it('navigates to BankDetails when user is authenticated, no forms required, KYC approved, and SEPA payment method is selected', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: [] };
-      const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
-      const mockReservation = { id: 'reservation-123' };
-      const mockOrder = { id: 'order-123', walletAddress: 'wallet-address' };
-
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          isAuthenticated: true,
-          selectedWalletAddress: 'selected-wallet',
-        }),
-      );
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
-      mockCreateReservation.mockResolvedValue(mockReservation);
-      mockCreateOrder.mockResolvedValue(mockOrder);
-
-      render(BuildQuote);
-
-      const payWithButton = screen.getByText('Pay with');
-      fireEvent.press(payWithButton);
-
-      const handleSelectPaymentMethodId =
-        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId;
-      act(() => handleSelectPaymentMethodId('sepa_bank_transfer'));
 
       const continueButton = screen.getByText('Continue');
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        expect(mockCreateReservation).toHaveBeenCalledWith(
-          mockQuote,
-          'selected-wallet',
+        expect(mockNavigateToVerifyIdentity).toHaveBeenCalledWith({
+          quote: mockQuote,
+        });
+      });
+    });
+
+    it('calls routeAfterAuthentication when user is authenticated', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
+      });
+    });
+
+    it('navigates to incompatible token modal when user they are not compatible', async () => {
+      mockUseAccountTokenCompatible.mockReturnValue(false);
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'DepositModals',
+          expect.objectContaining({
+            screen: 'IncompatibleAccountTokenModal',
+          }),
         );
-        expect(mockCreateOrder).toHaveBeenCalledWith(mockReservation);
-        expect(mockHandleNewOrder).toHaveBeenCalled();
       });
     });
 
-    it('shows error when SEPA reservation fails', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: [] };
-      const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
+    it('tracks RAMPS_ORDER_SELECTED event when user is authenticated and quote is successful', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        conversionPrice: 2000,
+        feeBreakdown: [
+          { type: 'network_fee', value: 0.01 },
+          { type: 'transak_fee', value: 0.02 },
+        ],
+        totalFee: 0.03,
+        paymentMethod: 'credit_debit_card',
+        fiatCurrency: 'USD',
+      } as BuyQuote;
 
       mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          isAuthenticated: true,
-          selectedWalletAddress: 'selected-wallet',
-        }),
+        createMockSDKReturn({ isAuthenticated: true }),
       );
       mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
-      mockCreateReservation.mockResolvedValue(null);
 
       render(BuildQuote);
 
-      const payWithButton = screen.getByText('Pay with');
-      fireEvent.press(payWithButton);
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
 
-      const handleSelectPaymentMethodId =
-        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId;
-      act(() => handleSelectPaymentMethodId('sepa_bank_transfer'));
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+          gas_fee: 0.01,
+          processing_fee: 0.02,
+          total_fee: 0.03,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
+        });
+      });
+    });
+
+    it('displays error when quote fetch fails', async () => {
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');
       await act(async () => {
@@ -566,32 +459,39 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('shows error when SEPA order creation fails', async () => {
-      const mockQuote = { id: 'test-quote' };
-      const mockForms = { forms: [] };
-      const mockUserDetails = { kyc: { l1: { status: 'APPROVED' } } };
-      const mockReservation = { id: 'reservation-123' };
-
-      mockUseDepositSDK.mockReturnValue(
-        createMockSDKReturn({
-          isAuthenticated: true,
-          selectedWalletAddress: 'selected-wallet',
-        }),
-      );
-      mockGetQuote.mockResolvedValue(mockQuote);
-      mockFetchKycForms.mockResolvedValue(mockForms);
-      mockFetchUserDetails.mockResolvedValue(mockUserDetails);
-      mockCreateReservation.mockResolvedValue(mockReservation);
-      mockCreateOrder.mockResolvedValue(null);
+    it('tracks RAMPS_ORDER_FAILED event when quote fetch fails', async () => {
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
 
       render(BuildQuote);
 
-      const payWithButton = screen.getByText('Pay with');
-      fireEvent.press(payWithButton);
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
 
-      const handleSelectPaymentMethodId =
-        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId;
-      act(() => handleSelectPaymentMethodId('sepa_bank_transfer'));
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('displays error when quote is falsy', async () => {
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockReturnValue(null);
+
+      render(BuildQuote);
 
       const continueButton = screen.getByText('Continue');
       await act(async () => {
@@ -600,6 +500,120 @@ describe('BuildQuote Component', () => {
 
       await waitFor(() => {
         expect(screen.toJSON()).toMatchSnapshot();
+      });
+    });
+
+    it('tracks RAMPS_ORDER_FAILED event when quote is falsy', async () => {
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockReturnValue(null);
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 0,
+          amount_destination: 0,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
+          error_message: 'BuildQuote - Error fetching quote',
+          is_authenticated: false,
+        });
+      });
+    });
+
+    it('displays error when routeAfterAuthentication throws', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockRouteAfterAuthentication.mockRejectedValue(
+        new Error('Routing failed'),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.toJSON()).toMatchSnapshot();
+      });
+    });
+
+    it('tracks RAMPS_ORDER_FAILED event when routeAfterAuthentication throws', async () => {
+      const mockQuote = {
+        quoteId: 'test-quote',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        paymentMethod: 'credit_debit_card',
+        fiatCurrency: 'USD',
+      } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockRouteAfterAuthentication.mockRejectedValue(
+        new Error('Routing failed'),
+      );
+
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ORDER_FAILED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          payment_method_id: 'credit_debit_card',
+          region: 'US',
+          chain_id: 'eip155:1',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          currency_source: 'USD',
+          error_message: 'BuildQuote - Error handling authentication',
+          is_authenticated: true,
+        });
+      });
+    });
+    it('calls handleOnPressContinue when shouldRouteImmediately is true', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockGetQuote).toHaveBeenCalledWith(
+          'USD',
+          'USDC',
+          'ethereum',
+          'credit_debit_card',
+          '0',
+        );
       });
     });
   });

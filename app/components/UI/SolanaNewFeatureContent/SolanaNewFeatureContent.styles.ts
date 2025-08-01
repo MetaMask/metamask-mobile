@@ -1,43 +1,68 @@
 import { StyleSheet } from 'react-native';
+import { colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
-import { fontStyles } from '../../../styles/common';
 
-const createStyles = (colors: {
-  background: { default: string };
-  text: { default: string };
-  primary: { default: string };
-}) =>
+const createStyles = () =>
   StyleSheet.create({
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-end',
+    scroll: {
+      flexGrow: 1,
+      minHeight: '100%',
     },
     wrapper: {
-      backgroundColor: colors.background.default,
-      borderRadius: 12,
-      padding: 24,
-      paddingBottom: Device.isAndroid() ? 24 : 0,
+      flex: 1,
+      alignItems: 'center',
+      paddingTop: 30,
+      minHeight: '100%',
+    },
+    largeFoxWrapper: {
       alignItems: 'center',
     },
     title: {
-      ...fontStyles.bold,
-      fontSize: 18,
-      color: colors.text.default,
-      marginTop: 20,
-      marginBottom: 20,
+      fontSize: 60,
+      lineHeight: 60,
       textAlign: 'center',
+      paddingTop: Device.isLargeDevice() ? 40 : 10,
+      fontFamily: 'MM Poly Regular',
     },
-    featureList: {
+    titleDescription: {
+      paddingTop: 20,
+      textAlign: 'center',
+      fontSize: 16,
+      fontFamily: 'MM Sans Regular',
+    },
+    foxImage: {
+      height: Device.isLargeDevice() ? 350 : 260,
+    },
+    ctas: {
+      flex: 1,
+      position: 'relative',
       width: '100%',
-      marginBottom: 24,
+      paddingHorizontal: 30,
+      justifyContent: 'space-between',
     },
-    cancelButton: {
-      marginTop: 12,
+    createWrapper: {
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      rowGap: 5,
+      marginBottom: 16,
     },
-    learnMore: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      marginBottom: 12,
+    learnMoreButton: {
+      textDecorationLine: 'underline',
+      fontFamily: 'MMSans-Regular',
+      color: importedColors.gettingStartedTextColor,
+      textAlign: 'center',
+      paddingTop: 10,
+    },
+    importWalletButton: {
+      borderRadius: 12,
+      backgroundColor: importedColors.gettingStartedTextColor,
+    },
+    notNowButton: {
+      borderRadius: 12,
+      backgroundColor: importedColors.transparent,
+      borderWidth: 1,
+      borderColor: importedColors.transparent,
     },
   });
 

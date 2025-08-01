@@ -334,7 +334,7 @@ exports[`AccountSelector should render correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -898,7 +898,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                                       style={
                                                         {
                                                           "backgroundColor": "#ffffff",
-                                                          "borderRadius": 16,
+                                                          "borderRadius": 8,
                                                           "height": 32,
                                                           "marginRight": 16,
                                                           "overflow": "hidden",
@@ -919,7 +919,9 @@ exports[`AccountSelector should render correctly 1`] = `
                                                               "height": 32,
                                                               "width": 32,
                                                             },
-                                                            undefined,
+                                                            {
+                                                              "borderRadius": 8,
+                                                            },
                                                           ]
                                                         }
                                                       >
@@ -1237,7 +1239,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                                       style={
                                                         {
                                                           "backgroundColor": "#ffffff",
-                                                          "borderRadius": 16,
+                                                          "borderRadius": 8,
                                                           "height": 32,
                                                           "marginRight": 16,
                                                           "overflow": "hidden",
@@ -1258,7 +1260,9 @@ exports[`AccountSelector should render correctly 1`] = `
                                                               "height": 32,
                                                               "width": 32,
                                                             },
-                                                            undefined,
+                                                            {
+                                                              "borderRadius": 8,
+                                                            },
                                                           ]
                                                         }
                                                       >
@@ -1541,14 +1545,15 @@ exports[`AccountSelector should render correctly 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "transparent",
-                                  "borderColor": "#4459ff",
+                                  "backgroundColor": "#3c4d9d1a",
+                                  "borderColor": "transparent",
                                   "borderRadius": 12,
                                   "borderWidth": 1,
                                   "flex": 1,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1558,7 +1563,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#4459ff",
+                                    "color": "#121314",
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,

@@ -46,7 +46,7 @@ const baseTransactionMock = {
   gasFeeEstimatesLoaded: true,
   gasFeeTokens: [],
   gasLimitNoBuffer: '0x664e',
-  id: '56f60ff0-2bef-11f0-80ce-2f66f7fbd577',
+  id: transactionIdMock,
   isFirstTimeInteraction: undefined,
   nestedTransactions: undefined,
   networkClientId: 'adb18d66-c112-449b-9f0c-c3664f6414bf',

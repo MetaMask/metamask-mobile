@@ -13,6 +13,11 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 const mockReset = jest.fn();
 const mockCheckExistingToken = jest.fn();
 let mockGetStarted = true;
+const mockSelectedRegion = {
+  isoCode: 'US',
+  flag: '🇺🇸',
+  name: 'United States',
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -25,16 +30,27 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../sdk', () => ({
-  useDepositSDK: () => ({
-    checkExistingToken: mockCheckExistingToken,
-    getStarted: mockGetStarted,
-  }),
-}));
+jest.mock('../../sdk', () => {
+  const actual = jest.requireActual('../../sdk');
+  return {
+    ...actual,
+    useDepositSDK: () => ({
+      checkExistingToken: mockCheckExistingToken,
+      getStarted: mockGetStarted,
+      selectedRegion: mockSelectedRegion,
+    }),
+  };
+});
 
 jest.mock('../../../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../../../reducers/fiatOrders'),
   getOrders: jest.fn(),
+  fiatOrdersGetStartedDeposit: jest.fn((_state: unknown) => true),
+  setFiatOrdersGetStartedDeposit: jest.fn(),
+  fiatOrdersRegionSelectorDeposit: jest.fn(
+    (_state: unknown) => mockSelectedRegion,
+  ),
+  setFiatOrdersRegionDeposit: jest.fn(),
 }));
 
 function render(Component: React.ComponentType) {

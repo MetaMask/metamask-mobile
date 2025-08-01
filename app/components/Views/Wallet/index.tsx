@@ -7,21 +7,21 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
-  StyleSheet,
+  StyleSheet as RNStyleSheet,
   View,
-  TextStyle,
   Linking,
+  TextStyle,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import { connect, useSelector } from 'react-redux';
+import { connect, useSelector, useDispatch } from 'react-redux';
 import ScrollableTabView, {
   ChangeTabProperties,
 } from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
+import TabBar from '../../../component-library/components-temp/TabBar';
 import {
   isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
@@ -29,11 +29,13 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
 } from '../../../reducers/legalNotices';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+
 import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -55,6 +57,7 @@ import {
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
+  selectNativeCurrencyByChainId,
 } from '../../../selectors/networkController';
 import {
   selectNetworkName,
@@ -71,10 +74,8 @@ import {
 } from '@react-navigation/native';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
-import Text, {
+import CustomText, {
   TextColor,
-  getFontFamily,
-  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
@@ -111,9 +112,6 @@ import { Hex } from '@metamask/utils';
 import { Nft, Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
-///: END:ONLY_INCLUDE_IF
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep } from 'lodash';
@@ -124,9 +122,30 @@ import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { QRTabSwitcherScreens } from '../QRTabSwitcher';
+import { createBuyNavigationDetails } from '../../UI/Ramp/Aggregator/routes/utils';
+import { newAssetTransaction } from '../../../actions/transaction';
+import { getEther } from '../../../util/transactions';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { isSwapsAllowed } from '../../UI/Swaps/utils';
+import { isBridgeAllowed } from '../../UI/Bridge/utils';
+import AppConstants from '../../../core/AppConstants';
+import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
+///: END:ONLY_INCLUDE_IF
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 
-const createStyles = ({ colors, typography }: Theme) =>
-  StyleSheet.create({
+const createStyles = ({ colors }: Theme) =>
+  RNStyleSheet.create({
     base: {
       paddingHorizontal: 16,
     },
@@ -135,22 +154,12 @@ const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.background.default,
     },
     walletAccount: { marginTop: 28 },
-    tabUnderlineStyle: {
-      height: 2,
-      backgroundColor: colors.primary.default,
-    },
-    tabStyle: {
-      paddingBottom: 8,
-      paddingVertical: 8,
-    },
     tabBar: {
-      borderColor: colors.background.default,
       marginBottom: 8,
     },
-    textStyle: {
-      ...(typography.sBodyMD as TextStyle),
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-      fontWeight: '500',
+    tabContainer: {
+      paddingHorizontal: 16,
+      flex: 1,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -164,6 +173,10 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     carouselContainer: {
       marginTop: 12,
+    },
+    tabStyle: {
+      paddingBottom: 8,
+      paddingVertical: 8,
     },
   });
 
@@ -184,35 +197,39 @@ const WalletTokensTabView = React.memo(
     defiEnabled: boolean;
     collectiblesEnabled: boolean;
   }) => {
+    const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
 
     const theme = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
-    const { colors } = theme;
 
     const renderTabBar = useCallback(
       (tabBarProps: Record<string, unknown>) => (
-        <View style={styles.base}>
-          <DefaultTabBar
-            underlineStyle={styles.tabUnderlineStyle}
-            activeTextColor={colors.primary.default}
-            inactiveTextColor={colors.text.default}
-            backgroundColor={colors.background.default}
-            tabStyle={styles.tabStyle}
-            textStyle={styles.textStyle}
-            tabPadding={16}
-            style={styles.tabBar}
-            {...tabBarProps}
-          />
-        </View>
+        <TabBar
+          style={styles.tabBar}
+          {...tabBarProps}
+          tabStyle={styles.tabStyle}
+          textStyle={{
+            ...(theme.typography.sBodySMBold as TextStyle),
+          }}
+        />
       ),
-      [styles, colors],
+      [styles, theme],
     );
 
     const tokensTabProps = useMemo(
       () => ({
         key: 'tokens-tab',
         tabLabel: strings('wallet.tokens'),
+        navigation,
+      }),
+      [navigation],
+    );
+
+    const perpsTabProps = useMemo(
+      () => ({
+        key: 'perps-tab',
+        tabLabel: strings('wallet.perps'),
         navigation,
       }),
       [navigation],
@@ -237,13 +254,19 @@ const WalletTokensTabView = React.memo(
     );
 
     return (
-      <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
-        <Tokens {...tokensTabProps} />
-        {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
-        {collectiblesEnabled && (
-          <CollectibleContracts {...collectibleContractsTabProps} />
-        )}
-      </ScrollableTabView>
+      <View style={styles.tabContainer}>
+        <ScrollableTabView
+          renderTabBar={renderTabBar}
+          onChangeTab={onChangeTab}
+        >
+          <Tokens {...tokensTabProps} />
+          {isPerpsEnabled && <PerpsTabView {...perpsTabProps} />}
+          {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
+          {collectiblesEnabled && (
+            <CollectibleContracts {...collectibleContractsTabProps} />
+          )}
+        </ScrollableTabView>
+      </View>
     );
   },
 );
@@ -266,6 +289,7 @@ const Wallet = ({
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
+  const dispatch = useDispatch();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
@@ -289,6 +313,112 @@ const Wallet = ({
   const chainId = useSelector(selectChainId);
 
   const prevChainId = usePrevious(chainId);
+
+  const nativeCurrency = useSelector((state: RootState) =>
+    selectNativeCurrencyByChainId(state, chainId),
+  );
+
+  const [isNetworkRampSupported] = useRampNetwork();
+  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
+
+  // Setup for AssetDetailsActions
+  const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.TabBar,
+    sourcePage: 'MainView',
+    token: {
+      address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      chainId: chainId as Hex,
+      decimals: 18,
+      symbol: nativeCurrency || 'ETH',
+      name: nativeCurrency || 'Ethereum',
+      image: '',
+    },
+  });
+
+  // Hook for handling non-EVM asset sending
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const { sendNonEvmAsset } = useSendNonEvmAsset({
+    asset: {
+      chainId: chainId as string,
+      address: undefined,
+    },
+  });
+  ///: END:ONLY_INCLUDE_IF
+
+  const displayBuyButton = isNetworkRampSupported;
+  const displaySwapsButton =
+    AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
+  const displayBridgeButton =
+    !isUnifiedSwapsEnabled &&
+    AppConstants.BRIDGE.ACTIVE &&
+    isBridgeAllowed(chainId);
+
+  const onReceive = useCallback(() => {
+    navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Receive,
+    });
+  }, [navigate]);
+
+  const onSend = useCallback(async () => {
+    try {
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      // Try non-EVM first, if handled, return early
+      const wasHandledAsNonEvm = await sendNonEvmAsset();
+      if (wasHandledAsNonEvm) {
+        return;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      // Ensure consistent transaction initialization before navigation
+      if (nativeCurrency) {
+        // Initialize transaction with native currency
+        dispatch(newAssetTransaction(getEther(nativeCurrency)));
+      } else {
+        // Initialize with a default ETH transaction as fallback
+        // This ensures consistent state even when nativeCurrency is not available
+        console.warn(
+          'Native currency not available, using ETH as fallback for transaction initialization',
+        );
+        dispatch(newAssetTransaction(getEther('ETH')));
+      }
+
+      // Navigate to send flow after successful transaction initialization
+      navigate('SendFlowView', {});
+    } catch (error) {
+      // Handle any errors that occur during the send flow initiation
+      console.error('Error initiating send flow:', error);
+
+      // Still attempt to navigate to maintain user flow, but without transaction initialization
+      // The SendFlow view should handle the lack of initialized transaction gracefully
+      navigate('SendFlowView', {});
+    }
+  }, [
+    nativeCurrency,
+    navigate,
+    dispatch,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    sendNonEvmAsset,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
+
+  const onBuy = useCallback(() => {
+    navigate(
+      ...createBuyNavigationDetails({
+        chainId: getDecimalChainId(chainId),
+      }),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'WalletOverview',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [navigate, chainId, trackEvent, createEventBuilder]);
+
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -320,12 +450,6 @@ const Wallet = ({
   const accountName = useAccountName();
   useAccountsWithNetworkActivitySync();
 
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
-
   useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -341,6 +465,22 @@ const Wallet = ({
     isParticipatingInMetaMetrics,
     navigate,
   ]);
+
+  const checkAndNavigateToSolanaFeature = useCallback(async () => {
+    const hasSeenModal = await StorageWrapper.getItem(
+      SOLANA_FEATURE_MODAL_SHOWN,
+    );
+
+    if (hasSeenModal !== 'true') {
+      navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
+    }
+  }, [navigate]);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  useEffect(() => {
+    checkAndNavigateToSolanaFeature();
+  }, [checkAndNavigateToSolanaFeature]);
+  ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
     addTraitsToUser({
@@ -403,9 +543,10 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const name = useSelector(selectNetworkName);
+  const selectedNetworkName = useSelector(selectNetworkName);
 
-  const networkName = networkConfigurations?.[chainId]?.name ?? name;
+  const networkName =
+    networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
@@ -533,7 +674,6 @@ const Wallet = ({
         walletRef,
         selectedInternalAccount,
         accountName,
-        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -548,12 +688,11 @@ const Wallet = ({
   }, [
     selectedInternalAccount,
     accountName,
-    accountAvatarType,
-    navigation,
-    colors,
     networkName,
     networkImageSource,
     onTitlePress,
+    navigation,
+    colors,
     isNotificationEnabled,
     isBackupAndSyncEnabled,
     unreadNotificationCount,
@@ -760,15 +899,34 @@ const Wallet = ({
               severity={BannerAlertSeverity.Error}
               title={strings('wallet.banner.title')}
               description={
-                <Text color={TextColor.Info} onPress={turnOnBasicFunctionality}>
+                <CustomText
+                  color={TextColor.Info}
+                  onPress={turnOnBasicFunctionality}
+                >
                   {strings('wallet.banner.link')}
-                </Text>
+                </CustomText>
               }
             />
           </View>
         ) : null}
         <>
           <PortfolioBalance />
+          <AssetDetailsActions
+            displayBuyButton={displayBuyButton}
+            displaySwapsButton={displaySwapsButton}
+            displayBridgeButton={displayBridgeButton}
+            swapsIsLive={swapsIsLive}
+            goToBridge={goToBridge}
+            goToSwaps={goToSwaps}
+            onReceive={onReceive}
+            onSend={onSend}
+            onBuy={onBuy}
+            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+            bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
+            sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+            receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+          />
           <Carousel style={styles.carouselContainer} />
           <WalletTokensTabView
             navigation={navigation}
@@ -776,11 +934,6 @@ const Wallet = ({
             defiEnabled={defiEnabled}
             collectiblesEnabled={isEvmSelected}
           />
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-            <SolanaNewFeatureContent />
-            ///: END:ONLY_INCLUDE_IF
-          }
         </>
       </View>
     ),
@@ -794,6 +947,15 @@ const Wallet = ({
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
+      goToBridge,
+      goToSwaps,
+      displayBuyButton,
+      displaySwapsButton,
+      displayBridgeButton,
+      swapsIsLive,
+      onReceive,
+      onSend,
+      onBuy,
     ],
   );
   const renderLoader = useCallback(

@@ -185,7 +185,9 @@ describe('useGasFeeEstimateLevelOptions', () => {
     expect(lowOption?.emoji).toEqual('🐢');
 
     // Check medium option
-    const mediumOption = result.current.find((option) => option.key === 'medium');
+    const mediumOption = result.current.find(
+      (option) => option.key === 'medium',
+    );
     expect(mediumOption).toBeDefined();
     expect(mediumOption?.isSelected).toEqual(false);
     expect(mediumOption?.value).toEqual('10');
@@ -253,7 +255,8 @@ describe('useGasFeeEstimateLevelOptions', () => {
 
     mockCalculateGasEstimate.mockImplementation(({ gasPrice }) => {
       const value = gasPrice === '0x1' ? '5' : gasPrice === '0x2' ? '10' : '15';
-      const valueInFiat = gasPrice === '0x1' ? '$5' : gasPrice === '0x2' ? '$10' : '$15';
+      const valueInFiat =
+        gasPrice === '0x1' ? '$5' : gasPrice === '0x2' ? '$10' : '$15';
 
       return {
         currentCurrencyFee: valueInFiat,
@@ -270,7 +273,9 @@ describe('useGasFeeEstimateLevelOptions', () => {
     expect(result.current.length).toEqual(3);
 
     // Check medium option (should be selected)
-    const mediumOption = result.current.find((option) => option.key === 'medium');
+    const mediumOption = result.current.find(
+      (option) => option.key === 'medium',
+    );
     expect(mediumOption).toBeDefined();
     expect(mediumOption?.isSelected).toEqual(true);
     expect(mediumOption?.value).toEqual('10');
@@ -337,8 +342,10 @@ describe('useGasFeeEstimateLevelOptions', () => {
     });
 
     mockCalculateGasEstimate.mockImplementation(({ feePerGas }) => {
-      const value = feePerGas === '0x1' ? '5' : feePerGas === '0x2' ? '10' : '15';
-      const valueInFiat = feePerGas === '0x1' ? '$5' : feePerGas === '0x2' ? '$10' : '$15';
+      const value =
+        feePerGas === '0x1' ? '5' : feePerGas === '0x2' ? '10' : '15';
+      const valueInFiat =
+        feePerGas === '0x1' ? '$5' : feePerGas === '0x2' ? '$10' : '$15';
 
       return {
         currentCurrencyFee: valueInFiat,

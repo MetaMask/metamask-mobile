@@ -3,6 +3,12 @@ import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
 import _ from 'lodash';
 import { device } from 'detox';
+import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
+import { createLogger } from '../framework/logger';
+
+const logger = createLogger({
+  name: 'MockServer',
+});
 
 /**
  * Utility function to handle direct fetch requests
@@ -31,6 +37,36 @@ const handleDirectFetch = async (url, method, headers, requestBody) => {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to forward request' }),
     };
+  }
+};
+
+/**
+ * Utility function to check if a URL is allowed
+ * @param {string} url - The URL to check
+ * @returns {boolean} True if the URL is allowed, false otherwise
+ */
+const isUrlAllowed = (url) => {
+  try {
+    // First check if the exact URL is in the allowed URLs list
+    if (ALLOWLISTED_URLS.includes(url)) {
+      return true;
+    }
+
+    // Then check if the hostname is in the allowed hosts list
+    const parsedUrl = new URL(url);
+    const hostname = parsedUrl.hostname;
+
+    return ALLOWLISTED_HOSTS.some((allowedHost) => {
+      // Support exact match or wildcard subdomains (e.g., "*.example.com")
+      if (allowedHost.startsWith('*.')) {
+        const domain = allowedHost.slice(2);
+        return hostname === domain || hostname.endsWith(`.${domain}`);
+      }
+      return hostname === allowedHost;
+    });
+  } catch (error) {
+    logger.warn('Invalid URL:', url);
+    return false;
   }
 };
 
@@ -91,7 +127,7 @@ export const startMockServer = async (events, port) => {
           const ignoreFields = matchingEvent.ignoreFields || [];
 
           // Remove ignored fields from both objects for comparison
-          ignoreFields.forEach(field => {
+          ignoreFields.forEach((field) => {
             _.unset(requestToCheck, field);
             _.unset(expectedRequest, field);
           });
@@ -135,27 +171,43 @@ export const startMockServer = async (events, port) => {
         };
       }
 
-      // If no matching mock found, pass through to actual endpoint
+      // If no matching mock found, check if URL is allowed before passing through
       const updatedUrl =
         device.getPlatform() === 'android'
           ? urlEndpoint.replace('localhost', '127.0.0.1')
           : urlEndpoint;
 
+      // Check if the URL is in the allowed list
+      if (!isUrlAllowed(updatedUrl)) {
+        const errorMessage = `Request going to live server: ${updatedUrl}`;
+        logger.warn(errorMessage);
+        global.liveServerRequest = new Error(errorMessage);
+      }
+
       return handleDirectFetch(
         updatedUrl,
         method,
         request.headers,
-        method === 'POST' ? await request.body.getText() : undefined
+        method === 'POST' ? await request.body.getText() : undefined,
       );
     });
 
-  // In case any other requests are made, pass them through to the actual endpoint
-  await mockServer.forUnmatchedRequest().thenCallback(async (request) => handleDirectFetch(
+  // In case any other requests are made, check allowed list before passing through
+  await mockServer.forUnmatchedRequest().thenCallback(async (request) => {
+    // Check if the URL is in the allowed list
+    if (!isUrlAllowed(request.url)) {
+      const errorMessage = `Request going to live server: ${request.url}`;
+      logger.warn(errorMessage);
+      global.liveServerRequest = new Error(errorMessage);
+    }
+
+    return handleDirectFetch(
       request.url,
       request.method,
       request.headers,
-      await request.body.getText()
-    ));
+      await request.body.getText(),
+    );
+  });
 
   return mockServer;
 };

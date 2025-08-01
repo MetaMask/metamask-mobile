@@ -15,8 +15,6 @@ describe('useDepositTokenExchange', () => {
     symbol: 'USDC',
     decimals: 6,
     iconUrl: 'https://example.com/usdc.png',
-    address: '0x123',
-    logo: 'https://example.com/usdc.png',
   };
 
   const mockTokens: DepositCryptoCurrency[] = [mockToken];

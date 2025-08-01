@@ -320,14 +320,18 @@ describe('TokensController Selectors', () => {
   });
 
   describe('selectTokensByChainIdAndAddress', () => {
-    it('returns undefined if no tokens exist for chain ID and address', () => {
-      const tokensByChainAndAddress =
-        selectTokensByChainIdAndAddress.resultFunc(
-          mockTokensControllerState as unknown as TokensControllerState,
-          '0x1',
-          '0xNonExistentAddress',
-        );
-      expect(tokensByChainAndAddress).toBeUndefined();
+    it('returns mapped tokens for given chain ID', () => {
+      expect(
+        selectTokensByChainIdAndAddress(mockRootState, '0x1'),
+      ).toStrictEqual({
+        '0xToken1': mockToken,
+      });
+    });
+
+    it('returns empty object if no tokens exist for chain ID', () => {
+      expect(
+        selectTokensByChainIdAndAddress(mockRootState, '0x2'),
+      ).toStrictEqual({});
     });
   });
 

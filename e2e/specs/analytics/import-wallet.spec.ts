@@ -2,12 +2,9 @@
 import { SmokeWalletPlatform } from '../../tags';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import Assertions from '../../framework/Assertions';
 import {
   EventPayload,
-  filterEvents,
   findEvent,
   getEventsPayloads,
   onboardingEvents,
@@ -22,7 +19,9 @@ import {
   IDENTITY_TEAM_SEED_PHRASE,
 } from '../identity/utils/constants';
 import SoftAssert from '../../utils/SoftAssert';
-import { MockttpServer } from 'mockttp';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { TestSpecificMock } from '../../framework';
 
 const balanceMock = getBalanceMocks([
   {
@@ -33,7 +32,7 @@ const balanceMock = getBalanceMocks([
 
 const testSpecificMock = {
   POST: [...balanceMock, mockEvents.POST.segmentTrack],
-};
+} as TestSpecificMock;
 
 describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
   beforeAll(async () => {
@@ -47,7 +46,13 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
         testSpecificMock,
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
+      async ({ mockServer }) => {
+        if (!mockServer) {
+          throw new Error(
+            'Mock server is not defined, check testSpecificMock setup',
+          );
+        }
+
         await importWalletWithRecoveryPhrase({
           seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
           password: IDENTITY_TEAM_PASSWORD,
@@ -60,16 +65,14 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           onboardingEvents.WALLET_SETUP_COMPLETED,
           onboardingEvents.WALLET_IMPORT_STARTED,
           onboardingEvents.WALLET_IMPORT_ATTEMPTED,
-          onboardingEvents.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
-          onboardingEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
           onboardingEvents.WELCOME_MESSAGE_VIEWED,
           onboardingEvents.ONBOARDING_STARTED,
         ]);
 
         const softAssert = new SoftAssert();
 
-        softAssert.checkAndCollect(
-          () => Assertions.checkIfArrayHasLength(events, 9),
+        const checkEventCount = softAssert.checkAndCollect(
+          () => Assertions.checkIfArrayHasLength(events, 7),
           'Expected 9 events, but found a different number of events',
         );
 
@@ -79,17 +82,20 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
         ) as EventPayload;
 
-        softAssert.checkAndCollect(async () => {
-          Assertions.checkIfObjectsMatch(
-            analyticsPreferenceSelectedEvent?.properties,
-            {
-              has_marketing_consent: false,
-              is_metrics_opted_in: true,
-              location: 'onboarding_metametrics',
-              updated_after_onboarding: false,
-            },
-          );
-        }, 'Analytics Preference Selected event properties do not match expected values');
+        const checkAnalyticsPreference = softAssert.checkAndCollect(
+          async () => {
+            Assertions.checkIfObjectsMatch(
+              analyticsPreferenceSelectedEvent?.properties,
+              {
+                has_marketing_consent: false,
+                is_metrics_opted_in: true,
+                location: 'onboarding_metametrics',
+                updated_after_onboarding: false,
+              },
+            );
+          },
+          'Analytics Preference Selected event properties do not match expected values',
+        );
 
         // WELCOME_MESSAGE_VIEWED
         const welcomeMessageViewedEvent = findEvent(
@@ -97,7 +103,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           onboardingEvents.WELCOME_MESSAGE_VIEWED,
         ) as EventPayload;
 
-        softAssert.checkAndCollect(
+        const checkWelcomeMessage = softAssert.checkAndCollect(
           () =>
             Assertions.checkIfObjectsMatch(
               welcomeMessageViewedEvent.properties,
@@ -112,7 +118,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           onboardingEvents.ONBOARDING_STARTED,
         ) as EventPayload;
 
-        softAssert.checkAndCollect(
+        const checkOnboardingStarted = softAssert.checkAndCollect(
           () =>
             Assertions.checkIfObjectsMatch(
               onboardingStartedEvent.properties,
@@ -126,11 +132,14 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           events,
           onboardingEvents.WALLET_IMPORT_STARTED,
         ) as EventPayload;
-        softAssert.checkAndCollect(
+
+        const checkWalletImportStarted = softAssert.checkAndCollect(
           () =>
             Assertions.checkIfObjectsMatch(
               walletImportStartedEvent.properties,
-              {},
+              {
+                account_type: 'imported',
+              },
             ),
           'Wallet Import Started event properties do not match expected values',
         );
@@ -140,7 +149,8 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           events,
           onboardingEvents.WALLET_IMPORT_ATTEMPTED,
         ) as EventPayload;
-        softAssert.checkAndCollect(
+
+        const checkWalletImportAttempted = softAssert.checkAndCollect(
           () =>
             Assertions.checkIfObjectsMatch(
               walletImportAttemptedEvent.properties,
@@ -154,7 +164,8 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           events,
           onboardingEvents.WALLET_IMPORTED,
         ) as EventPayload;
-        softAssert.checkAndCollect(
+
+        const checkWalletImported = softAssert.checkAndCollect(
           () =>
             Assertions.checkIfObjectsMatch(walletImportedEvent.properties, {
               biometrics_enabled: false,
@@ -167,45 +178,30 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           events,
           onboardingEvents.WALLET_SETUP_COMPLETED,
         ) as EventPayload;
-        softAssert.checkAndCollect(
+
+        const checkWalletSetupCompleted = softAssert.checkAndCollect(
           () =>
             Assertions.checkIfObjectsMatch(
               walletSetupCompletedEvent.properties,
               {
                 wallet_setup_type: 'import',
                 new_wallet: false,
+                account_type: 'imported',
               },
             ),
           'Wallet Setup Completed event properties do not match expected values',
         );
 
-        // AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED - TODO: Use @christopherferreira9 new function to check object value types once merged
-        const automaticSecurityChecksPromptViewedEvent = filterEvents(
-          events,
-          onboardingEvents.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
-        );
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfArrayHasLength(
-              automaticSecurityChecksPromptViewedEvent,
-              1,
-            ),
-          'Automatic Security Checks Prompt Viewed event properties do not match expected values',
-        );
-
-        // AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT - TODO: Use @christopherferreira9 new function to check object value types once merged
-        const automaticSecurityChecksDisabledFromPromptEvent = filterEvents(
-          events,
-          onboardingEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
-        );
-        softAssert.checkAndCollect(
-          () =>
-            Assertions.checkIfArrayHasLength(
-              automaticSecurityChecksDisabledFromPromptEvent,
-              1,
-            ),
-          'Automatic Security Checks Disabled From Prompt event properties do not match expected values',
-        );
+        await Promise.all([
+          checkEventCount,
+          checkAnalyticsPreference,
+          checkWelcomeMessage,
+          checkOnboardingStarted,
+          checkWalletImportStarted,
+          checkWalletImportAttempted,
+          checkWalletImported,
+          checkWalletSetupCompleted,
+        ]);
 
         softAssert.throwIfErrors();
       },
@@ -218,7 +214,13 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
         testSpecificMock,
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
+      async ({ mockServer }) => {
+        if (!mockServer) {
+          throw new Error(
+            'Mock server is not defined, check testSpecificMock setup',
+          );
+        }
+
         await importWalletWithRecoveryPhrase({
           seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
           password: IDENTITY_TEAM_PASSWORD,

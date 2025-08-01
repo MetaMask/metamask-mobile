@@ -59,40 +59,88 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -165,39 +213,88 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -414,6 +511,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
+                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -547,6 +645,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
+                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -1019,6 +1118,36 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             1Y
                                           </Text>
                                         </TouchableOpacity>
+                                        <TouchableOpacity
+                                          onPress={[Function]}
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 40,
+                                              "justifyContent": "center",
+                                              "paddingHorizontal": 8,
+                                              "paddingLeft": 10,
+                                              "paddingVertical": 2,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "letterSpacing": 3,
+                                                "lineHeight": 22,
+                                                "textAlign": "center",
+                                              }
+                                            }
+                                          >
+                                            All
+                                          </Text>
+                                        </TouchableOpacity>
                                       </View>
                                       <View
                                         style={
@@ -1026,7 +1155,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -1588,11 +1717,10 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                           onPress={[Function]}
                                           style={
                                             {
-                                              "alignItems": "flex-start",
+                                              "alignItems": "center",
                                               "flex": 1,
                                               "flexDirection": "row",
-                                              "paddingHorizontal": 15,
-                                              "paddingVertical": 14,
+                                              "height": 64,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -1631,10 +1759,10 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
-                                                        "height": 32,
+                                                        "borderRadius": 20,
+                                                        "height": 40,
                                                         "overflow": "hidden",
-                                                        "width": 32,
+                                                        "width": 40,
                                                       },
                                                     ]
                                                   }
@@ -1656,10 +1784,10 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
-                                                          "height": 32,
+                                                          "borderRadius": 20,
+                                                          "height": 40,
                                                           "overflow": "hidden",
-                                                          "width": 32,
+                                                          "width": 40,
                                                         },
                                                         {
                                                           "backgroundColor": "#eee",
@@ -1765,12 +1893,9 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "alignSelf": "flex-start",
                                                   "color": "#121314",
-                                                  "flex": 1,
                                                   "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1797,7 +1922,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                             style={
                                               {
                                                 "alignItems": "flex-end",
-                                                "alignSelf": "flex-end",
                                                 "flexShrink": 0,
                                               }
                                             }
@@ -1921,7 +2045,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                     style={
                                       {
                                         "0": {
-                                          "color": "#9ca1af",
+                                          "color": "#b7bbc8",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -2059,40 +2183,88 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -2165,39 +2337,88 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -2414,6 +2635,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
+                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -2547,6 +2769,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
+                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -3019,6 +3242,36 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             1Y
                                           </Text>
                                         </TouchableOpacity>
+                                        <TouchableOpacity
+                                          onPress={[Function]}
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 40,
+                                              "justifyContent": "center",
+                                              "paddingHorizontal": 8,
+                                              "paddingLeft": 10,
+                                              "paddingVertical": 2,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "letterSpacing": 3,
+                                                "lineHeight": 22,
+                                                "textAlign": "center",
+                                              }
+                                            }
+                                          >
+                                            All
+                                          </Text>
+                                        </TouchableOpacity>
                                       </View>
                                       <View
                                         style={
@@ -3026,7 +3279,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -3588,11 +3841,10 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                           onPress={[Function]}
                                           style={
                                             {
-                                              "alignItems": "flex-start",
+                                              "alignItems": "center",
                                               "flex": 1,
                                               "flexDirection": "row",
-                                              "paddingHorizontal": 15,
-                                              "paddingVertical": 14,
+                                              "height": 64,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -3631,10 +3883,10 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
-                                                        "height": 32,
+                                                        "borderRadius": 20,
+                                                        "height": 40,
                                                         "overflow": "hidden",
-                                                        "width": 32,
+                                                        "width": 40,
                                                       },
                                                     ]
                                                   }
@@ -3656,10 +3908,10 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
-                                                          "height": 32,
+                                                          "borderRadius": 20,
+                                                          "height": 40,
                                                           "overflow": "hidden",
-                                                          "width": 32,
+                                                          "width": 40,
                                                         },
                                                         {
                                                           "backgroundColor": "#eee",
@@ -3765,12 +4017,9 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "alignSelf": "flex-start",
                                                   "color": "#121314",
-                                                  "flex": 1,
                                                   "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3797,7 +4046,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                             style={
                                               {
                                                 "alignItems": "flex-end",
-                                                "alignSelf": "flex-end",
                                                 "flexShrink": 0,
                                               }
                                             }
@@ -3921,7 +4169,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                     style={
                                       {
                                         "0": {
-                                          "color": "#9ca1af",
+                                          "color": "#b7bbc8",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -4059,40 +4307,88 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -4165,39 +4461,88 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -4414,6 +4759,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
+                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -4547,6 +4893,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
+                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -5019,6 +5366,36 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                             1Y
                                           </Text>
                                         </TouchableOpacity>
+                                        <TouchableOpacity
+                                          onPress={[Function]}
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 40,
+                                              "justifyContent": "center",
+                                              "paddingHorizontal": 8,
+                                              "paddingLeft": 10,
+                                              "paddingVertical": 2,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "letterSpacing": 3,
+                                                "lineHeight": 22,
+                                                "textAlign": "center",
+                                              }
+                                            }
+                                          >
+                                            All
+                                          </Text>
+                                        </TouchableOpacity>
                                       </View>
                                       <View
                                         style={
@@ -5026,7 +5403,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -5588,11 +5965,10 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                           onPress={[Function]}
                                           style={
                                             {
-                                              "alignItems": "flex-start",
+                                              "alignItems": "center",
                                               "flex": 1,
                                               "flexDirection": "row",
-                                              "paddingHorizontal": 15,
-                                              "paddingVertical": 14,
+                                              "height": 64,
                                             }
                                           }
                                           testID="asset-USDC"
@@ -5612,10 +5988,10 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 style={
                                                   {
                                                     "backgroundColor": "#ffffff",
-                                                    "borderRadius": 16,
-                                                    "height": 32,
+                                                    "borderRadius": 20,
+                                                    "height": 40,
                                                     "overflow": "hidden",
-                                                    "width": 32,
+                                                    "width": 40,
                                                   }
                                                 }
                                               >
@@ -5732,12 +6108,9 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "alignSelf": "flex-start",
                                                   "color": "#121314",
-                                                  "flex": 1,
                                                   "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -5764,7 +6137,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                             style={
                                               {
                                                 "alignItems": "flex-end",
-                                                "alignSelf": "flex-end",
                                                 "flexShrink": 0,
                                               }
                                             }
@@ -5960,7 +6332,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                     style={
                                       {
                                         "0": {
-                                          "color": "#9ca1af",
+                                          "color": "#b7bbc8",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -6098,40 +6470,88 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -6204,39 +6624,88 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -6453,6 +6922,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
+                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -6586,6 +7056,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
+                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -7058,6 +7529,36 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             1Y
                                           </Text>
                                         </TouchableOpacity>
+                                        <TouchableOpacity
+                                          onPress={[Function]}
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 40,
+                                              "justifyContent": "center",
+                                              "paddingHorizontal": 8,
+                                              "paddingLeft": 10,
+                                              "paddingVertical": 2,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "letterSpacing": 3,
+                                                "lineHeight": 22,
+                                                "textAlign": "center",
+                                              }
+                                            }
+                                          >
+                                            All
+                                          </Text>
+                                        </TouchableOpacity>
                                       </View>
                                       <View
                                         style={
@@ -7065,7 +7566,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -7627,11 +8128,10 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                           onPress={[Function]}
                                           style={
                                             {
-                                              "alignItems": "flex-start",
+                                              "alignItems": "center",
                                               "flex": 1,
                                               "flexDirection": "row",
-                                              "paddingHorizontal": 15,
-                                              "paddingVertical": 14,
+                                              "height": 64,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -7670,10 +8170,10 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
-                                                        "height": 32,
+                                                        "borderRadius": 20,
+                                                        "height": 40,
                                                         "overflow": "hidden",
-                                                        "width": 32,
+                                                        "width": 40,
                                                       },
                                                     ]
                                                   }
@@ -7695,10 +8195,10 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
-                                                          "height": 32,
+                                                          "borderRadius": 20,
+                                                          "height": 40,
                                                           "overflow": "hidden",
-                                                          "width": 32,
+                                                          "width": 40,
                                                         },
                                                         {
                                                           "backgroundColor": "#eee",
@@ -7804,12 +8304,9 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "alignSelf": "flex-start",
                                                   "color": "#121314",
-                                                  "flex": 1,
                                                   "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -7836,7 +8333,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                             style={
                                               {
                                                 "alignItems": "flex-end",
-                                                "alignSelf": "flex-end",
                                                 "flexShrink": 0,
                                               }
                                             }
@@ -7960,7 +8456,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                     style={
                                       {
                                         "0": {
-                                          "color": "#9ca1af",
+                                          "color": "#b7bbc8",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -8098,40 +8594,88 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -8204,39 +8748,88 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -8453,6 +9046,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
+                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -8586,6 +9180,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
+                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -9058,6 +9653,36 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                             1Y
                                           </Text>
                                         </TouchableOpacity>
+                                        <TouchableOpacity
+                                          onPress={[Function]}
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 40,
+                                              "justifyContent": "center",
+                                              "paddingHorizontal": 8,
+                                              "paddingLeft": 10,
+                                              "paddingVertical": 2,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "letterSpacing": 3,
+                                                "lineHeight": 22,
+                                                "textAlign": "center",
+                                              }
+                                            }
+                                          >
+                                            All
+                                          </Text>
+                                        </TouchableOpacity>
                                       </View>
                                       <View
                                         style={
@@ -9065,7 +9690,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -9627,11 +10252,10 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                           onPress={[Function]}
                                           style={
                                             {
-                                              "alignItems": "flex-start",
+                                              "alignItems": "center",
                                               "flex": 1,
                                               "flexDirection": "row",
-                                              "paddingHorizontal": 15,
-                                              "paddingVertical": 14,
+                                              "height": 64,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -9670,10 +10294,10 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
-                                                        "height": 32,
+                                                        "borderRadius": 20,
+                                                        "height": 40,
                                                         "overflow": "hidden",
-                                                        "width": 32,
+                                                        "width": 40,
                                                       },
                                                     ]
                                                   }
@@ -9695,10 +10319,10 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
-                                                          "height": 32,
+                                                          "borderRadius": 20,
+                                                          "height": 40,
                                                           "overflow": "hidden",
-                                                          "width": 32,
+                                                          "width": 40,
                                                         },
                                                         {
                                                           "backgroundColor": "#eee",
@@ -9804,12 +10428,9 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "alignSelf": "flex-start",
                                                   "color": "#121314",
-                                                  "flex": 1,
                                                   "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -9836,7 +10457,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                             style={
                                               {
                                                 "alignItems": "flex-end",
-                                                "alignSelf": "flex-end",
                                                 "flexShrink": 0,
                                               }
                                             }
@@ -9960,7 +10580,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                     style={
                                       {
                                         "0": {
-                                          "color": "#9ca1af",
+                                          "color": "#b7bbc8",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -10098,40 +10718,88 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -10204,39 +10872,88 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -10453,6 +11170,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
+                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -10586,6 +11304,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
+                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -11058,6 +11777,36 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                             1Y
                                           </Text>
                                         </TouchableOpacity>
+                                        <TouchableOpacity
+                                          onPress={[Function]}
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 40,
+                                              "justifyContent": "center",
+                                              "paddingHorizontal": 8,
+                                              "paddingLeft": 10,
+                                              "paddingVertical": 2,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "letterSpacing": 3,
+                                                "lineHeight": 22,
+                                                "textAlign": "center",
+                                              }
+                                            }
+                                          >
+                                            All
+                                          </Text>
+                                        </TouchableOpacity>
                                       </View>
                                       <View
                                         style={
@@ -11065,7 +11814,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -11627,11 +12376,10 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                           onPress={[Function]}
                                           style={
                                             {
-                                              "alignItems": "flex-start",
+                                              "alignItems": "center",
                                               "flex": 1,
                                               "flexDirection": "row",
-                                              "paddingHorizontal": 15,
-                                              "paddingVertical": 14,
+                                              "height": 64,
                                             }
                                           }
                                           testID="asset-UNKNOWN"
@@ -11651,10 +12399,10 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 style={
                                                   {
                                                     "backgroundColor": "#ffffff",
-                                                    "borderRadius": 16,
-                                                    "height": 32,
+                                                    "borderRadius": 20,
+                                                    "height": 40,
                                                     "overflow": "hidden",
-                                                    "width": 32,
+                                                    "width": 40,
                                                   }
                                                 }
                                               >
@@ -11771,12 +12519,9 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "alignSelf": "flex-start",
                                                   "color": "#121314",
-                                                  "flex": 1,
                                                   "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -11803,7 +12548,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                             style={
                                               {
                                                 "alignItems": "flex-end",
-                                                "alignSelf": "flex-end",
                                                 "flexShrink": 0,
                                               }
                                             }
@@ -11999,7 +12743,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                     style={
                                       {
                                         "0": {
-                                          "color": "#9ca1af",
+                                          "color": "#b7bbc8",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -12137,40 +12881,88 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -12243,39 +13035,88 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -12570,40 +13411,88 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -12676,39 +13565,88 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -12925,6 +13863,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
+                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -13058,6 +13997,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
+                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -13530,6 +14470,36 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             1Y
                                           </Text>
                                         </TouchableOpacity>
+                                        <TouchableOpacity
+                                          onPress={[Function]}
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 40,
+                                              "justifyContent": "center",
+                                              "paddingHorizontal": 8,
+                                              "paddingLeft": 10,
+                                              "paddingVertical": 2,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "letterSpacing": 3,
+                                                "lineHeight": 22,
+                                                "textAlign": "center",
+                                              }
+                                            }
+                                          >
+                                            All
+                                          </Text>
+                                        </TouchableOpacity>
                                       </View>
                                       <View
                                         style={
@@ -13537,7 +14507,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -14099,11 +15069,10 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                           onPress={[Function]}
                                           style={
                                             {
-                                              "alignItems": "flex-start",
+                                              "alignItems": "center",
                                               "flex": 1,
                                               "flexDirection": "row",
-                                              "paddingHorizontal": 15,
-                                              "paddingVertical": 14,
+                                              "height": 64,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -14142,10 +15111,10 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
-                                                        "height": 32,
+                                                        "borderRadius": 20,
+                                                        "height": 40,
                                                         "overflow": "hidden",
-                                                        "width": 32,
+                                                        "width": 40,
                                                       },
                                                     ]
                                                   }
@@ -14167,10 +15136,10 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
-                                                          "height": 32,
+                                                          "borderRadius": 20,
+                                                          "height": 40,
                                                           "overflow": "hidden",
-                                                          "width": 32,
+                                                          "width": 40,
                                                         },
                                                         {
                                                           "backgroundColor": "#eee",
@@ -14276,12 +15245,9 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "alignSelf": "flex-start",
                                                   "color": "#121314",
-                                                  "flex": 1,
                                                   "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -14308,7 +15274,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                             style={
                                               {
                                                 "alignItems": "flex-end",
-                                                "alignSelf": "flex-end",
                                                 "flexShrink": 0,
                                               }
                                             }
@@ -14432,7 +15397,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                     style={
                                       {
                                         "0": {
-                                          "color": "#9ca1af",
+                                          "color": "#b7bbc8",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -14570,40 +15535,88 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -14676,39 +15689,88 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -14925,6 +15987,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                 hasTransactions={false}
                                 onViewMore={[Function]}
                                 showDisclaimer={true}
+                                showExplorerLink={true}
                                 url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                               />
                             }
@@ -15058,6 +16121,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                     hasTransactions={false}
                                     onViewMore={[Function]}
                                     showDisclaimer={true}
+                                    showExplorerLink={true}
                                     url="https://solscan.io/account/0x8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC"
                                   />,
                                   "ListHeaderComponent": <React.Fragment>
@@ -15530,6 +16594,36 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             1Y
                                           </Text>
                                         </TouchableOpacity>
+                                        <TouchableOpacity
+                                          onPress={[Function]}
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 40,
+                                              "justifyContent": "center",
+                                              "paddingHorizontal": 8,
+                                              "paddingLeft": 10,
+                                              "paddingVertical": 2,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#686e7d",
+                                                "fontFamily": "Geist Regular",
+                                                "fontSize": 14,
+                                                "letterSpacing": 3,
+                                                "lineHeight": 22,
+                                                "textAlign": "center",
+                                              }
+                                            }
+                                          >
+                                            All
+                                          </Text>
+                                        </TouchableOpacity>
                                       </View>
                                       <View
                                         style={
@@ -15537,7 +16631,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             "display": "flex",
                                             "flexDirection": "row",
                                             "justifyContent": "space-evenly",
-                                            "padding": 16,
+                                            "paddingVertical": 16,
                                           }
                                         }
                                       >
@@ -16099,11 +17193,10 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                           onPress={[Function]}
                                           style={
                                             {
-                                              "alignItems": "flex-start",
+                                              "alignItems": "center",
                                               "flex": 1,
                                               "flexDirection": "row",
-                                              "paddingHorizontal": 15,
-                                              "paddingVertical": 14,
+                                              "height": 64,
                                             }
                                           }
                                           testID="asset-SOL"
@@ -16142,10 +17235,10 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                       false,
                                                       false,
                                                       {
-                                                        "borderRadius": 16,
-                                                        "height": 32,
+                                                        "borderRadius": 20,
+                                                        "height": 40,
                                                         "overflow": "hidden",
-                                                        "width": 32,
+                                                        "width": 40,
                                                       },
                                                     ]
                                                   }
@@ -16167,10 +17260,10 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                     style={
                                                       [
                                                         {
-                                                          "borderRadius": 16,
-                                                          "height": 32,
+                                                          "borderRadius": 20,
+                                                          "height": 40,
                                                           "overflow": "hidden",
-                                                          "width": 32,
+                                                          "width": 40,
                                                         },
                                                         {
                                                           "backgroundColor": "#eee",
@@ -16276,12 +17369,9 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "alignSelf": "flex-start",
                                                   "color": "#121314",
-                                                  "flex": 1,
                                                   "fontFamily": "Geist Regular",
                                                   "fontSize": 16,
-                                                  "justifyContent": "flex-start",
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -16308,7 +17398,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                             style={
                                               {
                                                 "alignItems": "flex-end",
-                                                "alignSelf": "flex-end",
                                                 "flexShrink": 0,
                                               }
                                             }
@@ -16432,7 +17521,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                     style={
                                       {
                                         "0": {
-                                          "color": "#9ca1af",
+                                          "color": "#b7bbc8",
                                           "fontFamily": "CentraNo1-Book",
                                           "fontSize": 20,
                                           "fontWeight": "400",
@@ -16570,40 +17659,88 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -16676,39 +17813,88 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
