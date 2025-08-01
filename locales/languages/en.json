@@ -4762,7 +4762,9 @@
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",
-      "switching_to": "Switching To"
+      "switching_to": "Switching To",
+      "bridge_estimated_time": "Est. time",
+      "pay_with": "Pay with"
     },
     "title": {
       "signature": "Signature request",
