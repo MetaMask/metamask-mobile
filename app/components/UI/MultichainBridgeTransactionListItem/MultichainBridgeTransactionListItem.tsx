@@ -19,6 +19,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
 import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
+import { ethers } from 'ethers';
 
 const MultichainBridgeTransactionListItem = ({
   transaction,
@@ -57,9 +58,15 @@ const MultichainBridgeTransactionListItem = ({
     return <Image source={icon} style={style.icon} resizeMode="stretch" />;
   };
 
+  // Does not apply to swaps
   const isBridgeComplete = Boolean(
     bridgeHistoryItem?.status.srcChain.txHash &&
       bridgeHistoryItem.status.destChain?.txHash,
+  );
+
+  const displayAmount = ethers.utils.formatUnits(
+    bridgeHistoryItem.quote.srcTokenAmount,
+    bridgeHistoryItem.quote.srcAsset.decimals,
   );
 
   return (
@@ -104,8 +111,7 @@ const MultichainBridgeTransactionListItem = ({
               )}
             </ListItem.Body>
             <ListItem.Amount style={style.listItemAmount as TextStyle}>
-              {bridgeHistoryItem.quote.srcTokenAmount}{' '}
-              {bridgeHistoryItem.quote.srcAsset.symbol}
+              {displayAmount} {bridgeHistoryItem.quote.srcAsset.symbol}
             </ListItem.Amount>
           </ListItem.Content>
         </ListItem>
