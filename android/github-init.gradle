@@ -1,0 +1,54 @@
+// GitHub Actions Init Script
+
+if (project.hasProperty('ciEnv') && project.property('ciEnv') == 'github') {
+    
+    gradle.settingsEvaluated {
+        // Enable parallel project execution
+        gradle.startParameter.parallelProjectExecution = true
+        
+        // Enable build cache and configuration on demand
+        gradle.startParameter.isBuildCacheEnabled = true
+        gradle.startParameter.isConfigurationOnDemand = true
+        
+        // Configure daemon and other settings
+        gradle.startParameter.isDaemon = true
+        gradle.startParameter.maxWorkerCount = 12
+        
+        // Set JVM args properly via start parameters
+        gradle.startParameter.jvmArgs += [
+            "-Xmx32g",
+            "-XX:MaxMetaspaceSize=2g", 
+            "-XX:+UseG1GC",
+            "-XX:G1HeapRegionSize=32m",
+            "-XX:+UseStringDeduplication",
+            "-XX:+OptimizeStringConcat"
+        ]
+        
+        // System properties for file system optimizations
+        System.setProperty('org.gradle.vfs.verbose', 'false')
+        System.setProperty('org.gradle.welcome', 'NEVER')
+    }
+    
+    allprojects {
+        // Configure Kotlin incremental compilation properly
+        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                // Enable incremental compilation
+                incremental = true
+            }
+        }
+        
+        // Enable Kotlin caching if available
+        afterEvaluate {
+            if (project.hasProperty('kotlin.incremental')) {
+                project.setProperty('kotlin.incremental', 'true')
+            }
+            if (project.hasProperty('kotlin.incremental.android')) {
+                project.setProperty('kotlin.incremental.android', 'true') 
+            }
+            if (project.hasProperty('kotlin.caching.enabled')) {
+                project.setProperty('kotlin.caching.enabled', 'true')
+            }
+        }
+    }
+} 
