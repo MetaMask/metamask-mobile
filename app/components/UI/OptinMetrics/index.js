@@ -8,6 +8,7 @@ import {
   Alert,
   TouchableOpacity,
   Platform,
+  StatusBar,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -63,7 +64,8 @@ const createStyles = ({ colors }) =>
     root: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
-      paddingTop: 24,
+      paddingTop:
+        Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
     },
     checkbox: {
       display: 'flex',

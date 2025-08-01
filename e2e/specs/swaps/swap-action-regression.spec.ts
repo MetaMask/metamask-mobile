@@ -1,23 +1,22 @@
-'use strict';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
+} from '../../framework/fixtures/FixtureHelper';
 import { Mockttp } from 'mockttp';
 import TestHelpers from '../../helpers';
-import FixtureServer from '../../fixtures/fixture-server';
+import FixtureServer from '../../framework/fixtures/FixtureServer';
 import {
   getFixturesServerPort,
   getMockServerPort,
-} from '../../fixtures/utils.js';
+} from '../../framework/fixtures/FixtureUtils';
 import { Regression } from '../../tags';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import Ganache from '../../../app/util/test/ganache';
