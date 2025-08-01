@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DeveloperOptions should render correctly 1`] = `
+exports[`DeveloperOptions renders correctly 1`] = `
 <View
   style={
     {

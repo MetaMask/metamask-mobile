@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PerpsTestnetToggle should render correctly with testnet network 1`] = `
+exports[`PerpsTestnetToggle renders correctly with testnet network 1`] = `
 <View
   style={
     {
@@ -9,6 +9,7 @@ exports[`PerpsTestnetToggle should render correctly with testnet network 1`] = `
       "gap": 16,
     }
   }
+  testID="perps-testnet-toggle-root"
 >
   <Text
     accessibilityRole="text"
