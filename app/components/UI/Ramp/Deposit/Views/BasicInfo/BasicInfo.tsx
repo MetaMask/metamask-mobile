@@ -77,7 +77,7 @@ const BasicInfo = (): JSX.Element => {
   const localTimestampToUseInternally = isNaN(utcDateToPrefill)
     ? ''
     : (
-        utcDateToPrefill.getTime() +
+        utcDateToPrefill.getTime() -
         utcDateToPrefill.getTimezoneOffset() * 60 * 1000
       ).toString();
 
