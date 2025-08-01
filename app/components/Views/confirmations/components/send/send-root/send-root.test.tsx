@@ -2,9 +2,12 @@ import React from 'react';
 import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { act, fireEvent } from '@testing-library/react-native';
+import { merge } from 'lodash';
 
 import Engine from '../../../../../../core/Engine';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  ProviderValues,
+} from '../../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../../../util/transaction-controller';
 import { SendContextProvider } from '../../../context/send-context';
@@ -47,20 +50,25 @@ jest.mock('@react-navigation/native', () => ({
     params: {
       asset: {
         chainId: '0x1',
+        address: '0x9Dd7c01d30df0061F228C9b687287B8E490D8880',
       },
     },
   }),
 }));
 
-const renderComponent = () =>
-  renderWithProvider(
+const renderComponent = (mockState?: ProviderValues['state']) => {
+  const state = mockState
+    ? merge(evmSendStateMock, mockState)
+    : evmSendStateMock;
+  return renderWithProvider(
     <SendContextProvider>
       <SendRoot />
     </SendContextProvider>,
     {
-      state: evmSendStateMock,
+      state,
     },
   );
+};
 
 describe('SendRoot', () => {
   beforeEach(() => {
@@ -267,6 +275,7 @@ describe('SendRoot', () => {
         asset: {
           isNative: true,
           chainId: '0x1',
+          address: TOKEN_ADDRESS_MOCK_1,
         },
       },
     } as RouteProp<ParamListBase, string>);
@@ -275,7 +284,7 @@ describe('SendRoot', () => {
     expect(getByTestId('send_amount').props.value).toBe('');
     fireEvent.press(getByText('Max'));
     expect(getByTestId('send_amount').props.value).toBe('0.9999685');
-    expect(getByText('$ 0.99')).toBeTruthy();
+    expect(getByText('$ 3889.87')).toBeTruthy();
   });
 
   it('display fiat conversion of amount entered', async () => {

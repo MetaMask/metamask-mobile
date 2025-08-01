@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { SendContextProvider } from '../../../context/send-context';
+import { evmSendStateMock } from '../../../__mocks__/send.mock';
 import { Amount } from './amount';
 
 jest.mock(
@@ -35,11 +35,7 @@ const renderComponent = () =>
       <Amount />
     </SendContextProvider>,
     {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
+      state: evmSendStateMock,
     },
   );
 

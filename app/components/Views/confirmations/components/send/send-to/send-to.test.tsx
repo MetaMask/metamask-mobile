@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { SendContextProvider } from '../../../context/send-context';
+import { evmSendStateMock } from '../../../__mocks__/send.mock';
 import { SendTo } from './send-to';
 
 const renderComponent = () =>
@@ -11,11 +11,7 @@ const renderComponent = () =>
       <SendTo />
     </SendContextProvider>,
     {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
+      state: evmSendStateMock,
     },
   );
 
