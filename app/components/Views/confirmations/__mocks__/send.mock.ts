@@ -3,7 +3,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export const ACCOUNT_ADDRESS_MOCK_1 = '0x12345' as Hex;
-export const TOEKN_ADDRESS_MOCK_1 = '0x123' as Hex;
+export const TOKEN_ADDRESS_MOCK_1 = '0x123' as Hex;
 
 export const evmSendStateMock = {
   engine: {
@@ -26,7 +26,7 @@ export const evmSendStateMock = {
         tokenBalances: {
           [ACCOUNT_ADDRESS_MOCK_1]: {
             ['0x1' as Hex]: {
-              [TOEKN_ADDRESS_MOCK_1]: '0x5' as Hex,
+              [TOKEN_ADDRESS_MOCK_1]: '0x5' as Hex,
             },
           },
         },
@@ -43,7 +43,7 @@ export const evmSendStateMock = {
       TokenRatesController: {
         marketData: {
           ['0x1' as Hex]: {
-            [TOEKN_ADDRESS_MOCK_1]: {
+            [TOKEN_ADDRESS_MOCK_1]: {
               price: 3890,
             },
           },

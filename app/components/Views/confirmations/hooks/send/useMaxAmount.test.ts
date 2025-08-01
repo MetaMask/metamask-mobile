@@ -4,7 +4,7 @@ import {
 } from '../../../../../util/test/renderWithProvider';
 import {
   evmSendStateMock,
-  TOEKN_ADDRESS_MOCK_1,
+  TOKEN_ADDRESS_MOCK_1,
 } from '../../__mocks__/send.mock';
 import {
   GasFeeEstimatesType,
@@ -25,10 +25,10 @@ const mockState = {
 };
 
 const getMaxFnArguments = (params: Record<string, unknown>) => ({
-  accounts: { [TOEKN_ADDRESS_MOCK_1]: { balance: '0x3635C9ADC5DEA00000' } },
+  accounts: { [TOKEN_ADDRESS_MOCK_1]: { balance: '0x3635C9ADC5DEA00000' } },
   asset: {},
   contractBalances: { '0x111': '0x3B9ACA00' },
-  from: TOEKN_ADDRESS_MOCK_1,
+  from: TOKEN_ADDRESS_MOCK_1,
   gasFeeEstimates: {
     medium: { suggestedMaxFeePerGas: 1.5 },
   },
