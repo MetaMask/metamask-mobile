@@ -1,4 +1,4 @@
-import { defaultGanacheOptions } from '../fixtures/fixture-helper';
+import { defaultGanacheOptions } from '../framework/Constants.ts';
 import { CustomNetworks } from './networks.e2e';
 import { mockEvents } from '../api-mocking/mock-config/mock-events';
 
@@ -10,9 +10,7 @@ const SEI_TESTNET = CustomNetworks.SeiTestNet.providerConfig;
  * Shared mock configuration for all network tests
  */
 export const testSpecificMock = {
-  GET: [
-    mockEvents.GET.suggestedGasFeesApiGanache
-  ],
+  GET: [mockEvents.GET.suggestedGasFeesApiGanache],
 };
 
 /**
@@ -50,9 +48,9 @@ export const seiLocalConfig = {
  */
 export const megaEthProviderConfig = {
   chainId: '0x539',
-  rpcUrl: 'http://localhost:8545',      // Local Ganache
-  ticker: MEGAETH_TESTNET.ticker,       // "MegaETH" ticker (for display)
-  nickname: `${MEGAETH_TESTNET.nickname} (Local)`, // "Mega Testnet (Local)"
+  rpcUrl: 'http://localhost:8545', // Local Ganache
+  ticker: MEGAETH_TESTNET.ticker, // "MegaETH" ticker (for display)
+  nickname: `${MEGAETH_TESTNET.nickname}`, // "Mega Testnet (Local)"
   type: 'custom',
 };
 
@@ -61,17 +59,17 @@ export const megaEthProviderConfig = {
  */
 export const monadProviderConfig = {
   chainId: '0x539',
-  rpcUrl: 'http://localhost:8545',      // Local Ganache
-  ticker: MONAD_TESTNET.ticker,         // "MON" ticker (for display)
-  nickname: `${MONAD_TESTNET.nickname} (Local)`, // "Monad Testnet (Local)"
+  rpcUrl: 'http://localhost:8545', // Local Ganache
+  ticker: MONAD_TESTNET.ticker, // "MON" ticker (for display)
+  nickname: `${MONAD_TESTNET.nickname}`, // "Monad Testnet (Local)"
   type: 'custom',
 };
 
 export const seiProviderConfig = {
   chainId: '0x539',
-  rpcUrl: 'http://localhost:8545',      // Local Ganache
-  ticker: SEI_TESTNET.ticker,         // "SEI" ticker (for display)
-  nickname: `${SEI_TESTNET.nickname} (Local)`, // "Sei Testnet (Local)"
+  rpcUrl: 'http://localhost:8545', // Local Ganache
+  ticker: SEI_TESTNET.ticker, // "SEI" ticker (for display)
+  nickname: `${SEI_TESTNET.nickname}`, // "Sei Testnet (Local)"
   type: 'custom',
 };
 
@@ -118,7 +116,7 @@ export const testConfigurations = {
   },
   /**
    * Sei test configuration
-   */ 
+   */
   sei: {
     ganacheOptions: seiLocalConfig,
     providerConfig: seiProviderConfig,
