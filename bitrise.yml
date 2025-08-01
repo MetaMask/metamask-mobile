@@ -939,7 +939,6 @@ workflows:
       - TEST_SUITE_TAG: '.*NetworkExpansion.*'
     after_run:
       - android_e2e_test
-
   run_wallet_platform_swimlane_ios_smoke:
     envs:
       - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
@@ -2020,7 +2019,6 @@ workflows:
       bitrise.io:
         machine_type_id: elite-xl
         stack: linux-docker-android-22.04
-
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -2948,10 +2946,6 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
-    meta:
-      bitrise.io:
-        stack: osx-xcode-16.2.x
-        machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_release:
     after_run:
@@ -2966,6 +2960,10 @@ workflows:
       - YARN_COMMAND: 'build:ios:main:prod'
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_main_beta:
     envs:
       - CONFIGURATION: 'Release'
@@ -2976,6 +2974,10 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_main_rc:
     envs:
       - CONFIGURATION: 'Release'
@@ -2986,6 +2988,10 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_main_exp:
     envs:
       - CONFIGURATION: 'Release'
@@ -2996,6 +3002,10 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_main_test:
     envs:
       - CONFIGURATION: 'Release'
@@ -3018,16 +3028,28 @@ workflows:
       - YARN_COMMAND: 'build:ios:main:e2e'
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
       - build_ios_main_prod
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_rc_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
       - build_ios_main_rc
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_beta:
     envs:
       - CONFIGURATION: 'Release'
@@ -3039,10 +3061,18 @@ workflows:
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_flask_release:
     after_run:
       - build_ios_flask_prod
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_flask_prod:
     envs:
       - CONFIGURATION: 'Release'
@@ -3053,6 +3083,10 @@ workflows:
       - YARN_COMMAND: 'build:ios:flask:prod'
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_flask_test:
     envs:
       - CONFIGURATION: 'Release'
@@ -3063,6 +3097,10 @@ workflows:
       - YARN_COMMAND: 'build:ios:flask:test'
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_flask_e2e:
     envs:
       - CONFIGURATION: 'Release'
@@ -3075,6 +3113,10 @@ workflows:
       - YARN_COMMAND: 'build:ios:flask:e2e'
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_main_local:
     envs:
       - CONFIGURATION: 'Debug'
@@ -3085,16 +3127,28 @@ workflows:
       - YARN_COMMAND: 'build:ios:main:local'
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
     after_run:
       - build_ios_main_local
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_devbuild:
     after_run:
       - build_ios_main_local
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_flask_local:
     envs:
       - CONFIGURATION: 'Debug'
@@ -3105,15 +3159,27 @@ workflows:
       - YARN_COMMAND: 'build:ios:flask:local'
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_flask_devbuild:
     after_run:
       - build_ios_flask_local
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
     after_run:
       - build_ios_flask_local
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_qa_local:
     envs:
       - CONFIGURATION: 'Debug'
@@ -3124,15 +3190,27 @@ workflows:
       - YARN_COMMAND: 'build:ios:qa:local'
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_qa_devbuild:
     after_run:
       - build_ios_qa_local
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_qa_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
     after_run:
       - build_ios_qa_local
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   build_ios_qa_prod:
     envs:
       - CONFIGURATION: 'Release'
@@ -3143,11 +3221,19 @@ workflows:
       - YARN_COMMAND: 'build:ios:qa:prod'
     after_run:
       - _ios_build_template
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_qa:
     after_run:
       - build_ios_qa_prod
       - _upload_ipa_to_browserstack_qa
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.2.x
+        machine_type_id: g2.mac.4large
   _upload_ipa_to_browserstack_qa:
     steps:
       - script@1:
