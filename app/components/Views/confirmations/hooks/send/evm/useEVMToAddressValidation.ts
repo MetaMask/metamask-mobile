@@ -4,24 +4,24 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
-import { strings } from '../../../../../../locales/i18n';
-import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../../locales/i18n';
+import Engine from '../../../../../../core/Engine';
 import {
   areAddressesEqual,
   isENS,
   isValidHexAddress,
   toChecksumAddress,
-} from '../../../../../util/address';
-import { isMainnetByChainId } from '../../../../../util/networks';
-import { doENSLookup } from '../../../../../util/ENSUtils';
+} from '../../../../../../util/address';
+import { isMainnetByChainId } from '../../../../../../util/networks';
+import { doENSLookup } from '../../../../../../util/ENSUtils';
 import {
   collectConfusables,
   getConfusablesExplanations,
   hasZeroWidthPoints,
-} from '../../../../../util/confusables';
-import { selectAddressBook } from '../../../../../selectors/addressBookController';
-import { selectInternalAccounts } from '../../../../../selectors/accountsController';
-import { useSendContext } from '../../context/send-context';
+} from '../../../../../../util/confusables';
+import { selectAddressBook } from '../../../../../../selectors/addressBookController';
+import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
+import { useSendContext } from '../../../context/send-context';
 
 export interface ShouldSkipValidationArgs {
   toAddress?: string;

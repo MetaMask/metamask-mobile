@@ -85,10 +85,8 @@ export const submitEVMTransaction = async ({
   value: string;
 }) => {
   const { NetworkController } = Engine.context;
-  const networkClientId = NetworkController.findNetworkClientIdByChainId(
-    chainId as Hex,
-  );
-  // toHex is added here as sometime chainId in asset is not hexadecimal
+  const networkClientId =
+    NetworkController.findNetworkClientIdByChainId(chainId);
   const trxnParams = prepareEVMTransaction(asset, { from, to, value });
   await addTransaction(trxnParams, {
     origin: MMM_ORIGIN,
@@ -96,6 +94,7 @@ export const submitEVMTransaction = async ({
   });
 };
 
+// todo: we need to figure out passing toAddress, amount also to the snap
 export const submitNonEVMTransaction = async ({
   asset,
   fromAccount,

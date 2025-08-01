@@ -3,19 +3,20 @@ import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   hexToBN,
   isDecimal,
   toTokenMinimalUnit,
   toWei,
-} from '../../../../../util/number';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import { AssetType } from '../../types/token';
-import { isNativeToken } from '../../utils/generic';
-import { useSendContext } from '../../context/send-context';
+} from '../../../../../../util/number';
+import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
+import { AssetType } from '../../../types/token';
+import { isNativeToken } from '../../../utils/generic';
+import { useSendContext } from '../../../context/send-context';
 
+//todo
 export interface ValidateAmountArgs {
   accounts: Record<Hex, AccountInformation>;
   amount?: string;

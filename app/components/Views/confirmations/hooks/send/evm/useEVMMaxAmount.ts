@@ -8,13 +8,13 @@ import {
   fromTokenMinimalUnitString,
   fromWei,
   hexToBN,
-} from '../../../../../util/number/index';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import { AssetType } from '../../types/token';
-import { isNativeToken } from '../../utils/generic';
-import { useSendContext } from '../../context/send-context';
-import { useGasFeeEstimatesForSend } from './useGasFeeEstimatesForSend';
+} from '../../../../../../util/number/index';
+import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
+import { AssetType } from '../../../types/token';
+import { isNativeToken } from '../../../utils/generic';
+import { useSendContext } from '../../../context/send-context';
+import { useGasFeeEstimatesForSend } from '../useGasFeeEstimatesForSend';
 
 const NATIVE_TRANSFER_GAS_LIMIT = 21000;
 const GWEI_TO_WEI_CONVERSION_RATE = 1e9;

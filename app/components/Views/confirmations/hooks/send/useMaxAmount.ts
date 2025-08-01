@@ -4,7 +4,7 @@ import { AssetType } from '../../types/token';
 import { isNativeToken } from '../../utils/generic';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
-import { useEVMMaxAmount } from './useEVMMaxAmount';
+import { useEVMMaxAmount } from './evm/useEVMMaxAmount';
 
 export const getNonEVMMaxValueFn = (asset?: AssetType) => {
   if (!asset || isNativeToken(asset)) {

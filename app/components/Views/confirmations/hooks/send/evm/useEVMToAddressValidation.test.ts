@@ -1,20 +1,21 @@
-import Engine from '../../../../../core/Engine';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+
+import Engine from '../../../../../../core/Engine';
 import {
   ProviderValues,
   renderHookWithProvider,
-} from '../../../../../util/test/renderWithProvider';
+} from '../../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
-import * as ENSUtils from '../../../../../util/ENSUtils';
+import * as ENSUtils from '../../../../../../util/ENSUtils';
 // eslint-disable-next-line import/no-namespace
-import * as ConfusablesUtils from '../../../../../util/confusables';
-import { evmSendStateMock } from '../../__mocks__/send.mock';
+import * as ConfusablesUtils from '../../../../../../util/confusables';
+import { evmSendStateMock } from '../../../__mocks__/send.mock';
 import {
   shouldSkipValidation,
   ShouldSkipValidationArgs,
   useEVMToAddressValidation,
   validateToAddress,
 } from './useEVMToAddressValidation';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {

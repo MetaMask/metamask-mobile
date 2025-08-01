@@ -1,11 +1,11 @@
 import {
   ProviderValues,
   renderHookWithProvider,
-} from '../../../../../util/test/renderWithProvider';
+} from '../../../../../../util/test/renderWithProvider';
 import {
   evmSendStateMock,
   TOKEN_ADDRESS_MOCK_1,
-} from '../../__mocks__/send.mock';
+} from '../../../__mocks__/send.mock';
 import {
   useEVMAmountValidation,
   validateAmountFn,
@@ -137,7 +137,7 @@ describe('validateAmountFn', () => {
 });
 
 describe('useEVMAmountValidation', () => {
-  it('return field for amount error', () => {
+  it('return function validateEVMAmount', () => {
     const { result } = renderHookWithProvider(
       () => useEVMAmountValidation(),
       mockState as ProviderValues,
