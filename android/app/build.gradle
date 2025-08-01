@@ -283,6 +283,12 @@ android {
         keyAlias 'androiddebugkey'
         keyPassword 'android'
       }
+      qaProd {
+        storeFile file('../keystores/internalRelease.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
     }
 
     buildTypes {
@@ -304,7 +310,7 @@ android {
             dimension "version"
             applicationIdSuffix ".qa"
             applicationId "io.metamask"
-            signingConfig signingConfigs.qa
+            signingConfig signingConfigs.qaProd
           }
           prod {
             dimension "version"
