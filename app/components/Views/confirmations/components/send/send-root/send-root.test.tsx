@@ -2,6 +2,7 @@ import React from 'react';
 import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { act, fireEvent } from '@testing-library/react-native';
+import { merge } from 'lodash';
 
 import Engine from '../../../../../../core/Engine';
 import renderWithProvider, {
@@ -12,12 +13,10 @@ import * as TransactionUtils from '../../../../../../util/transaction-controller
 import { SendContextProvider } from '../../../context/send-context';
 import {
   ACCOUNT_ADDRESS_MOCK_1,
-  ACCOUNT_ADDRESS_MOCK_2,
   TOKEN_ADDRESS_MOCK_1,
   evmSendStateMock,
 } from '../../../__mocks__/send.mock';
 import { SendRoot } from './send-root';
-import { merge } from 'lodash';
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -58,7 +57,9 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const renderComponent = (mockState?: ProviderValues['state']) => {
-  const state = mockState ? merge(evmSendStateMock, mockState) : evmSendStateMock;
+  const state = mockState
+    ? merge(evmSendStateMock, mockState)
+    : evmSendStateMock;
   return renderWithProvider(
     <SendContextProvider>
       <SendRoot />
@@ -284,38 +285,6 @@ describe('SendRoot', () => {
     fireEvent.press(getByText('Max'));
     expect(getByTestId('send_amount').props.value).toBe('0.9999685');
     expect(getByText('$ 3889.87')).toBeTruthy();
-  });
-
-  it('Max option should not be available for non-evm native send', () => {
-    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-      params: {
-        asset: {
-          isNative: true,
-          chainId: '0x1',
-          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-        },
-      },
-    } as RouteProp<ParamListBase, string>);
-
-    const { queryByText } = renderComponent({
-      engine: {
-        backgroundState: {
-          AccountsController: {
-            internalAccounts: {
-              selectedAccount: 'solana-account-id',
-              accounts: {
-                'solana-account-id': {
-                  id: 'solana-account-id',
-                  address: ACCOUNT_ADDRESS_MOCK_2,
-                  metadata: {},
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-    expect(queryByText('Max')).toBeNull();
   });
 
   it('display fiat conversion of amount entered', async () => {

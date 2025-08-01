@@ -12,9 +12,15 @@ export const validateNonEVMAmountFn = ({
   amount,
   asset,
 }: {
-  amount: string;
-  asset: AssetType;
+  amount?: string;
+  asset?: AssetType;
 }) => {
+  if (!asset || amount === undefined || amount === null || amount === '') {
+    return;
+  }
+  if (!isDecimal(amount) || Number(amount) < 0) {
+    return strings('transaction.invalid_amount');
+  }
   if (new BN(amount).gt(new BN(asset.balance))) {
     return strings('transaction.insufficient');
   }
@@ -27,12 +33,6 @@ export const useAmountValidation = () => {
   const { validateEVMAmount } = useEVMAmountValidation();
 
   const amountError = useMemo(() => {
-    if (!asset || value === undefined || value === null || value === '') {
-      return;
-    }
-    if (!isDecimal(value) || Number(value) < 0) {
-      return strings('transaction.invalid_amount');
-    }
     if (isEvmSendType) {
       return validateEVMAmount();
     }

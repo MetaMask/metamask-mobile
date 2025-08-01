@@ -4,7 +4,12 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
-import { hexToBN, toTokenMinimalUnit, toWei } from '../../../../../util/number';
+import {
+  hexToBN,
+  isDecimal,
+  toTokenMinimalUnit,
+  toWei,
+} from '../../../../../util/number';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
 import { AssetType } from '../../types/token';
@@ -26,8 +31,11 @@ export const validateAmountFn = ({
   contractBalances,
   from,
 }: ValidateAmountArgs) => {
-  if (!asset || amount == undefined) {
+  if (!asset || amount === undefined || amount === null || amount === '') {
     return;
+  }
+  if (!isDecimal(amount) || Number(amount) < 0) {
+    return strings('transaction.invalid_amount');
   }
   let weiValue;
   let weiBalance;

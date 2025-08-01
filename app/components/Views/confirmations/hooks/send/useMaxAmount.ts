@@ -25,5 +25,8 @@ export const useMaxAmount = () => {
     return getNonEVMMaxValueFn(asset);
   }, [asset, getEVMMaxAmount, isEvmSendType]);
 
-  return { getMaxAmount, isMaxAmountSupported: !isNonEvmNativeSendType };
+  return {
+    getMaxAmount,
+    isMaxAmountSupported: !isNonEvmNativeSendType,
+  };
 };

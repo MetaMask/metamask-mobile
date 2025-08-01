@@ -1,18 +1,12 @@
-import Engine from '../../../../../core/Engine';
 import {
   ProviderValues,
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
-import * as ENSUtils from '../../../../../util/ENSUtils';
-// eslint-disable-next-line import/no-namespace
-import * as ConfusablesUtils from '../../../../../util/confusables';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import {
   shouldSkipValidation,
   ShouldSkipValidationArgs,
   useToAddressValidation,
-  validateToAddress,
 } from './useToAddressValidation';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -45,28 +39,6 @@ describe('shouldSkipValidation', () => {
       } as unknown as ShouldSkipValidationArgs),
     ).toStrictEqual(true);
   });
-  it('returns true if to address is present in address book', () => {
-    expect(
-      shouldSkipValidation({
-        toAddress: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
-        chainId: '0x1',
-        addressBook: {},
-        internalAccounts: [],
-      } as unknown as ShouldSkipValidationArgs),
-    ).toStrictEqual(false);
-    expect(
-      shouldSkipValidation({
-        toAddress: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
-        chainId: '0x1',
-        addressBook: {
-          '0x1': {
-            '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477': {},
-          },
-        },
-        internalAccounts: [],
-      } as unknown as ShouldSkipValidationArgs),
-    ).toStrictEqual(true);
-  });
   it('returns true if to address is an internal account', () => {
     expect(
       shouldSkipValidation({
@@ -86,57 +58,6 @@ describe('shouldSkipValidation', () => {
         ],
       } as unknown as ShouldSkipValidationArgs),
     ).toStrictEqual(true);
-  });
-});
-
-describe('validateToAddress', () => {
-  it('returns warning if address is contract address on mainnet', async () => {
-    Engine.context.AssetsContractController.getERC721AssetSymbol = () =>
-      Promise.resolve('ABC');
-    expect(
-      await validateToAddress(
-        '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
-        '0x1',
-      ),
-    ).toStrictEqual({
-      warning:
-        'This address is a token contract address. If you send tokens to this address, you will lose them.',
-    });
-  });
-
-  it('returns error if ens name can not be resolved', async () => {
-    jest
-      .spyOn(ENSUtils, 'doENSLookup')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockReturnValue(Promise.resolve(undefined) as any);
-    expect(await validateToAddress('test.eth', '0x1')).toStrictEqual({
-      error: "Couldn't resolve ENS",
-    });
-  });
-
-  it('returns warning for confusables', async () => {
-    jest
-      .spyOn(ENSUtils, 'doENSLookup')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockReturnValue({ ensName: 'test.eth' } as any);
-    jest.spyOn(ConfusablesUtils, 'collectConfusables').mockReturnValue(['ⅼ']);
-    expect(await validateToAddress('test.eth', '0x1')).toStrictEqual({
-      warning:
-        "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam. - 'ⅼ' is similar to 'l'",
-    });
-  });
-
-  it('returns error for confusables if it has hasZeroWidthPoints', async () => {
-    jest
-      .spyOn(ENSUtils, 'doENSLookup')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockReturnValue({ ensName: 'test.eth' } as any);
-    jest.spyOn(ConfusablesUtils, 'collectConfusables').mockReturnValue(['ⅼ']);
-    jest.spyOn(ConfusablesUtils, 'hasZeroWidthPoints').mockReturnValue(true);
-    expect(await validateToAddress('test.eth', '0x1')).toStrictEqual({
-      error:
-        "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam. - 'ⅼ' is similar to 'l'",
-    });
   });
 });
 

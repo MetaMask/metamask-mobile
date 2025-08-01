@@ -1,11 +1,13 @@
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import {
+  areAddressesEqual,
   isENS,
   isValidHexAddress,
   toChecksumAddress,
@@ -19,7 +21,6 @@ import {
 } from '../../../../../util/confusables';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
-import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { useSendContext } from '../../context/send-context';
 
 export interface ShouldSkipValidationArgs {
@@ -27,8 +28,39 @@ export interface ShouldSkipValidationArgs {
   chainId?: string;
   addressBook: AddressBookControllerState['addressBook'];
   internalAccounts: InternalAccount[];
-  isEvmSendType?: boolean;
 }
+
+export const shouldSkipValidation = ({
+  toAddress,
+  chainId,
+  addressBook,
+  internalAccounts,
+}: ShouldSkipValidationArgs): boolean => {
+  if (!toAddress || !chainId) {
+    return true;
+  }
+  const address = isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
+    ? toChecksumAddress(toAddress)
+    : toAddress;
+
+  // address is present in address book
+  // address book is supported for EVM accounts only
+  const existingContact =
+    address && chainId && addressBook[chainId as Hex]?.[address];
+  if (existingContact) {
+    return true;
+  }
+
+  // sending to an internal account
+  const internalAccount = internalAccounts.find((account) =>
+    areAddressesEqual(account.address, address),
+  );
+  if (internalAccount) {
+    return true;
+  }
+
+  return false;
+};
 
 const validateHexAddress = async (
   toAddress: string,
@@ -94,13 +126,30 @@ const validateENSAddress = async (
   return {};
 };
 
-export const validateToAddress = async (
-  toAddress: string,
-  chainId?: Hex,
-): Promise<{
+export const validateToAddress = async ({
+  toAddress,
+  chainId,
+  addressBook,
+  internalAccounts,
+}: {
+  toAddress: string;
+  chainId?: Hex;
+  addressBook: AddressBookControllerState['addressBook'];
+  internalAccounts: InternalAccount[];
+}): Promise<{
   error?: string;
   warning?: string;
 }> => {
+  if (
+    shouldSkipValidation({
+      toAddress,
+      chainId,
+      addressBook,
+      internalAccounts,
+    })
+  ) {
+    return {};
+  }
   if (isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })) {
     return await validateHexAddress(toAddress, chainId);
   }
@@ -118,23 +167,12 @@ export const useEVMToAddressValidation = () => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const { chainId, to } = useSendContext();
 
-  const { value } = useAsyncResult<{
-    error?: string;
-    warning?: string;
-  }>(async () => {
-    // address is present in address book
-    // address book is supported for EVM accounts only
-    const address = toChecksumAddress(to as Hex);
-    const existingContact =
-      address && chainId && addressBook[chainId as Hex]?.[address];
-    if (existingContact) {
-      return {};
-    }
+  const validateEVMToAddress = useCallback(async () => await validateToAddress({
+      toAddress: to as Hex,
+      chainId: chainId as Hex,
+      addressBook,
+      internalAccounts,
+    }), [addressBook, chainId, internalAccounts, to]);
 
-    return await validateToAddress(to as Hex, chainId as Hex);
-  }, [addressBook, chainId, internalAccounts, to]);
-
-  const { error, warning } = value ?? {};
-
-  return { error, warning };
+  return { validateEVMToAddress };
 };
