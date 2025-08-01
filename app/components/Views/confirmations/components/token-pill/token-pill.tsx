@@ -15,7 +15,7 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 
-interface TokenPillProps {
+export interface TokenPillProps {
   address: Hex;
   chainId: Hex;
 }
