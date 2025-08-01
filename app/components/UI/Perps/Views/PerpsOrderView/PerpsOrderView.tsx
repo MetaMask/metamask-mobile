@@ -90,6 +90,7 @@ import {
   usePerpsMarketData,
   usePerpsLiquidationPrice,
   usePerpsOrderFees,
+  useHasExistingPosition,
   formatFeeRate,
 } from '../../hooks';
 import { formatPrice } from '../../utils/formatUtils';
@@ -97,10 +98,7 @@ import {
   calculateMarginRequired,
   calculatePositionSize,
 } from '../../utils/orderCalculations';
-import {
-  validatePerpsOrder,
-  type OrderFormState,
-} from '../../utils/orderValidation';
+import type { OrderFormState } from '../../types';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsOrderView.styles';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -145,7 +143,7 @@ const PerpsOrderView: React.FC = () => {
   } = route.params || {};
 
   // Get PerpsController methods and state
-  const { placeOrder, getPositions } = usePerpsTrading();
+  const { placeOrder, getPositions, validateOrder } = usePerpsTrading();
   const currentNetwork = usePerpsNetwork();
   const cachedAccountState = usePerpsAccount();
 
@@ -203,6 +201,12 @@ const PerpsOrderView: React.FC = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
 
   const paymentTokens = usePerpsPaymentTokens();
+
+  // Check if user has an existing position for this asset
+  const { hasPosition: hasExistingPosition } = useHasExistingPosition({
+    asset: orderForm.asset,
+    loadOnMount: true,
+  });
 
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
@@ -417,25 +421,80 @@ const PerpsOrderView: React.FC = () => {
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
   // Order validation
-  const orderValidation = useMemo(
-    () =>
-      validatePerpsOrder({
-        orderForm,
-        marginRequired,
-        availableBalance,
-        marketData,
-        selectedPaymentToken,
+  const [orderValidation, setOrderValidation] = useState<{
+    errors: string[];
+    warnings: string[];
+    isValid: boolean;
+  }>({ errors: [], warnings: [], isValid: true });
+
+  useEffect(() => {
+    const validateAsync = async () => {
+      // Convert form state to OrderParams for protocol validation
+      const orderParams: OrderParams = {
+        coin: orderForm.asset,
+        isBuy: orderForm.direction === 'long',
+        size: orderForm.amount,
         orderType,
-      }),
-    [
-      orderForm,
-      marginRequired,
-      availableBalance,
-      marketData,
-      selectedPaymentToken,
-      orderType,
-    ],
-  );
+        price: orderForm.limitPrice,
+        leverage: orderForm.leverage,
+        currentPrice: assetData.price,
+      };
+
+      // Get protocol-specific validation
+      const protocolValidation = await validateOrder(orderParams);
+
+      // Start with protocol validation results
+      const errors = protocolValidation.isValid
+        ? []
+        : protocolValidation.error
+        ? [protocolValidation.error]
+        : [];
+      const warnings: string[] = [];
+
+      // Add UI-specific validations
+
+      // Balance validation
+      const requiredMargin = parseFloat(marginRequired);
+      if (requiredMargin > availableBalance) {
+        errors.push(
+          strings('perps.order.validation.insufficient_balance', {
+            required: marginRequired,
+            available: availableBalance.toString(),
+          }),
+        );
+      }
+
+      // Payment token validation (HyperLiquid specific but checked at UI level)
+      if (
+        selectedPaymentToken &&
+        selectedPaymentToken.chainId !== HYPERLIQUID_MAINNET_CHAIN_ID &&
+        selectedPaymentToken.chainId !== HYPERLIQUID_TESTNET_CHAIN_ID
+      ) {
+        errors.push(strings('perps.order.validation.only_hyperliquid_usdc'));
+      }
+
+      // High leverage warning
+      if (orderForm.leverage > 20) {
+        warnings.push(strings('perps.order.validation.high_leverage_warning'));
+      }
+
+      setOrderValidation({
+        errors,
+        warnings,
+        isValid: errors.length === 0,
+      });
+    };
+
+    validateAsync();
+  }, [
+    orderForm,
+    orderType,
+    marginRequired,
+    availableBalance,
+    selectedPaymentToken,
+    validateOrder,
+    assetData.price,
+  ]);
 
   // Handlers
 
@@ -483,6 +542,26 @@ const PerpsOrderView: React.FC = () => {
   }, []);
 
   const handlePlaceOrder = useCallback(async () => {
+    if (hasExistingPosition) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('perps.order.validation.failed'), isBold: true },
+          { label: ': ', isBold: false },
+          {
+            label: strings('perps.order.validation.existing_position', {
+              asset: orderForm.asset,
+            }),
+            isBold: false,
+          },
+        ],
+        iconName: IconName.Warning,
+        iconColor: IconColor.Warning,
+        hasNoTimeout: true,
+      });
+      return;
+    }
+
     if (!orderValidation.isValid) {
       const firstError = orderValidation.errors[0];
       toastRef?.current?.showToast({
@@ -547,8 +626,10 @@ const PerpsOrderView: React.FC = () => {
           // Add a small delay to ensure the position is available
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          const positions = await getPositions();
-          const newPosition = positions.find((p) => p.coin === orderForm.asset);
+          const fetchedPositions = await getPositions();
+          const newPosition = fetchedPositions.find(
+            (p) => p.coin === orderForm.asset,
+          );
 
           if (newPosition) {
             navigation.navigate(Routes.PERPS.POSITION_DETAILS, {
@@ -617,6 +698,7 @@ const PerpsOrderView: React.FC = () => {
       setIsPlacingOrder(false);
     }
   }, [
+    hasExistingPosition,
     orderValidation,
     toastRef,
     orderForm,
@@ -995,8 +1077,15 @@ const PerpsOrderView: React.FC = () => {
       {/* Fixed Place Order Button - Hide when keypad is active */}
       {!isInputFocused && (
         <View style={styles.fixedBottomContainer}>
-          {orderValidation.errors.length > 0 && (
+          {(orderValidation.errors.length > 0 || hasExistingPosition) && (
             <View style={styles.validationContainer}>
+              {hasExistingPosition && (
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {strings('perps.order.validation.existing_position', {
+                    asset: orderForm.asset,
+                  })}
+                </Text>
+              )}
               {orderValidation.errors.map((error) => (
                 <Text
                   key={error}
@@ -1022,7 +1111,8 @@ const PerpsOrderView: React.FC = () => {
             disabled={
               !orderValidation.isValid ||
               isPlacingOrder ||
-              orderValidation.errors.length > 0
+              orderValidation.errors.length > 0 ||
+              hasExistingPosition
             }
             loading={isPlacingOrder}
           />

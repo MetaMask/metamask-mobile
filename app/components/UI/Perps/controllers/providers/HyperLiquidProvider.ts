@@ -8,6 +8,7 @@ import {
   getChainId,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   FEE_RATES,
+  TRADING_DEFAULTS,
 } from '../../constants/hyperLiquidConfig';
 import {
   PERPS_CONSTANTS,
@@ -55,6 +56,7 @@ import type {
   LiveDataConfig,
   MaintenanceMarginParams,
   MarketInfo,
+  OrderParams,
   OrderResult,
   PerpsMarketData,
   OrderParams as PerpsOrderParams,
@@ -1005,12 +1007,165 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Validate deposit parameters according to HyperLiquid-specific rules
    * This method enforces protocol-specific requirements like minimum amounts
    */
-  validateDeposit(params: DepositParams): { isValid: boolean; error?: string } {
+  async validateDeposit(
+    params: DepositParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
     return validateDepositParams({
       amount: params.amount,
       assetId: params.assetId,
       isTestnet: this.clientService.isTestnetMode(),
     });
+  }
+
+  /**
+   * Validate order parameters according to HyperLiquid-specific rules
+   * This includes minimum order sizes, leverage limits, and other protocol requirements
+   */
+  async validateOrder(
+    params: OrderParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
+    try {
+      // Basic parameter validation
+      const basicValidation = validateOrderParams({
+        coin: params.coin,
+        size: params.size,
+        price: params.price,
+      });
+      if (!basicValidation.isValid) {
+        return basicValidation;
+      }
+
+      // Check minimum order size using consistent defaults (matching useMinimumOrderAmount hook)
+      // Note: For full validation with market-specific limits, use async methods
+      const coinAmount = parseFloat(params.size || '0');
+      const minimumOrderSize = this.clientService.isTestnetMode()
+        ? TRADING_DEFAULTS.amount.testnet
+        : TRADING_DEFAULTS.amount.mainnet;
+
+      // Convert coin amount to USD value for comparison with minimum
+      // If currentPrice is provided, calculate USD value; otherwise fallback to treating size as USD
+      const orderValueUSD = params.currentPrice
+        ? coinAmount * params.currentPrice
+        : coinAmount;
+
+      if (orderValueUSD < minimumOrderSize) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.minimum_amount', {
+            amount: minimumOrderSize.toString(),
+          }),
+        };
+      }
+
+      // Asset-specific leverage validation
+      if (params.leverage && params.coin) {
+        try {
+          const maxLeverage = await this.getMaxLeverage(params.coin);
+          if (params.leverage < 1 || params.leverage > maxLeverage) {
+            return {
+              isValid: false,
+              error: strings('perps.order.validation.invalid_leverage', {
+                min: '1',
+                max: maxLeverage.toString(),
+              }),
+            };
+          }
+        } catch (error) {
+          // If we can't get max leverage, use the default as fallback
+          const defaultMaxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+          if (params.leverage < 1 || params.leverage > defaultMaxLeverage) {
+            return {
+              isValid: false,
+              error: strings('perps.order.validation.invalid_leverage', {
+                min: '1',
+                max: defaultMaxLeverage.toString(),
+              }),
+            };
+          }
+        }
+      }
+
+      // Validate limit orders have a price
+      if (params.orderType === 'limit' && !params.price) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.limit_price_required'),
+        };
+      }
+
+      return { isValid: true };
+    } catch (error) {
+      return {
+        isValid: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
+      };
+    }
+  }
+
+  /**
+   * Validate close position parameters according to HyperLiquid-specific rules
+   * Note: Full validation including remaining position size requires position data
+   * which should be passed from the UI layer
+   */
+  async validateClosePosition(
+    params: ClosePositionParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
+    try {
+      // Basic validation
+      if (!params.coin) {
+        return {
+          isValid: false,
+          error: strings('perps.errors.orderValidation.coinRequired'),
+        };
+      }
+
+      // If closing with limit order, must have price
+      if (params.orderType === 'limit' && !params.price) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.limit_price_required'),
+        };
+      }
+
+      // Validate close size if provided
+      if (params.size) {
+        const closeSize = parseFloat(params.size);
+        if (isNaN(closeSize) || closeSize <= 0) {
+          return {
+            isValid: false,
+            error: strings('perps.errors.orderValidation.sizePositive'),
+          };
+        }
+
+        // Note: Remaining position validation should be done in the UI layer
+        // where position data is available. The UI should check:
+        // 1. That closeSize doesn't exceed current position size
+        // 2. That remaining size meets minimum order requirements
+      }
+
+      return { isValid: true };
+    } catch (error) {
+      return {
+        isValid: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
+      };
+    }
+  }
+
+  /**
+   * Validate withdrawal parameters - placeholder for future implementation
+   */
+  async validateWithdrawal(
+    _params: WithdrawParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
+    // Placeholder - to be implemented when needed
+    return { isValid: true };
   }
 
   /**

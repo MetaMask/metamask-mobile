@@ -1,30 +1,35 @@
-import React, { useRef, useState, useCallback, useEffect, memo } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  TouchableOpacity,
-  TextInput,
   ActivityIndicator,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../../../util/theme';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
-import { strings } from '../../../../../../locales/i18n';
-import type { Position, OrderType } from '../../controllers/types';
-import { createStyles } from './PerpsClosePositionBottomSheet.styles';
-import { usePerpsPrices, usePerpsOrderFees } from '../../hooks';
+import { useTheme } from '../../../../../util/theme';
+import type { OrderType, Position } from '../../controllers/types';
+import {
+  useMinimumOrderAmount,
+  usePerpsOrderFees,
+  usePerpsPrices,
+  usePerpsTrading,
+} from '../../hooks';
+import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
 import PerpsSlider from '../PerpsSlider/PerpsSlider';
+import { createStyles } from './PerpsClosePositionBottomSheet.styles';
 
 interface PerpsClosePositionBottomSheetProps {
   isVisible: boolean;
@@ -45,6 +50,9 @@ const PerpsClosePositionBottomSheet: React.FC<
   const { colors } = theme;
   const styles = createStyles(theme);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  // Get validation method from trading hook
+  const { validateClosePosition } = usePerpsTrading();
 
   // State for order type tabs
   const [orderType, setOrderType] = useState<OrderType>('market');
@@ -95,6 +103,63 @@ const PerpsClosePositionBottomSheet: React.FC<
     (closePercentage / 100) * effectiveMargin +
     (closePercentage / 100) * pnl -
     feeResults.totalFee;
+
+  // Get minimum order amount for this asset
+  const { minimumOrderAmount } = useMinimumOrderAmount({
+    asset: position.coin,
+  });
+
+  // Calculate remaining position value after partial close
+  const remainingPositionValue = positionValue * (1 - closePercentage / 100);
+  const isPartialClose = closePercentage < 100;
+
+  // Validate close position
+  const [validationResult, setValidationResult] = useState<{
+    isValid: boolean;
+    error?: string;
+  }>({ isValid: true });
+
+  useEffect(() => {
+    const validateAsync = async () => {
+      const closeParams = {
+        coin: position.coin,
+        size: closePercentage === 100 ? undefined : closeAmount.toString(),
+        orderType,
+        price: orderType === 'limit' ? limitPrice : undefined,
+      };
+
+      const validation = await validateClosePosition(closeParams);
+
+      // Additional UI validation for remaining position
+      if (
+        validation.isValid &&
+        isPartialClose &&
+        remainingPositionValue < minimumOrderAmount
+      ) {
+        setValidationResult({
+          isValid: false,
+          error: strings('perps.close_position.minimum_remaining_warning', {
+            minimum: minimumOrderAmount.toString(),
+            remaining: formatPrice(remainingPositionValue),
+          }),
+        });
+      } else {
+        setValidationResult(validation);
+      }
+    };
+
+    validateAsync();
+  }, [
+    position.coin,
+    closeAmount,
+    closePercentage,
+    orderType,
+    limitPrice,
+    validateClosePosition,
+    isPartialClose,
+    remainingPositionValue,
+    minimumOrderAmount,
+  ]);
 
   useEffect(() => {
     if (isVisible) {
@@ -147,7 +212,8 @@ const PerpsClosePositionBottomSheet: React.FC<
         (orderType === 'limit' &&
           (!limitPrice || parseFloat(limitPrice) <= 0)) ||
         (orderType === 'market' && closePercentage === 0) ||
-        receiveAmount <= 0,
+        receiveAmount <= 0 ||
+        !validationResult.isValid,
       loading: isClosing,
       testID: 'close-position-confirm-button',
     },
@@ -320,6 +386,18 @@ const PerpsClosePositionBottomSheet: React.FC<
               </Text>
             </View>
           </View>
+
+          {!validationResult.isValid && (
+            <View style={styles.warningContainer}>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Error}
+                style={styles.warningText}
+              >
+                {validationResult.error}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
