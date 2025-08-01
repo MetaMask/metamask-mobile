@@ -1137,7 +1137,8 @@
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
-      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "perps_sandbox_button": "Perps Sandbox"
     }
   },
   "receive": {

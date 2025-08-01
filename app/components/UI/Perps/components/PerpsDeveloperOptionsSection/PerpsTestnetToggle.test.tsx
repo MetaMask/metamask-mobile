@@ -48,7 +48,7 @@ describe('PerpsTestnetToggle', () => {
     mockShowToast.mockClear();
   });
 
-  it('should render correctly with testnet network', () => {
+  it('renders correctly with testnet network', () => {
     mockUsePerpsNetwork.mockReturnValue('testnet');
 
     const { toJSON, getByTestId, getByText } = renderWithToastContext(
@@ -64,7 +64,7 @@ describe('PerpsTestnetToggle', () => {
     expect(getByText('Testnet')).toBeVisible();
   });
 
-  it('should render correctly with mainnet network', () => {
+  it('renders correctly with mainnet network', () => {
     mockUsePerpsNetwork.mockReturnValue('mainnet');
 
     const { getByTestId, getByText } = renderWithToastContext(
@@ -78,7 +78,7 @@ describe('PerpsTestnetToggle', () => {
     expect(getByText('Mainnet')).toBeVisible();
   });
 
-  it('should toggle from testnet to mainnet successfully', async () => {
+  it('toggles from testnet to mainnet successfully', async () => {
     mockUsePerpsNetwork.mockReturnValue('testnet');
     mockToggleTestnet.mockResolvedValue({
       success: true,
@@ -101,7 +101,7 @@ describe('PerpsTestnetToggle', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('should toggle from mainnet to testnet successfully', async () => {
+  it('toggles from mainnet to testnet successfully', async () => {
     mockUsePerpsNetwork.mockReturnValue('mainnet');
     mockToggleTestnet.mockResolvedValue({
       success: true,
@@ -124,7 +124,7 @@ describe('PerpsTestnetToggle', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('should display error toast when toggle fails', async () => {
+  it('displays error toast when toggle fails', async () => {
     mockUsePerpsNetwork.mockReturnValue('testnet');
     mockToggleTestnet.mockResolvedValue({
       success: false,
@@ -157,7 +157,7 @@ describe('PerpsTestnetToggle', () => {
     );
   });
 
-  it('should show loading indicator while toggle is in progress', async () => {
+  it('shows loading indicator while toggle is in progress', async () => {
     mockUsePerpsNetwork.mockReturnValue('testnet');
 
     // Create a promise that we can control
@@ -198,7 +198,7 @@ describe('PerpsTestnetToggle', () => {
     });
   });
 
-  it('should handle network state changes correctly after successful toggle', async () => {
+  it('handles network state changes correctly after successful toggle', async () => {
     mockUsePerpsNetwork.mockReturnValue('testnet');
     mockToggleTestnet.mockResolvedValue({
       success: true,
@@ -219,7 +219,7 @@ describe('PerpsTestnetToggle', () => {
     });
   });
 
-  it('should maintain switch state when toggle fails', async () => {
+  it('maintains switch state when toggle fails', async () => {
     mockUsePerpsNetwork.mockReturnValue('testnet');
     mockToggleTestnet.mockResolvedValue({
       success: false,
