@@ -49,6 +49,9 @@ import type {
   GetAccountStateParams,
   GetPositionsParams,
   GetSupportedPathsParams,
+  GetUserFillsParams,
+  GetUserOrdersParams,
+  GetUserFundingParams,
   InitializeResult,
   IPerpsProvider,
   LiquidationPriceParams,
@@ -901,6 +904,113 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
     } catch (error) {
       DevLogger.log('Error getting positions:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get historical user fills (trade executions)
+   */
+  async getUserFills(params?: GetUserFillsParams): Promise<any[]> {
+    try {
+      DevLogger.log('Getting user fills via HyperLiquid SDK:', params);
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      // TODO: Add proper typing for userFills response
+      const fills = await (infoClient as any).userFills({ 
+        user: userAddress,
+        startTime: params?.startTime,
+        endTime: params?.endTime,
+        limit: params?.limit,
+        offset: params?.offset,
+      });
+      
+      DevLogger.log('User fills received:', fills);
+      return fills || [];
+    } catch (error) {
+      DevLogger.log('Error getting user fills:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get historical orders (order lifecycle)
+   */
+  async getUserOrders(params?: GetUserOrdersParams): Promise<any[]> {
+    try {
+      DevLogger.log('Getting user orders via HyperLiquid SDK:', params);
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      // TODO: Add proper typing for historicalOrders response
+      const orders = await (infoClient as any).historicalOrders({ 
+        user: userAddress,
+        startTime: params?.startTime,
+        endTime: params?.endTime,
+        limit: params?.limit,
+        offset: params?.offset,
+      });
+      
+      DevLogger.log('User orders received:', orders);
+      return orders || [];
+    } catch (error) {
+      DevLogger.log('Error getting user orders:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get user funding history
+   */
+  async getUserFunding(params?: GetUserFundingParams): Promise<any[]> {
+    try {
+      DevLogger.log('Getting user funding via HyperLiquid SDK:', params);
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      // Try userFunding first, fallback to userNonFundingLedgerUpdates if needed
+      try {
+        // TODO: Add proper typing for userFunding response
+        const funding = await (infoClient as any).userFunding({ 
+          user: userAddress,
+          startTime: params?.startTime,
+          endTime: params?.endTime,
+          limit: params?.limit,
+          offset: params?.offset,
+        });
+        
+        DevLogger.log('User funding received:', funding);
+        return funding || [];
+      } catch (fundingError) {
+        DevLogger.log('userFunding failed, trying userNonFundingLedgerUpdates:', fundingError);
+        
+        // TODO: Add proper typing for userNonFundingLedgerUpdates response
+        const ledgerUpdates = await (infoClient as any).userNonFundingLedgerUpdates({ 
+          user: userAddress,
+          startTime: params?.startTime,
+          endTime: params?.endTime,
+          limit: params?.limit,
+          offset: params?.offset,
+        });
+        
+        DevLogger.log('User ledger updates received:', ledgerUpdates);
+        return ledgerUpdates || [];
+      }
+    } catch (error) {
+      DevLogger.log('Error getting user funding:', error);
       return [];
     }
   }

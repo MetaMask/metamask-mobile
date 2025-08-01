@@ -39,6 +39,8 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -163,15 +165,21 @@ const ActivityView = () => {
     [navigation, hasOrders, colors, selectedAddress, openAccountSelector],
   );
 
-  const renderTabBar = () => (hasOrders ? <TabBar /> : <View />);
+  //TODO: temporary
+  const hasPerpsTransactions = true;
+
+  const renderTabBar = () => (hasOrders  || hasPerpsTransactions ? <TabBar /> : <View />);
 
   useFocusEffect(
     useCallback(() => {
       if (hasOrders && params.redirectToOrders) {
         navigation.setParams({ redirectToOrders: false });
         tabViewRef.current?.goToPage(1);
+      } else if (hasPerpsTransactions && params.redirectToPerpsTransactions) {
+        navigation.setParams({ redirectToPerpsTransactions: false });
+        tabViewRef.current?.goToPage(1);
       }
-    }, [hasOrders, navigation, params.redirectToOrders]),
+    }, [hasOrders, navigation, params.redirectToOrders, hasPerpsTransactions, params.redirectToPerpsTransactions]),
   );
 
   return (
@@ -209,7 +217,7 @@ const ActivityView = () => {
         <ScrollableTabView
           ref={tabViewRef}
           renderTabBar={renderTabBar}
-          locked={!hasOrders}
+          locked={!hasOrders && !hasPerpsTransactions}
         >
           {selectedAddress && isNonEvmAddress(selectedAddress) ? (
             <MultichainTransactionsView
@@ -223,6 +231,11 @@ const ActivityView = () => {
             <RampOrdersList
               tabLabel={strings('fiat_on_ramp_aggregator.orders')}
             />
+          )}
+          {hasPerpsTransactions && (
+            <PerpsConnectionProvider tabLabel={strings('perps.transactions.title')}>
+              <PerpsTransactionsView />
+            </PerpsConnectionProvider>
           )}
         </ScrollableTabView>
       </View>

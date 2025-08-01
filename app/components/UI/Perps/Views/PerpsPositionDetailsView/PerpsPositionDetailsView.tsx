@@ -38,7 +38,6 @@ const PerpsPositionDetailsView: React.FC = () => {
   const { top } = useSafeAreaInsets();
 
   const { position } = route.params || {};
-
   const [selectedInterval, setSelectedInterval] = useState('1h');
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);

@@ -1131,7 +1131,10 @@
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "transactions": {
+      "title": "Perps"
+    }
   },
   "receive": {
     "title": "Receive"

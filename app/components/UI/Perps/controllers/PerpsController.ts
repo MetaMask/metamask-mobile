@@ -30,6 +30,9 @@ import type {
   FeeCalculationResult,
   GetAccountStateParams,
   GetPositionsParams,
+  GetUserFillsParams,
+  GetUserFundingParams,
+  GetUserOrdersParams,
   IPerpsProvider,
   LiveDataConfig,
   MarketInfo,
@@ -192,6 +195,18 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:getPositions';
       handler: PerpsController['getPositions'];
+    }
+  | {
+      type: 'PerpsController:getUserFills';
+      handler: PerpsController['getUserFills'];
+    }
+  | {
+      type: 'PerpsController:getUserOrders';
+      handler: PerpsController['getUserOrders'];
+    }
+  | {
+      type: 'PerpsController:getUserFunding';
+      handler: PerpsController['getUserFunding'];
     }
   | {
       type: 'PerpsController:getAccountState';
@@ -810,6 +825,30 @@ export class PerpsController extends BaseController<
       // Re-throw the error so components can handle it appropriately
       throw error;
     }
+  }
+
+  /**
+   * Get historical user fills (trade executions)
+   */
+  async getUserFills(params?: GetUserFillsParams): Promise<any[]> {
+    const provider = this.getActiveProvider();
+    return provider.getUserFills(params);
+  }
+
+  /**
+   * Get historical user orders (order lifecycle)
+   */
+  async getUserOrders(params?: GetUserOrdersParams): Promise<any[]> {
+    const provider = this.getActiveProvider();
+    return provider.getUserOrders(params);
+  }
+
+  /**
+   * Get historical user funding history (funding payments)
+   */
+  async getUserFunding(params?: GetUserFundingParams): Promise<any[]> {
+    const provider = this.getActiveProvider();
+    return provider.getUserFunding(params);
   }
 
   /**
