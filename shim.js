@@ -4,11 +4,11 @@ import { decode, encode } from 'base-64';
 import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
-  getFixturesServerPort,
   isTest,
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
+import { getFixturesServerPort } from './e2e/framework/fixtures/FixtureUtils';
 import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
 
 // Needed to polyfill random number generation
