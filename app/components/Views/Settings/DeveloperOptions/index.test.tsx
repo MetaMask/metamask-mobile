@@ -39,6 +39,6 @@ describe('DeveloperOptions', () => {
       { state: initialState },
     );
 
-    expect(queryByText('Perps Developer Options')).toBeNull();
+    expect(queryByText('Perpetual Trading')).toBeNull();
   });
 });

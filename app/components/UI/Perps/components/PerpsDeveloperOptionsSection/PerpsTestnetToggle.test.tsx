@@ -241,4 +241,34 @@ describe('PerpsTestnetToggle', () => {
     // Switch should maintain original state since toggle failed
     expect(switchElement.props.value).toBe(true);
   });
+
+  it('synchronizes with external currentNetwork changes', async () => {
+    // Start with testnet
+    mockUsePerpsNetwork.mockReturnValue('testnet');
+
+    const { getByTestId, getByText, rerender } = renderWithToastContext(
+      <PerpsTestnetToggle />,
+    );
+
+    const switchElement = getByTestId(PerpsTestnetToggleSelectorsIDs.SWITCH);
+
+    // Initially should show testnet
+    expect(switchElement.props.value).toBe(true);
+    expect(getByText('Testnet')).toBeVisible();
+
+    // Simulate external network change to mainnet
+    mockUsePerpsNetwork.mockReturnValue('mainnet');
+
+    rerender(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <PerpsTestnetToggle />
+      </ToastContext.Provider>,
+    );
+
+    // Should now show mainnet
+    await waitFor(() => {
+      expect(switchElement.props.value).toBe(false);
+    });
+    expect(getByText('Mainnet')).toBeVisible();
+  });
 });

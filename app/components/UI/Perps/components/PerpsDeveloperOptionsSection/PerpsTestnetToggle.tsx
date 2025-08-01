@@ -2,7 +2,7 @@ import {
   IconColor,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import Text, {
   TextColor,
   TextVariant,
@@ -32,9 +32,11 @@ export const PerpsTestnetToggle = () => {
   const { toggleTestnet } = usePerpsNetworkConfig();
   const currentNetwork = usePerpsNetwork();
 
-  const [isTestnetEnabled, setIsTestnetEnabled] = useState(
-    currentNetwork === 'testnet',
+  const isTestnetEnabled = useMemo(
+    () => currentNetwork === 'testnet',
+    [currentNetwork],
   );
+
   const [isLoading, setIsLoading] = useState(false);
 
   const { toastRef } = useContext(ToastContext);
@@ -47,7 +49,6 @@ export const PerpsTestnetToggle = () => {
     setIsLoading(false);
 
     if (toggleResult.success) {
-      setIsTestnetEnabled(toggleResult.isTestnet);
       return;
     }
 
