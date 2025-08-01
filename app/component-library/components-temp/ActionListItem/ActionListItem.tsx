@@ -1,5 +1,5 @@
 // Third party dependencies
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 
 // External dependencies
@@ -81,24 +81,29 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
     return null;
   };
 
+  const getStyle = useCallback(
+    ({ pressed }: { pressed: boolean }) =>
+      tw.style('bg-default px-4 py-3', pressed && 'bg-default-pressed'),
+    [tw]
+  );
+
   return (
     <Pressable
-      style={({ pressed }) =>
-        tw.style('bg-default px-4 py-3', pressed && 'bg-default-pressed')
-      }
+      style={getStyle}
       {...pressableProps}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-4"
+        gap={4}
       >
         {/* Left side content (start accessory/icon + label/description) */}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}
-          twClassName="flex-1 gap-4"
+          twClassName="flex-1"
+          gap={4}
         >
           {/* Start accessory or icon */}
           {renderStartContent()}
