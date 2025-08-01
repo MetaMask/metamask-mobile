@@ -3,12 +3,12 @@ import React from 'react';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { SendContextProvider } from '../../../context/send-context';
-import To from './to';
+import { SendTo } from './send-to';
 
 const renderComponent = () =>
   renderWithProvider(
     <SendContextProvider>
-      <To />
+      <SendTo />
     </SendContextProvider>,
     {
       state: {
@@ -19,7 +19,7 @@ const renderComponent = () =>
     },
   );
 
-describe('To', () => {
+describe('SendTo', () => {
   it('renders correctly', async () => {
     const { getByText } = renderComponent();
 

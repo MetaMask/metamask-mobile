@@ -3,14 +3,15 @@ import {
   ProviderValues,
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
 // eslint-disable-next-line import/no-namespace
 import * as ENSUtils from '../../../../../util/ENSUtils';
 // eslint-disable-next-line import/no-namespace
 import * as ConfusablesUtils from '../../../../../util/confusables';
-import useToAddressValidation, {
+import { evmSendStateMock } from '../../__mocks__/send.mock';
+import {
   shouldSkipValidation,
   ShouldSkipValidationArgs,
+  useToAddressValidation,
   validateToAddress,
 } from './useToAddressValidation';
 
@@ -23,44 +24,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 const mockState = {
-  state: {
-    engine: {
-      backgroundState: {
-        ...backgroundState,
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: 'evm-account-id',
-            accounts: {
-              'evm-account-id': {
-                id: 'evm-account-id',
-                type: 'eip155:eoa',
-                address: '0x12345',
-                metadata: {},
-              },
-            },
-          },
-        },
-        TokenBalancesController: {
-          tokenBalances: {
-            '0x12345': {
-              '0x1': {
-                '0x123': '0x5',
-              },
-            },
-          },
-        },
-        AccountTrackerController: {
-          accountsByChainId: {
-            '0x1': {
-              '0x12345': {
-                balance: '0xDE0B6B3A7640000',
-              },
-            },
-          },
-        },
-      },
-    },
-  },
+  state: evmSendStateMock,
 };
 
 describe('shouldSkipValidation', () => {

@@ -2,58 +2,25 @@ import {
   ProviderValues,
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import useAmountValidation, {
+import {
+  evmSendStateMock,
+  TOKEN_ADDRESS_MOCK_1,
+} from '../../__mocks__/send.mock';
+import {
+  useAmountValidation,
   validateAmountFn,
   ValidateAmountArgs,
 } from './useAmountValidation';
 
 const mockState = {
-  state: {
-    engine: {
-      backgroundState: {
-        ...backgroundState,
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: 'evm-account-id',
-            accounts: {
-              'evm-account-id': {
-                id: 'evm-account-id',
-                type: 'eip155:eoa',
-                address: '0x12345',
-                metadata: {},
-              },
-            },
-          },
-        },
-        TokenBalancesController: {
-          tokenBalances: {
-            '0x12345': {
-              '0x1': {
-                '0x123': '0x5',
-              },
-            },
-          },
-        },
-        AccountTrackerController: {
-          accountsByChainId: {
-            '0x1': {
-              '0x12345': {
-                balance: '0xDE0B6B3A7640000',
-              },
-            },
-          },
-        },
-      },
-    },
-  },
+  state: evmSendStateMock,
 };
 
 const getArguments = (params: Record<string, unknown>) =>
   ({
-    from: '0x123',
+    from: TOKEN_ADDRESS_MOCK_1,
     asset: {},
-    accounts: { '0x123': { balance: '0x3635C9ADC5DEA00000' } },
+    accounts: { [TOKEN_ADDRESS_MOCK_1]: { balance: '0x3635C9ADC5DEA00000' } },
     contractBalances: { '0x111': '0x3B9ACA00' },
     ...params,
   } as unknown as ValidateAmountArgs);
