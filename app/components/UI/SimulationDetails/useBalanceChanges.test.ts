@@ -9,7 +9,10 @@ import {
 import { fetchTokenContractExchangeRates } from '@metamask/assets-controllers';
 
 import { getTokenDetails } from '../../../util/address';
-import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
+import {
+  selectConversionRateByChainId,
+  selectUSDConversionRateByChainId,
+} from '../../../selectors/currencyRateController';
 import useBalanceChanges from './useBalanceChanges';
 import { FIAT_UNAVAILABLE, AssetType } from './types';
 
@@ -21,7 +24,7 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../selectors/currencyRateController', () => ({
   selectConversionRateByChainId: jest.fn(),
   selectCurrentCurrency: jest.fn(),
-  selectUSDConversionRateByChainId: jest.fn(() => () => 4),
+  selectUSDConversionRateByChainId: jest.fn(),
 }));
 
 jest.mock('../../../selectors/networkController', () => ({
@@ -43,7 +46,8 @@ const mockSelectConversionRate = selectConversionRateByChainId as any;
 const mockGetTokenDetails = getTokenDetails as jest.Mock;
 const mockFetchTokenContractExchangeRates =
   fetchTokenContractExchangeRates as jest.Mock;
-// const mockFetchTokenExchangeRates = fetchTokenExchangeRates as jest.Mock;
+const mockSelectUSDConversionRateByChainId =
+  selectUSDConversionRateByChainId as unknown as jest.Mock;
 
 const ETH_TO_FIAT_RATE = 3;
 const NETWORK_CLIENT_ID_MOCK = 'mainnet';
@@ -96,6 +100,7 @@ describe('useBalanceChanges', () => {
       return Promise.reject(new Error('Unable to determine token standard'));
     });
     mockSelectConversionRate.mockReturnValue(ETH_TO_FIAT_RATE);
+    mockSelectUSDConversionRateByChainId.mockReturnValue(4);
     mockFetchTokenContractExchangeRates.mockImplementation(
       async (exchangeRatesParams) => {
         const { nativeCurrency: currency } = exchangeRatesParams;
