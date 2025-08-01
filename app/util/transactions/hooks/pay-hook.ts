@@ -75,7 +75,9 @@ export class PayHook {
     return EMPTY_RESULT;
   }
 
-  async #submitBridgeTransaction(originalQuote: TransactionBridgeQuote): Promise<void> {
+  async #submitBridgeTransaction(
+    originalQuote: TransactionBridgeQuote,
+  ): Promise<void> {
     const quote = cloneDeep(originalQuote);
 
     const result = await this.#messenger.call(
