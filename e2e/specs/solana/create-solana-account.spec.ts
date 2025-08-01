@@ -96,6 +96,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
         await Assertions.expectTextDisplayed(NEW_ACCOUNT_NAME);
         await AccountDetails.tapBackButton();
         await WalletView.tapIdenticon();
+        await Assertions.expectTextDisplayed(NEW_ACCOUNT_NAME);
       },
     );
   });
