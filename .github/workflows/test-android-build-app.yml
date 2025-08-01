@@ -81,8 +81,8 @@ jobs:
           echo "🚀 Finishing Android Setup..."
           yarn setup:github-ci --no-build-ios
           echo "🏗 Building Android APP..."
-          export NODE_OPTIONS="--max-old-space-size=2048"
-          export GRADLE_OPTS="-Xmx6g -Dorg.gradle.workers.max=2"
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          export GRADLE_OPTS="-Xmx32g -Dorg.gradle.workers.max=12 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
           yarn build:android:qa
         shell: bash
         env:
@@ -94,8 +94,8 @@ jobs:
           GITHUB_CI: "true"
           CI: "true"
 
-          NODE_OPTIONS: "--max-old-space-size=2048"
-          GRADLE_OPTS: "-Xmx6g -Dorg.gradle.jvmargs='-Xmx6g' -Dorg.gradle.workers.max=2"
+          NODE_OPTIONS: "--max-old-space-size=8192"
+          GRADLE_OPTS: "-Xmx32g -Dorg.gradle.jvmargs='-Xmx32g -XX:+UseG1GC' -Dorg.gradle.workers.max=12 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
 
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
