@@ -1,7 +1,7 @@
 import React from 'react';
 import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -9,11 +9,15 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import * as TransactionUtils from '../../../../../util/transaction-controller';
 import { SendContextProvider } from '../../context/send-context';
 import { Send } from './send';
+import Engine from '../../../../../core/Engine';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+    },
+    AssetsContractController: {
+      getERC721AssetSymbol: Promise.resolve(undefined),
     },
   },
 }));
@@ -155,6 +159,31 @@ describe('Send', () => {
     fireEvent.changeText(getByTestId('send_amount'), '.01');
     fireEvent.press(getByText('Confirm'));
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('display error if to address is invalid', async () => {
+    const { getByText, getByTestId } = renderComponent();
+    await act(async () => {
+      fireEvent.changeText(getByTestId('send_to_address'), 'abc');
+    });
+    expect(getByText('Invalid address')).toBeTruthy();
+  });
+
+  it('display warning for to address', async () => {
+    Engine.context.AssetsContractController.getERC721AssetSymbol = () =>
+      Promise.resolve('ABC');
+    const { getByText, getByTestId } = renderComponent();
+    await act(async () => {
+      fireEvent.changeText(
+        getByTestId('send_to_address'),
+        '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+      );
+    });
+    expect(
+      getByText(
+        'This address is a token contract address. If you send tokens to this address, you will lose them.',
+      ),
+    ).toBeTruthy();
   });
 
   it('display error if amount is greater than balance for ERC20 token', async () => {

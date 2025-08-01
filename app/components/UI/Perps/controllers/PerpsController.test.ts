@@ -489,7 +489,7 @@ describe('PerpsController', () => {
         // @ts-ignore - Accessing private property for testing
         controller.isInitialized = false;
         expect(() => controller.getActiveProvider()).toThrow(
-          'HyperLiquid SDK clients not properly initialized',
+          'CLIENT_NOT_INITIALIZED',
         );
       });
     });
@@ -1239,7 +1239,7 @@ describe('PerpsController', () => {
         // Act & Assert
         await expect(
           controller.fetchHistoricalCandles('BTC', '1h', 100),
-        ).rejects.toThrow('HyperLiquid SDK clients not properly initialized');
+        ).rejects.toThrow('CLIENT_NOT_INITIALIZED');
       });
     });
 
@@ -2164,7 +2164,7 @@ describe('PerpsController', () => {
           controller.isInitialized = false;
 
           await expect(controller.calculateFees(params)).rejects.toThrow(
-            'HyperLiquid SDK clients not properly initialized',
+            'CLIENT_NOT_INITIALIZED',
           );
         });
       });
