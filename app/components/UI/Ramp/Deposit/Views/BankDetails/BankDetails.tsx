@@ -48,6 +48,7 @@ import Button, {
 import PrivacySection from '../../components/PrivacySection';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { isString } from 'lodash';
+import Logger from '../../../../../../util/Logger';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -112,7 +113,7 @@ const BankDetails = () => {
         sdk,
       });
     } catch (error) {
-      console.error(error);
+      Logger.error(error as Error, 'BankDetails: handleOnRefresh');
     } finally {
       setIsRefreshing(false);
     }
@@ -227,12 +228,20 @@ const BankDetails = () => {
       setIsLoadingConfirmPayment(true);
       if (!hasDepositOrderField(order?.data, 'paymentOptions')) {
         console.error('Order or payment options not found');
+        Logger.error(
+          new Error('Order or payment options not found'),
+          'BankDetails: handleBankTransferSent',
+        );
         return;
       }
 
       const paymentOptionId = order.data.paymentOptions?.[0]?.id;
       if (!paymentOptionId) {
         console.error('Payment options not found or empty');
+        Logger.error(
+          new Error('Payment options not found or empty'),
+          'BankDetails: handleBankTransferSent',
+        );
         return;
       }
 
@@ -240,6 +249,7 @@ const BankDetails = () => {
         order.data.cryptoCurrency,
         order.data.network,
       );
+      await confirmPayment(order.id, paymentOptionId);
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
         ramp_type: 'DEPOSIT',
@@ -256,8 +266,6 @@ const BankDetails = () => {
         currency_source: order.data.fiatCurrency,
       });
 
-      await confirmPayment(order.id, paymentOptionId);
-
       await handleOnRefresh();
 
       navigation.dispatch(
@@ -268,7 +276,7 @@ const BankDetails = () => {
         ),
       );
     } catch (fetchError) {
-      console.error(fetchError);
+      Logger.error(fetchError as Error, 'BankDetails: handleBankTransferSent');
       if (isString(fetchError)) {
         setConfirmPaymentError(fetchError);
       } else if (isString((fetchError as Error)?.message)) {
@@ -298,7 +306,7 @@ const BankDetails = () => {
       await cancelOrder();
       await handleOnRefresh();
     } catch (fetchError) {
-      console.error(fetchError);
+      Logger.error(fetchError as Error, 'BankDetails: handleBankTransferSent');
       setCancelOrderError(fetchError as Error);
     } finally {
       setIsLoadingCancelOrder(false);
