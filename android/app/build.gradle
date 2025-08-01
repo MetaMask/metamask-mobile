@@ -321,7 +321,7 @@ android {
               signingConfig signingConfigs.mainProd
             } else if (System.getenv("METAMASK_ENVIRONMENT") == 'rc')  {
               signingConfig signingConfigs.mainRc
-            } else if (SSystem.getenv("METAMASK_ENVIRONMENT") == 'beta')  {
+            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'beta')  {
               signingConfig signingConfigs.mainBeta
             } else if (System.getenv("METAMASK_ENVIRONMENT") == 'local') {
               signingConfig signingConfigs.mainDev
@@ -332,7 +332,7 @@ android {
             applicationIdSuffix ".flask"
             applicationId "io.metamask"
             // Use the appropriate signing config based on environment
-            if (System.getenv("METAMASK_ENVIRONMENT") == 'test' {
+            if (System.getenv("METAMASK_ENVIRONMENT") == 'test') {
               signingConfig signingConfigs.flaskTest
             } else if (System.getenv("METAMASK_ENVIRONMENT") == 'e2e') {
               signingConfig signingConfigs.flaskE2e
