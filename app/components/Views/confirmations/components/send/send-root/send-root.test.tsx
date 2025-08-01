@@ -3,13 +3,13 @@ import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { act, fireEvent } from '@testing-library/react-native';
 
+import Engine from '../../../../../../core/Engine';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../../../util/transaction-controller';
 import { SendContextProvider } from '../../../context/send-context';
+import { evmSendStateMock } from '../../../__mocks__/send.mock';
 import { SendRoot } from './send-root';
-import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -54,61 +54,7 @@ const renderComponent = () =>
       <SendRoot />
     </SendContextProvider>,
     {
-      state: {
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'evm-account-id',
-                accounts: {
-                  'evm-account-id': {
-                    id: 'evm-account-id',
-                    type: 'eip155:eoa',
-                    address: '0x12345',
-                    metadata: {},
-                  },
-                },
-              },
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                '0x12345': {
-                  '0x1': {
-                    '0x123': '0x5',
-                  },
-                },
-              },
-            },
-            AccountTrackerController: {
-              accountsByChainId: {
-                '0x1': {
-                  '0x12345': {
-                    balance: '0xDE0B6B3A7640000',
-                  },
-                },
-              },
-            },
-            TokenRatesController: {
-              marketData: {
-                '0x1': {
-                  '0x123': {
-                    price: 3890,
-                  },
-                },
-              },
-            },
-            CurrencyRateController: {
-              currentCurrency: 'usd',
-              currencyRates: {
-                ETH: {
-                  conversionRate: 1,
-                },
-              },
-            },
-          },
-        },
-      },
+      state: evmSendStateMock,
     },
   );
 
@@ -144,6 +90,16 @@ describe('SendRoot', () => {
     const { getByText, getByTestId } = renderComponent();
     fireEvent.changeText(getByTestId('send_amount'), 'abc');
     expect(getByText('Invalid amount')).toBeTruthy();
+    expect(mockAddTransaction).not.toHaveBeenCalled();
+  });
+
+  it('confirm button is disabled for invalid to address value', async () => {
+    const mockAddTransaction = jest.spyOn(TransactionUtils, 'addTransaction');
+    const { getByText, getByTestId } = renderComponent();
+    await act(async () => {
+      fireEvent.changeText(getByTestId('send_to_address'), 'abc');
+    });
+    expect(getByText('Invalid address')).toBeTruthy();
     expect(mockAddTransaction).not.toHaveBeenCalled();
   });
 
