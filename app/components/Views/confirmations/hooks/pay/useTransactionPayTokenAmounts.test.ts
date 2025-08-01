@@ -37,13 +37,14 @@ describe('useTransactionPayTokenAmounts', () => {
     jest.resetAllMocks();
 
     useTransactionRequiredFiatMock.mockReturnValue({
-      fiatValues: [16.123, 40.456],
-      fiatTotal: 56.579,
-    });
+      values: [{ totalFiat: 16.123 }, { totalFiat: 40.456 }],
+      totalFiat: 56.579,
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
 
     useTokenFiatRatesMock.mockReturnValue([4]);
 
     useTransactionPayTokenMock.mockReturnValue({
+      decimals: 4,
       payToken: {
         address: tokenAddress1Mock,
         chainId: CHAIN_ID_MOCK,
@@ -62,14 +63,5 @@ describe('useTransactionPayTokenAmounts', () => {
 
     const sourceAmounts = runHook();
     expect(sourceAmounts).toBeUndefined();
-  });
-
-  it('uses 18 decimals if token not found', () => {
-    const sourceAmounts = runHook({ noTokens: true });
-
-    expect(sourceAmounts).toEqual([
-      '4030750000000000000',
-      '10114000000000000000',
-    ]);
   });
 });

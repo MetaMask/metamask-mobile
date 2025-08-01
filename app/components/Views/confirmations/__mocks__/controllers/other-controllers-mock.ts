@@ -199,6 +199,16 @@ export const tokenListControllerMock = {
   },
 };
 
+export const tokenRatesControllerMock = {
+  engine: {
+    backgroundState: {
+      TokenRatesController: {
+        marketData: {},
+      },
+    },
+  },
+};
+
 export const otherControllersMock = merge(
   {},
   accountsControllerMock,
@@ -214,4 +224,6 @@ export const otherControllersMock = merge(
   smartTransactionsControllerMock,
   preferencesControllerMock,
   tokenListControllerMock,
+  tokenRatesControllerMock,
+  tokensControllerMock,
 );
