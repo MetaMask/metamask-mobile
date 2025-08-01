@@ -71,7 +71,7 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
 
   // Table-driven tests for all networks
   for (const networkConfig of NETWORK_TEST_CONFIGS) {
-    it.only(`send an ERC721 token from a dapp using ${networkConfig.name} (local)`, async () => {
+    it(`send an ERC721 token from a dapp using ${networkConfig.name} (local)`, async () => {
       await withFixtures(
         {
           dapps: [

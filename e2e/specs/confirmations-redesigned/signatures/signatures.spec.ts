@@ -121,7 +121,11 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
       it(`should sign ${specName} using ${networkConfig.name}`, async () => {
         await withFixtures(
           {
-            dapp: true,
+            dapps: [
+              {
+                dappVariant: DappVariants.TEST_DAPP,
+              },
+            ],
             fixture: new FixtureBuilder()
               .withNetworkController({
                 providerConfig: networkConfig.providerConfig,
@@ -131,7 +135,6 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
               )
               .build(),
             restartDevice: true,
-            ganacheOptions: networkConfig.ganacheOptions,
             testSpecificMock: networkConfig.testSpecificMock,
           },
           async () => {
