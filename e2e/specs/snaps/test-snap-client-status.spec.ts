@@ -46,10 +46,10 @@ describe(FlaskBuildTests('Client Status Snap Tests'), () => {
 
   it('returns the client status', async () => {
     await TestSnaps.tapButton('sendClientStatusButton');
-    await TestSnaps.checkResultSpan(
-      'clientStatusResultSpan',
-      JSON.stringify({ locked: false, active: true }, null, 2),
-    );
+    await TestSnaps.checkResultJson('clientStatusResultSpan', {
+      locked: false,
+      active: true,
+    });
   });
 
   // Can't test this right now because the client needs to be unlocked in order

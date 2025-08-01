@@ -11,6 +11,7 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
+import Assertions from '../../framework/Assertions.ts';
 
 const fixtureServer = new FixtureServer();
 
@@ -74,14 +75,13 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
     },
   );
 
-  // This test is skipped because of a bug causing the app to crash when the
-  // alert is displayed.
-  it.skip('fails when choosing an invalid entropy source', async () => {
+  it('fails when choosing an invalid entropy source', async () => {
     await TestSnaps.selectInDropdown('getEntropyDropDown', 'Invalid');
     await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
     await TestSnaps.tapButton('signEntropyMessageButton');
     await TestSnaps.approveSignRequest();
-
-    // TODO: Handle alert.
+    await Assertions.checkIfTextIsDisplayed(
+      'Entropy source with ID "invalid" not found.',
+    );
   });
 });

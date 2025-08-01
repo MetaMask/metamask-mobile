@@ -110,9 +110,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
     );
   });
 
-  // This test is skipped because of a bug causing the app to crash when the
-  // alert is displayed.
-  it.skip('fails when choosing the invalid entropy source', async () => {
+  it('fails when choosing the invalid entropy source', async () => {
     await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'Invalid');
     await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
     await TestSnaps.tapButton('signMessageBip32Secp256k1Button');

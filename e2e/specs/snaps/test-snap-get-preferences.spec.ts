@@ -47,25 +47,18 @@ describe(FlaskBuildTests('Get Preferences Snap Tests'), () => {
     await TestSnaps.installSnap('connectGetPreferencesButton');
 
     await TestSnaps.tapButton('getPreferencesButton');
-    await TestSnaps.checkResultSpan(
-      'preferencesResultSpan',
-      JSON.stringify(
-        {
-          locale: 'en-US',
-          currency: 'usd',
-          hideBalances: true,
-          useSecurityAlerts: true,
-          simulateOnChainActions: true,
-          useTokenDetection: true,
-          batchCheckBalances: true,
-          displayNftMedia: true,
-          useNftDetection: true,
-          useExternalPricingData: true,
-          showTestnets: true,
-        },
-        null,
-        2,
-      ),
-    );
+    await TestSnaps.checkResultJson('preferencesResultSpan', {
+      locale: 'en-US',
+      currency: 'usd',
+      hideBalances: true,
+      useSecurityAlerts: true,
+      simulateOnChainActions: true,
+      useTokenDetection: true,
+      batchCheckBalances: true,
+      displayNftMedia: true,
+      useNftDetection: true,
+      useExternalPricingData: true,
+      showTestnets: true,
+    });
   });
 });

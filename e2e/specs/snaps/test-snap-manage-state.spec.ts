@@ -50,10 +50,9 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await TestSnaps.fillMessage('dataStateInput', '"bar"');
         await TestSnaps.fillMessage('setStateKeyInput', 'foo');
         await TestSnaps.tapButton('sendStateButton');
-        await TestSnaps.checkResultSpan(
-          'encryptedStateResultSpan',
-          JSON.stringify({ foo: 'bar' }, null, 2),
-        );
+        await TestSnaps.checkResultJson('encryptedStateResultSpan', {
+          foo: 'bar',
+        });
 
         await TestSnaps.fillMessage('getStateInput', 'foo');
         await TestSnaps.tapButton('sendGetStateButton');
@@ -71,10 +70,9 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await TestSnaps.fillMessage('dataUnencryptedStateInput', '"bar"');
         await TestSnaps.fillMessage('setStateKeyUnencryptedInput', 'foo');
         await TestSnaps.tapButton('sendUnencryptedStateButton');
-        await TestSnaps.checkResultSpan(
-          'unencryptedStateResultSpan',
-          JSON.stringify({ foo: 'bar' }, null, 2),
-        );
+        await TestSnaps.checkResultJson('unencryptedStateResultSpan', {
+          foo: 'bar',
+        });
 
         await TestSnaps.fillMessage('getUnencryptedStateInput', 'foo');
         await TestSnaps.tapButton('sendGetUnencryptedStateButton');
@@ -97,19 +95,17 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
         await TestSnaps.fillMessage('dataManageStateInput', '23');
         await TestSnaps.tapButton('sendManageStateButton');
         await TestSnaps.checkResultSpan('sendManageStateResultSpan', 'true');
-        await TestSnaps.checkResultSpan(
-          'retrieveManageStateResultSpan',
-          JSON.stringify({ items: ['23'] }, null, 2),
-        );
+        await TestSnaps.checkResultJson('retrieveManageStateResultSpan', {
+          items: ['23'],
+        });
       });
 
       it('clears the state', async () => {
         await TestSnaps.tapButton('clearManageStateButton');
         await TestSnaps.checkResultSpan('clearManageStateResultSpan', 'true');
-        await TestSnaps.checkResultSpan(
-          'retrieveManageStateResultSpan',
-          JSON.stringify({ items: [] }, null, 2),
-        );
+        await TestSnaps.checkResultJson('retrieveManageStateResultSpan', {
+          items: [],
+        });
       });
     });
 
@@ -117,9 +113,9 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
       it('sets and retrieves unencrypted state', async () => {
         await TestSnaps.fillMessage('dataUnencryptedManageStateInput', '23');
         await TestSnaps.tapButton('sendUnencryptedManageStateButton');
-        await TestSnaps.checkResultSpan(
+        await TestSnaps.checkResultJson(
           'retrieveManageStateUnencryptedResultSpan',
-          JSON.stringify({ items: ['23'] }, null, 2),
+          { items: ['23'] },
         );
       });
 
@@ -129,9 +125,9 @@ describe(FlaskBuildTests('Manage State Snap Tests'), () => {
           'clearUnencryptedManageStateResultSpan',
           'true',
         );
-        await TestSnaps.checkResultSpan(
+        await TestSnaps.checkResultJson(
           'retrieveManageStateUnencryptedResultSpan',
-          JSON.stringify({ items: [] }, null, 2),
+          { items: [] },
         );
       });
     });
