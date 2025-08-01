@@ -8,6 +8,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
+import { QuoteResponse } from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -565,13 +566,27 @@ describe('QuoteDetailsCard', () => {
       // Test scenario 1: undefined priceImpact (line 170 = FALSE)
       const mockModule1 = jest.requireMock('../../hooks/useBridgeQuoteData');
       mockModule1.useBridgeQuoteData.mockImplementationOnce(() => ({
+        quoteFetchError: null,
         activeQuote: {
+          ...mockQuotes[0],
           quote: {
-            priceData: { priceImpact: undefined },
+            ...mockQuotes[0].quote,
+            priceData: {
+              ...mockQuotes[0].quote.priceData,
+              priceImpact: undefined,
+            },
             gasIncluded: false,
           },
         },
-        priceImpact: undefined,
+        destTokenAmount: '24.44',
+        isLoading: false,
+        formattedQuoteData: {
+          networkFee: '0.01',
+          estimatedTime: '1 min',
+          rate: '1 ETH = 24.4 USDC',
+          priceImpact: undefined,
+          slippage: '0.5%',
+        },
       }));
 
       const { getByText: getByText1 } = renderScreen(
@@ -583,13 +598,24 @@ describe('QuoteDetailsCard', () => {
 
       // Test scenario 2: defined priceImpact (line 170 = TRUE)
       mockModule1.useBridgeQuoteData.mockImplementationOnce(() => ({
+        quoteFetchError: null,
         activeQuote: {
+          ...mockQuotes[0],
           quote: {
-            priceData: { priceImpact: '2.5' },
+            ...mockQuotes[0].quote,
+            priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '2.5' },
             gasIncluded: false,
           },
         },
-        priceImpact: '2.5%',
+        destTokenAmount: '24.44',
+        isLoading: false,
+        formattedQuoteData: {
+          networkFee: '0.01',
+          estimatedTime: '1 min',
+          rate: '1 ETH = 24.4 USDC',
+          priceImpact: '2.5%',
+          slippage: '0.5%',
+        },
       }));
 
       const { getByText: getByText2 } = renderScreen(
@@ -606,71 +632,80 @@ describe('QuoteDetailsCard', () => {
       // Scenario 1: Force shouldShowPriceImpactWarning = TRUE
       const highImpactState = createBridgeTestState({
         bridgeControllerOverrides: {
-          bridgeFeatureFlags: {
-            priceImpactThreshold: { normal: 1.0, gasless: 0.5 },
-          },
-          quotes: mockQuotes,
+          quotes: mockQuotes as unknown as QuoteResponse[],
         },
       });
 
       const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
 
-      mockModule.useBridgeQuoteData.mockImplementationOnce(
-        () =>
-          ({
-            activeQuote: {
-              ...mockQuotes[0],
-              quote: {
-                ...mockQuotes[0].quote,
-                priceData: {
-                  ...mockQuotes[0].quote.priceData,
-                  priceImpact: '15.0',
-                }, // High impact
-                gasIncluded: false,
-              },
-            },
-            priceImpact: '15.0%',
-          } as unknown),
+      mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+        quoteFetchError: null,
+        activeQuote: {
+          ...mockQuotes[0],
+          quote: {
+            ...mockQuotes[0].quote,
+            priceData: {
+              ...mockQuotes[0].quote.priceData,
+              priceImpact: '15.0',
+            }, // High impact
+            gasIncluded: false,
+          },
+        },
+        destTokenAmount: '24.44',
+        isLoading: false,
+        formattedQuoteData: {
+          networkFee: '0.01',
+          estimatedTime: '1 min',
+          rate: '1 ETH = 24.4 USDC',
+          priceImpact: '15.0%',
+          slippage: '0.5%',
+        },
+      }));
+
+      const { getByText: getByTextHigh } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: highImpactState },
       );
 
-      const { getByText: getByTextHigh, getByLabelText: getByLabelTextHigh } =
-        renderScreen(
-          QuoteDetailsCard,
-          { name: Routes.BRIDGE.ROOT },
-          { state: highImpactState },
-        );
-
-      fireEvent.press(getByLabelTextHigh('Expand quote details'));
+      // Component should already be expanded, so Price Impact should be visible
       expect(getByTextHigh('Price Impact')).toBeTruthy();
 
       // Scenario 2: Force shouldShowPriceImpactWarning = FALSE
       const lowImpactState = createBridgeTestState({
         bridgeControllerOverrides: {
-          bridgeFeatureFlags: {
-            priceImpactThreshold: { normal: 50.0, gasless: 25.0 },
-          },
-          quotes: mockQuotes,
+          quotes: mockQuotes as unknown as QuoteResponse[],
         },
       });
 
       mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+        quoteFetchError: null,
         activeQuote: {
+          ...mockQuotes[0],
           quote: {
-            priceData: { priceImpact: '0.1' }, // Low impact
+            ...mockQuotes[0].quote,
+            priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '0.1' }, // Low impact
             gasIncluded: false,
           },
         },
-        priceImpact: '0.1%',
+        destTokenAmount: '24.44',
+        isLoading: false,
+        formattedQuoteData: {
+          networkFee: '0.01',
+          estimatedTime: '1 min',
+          rate: '1 ETH = 24.4 USDC',
+          priceImpact: '0.1%',
+          slippage: '0.5%',
+        },
       }));
 
-      const { getByText: getByTextLow, getByLabelText: getByLabelTextLow } =
-        renderScreen(
-          QuoteDetailsCard,
-          { name: Routes.BRIDGE.ROOT },
-          { state: lowImpactState },
-        );
+      const { getByText: getByTextLow } = renderScreen(
+        QuoteDetailsCard,
+        { name: Routes.BRIDGE.ROOT },
+        { state: lowImpactState },
+      );
 
-      fireEvent.press(getByLabelTextLow('Expand quote details'));
+      // Component should already be expanded, so Price Impact should be visible
       expect(getByTextLow('Price Impact')).toBeTruthy();
     });
 
@@ -688,38 +723,44 @@ describe('QuoteDetailsCard', () => {
       configs.forEach((config) => {
         const testStateConfig = createBridgeTestState({
           bridgeControllerOverrides: {
-            bridgeFeatureFlags: {
-              priceImpactThreshold: {
-                normal: config.threshold,
-                gasless: config.threshold * 0.5,
-              },
-            },
-            quotes: mockQuotes,
+            quotes: mockQuotes as unknown as QuoteResponse[],
           },
         });
 
         const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
         mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+          quoteFetchError: null,
           activeQuote: {
+            ...mockQuotes[0],
             quote: {
-              priceData: { priceImpact: config.priceImpact },
+              ...mockQuotes[0].quote,
+              priceData: {
+                ...mockQuotes[0].quote.priceData,
+                priceImpact: config.priceImpact,
+              },
               gasIncluded: config.gasIncluded,
             },
           },
-          priceImpact: config.priceImpact
-            ? `${config.priceImpact}%`
-            : undefined,
+          destTokenAmount: '24.44',
+          isLoading: false,
+          formattedQuoteData: {
+            networkFee: '0.01',
+            estimatedTime: '1 min',
+            rate: '1 ETH = 24.4 USDC',
+            priceImpact: config.priceImpact
+              ? `${config.priceImpact}%`
+              : undefined,
+            slippage: '0.5%',
+          },
         }));
 
-        const { getByText, getByLabelText } = renderScreen(
+        const { getByText } = renderScreen(
           QuoteDetailsCard,
           { name: Routes.BRIDGE.ROOT },
           { state: testStateConfig },
         );
 
-        // Expand to trigger the conditional logic
-        fireEvent.press(getByLabelText('Expand quote details'));
-
+        // Component should already be expanded and showing all details
         // Each render exercises different branches of the conditional logic
         expect(getByText('Network Fee')).toBeTruthy();
       });
