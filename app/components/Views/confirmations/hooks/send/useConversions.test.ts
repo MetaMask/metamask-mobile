@@ -4,7 +4,7 @@ import {
 } from '../../../../../util/test/renderWithProvider';
 import {
   evmSendStateMock,
-  TOEKN_ADDRESS_MOCK_1,
+  TOKEN_ADDRESS_MOCK_1,
 } from '../../__mocks__/send.mock';
 import { AssetType } from '../../types/token';
 import {
@@ -29,9 +29,9 @@ describe('getFiatValueFn', () => {
   it('return fiat value for passed native value', () => {
     expect(
       getFiatValueFn({
-        asset: { address: TOEKN_ADDRESS_MOCK_1 } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1 } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { [TOEKN_ADDRESS_MOCK_1]: { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         amount: '10',
         decimals: 2,
       }),
@@ -41,9 +41,9 @@ describe('getFiatValueFn', () => {
   it('return 0 if input is empty string', () => {
     expect(
       getFiatValueFn({
-        asset: { address: TOEKN_ADDRESS_MOCK_1 } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1 } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { [TOEKN_ADDRESS_MOCK_1]: { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         amount: '',
         decimals: 2,
       }),
@@ -55,9 +55,9 @@ describe('getFiatDisplayValueFn', () => {
   it('return fiat value with currency prefix for passed native value', () => {
     expect(
       getFiatDisplayValueFn({
-        asset: { address: TOEKN_ADDRESS_MOCK_1 } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1 } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { [TOEKN_ADDRESS_MOCK_1]: { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         currentCurrency: 'usd',
         amount: '10',
       }),
@@ -69,9 +69,9 @@ describe('getNativeValueFn', () => {
   it('return native value for passed fiat value', () => {
     expect(
       getNativeValueFn({
-        asset: { address: TOEKN_ADDRESS_MOCK_1 } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1 } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { [TOEKN_ADDRESS_MOCK_1]: { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         amount: '38905.56',
         decimals: 2,
       }),
@@ -81,9 +81,9 @@ describe('getNativeValueFn', () => {
   it('return 0 if input is empty string', () => {
     expect(
       getNativeValueFn({
-        asset: { address: TOEKN_ADDRESS_MOCK_1 } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1 } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { [TOEKN_ADDRESS_MOCK_1]: { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         amount: '',
         decimals: 2,
       }),
@@ -95,9 +95,9 @@ describe('getNativeDisplayValueFn', () => {
   it('return native value for passed fiat value', () => {
     expect(
       getNativeDisplayValueFn({
-        asset: { address: TOEKN_ADDRESS_MOCK_1, symbol: 'ETH' } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1, symbol: 'ETH' } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { [TOEKN_ADDRESS_MOCK_1]: { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         amount: '38905.56',
       }),
     ).toStrictEqual('ETH 10');

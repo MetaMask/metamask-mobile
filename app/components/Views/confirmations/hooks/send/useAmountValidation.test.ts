@@ -4,7 +4,7 @@ import {
 } from '../../../../../util/test/renderWithProvider';
 import {
   evmSendStateMock,
-  TOEKN_ADDRESS_MOCK_1,
+  TOKEN_ADDRESS_MOCK_1,
 } from '../../__mocks__/send.mock';
 import {
   useAmountValidation,
@@ -18,9 +18,9 @@ const mockState = {
 
 const getArguments = (params: Record<string, unknown>) =>
   ({
-    from: TOEKN_ADDRESS_MOCK_1,
+    from: TOKEN_ADDRESS_MOCK_1,
     asset: {},
-    accounts: { [TOEKN_ADDRESS_MOCK_1]: { balance: '0x3635C9ADC5DEA00000' } },
+    accounts: { [TOKEN_ADDRESS_MOCK_1]: { balance: '0x3635C9ADC5DEA00000' } },
     contractBalances: { '0x111': '0x3B9ACA00' },
     ...params,
   } as unknown as ValidateAmountArgs);
