@@ -19,6 +19,9 @@ import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
 import LegacyGestures from '../../utils/Gestures';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import { waitForTestSnapsToLoad } from '../../viewHelper';
+import { RetryOptions } from '../../framework';
+import { Json } from '@metamask/utils';
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/2.25.0/';
@@ -51,34 +54,73 @@ class TestSnaps {
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
   ): Promise<void> {
-    const webElement = (await Matchers.getElementByWebID(
+    const webElement = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
-    )) as IndexableWebElement;
+    );
 
-    const actualText = await webElement.getText();
-    await Assertions.checkIfTextMatches(actualText, expectedMessage);
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      await Assertions.checkIfTextMatches(actualText, expectedMessage);
+    }, options);
+  }
+
+  async checkResultJson(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    expectedJson: Json,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    const webElement = await Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestSnapResultSelectorWebIDS[selector],
+    );
+
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      let actualJson: Json;
+      try {
+        actualJson = JSON.parse(actualText);
+      } catch (error) {
+        throw new Error(`Failed to parse JSON from result span: ${actualText}`);
+      }
+
+      await Assertions.checkIfJsonEqual(actualJson, expectedJson);
+    }, options);
   }
 
   async checkResultSpanIncludes(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
   ): Promise<void> {
-    const webElement = (await Matchers.getElementByWebID(
+    const webElement = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
-    )) as IndexableWebElement;
+    );
 
-    const actualText = await webElement.getText();
-    if (!actualText.includes(expectedMessage)) {
-      throw new Error(`Text did not contain "${expectedMessage}"`);
-    }
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      if (!actualText.includes(expectedMessage)) {
+        throw new Error(`Text did not contain "${expectedMessage}"`);
+      }
+    }, options);
   }
 
   async navigateToTestSnap(): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
+    await waitForTestSnapsToLoad();
   }
 
   async tapButton(
