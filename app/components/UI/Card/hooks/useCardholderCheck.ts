@@ -9,6 +9,7 @@ import {
 } from '../../../../reducers/user';
 import { selectInternalAccountsWithCaipAccountId } from '../../../../selectors/accountsController';
 import Logger from '../../../../util/Logger';
+import { isEthAccount } from '../../../../core/Multichain/utils';
 
 /**
  * Hook that automatically checks for cardholder accounts when conditions are met
@@ -21,18 +22,17 @@ export const useCardholderCheck = () => {
   const accounts = useSelector(selectInternalAccountsWithCaipAccountId);
 
   const checkCardholderAccounts = useCallback(() => {
-    const formattedAccounts = accounts
-      ?.filter((account) => account.type === 'eip155:eoa')
+    const caipAccountIds = accounts
+      ?.filter((account) => isEthAccount(account))
       .map((account) => account.caipAccountId);
 
-    if (!formattedAccounts?.length) {
+    if (!caipAccountIds?.length) {
       return;
     }
 
     dispatch(
       loadCardholderAccounts({
-        formattedAccounts:
-          formattedAccounts as `eip155:${string}:0x${string}`[],
+        caipAccountIds,
         cardFeatureFlag,
       }),
     );
@@ -50,7 +50,7 @@ export const useCardholderCheck = () => {
       } catch (error) {
         Logger.error(
           error instanceof Error ? error : new Error(String(error)),
-          'useCardholderCheck::Error loading cardholder accounts',
+          'useCardholderCheck::Error checking cardholder accounts',
         );
       }
     }

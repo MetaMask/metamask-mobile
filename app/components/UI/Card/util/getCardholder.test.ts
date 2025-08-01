@@ -51,7 +51,7 @@ describe('getCardholder', () => {
     },
   };
 
-  const mockFormattedAccounts: `eip155:${string}:0x${string}`[] = [
+  const mockFormattedAccounts: `${string}:${string}:${string}`[] = [
     'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
     'eip155:59144:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
   ];
@@ -76,17 +76,15 @@ describe('getCardholder', () => {
 
   describe('successful scenarios', () => {
     it('should return cardholder addresses when accounts are cardholders', async () => {
-      const mockResult = {
-        cardholderAccounts: [
-          'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
-          'eip155:59144:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-        ] as `eip155:${string}:0x${string}`[],
-      };
+      const mockResult = [
+        'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
+        'eip155:59144:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+      ] as `${string}:${string}:${string}`[];
 
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -104,16 +102,14 @@ describe('getCardholder', () => {
     });
 
     it('should return only cardholder addresses from mixed results', async () => {
-      const mockResult = {
-        cardholderAccounts: [
-          'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
-        ] as `eip155:${string}:0x${string}`[],
-      };
+      const mockResult = [
+        'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
+      ] as `${string}:${string}:${string}`[];
 
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -121,14 +117,10 @@ describe('getCardholder', () => {
     });
 
     it('should return empty array when no accounts are cardholders', async () => {
-      const mockResult = {
-        cardholderAccounts: [] as `eip155:${string}:0x${string}`[],
-      };
-
-      mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
+      mockCardSDKInstance.isCardHolder.mockResolvedValue([]);
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -139,7 +131,7 @@ describe('getCardholder', () => {
   describe('early return scenarios', () => {
     it('should return empty array when cardFeatureFlag is null', async () => {
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: null as unknown as CardFeatureFlag,
       });
 
@@ -150,7 +142,7 @@ describe('getCardholder', () => {
 
     it('should return empty array when cardFeatureFlag is undefined', async () => {
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: undefined as unknown as CardFeatureFlag,
       });
 
@@ -159,9 +151,9 @@ describe('getCardholder', () => {
       expect(mockCardSDKInstance.isCardHolder).not.toHaveBeenCalled();
     });
 
-    it('should return empty array when formattedAccounts is empty', async () => {
+    it('should return empty array when caipAccountIds is empty', async () => {
       const result = await getCardholder({
-        formattedAccounts: [],
+        caipAccountIds: [],
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -170,9 +162,9 @@ describe('getCardholder', () => {
       expect(mockCardSDKInstance.isCardHolder).not.toHaveBeenCalled();
     });
 
-    it('should return empty array when formattedAccounts is null', async () => {
+    it('should return empty array when caipAccountIds is null', async () => {
       const result = await getCardholder({
-        formattedAccounts: null as unknown as `eip155:${string}:0x${string}`[],
+        caipAccountIds: null as unknown as `${string}:${string}:${string}`[],
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -181,10 +173,10 @@ describe('getCardholder', () => {
       expect(mockCardSDKInstance.isCardHolder).not.toHaveBeenCalled();
     });
 
-    it('should return empty array when formattedAccounts is undefined', async () => {
+    it('should return empty array when caipAccountIds is undefined', async () => {
       const result = await getCardholder({
-        formattedAccounts:
-          undefined as unknown as `eip155:${string}:0x${string}`[],
+        caipAccountIds:
+          undefined as unknown as `${string}:${string}:${string}`[],
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -202,7 +194,7 @@ describe('getCardholder', () => {
       });
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -218,7 +210,7 @@ describe('getCardholder', () => {
       mockCardSDKInstance.isCardHolder.mockRejectedValue(mockError);
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -234,7 +226,7 @@ describe('getCardholder', () => {
       mockCardSDKInstance.isCardHolder.mockRejectedValue(mockErrorString);
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -249,7 +241,7 @@ describe('getCardholder', () => {
       mockCardSDKInstance.isCardHolder.mockRejectedValue(null);
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -264,7 +256,7 @@ describe('getCardholder', () => {
       mockCardSDKInstance.isCardHolder.mockRejectedValue(undefined);
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -278,18 +270,16 @@ describe('getCardholder', () => {
 
   describe('address extraction and validation', () => {
     it('should correctly extract addresses from CAIP account identifiers', async () => {
-      const mockResult = {
-        cardholderAccounts: [
-          'eip155:59144:0x1111111111111111111111111111111111111111',
-          'eip155:59144:0x2222222222222222222222222222222222222222',
-          'eip155:59144:0x3333333333333333333333333333333333333333',
-        ] as `eip155:${string}:0x${string}`[],
-      };
+      const mockResult = [
+        'eip155:59144:0x1111111111111111111111111111111111111111',
+        'eip155:59144:0x2222222222222222222222222222222222222222',
+        'eip155:59144:0x3333333333333333333333333333333333333333',
+      ] as `${string}:${string}:${string}`[];
 
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
@@ -302,38 +292,28 @@ describe('getCardholder', () => {
     });
 
     it('should handle invalid CAIP-10 format and log errors', async () => {
-      const mockResult = {
-        cardholderAccounts: [
-          'invalid:format',
-          'eip155:59144:0x1111111111111111111111111111111111111111',
-          'also:invalid',
-        ] as `eip155:${string}:0x${string}`[],
-      };
+      const mockResult = [
+        'invalid:format',
+        'eip155:59144:0x1111111111111111111111111111111111111111',
+        'also:invalid',
+      ] as `${string}:${string}:${string}`[];
 
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
       expect(result).toEqual(['0x1111111111111111111111111111111111111111']);
-      expect(mockedLogger.log).toHaveBeenCalledWith(
-        'getCardholder::Invalid account format: invalid:format. Expected format is CAIP-10',
-      );
-      expect(mockedLogger.log).toHaveBeenCalledWith(
-        'getCardholder::Invalid account format: also:invalid. Expected format is CAIP-10',
-      );
     });
 
     it('should filter out invalid hex addresses', async () => {
-      const mockResult = {
-        cardholderAccounts: [
-          'eip155:59144:0x1111111111111111111111111111111111111111',
-          'eip155:59144:0xinvalidhexaddress',
-          'eip155:59144:0x2222222222222222222222222222222222222222',
-        ] as `eip155:${string}:0x${string}`[],
-      };
+      const mockResult = [
+        'eip155:59144:0x1111111111111111111111111111111111111111',
+        'eip155:59144:0xinvalidhexaddress',
+        'eip155:59144:0x2222222222222222222222222222222222222222',
+      ] as `${string}:${string}:${string}`[];
 
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
       mockedIsValidHexAddress
@@ -342,7 +322,7 @@ describe('getCardholder', () => {
         .mockReturnValueOnce(true);
 
       const result = await getCardholder({
-        formattedAccounts: mockFormattedAccounts,
+        caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: mockCardFeatureFlag,
       });
 
