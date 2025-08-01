@@ -24,6 +24,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toHex } from '@metamask/controller-utils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
+import { handlePerpsError } from '../../utils/perpsErrorHandler';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -447,7 +448,13 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         // Navigate to trading view
         navigation.navigate(Routes.PERPS.TRADING_VIEW);
       } else {
-        setError(depositResult.error || strings('perps.errors.depositFailed'));
+        // Use centralized error handler for all errors
+        const errorMessage = handlePerpsError({
+          error: depositResult.error,
+          context: { token: sourceToken.symbol },
+          fallbackMessage: strings('perps.errors.depositFailed'),
+        });
+        setError(errorMessage);
       }
     } catch (err) {
       setError(
