@@ -658,6 +658,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     return null;
   };
 
+  const handlePasswordChange = (newPassword: string) => {
+    setPassword(newPassword);
+    setError(null);
+  };
+
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -720,7 +725,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 autoCapitalize="none"
                 secureTextEntry
                 ref={fieldRef}
-                onChangeText={setPassword}
+                onChangeText={handlePasswordChange}
                 value={password}
                 onSubmitEditing={onLogin}
                 endAccessory={
