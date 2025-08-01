@@ -82,7 +82,6 @@ jobs:
           yarn setup:github-ci --no-build-ios
           echo "🏗 Building Android APP..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          export GRADLE_OPTS="-Xmx32g -Dorg.gradle.workers.max=12 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
           yarn build:android:qa
         shell: bash
         env:
@@ -95,7 +94,19 @@ jobs:
           CI: "true"
 
           NODE_OPTIONS: "--max-old-space-size=8192"
-          GRADLE_OPTS: "-Xmx32g -Dorg.gradle.jvmargs='-Xmx32g -XX:+UseG1GC' -Dorg.gradle.workers.max=12 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
+          GRADLE_OPTS: >-
+            -Porg.gradle.jvmargs="-Xmx32g -XX:MaxMetaspaceSize=2g -XX:+UseG1GC -XX:G1HeapRegionSize=32m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat"
+            -Porg.gradle.parallel=true
+            -Porg.gradle.configureondemand=true
+            -Porg.gradle.caching=true
+            -Porg.gradle.daemon=true
+            -Porg.gradle.workers.max=12
+            -Porg.gradle.vfs.watch=true
+            -Pkotlin.incremental=true
+            -Pkotlin.incremental.android=true
+            -Pkotlin.caching.enabled=true
+            -Porg.gradle.vfs.verbose=false
+            -Porg.gradle.welcome=NEVER
 
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
