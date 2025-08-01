@@ -143,15 +143,15 @@ const BankDetails = () => {
       order.state === FIAT_ORDER_STATES.COMPLETED ||
       order.state === FIAT_ORDER_STATES.FAILED
     ) {
-      const [name, params] = createOrderProcessingNavDetails({
-        orderId,
-      });
-      navigation.reset({
-        index: 0,
-        routes: [{ name, params }],
-      });
+      navigation.dispatch(
+        StackActions.replace(
+          ...createOrderProcessingNavDetails({
+            orderId: order.id,
+          }),
+        ),
+      );
     }
-  }, [order?.state, navigation, orderId]);
+  }, [order?.state, navigation, order?.id]);
 
   const capitalizeWords = useCallback(
     (text: string): string =>
@@ -267,14 +267,6 @@ const BankDetails = () => {
       });
 
       await handleOnRefresh();
-
-      navigation.dispatch(
-        StackActions.replace(
-          ...createOrderProcessingNavDetails({
-            orderId: order.id,
-          }),
-        ),
-      );
     } catch (fetchError) {
       Logger.error(fetchError as Error, 'BankDetails: handleBankTransferSent');
       if (isString(fetchError)) {
@@ -295,7 +287,6 @@ const BankDetails = () => {
     selectedWalletAddress,
     confirmPayment,
     handleOnRefresh,
-    navigation,
   ]);
 
   const handleCancelOrder = useCallback(async () => {
