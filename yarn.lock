@@ -5551,10 +5551,10 @@
     "@metamask/snaps-utils" "^11.0.0"
     "@metamask/superstruct" "^3.1.0"
 
-"@metamask/multichain-api-client@^0.6.4":
-  version "0.6.4"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.6.4.tgz#417009a7f202fcbdf365f4041e388fe25da77e6c"
-  integrity sha512-UvyRWwJMb74mYsR5LSPT0v6pyDdSiJ9wRhQDfpqOaOvB8Nfy1IcHUrSd9eNeZa2epegdIXZNYEKAvr0pwmLkog==
+"@metamask/multichain-api-client@^0.6.5":
+  version "0.6.5"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.6.5.tgz#b269eec6b484e7ca9a43088fbcb454334cacb242"
+  integrity sha512-DP8uZZLrmZwvMr/RvMqymS4IdQW37Nv2ZUqX90/f5JdTzqePVhMMdyrc14+BTZpYV2RNu7flhcDXa7gmTvJPbw==
 
 "@metamask/multichain-api-middleware@^0.4.0":
   version "0.4.0"
