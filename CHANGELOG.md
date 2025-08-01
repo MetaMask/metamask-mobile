@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.51.2]
+
+### Fixed
+
+- fix scroll behavior on Solana New Feature view (#[17807](https://github.com/MetaMask/metamask-mobile/pull/17807))
+
 ## [7.51.1]
 
 ### Added
