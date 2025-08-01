@@ -98,7 +98,6 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
             .build(),
           restartDevice: true,
           smartContracts: [HST_CONTRACT],
-          // ganacheOptions: networkConfig.ganacheOptions,
           testSpecificMock: networkConfig.testSpecificMock,
         },
         async ({ contractRegistry }) => {
