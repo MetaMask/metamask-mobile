@@ -1,10 +1,10 @@
-/* eslint-disable no-console */
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
 import _ from 'lodash';
 import { device } from 'detox';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
 import { createLogger } from '../framework/logger';
+import { DEFAULT_MOCKS } from './default-mocks.js';
 
 const logger = createLogger({
   name: 'MockServer',
@@ -27,17 +27,50 @@ const handleDirectFetch = async (url, method, headers, requestBody) => {
     });
 
     const responseBody = await response.text();
+    //  logger.debug(`Response body for request to ${url}: ${responseBody}`);
     return {
       statusCode: response.status,
       body: responseBody,
     };
   } catch (error) {
-    console.error('Error forwarding request:', url);
+    logger.error('Error forwarding request:', url);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to forward request' }),
     };
   }
+};
+
+/**
+ * Helper function to find matching mock event from provided events or defaults
+ * @param {string} method - HTTP method (GET, POST, etc.)
+ * @param {string} urlEndpoint - The endpoint URL to match
+ * @param {Object} providedEvents - User-provided mock events
+ * @returns {Object|null} Matching mock event or null
+ */
+const findMatchingMock = (method, urlEndpoint, providedEvents) => {
+  const methodEvents = providedEvents[method] || [];
+  const defaultMethodEvents = DEFAULT_MOCKS[method] || [];
+
+  // Check provided events first - they take priority
+  let matchingEvent = methodEvents.find(
+    (event) => event.urlEndpoint === urlEndpoint,
+  );
+
+  // If no matching event in provided events, check default mocks
+  if (!matchingEvent) {
+    matchingEvent = defaultMethodEvents.find(
+      (event) => event.urlEndpoint === urlEndpoint,
+    );
+
+    if (matchingEvent) {
+      logger.debug(
+        `Using default mock for ${method} request to: ${urlEndpoint}`,
+      );
+    }
+  }
+
+  return matchingEvent;
 };
 
 /**
@@ -73,16 +106,21 @@ const isUrlAllowed = (url) => {
 /**
  * Starts the mock server and sets up mock events.
  *
- * @param {Object} events - The events to mock, organised by method.
+ * The server will use provided events first, falling back to default mocks for common
+ * MetaMask endpoints when no specific mock is provided.
+ *
+ * @param {Object} [events={}] - The events to mock, organised by method.
+ * @param {Array} [events.GET] - Array of GET request mocks
+ * @param {Array} [events.POST] - Array of POST request mocks
  * @param {number} [port] - Optional port number. If not provided, a free port will be used.
  * @returns {Promise} Resolves to the running mock server.
  */
-export const startMockServer = async (events, port) => {
+export const startMockServer = async (events = {}, port) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
 
   await mockServer.start(port);
-  console.log(`Mockttp server running at http://localhost:${port}`);
+  logger.info(`Mockttp server running at http://localhost:${port}`);
 
   await mockServer
     .forGet('/health-check')
@@ -96,16 +134,12 @@ export const startMockServer = async (events, port) => {
       const urlEndpoint = new URL(request.url).searchParams.get('url');
       const method = request.method;
 
-      // Find matching mock event
-      const methodEvents = events[method] || [];
-      const matchingEvent = methodEvents.find(
-        (event) => event.urlEndpoint === urlEndpoint,
-      );
+      // Find matching mock event - check provided events first, then default mocks
+      const matchingEvent = findMatchingMock(method, urlEndpoint, events);
 
       if (matchingEvent) {
-        console.log(`Mocking ${method} request to: ${urlEndpoint}`);
-        console.log(`Response status: ${matchingEvent.responseCode}`);
-        console.log('Response:', matchingEvent.response);
+        logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
+        logger.debug(`Response status: ${matchingEvent.responseCode}`);
 
         // For POST requests, verify the request body if specified
         if (method === 'POST' && matchingEvent.requestBody) {
@@ -113,7 +147,9 @@ export const startMockServer = async (events, port) => {
 
           // Ensure both objects exist before comparison
           if (!requestBodyJson || !matchingEvent.requestBody) {
-            console.log('Request body validation failed: Missing request body');
+            logger.error(
+              'Request body validation failed: Missing request body',
+            );
             return {
               statusCode: 400,
               body: JSON.stringify({ error: 'Missing request body' }),
@@ -135,13 +171,13 @@ export const startMockServer = async (events, port) => {
           const matches = _.isMatch(requestToCheck, expectedRequest);
 
           if (!matches) {
-            console.log('Request body validation failed:');
-            console.log(
+            logger.error('Request body validation failed:');
+            logger.error(
               'Expected:',
               JSON.stringify(matchingEvent.requestBody, null, 2),
             );
-            console.log('Received:', JSON.stringify(requestBodyJson, null, 2));
-            console.log(
+            logger.error('Received:', JSON.stringify(requestBodyJson, null, 2));
+            logger.error(
               'Differences:',
               JSON.stringify(
                 _.differenceWith(
@@ -179,7 +215,7 @@ export const startMockServer = async (events, port) => {
 
       // Check if the URL is in the allowed list
       if (!isUrlAllowed(updatedUrl)) {
-        const errorMessage = `Request going to live server: ${updatedUrl}`;
+        const errorMessage = `Request going to live server: ${updatedUrl} for method: ${method}`;
         logger.warn(errorMessage);
         global.liveServerRequest = new Error(errorMessage);
       }
@@ -196,7 +232,7 @@ export const startMockServer = async (events, port) => {
   await mockServer.forUnmatchedRequest().thenCallback(async (request) => {
     // Check if the URL is in the allowed list
     if (!isUrlAllowed(request.url)) {
-      const errorMessage = `Request going to live server: ${request.url}`;
+      const errorMessage = `Request going to live server: ${request.url} for method: ${request.method}`;
       logger.warn(errorMessage);
       global.liveServerRequest = new Error(errorMessage);
     }
@@ -218,5 +254,5 @@ export const startMockServer = async (events, port) => {
  */
 export const stopMockServer = async (mockServer) => {
   await mockServer.stop();
-  console.log('Mock server shutting down');
+  logger.info('Mock server shutting down');
 };
