@@ -1,5 +1,11 @@
 import React, { useMemo, useCallback } from 'react';
-import { StyleSheet, View, Text, FlatList, ActivityIndicator } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+} from 'react-native';
 import dayjs from 'dayjs';
 import LocalizedFormat from 'dayjs/plugin/localizedFormat';
 import { useTheme } from '../../../../util/theme';
@@ -22,10 +28,9 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    scrollContainer: {
-
-    },
+    scrollContainer: {},
     section: {
+      marginTop: 12,
       marginBottom: 24,
     },
     sectionTitle: {
@@ -55,7 +60,7 @@ const createStyles = (colors: Colors) =>
       color: colors.success.default,
     },
     emptyState: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.muted,
       padding: 24,
       borderRadius: 12,
       alignItems: 'center',
@@ -98,133 +103,6 @@ const getEventTitle = (type: string): string => {
   }
 };
 
-// Mock data for demonstration purposes
-const mockEvents: PointsEventDto[] = [
-  {
-    id: '1',
-    timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-    type: 'swap',
-    value: 50,
-    payload: {
-      chainId: 1,
-      txHash: '0x1234567890abcdef1234567890abcdef12345678',
-      fromToken: {
-        amount: '100',
-        symbol: 'ETH',
-      },
-      toToken: {
-        amount: '2500',
-        symbol: 'USDC',
-      },
-    },
-  },
-  {
-    id: '2',
-    timestamp: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-    type: 'bridge',
-    value: 75,
-    payload: {
-      chainId: 1,
-      destChainId: 137,
-      txHash: '0xabcdef1234567890abcdef1234567890abcdef12',
-      fromToken: {
-        amount: '1000',
-        symbol: 'USDC',
-      },
-      toToken: {
-        amount: '1000',
-        symbol: 'USDC',
-      },
-    },
-  },
-  {
-    id: '3',
-    timestamp: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
-    type: 'reward',
-    value: 100,
-  },
-  {
-    id: '4',
-    timestamp: new Date(Date.now() - 345600000).toISOString(), // 4 days ago
-    type: 'swap',
-    value: 25,
-    payload: {
-      chainId: 1,
-      txHash: '0x9876543210fedcba9876543210fedcba98765432',
-      fromToken: {
-        amount: '50',
-        symbol: 'ETH',
-      },
-      toToken: {
-        amount: '1250',
-        symbol: 'USDC',
-      },
-    },
-  },
-  {
-    id: '5',
-    timestamp: new Date(Date.now() - 432000000).toISOString(), // 5 days ago
-    type: 'bridge',
-    value: 60,
-    payload: {
-      chainId: 137,
-      destChainId: 1,
-      txHash: '0xfedcba9876543210fedcba9876543210fedcba98',
-      fromToken: {
-        amount: '500',
-        symbol: 'MATIC',
-      },
-      toToken: {
-        amount: '500',
-        symbol: 'ETH',
-      },
-    },
-  },
-  {
-    id: '6',
-    timestamp: new Date(Date.now() - 518400000).toISOString(), // 6 days ago
-    type: 'reward',
-    value: 150,
-  },
-  {
-    id: '7',
-    timestamp: new Date(Date.now() - 604800000).toISOString(), // 7 days ago
-    type: 'swap',
-    value: 30,
-    payload: {
-      chainId: 1,
-      txHash: '0x1111222233334444555566667777888899990000',
-      fromToken: {
-        amount: '25',
-        symbol: 'ETH',
-      },
-      toToken: {
-        amount: '625',
-        symbol: 'USDC',
-      },
-    },
-  },
-  {
-    id: '8',
-    timestamp: new Date(Date.now() - 691200000).toISOString(), // 8 days ago
-    type: 'bridge',
-    value: 80,
-    payload: {
-      chainId: 1,
-      destChainId: 42161,
-      txHash: '0xaaabbbcccdddeeefffaaabbbcccdddeeefffaaab',
-      fromToken: {
-        amount: '200',
-        symbol: 'USDC',
-      },
-      toToken: {
-        amount: '200',
-        symbol: 'USDC',
-      },
-    },
-  },
-];
-
 interface HistoryTabProps {
   tabLabel?: string;
 }
@@ -232,11 +110,14 @@ interface HistoryTabProps {
 const HistoryTab: React.FC<HistoryTabProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useRewardsPointsEvents();
 
   // Memoize the point events to prevent unnecessary recalculations on re-renders
-  const pointEvents = useMemo(() => mockEvents, []);
+  // const pointEvents = useMemo(() => mockEvents, []);
+  const pointEvents = useMemo(() => (
+      data?.pages.reduce<PointsEventDto[]>((acc, page) => [...acc, ...page.results], []) ?? []
+    ), [data?.pages]);
 
   // Handle loading more data when user scrolls to the end
   const handleLoadMore = useCallback(() => {
@@ -284,7 +165,7 @@ const HistoryTab: React.FC<HistoryTabProps> = () => {
       </ListItem>
     ),
     [styles],
-  )
+  );
 
   return (
     <View style={styles.container}>
