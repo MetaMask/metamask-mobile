@@ -6,12 +6,14 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import { StackActions } from '@react-navigation/native';
+import Logger from '../../../../../../util/Logger';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockReset = jest.fn();
 const mockDispatch = jest.fn();
+const mockProcessFiatOrder = jest.fn();
 
 const mockOrderData = {
   id: 'test-order-id',
@@ -102,6 +104,10 @@ jest.mock('../../sdk', () => ({
       sdkMethod: jest.fn(),
     },
   })),
+}));
+
+jest.mock('../../../index', () => ({
+  processFiatOrder: mockProcessFiatOrder,
 }));
 
 function render(Component: React.ComponentType) {
@@ -232,5 +238,45 @@ describe('BankDetails Component', () => {
         orderId: 'test-order-id',
       }),
     );
+  });
+
+  it('calls Logger.error when handleOnRefresh fails', async () => {
+    mockProcessFiatOrder.mockRejectedValueOnce(new Error('Fetch error'));
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+    render(BankDetails);
+
+    screen
+      .getByTestId('bank-details-refresh-control-scrollview')
+      .props.refreshControl.props.onRefresh();
+
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
+
+  it('calls Logger.error when handleBankTransferSent fails', async () => {
+    mockConfirmPayment.mockImplementationOnce(() => {
+      throw new Error('Payment confirmation failed');
+    });
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+    render(BankDetails);
+    fireEvent.press(screen.getByTestId('main-action-button'));
+    expect(mockConfirmPayment).toHaveBeenCalledWith(
+      'test-order-id',
+      'payment-option-id',
+    );
+    expect(mockLoggerError).toHaveBeenCalled();
+  });
+
+  it('calls Logger.error when cancelOrder fails', async () => {
+    mockCancelOrder.mockImplementationOnce(() => {
+      throw new Error('Order cancellation failed');
+    });
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+    render(BankDetails);
+    fireEvent.press(screen.getByText('Cancel order'));
+    expect(mockCancelOrder).toHaveBeenCalled();
+    expect(mockLoggerError).toHaveBeenCalled();
   });
 });

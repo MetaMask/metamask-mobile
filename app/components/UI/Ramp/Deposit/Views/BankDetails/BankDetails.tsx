@@ -311,6 +311,7 @@ const BankDetails = () => {
   return (
     <ScreenLayout>
       <ScrollView
+        testID="bank-details-refresh-control-scrollview"
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
