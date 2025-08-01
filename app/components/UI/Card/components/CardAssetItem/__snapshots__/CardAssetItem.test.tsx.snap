@@ -496,7 +496,7 @@ exports[`CardAssetItem Component handles test network correctly 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -1032,7 +1032,7 @@ exports[`CardAssetItem Component renders non-native token and matches snapshot 1
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -1567,7 +1567,7 @@ exports[`CardAssetItem Component renders with all props and matches snapshot 1`]
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -2102,7 +2102,7 @@ exports[`CardAssetItem Component renders with disabled state 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -2637,7 +2637,7 @@ exports[`CardAssetItem Component renders with privacy mode enabled and matches s
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -3172,7 +3172,7 @@ exports[`CardAssetItem Component renders with required props and matches snapsho
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "Geist Regular",
+                              "fontFamily": "Geist Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
