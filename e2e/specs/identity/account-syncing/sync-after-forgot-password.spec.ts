@@ -92,7 +92,7 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
           seedPhrase: defaultGanacheOptions.mnemonic,
           fromResetWallet: true,
         });
-        // await WalletView.tapIdenticon();
+        await WalletView.tapIdenticon();
         const visibleAccounts = [NEW_ACCOUNT_NAME, SECOND_ACCOUNT_NAME];
 
         for (const accountName of visibleAccounts) {
