@@ -9,7 +9,7 @@ import {
   GetMaxValueArgs,
   getMaxValueFn,
   useEvmMaxAmount,
-} from './useEVMaxAmount';
+} from './useEvmMaxAmount';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: () => ({

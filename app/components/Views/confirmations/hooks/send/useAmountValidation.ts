@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
-import { useEvmAmountValidation } from './evm/useEVAmountValidation';
-import { useNonEvmAmountValidation } from './non-evm/useNonEvAmountValidation';
+import { useEvmAmountValidation } from './evm/useEvmAmountValidation';
+import { useNonEvmAmountValidation } from './non-evm/useNonEvmAmountValidation';
 import { useSendType } from './useSendType';
 
 export const useAmountValidation = () => {

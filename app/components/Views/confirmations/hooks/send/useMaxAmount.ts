@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
-import { useEvmMaxAmount } from './evm/useEVMaxAmount';
-import { useNonEvmMaxAmount } from './non-evm/useNonEvMaxAmount';
+import { useEvmMaxAmount } from './evm/useEvmMaxAmount';
+import { useNonEvmMaxAmount } from './non-evm/useNonEvmMaxAmount';
 import { useSendType } from './useSendType';
 
 export const useMaxAmount = () => {

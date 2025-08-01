@@ -1,17 +1,17 @@
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { evmSendStateMock } from '../../../__mocks__/send.mock';
-import { useNonEvmMaxAmount } from './useNonEvMaxAmount';
+import { useNonEvmAmountValidation } from './useNonEvmAmountValidation';
 
 const mockState = {
   state: evmSendStateMock,
 };
 
-describe('useNonEvmMaxAmount', () => {
-  it('return function getNonEvmMaxAmount', () => {
+describe('useNonEvmAmountValidation', () => {
+  it('return function validateNonEvmAmount', () => {
     const { result } = renderHookWithProvider(
-      () => useNonEvmMaxAmount(),
+      () => useNonEvmAmountValidation(),
       mockState,
     );
-    expect(result.current.getNonEvmMaxAmount).toBeDefined();
+    expect(result.current.validateNonEvmAmount).toBeDefined();
   });
 });

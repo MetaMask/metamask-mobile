@@ -1,6 +1,6 @@
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { useSendType } from './useSendType';
-import { useEvmToAddressValidation } from './evm/useEvmToAddressValidation';
+import { useEvmToAddressValidation } from './evm/useEvmAoAddressValidation';
 import { useSolanaToAddressValidation } from './solana/useSolanaToAddressValidation';
 
 // todo: to address validation assumees `to` is the input from the user
