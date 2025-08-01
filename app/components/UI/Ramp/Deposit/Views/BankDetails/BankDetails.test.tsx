@@ -167,16 +167,22 @@ describe('BankDetails Component', () => {
 
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: expect.stringContaining('SEPA Bank Transfer'),
+        title: expect.stringContaining('SEPA bank transfer'),
       }),
     );
   });
 
-  it('displays confirmPaymentError when it has a value', () => {
+  it('displays confirmPaymentError when it has a value', async () => {
     mockUseDepositSdkMethodInitialState.error = 'Payment confirmation failed';
+    mockConfirmPayment = jest
+      .fn()
+      .mockRejectedValue('Payment confirmation failed');
 
     render(BankDetails);
+    fireEvent.press(screen.getByText('Confirm transfer'));
 
-    expect(screen.getByText('Payment confirmation failed')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('Payment confirmation failed')).toBeTruthy();
+    });
   });
 });

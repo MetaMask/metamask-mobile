@@ -3,7 +3,7 @@ import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from './BankDetails.styles';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import {
   createNavigationDetails,
   useParams,
@@ -37,6 +37,7 @@ import { useTheme } from '../../../../../../util/theme';
 import { RootState } from '../../../../../../reducers';
 import {
   getCryptoCurrencyFromTransakId,
+  getPaymentMethodByTransakId,
   hasDepositOrderField,
 } from '../../utils';
 import { useDepositSDK } from '../../sdk';
@@ -44,10 +45,9 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import { SUPPORTED_PAYMENT_METHODS } from '../../constants';
-import { DepositOrder } from '@consensys/native-ramps-sdk';
 import PrivacySection from '../../components/PrivacySection';
 import useAnalytics from '../../../hooks/useAnalytics';
+import { isString } from 'lodash';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -72,15 +72,25 @@ const BankDetails = () => {
   const [showBankInfo, setShowBankInfo] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [{ error: confirmPaymentError }, confirmPayment] = useDepositSdkMethod({
+  const [cancelOrderError, setCancelOrderError] = useState<Error | null>(null);
+  const [isLoadingCancelOrder, setIsLoadingCancelOrder] = useState(false);
+
+  const [confirmPaymentError, setConfirmPaymentError] = useState<string | null>(
+    null,
+  );
+  const [isLoadingConfirmPayment, setIsLoadingConfirmPayment] = useState(false);
+
+  const [, confirmPayment] = useDepositSdkMethod({
     method: 'confirmPayment',
     onMount: false,
+    throws: true,
   });
 
-  const [{ error: cancelOrderError }, cancelOrder] = useDepositSdkMethod(
+  const [, cancelOrder] = useDepositSdkMethod(
     {
       method: 'cancelOrder',
       onMount: false,
+      throws: true,
     },
     orderId,
   );
@@ -117,18 +127,28 @@ const BankDetails = () => {
   }, []);
 
   useEffect(() => {
-    if (order?.state === FIAT_ORDER_STATES.CANCELLED) {
-      navigation.navigate(Routes.WALLET.HOME);
+    if (!order?.state) return;
+    if (order.state === FIAT_ORDER_STATES.CANCELLED) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.DEPOSIT.BUILD_QUOTE,
+          },
+        ],
+      });
     } else if (
-      order?.state === FIAT_ORDER_STATES.PENDING ||
-      order?.state === FIAT_ORDER_STATES.COMPLETED ||
-      order?.state === FIAT_ORDER_STATES.FAILED
+      order.state === FIAT_ORDER_STATES.PENDING ||
+      order.state === FIAT_ORDER_STATES.COMPLETED ||
+      order.state === FIAT_ORDER_STATES.FAILED
     ) {
-      navigation.navigate(
-        ...createOrderProcessingNavDetails({
-          orderId,
-        }),
-      );
+      const [name, params] = createOrderProcessingNavDetails({
+        orderId,
+      });
+      navigation.reset({
+        index: 0,
+        routes: [{ name, params }],
+      });
     }
   }, [order?.state, navigation, orderId]);
 
@@ -180,14 +200,12 @@ const BankDetails = () => {
   const bic = getFieldValue('BIC');
 
   useEffect(() => {
-    const paymentMethodName =
+    const paymentMethod =
       hasDepositOrderField(order?.data, 'paymentMethod') &&
       order?.data.paymentMethod
-        ? SUPPORTED_PAYMENT_METHODS.find(
-            (method) =>
-              method.id === (order.data as DepositOrder).paymentMethod,
-          )?.name
-        : '';
+        ? getPaymentMethodByTransakId(order.data.paymentMethod)
+        : null;
+    const paymentMethodName = paymentMethod?.shortName ?? '';
 
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -203,7 +221,10 @@ const BankDetails = () => {
   }, [navigation, theme, order]);
 
   const handleBankTransferSent = useCallback(async () => {
+    setCancelOrderError(null);
+    if (isLoadingConfirmPayment || !order) return;
     try {
+      setIsLoadingConfirmPayment(true);
       if (!hasDepositOrderField(order?.data, 'paymentOptions')) {
         console.error('Order or payment options not found');
         return;
@@ -239,33 +260,50 @@ const BankDetails = () => {
 
       await handleOnRefresh();
 
-      navigation.navigate(
-        ...createOrderProcessingNavDetails({
-          orderId: order.id,
-        }),
+      navigation.dispatch(
+        StackActions.replace(
+          ...createOrderProcessingNavDetails({
+            orderId: order.id,
+          }),
+        ),
       );
     } catch (fetchError) {
       console.error(fetchError);
+      if (isString(fetchError)) {
+        setConfirmPaymentError(fetchError);
+      } else if (isString((fetchError as Error)?.message)) {
+        setConfirmPaymentError((fetchError as Error).message);
+      } else {
+        setConfirmPaymentError(strings('deposit.bank_details.error_message'));
+      }
+    } finally {
+      setIsLoadingConfirmPayment(false);
     }
   }, [
-    navigation,
-    confirmPayment,
-    handleOnRefresh,
+    isLoadingConfirmPayment,
     order,
+    trackEvent,
     selectedRegion?.isoCode,
     selectedWalletAddress,
-    trackEvent,
+    confirmPayment,
+    handleOnRefresh,
+    navigation,
   ]);
 
   const handleCancelOrder = useCallback(async () => {
+    setConfirmPaymentError(null);
+    if (isLoadingCancelOrder) return;
     try {
+      setIsLoadingCancelOrder(true);
       await cancelOrder();
-
       await handleOnRefresh();
     } catch (fetchError) {
       console.error(fetchError);
+      setCancelOrderError(fetchError as Error);
+    } finally {
+      setIsLoadingCancelOrder(false);
     }
-  }, [cancelOrder, handleOnRefresh]);
+  }, [cancelOrder, handleOnRefresh, isLoadingCancelOrder]);
 
   const toggleBankInfo = useCallback(() => {
     setShowBankInfo(!showBankInfo);
@@ -419,6 +457,8 @@ const BankDetails = () => {
                 onPress={handleCancelOrder}
                 label={strings('deposit.order_processing.cancel_order_button')}
                 size={ButtonSize.Lg}
+                loading={isLoadingCancelOrder}
+                disabled={isLoadingConfirmPayment}
               />
 
               <Button
@@ -428,6 +468,8 @@ const BankDetails = () => {
                 testID="main-action-button"
                 label={strings('deposit.bank_details.button')}
                 size={ButtonSize.Lg}
+                disabled={isLoadingCancelOrder}
+                loading={isLoadingConfirmPayment}
               />
             </View>
           </View>
