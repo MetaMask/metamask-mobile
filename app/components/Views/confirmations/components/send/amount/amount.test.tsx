@@ -3,6 +3,7 @@ import React from 'react';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { SendContextProvider } from '../../../context/send-context';
+import { TOEKN_ADDRESS_MOCK_1 } from '../../../__mocks__/send.mock';
 import { Amount } from './amount';
 
 jest.mock(
@@ -23,7 +24,7 @@ jest.mock('@react-navigation/native', () => ({
       asset: {
         chainId: '0x1',
         name: 'Ethereum',
-        address: '0x123',
+        address: TOEKN_ADDRESS_MOCK_1,
       },
     },
   }),

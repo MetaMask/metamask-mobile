@@ -7,6 +7,10 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  type EdgeInsets,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
@@ -19,7 +23,6 @@ import Alert, { AlertType } from '../../Base/Alert';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { fontStyles } from '../../../styles/common';
@@ -40,7 +43,7 @@ interface IConnectQRHardwareProps {
   navigation: any;
 }
 
-const createStyles = (colors: ThemeColors) =>
+const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -48,7 +51,7 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'center',
     },
     header: {
-      marginTop: Device.isIphoneX() ? 50 : 20,
+      marginTop: insets.top,
       flexDirection: 'row',
       width: '100%',
       paddingHorizontal: 32,
@@ -135,7 +138,8 @@ async function initiateQRHardwareConnection(
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(colors, insets);
 
   const KeyringController = useMemo(() => {
     // TODO: Replace "any" with type

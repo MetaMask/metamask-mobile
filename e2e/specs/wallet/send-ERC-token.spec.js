@@ -21,6 +21,11 @@ const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 describe(Regression('Send ERC Token'), () => {
   let mockServer;
 
+  // Some tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
+  const isRemoveGlobalNetworkSelectorEnabled =
+    process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
+  const itif = (condition) => (condition ? it.skip : it);
+
   beforeAll(async () => {
     jest.setTimeout(150000);
 
@@ -44,17 +49,20 @@ describe(Regression('Send ERC Token'), () => {
     });
   });
 
-  it('should add Sepolia testnet to my networks list', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await TestHelpers.delay(2000);
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await NetworkListModal.tapTestNetworkSwitch();
-    await NetworkListModal.scrollToBottomOfNetworkList();
-    await Assertions.expectToggleToBeOn(NetworkListModal.testNetToggle);
-    await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Sepolia.providerConfig.nickname,
-    );
-  });
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should add Sepolia testnet to my networks list',
+    async () => {
+      await WalletView.tapNetworksButtonOnNavBar();
+      await TestHelpers.delay(2000);
+      await NetworkListModal.scrollToBottomOfNetworkList();
+      await NetworkListModal.tapTestNetworkSwitch();
+      await NetworkListModal.scrollToBottomOfNetworkList();
+      await Assertions.expectToggleToBeOn(NetworkListModal.testNetToggle);
+      await NetworkListModal.changeNetworkTo(
+        CustomNetworks.Sepolia.providerConfig.nickname,
+      );
+    },
+  );
 
   it('should dismiss network education modal', async () => {
     await Assertions.expectElementToBeVisible(NetworkEducationModal.container);

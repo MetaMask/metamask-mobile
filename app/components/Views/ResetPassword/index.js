@@ -48,7 +48,7 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { recreateVaultWithNewPassword } from '../../../core/Vault';
+import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
@@ -576,7 +576,7 @@ class ResetPassword extends PureComponent {
   recreateVault = async () => {
     const { originalPassword, password: newPassword } = this.state;
     // Recreate keyring with password
-    await recreateVaultWithNewPassword(
+    await recreateVaultsWithNewPassword(
       originalPassword,
       newPassword,
       this.props.selectedAddress,

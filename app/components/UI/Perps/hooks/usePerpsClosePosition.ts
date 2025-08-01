@@ -3,6 +3,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { Position, OrderResult } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import { strings } from '../../../../../locales/i18n';
+import { handlePerpsError } from '../utils/perpsErrorHandler';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -47,9 +48,12 @@ export const usePerpsClosePosition = (
           // Call success callback
           options?.onSuccess?.(result);
         } else {
-          throw new Error(
-            result.error || strings('perps.close_position.error_unknown'),
-          );
+          // Use centralized error handler for all errors
+          const errorMessage = handlePerpsError({
+            error: result.error,
+            fallbackMessage: strings('perps.close_position.error_unknown'),
+          });
+          throw new Error(errorMessage);
         }
 
         return result;

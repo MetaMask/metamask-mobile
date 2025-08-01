@@ -89,20 +89,21 @@ describe(SmokePerformance('Network List Load Testing'), () => {
               '======================================================',
             );
 
-            if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME) {
-              console.warn(
-                `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
-              );
-            }
-
-            console.log('Performance test passed!');
-
             result = {
               totalTime,
               thresholds: {
                 totalTime: PERFORMANCE_THRESHOLDS.TOTAL_TIME,
               },
             };
+
+            if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME) {
+              console.warn(
+                `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
+                result,
+              );
+            }
+
+            console.log('Performance test passed!');
           },
         );
 
@@ -250,21 +251,22 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             const totalTime = endTime - startTime;
 
-            // Baseline should be very fast
-            if (totalTime > PERFORMANCE_THRESHOLDS.RENDER_NETWORK_LIST) {
-              console.warn(
-                `⚠️  BASELINE WARNING: Even minimal load took ${totalTime}ms`,
-              );
-            }
-
-            console.log('Baseline test completed!');
-
             result = {
               totalTime,
               thresholds: {
                 totalTime: PERFORMANCE_THRESHOLDS.RENDER_NETWORK_LIST,
               },
             };
+
+            // Baseline should be very fast
+            if (totalTime > PERFORMANCE_THRESHOLDS.RENDER_NETWORK_LIST) {
+              console.warn(
+                `Baseline test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.RENDER_NETWORK_LIST}ms)`,
+                result,
+              );
+            }
+
+            console.log('Baseline test completed!');
           },
         );
 

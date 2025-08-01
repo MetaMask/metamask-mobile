@@ -88,24 +88,25 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             const timeToDismissNetworkList = endTime - startTime;
 
-            // Baseline should be very fast
-            if (
-              timeToDismissNetworkList >
-              PERFORMANCE_THRESHOLDS.DISMISS_NETWORK_LIST
-            ) {
-              console.warn(
-                `⚠️  BASELINE WARNING: Network switching took ${timeToDismissNetworkList}ms`,
-              );
-            }
-
-            console.log('Network switching test completed!');
-
             result = {
               totalTime: timeToDismissNetworkList,
               thresholds: {
                 totalTime: PERFORMANCE_THRESHOLDS.DISMISS_NETWORK_LIST,
               },
             };
+
+            // Baseline should be very fast
+            if (
+              timeToDismissNetworkList >
+              PERFORMANCE_THRESHOLDS.DISMISS_NETWORK_LIST
+            ) {
+              console.warn(
+                `Network switching test failed: Total time (${timeToDismissNetworkList}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.DISMISS_NETWORK_LIST}ms)`,
+                result,
+              );
+            }
+
+            console.log('Network switching test completed!');
           },
         );
 
