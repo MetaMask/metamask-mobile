@@ -76,7 +76,7 @@ const BasicInfo = (): JSX.Element => {
   const timestamp = utcDateToPrefill.getTime();
   const localTimestampToUseInternally = isNaN(timestamp)
     ? ''
-    : (timestamp - utcDateToPrefill.getTimezoneOffset() * 60 * 1000).toString();
+    : (timestamp + utcDateToPrefill.getTimezoneOffset() * 60 * 1000).toString();
 
   const initialFormData: BasicInfoFormData = {
     firstName: previousFormData?.firstName || '',
