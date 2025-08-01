@@ -21,7 +21,7 @@ export const getSeedPhrase = async (password: string, keyringId: string) => {
 };
 
 /**
- * Changes the password of the seedless onboarding controller
+ * Changes the password of the seedless onboarding controller and re-creates seedless vault using new password.
  *
  * @param {string} newPassword - new password
  * @param {string} password - current password
