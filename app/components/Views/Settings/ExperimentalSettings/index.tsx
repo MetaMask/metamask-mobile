@@ -39,21 +39,17 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const { colors } = theme;
   const styles = createStyles(colors);
 
-  useEffect(
-    () => {
-      navigation.setOptions(
-        getNavigationOptionsTitle(
-          strings('app_settings.experimental_title'),
-          navigation,
-          isFullScreenModal,
-          colors,
-          null,
-        ),
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [colors],
-  );
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.experimental_title'),
+        navigation,
+        isFullScreenModal,
+        colors,
+        null,
+      ),
+    );
+  }, [colors, navigation, isFullScreenModal]);
 
   const goToWalletConnectSessions = () => {
     navigation.navigate(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW);

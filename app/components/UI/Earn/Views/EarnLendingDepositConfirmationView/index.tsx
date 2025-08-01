@@ -218,8 +218,13 @@ const EarnLendingDepositConfirmationView = () => {
         backgroundColor: theme.colors.background.alternative,
       }),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation, theme.colors]);
+  }, [
+    navigation,
+    theme.colors,
+    trackEvent,
+    createEventBuilder,
+    getTrackEventProperties,
+  ]);
 
   const emitTxMetaMetric = useCallback(
     (txType: TransactionType) =>

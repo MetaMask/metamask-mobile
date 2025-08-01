@@ -126,18 +126,17 @@ const SelectHardwareWallet = () => {
     </TouchableOpacity>
   );
 
-  const LedgerButton = () => {
-    const ledgerLogo = useAssetFromTheme(ledgerLogoLight, ledgerLogoDark);
-    return renderHardwareButton(ledgerLogo, navigateToConnectLedger);
-  };
+  const ledgerLogo = useAssetFromTheme(ledgerLogoLight, ledgerLogoDark);
+  const qrHardwareLogo = useAssetFromTheme(
+    qrHardwareLogoLight,
+    qrHardwareLogoDark,
+  );
 
-  const QRButton = () => {
-    const qrHardwareLogo = useAssetFromTheme(
-      qrHardwareLogoLight,
-      qrHardwareLogoDark,
-    );
-    return renderHardwareButton(qrHardwareLogo, navigateToConnectQRWallet);
-  };
+  const LedgerButton = () =>
+    renderHardwareButton(ledgerLogo, navigateToConnectLedger);
+
+  const QRButton = () =>
+    renderHardwareButton(qrHardwareLogo, navigateToConnectQRWallet);
 
   return (
     <SafeAreaView style={styles.container}>

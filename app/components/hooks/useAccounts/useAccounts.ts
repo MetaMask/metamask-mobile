@@ -52,8 +52,7 @@ const useAccounts = ({
   );
   const checkBalanceError = useCallback(
     (balance: string) => checkBalanceErrorFn?.(balance),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [checkBalanceErrorFn],
   );
   const fetchENSNames = useCallback(
     async ({

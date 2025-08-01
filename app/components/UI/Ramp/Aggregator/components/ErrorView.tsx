@@ -127,11 +127,16 @@ function ErrorView({
         ? selectedAsset?.symbol
         : (selectedFiatCurrencyId as string),
     });
-    // Dependency array does not include extra data since it can mutate after the error
-    // is displayed. This is a safe guard to prevent the error from being tracked multiple
-    // times.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [description, location, trackEvent]);
+  }, [
+    description,
+    location,
+    trackEvent,
+    isBuy,
+    selectedAsset?.symbol,
+    selectedFiatCurrencyId,
+    selectedPaymentMethodId,
+    selectedRegion?.id,
+  ]);
 
   return (
     <View style={styles.screen}>

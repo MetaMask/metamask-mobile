@@ -156,8 +156,10 @@ const EarnInputView = () => {
       actionType: 'deposit',
     });
 
+  const hasTrackedOpenEvent = useRef(false);
+
   useEffect(() => {
-    if (shouldLogStablecoinEvent()) {
+    if (shouldLogStablecoinEvent() && !hasTrackedOpenEvent.current) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
           .addProperties({
@@ -169,9 +171,16 @@ const EarnInputView = () => {
           })
           .build(),
       );
+      hasTrackedOpenEvent.current = true;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    earnToken,
+    network,
+    balanceValue,
+    trackEvent,
+    createEventBuilder,
+    shouldLogStablecoinEvent,
+  ]);
 
   useEndTraceOnMount(TraceName.EarnDepositScreen);
 

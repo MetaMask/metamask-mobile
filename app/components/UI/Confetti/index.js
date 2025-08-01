@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import Device from '../../../util/device';
 import ConfettiNormal from 'react-native-confetti';
@@ -8,16 +8,16 @@ const isAndroid = Platform.OS === 'android';
 const ORIGIN = { x: Device.getDeviceWidth() / 2, y: 0 };
 
 const Confetti = (props) => {
-  let confettiView = false;
+  const confettiViewRef = useRef(null);
 
   useEffect(() => {
-    if (isAndroid && confettiView) {
-      confettiView.startConfetti();
+    if (isAndroid && confettiViewRef.current) {
+      confettiViewRef.current.startConfetti();
     }
-  }, [confettiView]);
+  }, []);
 
   return isAndroid ? (
-    <ConfettiNormal ref={(node) => (confettiView = node)} {...props} />
+    <ConfettiNormal ref={confettiViewRef} {...props} />
   ) : (
     <ConfettiCannon fadeOut count={300} origin={ORIGIN} {...props} />
   );

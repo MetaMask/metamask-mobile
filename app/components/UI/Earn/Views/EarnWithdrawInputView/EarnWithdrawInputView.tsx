@@ -122,21 +122,25 @@ const EarnWithdrawInputView = () => {
     exchangeRate,
   });
 
+  const hasTrackedOpenEvent = useRef(false);
+
   useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
-        .addProperties({
-          action_type: 'withdrawal',
-          token: receiptToken?.symbol,
-          token_name: receiptToken?.name,
-          network: network?.name,
-          user_token_balance: receiptToken?.balanceFormatted,
-          experience: receiptToken?.experience?.type,
-        })
-        .build(),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!hasTrackedOpenEvent.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
+          .addProperties({
+            action_type: 'withdrawal',
+            token: receiptToken?.symbol,
+            token_name: receiptToken?.name,
+            network: network?.name,
+            user_token_balance: receiptToken?.balanceFormatted,
+            experience: receiptToken?.experience?.type,
+          })
+          .build(),
+      );
+      hasTrackedOpenEvent.current = true;
+    }
+  }, [receiptToken, network, trackEvent, createEventBuilder]);
 
   useEndTraceOnMount(TraceName.EarnWithdrawScreen);
 
@@ -170,13 +174,12 @@ const EarnWithdrawInputView = () => {
       .finally(() => {
         setIsLoadingMaxSafeWithdrawalAmount(false);
       });
-    // Call once on render and only once
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     receiptToken?.experience?.type,
     activeAccount?.address,
     receiptToken?.address,
     receiptToken?.chainId,
+    receiptToken,
   ]);
 
   const stakedBalanceText = strings('stake.staked_balance');

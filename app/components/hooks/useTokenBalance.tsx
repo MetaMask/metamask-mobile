@@ -1,4 +1,10 @@
-import { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  Dispatch,
+  SetStateAction,
+} from 'react';
 import Engine from '../../core/Engine';
 import type BN4 from 'bnjs4';
 
@@ -26,20 +32,19 @@ const useTokenBalance = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { AssetsContractController }: any = Engine.context;
 
-  const fetchBalance = async (
-    tokenAddress: string,
-    userAddress: string,
-  ): Promise<void> => {
-    AssetsContractController.getERC20BalanceOf(tokenAddress, userAddress)
-      .then((balance: BN4) => setTokenBalance(balance))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  };
+  const fetchBalance = useCallback(
+    async (tokenAddress: string, userAddress: string): Promise<void> => {
+      AssetsContractController.getERC20BalanceOf(tokenAddress, userAddress)
+        .then((balance: BN4) => setTokenBalance(balance))
+        .catch(() => setError(true))
+        .finally(() => setLoading(false));
+    },
+    [AssetsContractController],
+  );
 
   useEffect(() => {
     fetchBalance(requestedTokenAddress, userCurrentAddress);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestedTokenAddress, userCurrentAddress]);
+  }, [requestedTokenAddress, userCurrentAddress, fetchBalance]);
 
   return [tokenBalance, loading, error];
 };

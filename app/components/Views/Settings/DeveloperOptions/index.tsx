@@ -19,21 +19,17 @@ const DeveloperOptions = () => {
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, { theme });
 
-  useEffect(
-    () => {
-      navigation.setOptions(
-        getNavigationOptionsTitle(
-          strings('app_settings.developer_options.title'),
-          navigation,
-          isFullScreenModal,
-          colors,
-          null,
-        ),
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [colors],
-  );
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('app_settings.developer_options.title'),
+        navigation,
+        isFullScreenModal,
+        colors,
+        null,
+      ),
+    );
+  }, [colors, navigation, isFullScreenModal]);
 
   return (
     <ScrollView style={styles.wrapper}>

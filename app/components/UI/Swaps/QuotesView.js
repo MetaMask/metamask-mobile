@@ -551,13 +551,7 @@ function SwapsQuotesView({
       ...quoteValues[selectedQuoteId],
       ...fees,
     };
-  }, [
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    quoteValues[selectedQuoteId],
-    multiLayerL1ApprovalFeeTotal,
-    quoteValues,
-    selectedQuoteId,
-  ]);
+  }, [quoteValues, selectedQuoteId, multiLayerL1ApprovalFeeTotal]);
 
   const gasEstimates = useMemo(
     () => customGasEstimate || usedGasEstimate,
@@ -960,7 +954,6 @@ function SwapsQuotesView({
           .build(),
       );
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       chainId,
       sourceAmount,
@@ -971,6 +964,10 @@ function SwapsQuotesView({
       selectedQuoteId,
       conversionRate,
       destinationToken,
+      sourceToken,
+      canUseGasIncludedSwap,
+      shouldUseSmartTransaction,
+      trackEvent,
       createEventBuilder,
     ],
   );
@@ -1534,13 +1531,12 @@ function SwapsQuotesView({
       const { SwapsController } = Engine.context;
       SwapsController.stopPollingAndResetState();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    destinationToken.address,
+    destinationToken,
+    sourceToken,
     selectedAddress,
     slippage,
     sourceAmount,
-    sourceToken.address,
     selectedNetworkClientId,
     shouldUseSmartTransaction,
   ]);
@@ -1668,62 +1664,59 @@ function SwapsQuotesView({
         setPollToken(null);
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInPolling]);
+  }, [isInPolling, pollToken, setPollToken]);
 
-  useEffect(
-    () => {
-      if (selectedQuote) {
-        const { SwapsController } = Engine.context;
-        let gasEstimate = null;
-        let customGasAreIncompatible = false;
-        if (gasEstimateType === GAS_ESTIMATE_TYPES.ETH_GASPRICE) {
-          // Added a selected property because for ETH_GASPRICE any user change will lead
-          // to stop updating the estimates, unless there is an option selected.
-          customGasAreIncompatible =
-            Boolean(customGasEstimate) &&
-            'estimatedBaseFee' in customGasEstimate;
-          gasEstimate = {
-            gasPrice: gasFeeEstimates.gasPrice,
-            selected: DEFAULT_GAS_FEE_OPTION_LEGACY,
-          };
-        } else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
-          customGasAreIncompatible =
-            Boolean(customGasEstimate) &&
-            'estimatedBaseFee' in customGasEstimate;
-          const selected =
-            customGasEstimate?.selected || DEFAULT_GAS_FEE_OPTION_LEGACY;
-          gasEstimate = { gasPrice: gasFeeEstimates[selected], selected };
-        } else if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-          customGasAreIncompatible =
-            Boolean(customGasEstimate) && 'gasPrice' in customGasEstimate;
-          const selected =
-            customGasEstimate?.selected || DEFAULT_GAS_FEE_OPTION_FEE_MARKET;
-          gasEstimate = {
-            maxFeePerGas: gasFeeEstimates[selected].suggestedMaxFeePerGas,
-            maxPriorityFeePerGas:
-              gasFeeEstimates[selected].suggestedMaxPriorityFeePerGas,
-            estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
-            selected,
-          };
-        }
-        if (
-          gasEstimate &&
-          (!customGasEstimate ||
-            customGasEstimate?.selected ||
-            customGasAreIncompatible)
-        ) {
-          setAnimateOnGasChange(true);
-          setCustomGasEstimate(gasEstimate);
-          SwapsController.updateQuotesWithGasPrice(gasEstimate);
-        }
+  useEffect(() => {
+    if (selectedQuote) {
+      const { SwapsController } = Engine.context;
+      let gasEstimate = null;
+      let customGasAreIncompatible = false;
+      if (gasEstimateType === GAS_ESTIMATE_TYPES.ETH_GASPRICE) {
+        // Added a selected property because for ETH_GASPRICE any user change will lead
+        // to stop updating the estimates, unless there is an option selected.
+        customGasAreIncompatible =
+          Boolean(customGasEstimate) && 'estimatedBaseFee' in customGasEstimate;
+        gasEstimate = {
+          gasPrice: gasFeeEstimates.gasPrice,
+          selected: DEFAULT_GAS_FEE_OPTION_LEGACY,
+        };
+      } else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
+        customGasAreIncompatible =
+          Boolean(customGasEstimate) && 'estimatedBaseFee' in customGasEstimate;
+        const selected =
+          customGasEstimate?.selected || DEFAULT_GAS_FEE_OPTION_LEGACY;
+        gasEstimate = { gasPrice: gasFeeEstimates[selected], selected };
+      } else if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+        customGasAreIncompatible =
+          Boolean(customGasEstimate) && 'gasPrice' in customGasEstimate;
+        const selected =
+          customGasEstimate?.selected || DEFAULT_GAS_FEE_OPTION_FEE_MARKET;
+        gasEstimate = {
+          maxFeePerGas: gasFeeEstimates[selected].suggestedMaxFeePerGas,
+          maxPriorityFeePerGas:
+            gasFeeEstimates[selected].suggestedMaxPriorityFeePerGas,
+          estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
+          selected,
+        };
       }
-    },
-    // `customGasEstimate` is removed from dependency array because handleGasFeeUpdate updates it
-    // leading to a infinite recursive call
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [gasEstimateType, gasFeeEstimates, selectedQuote],
-  );
+      if (
+        gasEstimate &&
+        (!customGasEstimate ||
+          customGasEstimate?.selected ||
+          customGasAreIncompatible)
+      ) {
+        setAnimateOnGasChange(true);
+        setCustomGasEstimate(gasEstimate);
+        SwapsController.updateQuotesWithGasPrice(gasEstimate);
+      }
+    }
+  }, [
+    gasEstimateType,
+    gasFeeEstimates,
+    selectedQuote,
+    customGasEstimate,
+    handleGasFeeUpdate,
+  ]);
 
   useEffect(() => {
     if (animateOnGasChange) setAnimateOnGasChange(false);

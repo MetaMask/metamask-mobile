@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RegionsService, ServicesSignatures } from '@consensys/on-ramp-sdk';
 import { useRampSDK, SDK } from '../sdk';
 import Logger from '../../../../../util/Logger';
@@ -98,7 +98,7 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   > | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(onMount);
-  const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
+
   const abortControllerRef = useRef<AbortController>();
 
   const query = useCallback(
@@ -148,8 +148,7 @@ export default function useSDKMethod<T extends keyof RegionsService>(
         setIsFetching(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [method, stringifiedParams, sdk],
+    [method, sdk, params],
   );
 
   useEffect(() => {

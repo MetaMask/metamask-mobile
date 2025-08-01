@@ -172,8 +172,7 @@ const AssetSearch = ({
   useEffect(() => {
     setSearchQuery('');
     handleSearch('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allNetworksEnabled]);
+  }, [allNetworksEnabled, handleSearch]);
 
   return (
     <View

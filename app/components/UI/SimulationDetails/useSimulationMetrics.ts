@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   SimulationData,
@@ -85,19 +85,31 @@ export function useSimulationMetrics({
   const simulationResponse = getSimulationResponseType(simulationData);
   const simulationLatency = loadingTime;
 
-  const properties = {
-    simulation_response: simulationResponse,
-    simulation_latency: simulationLatency,
-    ...getProperties(receivingAssets, 'simulation_receiving_assets_'),
-    ...getProperties(sendingAssets, 'simulation_sending_assets_'),
-  };
+  const properties = useMemo(
+    () => ({
+      simulation_response: simulationResponse,
+      simulation_latency: simulationLatency,
+      ...getProperties(receivingAssets, 'simulation_receiving_assets_'),
+      ...getProperties(sendingAssets, 'simulation_sending_assets_'),
+    }),
+    [simulationResponse, simulationLatency, receivingAssets, sendingAssets],
+  );
 
-  const sensitiveProperties = {
-    ...getSensitiveProperties(receivingAssets, 'simulation_receiving_assets_'),
-    ...getSensitiveProperties(sendingAssets, 'simulation_sending_assets_'),
-  };
+  const sensitiveProperties = useMemo(
+    () => ({
+      ...getSensitiveProperties(
+        receivingAssets,
+        'simulation_receiving_assets_',
+      ),
+      ...getSensitiveProperties(sendingAssets, 'simulation_sending_assets_'),
+    }),
+    [receivingAssets, sendingAssets],
+  );
 
-  const params = { properties, sensitiveProperties };
+  const params = useMemo(
+    () => ({ properties, sensitiveProperties }),
+    [properties, sensitiveProperties],
+  );
 
   const shouldSkipMetrics =
     !enableMetrics ||
@@ -112,8 +124,7 @@ export function useSimulationMetrics({
     }
 
     dispatch(updateConfirmationMetric({ id: transactionId, params }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldSkipMetrics, transactionId, JSON.stringify(params), dispatch]);
+  }, [shouldSkipMetrics, transactionId, params, dispatch]);
 }
 
 function useIncompleteAssetEvent(

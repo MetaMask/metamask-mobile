@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   NativeRampsSdk,
   ServicesSignatures,
@@ -112,7 +112,7 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
   > | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(onMount);
-  const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
+
   const abortControllerRef = useRef<AbortController>();
 
   const query = useCallback(
@@ -165,8 +165,7 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
         }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [method, throws, stringifiedParams, sdk],
+    [method, throws, sdk, params],
   );
 
   useEffect(() => {

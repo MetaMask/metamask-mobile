@@ -99,8 +99,7 @@ const useAddressBalance = (
         });
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [asset, contractBalances, dontWatchAsset, selectedNetworkClientId]);
 
   useEffect(() => {
     const setBalance = () => {

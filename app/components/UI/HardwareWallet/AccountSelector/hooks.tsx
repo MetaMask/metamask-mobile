@@ -22,28 +22,24 @@ export const useAccountsBalance = (accounts: IAccount[]) => {
     [],
   );
 
-  useEffect(
-    () => {
-      const unTrackedAccounts: string[] = [];
-      accounts.forEach((account) => {
-        if (!trackedAccounts[account.address]) {
-          unTrackedAccounts.push(account.address);
-        }
-      });
-      if (unTrackedAccounts.length > 0) {
-        AccountTrackerController.syncBalanceWithAddresses(
-          unTrackedAccounts,
-        ).then((_trackedAccounts: AccountBalances) => {
-          setTrackedAccounts({
-            ...trackedAccounts,
-            ..._trackedAccounts,
-          });
-        });
+  useEffect(() => {
+    const unTrackedAccounts: string[] = [];
+    accounts.forEach((account) => {
+      if (!trackedAccounts[account.address]) {
+        unTrackedAccounts.push(account.address);
       }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [AccountTrackerController, accounts],
-  );
+    });
+    if (unTrackedAccounts.length > 0) {
+      AccountTrackerController.syncBalanceWithAddresses(unTrackedAccounts).then(
+        (_trackedAccounts: AccountBalances) => {
+          setTrackedAccounts((prevTrackedAccounts) => ({
+            ...prevTrackedAccounts,
+            ..._trackedAccounts,
+          }));
+        },
+      );
+    }
+  }, [AccountTrackerController, accounts, trackedAccounts]);
 
   return trackedAccounts;
 };

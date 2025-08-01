@@ -311,8 +311,16 @@ function SwapsAmountView({
         navigation.pop();
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialSource, chainId, navigation, setLiveness]);
+  }, [
+    initialSource,
+    chainId,
+    navigation,
+    setLiveness,
+    createEventBuilder,
+    route.params?.sourcePage,
+    swapsTokens,
+    trackEvent,
+  ]);
 
   const keypadViewRef = useRef(null);
 

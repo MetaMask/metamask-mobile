@@ -68,8 +68,14 @@ const LedgerTransactionModal = () => {
 
     onConfirmationComplete(true);
     dismissModal();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onConfirmationComplete, dismissModal]);
+  }, [
+    onConfirmationComplete,
+    dismissModal,
+    replacementParams,
+    transactionId,
+    TransactionController,
+    ApprovalController,
+  ]);
 
   const onRejection = useCallback(() => {
     onConfirmationComplete(false);

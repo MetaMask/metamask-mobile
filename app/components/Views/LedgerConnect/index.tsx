@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -82,12 +82,12 @@ const LedgerConnect = ({
     );
   }, [navigation, theme.colors]);
 
-  const connectLedger = () => {
+  const connectLedger = useCallback(() => {
     setLoading(true);
     ledgerLogicToRun(async () => {
       onConnectLedger();
     });
-  };
+  }, [setLoading, ledgerLogicToRun, onConnectLedger]);
 
   const onDeviceSelected = (currentDevice: BluetoothDevice | undefined) => {
     const getStoredDeviceId = async () => {
@@ -103,19 +103,22 @@ const LedgerConnect = ({
     getStoredDeviceId();
   };
 
-  const handleErrorWithRetry = (errorTitle: string, errorSubtitle: string) => {
-    setErrorDetails({
-      errorTitle,
-      errorSubtitle,
-      primaryButtonConfig: {
-        title: strings('ledger.retry'),
-        onPress: () => {
-          setErrorDetails(undefined);
-          connectLedger();
+  const handleErrorWithRetry = useCallback(
+    (errorTitle: string, errorSubtitle: string) => {
+      setErrorDetails({
+        errorTitle,
+        errorSubtitle,
+        primaryButtonConfig: {
+          title: strings('ledger.retry'),
+          onPress: () => {
+            setErrorDetails(undefined);
+            connectLedger();
+          },
         },
-      },
-    });
-  };
+      });
+    },
+    [setErrorDetails, connectLedger],
+  );
 
   const permissionText = useMemo(() => {
     if (deviceOSVersion >= 12) {
@@ -199,8 +202,7 @@ const LedgerConnect = ({
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ledgerError]);
+  }, [ledgerError, dispatch, handleErrorWithRetry, retryTimes, navigation]);
 
   return (
     <SafeAreaView style={styles.container}>

@@ -128,8 +128,7 @@ const OrderDetails = () => {
         });
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trackEvent]);
+  }, [order, trackEvent]);
 
   const dispatchUpdateFiatOrder = useCallback(
     (updatedOrder: FiatOrder) => {
@@ -173,9 +172,7 @@ const OrderDetails = () => {
     if (order?.state === FIAT_ORDER_STATES.CREATED) {
       handleOnRefresh();
     }
-    // only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [order?.state, handleOnRefresh]);
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();

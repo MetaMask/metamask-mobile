@@ -104,12 +104,12 @@ function ApprovalTransactionEditionModal({
         fromTokenMinimalUnitString(amountDec, sourceToken.decimals),
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     originalApprovalTransaction,
     setApprovalTransaction,
     spendLimitUnlimitedSelected,
     customApprovalTransaction,
+    sourceToken,
   ]);
 
   return (

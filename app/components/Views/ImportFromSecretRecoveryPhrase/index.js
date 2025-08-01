@@ -318,47 +318,58 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   }, [hideSeedPhraseInput, navigation, handleClear, handleSeedPhraseChange]);
 
-  const onBackPress = () => {
-    if (currentStep === 0) {
-      navigation.goBack();
-    } else {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const headerLeft = useCallback(() => {
+    const onBackPress = () => {
+      if (currentStep === 0) {
+        navigation.goBack();
+      } else {
+        setCurrentStep(currentStep - 1);
+      }
+    };
 
-  const headerLeft = () => (
-    <TouchableOpacity
-      onPress={onBackPress}
-      testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
-    >
-      <Icon
-        name={IconName.ArrowLeft}
-        size={24}
-        color={colors.text.default}
-        style={styles.headerLeft}
-      />
-    </TouchableOpacity>
-  );
-
-  const headerRight = () =>
-    currentStep === 0 ? (
+    return (
       <TouchableOpacity
-        onPress={onQrCodePress}
-        testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
+        onPress={onBackPress}
+        testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
       >
         <Icon
-          name={IconName.Scan}
+          name={IconName.ArrowLeft}
           size={24}
           color={colors.text.default}
-          onPress={onQrCodePress}
-          style={styles.headerRight}
+          style={styles.headerLeft}
         />
       </TouchableOpacity>
-    ) : (
-      <View />
     );
+  }, [
+    currentStep,
+    navigation,
+    setCurrentStep,
+    colors.text.default,
+    styles.headerLeft,
+  ]);
 
-  const updateNavBar = () => {
+  const headerRight = useCallback(
+    () =>
+      currentStep === 0 ? (
+        <TouchableOpacity
+          onPress={onQrCodePress}
+          testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
+        >
+          <Icon
+            name={IconName.Scan}
+            size={24}
+            color={colors.text.default}
+            onPress={onQrCodePress}
+            style={styles.headerRight}
+          />
+        </TouchableOpacity>
+      ) : (
+        <View />
+      ),
+    [currentStep, onQrCodePress, colors.text.default, styles.headerRight],
+  );
+
+  const updateNavBar = useCallback(() => {
     navigation.setOptions(
       getOnboardingNavbarOptions(
         route,
@@ -370,33 +381,31 @@ const ImportFromSecretRecoveryPhrase = ({
         false,
       ),
     );
-  };
+  }, [navigation, route, headerLeft, headerRight, colors]);
+
+  const setBiometricsOption = useCallback(async () => {
+    const authData = await Authentication.getType();
+    const previouslyDisabled = await StorageWrapper.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
+      PASSCODE_DISABLED,
+    );
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+      setBiometryType(passcodeType(authData.currentAuthType));
+      setBiometryChoice(
+        !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+      );
+    } else if (authData.availableBiometryType) {
+      setBiometryType(authData.availableBiometryType);
+      setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
+    }
+  }, [setBiometryType, setBiometryChoice]);
 
   useEffect(() => {
     updateNavBar();
-    const setBiometricsOption = async () => {
-      const authData = await Authentication.getType();
-      const previouslyDisabled = await StorageWrapper.getItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      const passcodePreviouslyDisabled = await StorageWrapper.getItem(
-        PASSCODE_DISABLED,
-      );
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
-        setBiometryType(passcodeType(authData.currentAuthType));
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
-        );
-      } else if (authData.availableBiometryType) {
-        setBiometryType(authData.availableBiometryType);
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-      }
-    };
-
     setBiometricsOption();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep]);
+  }, [currentStep, updateNavBar, setBiometricsOption]);
 
   const termsOfUse = useCallback(async () => {
     if (navigation) {
