@@ -31,10 +31,7 @@ export const useSendActions = () => {
     } else {
       await submitNonEVMTransaction({
         asset,
-        chainId: chainId as Hex,
         fromAccount,
-        to: to as Hex,
-        value: value as string,
       });
     }
 

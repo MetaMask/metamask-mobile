@@ -6,6 +6,8 @@ export const ACCOUNT_ADDRESS_MOCK_1 =
   '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a' as Hex;
 export const TOKEN_ADDRESS_MOCK_1 =
   '0x9Dd7c01d30df0061F228C9b687287B8E490D8880' as Hex;
+export const ACCOUNT_ADDRESS_MOCK_2 =
+  '14grJpemFaf88c8tiVb77W7TYg2W3ir6pfkKz3YjhhZ5';
 
 export const evmSendStateMock = {
   engine: {
@@ -19,6 +21,11 @@ export const evmSendStateMock = {
               id: 'evm-account-id',
               type: 'eip155:eoa' as InternalAccount['type'],
               address: ACCOUNT_ADDRESS_MOCK_1,
+              metadata: {},
+            },
+            'solana-account-id': {
+              id: 'solana-account-id',
+              address: ACCOUNT_ADDRESS_MOCK_2,
               metadata: {},
             },
           },

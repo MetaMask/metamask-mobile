@@ -1,4 +1,3 @@
-import { Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import React, {
   ReactElement,
@@ -53,9 +52,9 @@ export const SendContextProvider: React.FC<{
     <SendContext.Provider
       value={{
         asset,
-        chainId: chainId as Hex | undefined,
+        chainId: chainId as string | undefined,
         fromAccount: from as InternalAccount,
-        from: from?.address as Hex,
+        from: from?.address as string,
         to,
         updateAsset,
         updateTo,

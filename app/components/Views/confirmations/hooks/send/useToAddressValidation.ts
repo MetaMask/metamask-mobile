@@ -1,4 +1,3 @@
-import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
@@ -151,7 +150,7 @@ export const validateSolanaToAddress = (toAddress: string) => {
 export const useToAddressValidation = () => {
   const internalAccounts = useSelector(selectInternalAccounts);
   const { chainId, to } = useSendContext();
-  const { isEvmSendType, iSolanaSendType } = useSendType();
+  const { isEvmSendType, isSolanaSendType } = useSendType();
 
   const { value } = useAsyncResult<{
     error?: string;
@@ -169,14 +168,14 @@ export const useToAddressValidation = () => {
     if (isEvmSendType) {
       return await validateEVMToAddress(to as Hex, chainId as Hex);
     }
-    if (iSolanaSendType) {
+    if (isSolanaSendType) {
       return validateSolanaToAddress(to as string);
     }
     return {};
   }, [
     chainId,
     isEvmSendType,
-    iSolanaSendType,
+    isSolanaSendType,
     internalAccounts,
     to,
     validateEVMToAddress,

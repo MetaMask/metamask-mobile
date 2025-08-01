@@ -101,10 +101,7 @@ export const submitNonEVMTransaction = async ({
   fromAccount,
 }: {
   asset: AssetType;
-  chainId: Hex;
   fromAccount: InternalAccount;
-  to: Hex;
-  value: string;
 }) => {
   await sendMultichainTransaction(fromAccount.metadata?.snap?.id as SnapId, {
     account: fromAccount.id,
