@@ -44,7 +44,7 @@ export interface EnterAddressParams {
 export const createEnterAddressNavDetails =
   createNavigationDetails<EnterAddressParams>(Routes.DEPOSIT.ENTER_ADDRESS);
 
-interface AddressFormData {
+export interface AddressFormData {
   addressLine1: string;
   addressLine2: string;
   city: string;

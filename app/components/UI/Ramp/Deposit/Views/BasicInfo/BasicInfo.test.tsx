@@ -7,7 +7,6 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
-import { timestampToTransakFormat } from '../../utils';
 
 const mockTrackEvent = jest.fn();
 const mockPostKycForm = jest.fn();
@@ -23,6 +22,19 @@ const mockQuote = {
 const mockSelectedRegion = DEPOSIT_REGIONS.find(
   (region) => region.isoCode === 'US',
 ) as DepositRegion;
+
+let mockUseParamsReturnValue: {
+  quote: BuyQuote;
+  previousFormData?: {
+    firstName: string;
+    lastName: string;
+    mobileNumber: string;
+    dob: string;
+    ssn?: string;
+  };
+} = {
+  quote: mockQuote,
+};
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -40,11 +52,13 @@ jest.mock('@react-navigation/native', () => {
         actualReactNavigation.useNavigation().setOptions,
       ),
     }),
-    useRoute: () => ({
-      params: { quote: mockQuote as unknown as BuyQuote },
-    }),
   };
 });
+
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: () => mockUseParamsReturnValue,
+}));
 
 jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
@@ -53,7 +67,7 @@ jest.mock('../../sdk', () => ({
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
-  useDepositSdkMethod: (config: any) => {
+  useDepositSdkMethod: (config: { method: string }) => {
     if (config.method === 'patchUser') {
       return [{}, mockPostKycForm];
     }
@@ -131,7 +145,7 @@ describe('BasicInfo Component', () => {
     );
     fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
     expect(screen.toJSON()).toMatchSnapshot();
-    
+
     await act(async () => {
       fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
     });
@@ -171,5 +185,24 @@ describe('BasicInfo Component', () => {
       ramp_type: 'DEPOSIT',
       kyc_type: 'SIMPLE',
     });
+  });
+
+  it('prefills form data when previousFormData is provided', () => {
+    const mockPreviousFormData = {
+      firstName: 'John',
+      lastName: 'Doe',
+      mobileNumber: '+1234567890',
+      dob: '1993-03-25T00:00:00.000Z',
+      ssn: '123456789',
+    };
+
+    mockUseParamsReturnValue = {
+      quote: mockQuote,
+      previousFormData: mockPreviousFormData,
+    };
+
+    render(BasicInfo);
+
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });
