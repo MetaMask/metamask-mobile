@@ -8,3 +8,8 @@ export const AdvancedViewSelectorsIDs = {
   DISMISS_SMART_ACCOUNT_UPDATE: 'dismiss_smart_account_update',
   SMART_ACCOUNT_OPT_IN: 'smart_account_opt_in',
 };
+
+export const AdvancedViewSelectorsText = {
+  RESET_ACCOUNT: 'Reset Account',
+  RESET_CONFIRMED: 'Yes, reset',
+};

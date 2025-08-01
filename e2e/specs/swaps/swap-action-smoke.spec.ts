@@ -3,7 +3,6 @@ import { LocalNodeType } from '../../framework/types';
 import SoftAssert from '../../utils/SoftAssert';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
-import { defaultGanacheOptions } from '../../framework/Constants';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import { SmokeTrade } from '../../tags.js';
@@ -32,32 +31,25 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     jest.setTimeout(120000);
   });
 
-  it.each`
-    type      | quantity | sourceTokenSymbol | destTokenSymbol | chainId
-    ${'swap'} | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${'0x1'}
-  `(
-    "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on chainID='$chainId'",
-    async ({
-      type,
-      quantity,
-      sourceTokenSymbol,
-      destTokenSymbol,
-      chainId,
-    }): Promise<void> => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder()
-            .withGanacheNetwork('0x1')
-            .withMetaMetricsOptIn()
-            .withDisabledSmartTransactions()
-            .build(),
-          localNodeOptions: [
-            {
-              type: LocalNodeType.ganache,
-              options: {
-                ...defaultGanacheOptions,
-                chainId: 1,
-              },
+  it('should swap ETH to USDC', async (): Promise<void> => {
+    const quantity = '1';
+    const sourceTokenSymbol = 'ETH';
+    const destTokenSymbol = 'USDC';
+    const chainId = '0x1';
+
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork(chainId)
+          .withMetaMetricsOptIn()
+          .withDisabledSmartTransactions()
+          .build(),
+        localNodeOptions: [
+          {
+            type: LocalNodeType.anvil,
+            options: {
+              chainId: 1,
+              forkUrl: `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
             },
           ],
           testSpecificMock,
@@ -73,45 +65,51 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
               logger.error(`Error capturing events: ${errorMessage}`);
             }
           },
-        },
-        async () => {
-          await loginToApp();
-          await prepareSwapsTestEnvironment();
-          await TabBarComponent.tapActions();
-          await Assertions.expectElementToBeVisible(
-            WalletActionsBottomSheet.swapButton,
-          );
-          await WalletActionsBottomSheet.tapSwapButton();
-
-          // Submit the Swap
-          await submitSwapUnifiedUI(
-            quantity,
-            sourceTokenSymbol,
-            destTokenSymbol,
-            chainId,
-          );
-
-          // Check the swap activity completed
-          await Assertions.expectElementToBeVisible(ActivitiesView.title);
-          await Assertions.expectElementToHaveText(
-            ActivitiesView.transactionStatus(FIRST_ROW),
-            ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          );
-
-          // Check the token approval completed
-          if (type === 'unapproved') {
-            await Assertions.expectElementToBeVisible(
-              ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
+        ],
+        mockServerInstance: mockServer,
+        restartDevice: true,
+        endTestfn: async ({ mockServer: mockServerInstance }) => {
+          try {
+            // Capture all events without filtering.
+            // When fixing the test skipped below the filter needs to be applied there.
+            capturedEvents = await getEventsPayloads(
+              mockServerInstance,
+              [],
+              30000,
             );
-            await Assertions.expectElementToHaveText(
-              ActivitiesView.transactionStatus(SECOND_ROW),
-              ActivitiesViewSelectorsText.CONFIRM_TEXT,
-            );
+          } catch (error: unknown) {
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            logger.error(`Error capturing events: ${errorMessage}`);
           }
         },
-      );
-    },
-  );
+      },
+      async () => {
+        await loginToApp();
+        await prepareSwapsTestEnvironment();
+        await TabBarComponent.tapActions();
+        await Assertions.expectElementToBeVisible(
+          WalletActionsBottomSheet.swapButton,
+        );
+        await WalletActionsBottomSheet.tapSwapButton();
+        // Submit the Swap
+        await submitSwapUnifiedUI(
+          quantity,
+          sourceTokenSymbol,
+          destTokenSymbol,
+          chainId,
+        );
+
+        // Check the swap activity completed
+        await Assertions.expectElementToBeVisible(ActivitiesView.title);
+        await Assertions.expectElementToHaveText(
+          ActivitiesView.transactionStatus(FIRST_ROW),
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
+          { timeout: 60000 },
+        );
+      },
+    );
+  });
 
   it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
     console.log('capturedEvents', capturedEvents);
