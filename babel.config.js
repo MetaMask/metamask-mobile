@@ -24,7 +24,6 @@ module.exports = {
     ],
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
-    'react-native-worklets-core/plugin',
   ],
   overrides: [
     {
