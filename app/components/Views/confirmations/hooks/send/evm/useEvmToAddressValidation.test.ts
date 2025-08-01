@@ -12,7 +12,7 @@ import {
   shouldSkipValidation,
   useEvmToAddressValidation,
   validateToAddress,
-} from './useEvmAoAddressValidation';
+} from './useEvmToAddressValidation';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {

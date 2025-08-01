@@ -9,12 +9,10 @@ export const useMaxAmount = () => {
   const { getEvmMaxAmount } = useEvmMaxAmount();
   const { getNonEvmMaxAmount } = useNonEvmMaxAmount();
 
-  const getMaxAmount = useCallback(() => {
-    if (isEvmSendType) {
-      return getEvmMaxAmount();
-    }
-    return getNonEvmMaxAmount();
-  }, [getEvmMaxAmount, getNonEvmMaxAmount, isEvmSendType]);
+  const getMaxAmount = useCallback(
+    () => (isEvmSendType ? getEvmMaxAmount() : getNonEvmMaxAmount()),
+    [getEvmMaxAmount, getNonEvmMaxAmount, isEvmSendType],
+  );
 
   return {
     getMaxAmount,

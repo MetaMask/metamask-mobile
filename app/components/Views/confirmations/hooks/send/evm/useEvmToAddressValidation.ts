@@ -71,7 +71,7 @@ const validateHexAddress = async (
   if (chainId) {
     const isMainnet = isMainnetByChainId(chainId);
     const { AssetsContractController } = Engine.context;
-    // Check if it's token contract address on mainnet
+    // todo: This check should be done for all chains
     if (isMainnet) {
       try {
         const symbol = await AssetsContractController.getERC721AssetSymbol(

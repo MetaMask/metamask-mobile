@@ -1,6 +1,6 @@
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { useSendType } from './useSendType';
-import { useEvmToAddressValidation } from './evm/useEvmAoAddressValidation';
+import { useEvmToAddressValidation } from './evm/useEvmToAddressValidation';
 import { useSolanaToAddressValidation } from './solana/useSolanaToAddressValidation';
 
 // todo: to address validation assumees `to` is the input from the user
@@ -13,16 +13,20 @@ export const useToAddressValidation = () => {
   const { value } = useAsyncResult<{
     error?: string;
     warning?: string;
-  }>(
-    async () =>
-      isEvmSendType ? await validateEvmToAddress() : validateSolanaToAddress(),
-    [
-      isEvmSendType,
-      isSolanaSendType,
-      validateEvmToAddress,
-      validateSolanaToAddress,
-    ],
-  );
+  }>(async () => {
+    if (isEvmSendType) {
+      return await validateEvmToAddress();
+    }
+    if (isSolanaSendType) {
+      return validateSolanaToAddress();
+    }
+    return {};
+  }, [
+    isEvmSendType,
+    isSolanaSendType,
+    validateEvmToAddress,
+    validateSolanaToAddress,
+  ]);
 
   const { error: toAddressError, warning: toAddressWarning } = value ?? {};
 

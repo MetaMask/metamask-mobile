@@ -11,7 +11,7 @@ import {
   useEvmMaxAmount,
 } from './useEvmMaxAmount';
 
-jest.mock('../gas/useGasFeeEstimates', () => ({
+jest.mock('../../gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: () => ({
     gasFeeEstimates: { medium: { suggestedMaxFeePerGas: 1.5 } },
   }),

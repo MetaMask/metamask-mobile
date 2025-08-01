@@ -4,11 +4,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  areAddressesEqual,
-  isValidHexAddress,
-  toChecksumAddress,
-} from '../../../../../../util/address';
+import { areAddressesEqual } from '../../../../../../util/address';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useSendContext } from '../../../context/send-context';
 
@@ -24,13 +20,10 @@ export const shouldSkipValidation = ({
   if (!toAddress || !chainId) {
     return true;
   }
-  const address = isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
-    ? toChecksumAddress(toAddress)
-    : toAddress;
 
   // sending to an internal account
   const internalAccount = internalAccounts.find((account) =>
-    areAddressesEqual(account.address, address),
+    areAddressesEqual(account.address, toAddress),
   );
   if (internalAccount) {
     return true;
