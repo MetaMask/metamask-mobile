@@ -83,19 +83,17 @@ export const recreateVaultsWithNewPassword = async (
     ReduxService.store.getState(),
   );
 
-  try {
-    // we change the password in the seedless flow first
-    // if it succed seedless change password but fail on the change password on local, we will prompt user password out of date
-    // and ask user to login with new password
-    if (isSeedlessFlow) {
-      await recreateSeedlessVaultWithNewPassword(newPassword, password);
-    }
+  // we change the password in the seedless flow first
+  // if it succed seedless change password but fail on the change password on local, we will prompt user password out of date
+  // and ask user to login with new password
+  if (isSeedlessFlow) {
+    await recreateSeedlessVaultWithNewPassword(newPassword, password);
+  }
 
-    await KeyringController.changePassword(newPassword);
-  } finally {
-    if (isSeedlessFlow) {
-      await Authentication.syncKeyringEncryptionKey();
-    }
+  await KeyringController.changePassword(newPassword);
+
+  if (isSeedlessFlow) {
+    await Authentication.syncKeyringEncryptionKey();
   }
   Engine.setSelectedAddress(selectedAddress);
 };
