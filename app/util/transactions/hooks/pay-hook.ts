@@ -14,6 +14,8 @@ import { store } from '../../../store';
 import { ExtractEventHandler } from '@metamask/base-controller';
 import { TransactionBridgeQuote } from '../../../components/Views/confirmations/utils/bridge';
 import { cloneDeep } from 'lodash';
+import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { toHex } from '@metamask/controller-utils';
 
 const log = createProjectLogger('pay-publish-hook');
 
@@ -79,11 +81,17 @@ export class PayHook {
     originalQuote: TransactionBridgeQuote,
   ): Promise<void> {
     const quote = cloneDeep(originalQuote);
+    const sourceChainId = toHex(quote.quote.srcChainId);
+
+    const isSmartTransaction = selectShouldUseSmartTransaction(
+      store.getState(),
+      sourceChainId,
+    );
 
     const result = await this.#messenger.call(
       'BridgeStatusController:submitTx',
       quote,
-      false,
+      isSmartTransaction,
     );
 
     log('Bridge transaction submitted', result);

@@ -12,12 +12,18 @@ import {
 import { store } from '../../../store';
 import { RootState } from '../../../reducers';
 import { StatusTypes } from '@metamask/bridge-controller';
+import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
+
+jest.mock('../../../selectors/smartTransactionsController');
 
 const TRANSACTION_ID_MOCK = '123-456';
 const BRIDGE_TRANSACTION_ID_MOCK = '456-789';
 const BRIDGE_TRANSACTION_ID_2_MOCK = '789-012';
 
 const QUOTE_MOCK = {
+  quote: {
+    srcChainId: 123,
+  },
   trade: { gasLimit: 2000 },
 } as TransactionBridgeQuote;
 
@@ -45,6 +51,10 @@ describe('Pay Publish Hook', () => {
     BridgeStatusControllerEvents
   >;
   let messengerMock: jest.Mocked<TransactionControllerInitMessenger>;
+
+  const selectShouldUseSmartTransactionMock = jest.mocked(
+    selectShouldUseSmartTransaction,
+  );
 
   const submitTransactionMock: jest.MockedFunction<
     BridgeStatusController['submitTx']
@@ -119,6 +129,8 @@ describe('Pay Publish Hook', () => {
 
       return BRIDGE_TRANSACTION_META_2_MOCK;
     });
+
+    selectShouldUseSmartTransactionMock.mockReturnValue(false);
   });
 
   it('submits matching quotes to bridge status controller', async () => {
@@ -126,6 +138,15 @@ describe('Pay Publish Hook', () => {
 
     expect(submitTransactionMock).toHaveBeenCalledWith(QUOTE_MOCK, false);
     expect(submitTransactionMock).toHaveBeenCalledWith(QUOTE_2_MOCK, false);
+  });
+
+  it('indicates if smart transactions is enabled', async () => {
+    selectShouldUseSmartTransactionMock.mockReturnValue(true);
+
+    await runHook();
+
+    expect(submitTransactionMock).toHaveBeenCalledWith(QUOTE_MOCK, true);
+    expect(submitTransactionMock).toHaveBeenCalledWith(QUOTE_2_MOCK, true);
   });
 
   it('does nothing if no matching quotes', async () => {
