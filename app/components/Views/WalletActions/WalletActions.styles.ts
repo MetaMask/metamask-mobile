@@ -9,8 +9,7 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     actionsContainer: {
-      alignItems: 'flex-start',
-      justifyContent: 'center',
+      width: '100%',
       paddingVertical: 16,
     },
     icon: {
