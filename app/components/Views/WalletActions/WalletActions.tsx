@@ -440,7 +440,8 @@ const WalletActions = () => {
           <ActionListItem
             label={strings('asset_overview.perps_button')}
             description={strings('asset_overview.perps_description')}
-            iconName={IconName.Candlestick}
+            // iconName={IconName.Candlestick}
+            iconName={IconName.Usb}
             onPress={onPerps}
             testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
             disabled={!canSignTransactions}
@@ -450,7 +451,7 @@ const WalletActions = () => {
           <ActionListItem
             label={strings('asset_overview.perps_sandbox_button')}
             description={strings('asset_overview.perps_sandbox_description')}
-            iconName={IconName.ArrowRight}
+            iconName={IconName.Arrow2UpRight}
             onPress={onPerpsSandbox}
             testID={WalletActionsBottomSheetSelectorsIDs.PERPS_SANDBOX_BUTTON}
             disabled={!canSignTransactions}

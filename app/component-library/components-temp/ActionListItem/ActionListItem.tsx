@@ -13,6 +13,7 @@ import {
   Text as DesignSystemText,
   TextColor,
   TextVariant,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -33,7 +34,10 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   const renderLabel = () => {
     if (typeof label === 'string') {
       return (
-        <DesignSystemText variant={TextVariant.BodyMd}>
+        <DesignSystemText
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+        >
           {label}
         </DesignSystemText>
       );
@@ -49,6 +53,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
       return (
         <DesignSystemText
           variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
         >
           {description}
