@@ -59,40 +59,88 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -165,39 +213,88 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -2086,40 +2183,88 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -2192,39 +2337,88 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -4113,40 +4307,88 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -4219,39 +4461,88 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -6179,40 +6470,88 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -6285,39 +6624,88 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -8206,40 +8594,88 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -8312,39 +8748,88 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -10233,40 +10718,88 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -10339,39 +10872,88 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -12299,40 +12881,88 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -12405,39 +13035,88 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -12732,40 +13411,88 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -12838,39 +13565,88 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -14759,40 +15535,88 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -14865,39 +15689,88 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -16786,40 +17659,88 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
           <View
@@ -16892,39 +17813,88 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
             <View
               onLayout={[Function]}
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="MoreVertical"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  iconColor="Default"
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="MoreVertical"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
           </View>
         </View>

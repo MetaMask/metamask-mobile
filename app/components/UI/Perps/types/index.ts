@@ -58,3 +58,11 @@ export interface CandleData {
 
 // Export all configuration types directly
 export * from './config';
+
+/**
+ * Standard Structure for Perps LaunchDarkly Feature Flags
+ */
+export interface PerpsLaunchDarklyFlag {
+  enabled: boolean;
+  minimumVersion: string;
+}
