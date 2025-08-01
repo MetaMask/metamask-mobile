@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, TextInput, Keyboard, TouchableOpacity } from 'react-native';
+import { Keyboard, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
@@ -31,9 +31,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import PrivacySection from '../../components/PrivacySection';
@@ -41,6 +41,8 @@ import { timestampToTransakFormat } from '../../utils';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import Logger from '../../../../../../util/Logger';
+import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
@@ -172,9 +174,7 @@ const BasicInfo = (): JSX.Element => {
       // Prepare the form data with proper date formatting
       const basicInfoData = {
         ...formData,
-        dob: formData.dob.trim()
-          ? timestampToTransakFormat(formData.dob)
-          : '',
+        dob: formData.dob.trim() ? timestampToTransakFormat(formData.dob) : '',
       };
 
       // Submit the basic info form data
@@ -248,16 +248,24 @@ const BasicInfo = (): JSX.Element => {
         >
           <ScreenLayout.Content>
             <DepositProgressBar steps={4} currentStep={2} />
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            <Text variant={TextVariant.HeadingMD} style={styles.title}>
               {strings('deposit.basic_info.title')}
             </Text>
             <Text style={styles.subtitle}>
               {strings('deposit.basic_info.subtitle')}
             </Text>
+            {error && (
+              <View style={styles.errorContainer}>
+                <BannerAlert
+                  description={error}
+                  severity={BannerAlertSeverity.Error}
+                />
+              </View>
+            )}
             <View style={styles.nameInputRow}>
               <DepositTextField
                 label={strings('deposit.basic_info.first_name')}
-                placeholder="John"
+                placeholder={strings('deposit.basic_info.first_name')}
                 value={formData.firstName}
                 onChangeText={handleFieldChange(
                   'firstName',
@@ -276,7 +284,7 @@ const BasicInfo = (): JSX.Element => {
 
               <DepositTextField
                 label={strings('deposit.basic_info.last_name')}
-                placeholder="Smith"
+                placeholder={strings('deposit.basic_info.last_name')}
                 value={formData.lastName}
                 onChangeText={handleFieldChange(
                   'lastName',
@@ -372,11 +380,9 @@ const BasicInfo = (): JSX.Element => {
                 }}
               />
             )}
-            {error && <Text style={styles.error}>{error}</Text>}
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
       </ScreenLayout.Body>
-
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
           <PrivacySection />

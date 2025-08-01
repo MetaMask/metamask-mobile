@@ -34,6 +34,8 @@ import { VALIDATION_REGEX } from '../../constants/constants';
 import { getCryptoCurrencyFromTransakId } from '../../utils';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
+import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 export interface EnterAddressParams {
   quote: BuyQuote;
@@ -54,8 +56,7 @@ interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { quote } =
-    useParams<EnterAddressParams>();
+  const { quote } = useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -192,9 +193,9 @@ const EnterAddress = (): JSX.Element => {
       kyc_type: 'SIMPLE',
     });
 
-          try {
-        setLoading(true);
-        await postKycForm(formData);
+    try {
+      setLoading(true);
+      await postKycForm(formData);
 
       await routeAfterAuthentication(quote);
     } catch (submissionError) {
@@ -238,6 +239,14 @@ const EnterAddress = (): JSX.Element => {
                 {strings('deposit.enter_address.subtitle')}
               </Text>
             </View>
+            {error && (
+              <View style={styles.errorContainer}>
+                <BannerAlert
+                  description={error}
+                  severity={BannerAlertSeverity.Error}
+                />
+              </View>
+            )}
 
             <DepositTextField
               label={strings('deposit.enter_address.address_line_1')}
@@ -358,7 +367,6 @@ const EnterAddress = (): JSX.Element => {
                 }
               />
             </View>
-            {error && <Text style={styles.error}>{error}</Text>}
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
         <ScreenLayout.Footer>
