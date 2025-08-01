@@ -1,5 +1,4 @@
 @androidApp
-@performance
 Feature: Measure Fresh Install Cold Start
     # This feature measures the cold start of the app when:
     # The user installs the app for the very first time
