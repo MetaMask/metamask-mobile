@@ -10,7 +10,7 @@ import {
   BoxJustifyContent,
   Icon,
   IconSize,
-  Text as DesignSystemText,
+  Text,
   TextColor,
   TextVariant,
   FontWeight,
@@ -37,13 +37,13 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   const renderLabel = () => {
     if (typeof label === 'string') {
       return (
-        <DesignSystemText
+        <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           {...labelTextProps}
         >
           {label}
-        </DesignSystemText>
+        </Text>
       );
     }
     return label;
@@ -55,14 +55,14 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
 
     if (typeof description === 'string') {
       return (
-        <DesignSystemText
+        <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           {...descriptionTextProps}
         >
           {description}
-        </DesignSystemText>
+        </Text>
       );
     }
     return description;
@@ -84,14 +84,11 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   const getStyle = useCallback(
     ({ pressed }: { pressed: boolean }) =>
       tw.style('bg-default px-4 py-3', pressed && 'bg-default-pressed'),
-    [tw]
+    [tw],
   );
 
   return (
-    <Pressable
-      style={getStyle}
-      {...pressableProps}
-    >
+    <Pressable style={getStyle} {...pressableProps}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
