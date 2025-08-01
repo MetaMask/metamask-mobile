@@ -1026,22 +1026,21 @@ export function getWalletNavbarOptions(
   const actionButtons = (
     <View style={innerStyles.actionButtonsContainer}>
       <View testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}>
-        {isCardholder ? (
-          <ButtonIcon
-            iconProps={{ color: MMDSIconColor.Default }}
-            onPress={handleCardPress}
-            iconName={IconName.Card}
-            size={ButtonIconSize.Lg}
-            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-            hitSlop={innerStyles.touchAreaSlop}
-          />
-        ) : (
-          <AddressCopy
-            account={selectedInternalAccount}
-            hitSlop={innerStyles.touchAreaSlop}
-          />
-        )}
+        <AddressCopy
+          account={selectedInternalAccount}
+          hitSlop={innerStyles.touchAreaSlop}
+        />
       </View>
+      {isCardholder ? (
+        <ButtonIcon
+          iconProps={{ color: MMDSIconColor.Default }}
+          onPress={handleCardPress}
+          iconName={IconName.Card}
+          size={ButtonIconSize.Lg}
+          testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+          hitSlop={innerStyles.touchAreaSlop}
+        />
+      ) : null}
       {isNotificationsFeatureEnabled() && (
         <BadgeWrapper
           position={BadgeWrapperPosition.TopRight}

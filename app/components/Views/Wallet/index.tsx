@@ -118,10 +118,7 @@ import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
-import {
-  safeToChecksumAddress,
-  toFormattedAddress,
-} from '../../../util/address';
+import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
@@ -146,7 +143,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import { selectCardholderAccounts } from '../../../core/redux/slices/card';
+import { selectIsCardholder } from '../../../core/redux/slices/card';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -671,22 +668,7 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
-  const cardholderAccounts = useSelector(selectCardholderAccounts);
-  const isCardholder = useMemo(() => {
-    if (!selectedInternalAccount?.address || !cardholderAccounts?.length) {
-      return false;
-    }
-
-    if (selectedInternalAccount.type === 'eip155:eoa') {
-      const checksumInternalAccount = safeToChecksumAddress(
-        selectedInternalAccount.address,
-      );
-
-      if (checksumInternalAccount) {
-        return cardholderAccounts.includes(checksumInternalAccount);
-      }
-    }
-  }, [cardholderAccounts, selectedInternalAccount]);
+  const isCardholder = useSelector(selectIsCardholder);
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
