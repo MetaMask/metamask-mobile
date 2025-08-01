@@ -26,11 +26,10 @@ describe('InfoRowOrigin', () => {
   });
 
   it('does not render origin for wallet originated approvals', async () => {
-    const { queryByText, debug } = renderWithProvider(<OriginRow />, {
+    const { queryByText } = renderWithProvider(<OriginRow />, {
       // Wallet originated approval
       state: approveERC20TransactionStateMock,
     });
-    debug();
     expect(queryByText('Request from')).toBeNull();
   });
 });
