@@ -196,6 +196,12 @@ const AddressList = ({
 
     return (
       <View style={styles.yourContactcWrapper}>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          style={styles.labelElementText}
+        >
+          {strings('onboarding_wizard.step2.title')}
+        </Text>
         <FlashList
           data={internalAccounts}
           renderItem={({ item: account }) => (
