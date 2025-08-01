@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTransactionMaxGasCost } from '../gas/useTransactionMaxGasCost';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
-import { Hex, add0x } from '@metamask/utils';
+import { Hex, add0x, createProjectLogger } from '@metamask/utils';
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { toHex } from '@metamask/controller-utils';
@@ -9,6 +9,9 @@ import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithB
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
+import { useDeepMemo } from '../useDeepMemo';
+
+const log = createProjectLogger('transaction-pay');
 
 export interface TransactionToken {
   address: Hex;
@@ -45,10 +48,13 @@ export function useTransactionRequiredTokens() {
     chainId,
   );
 
-  // Temporarily using deep equality as useTokensWithBalance is unstable and finalTokens is likely very small.
-  // eslint-disable-next-line react-compiler/react-compiler
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => finalTokens, [JSON.stringify(finalTokens)]);
+  const result = useDeepMemo(() => finalTokens, [finalTokens]);
+
+  useEffect(() => {
+    log('Required tokens', result);
+  }, [result]);
+
+  return result;
 }
 
 function useTokenTransferToken(): TransactionToken | undefined {

@@ -1,4 +1,3 @@
-import EnableNotificationsModal from '../../pages/Notifications/EnableNotificationsModal';
 import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
 import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
 import WalletView from '../../pages/wallet/WalletView';
@@ -40,12 +39,6 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         await loginToApp();
         // Bell Icon
         await WalletView.tapBellIcon();
-
-        // Enable Notifications Modal
-        await Assertions.expectElementToBeVisible(
-          EnableNotificationsModal.title,
-        );
-        await EnableNotificationsModal.tapOnConfirm();
 
         await Assertions.expectElementToBeVisible(NotificationMenuView.title);
         await Assertions.expectElementToBeVisible(
