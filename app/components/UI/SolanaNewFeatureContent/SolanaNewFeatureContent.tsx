@@ -1,28 +1,28 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, Linking, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 
-import FoxVipers from '../../../images/Fox_Vipers.png';
-import { baseStyles, colors as importedColors } from '../../../styles/common';
+import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
+import { strings } from '../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import createStyles from './SolanaNewFeatureContent.styles';
-import StorageWrapper from '../../../store/storage-wrapper';
+import Routes from '../../../constants/navigation/Routes';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
 import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
-import Routes from '../../../constants/navigation/Routes';
-import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import FoxVipers from '../../../images/Fox_Vipers.png';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import createStyles from './SolanaNewFeatureContent.styles';
 
 const SolanaNewFeatureContent = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -80,6 +80,9 @@ const SolanaNewFeatureContent = () => {
       <ScrollView
         style={baseStyles.flexGrow}
         contentContainerStyle={styles.scroll}
+        bounces
+        scrollEnabled
+        keyboardShouldPersistTaps="handled"
       >
         <View style={styles.wrapper}>
           <Text
