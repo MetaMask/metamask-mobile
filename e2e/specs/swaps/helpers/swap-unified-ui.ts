@@ -1,5 +1,5 @@
 import TestHelpers from '../../../helpers';
-import QuoteView from '../../../pages/Bridge/QuoteView';
+import QuoteView from '../../../pages/swaps/QuoteView';
 import Assertions from '../../../framework/Assertions';
 
 export async function submitSwapUnifiedUI(

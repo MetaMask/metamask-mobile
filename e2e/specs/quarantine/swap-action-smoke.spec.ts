@@ -1,19 +1,20 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNodeType } from '../../framework/types';
-import SoftAssert from '../../utils/SoftAssert';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Assertions from '../../framework/Assertions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import { SmokeTrade } from '../../tags';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
-import { loginToApp } from '../../viewHelper';
-import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
-import { logger } from '../../framework/logger';
-import { testSpecificMock } from './helpers/swap-mocks';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
+import { LocalNodeType } from '../../framework/types.js';
+import SoftAssert from '../../utils/SoftAssert.js';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
+import Assertions from '../../framework/Assertions.js';
+import { defaultGanacheOptions } from '../../framework/Constants.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
+import { SmokeTrade } from '../../tags.js';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers.js';
+import { submitSwapUnifiedUI } from '../swaps/helpers/swapUnifiedUI.js';
+import { loginToApp } from '../../viewHelper.js';
+import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment.js';
+import { logger } from '../../framework/logger.js';
+import { testSpecificMock } from '../swaps/helpers/swap-mocks.js';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',
@@ -31,25 +32,32 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     jest.setTimeout(120000);
   });
 
-  it('should swap ETH to USDC', async (): Promise<void> => {
-    const quantity = '1';
-    const sourceTokenSymbol = 'ETH';
-    const destTokenSymbol = 'USDC';
-    const chainId = '0x1';
-
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork(chainId)
-          .withMetaMetricsOptIn()
-          .withDisabledSmartTransactions()
-          .build(),
-        localNodeOptions: [
-          {
-            type: LocalNodeType.anvil,
-            options: {
-              chainId: 1,
-              forkUrl: `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
+  it.each`
+    type      | quantity | sourceTokenSymbol | destTokenSymbol | chainId
+    ${'swap'} | ${'1'}   | ${'ETH'}          | ${'USDC'}       | ${'0x1'}
+  `(
+    "should $type token '$sourceTokenSymbol' to '$destTokenSymbol' on chainID='$chainId'",
+    async ({
+      type,
+      quantity,
+      sourceTokenSymbol,
+      destTokenSymbol,
+      chainId,
+    }): Promise<void> => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withGanacheNetwork('0x1')
+            .withMetaMetricsOptIn()
+            .withDisabledSmartTransactions()
+            .build(),
+          localNodeOptions: [
+            {
+              type: LocalNodeType.ganache,
+              options: {
+                ...defaultGanacheOptions,
+                chainId: 1,
+              },
             },
           ],
           testSpecificMock,
@@ -65,53 +73,49 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
               logger.error(`Error capturing events: ${errorMessage}`);
             }
           },
-        ],
-        mockServerInstance: mockServer,
-        restartDevice: true,
-        endTestfn: async ({ mockServer: mockServerInstance }) => {
-          try {
-            // Capture all events without filtering.
-            // When fixing the test skipped below the filter needs to be applied there.
-            capturedEvents = await getEventsPayloads(
-              mockServerInstance,
-              [],
-              30000,
+        },
+        async () => {
+          await loginToApp();
+          await prepareSwapsTestEnvironment();
+          await TabBarComponent.tapActions();
+          await Assertions.expectElementToBeVisible(
+            WalletActionsBottomSheet.swapButton,
+          );
+          await WalletActionsBottomSheet.tapSwapButton();
+
+          // Submit the Swap
+          await submitSwapUnifiedUI(
+            quantity,
+            sourceTokenSymbol,
+            destTokenSymbol,
+            chainId,
+          );
+
+          // Check the swap activity completed
+          await Assertions.expectElementToBeVisible(ActivitiesView.title);
+          await Assertions.expectElementToHaveText(
+            ActivitiesView.transactionStatus(FIRST_ROW),
+            ActivitiesViewSelectorsText.CONFIRM_TEXT,
+          );
+
+          // Check the token approval completed
+          if (type === 'unapproved') {
+            await Assertions.expectElementToBeVisible(
+              ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
             );
-          } catch (error: unknown) {
-            const errorMessage =
-              error instanceof Error ? error.message : String(error);
-            logger.error(`Error capturing events: ${errorMessage}`);
+            await Assertions.expectElementToHaveText(
+              ActivitiesView.transactionStatus(SECOND_ROW),
+              ActivitiesViewSelectorsText.CONFIRM_TEXT,
+            );
           }
         },
-      },
-      async () => {
-        await loginToApp();
-        await prepareSwapsTestEnvironment();
-        await TabBarComponent.tapActions();
-        await Assertions.expectElementToBeVisible(
-          WalletActionsBottomSheet.swapButton,
-        );
-        await WalletActionsBottomSheet.tapSwapButton();
-        // Submit the Swap
-        await submitSwapUnifiedUI(
-          quantity,
-          sourceTokenSymbol,
-          destTokenSymbol,
-          chainId,
-        );
-
-        // Check the swap activity completed
-        await Assertions.expectElementToBeVisible(ActivitiesView.title);
-        await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(FIRST_ROW),
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          { timeout: 60000 },
-        );
-      },
-    );
-  });
+      );
+    },
+  );
 
   it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
+    console.log('capturedEvents', capturedEvents);
+
     const testCases = [
       {
         type: 'swap',
