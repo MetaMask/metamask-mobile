@@ -54,12 +54,16 @@ const selectCardState = (state: RootState) => state[name];
 
 // Derived selectors using createSelector
 export const selectCardholderAccounts = createSelector(
-  [selectCardState],
+  selectCardState,
   (card) => card.cardholderAccounts,
 );
 
+const selectSelectedInternalAccount = (state: RootState) =>
+  selectSelectedInternalAccountFormattedAddress(state);
+
 export const selectIsCardholder = createSelector(
-  [selectCardholderAccounts, selectSelectedInternalAccountFormattedAddress],
+  selectCardholderAccounts,
+  selectSelectedInternalAccount,
   (cardholderAccounts, selectedInternalAccountAddress) => {
     if (!selectedInternalAccountAddress) {
       return false;
