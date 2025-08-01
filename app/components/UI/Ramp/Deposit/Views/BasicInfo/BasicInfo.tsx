@@ -73,13 +73,10 @@ const BasicInfo = (): JSX.Element => {
   const ssnInputRef = useRef<TextInput>(null);
 
   const utcDateToPrefill = new Date(previousFormData?.dob || '');
-  // @ts-expect-error - this is a valid check for a date object
-  const localTimestampToUseInternally = isNaN(utcDateToPrefill)
+  const timestamp = utcDateToPrefill.getTime();
+  const localTimestampToUseInternally = isNaN(timestamp)
     ? ''
-    : (
-        utcDateToPrefill.getTime() -
-        utcDateToPrefill.getTimezoneOffset() * 60 * 1000
-      ).toString();
+    : (timestamp - utcDateToPrefill.getTimezoneOffset() * 60 * 1000).toString();
 
   const initialFormData: BasicInfoFormData = {
     firstName: previousFormData?.firstName || '',
