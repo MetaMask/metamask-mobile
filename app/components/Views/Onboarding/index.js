@@ -682,7 +682,12 @@ class Onboarding extends PureComponent {
         </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
+          <Text
+            style={styles.loadingText}
+            color={lightTheme.colors.text.default}
+          >
+            {this.props.loadingMsg}
+          </Text>
         </View>
       </View>
     );
@@ -812,9 +817,8 @@ class Onboarding extends PureComponent {
                   onPress={this.onLogin}
                   isFullWidth
                   size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-                >
-                  {strings('onboarding.unlock')}
-                </ButtonLink>
+                  label={strings('onboarding.unlock')}
+                />
               </View>
             )}
           </ScrollView>
