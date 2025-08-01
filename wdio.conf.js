@@ -11,9 +11,9 @@ import {
   deployErc20,
   deployErc721,
 } from './wdio/utils/ganache';
-import FixtureBuilder from './e2e/fixtures/fixture-builder';
-import { loadFixture, startFixtureServer, stopFixtureServer } from './e2e/fixtures/fixture-helper';
-import FixtureServer from './e2e/fixtures/fixture-server';
+import FixtureBuilder from './e2e/framework/fixtures/FixtureBuilder';
+import { loadFixture, startFixtureServer, stopFixtureServer } from './e2e/framework/fixtures/FixtureHelper';
+import FixtureServer from './e2e/framework/fixtures/FixtureServer';
 const { removeSync } = require('fs-extra');
 
 const fixtureServer = new FixtureServer();
