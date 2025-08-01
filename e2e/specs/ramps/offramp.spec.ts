@@ -4,7 +4,7 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { getMockServerPort } from '../../fixtures/utils';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';

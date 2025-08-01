@@ -1,7 +1,7 @@
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import Browser from '../../../pages/Browser/BrowserView';
 import ConfirmationFooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';

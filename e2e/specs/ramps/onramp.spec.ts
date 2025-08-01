@@ -12,7 +12,7 @@ import QuotesView from '../../pages/Ramps/QuotesView';
 import SoftAssert from '../../utils/SoftAssert';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../fixtures/utils';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { Mockttp } from 'mockttp';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';

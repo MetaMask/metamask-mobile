@@ -10,7 +10,7 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../framework/Assertions';
 import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;

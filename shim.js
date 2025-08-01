@@ -4,7 +4,7 @@ import { decode, encode } from 'base-64';
 import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
-  FIXTURE_SERVER_PORT,
+  getFixturesServerPort,
   isTest,
   enableApiCallLogs,
   testConfig,
@@ -28,7 +28,7 @@ if (isTest) {
   const raw = LaunchArguments.value();
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
-    : FIXTURE_SERVER_PORT;
+    : getFixturesServerPort();
 }
 
 if (!global.btoa) {

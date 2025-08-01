@@ -1,4 +1,4 @@
-import { getGanachePort } from '../../../e2e/fixtures/utils';
+import { getGanachePort } from '../../../e2e/framework/fixtures/FixtureUtils';
 import ganache from 'ganache';
 
 export const DEFAULT_GANACHE_PORT = 8545;

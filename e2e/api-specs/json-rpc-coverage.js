@@ -18,7 +18,7 @@ import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
 import { createDriverTransport } from './helpers';
 import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.selectors';
-import { getGanachePort } from '../fixtures/utils';
+import { getGanachePort } from '../framework/fixtures/FixtureUtils';
 import { mockEvents } from '../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../framework/Constants';
 

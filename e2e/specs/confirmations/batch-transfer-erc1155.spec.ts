@@ -11,7 +11,7 @@ import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browse
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../../framework/Constants';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 
 describe(SmokeConfirmations('ERC1155 token'), () => {
   const ERC1155_CONTRACT = SMART_CONTRACTS.ERC1155;

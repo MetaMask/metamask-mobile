@@ -9,7 +9,7 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../fixtures/utils';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
   EventPayload,
