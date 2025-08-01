@@ -5,9 +5,13 @@ project_type: react-native
 
 #Pipelines are listed below
 pipelines:
+  # Generates prod builds for all targets
   create_prod_builds_pipeline:
     stages:
       - create_prod_builds: {}
+  create_android_env_builds_pipeline:
+    stages:
+      - create_android_env_builds: {}
   #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
   create_qa_builds_pipeline:
     stages:
@@ -246,6 +250,19 @@ stages:
       - build_android_qa_prod: {}
       - build_ios_flask_prod: {}
       - build_android_flask_prod: {}
+  create_android_env_builds:
+    workflows:
+      - build_android_main_prod: {}
+      - build_android_main_rc: {}
+      - build_android_main_beta: {}
+      - build_android_main_exp: {}
+      - build_android_main_test: {}
+      - build_android_main_e2e: {}
+      - build_android_main_local: {}
+      - build_android_flask_prod: {}
+      - build_android_flask_test: {}
+      - build_android_flask_e2e: {}
+      - build_android_flask_local: {}
   create_build_qa_android:
     workflows:
       - build_android_qa: {}
