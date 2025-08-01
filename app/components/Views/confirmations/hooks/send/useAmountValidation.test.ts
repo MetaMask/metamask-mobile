@@ -2,7 +2,10 @@ import {
   ProviderValues,
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
-import { evmSendStateMock } from '../../__mocks__/send.mock';
+import {
+  evmSendStateMock,
+  TOEKN_ADDRESS_MOCK_1,
+} from '../../__mocks__/send.mock';
 import {
   useAmountValidation,
   validateAmountFn,
@@ -15,9 +18,9 @@ const mockState = {
 
 const getArguments = (params: Record<string, unknown>) =>
   ({
-    from: '0x123',
+    from: TOEKN_ADDRESS_MOCK_1,
     asset: {},
-    accounts: { '0x123': { balance: '0x3635C9ADC5DEA00000' } },
+    accounts: { [TOEKN_ADDRESS_MOCK_1]: { balance: '0x3635C9ADC5DEA00000' } },
     contractBalances: { '0x111': '0x3B9ACA00' },
     ...params,
   } as unknown as ValidateAmountArgs);
