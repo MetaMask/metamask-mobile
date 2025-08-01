@@ -82,7 +82,7 @@ jobs:
           yarn setup:github-ci --no-build-ios
           echo "🏗 Building Android APP..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          export GRADLE_ARGS="-PciEnv=github --init-script android/github-init.gradle"
+          export GRADLE_ARGS="-PciEnv=github --init-script github-init.gradle"
           yarn build:android:qa
         shell: bash
         env:
