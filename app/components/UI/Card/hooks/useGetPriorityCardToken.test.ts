@@ -3,9 +3,9 @@ import { useCardSDK } from '../sdk';
 import { CardToken, CardTokenAllowance, AllowanceState } from '../types';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import { useGetAllowances } from './useGetAllowances';
-import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
@@ -17,16 +17,6 @@ jest.mock('./useGetAllowances', () => ({
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    TokenBalancesController: {
-      state: {
-        tokenBalances: {},
-      },
-    },
-  },
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -104,7 +94,15 @@ describe('useGetPriorityCardToken', () => {
     mockFetchAllowances.mockReset();
     mockTrace.mockReset();
     mockEndTrace.mockReset();
-    mockUseSelector.mockReturnValue('0x1');
+    mockUseSelector.mockReturnValue({
+      [mockAddress.toLowerCase()]: {
+        '0x1': {
+          '0xToken1': '1000000000000000000',
+          '0xToken2': '500000000000000000',
+          '0xToken3': '0',
+        },
+      },
+    });
 
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
     (useGetAllowances as jest.Mock).mockReturnValue({
@@ -120,20 +118,6 @@ describe('useGetPriorityCardToken', () => {
     const { trace, endTrace } = jest.requireMock('../../../../util/trace');
     trace.mockImplementation(mockTrace);
     endTrace.mockImplementation(mockEndTrace);
-
-    // Mock Engine TokenBalancesController with proper types
-    (Engine.context.TokenBalancesController.state.tokenBalances as Record<
-      string,
-      Record<string, Record<string, string>>
-    >) = {
-      [mockAddress.toLowerCase()]: {
-        '0x1': {
-          '0xToken1': '1000000000000000000',
-          '0xToken2': '500000000000000000',
-          '0xToken3': '0',
-        },
-      },
-    };
   });
 
   it('should initialize with correct default state', async () => {
@@ -234,7 +218,9 @@ describe('useGetPriorityCardToken', () => {
   });
 
   it('should not fetch when address is not provided', async () => {
-    const { result } = renderHook(() => useGetPriorityCardToken(undefined));
+    const { result } = renderHook(() =>
+      useGetPriorityCardToken(undefined, false),
+    );
 
     // Wait for useEffect to complete
     await act(async () => {
@@ -261,7 +247,7 @@ describe('useGetPriorityCardToken', () => {
       ...mockSDK.supportedTokens[0],
       allowanceState: AllowanceState.NotEnabled,
       isStaked: false,
-      chainId: '0x1',
+      chainId: LINEA_CHAIN_ID,
     });
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(false);
@@ -380,17 +366,14 @@ describe('useGetPriorityCardToken', () => {
     };
 
     // Mock balances where suggested token has zero balance
-    (Engine.context.TokenBalancesController.state.tokenBalances as Record<
-      string,
-      Record<string, Record<string, string>>
-    >) = {
+    mockUseSelector.mockReturnValue({
       [mockAddress.toLowerCase()]: {
         '0x1': {
-          '0xZeroBalance': '0', // Zero balance
-          '0xToken2': '500000000000000000', // Positive balance
+          '0xZeroBalance': '0', // Zero balance (exact case match with suggested token)
+          '0xToken2': '500000000000000000', // Positive balance (exact case match with allowance)
         },
       },
-    };
+    });
 
     mockFetchAllowances.mockResolvedValue(allowancesWithZeroBalance);
     mockGetPriorityToken.mockResolvedValue(suggestedTokenWithZeroBalance);
@@ -435,17 +418,14 @@ describe('useGetPriorityCardToken', () => {
     };
 
     // Mock balances where all tokens have zero balance
-    (Engine.context.TokenBalancesController.state.tokenBalances as Record<
-      string,
-      Record<string, Record<string, string>>
-    >) = {
+    mockUseSelector.mockReturnValue({
       [mockAddress.toLowerCase()]: {
         '0x1': {
           '0xZeroBalance1': '0',
           '0xZeroBalance2': '0',
         },
       },
-    };
+    });
 
     mockFetchAllowances.mockResolvedValue(allowancesWithZeroBalance);
     mockGetPriorityToken.mockResolvedValue(suggestedTokenWithZeroBalance);
@@ -558,10 +538,7 @@ describe('useGetPriorityCardToken', () => {
     };
 
     // Set up proper token balances for both addresses
-    (Engine.context.TokenBalancesController.state.tokenBalances as Record<
-      string,
-      Record<string, Record<string, string>>
-    >) = {
+    mockUseSelector.mockReturnValue({
       [address1.toLowerCase()]: {
         '0x1': {
           '0xToken1': '1000000000000000000',
@@ -572,7 +549,7 @@ describe('useGetPriorityCardToken', () => {
           '0xToken2': '500000000000000000',
         },
       },
-    };
+    });
 
     // Use mockResolvedValue instead of mockResolvedValueOnce for multiple calls
     mockFetchAllowances.mockResolvedValue([mockAllowance1]);

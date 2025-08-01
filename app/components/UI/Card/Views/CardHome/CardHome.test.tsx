@@ -7,6 +7,7 @@ import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AllowanceState } from '../../types';
+import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -46,8 +47,6 @@ const mockNavigateToCardPage = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockDispatch = jest.fn();
 
-const mockUseGetPriorityCardToken = jest.fn();
-
 const mockUseAssetBalance = jest.fn(() => ({
   balanceFiat: '$1,000.00',
   asset: {
@@ -65,7 +64,7 @@ const mockUseSwapBridgeNavigation = jest.fn(() => ({
 }));
 
 jest.mock('../../hooks/useGetPriorityCardToken', () => ({
-  useGetPriorityCardToken: () => mockUseGetPriorityCardToken(),
+  useGetPriorityCardToken: jest.fn(),
 }));
 
 jest.mock('../../hooks/useAssetBalance', () => ({
@@ -185,6 +184,10 @@ jest.mock('react', () => {
         // This is the retries useState call
         return [0, jest.fn()];
       }
+      if (initial === true) {
+        // This is the isLoadingNetworkChange useState call - start as false for tests
+        return [false, jest.fn()];
+      }
       return actualReact.useState(initial);
     },
   };
@@ -216,7 +219,8 @@ describe('CardHome Component', () => {
     mockFindNetworkClientIdByChainId.mockReturnValue(''); // Prevent network switching in most tests - empty string is falsy
     mockSetPrivacyMode.mockClear();
 
-    mockUseGetPriorityCardToken.mockReturnValue({
+    // Setup the mock for useGetPriorityCardToken
+    (useGetPriorityCardToken as jest.Mock).mockReturnValue({
       priorityToken: mockPriorityToken,
       fetchPriorityToken: mockFetchPriorityToken,
       isLoading: false,
@@ -315,7 +319,7 @@ describe('CardHome Component', () => {
   });
 
   it('displays loading state when priority token is loading', () => {
-    mockUseGetPriorityCardToken.mockReturnValueOnce({
+    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
       priorityToken: mockPriorityToken,
       fetchPriorityToken: mockFetchPriorityToken,
       isLoading: true,
@@ -405,7 +409,7 @@ describe('CardHome Component', () => {
   });
 
   it('displays error state when there is an error fetching priority token', () => {
-    mockUseGetPriorityCardToken.mockReturnValueOnce({
+    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
       priorityToken: null,
       fetchPriorityToken: mockFetchPriorityToken,
       isLoading: false,
@@ -420,7 +424,7 @@ describe('CardHome Component', () => {
   });
 
   it('calls fetchPriorityToken when try again button is pressed', async () => {
-    mockUseGetPriorityCardToken.mockReturnValueOnce({
+    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
       priorityToken: null,
       fetchPriorityToken: mockFetchPriorityToken,
       isLoading: false,
@@ -443,7 +447,7 @@ describe('CardHome Component', () => {
       allowanceState: AllowanceState.Limited,
     };
 
-    mockUseGetPriorityCardToken.mockReturnValueOnce({
+    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
       priorityToken: limitedAllowanceToken,
       fetchPriorityToken: mockFetchPriorityToken,
       isLoading: false,

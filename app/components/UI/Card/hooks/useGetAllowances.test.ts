@@ -16,6 +16,18 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    Card: 'Card',
+  },
+  TraceOperation: {
+    CardGetSupportedTokensAllowances: 'CardGetSupportedTokensAllowances',
+  },
 }));
 
 describe('useGetAllowances', () => {
@@ -87,7 +99,9 @@ describe('useGetAllowances', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetSupportedTokensAllowances.mockReset();
-    (useSelector as jest.Mock).mockImplementation(() => mockChainId);
+
+    // Mock useSelector to return the mockChainId
+    (useSelector as jest.Mock).mockReturnValue(mockChainId);
   });
 
   it('should return fetchAllowances function', () => {

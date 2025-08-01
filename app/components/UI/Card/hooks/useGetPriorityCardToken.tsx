@@ -36,7 +36,7 @@ import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesContr
  */
 export const useGetPriorityCardToken = (
   selectedAddress?: string,
-  shouldFetch?: boolean,
+  shouldFetch: boolean = true,
 ) => {
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -83,11 +83,6 @@ export const useGetPriorityCardToken = (
       if (!sdk || !selectedAddress) {
         setIsLoading(false);
         return null;
-      }
-
-      if (priorityToken) {
-        setIsLoading(false);
-        return priorityToken;
       }
 
       try {
@@ -180,16 +175,11 @@ export const useGetPriorityCardToken = (
       } finally {
         setIsLoading(false);
       }
-    }, [
-      sdk,
-      selectedAddress,
-      fetchAllowances,
-      getBalancesForChain,
-      priorityToken,
-    ]);
+    }, [sdk, selectedAddress, fetchAllowances, getBalancesForChain]);
 
   useEffect(() => {
     if (selectedAddress && shouldFetch) {
+      setPriorityToken(null); // Reset priority token when address changes
       fetchPriorityToken().then((token) => {
         setPriorityToken(token);
       });
