@@ -67,7 +67,7 @@ export const recreateSeedlessVaultWithNewPassword = async (
 };
 
 /**
- * Recreates a vault with the new password
+ * Recreates keyring and seedless storage vault with the new password.
  *
  * @param password - current password
  * @param newPassword - new password
