@@ -221,7 +221,7 @@ class TestSnaps {
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
     )) as IndexableWebElement;
 
-    await Utilities.executeWithRetry(
+    await Utilities.waitUntil(
       async () => {
         try {
           await this.tapButton('getWebSocketState');
