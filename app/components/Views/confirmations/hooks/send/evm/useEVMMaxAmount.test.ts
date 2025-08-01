@@ -1,7 +1,4 @@
-import {
-  ProviderValues,
-  renderHookWithProvider,
-} from '../../../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import {
   evmSendStateMock,
   TOKEN_ADDRESS_MOCK_1,
@@ -11,8 +8,8 @@ import {
   getEstimatedTotalGas,
   GetMaxValueArgs,
   getMaxValueFn,
-  useEVMMaxAmount,
-} from './useEVMMaxAmount';
+  useEvmMaxAmount,
+} from './useEvmMaxAmount';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: () => ({
@@ -89,12 +86,12 @@ describe('getMaxValueFn', () => {
   });
 });
 
-describe('useEVMMaxAmount', () => {
-  it('return function getEVMMaxAmount', () => {
+describe('useEvmMaxAmount', () => {
+  it('return function getEvmMaxAmount', () => {
     const { result } = renderHookWithProvider(
-      () => useEVMMaxAmount(),
-      mockState as ProviderValues,
+      () => useEvmMaxAmount(),
+      mockState,
     );
-    expect(result.current.getEVMMaxAmount).toBeDefined();
+    expect(result.current.getEvmMaxAmount).toBeDefined();
   });
 });

@@ -1,10 +1,8 @@
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Engine from '../../../../../../core/Engine';
-import {
-  ProviderValues,
-  renderHookWithProvider,
-} from '../../../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as ENSUtils from '../../../../../../util/ENSUtils';
 // eslint-disable-next-line import/no-namespace
@@ -12,10 +10,9 @@ import * as ConfusablesUtils from '../../../../../../util/confusables';
 import { evmSendStateMock } from '../../../__mocks__/send.mock';
 import {
   shouldSkipValidation,
-  ShouldSkipValidationArgs,
-  useEVMToAddressValidation,
+  useEvmToAddressValidation,
   validateToAddress,
-} from './useEVMToAddressValidation';
+} from './useEvmToAddressValidation';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -28,6 +25,13 @@ jest.mock('../../../../../core/Engine', () => ({
 const mockState = {
   state: evmSendStateMock,
 };
+
+interface ShouldSkipValidationArgs {
+  toAddress?: string;
+  chainId?: string;
+  addressBook: AddressBookControllerState['addressBook'];
+  internalAccounts: InternalAccount[];
+}
 
 describe('shouldSkipValidation', () => {
   it('returns true if to address is not defined', () => {
@@ -177,12 +181,12 @@ describe('validateToAddress', () => {
   });
 });
 
-describe('validatuseEVMToAddressValidationeEVMToAddress', () => {
-  it('return function validateEVMToAddress', () => {
+describe('validatuseEvmToAddressValidationeEvmToAddress', () => {
+  it('return function validateEvmToAddress', () => {
     const { result } = renderHookWithProvider(
-      () => useEVMToAddressValidation(),
-      mockState as ProviderValues,
+      () => useEvmToAddressValidation(),
+      mockState,
     );
-    expect(result.current.validateEVMToAddress).toBeDefined();
+    expect(result.current.validateEvmToAddress).toBeDefined();
   });
 });

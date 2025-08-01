@@ -1,7 +1,4 @@
-import {
-  ProviderValues,
-  renderHookWithProvider,
-} from '../../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   evmSendStateMock,
   TOKEN_ADDRESS_MOCK_1,
@@ -108,7 +105,7 @@ describe('useConversions', () => {
   it('return function getMaxAmount', () => {
     const { result } = renderHookWithProvider(
       () => useConversions(),
-      mockState as ProviderValues,
+      mockState,
     );
     expect(result.current.getFiatDisplayValue).toBeDefined();
     expect(result.current.getFiatValue).toBeDefined();

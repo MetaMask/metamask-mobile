@@ -4,22 +4,22 @@ import { AssetType } from '../../../types/token';
 import { isNativeToken } from '../../../utils/generic';
 import { useSendContext } from '../../../context/send-context';
 
-export const getNonEVMMaxValueFn = (asset?: AssetType) => {
+export const getNonEvmMaxValueFn = (asset?: AssetType) => {
   if (!asset || isNativeToken(asset)) {
     return undefined;
   }
   return asset.balance;
 };
 
-export const useNonEVMMaxAmount = () => {
+export const useNonEvmMaxAmount = () => {
   const { asset } = useSendContext();
 
-  const getNonEVMMaxAmount = useCallback(
-    () => getNonEVMMaxValueFn(asset),
+  const getNonEvmMaxAmount = useCallback(
+    () => getNonEvmMaxValueFn(asset),
     [asset],
   );
 
   return {
-    getNonEVMMaxAmount,
+    getNonEvmMaxAmount,
   };
 };

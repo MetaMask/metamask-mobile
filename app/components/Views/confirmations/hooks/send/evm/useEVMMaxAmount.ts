@@ -73,13 +73,13 @@ export const getMaxValueFn = ({
   );
 };
 
-export const useEVMMaxAmount = () => {
+export const useEvmMaxAmount = () => {
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
   const { asset, from } = useSendContext();
   const { gasFeeEstimates } = useGasFeeEstimatesForSend();
 
-  const getEVMMaxAmount = useCallback(
+  const getEvmMaxAmount = useCallback(
     () =>
       getMaxValueFn({
         accounts,
@@ -91,5 +91,5 @@ export const useEVMMaxAmount = () => {
     [accounts, asset, contractBalances, from, gasFeeEstimates],
   );
 
-  return { getEVMMaxAmount };
+  return { getEvmMaxAmount };
 };

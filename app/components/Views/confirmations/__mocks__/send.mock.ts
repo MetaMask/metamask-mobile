@@ -1,6 +1,8 @@
 import { Hex } from '@metamask/utils';
-import { backgroundState } from '../../../../util/test/initial-root-state';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+
+import { ProviderValues } from '../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 export const ACCOUNT_ADDRESS_MOCK_1 =
   '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a' as Hex;
@@ -68,4 +70,4 @@ export const evmSendStateMock = {
       },
     },
   },
-};
+} as ProviderValues['state'];

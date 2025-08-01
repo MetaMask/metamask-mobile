@@ -71,7 +71,7 @@ export const prepareEVMTransaction = (
   return trxnParams;
 };
 
-export const submitEVMTransaction = async ({
+export const submitEvmTransaction = async ({
   asset,
   chainId,
   from,
@@ -95,7 +95,7 @@ export const submitEVMTransaction = async ({
 };
 
 // todo: we need to figure out passing toAddress, amount also to the snap
-export const submitNonEVMTransaction = async ({
+export const submitNonEvmTransaction = async ({
   asset,
   fromAccount,
 }: {

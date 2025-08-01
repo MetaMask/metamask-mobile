@@ -6,7 +6,7 @@ import { isDecimal } from '../../../../../../util/number';
 import { AssetType } from '../../../types/token';
 import { useSendContext } from '../../../context/send-context';
 
-export const validateNonEVMAmountFn = ({
+export const validateNonEvmAmountFn = ({
   amount,
   asset,
 }: {
@@ -25,13 +25,13 @@ export const validateNonEVMAmountFn = ({
   return undefined;
 };
 
-export const useNonEVMAmountValidation = () => {
+export const useNonEvmAmountValidation = () => {
   const { asset, value } = useSendContext();
 
-  const validateNonEVMAmount = useCallback(
-    () => validateNonEVMAmountFn({ amount: value, asset }),
+  const validateNonEvmAmount = useCallback(
+    () => validateNonEvmAmountFn({ amount: value, asset }),
     [asset, value],
   );
 
-  return { validateNonEVMAmount };
+  return { validateNonEvmAmount };
 };

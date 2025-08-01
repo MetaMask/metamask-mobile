@@ -23,19 +23,17 @@ import { selectAddressBook } from '../../../../../../selectors/addressBookContro
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useSendContext } from '../../../context/send-context';
 
-export interface ShouldSkipValidationArgs {
-  toAddress?: string;
-  chainId?: string;
-  addressBook: AddressBookControllerState['addressBook'];
-  internalAccounts: InternalAccount[];
-}
-
 export const shouldSkipValidation = ({
   toAddress,
   chainId,
   addressBook,
   internalAccounts,
-}: ShouldSkipValidationArgs): boolean => {
+}: {
+  toAddress?: string;
+  chainId?: string;
+  addressBook: AddressBookControllerState['addressBook'];
+  internalAccounts: InternalAccount[];
+}): boolean => {
   if (!toAddress || !chainId) {
     return true;
   }
@@ -44,7 +42,7 @@ export const shouldSkipValidation = ({
     : toAddress;
 
   // address is present in address book
-  // address book is supported for EVM accounts only
+  // address book is supported for Evm accounts only
   const existingContact =
     address && chainId && addressBook[chainId as Hex]?.[address];
   if (existingContact) {
@@ -162,12 +160,12 @@ export const validateToAddress = async ({
   };
 };
 
-export const useEVMToAddressValidation = () => {
+export const useEvmToAddressValidation = () => {
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
   const { chainId, to } = useSendContext();
 
-  const validateEVMToAddress = useCallback(
+  const validateEvmToAddress = useCallback(
     async () =>
       await validateToAddress({
         toAddress: to as Hex,
@@ -178,5 +176,5 @@ export const useEVMToAddressValidation = () => {
     [addressBook, chainId, internalAccounts, to],
   );
 
-  return { validateEVMToAddress };
+  return { validateEvmToAddress };
 };

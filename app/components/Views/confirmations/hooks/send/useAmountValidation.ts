@@ -1,17 +1,17 @@
 import { useMemo } from 'react';
 
-import { useEVMAmountValidation } from './evm/useEVMAmountValidation';
+import { useEvmAmountValidation } from './evm/useEvmAmountValidation';
+import { useNonEvmAmountValidation } from './non-evm/useNonEvmAmountValidation';
 import { useSendType } from './useSendType';
-import { useNonEVMAmountValidation } from './non-evm/useNonEVMAmountValidation';
 
 export const useAmountValidation = () => {
   const { isEvmSendType } = useSendType();
-  const { validateEVMAmount } = useEVMAmountValidation();
-  const { validateNonEVMAmount } = useNonEVMAmountValidation();
+  const { validateEvmAmount } = useEvmAmountValidation();
+  const { validateNonEvmAmount } = useNonEvmAmountValidation();
 
   const amountError = useMemo(
-    () => (isEvmSendType ? validateEVMAmount() : validateNonEVMAmount()),
-    [isEvmSendType, validateEVMAmount, validateNonEVMAmount],
+    () => (isEvmSendType ? validateEvmAmount() : validateNonEvmAmount()),
+    [isEvmSendType, validateEvmAmount, validateNonEvmAmount],
   );
 
   return { amountError };

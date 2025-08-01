@@ -1,20 +1,28 @@
+import { AccountInformation } from '@metamask/assets-controllers';
+import { Hex } from '@metamask/utils';
+
+import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
+import { AssetType } from '../../../types/token';
 import {
-  ProviderValues,
-  renderHookWithProvider,
-} from '../../../../../../util/test/renderWithProvider';
-import {
-  evmSendStateMock,
   TOKEN_ADDRESS_MOCK_1,
+  evmSendStateMock,
 } from '../../../__mocks__/send.mock';
 import {
-  useEVMAmountValidation,
+  useEvmAmountValidation,
   validateAmountFn,
-  ValidateAmountArgs,
-} from './useEVMAmountValidation';
+} from './useEvmAmountValidation';
 
 const mockState = {
   state: evmSendStateMock,
 };
+
+interface ValidateAmountArgs {
+  accounts: Record<Hex, AccountInformation>;
+  amount?: string;
+  asset?: AssetType;
+  contractBalances: Record<Hex, Hex>;
+  from: Hex;
+}
 
 const getArguments = (params: Record<string, unknown>) =>
   ({
@@ -136,12 +144,12 @@ describe('validateAmountFn', () => {
   });
 });
 
-describe('useEVMAmountValidation', () => {
-  it('return function validateEVMAmount', () => {
+describe('useEvmAmountValidation', () => {
+  it('return function validateEvmAmount', () => {
     const { result } = renderHookWithProvider(
-      () => useEVMAmountValidation(),
-      mockState as ProviderValues,
+      () => useEvmAmountValidation(),
+      mockState,
     );
-    expect(result.current.validateEVMAmount).toBeDefined();
+    expect(result.current.validateEvmAmount).toBeDefined();
   });
 });

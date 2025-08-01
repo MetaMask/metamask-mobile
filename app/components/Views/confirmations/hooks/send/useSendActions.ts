@@ -4,8 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  submitEVMTransaction,
-  submitNonEVMTransaction,
+  submitEvmTransaction,
+  submitNonEvmTransaction,
 } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
@@ -21,7 +21,7 @@ export const useSendActions = () => {
     }
 
     if (isEvmSendType) {
-      await submitEVMTransaction({
+      await submitEvmTransaction({
         asset,
         chainId: chainId as Hex,
         from: from as Hex,
@@ -29,7 +29,7 @@ export const useSendActions = () => {
         value: value as string,
       });
     } else {
-      await submitNonEVMTransaction({
+      await submitNonEvmTransaction({
         asset,
         fromAccount,
       });

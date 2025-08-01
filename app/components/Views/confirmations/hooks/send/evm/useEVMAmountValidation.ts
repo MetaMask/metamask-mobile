@@ -16,22 +16,19 @@ import { AssetType } from '../../../types/token';
 import { isNativeToken } from '../../../utils/generic';
 import { useSendContext } from '../../../context/send-context';
 
-//todo
-export interface ValidateAmountArgs {
-  accounts: Record<Hex, AccountInformation>;
-  amount?: string;
-  asset?: AssetType;
-  contractBalances: Record<Hex, Hex>;
-  from: Hex;
-}
-
 export const validateAmountFn = ({
   accounts,
   amount,
   asset,
   contractBalances,
   from,
-}: ValidateAmountArgs) => {
+}: {
+  accounts: Record<Hex, AccountInformation>;
+  amount?: string;
+  asset?: AssetType;
+  contractBalances: Record<Hex, Hex>;
+  from: Hex;
+}) => {
   if (!asset || amount === undefined || amount === null || amount === '') {
     return;
   }
@@ -62,12 +59,12 @@ export const validateAmountFn = ({
   return undefined;
 };
 
-export const useEVMAmountValidation = () => {
+export const useEvmAmountValidation = () => {
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
   const { asset, from, value } = useSendContext();
 
-  const validateEVMAmount = useCallback(
+  const validateEvmAmount = useCallback(
     () =>
       validateAmountFn({
         accounts,
@@ -79,5 +76,5 @@ export const useEVMAmountValidation = () => {
     [accounts, asset, contractBalances, from, value],
   );
 
-  return { validateEVMAmount };
+  return { validateEvmAmount };
 };

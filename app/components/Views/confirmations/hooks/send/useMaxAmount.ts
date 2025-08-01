@@ -1,29 +1,20 @@
 import { useCallback } from 'react';
 
-import { AssetType } from '../../types/token';
-import { isNativeToken } from '../../utils/generic';
-import { useSendContext } from '../../context/send-context';
+import { useEvmMaxAmount } from './evm/useEvmMaxAmount';
+import { useNonEvmMaxAmount } from './non-evm/useNonEvmMaxAmount';
 import { useSendType } from './useSendType';
-import { useEVMMaxAmount } from './evm/useEVMMaxAmount';
-
-export const getNonEVMMaxValueFn = (asset?: AssetType) => {
-  if (!asset || isNativeToken(asset)) {
-    return undefined;
-  }
-  return asset.balance;
-};
 
 export const useMaxAmount = () => {
-  const { asset } = useSendContext();
   const { isEvmSendType, isNonEvmNativeSendType } = useSendType();
-  const { getEVMMaxAmount } = useEVMMaxAmount();
+  const { getEvmMaxAmount } = useEvmMaxAmount();
+  const { getNonEvmMaxAmount } = useNonEvmMaxAmount();
 
   const getMaxAmount = useCallback(() => {
     if (isEvmSendType) {
-      return getEVMMaxAmount();
+      return getEvmMaxAmount();
     }
-    return getNonEVMMaxValueFn(asset);
-  }, [asset, getEVMMaxAmount, isEvmSendType]);
+    return getNonEvmMaxAmount();
+  }, [getEvmMaxAmount, getNonEvmMaxAmount, isEvmSendType]);
 
   return {
     getMaxAmount,

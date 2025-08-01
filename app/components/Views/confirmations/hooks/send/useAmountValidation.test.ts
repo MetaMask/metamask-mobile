@@ -1,7 +1,4 @@
-import {
-  ProviderValues,
-  renderHookWithProvider,
-} from '../../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useAmountValidation } from './useAmountValidation';
 
@@ -13,7 +10,7 @@ describe('useAmountValidation', () => {
   it('return field for amount error', () => {
     const { result } = renderHookWithProvider(
       () => useAmountValidation(),
-      mockState as ProviderValues,
+      mockState,
     );
     expect(result.current).toStrictEqual({ amountError: undefined });
   });

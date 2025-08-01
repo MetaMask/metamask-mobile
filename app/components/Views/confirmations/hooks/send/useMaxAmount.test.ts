@@ -1,7 +1,4 @@
-import {
-  ProviderValues,
-  renderHookWithProvider,
-} from '../../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useMaxAmount } from './useMaxAmount';
 
@@ -17,10 +14,7 @@ const mockState = {
 
 describe('useMaxAmount', () => {
   it('return function getMaxAmount', () => {
-    const { result } = renderHookWithProvider(
-      () => useMaxAmount(),
-      mockState as ProviderValues,
-    );
+    const { result } = renderHookWithProvider(() => useMaxAmount(), mockState);
     expect(result.current.getMaxAmount).toBeDefined();
   });
 });
