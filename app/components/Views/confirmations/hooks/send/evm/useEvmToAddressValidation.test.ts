@@ -14,7 +14,7 @@ import {
   validateToAddress,
 } from './useEvmToAddressValidation';
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('../../../../../../core/Engine', () => ({
   context: {
     AssetsContractController: {
       getERC721AssetSymbol: Promise.resolve(undefined),
