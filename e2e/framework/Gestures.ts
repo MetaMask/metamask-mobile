@@ -92,6 +92,7 @@ export default class Gestures {
       checkEnabled = true,
       elemDescription,
       waitForElementToDisappear = false,
+      delay = 500,
     } = options;
 
     const fn = () =>
@@ -101,6 +102,7 @@ export default class Gestures {
         checkEnabled,
         elemDescription,
         waitForElementToDisappear,
+        delay,
       });
     return Utilities.executeWithRetry(fn, {
       timeout,
@@ -155,14 +157,19 @@ export default class Gestures {
   static async tapAtIndex(
     elem: DetoxElement,
     index: number,
-    timeout = 15000,
+    options: TapOptions = {},
   ): Promise<void> {
+    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
     return Utilities.executeWithRetry(
       async () => {
         const el = (await elem) as Detox.IndexableNativeElement;
         const itemElementAtIndex = el.atIndex(index);
         await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
         await itemElementAtIndex.tap();
+        const successMessage = elemDescription
+          ? `✅ Successfully tapped element at index: ${index} ${elemDescription}`
+          : `✅ Successfully tapped element at index: ${index}`;
+        logger.debug(successMessage);
       },
       {
         timeout,
@@ -452,7 +459,7 @@ export default class Gestures {
             await waitFor(target).toBeVisible().withTimeout(100);
             return;
           } catch {
-            await scrollableElement.scroll(scrollAmount / 2, direction); // Decrease scroll amount for Android to avoid overshooting
+            await scrollableElement.scroll(scrollAmount, direction);
             await waitFor(target).toBeVisible().withTimeout(100);
           }
         } else {

@@ -19,6 +19,8 @@ export const ARBITRUM_TESTNET_CAIP_CHAIN_ID = `eip155:${ARBITRUM_TESTNET_CHAIN_I
 // Hyperliquid chain constants
 export const HYPERLIQUID_MAINNET_CHAIN_ID = '0x3e7'; // 999 in decimal
 export const HYPERLIQUID_TESTNET_CHAIN_ID = '0x3e6'; // 998 in decimal (assumed)
+export const HYPERLIQUID_MAINNET_CAIP_CHAIN_ID = 'eip155:999' as CaipChainId;
+export const HYPERLIQUID_TESTNET_CAIP_CHAIN_ID = 'eip155:998' as CaipChainId;
 export const HYPERLIQUID_NETWORK_NAME = 'Hyperliquid';
 
 // Token constants
@@ -93,13 +95,23 @@ export const TRADING_DEFAULTS: TradingDefaultsConfig = {
 };
 
 // Fee configuration
+// Note: These are base rates (Tier 0, no discounts)
+// Actual fees will be calculated based on user's volume tier and staking
 export const FEE_RATES: FeeRatesConfig = {
-  market: 0.0002, // 0.02% market order fee
-  limit: 0.0001, // 0.01% limit order fee
+  taker: 0.00045, // 0.045% - Market orders and aggressive limit orders
+  maker: 0.00015, // 0.015% - Limit orders that add liquidity
 };
 
 // MetaMask fee for deposits (temporary placeholder)
 export const METAMASK_DEPOSIT_FEE = '$0.00';
+
+// Withdrawal fees
+export const HYPERLIQUID_WITHDRAWAL_FEE = 1; // $1 USD fixed fee
+export const METAMASK_WITHDRAWAL_FEE = 0; // $0 - no MM fee for withdrawals
+export const METAMASK_WITHDRAWAL_FEE_PLACEHOLDER = '$0.00'; // Display format
+
+// Withdrawal timing
+export const WITHDRAWAL_ESTIMATED_TIME = '5 minutes';
 
 // Order book spread constants
 export const ORDER_BOOK_SPREAD = {
@@ -120,6 +132,9 @@ export const DEPOSIT_CONFIG = {
     sameChainSwap: '30-60 seconds', // Swap on same chain before deposit
   },
 };
+
+// Withdrawal constants (HyperLiquid-specific)
+export const HYPERLIQUID_WITHDRAWAL_MINUTES = 5; // HyperLiquid withdrawal processing time in minutes
 
 // Type helpers
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;

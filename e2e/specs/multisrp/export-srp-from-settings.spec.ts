@@ -1,19 +1,9 @@
-'use strict';
 import { SmokeWalletPlatform } from '../../tags';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../fixtures/utils';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
-import TestHelpers from '../../helpers';
 import { startExportForKeyring, completeSrpQuiz } from './utils';
 import { defaultOptions } from '../../seeder/anvil-manager';
-
-const fixtureServer = new FixtureServer();
 
 const SRP_1 = {
   index: 1,
@@ -32,31 +22,36 @@ const IMPORTED_SRP =
 describe(
   SmokeWalletPlatform('Multi-SRP: Exports the correct srp in account actions'),
   () => {
-    beforeAll(async () => {
-      await TestHelpers.reverseServerPort();
-      const fixture = new FixtureBuilder()
-        .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
-        .build();
-      await startFixtureServer(fixtureServer);
-      await loadFixture(fixtureServer, { fixture });
-      await TestHelpers.launchApp({
-        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-      });
-      await loginToApp();
-    });
-
-    afterAll(async () => {
-      await stopFixtureServer(fixtureServer);
-    });
-
     it('exports the correct srp for the default hd keyring', async () => {
-      await startExportForKeyring(SRP_1.id);
-      await completeSrpQuiz(DEFAULT_SRP);
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
+            .build(),
+          restartDevice: true,
+        },
+        async () => {
+          await loginToApp();
+          await startExportForKeyring(SRP_1.id);
+          await completeSrpQuiz(DEFAULT_SRP);
+        },
+      );
     });
 
     it('exports the correct srp for the imported hd keyring', async () => {
-      await startExportForKeyring(SRP_2.id);
-      await completeSrpQuiz(IMPORTED_SRP);
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
+            .build(),
+          restartDevice: true,
+        },
+        async () => {
+          await loginToApp();
+          await startExportForKeyring(SRP_2.id);
+          await completeSrpQuiz(IMPORTED_SRP);
+        },
+      );
     });
   },
 );

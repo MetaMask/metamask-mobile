@@ -61,7 +61,7 @@ describe('DepositOrderContent Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders error state correctly', () => {
+  it('renders error state correctly with generic message when no statusDescription', () => {
     const errorOrder = { ...mockOrder, state: FIAT_ORDER_STATES.FAILED };
 
     renderWithProvider(<DepositOrderContent order={errorOrder} />, {
@@ -71,6 +71,61 @@ describe('DepositOrderContent Component', () => {
         },
       },
     });
+
+    expect(
+      screen.getByText('We were unable to complete your deposit'),
+    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders error state with specific failure reason when statusDescription is available', () => {
+    const errorOrderWithReason = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+      data: {
+        ...mockOrder.data,
+        statusDescription: 'Payment declined due to insufficient funds',
+      },
+    };
+
+    renderWithProvider(<DepositOrderContent order={errorOrderWithReason} />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+
+    expect(
+      screen.getByText('Payment declined due to insufficient funds'),
+    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders error state with generic message when statusDescription is empty string', () => {
+    const errorOrderWithEmptyReason = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+      data: {
+        ...mockOrder.data,
+        statusDescription: '',
+      },
+    };
+
+    renderWithProvider(
+      <DepositOrderContent order={errorOrderWithEmptyReason} />,
+      {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      },
+    );
+
+    expect(
+      screen.getByText('We were unable to complete your deposit'),
+    ).toBeOnTheScreen();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 

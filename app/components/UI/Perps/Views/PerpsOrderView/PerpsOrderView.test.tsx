@@ -76,6 +76,16 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsMarketData: jest.fn(),
   usePerpsLiquidationPrice: jest.fn(),
+  usePerpsOrderFees: jest.fn(() => ({
+    totalFee: 45,
+    protocolFee: 45,
+    metamaskFee: 0,
+    protocolFeeRate: 0.00045,
+    metamaskFeeRate: 0,
+    isLoadingMetamaskFee: false,
+    error: null,
+  })),
+  formatFeeRate: jest.fn((rate) => `${(rate * 100).toFixed(3)}%`),
 }));
 
 // Mock Redux selectors

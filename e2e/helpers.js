@@ -1,11 +1,11 @@
-import { waitFor, web, system } from 'detox';
+import { waitFor, web } from 'detox';
 import {
   getFixturesServerPort,
   getGanachePort,
   getLocalTestDappPort,
   getMockServerPort,
   getSecondTestDappPort,
-} from './fixtures/utils';
+} from './framework/fixtures/FixtureUtils';
 import Utilities from './utils/Utilities';
 import { resolveConfig } from 'detox/internals';
 

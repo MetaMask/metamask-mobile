@@ -157,7 +157,11 @@ export interface AssetRoute {
     minAmount?: string; // Minimum deposit/withdrawal amount
     maxAmount?: string; // Maximum deposit/withdrawal amount
     estimatedTime?: string; // Estimated processing time
-    fees?: string; // Associated fees
+    fees?: {
+      fixed?: number; // Fixed fee amount (e.g., 1 for 1 token)
+      percentage?: number; // Percentage fee (e.g., 0.05 for 0.05%)
+      token?: string; // Fee token symbol (e.g., 'USDC', 'ETH')
+    };
   };
 }
 
@@ -231,6 +235,8 @@ export interface WithdrawResult {
   success: boolean;
   txHash?: string;
   error?: string;
+  withdrawalId?: string; // Unique ID for tracking
+  estimatedArrivalTime?: number; // Provider-specific arrival time
 }
 
 export interface LiveDataConfig {
@@ -249,6 +255,10 @@ export interface PriceUpdate {
   bestAsk?: string; // Best ask price (lowest price sellers are willing to accept)
   spread?: string; // Ask - Bid spread
   markPrice?: string; // Mark price from oracle (used for liquidations)
+  // Market data (only available when includeMarketData is true)
+  funding?: number; // Current funding rate
+  openInterest?: number; // Open interest in USD
+  volume24h?: number; // 24h trading volume in USD
 }
 
 export interface OrderFill {
@@ -284,6 +294,7 @@ export interface SubscribePricesParams {
   callback: (prices: PriceUpdate[]) => void;
   throttleMs?: number; // Future: per-subscription throttling
   includeOrderBook?: boolean; // Optional: include bid/ask data from L2 book
+  includeMarketData?: boolean; // Optional: include funding, open interest, volume data
 }
 
 export interface SubscribePositionsParams {
@@ -310,6 +321,24 @@ export interface LiquidationPriceParams {
 export interface MaintenanceMarginParams {
   asset: string;
   positionSize?: number; // Optional: for tiered margin systems
+}
+
+export interface FeeCalculationParams {
+  orderType: 'market' | 'limit';
+  isMaker?: boolean;
+  amount?: string;
+}
+
+export interface FeeCalculationResult {
+  feeRate: number; // Fee rate as decimal (e.g., 0.00045 for 0.045%)
+  feeAmount?: number; // Fee amount in USD (when amount is provided)
+  // Optional breakdown for transparency
+  breakdown?: {
+    baseFeeRate: number;
+    volumeTier?: string;
+    volumeDiscount?: number;
+    stakingDiscount?: number;
+  };
 }
 
 export interface UpdatePositionTPSLParams {
@@ -343,6 +372,7 @@ export interface IPerpsProvider {
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
   calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
   getMaxLeverage(asset: string): Promise<number>;
+  calculateFees(params: FeeCalculationParams): Promise<FeeCalculationResult>;
 
   // Live data subscriptions → Direct UI (NO Redux, maximum speed)
   subscribeToPrices(params: SubscribePricesParams): () => void;
