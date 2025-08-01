@@ -9,6 +9,7 @@ import { useParams } from '../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
 import SentryTest from './SentryTest';
+import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/PerpsDeveloperOptionsSection/PerpsDeveloperOptionsSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -38,6 +39,7 @@ const DeveloperOptions = () => {
   return (
     <ScrollView style={styles.wrapper}>
       <SentryTest />
+      <PerpsDeveloperOptionsSection />
     </ScrollView>
   );
 };
