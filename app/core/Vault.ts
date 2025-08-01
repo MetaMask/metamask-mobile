@@ -73,7 +73,7 @@ export const recreateSeedlessVaultWithNewPassword = async (
  * @param newPassword - new password
  * @param selectedAddress - current selected address in wallet.
  */
-export const recreateVaultWithNewPassword = async (
+export const recreateVaultsWithNewPassword = async (
   password: string,
   newPassword: string,
   selectedAddress: string,
@@ -99,13 +99,3 @@ export const recreateVaultWithNewPassword = async (
   }
   Engine.setSelectedAddress(selectedAddress);
 };
-
-/**
- * Recreates a vault with the same password for the purpose of using the newest encryption methods
- *
- * @param password - Password to recreate and set the vault with
- */
-export const recreateVaultWithSamePassword = async (
-  password: string,
-  selectedAddress: string,
-) => recreateVaultWithNewPassword(password, password, selectedAddress);

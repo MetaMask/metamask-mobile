@@ -1,7 +1,7 @@
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import Engine from './Engine';
 
-import { recreateVaultWithNewPassword } from './Vault';
+import { recreateVaultsWithNewPassword } from './Vault';
 import { KeyringSelector, KeyringTypes } from '@metamask/keyring-controller';
 import {
   createMockInternalAccount,
@@ -242,7 +242,7 @@ describe('Vault', () => {
         getState: jest.fn(() => mockReduxState),
       } as unknown as ReduxStore);
 
-      await recreateVaultWithNewPassword(
+      await recreateVaultsWithNewPassword(
         'old-password',
         'new-password',
         '0x123',
@@ -273,7 +273,7 @@ describe('Vault', () => {
         getState: jest.fn(() => mockReduxState),
       } as unknown as ReduxStore);
 
-      await recreateVaultWithNewPassword(
+      await recreateVaultsWithNewPassword(
         'old-password',
         'new-password',
         '0x123',
@@ -318,7 +318,7 @@ describe('Vault', () => {
       );
 
       await expect(
-        recreateVaultWithNewPassword('old-password', 'new-password', '0x123'),
+        recreateVaultsWithNewPassword('old-password', 'new-password', '0x123'),
       ).rejects.toThrow(
         new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
       );
