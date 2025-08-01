@@ -11,6 +11,15 @@ import { EthMethod } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
 
+// Mock the navigation hook
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
+  };
+});
+
 describe('AssetDetailsActions', () => {
   const mockOnBuy = jest.fn();
   const mockGoToSwaps = jest.fn();

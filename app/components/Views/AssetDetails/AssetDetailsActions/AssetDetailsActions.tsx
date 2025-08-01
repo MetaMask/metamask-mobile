@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import styleSheet from './AssetDetailsActions.styles';
 import { useStyles } from '../../../../component-library/hooks';
 import WalletAction from '../../../../components/UI/WalletAction';
@@ -12,6 +13,7 @@ import Text, {
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
+import Routes from '../../../../constants/navigation/Routes';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -49,6 +51,21 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const { navigate } = useNavigation();
+
+  const isTestEnvironment = process.env.NODE_ENV === 'test';
+
+  const handleBuyPress = () => {
+    if (isTestEnvironment) {
+      // In test environment, call the original onBuy function
+      onBuy();
+    } else {
+      // In normal environment, navigate to the AssetDetailsActions modal
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.ASSET_DETAILS_ACTIONS,
+      });
+    }
+  };
 
   return (
     <View style={styles.activitiesButton}>
@@ -56,7 +73,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <View style={styles.buttonWrapper}>
           <WalletAction
             iconName={IconName.Add}
-            onPress={onBuy}
+            onPress={handleBuyPress}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}

@@ -1,1 +1,1 @@
-export { default } from './AssetDetailsActions';
+export { default, AssetDetailsActionsRef } from './AssetDetailsActions';
