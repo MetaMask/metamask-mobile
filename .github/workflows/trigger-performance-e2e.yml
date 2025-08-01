@@ -57,6 +57,19 @@ jobs:
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
           build-name: ${{ github.repository }}-${{ github.ref_name }}-${{ github.event.inputs.device || 'Xiaomi Redmi Note 11' }}-run-${{ github.run_number }}
           project-name: ${{ github.repository }}
+
+      - name: Setup BrowserStack Local
+        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
+        with:
+          local-testing: start
+          local-identifier: ${{ github.run_id }}
+          local-args: --force-local --verbose
+      
+      - name: Wait for BrowserStack Local
+        run: |
+          echo "Waiting for BrowserStack Local to be ready..."
+          sleep 30
+          echo "BrowserStack Local should be ready now"
       
       - name: Run Android Performance Tests
         env:
