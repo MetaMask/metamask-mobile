@@ -31,12 +31,12 @@ const buildTypeMapping = (buildType: string, isDev: boolean) => {
   }
 
   switch (buildType) {
-    case 'QA':
-      return 'main_uat';
     case 'main':
       return isQa ? 'main_uat' : isDev ? 'main_dev' : 'main_prod';
     case 'flask':
       return isQa ? 'flask_uat' : isDev ? 'flask_dev' : 'flask_prod';
+    case 'qa':
+      return 'main_uat';
     default:
       return 'development';
   }
