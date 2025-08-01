@@ -159,7 +159,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         params: {
           hostInfo: {
             metadata: {
-              // TODO: This is not an origin, it's a hostname
               origin: activeUrl && new URLParse(activeUrl).origin,
             },
           },
