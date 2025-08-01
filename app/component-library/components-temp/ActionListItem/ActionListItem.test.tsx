@@ -134,7 +134,7 @@ describe('ActionListItem', () => {
       const testAccessory = (
         <Icon name={IconName.Security} testID="start-accessory" />
       );
-      const { getByTestId, queryByTestId } = render(
+      const { getByTestId } = render(
         <ActionListItem
           label="Test Label"
           iconName={IconName.Setting}
@@ -154,7 +154,7 @@ describe('ActionListItem', () => {
       const testLabel = 'Test Label';
       const labelTextProps = {
         variant: TextVariant.HeadingSm,
-        color: TextColor.TextPrimary,
+        color: TextColor.PrimaryDefault,
         fontWeight: FontWeight.Bold,
       };
 
@@ -182,7 +182,7 @@ describe('ActionListItem', () => {
           label={customLabel}
           labelTextProps={{
             variant: TextVariant.HeadingSm,
-            color: TextColor.TextPrimary,
+            color: TextColor.PrimaryDefault,
           }}
           onPress={mockOnPress}
         />,
@@ -299,7 +299,7 @@ describe('ActionListItem', () => {
         <ActionListItem
           {...SAMPLE_ACTIONLISTITEM_PROPS}
           onPress={mockOnPress}
-          disabled={true}
+          disabled
           testID={ACTIONLISTITEM_TESTID}
         />,
       );
