@@ -527,12 +527,12 @@ buildAndroidQA(){
 
 	prebuild_android
 
-	# Generate APK (with optional GRADLE_ARGS for CI optimizations)
-	cd android && ./gradlew ${GRADLE_ARGS} assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	# Generate APK
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew ${GRADLE_ARGS} bundleQaRelease
+		./gradlew bundleQaRelease
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then

@@ -76,13 +76,13 @@ jobs:
         shell: bash
 
       # Run project setup and build the Android QA app (APK and AAB)
-      - name: Setup Android Environment
+      - name: Setup and Build Android App
         run: |
           echo "🚀 Finishing Android Setup..."
           yarn setup:github-ci --no-build-ios
           echo "🏗 Building Android APP..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          export GRADLE_ARGS="-PciEnv=github --init-script github-init.gradle"
+          cp android/gradle.properties.github android/gradle.properties
           yarn build:android:qa
         shell: bash
         env:
