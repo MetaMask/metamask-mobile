@@ -677,15 +677,14 @@ const Wallet = ({
       return false;
     }
 
-    const checksumInternalAccount = safeToChecksumAddress(
-      selectedInternalAccount.address,
-    );
+    if (selectedInternalAccount.type === 'eip155:eoa') {
+      const checksumInternalAccount = safeToChecksumAddress(
+        selectedInternalAccount.address,
+      );
 
-    if (
-      selectedInternalAccount.type === 'eip155:eoa' &&
-      checksumInternalAccount
-    ) {
-      return cardholderAccounts.includes(checksumInternalAccount);
+      if (checksumInternalAccount) {
+        return cardholderAccounts.includes(checksumInternalAccount);
+      }
     }
   }, [cardholderAccounts, selectedInternalAccount]);
 
