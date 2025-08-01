@@ -2151,7 +2151,6 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
     "perps_button": "Perpetuals",
-    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -2166,8 +2165,7 @@
       "send": "Sending not supported for this account",
       "action": "This action is not supported for this account",
       "earn": "Earning not supported for this account",
-      "perps": "Perpetuals trading not supported for this account",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "Perpetuals trading not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Total Supply",
@@ -2186,7 +2184,6 @@
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
     "perps_description": "Trade perpetual contracts",
-    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",
