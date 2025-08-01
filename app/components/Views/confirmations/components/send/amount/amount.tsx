@@ -44,7 +44,7 @@ export const Amount = () => {
 
   const updateToMaxAmount = useCallback(() => {
     const maxAmount = getMaxAmount();
-    if (maxAmount) {
+    if (maxAmount !== undefined) {
       updateAmount(fiatMode ? getFiatValue(maxAmount).toString() : maxAmount);
       updateValue(maxAmount);
     }

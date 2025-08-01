@@ -10,7 +10,7 @@ import {
 import {
   useEvmAmountValidation,
   validateAmountFn,
-} from './useEvmAmountValidation';
+} from './useEVAmountValidation';
 
 const mockState = {
   state: evmSendStateMock,
