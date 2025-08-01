@@ -926,6 +926,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         user: userAddress,
         startTime: params?.startTime,
         endTime: params?.endTime,
+        limit: params?.limit,
+        offset: params?.offset,
       });
       
       DevLogger.log('User fills received:', fills);
@@ -954,6 +956,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         user: userAddress,
         startTime: params?.startTime,
         endTime: params?.endTime,
+        limit: params?.limit,
+        offset: params?.offset,
       });
       
       DevLogger.log('User orders received:', orders);
@@ -984,6 +988,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
           user: userAddress,
           startTime: params?.startTime,
           endTime: params?.endTime,
+          limit: params?.limit,
+          offset: params?.offset,
         });
         
         DevLogger.log('User funding received:', funding);
@@ -996,6 +1002,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
           user: userAddress,
           startTime: params?.startTime,
           endTime: params?.endTime,
+          limit: params?.limit,
+          offset: params?.offset,
         });
         
         DevLogger.log('User ledger updates received:', ledgerUpdates);

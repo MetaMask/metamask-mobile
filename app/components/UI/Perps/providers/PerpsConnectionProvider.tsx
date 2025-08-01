@@ -68,6 +68,7 @@ export const PerpsConnectionProvider: React.FC<
       const state = PerpsConnectionManager.getConnectionState();
       setConnectionState(state);
     } catch (err) {
+      console.log('connect error', err?.cause);
       const errorMessage =
         err instanceof Error ? err.message : 'Unknown connection error';
       setError(errorMessage);
@@ -105,6 +106,7 @@ export const PerpsConnectionProvider: React.FC<
         const state = PerpsConnectionManager.getConnectionState();
         setConnectionState(state);
       } catch (err) {
+        console.log('initializeConnection error', err?.cause);
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown connection error';
         setError(errorMessage);

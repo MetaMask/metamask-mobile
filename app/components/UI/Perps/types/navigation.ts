@@ -5,6 +5,7 @@ import type {
   OrderType,
   PerpsMarketData,
 } from '../controllers/types';
+import { PerpsTransaction } from '../Views/PerpsTransactionsView/PerpsTransactionsView';
 
 /**
  * PERPS navigation parameter types
@@ -85,6 +86,10 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   // Main trading view
   PerpsTradingView: undefined;
+
+  PerpsPositionTransaction: {
+    transaction: PerpsTransaction;
+  };
 
   // Root perps view
   Perps: undefined;

@@ -1,56 +1,98 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  FlatList,
-  RefreshControl,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { useSelector } from 'react-redux';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
-import type { Theme } from '../../../../../util/theme/models';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { Theme } from '../../../../../util/theme/models';
 import { PerpsNavigationParamList } from '../../types/navigation';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
+import RemoteImage from '../../../../Base/RemoteImage';
 
 // Import PerpsController hooks
 import {
   usePerpsConnection,
-  usePerpsTrading,
   usePerpsNetwork,
+  usePerpsTrading,
 } from '../../hooks';
-import { fontStyles } from '../../../../../styles/common';
 import {
   transformFillsToTransactions,
-  transformOrdersToTransactions,
   transformFundingToTransactions,
-  combineAndSortTransactions,
+  transformOrdersToTransactions,
 } from '../../utils/transactionTransforms';
+import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 
-// Perps transaction data structure matching the screenshot
-interface PerpsTransaction {
+// Perps transaction data structure matching the new design
+export interface PerpsTransaction {
   id: string;
   type: 'trade' | 'order' | 'funding';
   category: 'position_open' | 'position_close' | 'limit_order' | 'funding_fee';
   title: string;
-  status: 'Completed' | 'Placed' | 'Queued';
+  subtitle: string; // Asset amount (e.g., "2.01 ETH")
   timestamp: number;
-  amount: string;
-  amountUSD: string;
   asset: string;
-  leverage?: string;
-  isPositive: boolean;
+  // For trades: fill info
+  fill?: {
+    shortTitle: string; // e.g., "Opened long" or "Closed long"
+    amount: string; // e.g., "+$43.99" or "-$400"
+    amountNumber: number; // e.g., 43.99 or 400
+    isPositive: boolean;
+    size: number;
+    entryPrice: string;
+    points: string;
+    pnl: string;
+    fee: string;
+    action: string;
+    feeToken: string;
+  };
+  // For orders: order info
+  order?: {
+    text: string; // e.g., "Filled", "Canceled"
+    statusType: 'filled' | 'canceled' | 'pending';
+    type: 'limit' | 'market';
+    size: string;
+    limitPrice: string;
+    filled: string;
+  };
+  // For funding: funding info
+  fundingAmount?: {
+    isPositive: boolean;
+    fee: string;
+    feeNumber: number;
+    rate: string;
+  };
 }
 
-type FilterTab = 'All' | 'Trades' | 'Orders' | 'Funding';
+// Helper interface for date-grouped data
+interface TransactionSection {
+  title: string; // "Today", "Jul 26", etc.
+  data: PerpsTransaction[];
+}
+
+// Union type for FlashList items (headers + transactions)
+type ListItem =
+  | { type: 'header'; title: string; id: string }
+  | { type: 'transaction'; transaction: PerpsTransaction; id: string };
+
+type FilterTab = 'Trades' | 'Orders' | 'Funding';
 
 interface PerpsTransactionsViewProps {}
 
@@ -69,6 +111,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingVertical: 16,
       backgroundColor: colors.background.default,
+      zIndex: 1000, // iOS
+      elevation: 1000, // Android
+      position: 'relative' as const,
     },
     filterScrollView: {
       flexDirection: 'row' as const,
@@ -87,64 +132,79 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     transactionList: {
       flex: 1,
+      minHeight: 1, // Prevents FlashList layout issues
+    },
+    sectionHeader: {
+      paddingTop: 12,
       paddingHorizontal: 16,
+      backgroundColor: colors.background.default,
+    },
+    sectionHeaderText: {
+      fontSize: 16,
+      fontWeight: '600' as const,
+      color: colors.text.muted,
     },
     transactionItem: {
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
       paddingVertical: 16,
-      paddingHorizontal: 0,
+      paddingHorizontal: 16,
+      minHeight: 72, // Consistent height for FlashList
     },
     transactionIcon: {
       width: 36,
       height: 36,
       borderRadius: 18,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
+    },
+    tokenIconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       marginRight: 12,
-    },
-    positionUpIcon: {
-      backgroundColor: colors.primary.default,
-    },
-    positionDownIcon: {
-      backgroundColor: colors.primary.default,
-    },
-    orderIcon: {
-      backgroundColor: colors.primary.default,
-    },
-    fundingIcon: {
-      backgroundColor: colors.primary.default,
+      overflow: 'hidden' as const,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
     },
     transactionContent: {
       flex: 1,
+    },
+    transactionContentCentered: {
+      flex: 1,
+      justifyContent: 'center' as const,
     },
     transactionTitle: {
       fontSize: 16,
       fontWeight: '400' as const,
       color: colors.text.default,
-      marginBottom: 2,
+      marginBottom: 4,
     },
-    transactionStatus: {
-      fontSize: 14,
-      color: colors.text.muted,
-    },
-    transactionAmountContainer: {
-      alignItems: 'flex-end' as const,
-    },
-    transactionAmount: {
+    transactionTitleCentered: {
       fontSize: 16,
       fontWeight: '400' as const,
-      marginBottom: 2,
+      color: colors.text.default,
+      marginBottom: 0, // No margin when centered
     },
-    transactionAmountUSD: {
+    transactionSubtitle: {
       fontSize: 14,
-      color: colors.text.muted,
+      color: colors.text.alternative,
     },
-    positiveAmount: {
+    rightContent: {
+      alignItems: 'flex-end' as const,
+    },
+    profitAmount: {
       color: colors.success.default,
     },
-    negativeAmount: {
-      color: colors.text.default,
+    lossAmount: {
+      color: colors.error.default,
+    },
+    statusFilled: {
+      color: colors.text.muted,
+    },
+    statusCanceled: {
+      color: colors.text.muted,
+    },
+    statusPending: {
+      color: colors.text.muted,
     },
     emptyContainer: {
       flex: 1,
@@ -164,18 +224,94 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
-  const [transactions, setTransactions] = useState<PerpsTransaction[]>([]);
-  const [filteredTransactions, setFilteredTransactions] = useState<
+  const [fillTransactions, setFillTransactions] = useState<PerpsTransaction[]>(
+    [],
+  );
+  const [orderTransactions, setOrderTransactions] = useState<
     PerpsTransaction[]
   >([]);
-  const [activeFilter, setActiveFilter] = useState<FilterTab>('All');
+  const [fundingTransactions, setFundingTransactions] = useState<
+    PerpsTransaction[]
+  >([]);
+  const [groupedTransactions, setGroupedTransactions] = useState<
+    TransactionSection[]
+  >([]);
+  const [flatListData, setFlatListData] = useState<ListItem[]>([]);
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('Trades');
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Ref for FlashList to control scrolling
+  const flashListRef = useRef(null);
 
   const currentNetwork = usePerpsNetwork();
   const { isConnected } = usePerpsConnection();
   const { getAccountState, getUserFills, getUserOrders, getUserFunding } =
     usePerpsTrading();
+
+  // Helper function to format date for section headers
+  const formatDateSection = (timestamp: number): string => {
+    const date = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    }
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  // Helper function to group transactions by date
+  const groupTransactionsByDate = (
+    transactions: PerpsTransaction[],
+  ): TransactionSection[] => {
+    const grouped = transactions.reduce((acc, transaction) => {
+      const dateKey = formatDateSection(transaction.timestamp);
+      // console.log('dateKey', dateKey, transaction.timestamp, transaction);
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(transaction);
+      return acc;
+    }, {} as Record<string, PerpsTransaction[]>);
+
+    return Object.entries(grouped).map(([title, data]) => ({ title, data }));
+  };
+
+  // Helper function to flatten grouped data for FlashList with unique IDs
+  const flattenGroupedTransactions = (
+    sections: TransactionSection[],
+    filterType: FilterTab,
+  ): ListItem[] => {
+    const flattened: ListItem[] = [];
+
+    sections.forEach((section) => {
+      // Add section header with filter-specific ID to avoid collisions
+      flattened.push({
+        type: 'header',
+        title: section.title,
+        id: `${filterType}-header-${section.title}`,
+      });
+
+      // Add transactions with filter-specific ID to avoid collisions
+      section.data.forEach((transaction, index) => {
+        flattened.push({
+          type: 'transaction',
+          transaction,
+          id: `${filterType}-${transaction.id}-${index}`,
+        });
+      });
+    });
+
+    return flattened;
+  };
 
   // Load real transaction data from HyperLiquid API
   const loadTransactions = useCallback(async () => {
@@ -201,50 +337,61 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
         }),
       ]);
 
-      // Transform each data type to PerpsTransaction format
-      const fillTransactions = transformFillsToTransactions(fillsData);
-      const orderTransactions = transformOrdersToTransactions(ordersData);
-      const fundingTransactions = transformFundingToTransactions(fundingData);
+      console.log('fetching fills');
+      console.log('fetching orders');
+      console.log('fetching funding');
 
-      // Combine and sort all transactions
-      const allTransactions = combineAndSortTransactions(
-        fillTransactions,
-        orderTransactions,
-        fundingTransactions,
+      // console.log('ordersData', ordersData);
+      // Transform and store each data type separately
+      const transformedFills = transformFillsToTransactions(fillsData);
+      const transformedOrders = transformOrdersToTransactions(ordersData);
+      const transformedFunding = transformFundingToTransactions(fundingData);
+
+      // Sort each type chronologically (newest first)
+      setFillTransactions(
+        transformedFills.sort((a, b) => b.timestamp - a.timestamp),
       );
-
-      setTransactions(allTransactions);
+      setOrderTransactions(
+        transformedOrders.sort((a, b) => b.timestamp - a.timestamp),
+      );
+      setFundingTransactions(
+        transformedFunding.sort((a, b) => b.timestamp - a.timestamp),
+      );
     } catch (error) {
       console.error('Failed to load perps transactions:', error);
-      // Fallback to empty array on error
-      setTransactions([]);
+      // Fallback to empty arrays on error
+      setFillTransactions([]);
+      setOrderTransactions([]);
+      setFundingTransactions([]);
     } finally {
       setIsLoading(false);
     }
   }, [isConnected, getUserFills, getUserOrders, getUserFunding]);
 
-  // Filter transactions based on active filter
+  // Memoized grouped transactions to avoid recalculation on every filter change
+  const allGroupedTransactions = useMemo(
+    () => ({
+      Trades: groupTransactionsByDate(fillTransactions),
+      Orders: groupTransactionsByDate(orderTransactions),
+      Funding: groupTransactionsByDate(fundingTransactions),
+    }),
+    [fillTransactions, orderTransactions, fundingTransactions],
+  );
+
+  // Memoized flat data for current filter - prevents re-flattening on every change
+  const currentFlatListData = useMemo(() => {
+    const currentGrouped = allGroupedTransactions[activeFilter] || [];
+    return flattenGroupedTransactions(currentGrouped, activeFilter);
+  }, [allGroupedTransactions, activeFilter]);
+
+  // Update state only when needed - much faster tab switching
   useEffect(() => {
-    let filtered = transactions;
+    const currentGrouped = allGroupedTransactions[activeFilter] || [];
+    setGroupedTransactions(currentGrouped);
+    setFlatListData(currentFlatListData);
+  }, [allGroupedTransactions, activeFilter, currentFlatListData]);
 
-    switch (activeFilter) {
-      case 'Trades':
-        filtered = transactions.filter((tx) => tx.type === 'trade');
-        break;
-      case 'Orders':
-        filtered = transactions.filter((tx) => tx.type === 'order');
-        break;
-      case 'Funding':
-        filtered = transactions.filter((tx) => tx.type === 'funding');
-        break;
-      case 'All':
-      default:
-        filtered = transactions;
-        break;
-    }
-
-    setFilteredTransactions(filtered);
-  }, [transactions, activeFilter]);
+  // Note: Removed automatic scroll to top on tab change to allow switching tabs while scrolling
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -256,49 +403,45 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     loadTransactions();
   }, [loadTransactions]);
 
-  const getTransactionIcon = (transaction: PerpsTransaction) => {
-    switch (transaction.category) {
-      case 'position_open':
-        return IconName.ArrowUp;
-      case 'position_close':
-        return IconName.ArrowDown;
-      case 'limit_order':
-        return IconName.Calendar;
-      case 'funding_fee':
-        return IconName.Clock;
-      default:
-        return IconName.ArrowUp;
-    }
-  };
+  const renderFilterTab = useCallback(
+    (tab: FilterTab) => {
+      const isActive = activeFilter === tab;
 
-  const getIconStyle = (transaction: PerpsTransaction) => {
-    switch (transaction.category) {
-      case 'position_open':
-        return styles.positionUpIcon;
-      case 'position_close':
-        return styles.positionDownIcon;
-      case 'limit_order':
-        return styles.orderIcon;
-      case 'funding_fee':
-        return styles.fundingIcon;
-      default:
-        return styles.positionUpIcon;
-    }
-  };
+      const handleTabPress = () => {
+        // Immediately scroll to top and switch tabs
+        if (flashListRef.current) {
+          flashListRef.current.scrollToOffset({
+            offset: 0,
+            animated: false,
+          });
+        }
+        setActiveFilter(tab);
+      };
 
-  const renderFilterTab = (tab: FilterTab) => (
-    <TouchableOpacity
-      key={tab}
-      style={[styles.filterTab, activeFilter === tab && styles.filterTabActive]}
-      onPress={() => setActiveFilter(tab)}
-    >
-      <Text
-        variant={TextVariant.BodyMDBold}
-        style={activeFilter === tab ? null : styles.filterTabText}
-      >
-        {tab}
-      </Text>
-    </TouchableOpacity>
+      return (
+        <TouchableOpacity
+          key={tab}
+          style={[styles.filterTab, isActive && styles.filterTabActive]}
+          onPressIn={handleTabPress}
+          activeOpacity={0.7}
+          delayPressIn={0}
+          delayPressOut={0}
+        >
+          <Text
+            variant={TextVariant.BodyMDBold}
+            style={isActive ? null : styles.filterTabText}
+          >
+            {tab}
+          </Text>
+        </TouchableOpacity>
+      );
+    },
+    [
+      activeFilter,
+      styles.filterTab,
+      styles.filterTabActive,
+      styles.filterTabText,
+    ],
   );
 
   const handleTransactionPress = (transaction: PerpsTransaction) => {
@@ -323,40 +466,117 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     }
   };
 
-  const renderTransactionItem = ({ item }: { item: PerpsTransaction }) => (
-    <TouchableOpacity
-      style={styles.transactionItem}
-      onPress={() => handleTransactionPress(item)}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.transactionIcon, getIconStyle(item)]}>
-        <Icon
-          name={getTransactionIcon(item)}
-          size={IconSize.Sm}
-          color={IconColor.Inverse}
-        />
-      </View>
+  // Render right content based on transaction type
+  const renderRightContent = (item: PerpsTransaction) => {
+    if (item.fill) {
+      return (
+        <Text
+          variant={TextVariant.BodySM}
+          style={item.fill.isPositive ? styles.profitAmount : styles.lossAmount}
+        >
+          {item.fill.amount}
+        </Text>
+      );
+    }
 
-      <View style={styles.transactionContent}>
-        <Text style={styles.transactionTitle}>{item.title}</Text>
-        <Text style={styles.transactionStatus}>{item.status}</Text>
-      </View>
+    if (item.order) {
+      const statusStyle =
+        item.order.statusType === 'filled'
+          ? styles.statusFilled
+          : item.order.statusType === 'canceled'
+          ? styles.statusCanceled
+          : styles.statusPending;
 
-      {item.amount && (
-        <View style={styles.transactionAmountContainer}>
-          <Text
-            style={[
-              styles.transactionAmount,
-              item.isPositive ? styles.positiveAmount : styles.negativeAmount,
-            ]}
-          >
-            {item.amount}
-          </Text>
-          <Text style={styles.transactionAmountUSD}>{item.amountUSD}</Text>
+      return (
+        <Text variant={TextVariant.BodySM} style={statusStyle}>
+          {item.order.text}
+        </Text>
+      );
+    }
+
+    if (item.fundingAmount) {
+      return (
+        <Text
+          variant={TextVariant.BodySM}
+          style={
+            item.fundingAmount.isPositive
+              ? styles.profitAmount
+              : styles.lossAmount
+          }
+        >
+          {item.fundingAmount.fee}
+        </Text>
+      );
+    }
+
+    return null;
+  };
+
+  // Separate component to use the asset metadata hook
+  const TransactionItem = ({ item }: { item: PerpsTransaction }) => {
+    const { assetUrl } = usePerpsAssetMetadata(item.asset);
+
+    return (
+      <TouchableOpacity
+        style={styles.transactionItem}
+        onPress={() => handleTransactionPress(item)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.tokenIconContainer}>
+          {assetUrl ? (
+            <RemoteImage
+              source={{ uri: assetUrl }}
+              style={styles.transactionIcon}
+              resizeMode="cover"
+            />
+          ) : (
+            <Avatar
+              variant={AvatarVariant.Network}
+              name={item.asset}
+              size={AvatarSize.Md}
+            />
+          )}
         </View>
-      )}
-    </TouchableOpacity>
-  );
+
+        <View
+          style={
+            item.subtitle
+              ? styles.transactionContent
+              : styles.transactionContentCentered
+          }
+        >
+          <Text
+            style={
+              item.subtitle
+                ? styles.transactionTitle
+                : styles.transactionTitleCentered
+            }
+          >
+            {item.title}
+          </Text>
+          {item.subtitle && (
+            <Text style={styles.transactionSubtitle}>{item.subtitle}</Text>
+          )}
+        </View>
+
+        <View style={styles.rightContent}>{renderRightContent(item)}</View>
+      </TouchableOpacity>
+    );
+  };
+
+  // Render function for FlashList items (handles both headers and transactions)
+  const renderListItem = ({ item }: { item: ListItem }) => {
+    if (item.type === 'header') {
+      return (
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionHeaderText}>{item.title}</Text>
+        </View>
+      );
+    }
+
+    // Transaction item
+    return <TransactionItem item={item.transaction} />;
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -369,30 +589,52 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     </View>
   );
 
-  const filterTabs: FilterTab[] = ['All', 'Trades', 'Orders', 'Funding'];
+  const filterTabs: FilterTab[] = useMemo(
+    () => ['Trades', 'Orders', 'Funding'],
+    [],
+  );
 
   return (
     <View style={styles.container}>
-      <View style={styles.filterContainer}>
+      <View style={styles.filterContainer} pointerEvents="box-none">
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.filterScrollView}
+          pointerEvents="auto"
+          scrollEnabled={false}
         >
           {filterTabs.map(renderFilterTab)}
         </ScrollView>
       </View>
 
-      <FlatList
-        style={styles.transactionList}
-        data={filteredTransactions}
+      <FlashList
+        ref={flashListRef}
+        data={flatListData}
+        renderItem={renderListItem}
         keyExtractor={(item) => item.id}
-        renderItem={renderTransactionItem}
+        estimatedItemSize={52}
+        getItemType={(item) =>
+          item.type === 'header' ? 'header' : 'transaction'
+        }
+        overrideItemLayout={(layout, item) => {
+          // Fix gaps by setting exact heights
+          if (item.type === 'header') {
+            layout.size = 48;
+          } else {
+            layout.size = 72;
+          }
+        }}
         ListEmptyComponent={renderEmptyState}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
+        drawDistance={200}
+        ItemSeparatorComponent={() => null}
+        scrollEventThrottle={16}
+        removeClippedSubviews
+        keyboardShouldPersistTaps="handled"
       />
     </View>
   );

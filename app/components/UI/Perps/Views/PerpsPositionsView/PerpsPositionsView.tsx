@@ -51,6 +51,8 @@ const PerpsPositionsView: React.FC = () => {
       refreshOnFocus: true,
     });
 
+  console.log('positions', positions);
+
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Refresh positions to show updated data

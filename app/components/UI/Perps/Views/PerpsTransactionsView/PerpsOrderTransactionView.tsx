@@ -1,6 +1,11 @@
 import React from 'react';
-import { View, ScrollView } from 'react-native';
-import { NavigationProp, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { View, ScrollView, Linking } from 'react-native';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
@@ -19,20 +24,22 @@ import { useStyles } from '../../../../../component-library/hooks';
 import type { Theme } from '../../../../../util/theme/models';
 import ScreenView from '../../../../Base/ScreenView';
 import { PerpsNavigationParamList } from '../../types/navigation';
+import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
+import RemoteImage from '../../../../Base/RemoteImage';
+import { PerpsTransaction } from '../PerpsTransactionsView/PerpsTransactionsView';
+import { formatPerpsFiat } from '../../utils/formatUtils';
+import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
+import { usePerpsNetwork, usePerpsOrderFees } from '../../hooks';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { getHyperliquidExplorerUrl } from '../../utils/blockchainUtils';
+import { BigNumber } from 'bignumber.js';
 
-interface PerpsTransaction {
-  id: string;
-  type: 'trade' | 'order' | 'funding';
-  category: 'position_open' | 'position_close' | 'limit_order' | 'funding_fee';
-  title: string;
-  status: 'Completed' | 'Placed' | 'Queued';
-  timestamp: number;
-  amount: string;
-  amountUSD: string;
-  asset: string;
-  leverage?: string;
-  isPositive: boolean;
-}
+// Interface now imported from PerpsTransactionsView
 
 type PerpsOrderTransactionRouteProp = RouteProp<
   PerpsNavigationParamList,
@@ -51,48 +58,30 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
       paddingHorizontal: 16,
-      paddingTop: 16,
+      paddingTop: 24,
     },
-    orderInfoContainer: {
+    assetContainer: {
       alignItems: 'center' as const,
-      paddingVertical: 24,
-      marginBottom: 24,
+      paddingBottom: 20,
+      paddingHorizontal: 16,
     },
-    orderInfoRow: {
-      flexDirection: 'row' as const,
+    assetIconContainer: {
+      width: 44,
+      height: 44,
+      borderRadius: 36,
+      marginBottom: 16,
+      overflow: 'hidden' as const,
+      justifyContent: 'center' as const,
       alignItems: 'center' as const,
     },
     assetIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      marginRight: 8,
-      backgroundColor: colors.primary.default,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
+      width: 44,
+      height: 44,
+      borderRadius: 36,
     },
-    orderInfoText: {
-      fontSize: 18,
-      fontWeight: '500' as const,
+    assetAmount: {
+      fontWeight: '700' as const,
       color: colors.text.default,
-    },
-    statusContainer: {
-      alignItems: 'center' as const,
-      paddingVertical: 24,
-      marginBottom: 24,
-    },
-    statusText: {
-      fontSize: 18,
-      fontWeight: '500' as const,
-    },
-    statusPlaced: {
-      color: colors.warning.default,
-    },
-    statusCompleted: {
-      color: colors.success.default,
-    },
-    statusCancelled: {
-      color: colors.error.default,
     },
     detailsContainer: {
       flex: 1,
@@ -101,32 +90,88 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row' as const,
       justifyContent: 'space-between' as const,
       alignItems: 'center' as const,
-      paddingVertical: 16,
-      borderBottomWidth: 0.5,
-      borderBottomColor: colors.border.muted,
+      paddingVertical: 8,
+    },
+    detailRowLast: {
+      borderBottomWidth: 0,
     },
     detailLabel: {
-      fontSize: 16,
-      color: colors.text.default,
+      fontSize: 14,
+      color: colors.text.alternative,
     },
     detailValue: {
-      fontSize: 16,
-      color: colors.text.muted,
+      fontSize: 14,
+      color: colors.text.default,
+      fontWeight: '400' as const,
+    },
+    sectionSeparator: {
+      height: 16,
+      marginBottom: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.muted,
     },
     blockExplorerButton: {
-      marginTop: 24,
-      marginBottom: 32,
+      marginTop: 16,
+      marginBottom: 16,
     },
   };
+};
+
+// Asset display component
+const AssetDisplay = ({ transaction }: { transaction: PerpsTransaction }) => {
+  const { styles } = useStyles(styleSheet, {});
+  const { assetUrl } = usePerpsAssetMetadata(transaction.asset);
+
+  return (
+    <View style={styles.assetContainer}>
+      <View style={styles.assetIconContainer}>
+        {assetUrl ? (
+          <RemoteImage
+            source={{ uri: assetUrl }}
+            style={styles.assetIcon}
+            resizeMode="cover"
+          />
+        ) : (
+          <Avatar
+            variant={AvatarVariant.Network}
+            name={transaction.asset}
+            size={AvatarSize.Lg}
+          />
+        )}
+      </View>
+      <Text variant={TextVariant.HeadingLG} style={styles.assetAmount}>
+        {transaction.subtitle}
+      </Text>
+    </View>
+  );
 };
 
 const PerpsOrderTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsOrderTransactionRouteProp>();
-
+  const perpsNetwork = usePerpsNetwork();
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
+
+  const {
+    totalFee,
+    protocolFee,
+    protocolFeeRate,
+    metamaskFee,
+    metamaskFeeRate,
+    isLoadingMetamaskFee,
+    error,
+  } = usePerpsOrderFees({
+    orderType: transaction.order?.type ?? 'market',
+    amount: transaction.order?.size ?? '0',
+  });
+
+  // Set navigation title
+  navigation.setOptions(
+    getPerpsTransactionsDetailsNavbar(navigation, transaction.title),
+  );
 
   if (!transaction) {
     return (
@@ -138,74 +183,129 @@ const PerpsOrderTransactionView: React.FC = () => {
     );
   }
 
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case 'Placed':
-        return styles.statusPlaced;
-      case 'Completed':
-        return styles.statusCompleted;
-      case 'Queued':
-        return styles.statusPlaced;
-      default:
-        return styles.statusPlaced;
-    }
-  };
-
-  const formatDate = (timestamp: number): string => {
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      month: 'short',
+  const formatDate = (timestamp: number): string =>
+    new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+    }).format(new Date(timestamp));
 
   const handleViewOnBlockExplorer = () => {
-    // TODO: Implement block explorer navigation
-    console.log('Navigate to block explorer for order transaction:', transaction.id);
+    if (!selectedInternalAccount) {
+      return;
+    }
+    Linking.openURL(
+      getHyperliquidExplorerUrl(perpsNetwork, selectedInternalAccount.address),
+    );
   };
 
-  const detailRows = [
-    { label: 'Status', value: transaction.status },
+  // Main detail rows based on design
+  const mainDetailRows = [
     { label: 'Date', value: formatDate(transaction.timestamp) },
-    { label: 'Network fee', value: '$' },
-    { label: 'MetaMask fee', value: '$' },
-    { label: 'Provider fee', value: '$' },
+    // Add order-specific fields when available from transaction data
+    {
+      label: 'Size',
+      value: formatPerpsFiat(transaction.order?.size ?? 0),
+    },
+    {
+      label: 'Limit price',
+      value: formatPerpsFiat(transaction.order?.limitPrice ?? 0),
+    },
+    { label: 'Filled', value: transaction.order?.filled },
+  ];
+
+  const isFilled = transaction.order?.text === 'Filled';
+  // Fee breakdown
+
+  const feeRows = [
+    {
+      label: 'MetaMask fee',
+      value: `${
+        isFilled
+          ? `${
+              BigNumber(metamaskFee).isLessThan(0.01)
+                ? `$${metamaskFee}`
+                : formatPerpsFiat(metamaskFee)
+            }`
+          : '$0'
+      }`,
+    },
+    {
+      label: 'Hyperliquid fee',
+      value: `${
+        isFilled
+          ? `${
+              BigNumber(protocolFee).isLessThan(0.01)
+                ? `$${protocolFee}`
+                : formatPerpsFiat(protocolFee)
+            }`
+          : '$0'
+      }`,
+    },
+    {
+      label: 'Total fee',
+      value: `${
+        isFilled
+          ? `${
+              BigNumber(totalFee).isLessThan(0.01)
+                ? `$${totalFee}`
+                : formatPerpsFiat(totalFee)
+            }`
+          : '$0'
+      }`,
+    },
   ];
 
   return (
     <ScreenView>
       <ScrollView style={styles.container}>
         <View style={styles.content}>
-          {/* Order info display */}
-          <View style={styles.orderInfoContainer}>
-            <View style={styles.orderInfoRow}>
-              <View style={styles.assetIcon}>
-                <Icon
-                  name={IconName.Ethereum}
-                  size={IconSize.Sm}
-                  color={IconColor.Inverse}
-                />
-              </View>
-              <Text style={styles.orderInfoText}>
-                {transaction.asset} Long {transaction.leverage || '10x'}
-              </Text>
-            </View>
-          </View>
-
-          {/* Status */}
-          <View style={styles.statusContainer}>
-            <Text style={[styles.statusText, getStatusStyle(transaction.status)]}>
-              {transaction.status}
-            </Text>
-          </View>
+          {/* Asset display with centered icon and amount */}
+          <AssetDisplay transaction={transaction} />
 
           {/* Transaction details */}
           <View style={styles.detailsContainer}>
-            {detailRows.map((detail, index) => (
-              <View key={index} style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{detail.label}</Text>
-                <Text style={styles.detailValue}>{detail.value}</Text>
+            {mainDetailRows.map((detail, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.detailRow,
+                  index === mainDetailRows.length - 1 && styles.detailRowLast,
+                ]}
+              >
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {detail.label}
+                </Text>
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                  {detail.value}
+                </Text>
+              </View>
+            ))}
+
+            {/* Separator between sections */}
+            <View style={styles.sectionSeparator} />
+
+            {/* Fee breakdown */}
+            {feeRows.map((detail, index) => (
+              <View
+                key={`fee-${index}`}
+                style={[
+                  styles.detailRow,
+                  index === feeRows.length - 1 && styles.detailRowLast,
+                ]}
+              >
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {detail.label}
+                </Text>
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                  {detail.value}
+                </Text>
               </View>
             ))}
           </View>

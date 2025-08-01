@@ -1,6 +1,11 @@
 import React from 'react';
-import { View, ScrollView } from 'react-native';
-import { NavigationProp, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { View, ScrollView, Linking } from 'react-native';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
@@ -14,20 +19,16 @@ import { useStyles } from '../../../../../component-library/hooks';
 import type { Theme } from '../../../../../util/theme/models';
 import ScreenView from '../../../../Base/ScreenView';
 import { PerpsNavigationParamList } from '../../types/navigation';
+import { PerpsTransaction } from '../PerpsTransactionsView/PerpsTransactionsView';
+import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
+import { getHyperliquidExplorerUrl } from '../../utils/blockchainUtils';
+import { useSelector } from 'react-redux';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { usePerpsNetwork } from '../../hooks';
+import { formatPerpsFiat } from '../../utils/formatUtils';
+import { BigNumber } from 'bignumber.js';
 
-interface PerpsTransaction {
-  id: string;
-  type: 'trade' | 'order' | 'funding';
-  category: 'position_open' | 'position_close' | 'limit_order' | 'funding_fee';
-  title: string;
-  status: 'Completed' | 'Placed' | 'Queued';
-  timestamp: number;
-  amount: string;
-  amountUSD: string;
-  asset: string;
-  leverage?: string;
-  isPositive: boolean;
-}
+// Interface now imported from PerpsTransactionsView
 
 type PerpsFundingTransactionRouteProp = RouteProp<
   PerpsNavigationParamList,
@@ -46,17 +47,7 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
       paddingHorizontal: 16,
-      paddingTop: 16,
-    },
-    statusContainer: {
-      alignItems: 'center' as const,
-      paddingVertical: 24,
-      marginBottom: 24,
-    },
-    statusText: {
-      fontSize: 18,
-      fontWeight: '500' as const,
-      color: colors.success.default,
+      paddingTop: 8,
     },
     detailsContainer: {
       flex: 1,
@@ -65,21 +56,20 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row' as const,
       justifyContent: 'space-between' as const,
       alignItems: 'center' as const,
-      paddingVertical: 16,
-      borderBottomWidth: 0.5,
-      borderBottomColor: colors.border.muted,
+      paddingVertical: 8,
     },
     detailLabel: {
       fontSize: 16,
-      color: colors.text.default,
+      color: colors.text.alternative,
     },
     detailValue: {
       fontSize: 16,
-      color: colors.text.muted,
+      color: colors.text.default,
+      fontWeight: '400' as const,
     },
     blockExplorerButton: {
-      marginTop: 24,
-      marginBottom: 32,
+      marginTop: 16,
+      marginBottom: 16,
     },
   };
 };
@@ -88,10 +78,16 @@ const PerpsFundingTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsFundingTransactionRouteProp>();
+  const perpsNetwork = usePerpsNetwork();
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
 
+  // Set navigation title
+  navigation.setOptions(
+    getPerpsTransactionsDetailsNavbar(navigation, transaction.title),
+  );
   if (!transaction) {
     return (
       <ScreenView>
@@ -102,47 +98,65 @@ const PerpsFundingTransactionView: React.FC = () => {
     );
   }
 
-  const handleViewOnBlockExplorer = () => {
-    // TODO: Implement block explorer navigation
-    console.log('Navigate to block explorer for funding transaction:', transaction.id);
-  };
-
-  const formatDate = (timestamp: number): string => {
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      month: 'short',
+  const formatDate = (timestamp: number): string =>
+    new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    }).format(new Date(timestamp));
+
+  const handleViewOnBlockExplorer = () => {
+    if (!selectedInternalAccount) {
+      return;
+    }
+    Linking.openURL(
+      getHyperliquidExplorerUrl(perpsNetwork, selectedInternalAccount.address),
+    );
   };
 
+  const feeNumber = transaction.fundingAmount?.feeNumber || 0;
+  console.log(
+    'feeNumber',
+    feeNumber,
+    BigNumber(feeNumber).isLessThan(0.01) &&
+      BigNumber(feeNumber).isGreaterThan(-0.01),
+    BigNumber(feeNumber).isGreaterThan(-0.01),
+  );
+  // Funding detail rows based on design
   const detailRows = [
-    { label: 'Status', value: transaction.status },
-    { 
-      label: 'Position', 
-      value: `0.5 ${transaction.asset} Long ${transaction.leverage || '10x'}` 
-    },
     { label: 'Date', value: formatDate(transaction.timestamp) },
-    { label: 'Fee', value: '$' },
+    {
+      label: 'Fee',
+      value:
+        BigNumber(feeNumber).isLessThan(0.01) &&
+        BigNumber(feeNumber).isGreaterThan(-0.01)
+          ? `${transaction.fundingAmount?.isPositive ? '+' : '-'}$${Math.abs(
+              feeNumber,
+            )}`
+          : `${
+              transaction.fundingAmount?.isPositive ? '+' : '-'
+            }${formatPerpsFiat(Math.abs(feeNumber))}`,
+    },
+    { label: 'Rate', value: transaction.fundingAmount?.rate },
   ];
 
   return (
     <ScreenView>
       <ScrollView style={styles.container}>
         <View style={styles.content}>
-          {/* Status */}
-          <View style={styles.statusContainer}>
-            <Text style={styles.statusText}>
-              {transaction.status === 'Completed' ? 'Confirmed' : transaction.status}
-            </Text>
-          </View>
-
-          {/* Transaction details */}
+          {/* Transaction details - clean list design */}
           <View style={styles.detailsContainer}>
             {detailRows.map((detail, index) => (
               <View key={index} style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{detail.label}</Text>
-                <Text style={styles.detailValue}>{detail.value}</Text>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {detail.label}
+                </Text>
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                  {detail.value}
+                </Text>
               </View>
             ))}
           </View>

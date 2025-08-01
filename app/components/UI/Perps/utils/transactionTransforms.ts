@@ -1,3 +1,4 @@
+import { BigNumber } from 'bignumber.js';
 import type { PerpsTransaction } from '../Views/PerpsTransactionsView/PerpsTransactionsView';
 
 /**
@@ -7,21 +8,80 @@ import type { PerpsTransaction } from '../Views/PerpsTransactionsView/PerpsTrans
  */
 export function transformFillsToTransactions(fills: any[]): PerpsTransaction[] {
   return fills.map((fill) => {
-    const isPositive = fill.side === 'B'; // 'B' = sell = closing position = potentially positive
-    const amount = `${fill.side === 'A' ? '+' : '-'}${fill.sz} ${fill.coin}`;
-    const amountUSD = `${fill.side === 'A' ? '-' : '+'}$${(parseFloat(fill.sz) * parseFloat(fill.px)).toFixed(2)}`;
-    
+    const {
+      px,
+      dir,
+      feeToken,
+      fee,
+      startPosition,
+      closedPnl,
+      time,
+      oid,
+      coin,
+    } = fill;
+    // TODO: better logic handling for flipped fills, this feels brittle but will do for now
+    const [part1, part2] = dir ? dir.split(' ') : [];
+    const isOpened = part1 === 'Open';
+    const isClosed = part1 === 'Close';
+    const isFlipped = part2 === '>';
+
+    let action = '';
+    let isPositive = false;
+    if (isOpened) {
+      action = 'Opened';
+      isPositive = false;
+    } else if (isClosed) {
+      action = 'Closed';
+      isPositive = true;
+    } else if (isFlipped) {
+      action = 'Flipped';
+      isPositive = true;
+    } else {
+      action = 'Unknown';
+      isPositive = true;
+    }
+
+    let amount = '';
+    if (isFlipped) {
+      amount = `${isPositive ? '+' : '-'}${BigNumber(fill.startPosition)
+        .minus(fill.sz)
+        .absoluteValue()
+        .times(fill.px)
+        .toString()} ${fill.coin}`;
+    } else {
+      amount = `${isPositive ? '+' : '-'}${BigNumber(fill.sz)
+        .times(fill.px)
+        .plus(fill.fee)
+        .toString()} ${fill.feeToken}`;
+    }
+
+    const absAmount = Math.abs(parseFloat(amount)).toFixed(2);
+    const amountUSD = `${isPositive ? '+' : '-'}$${absAmount}`;
+
     return {
       id: fill.oid?.toString() || `fill-${fill.time}`,
       type: 'trade' as const,
-      category: fill.side === 'A' ? 'position_open' : 'position_close',
-      title: `${fill.side === 'A' ? 'Bought' : 'Sold'} ${fill.coin}`,
-      status: 'Completed' as const,
+      category: isOpened ? 'position_open' : 'position_close',
+      title: `${action} ${fill.coin} ${
+        isFlipped ? fill.dir?.toLowerCase() : part2?.toLowerCase()
+      }`,
+      subtitle: `${fill.sz} ${fill.coin}`,
       timestamp: fill.time,
-      amount,
-      amountUSD,
       asset: fill.coin,
-      isPositive,
+      fill: {
+        shortTitle: `${action} ${
+          isFlipped ? fill.dir?.toLowerCase() : part2?.toLowerCase()
+        }`,
+        amount: amountUSD,
+        amountNumber: parseFloat(amount).toFixed(2),
+        isPositive,
+        size: fill.sz,
+        entryPrice: px,
+        pnl: closedPnl,
+        fee,
+        feeToken,
+        action,
+      },
     };
   });
 }
@@ -31,38 +91,81 @@ export function transformFillsToTransactions(fills: any[]): PerpsTransaction[] {
  * @param orders - Array of order objects from HyperLiquid historicalOrders API
  * @returns Array of PerpsTransaction objects
  */
-export function transformOrdersToTransactions(orders: any[]): PerpsTransaction[] {
-  return orders.map((order) => {
-    const isLimitOrder = order.orderType === 'limit';
-    const isCancelled = order.status === 'cancelled';
-    const isCompleted = order.status === 'filled';
-    
-    let title = '';
-    let status: 'Completed' | 'Placed' | 'Queued' = 'Placed';
-    
-    if (isCancelled) {
-      title = `Canceled ${order.coin} ${order.side === 'A' ? 'Long' : 'Short'} ${isLimitOrder ? 'limit order' : 'order'}`;
-      status = 'Completed';
-    } else if (isCompleted) {
-      title = `${isLimitOrder ? 'Filled' : 'Executed'} ${order.coin} ${order.side === 'A' ? 'Long' : 'Short'} order`;
-      status = 'Completed';
+export function transformOrdersToTransactions(
+  orders: any[],
+): PerpsTransaction[] {
+  return orders.map((orderObj) => {
+    const { order, status, statusTimestamp } = orderObj;
+    const { oid, coin, side, orderType, sz, origSz, limitPx } = order;
+
+    // console.log('orderObj', orderObj);
+    const isCancelled = [
+      'canceled',
+      'reduceOnlyCanceled',
+      'siblingFilledCanceled',
+    ].includes(status);
+    const isCompleted = status === 'filled';
+    const isOpened = status === 'open';
+    const isRejected = status === 'minTradeNtlRejected';
+    const isTriggered = status === 'triggered';
+
+    const title = `${
+      side === 'A' ? 'Long' : 'Short'
+    } ${orderType?.toLowerCase()}`;
+    const subtitle = `${origSz || '0'} ${coin}`;
+
+    const orderTypeSlug = orderType?.toLowerCase().split(' ').join('_');
+
+    let orderStatusType:
+      | 'filled'
+      | 'canceled'
+      | 'rejected'
+      | 'triggered'
+      | 'pending' = 'pending';
+    let statusText = '';
+
+    if (isCompleted) {
+      orderStatusType = 'filled';
+      statusText = 'Filled';
+    } else if (isCancelled) {
+      orderStatusType = 'canceled';
+      statusText = 'Canceled';
+    } else if (isRejected) {
+      orderStatusType = 'rejected';
+      statusText = 'Rejected';
+    } else if (isTriggered) {
+      orderStatusType = 'triggered';
+      statusText = 'Triggered';
     } else {
-      title = `Placed ${order.coin} ${order.side === 'A' ? 'Long' : 'Short'} ${isLimitOrder ? 'limit order' : 'order'}`;
-      status = order.status === 'open' ? 'Placed' : 'Queued';
+      orderStatusType = 'pending';
+      statusText = isOpened ? '' : 'Queued';
     }
-    
+
     return {
-      id: order.oid?.toString() || `order-${order.timestamp}`,
+      id: `${oid?.toString()}-${statusTimestamp}`,
       type: 'order' as const,
-      category: 'limit_order' as const,
+      category: orderTypeSlug,
       title,
-      status,
-      timestamp: order.timestamp,
-      amount: '', // Orders don't have amounts until filled
-      amountUSD: '',
-      asset: order.coin,
-      leverage: order.leverage ? `${order.leverage}x` : undefined,
-      isPositive: false,
+      subtitle,
+      timestamp: statusTimestamp,
+      asset: coin,
+      order: {
+        text: statusText,
+        statusType: orderStatusType,
+        type: orderTypeSlug.includes('limit') ? 'limit' : 'market',
+        size: BigNumber(origSz).multipliedBy(limitPx).toString(),
+        limitPrice: limitPx,
+        filled: `${
+          BigNumber(sz).isEqualTo(0)
+            ? '100'
+            : BigNumber(origSz)
+                .minus(sz)
+                .dividedBy(origSz)
+                .absoluteValue()
+                .multipliedBy(100)
+                .toString()
+        }%`,
+      },
     };
   });
 }
@@ -72,90 +175,36 @@ export function transformOrdersToTransactions(orders: any[]): PerpsTransaction[]
  * @param funding - Array of funding objects from HyperLiquid userFunding API
  * @returns Array of PerpsTransaction objects
  */
-export function transformFundingToTransactions(funding: any[]): PerpsTransaction[] {
+export function transformFundingToTransactions(
+  funding: any[],
+): PerpsTransaction[] {
   return funding.map((fundingItem) => {
-    const isPositive = parseFloat(fundingItem.delta) > 0;
-    const amount = `${isPositive ? '+' : ''}${fundingItem.delta} ${fundingItem.coin}`;
-    const amountUSD = `${isPositive ? '+' : ''}$${Math.abs(parseFloat(fundingItem.delta)).toFixed(5)}`;
-    
+    // Add logging to debug the data structure
+    // console.log('fundingItem', fundingItem);
+    // Safe parsing with fallbacks
+    const { delta, hash, time } = fundingItem;
+    const { coin, fundingRate, szi, type, usdc, nSamples } = delta;
+
+    // Create safe amount strings
+    const isPositive = BigNumber(usdc).isGreaterThan(0);
+    const amountUSDC = `${isPositive ? '+' : '-'}$${BigNumber(usdc)
+      .absoluteValue()
+      .toString()}`;
+
     return {
-      id: `funding-${fundingItem.time}-${fundingItem.coin}`,
+      id: `funding-${time}-${coin}`,
       type: 'funding' as const,
       category: 'funding_fee' as const,
       title: `${isPositive ? 'Received' : 'Paid'} funding fee`,
-      status: 'Completed' as const,
-      timestamp: fundingItem.time,
-      amount,
-      amountUSD,
-      asset: fundingItem.coin,
-      isPositive,
+      subtitle: ``,
+      timestamp: time,
+      asset: coin,
+      fundingAmount: {
+        isPositive,
+        fee: amountUSDC,
+        feeNumber: BigNumber(usdc).toString(),
+        rate: `${BigNumber(fundingRate).multipliedBy(100).toString()}%`,
+      },
     };
   });
-}
-
-/**
- * Transform HyperLiquid userNonFundingLedgerUpdates response to PerpsTransaction format
- * @param ledgerUpdates - Array of ledger update objects from HyperLiquid userNonFundingLedgerUpdates API
- * @returns Array of PerpsTransaction objects
- */
-export function transformLedgerUpdatesToTransactions(ledgerUpdates: any[]): PerpsTransaction[] {
-  return ledgerUpdates.map((update) => {
-    const isPositive = parseFloat(update.delta) > 0;
-    const amount = `${isPositive ? '+' : ''}${update.delta} ${update.coin}`;
-    const amountUSD = `${isPositive ? '+' : ''}$${Math.abs(parseFloat(update.delta)).toFixed(2)}`;
-    
-    let title = '';
-    let type: 'trade' | 'order' | 'funding' = 'funding';
-    let category: 'position_open' | 'position_close' | 'limit_order' | 'funding_fee' = 'funding_fee';
-    
-    // Determine transaction type based on update type
-    if (update.type === 'deposit') {
-      title = 'Deposit';
-      type = 'funding';
-      category = 'funding_fee';
-    } else if (update.type === 'withdrawal') {
-      title = 'Withdrawal';
-      type = 'funding';
-      category = 'funding_fee';
-    } else if (update.type === 'liquidation') {
-      title = 'Liquidation';
-      type = 'trade';
-      category = 'position_close';
-    } else {
-      title = 'Account update';
-      type = 'funding';
-      category = 'funding_fee';
-    }
-    
-    return {
-      id: `ledger-${update.time}-${update.coin}`,
-      type,
-      category,
-      title,
-      status: 'Completed' as const,
-      timestamp: update.time,
-      amount,
-      amountUSD,
-      asset: update.coin,
-      isPositive,
-    };
-  });
-}
-
-/**
- * Combine and sort all transaction types chronologically
- * @param fills - Transformed fills
- * @param orders - Transformed orders
- * @param funding - Transformed funding
- * @returns Combined and sorted PerpsTransaction array
- */
-export function combineAndSortTransactions(
-  fills: PerpsTransaction[],
-  orders: PerpsTransaction[],
-  funding: PerpsTransaction[]
-): PerpsTransaction[] {
-  const allTransactions = [...fills, ...orders, ...funding];
-  
-  // Sort by timestamp descending (newest first)
-  return allTransactions.sort((a, b) => b.timestamp - a.timestamp);
 }
