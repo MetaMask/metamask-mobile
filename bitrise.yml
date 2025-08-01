@@ -1266,8 +1266,8 @@ workflows:
             - zip_name: E2E_Performance_Results
     meta:
       bitrise.io:
-        machine_type_id: elite-xl
-        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.7x-large
+        stack: ubuntu-noble-24.04-bitrise-2025-android
 
   # Performance-specific Android E2E test workflow
   android_e2e_test_performance:
@@ -1393,8 +1393,8 @@ workflows:
             - zip_name: E2E_Performance_Results
     meta:
       bitrise.io:
-        machine_type_id: elite-xl
-        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.7x-large
+        stack: ubuntu-noble-24.04-bitrise-2025-android
 
   ios_api_specs:
     before_run:
