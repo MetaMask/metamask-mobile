@@ -24,11 +24,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { ThemeProvider, Theme } from '@metamask/design-system-twrnc-preset';
-import {
-  baseStyles,
-  onboardingCarouselColors,
-  colors as constColors,
-} from '../../../styles/common';
+import { baseStyles, onboardingCarouselColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -54,6 +50,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { lightTheme } from '@metamask/design-tokens';
 
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -149,7 +146,7 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
     bar: {
       width: 10,
       height: 2,
-      backgroundColor: constColors.btnBlack,
+      backgroundColor: lightTheme.colors.text.default,
       opacity: 0.4,
       marginHorizontal: 2,
     },

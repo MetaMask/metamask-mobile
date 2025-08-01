@@ -390,7 +390,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -406,7 +406,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -420,7 +420,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1022,7 +1022,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1038,7 +1038,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1052,7 +1052,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1654,7 +1654,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1670,7 +1670,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1684,7 +1684,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2286,7 +2286,7 @@ exports[`OnboardingCarousel Image Padding should use android medium device 1`] =
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2302,7 +2302,7 @@ exports[`OnboardingCarousel Image Padding should use android medium device 1`] =
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2316,7 +2316,7 @@ exports[`OnboardingCarousel Image Padding should use android medium device 1`] =
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2918,7 +2918,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2934,7 +2934,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2948,7 +2948,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -3550,7 +3550,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -3566,7 +3566,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -3580,7 +3580,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4182,7 +4182,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4198,7 +4198,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4212,7 +4212,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4814,7 +4814,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4830,7 +4830,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4844,7 +4844,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -5446,7 +5446,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -5462,7 +5462,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -5476,7 +5476,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -6078,7 +6078,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -6094,7 +6094,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -6108,7 +6108,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -6710,7 +6710,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -6726,7 +6726,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -6740,7 +6740,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -7342,7 +7342,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest or
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -7358,7 +7358,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest or
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -7372,7 +7372,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest or
               style={
                 [
                   {
-                    "backgroundColor": undefined,
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
