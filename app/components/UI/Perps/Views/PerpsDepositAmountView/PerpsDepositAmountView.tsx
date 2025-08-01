@@ -24,14 +24,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toHex } from '@metamask/controller-utils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  translatePerpsError,
-  isPerpsErrorCode,
-} from '../../utils/translatePerpsError';
-import {
-  PERPS_ERROR_CODES,
-  type PerpsErrorCode,
-} from '../../controllers/PerpsController';
+import { handlePerpsError } from '../../utils/perpsErrorHandler';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -454,23 +447,14 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
         // Navigate to trading view
         navigation.navigate(Routes.PERPS.TRADING_VIEW);
-      } else if (
-        depositResult.error &&
-        Object.values(PERPS_ERROR_CODES).includes(
-          depositResult.error as PerpsErrorCode,
-        )
-      ) {
-        // Translate PerpsController error codes
-        const errorMessage = isPerpsErrorCode(
-          depositResult.error,
-          PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED,
-        )
-          ? translatePerpsError(depositResult.error, { token: assetId })
-          : translatePerpsError(depositResult.error);
-        setError(errorMessage);
       } else {
-        // Use the error as-is or default message
-        setError(depositResult.error || strings('perps.errors.depositFailed'));
+        // Use centralized error handler for all errors
+        const errorMessage = handlePerpsError({
+          error: depositResult.error,
+          context: { token: sourceToken.symbol },
+          fallbackMessage: strings('perps.errors.depositFailed'),
+        });
+        setError(errorMessage);
       }
     } catch (err) {
       setError(
