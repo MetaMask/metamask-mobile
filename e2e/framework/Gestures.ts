@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable no-restricted-syntax */
 import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities';
@@ -10,6 +9,9 @@ import {
   GestureOptions,
   TypeTextOptions,
 } from './types';
+import { createLogger } from './logger';
+
+const logger = createLogger({ name: 'Gestures' });
 
 /**
  * Gestures class with element stability and auto-retry
@@ -27,6 +29,8 @@ export default class Gestures {
       checkVisibility?: boolean;
       checkEnabled?: boolean;
       elemDescription?: string;
+      delay?: number;
+      waitForElementToDisappear?: boolean;
     },
     point?: { x: number; y: number },
   ) => {
@@ -41,6 +45,9 @@ export default class Gestures {
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
       await (expect(await elem) as any).toExist();
       await (await elem).tap();
+      if (options.waitForElementToDisappear) {
+        await Utilities.waitForElementToDisappear(elem);
+      }
       return;
     }
 
@@ -50,11 +57,23 @@ export default class Gestures {
       checkEnabled,
     });
 
+    if (options.delay) {
+      await new Promise((resolve) => setTimeout(resolve, options.delay));
+    } else {
+      await new Promise((resolve) =>
+        setTimeout(resolve, BASE_DEFAULTS.actionDelay),
+      );
+    }
     await el.tap(point);
+
+    if (options.waitForElementToDisappear) {
+      await Utilities.waitForElementToDisappear(elem);
+    }
+
     const successMessage = elemDescription
       ? `✅ Successfully tapped element: ${elemDescription}`
       : `✅ Successfully tapped element`;
-    console.log(successMessage);
+    logger.debug(successMessage);
   };
 
   /**
@@ -72,6 +91,8 @@ export default class Gestures {
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
+      waitForElementToDisappear = false,
+      delay = 500,
     } = options;
 
     const fn = () =>
@@ -80,6 +101,8 @@ export default class Gestures {
         checkVisibility,
         checkEnabled,
         elemDescription,
+        waitForElementToDisappear,
+        delay,
       });
     return Utilities.executeWithRetry(fn, {
       timeout,
@@ -90,7 +113,8 @@ export default class Gestures {
 
   /**
    * Wait for an element to be visible and then tap it with enhanced options
-   * This is the same as tap() - keeping it for backwards compatibility
+   * This is the same as tap() - but with an additional delay before the tap.
+   * This is useful for cases where the element might not be immediately ready for interaction.
    * @returns A Promise that resolves when the tap is successful
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
@@ -104,14 +128,18 @@ export default class Gestures {
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
+      delay = 500,
+      waitForElementToDisappear = false,
     } = options;
 
-    const fn = () =>
-      this.tapWithChecks(elem, {
+    const fn = async () =>
+      await this.tapWithChecks(elem, {
         checkStability,
         checkVisibility,
         checkEnabled,
         elemDescription,
+        delay,
+        waitForElementToDisappear,
       });
 
     return Utilities.executeWithRetry(fn, {
@@ -129,14 +157,19 @@ export default class Gestures {
   static async tapAtIndex(
     elem: DetoxElement,
     index: number,
-    timeout = 15000,
+    options: TapOptions = {},
   ): Promise<void> {
+    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
     return Utilities.executeWithRetry(
       async () => {
         const el = (await elem) as Detox.IndexableNativeElement;
         const itemElementAtIndex = el.atIndex(index);
         await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
         await itemElementAtIndex.tap();
+        const successMessage = elemDescription
+          ? `✅ Successfully tapped element at index: ${index} ${elemDescription}`
+          : `✅ Successfully tapped element at index: ${index}`;
+        logger.debug(successMessage);
       },
       {
         timeout,
@@ -303,7 +336,7 @@ export default class Gestures {
         const textToType = hideKeyboard ? text + '\n' : text;
         await el.typeText(textToType);
 
-        console.log(
+        logger.debug(
           `✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${
             elemDescription || 'unknown'
           }`,
@@ -398,9 +431,8 @@ export default class Gestures {
       },
     );
   }
-
   /**
-   * Scroll to element with dynamic retry
+   * Scroll to element with dynamic retry and platform-specific adjustments
    * @returns A Promise that resolves when the scroll is successful
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
@@ -419,11 +451,23 @@ export default class Gestures {
     return Utilities.executeWithRetry(
       async () => {
         const target = (await targetElement) as Detox.IndexableNativeElement;
-        const scrollable = await scrollableContainer; // This is only working when it's awaited
-        await waitFor(target)
-          .toBeVisible()
-          .whileElement(scrollable)
-          .scroll(scrollAmount, direction);
+        const scrollable = await scrollableContainer;
+
+        if (device.getPlatform() === 'android') {
+          const scrollableElement = element(scrollable);
+          try {
+            await waitFor(target).toBeVisible().withTimeout(100);
+            return;
+          } catch {
+            await scrollableElement.scroll(scrollAmount, direction);
+            await waitFor(target).toBeVisible().withTimeout(100);
+          }
+        } else {
+          await waitFor(target)
+            .toBeVisible()
+            .whileElement(scrollable)
+            .scroll(scrollAmount, direction);
+        }
       },
       {
         timeout,
@@ -503,18 +547,38 @@ export default class Gestures {
 
   /**
    * Legacy method: Clear the text field
-   * @deprecated Use typeText() with clearFirst option instead for better error handling and retry mechanisms
+   * @deprecated Use typeText() with clearFirst option or the replaceText() from Gestures.ts instead for better error handling and retry mechanisms
    */
-  static async clearField(elem: DetoxElement, timeout = 2500): Promise<void> {
+  static async clearField(
+    elem: DetoxElement,
+    options: GestureOptions = {},
+  ): Promise<void> {
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      checkStability = false,
+      checkEnabled = true,
+      checkVisibility = true,
+      elemDescription,
+    } = options;
+
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
-        await waitFor(el).toBeVisible().withTimeout(timeout);
+        const el = (await Utilities.checkElementReadyState(elem, {
+          timeout,
+          checkStability,
+          checkVisibility,
+          checkEnabled,
+        })) as Detox.IndexableNativeElement;
+
+        await new Promise((resolve) =>
+          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
+        );
         await el.replaceText('');
       },
       {
         timeout,
-        description: 'Cleared field',
+        description: 'clearField()',
+        elemDescription,
       },
     );
   }

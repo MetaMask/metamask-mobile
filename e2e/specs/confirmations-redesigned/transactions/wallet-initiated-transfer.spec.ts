@@ -1,19 +1,15 @@
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import TestHelpers from '../../../helpers';
 import { loginToApp } from '../../../viewHelper';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../../fixtures/fixture-helper';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { buildPermissions } from '../../../fixtures/utils';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
@@ -25,6 +21,7 @@ import NetworkListModal from '../../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
 import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
 import TestDApp from '../../../pages/Browser/TestDApp';
+import { CustomNetworks } from '../../../resources/networks.e2e';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const AMOUNT = '1';
@@ -41,7 +38,6 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await TestHelpers.reverseServerPort();
   });
 
   it('sends native asset', async () => {
@@ -54,14 +50,12 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
           )
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
         testSpecificMock: localTestSpecificMock,
       },
       async () => {
         await loginToApp();
 
         await TabBarComponent.tapActions();
-        await TestHelpers.delay(2000);
         await WalletActionsBottomSheet.tapSendButton();
 
         await SendView.inputAddress(RECIPIENT);
@@ -71,55 +65,68 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await AmountView.tapNextButton();
 
         // Check all expected elements are visible
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
           ConfirmationUITypes.FlatConfirmationContainer,
         );
-        await Assertions.checkIfVisible(RowComponents.TokenHero);
-        await Assertions.checkIfTextIsDisplayed('1 ETH');
-        await Assertions.checkIfVisible(RowComponents.FromTo);
-        await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
-        await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
+        await Assertions.expectElementToBeVisible(RowComponents.TokenHero);
+        await Assertions.expectTextDisplayed('1 ETH');
+        await Assertions.expectElementToBeVisible(RowComponents.FromTo);
+        await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
+        await Assertions.expectElementToBeVisible(
+          RowComponents.AdvancedDetails,
+        );
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
+        await Assertions.expectTextDisplayed('Confirmed');
       },
     );
   });
 
   // Table-driven tests for network switching
   for (const networkConfig of NETWORK_TEST_CONFIGS) {
-    it(`should switch to ${networkConfig.name} network`, async () => {
+    it(`should switch from ${networkConfig.name} network`, async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
             .withNetworkController({
-              providerConfig: networkConfig.providerConfig,
+              // Add the custom network to the fixture so it exists in the network list
+              providerConfig: networkConfig.networkConfig,
             })
             .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(networkConfig.permissions)
+              buildPermissions(['0x539']), // Use Ganache permissions initially
             )
             .build(),
           restartDevice: true,
-          ganacheOptions: networkConfig.ganacheOptions,
           testSpecificMock: networkConfig.testSpecificMock,
         },
         async () => {
           await loginToApp();
 
+          // Switch to the target network
           await WalletView.tapNetworksButtonOnNavBar();
-          await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+          await Assertions.expectElementToBeVisible(
+            NetworkListModal.networkScroll,
+          );
           await NetworkListModal.scrollToBottomOfNetworkList();
-          await NetworkListModal.changeNetworkTo(networkConfig.networkConfig.nickname);
-          await Assertions.checkIfVisible(NetworkEducationModal.container);
 
+          await NetworkListModal.changeNetworkTo(
+            CustomNetworks.Sepolia.providerConfig.nickname,
+          );
+          await Assertions.expectElementToBeVisible(
+            NetworkEducationModal.container,
+          );
           await NetworkEducationModal.tapGotItButton();
 
           // Verify we're on the correct network
-          await Assertions.checkIfTextIsDisplayed(networkConfig.networkConfig.nickname);
+          await Assertions.expectElementToBeVisible(WalletView.container);
+          await Assertions.expectElementToHaveLabel(
+            WalletView.navbarNetworkPicker,
+            CustomNetworks.Sepolia.providerConfig.nickname,
+          );
         },
       );
     });
@@ -135,11 +142,10 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
               providerConfig: networkConfig.providerConfig,
             })
             .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(networkConfig.permissions)
+              buildPermissions(networkConfig.permissions),
             )
             .build(),
           restartDevice: true,
-          ganacheOptions: networkConfig.ganacheOptions,
           testSpecificMock: networkConfig.testSpecificMock,
         },
         async () => {
@@ -156,13 +162,11 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
           await AmountView.tapNextButton();
 
           await TestDApp.tapConfirmButton();
-          await TestHelpers.delay(3000);
           await TabBarComponent.tapActivity();
 
-          await Assertions.checkIfTextIsDisplayed('Confirmed');
+          await Assertions.expectTextDisplayed('Confirmed');
         },
       );
     });
   }
-
 });

@@ -22,8 +22,8 @@ import {
   type CheckedAuthAction,
   type PersistedDataLoadedAction,
   type SetAppServicesReadyAction,
+  type SetExistingUserAction,
   UserActionType,
-  type SetMetaMetricsUISeenAction,
 } from './types';
 
 export * from './types';
@@ -178,13 +178,12 @@ export function setAppServicesReady(): SetAppServicesReadyAction {
   };
 }
 
-export function setMetaMetricsUISeen(
-  isMetaMetricsUISeen: boolean,
-): SetMetaMetricsUISeenAction {
+/**
+ * Action to set existing user flag
+ */
+export function setExistingUser(existingUser: boolean): SetExistingUserAction {
   return {
-    type: UserActionType.SET_META_METRICS_UI_SEEN,
-    payload: {
-      isMetaMetricsUISeen,
-    },
+    type: UserActionType.SET_EXISTING_USER,
+    payload: { existingUser },
   };
 }

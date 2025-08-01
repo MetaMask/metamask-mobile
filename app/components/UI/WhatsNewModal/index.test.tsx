@@ -19,6 +19,7 @@ const mockTheme = {
     text: { alternative: 'orange' },
     error: { default: 'red' },
     overlay: { default: 'green' },
+    border: { default: 'black' },
   },
   themeAppearance: 'light',
 };

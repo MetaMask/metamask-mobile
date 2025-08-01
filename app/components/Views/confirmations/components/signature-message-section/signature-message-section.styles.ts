@@ -19,10 +19,6 @@ const styleSheet = (params: { theme: Theme }) => {
     message: {
       marginTop: 8,
     },
-    title: {
-      color: theme.colors.text.default,
-      ...fontStyles.bold,
-    },
     description: {
       color: theme.colors.text.default,
       ...fontStyles.normal,

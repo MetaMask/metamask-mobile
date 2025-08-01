@@ -9,7 +9,10 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   EARN_CONTRACT_INTERACTION_TYPES,
@@ -218,8 +221,18 @@ const Title = () => {
 
   return (
     <View style={styles.titleContainer}>
-      <Text style={styles.title}>{title}</Text>
-      {subTitle && <Text style={styles.subTitle}>{subTitle}</Text>}
+      <Text style={styles.title} variant={TextVariant.HeadingMD}>
+        {title}
+      </Text>
+      {subTitle && (
+        <Text
+          style={styles.subTitle}
+          color={TextColor.Alternative}
+          variant={TextVariant.BodyMD}
+        >
+          {subTitle}
+        </Text>
+      )}
       <BatchedTransactionTag />
     </View>
   );
