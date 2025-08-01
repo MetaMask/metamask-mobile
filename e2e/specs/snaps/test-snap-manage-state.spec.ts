@@ -1,14 +1,14 @@
 import TestHelpers from '../../helpers';
 import { FlaskBuildTests } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
+} from '../../framework/fixtures/FixtureHelper';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import FixtureServer from '../../fixtures/fixture-server';
+import FixtureServer from '../../framework/fixtures/FixtureServer';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 

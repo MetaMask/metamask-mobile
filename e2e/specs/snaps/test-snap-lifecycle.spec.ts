@@ -1,10 +1,10 @@
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import FixtureServer from '../../fixtures/fixture-server';
+} from '../../framework/fixtures/FixtureHelper';
+import FixtureServer from '../../framework/fixtures/FixtureServer';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import TestHelpers from '../../helpers';
 import TestSnaps from '../../pages/Browser/TestSnaps';
