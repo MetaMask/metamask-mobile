@@ -165,36 +165,6 @@ describe('translatePerpsError', () => {
       );
     });
   });
-
-  describe('with unknown types', () => {
-    it('should return unknown error for null', () => {
-      const result = translatePerpsError({ error: null });
-
-      expect(result).toBe('perps.errors.unknownError');
-      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
-    });
-
-    it('should return unknown error for undefined', () => {
-      const result = translatePerpsError({ error: undefined });
-
-      expect(result).toBe('perps.errors.unknownError');
-      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
-    });
-
-    it('should return unknown error for objects', () => {
-      const result = translatePerpsError({ error: { some: 'object' } });
-
-      expect(result).toBe('perps.errors.unknownError');
-      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
-    });
-
-    it('should return unknown error for numbers', () => {
-      const result = translatePerpsError({ error: 123 });
-
-      expect(result).toBe('perps.errors.unknownError');
-      expect(strings).toHaveBeenCalledWith('perps.errors.unknownError');
-    });
-  });
 });
 
 describe('isPerpsErrorCode', () => {

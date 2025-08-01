@@ -26,7 +26,7 @@ const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
  * Parameters for translating Perps errors
  */
 export interface TranslatePerpsErrorParams {
-  error: string | Error | unknown;
+  error: string | Error;
   data?: Record<string, unknown>;
 }
 
@@ -81,7 +81,7 @@ export function isPerpsErrorCode(
  * Parameters for handling Perps errors
  */
 export interface HandlePerpsErrorParams {
-  error: string | Error | unknown;
+  error: unknown;
   context?: {
     providerId?: string;
     token?: string;
@@ -118,12 +118,13 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
   }
 
   // Extract error string from Error objects or use as-is
-  const errorString =
-    error instanceof Error
-      ? error.message
-      : typeof error === 'string'
-      ? error
-      : null;
+  let errorString: string | null = null;
+
+  if (error instanceof Error) {
+    errorString = error.message;
+  } else if (typeof error === 'string') {
+    errorString = error;
+  }
 
   // Check if it's a PerpsController error code
   if (
