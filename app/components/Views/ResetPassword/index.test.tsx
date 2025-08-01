@@ -20,7 +20,7 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import Device from '../../../util/device';
 import ReduxService from '../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../core/redux/types';
-import { recreateVaultWithNewPassword } from '../../../core/Vault';
+import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
 
@@ -172,7 +172,7 @@ jest.mock('../../../core/Vault', () => {
   const actual = jest.requireActual('../../../core/Vault');
   return {
     ...actual,
-    recreateVaultWithNewPassword: jest.fn(),
+    recreateVaultsWithNewPassword: jest.fn(),
   };
 });
 
@@ -637,12 +637,12 @@ describe('ResetPassword', () => {
   });
 
   describe('reset password error handling', () => {
-    const mockRecreateVaultWithNewPassword = jest.mocked(
-      recreateVaultWithNewPassword,
+    const mockRecreateVaultsWithNewPassword = jest.mocked(
+      recreateVaultsWithNewPassword,
     );
 
     it('show error password is outdated', async () => {
-      mockRecreateVaultWithNewPassword.mockRejectedValueOnce(
+      mockRecreateVaultsWithNewPassword.mockRejectedValueOnce(
         new Error(SeedlessOnboardingControllerErrorMessage.OutdatedPassword),
       );
 
@@ -682,14 +682,14 @@ describe('ResetPassword', () => {
         mockNavigation.navigate.mock.calls[0][1].params.onPrimaryButtonPress;
       await confirmButton();
 
-      expect(mockRecreateVaultWithNewPassword).toHaveBeenCalled();
+      expect(mockRecreateVaultsWithNewPassword).toHaveBeenCalled();
       expect(mockNavigation.navigate.mock.calls[1][1].params.title).toBe(
         strings('login.seedless_password_outdated_modal_title'),
       );
     });
 
     it('show error change password failed', async () => {
-      mockRecreateVaultWithNewPassword.mockRejectedValueOnce(
+      mockRecreateVaultsWithNewPassword.mockRejectedValueOnce(
         new Error(
           SeedlessOnboardingControllerErrorMessage.FailedToChangePassword,
         ),
@@ -731,7 +731,7 @@ describe('ResetPassword', () => {
         mockNavigation.navigate.mock.calls[0][1].params.onPrimaryButtonPress;
       await confirmButton();
 
-      expect(mockRecreateVaultWithNewPassword).toHaveBeenCalled();
+      expect(mockRecreateVaultsWithNewPassword).toHaveBeenCalled();
 
       expect(mockNavigation.navigate.mock.calls[1][1].params.title).toBe(
         strings('reset_password.seedless_change_password_error_modal_title'),
