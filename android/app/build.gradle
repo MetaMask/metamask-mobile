@@ -315,7 +315,7 @@ android {
           prod {
             dimension "version"
             applicationId "io.metamask"
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.mainProd
             // Use the appropriate signing config based on environment
             if (System.getenv("METAMASK_ENVIRONMENT") == 'exp') {
               signingConfig signingConfigs.mainExp
