@@ -298,7 +298,8 @@ const SummaryTab: React.FC<SummaryTabProps> = () => {
                   styles.progressFill,
                   {
                     width: `${
-                      seasonData
+                      seasonData &&
+                      (nextTier?.nextTierPointsNeeded || currentPoints) > 0
                         ? Math.min(
                             100,
                             (currentPoints /

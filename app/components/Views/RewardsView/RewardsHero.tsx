@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { StyleSheet, View, Text, Image, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { useTheme } from '../../../util/theme';
@@ -22,6 +22,9 @@ import {
   formatSeasonEndDate,
   SOLANA_SIGNUP_NOT_SUPPORTED,
 } from '../../../util/rewards';
+import { useDevOnlyLogin } from '../../../core/Engine/controllers/rewards-controller/hooks/useDevOnlyLogin';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
 
 interface RewardsHeroProps {
   onOptIn: () => void;
@@ -85,6 +88,26 @@ const createStyles = (colors: Colors) =>
     errorBanner: {
       marginBottom: 16,
     },
+    devContainer: {
+      marginTop: 16,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+    },
+    devInput: {
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 16,
+      color: colors.text.default,
+      backgroundColor: colors.background.default,
+      marginBottom: 12,
+    },
+    devButtonContainer: {
+      marginBottom: 16,
+    },
   });
 
 const RewardsHero: React.FC<RewardsHeroProps> = ({
@@ -94,9 +117,20 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({
   isLoading,
 }) => {
   const { colors } = useTheme();
+  const navigation = useNavigation();
   const styles = createStyles(colors);
   const address = useSelector(selectSelectedInternalAccountAddress);
   const isSolanaAccount = address ? isSolanaAddress(address) : false;
+  const [devInput, setDevInput] = useState('');
+  const { login } = useDevOnlyLogin({
+    onLoginSuccess: () => {
+      navigation.navigate(Routes.REWARDS_DASHBOARD);
+    },
+  });
+
+  const handleDevLogin = useCallback(() => {
+    login(devInput);
+  }, [devInput, login]);
 
   const { seasonData } = useRewardsSeason();
   const name = seasonData?.name || 'Upcoming Season';
@@ -152,6 +186,31 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({
             disabled={isSolanaAccount}
             loading={isLoading}
           />
+        </View>
+
+        <View style={styles.devContainer}>
+          <TextInput
+            style={styles.devInput}
+            placeholder="Enter dev credentials"
+            placeholderTextColor={colors.text.muted}
+            value={devInput}
+            onChangeText={setDevInput}
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable
+            selectTextOnFocus
+            caretHidden={false}
+            keyboardType="default"
+          />
+          <View style={styles.devButtonContainer}>
+            <Button
+              variant={ButtonVariants.Secondary}
+              label="Dev Login"
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              onPress={handleDevLogin}
+            />
+          </View>
         </View>
       </View>
     </View>
