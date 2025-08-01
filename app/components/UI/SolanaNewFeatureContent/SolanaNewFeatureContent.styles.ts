@@ -21,13 +21,13 @@ const createStyles = () => StyleSheet.create({
       lineHeight: 60,
       textAlign: 'center',
       paddingTop: Device.isLargeDevice() ? 40 : 10,
-      fontFamily: 'MMPoly-Regular',
+      fontFamily: 'MM Poly Regular',
     },
     titleDescription: {
       paddingTop: 20,
       textAlign: 'center',
       fontSize: 16,
-      fontFamily: 'MMSans-Regular',
+      fontFamily: 'MM Sans Regular',
     },
     foxImage: {
       height: Device.isLargeDevice() ? 350 : 260,
