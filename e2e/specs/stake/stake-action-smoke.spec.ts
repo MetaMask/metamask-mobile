@@ -78,42 +78,50 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
 
   it('should be able to import stake test account with funds', async (): Promise<void> => {
     await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await Assertions.expectElementToBeVisible(
+      AccountListBottomSheet.accountList,
+    );
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapImportAccount();
-    await Assertions.checkIfVisible(ImportAccountView.container);
+    await Assertions.expectElementToBeVisible(ImportAccountView.container);
     await ImportAccountView.enterPrivateKey(
       process.env.MM_STAKE_TEST_ACCOUNT_PRIVATE_KEY || '',
     );
-    await Assertions.checkIfVisible(SuccessImportAccountView.container);
+    await Assertions.expectElementToBeVisible(
+      SuccessImportAccountView.container,
+    );
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.container);
   });
 
   it('should send ETH to new account', async (): Promise<void> => {
     await TabBarComponent.tapActions();
-    await Assertions.checkIfVisible(WalletActionsBottomSheet.sendButton)
+    await Assertions.expectElementToBeVisible(
+      WalletActionsBottomSheet.sendButton,
+    );
     await WalletActionsBottomSheet.tapSendButton();
     await SendView.inputAddress(wallet.address);
-    await Assertions.checkIfVisible(SendView.nextButton)
+    await Assertions.expectElementToBeVisible(SendView.nextButton);
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount(AMOUNT_TO_SEND);
-    await Assertions.checkIfVisible(AmountView.nextButton)
+    await Assertions.expectElementToBeVisible(AmountView.nextButton);
     await AmountView.tapNextButton();
-    await Assertions.checkIfTextIsDisplayed(`0${AMOUNT_TO_SEND} ETH`);
+    await Assertions.expectTextDisplayed(`0${AMOUNT_TO_SEND} ETH`);
     await TestHelpers.delay(2000);
-    await Assertions.checkIfVisible(FooterActions.confirmButton)
+    await Assertions.expectElementToBeVisible(FooterActions.confirmButton);
     await FooterActions.tapConfirmButton();
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfElementToHaveText(
+    await Assertions.expectElementToBeVisible(ActivitiesView.title);
+    await Assertions.expectElementToHaveText(
       ActivitiesView.transactionStatus(FIRST_ROW),
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      120000,
+      { timeout: 120000 },
     );
     // Wait fot toeast to clear
     await TestHelpers.delay(8000);
-    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
+    await Assertions.expectElementToBeVisible(
+      TabBarComponent.tabBarWalletButton,
+    );
     await TabBarComponent.tapWallet();
     // Waiting for funds to arrive
     await Assertions.checkIfTextIsNotDisplayed('$0', 60000);
@@ -121,101 +129,134 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
 
   it('should be able to import the new funded account', async (): Promise<void> => {
     await TabBarComponent.tapWallet();
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.container);
     await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-    await Assertions.checkIfVisible(AccountListBottomSheet.addAccountButton);
+    await Assertions.expectElementToBeVisible(
+      AccountListBottomSheet.accountList,
+    );
+    await Assertions.expectElementToBeVisible(
+      AccountListBottomSheet.addAccountButton,
+    );
     await AccountListBottomSheet.tapAddAccountButton();
-    await Assertions.checkIfVisible(AddAccountBottomSheet.importAccountButton);
+    await Assertions.expectElementToBeVisible(
+      AddAccountBottomSheet.importAccountButton,
+    );
     await AddAccountBottomSheet.tapImportAccount();
-    await Assertions.checkIfVisible(ImportAccountView.container);
+    await Assertions.expectElementToBeVisible(ImportAccountView.container);
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
-    await Assertions.checkIfVisible(SuccessImportAccountView.container);
-    await Assertions.checkIfVisible(SuccessImportAccountView.closeButton);
+    await Assertions.expectElementToBeVisible(
+      SuccessImportAccountView.container,
+    );
+    await Assertions.expectElementToBeVisible(
+      SuccessImportAccountView.closeButton,
+    );
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
   });
 
   it('should Stake ETH', async (): Promise<void> => {
-    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
-    await device.disableSynchronization()
+    await Assertions.expectElementToBeVisible(
+      TabBarComponent.tabBarWalletButton,
+    );
+    await device.disableSynchronization();
     await WalletView.tapOnEarnButton();
-    await Assertions.checkIfVisible(StakeView.stakeContainer);
+    await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
     await StakeView.enterAmount('.002');
     await TestHelpers.delay(1000);
-    await Assertions.checkIfVisible(StakeView.reviewButton);
+    await Assertions.expectElementToBeVisible(StakeView.reviewButton);
     await StakeView.tapReview();
-    await Assertions.checkIfVisible(StakeView.confirmButton);
-    await StakeView.tapConfirm()
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
-    await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
-    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
+    await Assertions.expectElementToBeVisible(StakeView.confirmButton);
+    await StakeView.tapConfirm();
+    await Assertions.expectElementToBeVisible(ActivitiesView.title);
+    await Assertions.expectElementToBeVisible(
+      ActivitiesView.stakeDepositedLabel,
+    );
+    await Assertions.expectElementToHaveText(
+      ActivitiesView.transactionStatus(FIRST_ROW),
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      { timeout: 120000 },
+    );
+    await Assertions.expectElementToBeVisible(
+      TabBarComponent.tabBarWalletButton,
+    );
     // Wait fot toeast to clear
     await TestHelpers.delay(8000);
   });
 
   it('should Stake more ETH', async (): Promise<void> => {
     await TabBarComponent.tapWallet();
-    await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.checkIfVisible(WalletView.stakedEthereumLabel)
+    await Assertions.expectElementToBeVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.stakedEthereumLabel);
     await WalletView.tapOnStakedEthereum();
     await TestHelpers.delay(1000);
-    await Assertions.checkIfVisible(TokenOverview.container);
+    await Assertions.expectElementToBeVisible(TokenOverview.container);
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(3000);
     await TokenOverview.tapStakeMoreButton();
-    await Assertions.checkIfVisible(StakeView.stakeContainer);
+    await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
     await StakeView.enterAmount('.001');
     await TestHelpers.delay(1000);
-    await Assertions.checkIfVisible(StakeView.reviewButton);
+    await Assertions.expectElementToBeVisible(StakeView.reviewButton);
     await StakeView.tapReview();
-    await Assertions.checkIfVisible(StakeView.confirmButton);
-    await StakeView.tapConfirm()
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
-    await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
-    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
+    await Assertions.expectElementToBeVisible(StakeView.confirmButton);
+    await StakeView.tapConfirm();
+    await Assertions.expectElementToBeVisible(ActivitiesView.title);
+    await Assertions.expectElementToBeVisible(
+      ActivitiesView.stakeDepositedLabel,
+    );
+    await Assertions.expectElementToHaveText(
+      ActivitiesView.transactionStatus(FIRST_ROW),
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      { timeout: 120000 },
+    );
+    await Assertions.expectElementToBeVisible(
+      TabBarComponent.tabBarWalletButton,
+    );
     // Wait fot toeast to clear
     await TestHelpers.delay(8000);
   });
 
-
   it('should Unstake ETH', async (): Promise<void> => {
     await TabBarComponent.tapWallet();
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum();
     await TestHelpers.delay(1000);
-    await Assertions.checkIfVisible(TokenOverview.container);
+    await Assertions.expectElementToBeVisible(TokenOverview.container);
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(3000);
-    await Assertions.checkIfVisible(TokenOverview.unstakeButton);
+    await Assertions.expectElementToBeVisible(TokenOverview.unstakeButton);
     await device.disableSynchronization();
     await TokenOverview.tapUnstakeButton();
-    await Assertions.checkIfVisible(StakeView.unstakeContainer);
+    await Assertions.expectElementToBeVisible(StakeView.unstakeContainer);
     await StakeView.enterAmount('.002');
     await TestHelpers.delay(1000);
-    await Assertions.checkIfVisible(StakeView.reviewButton);
+    await Assertions.expectElementToBeVisible(StakeView.reviewButton);
     await StakeView.tapReview();
-    await Assertions.checkIfVisible(StakeView.confirmButton);
-    await StakeView.tapConfirm()
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.unstakeLabel);
-    await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
-    await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
+    await Assertions.expectElementToBeVisible(StakeView.confirmButton);
+    await StakeView.tapConfirm();
+    await Assertions.expectElementToBeVisible(ActivitiesView.title);
+    await Assertions.expectElementToBeVisible(ActivitiesView.unstakeLabel);
+    await Assertions.expectElementToHaveText(
+      ActivitiesView.transactionStatus(FIRST_ROW),
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      { timeout: 120000 },
+    );
+    await Assertions.expectElementToBeVisible(
+      TabBarComponent.tabBarWalletButton,
+    );
     // Wait fot toeast to clear
     await TestHelpers.delay(8000);
   });
 
   it('should find the unstake banner', async (): Promise<void> => {
     await TabBarComponent.tapWallet();
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum();
     await TestHelpers.delay(1000);
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(3000);
-    await Assertions.checkIfVisible(TokenOverview.unstakingBanner);
-    await Assertions.checkIfVisible(TokenOverview.closeButton);
+    await Assertions.expectElementToBeVisible(TokenOverview.unstakingBanner);
+    await Assertions.expectElementToBeVisible(TokenOverview.closeButton);
     await TokenOverview.tapBackButton();
   });
 
@@ -228,8 +269,8 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
       false,
     );
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(WalletView.earnButton);
-    await Assertions.checkIfNotVisible(WalletView.stakedEthereumLabel);
+    await Assertions.expectElementToBeVisible(WalletView.earnButton);
+    await Assertions.expectElementToBeVisible(WalletView.stakedEthereumLabel);
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
 
@@ -241,9 +282,9 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
 
     await WalletView.tapOnToken('Ethereum', THIRD_ONE);
     await TokenOverview.scrollOnScreen();
-    await Assertions.checkIfNotVisible(TokenOverview.stakedBalance);
-    await Assertions.checkIfNotVisible(TokenOverview.unstakingBanner);
-    await Assertions.checkIfNotVisible(TokenOverview.unstakeButton);
+    await Assertions.expectElementToBeVisible(TokenOverview.stakedBalance);
+    await Assertions.expectElementToBeVisible(TokenOverview.unstakingBanner);
+    await Assertions.expectElementToBeVisible(TokenOverview.unstakeButton);
     await TokenOverview.tapBackButton();
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo(
@@ -252,11 +293,12 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
     await NetworkEducationModal.tapGotItButton();
   });
 
-it.skip('should Stake Claim ETH', async (): Promise<void> => {
-  await TestHelpers.delay(5000000);
-  const address = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'
-  const stakeAPIUrl: string = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/560048?accounts=${address}&resetCache=true`;
-  const response: AxiosResponse<StakingAPIResponse> = await axios.get(stakeAPIUrl);
+  it.skip('should Stake Claim ETH', async (): Promise<void> => {
+    const address = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+    const stakeAPIUrl: string = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/560048?accounts=${address}&resetCache=true`;
+    const response: AxiosResponse<StakingAPIResponse> = await axios.get(
+      stakeAPIUrl,
+    );
 
     if (response.status !== 200) {
       throw new Error('Error calling Staking API');
@@ -303,24 +345,25 @@ it.skip('should Stake Claim ETH', async (): Promise<void> => {
     await TokenOverview.tapClaimButton();
     await StakeConfirmView.tapConfirmButton();
     await TokenOverview.tapBackButton();
-    //Wait for transaction to complete
+    // Wait for transaction to complete
     try {
-      await Assertions.checkIfTextIsDisplayed(
-        'Transaction #3 Complete!',
-        30000,
-      );
+      await Assertions.expectTextDisplayed('Transaction #3 Complete!', {
+        timeout: 30000,
+      });
       await TestHelpers.delay(8000);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(`Transaction complete didn't pop up: ${e}`);
     }
     await TabBarComponent.tapActivity();
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
-    await Assertions.checkIfElementToHaveText(
+    await Assertions.expectElementToBeVisible(ActivitiesView.title);
+    await Assertions.expectElementToBeVisible(
+      ActivitiesView.stackingClaimLabel,
+    );
+    await Assertions.expectElementToHaveText(
       ActivitiesView.transactionStatus(FIRST_ROW),
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      120000,
+      { timeout: 120000 },
     );
   });
 });
