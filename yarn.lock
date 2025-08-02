@@ -6210,10 +6210,10 @@
     ses "^1.12.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.35.2":
-  version "1.35.2"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.35.2.tgz#0ca874d079d415eedd7f9c25a42374bb9bb4168a"
-  integrity sha512-h++U5dnUC1Hur9U1k7PGa7Y+bw25Y/8OH2jK9jXDzidkW5Dldpos03Qdmb9fqSJWCjAGW+mIB9KvlcUOK0SH4g==
+"@metamask/solana-wallet-snap@^2.1.3":
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.1.3.tgz#08410cb3158e9cc05d2ba9211a5ab58687da25cf"
+  integrity sha512-wNCR/vT/DrLgHmgG0LqV75+Fiu+4mr+JAyP3YCdssOdCr4d7jljtlaitkrdp+9hHP50XVscoxZNZ8c1g89OkwA==
 
 "@metamask/solana-wallet-standard@^0.5.1":
   version "0.5.1"
