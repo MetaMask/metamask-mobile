@@ -575,7 +575,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "#3c4d9d1a",
+                                  "backgroundColor": "#3c4d9d0f",
                                   "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
                                   "borderWidth": 1,

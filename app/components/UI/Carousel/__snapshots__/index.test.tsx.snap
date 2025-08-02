@@ -172,7 +172,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
                   "height": 59,
                   "marginHorizontal": 5,
@@ -358,7 +358,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
                   "height": 59,
                   "marginHorizontal": 5,
@@ -544,7 +544,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
                   "height": 59,
                   "marginHorizontal": 5,
@@ -730,7 +730,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
                   "height": 59,
                   "marginHorizontal": 5,
@@ -880,7 +880,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
                   "height": 59,
                   "marginHorizontal": 5,
@@ -1066,7 +1066,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
                   "height": 59,
                   "marginHorizontal": 5,
@@ -1252,7 +1252,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
                   "height": 59,
                   "marginHorizontal": 5,
@@ -1438,7 +1438,7 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
                   "height": 59,
                   "marginHorizontal": 5,

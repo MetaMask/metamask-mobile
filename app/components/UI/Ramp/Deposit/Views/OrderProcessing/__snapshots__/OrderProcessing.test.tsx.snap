@@ -288,7 +288,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -884,7 +884,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -1161,7 +1161,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -1565,7 +1565,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -2161,7 +2161,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
