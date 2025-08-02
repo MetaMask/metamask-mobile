@@ -536,34 +536,10 @@ class Onboarding extends PureComponent {
     this.onPressContinueWithSocialLogin(createWallet, 'google');
 
   handleLoginError = (error, socialConnectionType) => {
-    if (error instanceof OAuthError) {
-      // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
-      if (
-        error.code !== OAuthErrorType.UserCancelled &&
-        error.code !== OAuthErrorType.UserDismissed &&
-        error.code !== OAuthErrorType.GoogleLoginError &&
-        error.code !== OAuthErrorType.AppleLoginError
-      ) {
-        this.handleOAuthLoginError(error);
-        return;
-      }
-      if (
-        error.code === OAuthErrorType.UserCancelled ||
-        error.code === OAuthErrorType.UserDismissed ||
-        error.code === OAuthErrorType.GoogleLoginError ||
-        error.code === OAuthErrorType.AppleLoginError
-      ) {
-        // QA: do not show error sheet if user cancelled
-        return;
-      }
-    }
-
-    const errorMessage = 'oauth_error';
-
     trace({
       name: TraceName.OnboardingSocialLoginError,
       op: TraceOperation.OnboardingError,
-      tags: { provider: socialConnectionType, errorMessage },
+      tags: { provider: socialConnectionType, errorMessage: error.message },
       parentContext: this.onboardingTraceCtx,
     });
     endTrace({ name: TraceName.OnboardingSocialLoginError });
@@ -576,19 +552,37 @@ class Onboarding extends PureComponent {
       this.socialLoginTraceCtx = null;
     }
 
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings(`error_sheet.${errorMessage}_title`),
-        description: strings(`error_sheet.${errorMessage}_description`),
-        descriptionAlign: 'center',
-        buttonLabel: strings(`error_sheet.${errorMessage}_button`),
-        type: 'error',
-      },
-    });
+    let showErrorSheet = true;
+    if (error instanceof OAuthError) {
+      if (
+        error.code === OAuthErrorType.UserCancelled ||
+        error.code === OAuthErrorType.UserDismissed ||
+        error.code === OAuthErrorType.GoogleLoginError ||
+        error.code === OAuthErrorType.AppleLoginError
+      ) {
+        // QA: do not show error sheet if user cancelled
+        return;
+      }
+      showErrorSheet = this.handleSentryCapture(error);
+    }
+
+    if (showErrorSheet) {
+      const errorMessage = 'oauth_error';
+
+      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings(`error_sheet.${errorMessage}_title`),
+          description: strings(`error_sheet.${errorMessage}_description`),
+          descriptionAlign: 'center',
+          buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+          type: 'error',
+        },
+      });
+    }
   };
 
-  handleOAuthLoginError = (error) => {
+  handleSentryCapture = (error) => {
     // If user has already consented to analytics, report error using regular Sentry
     if (this.props.metrics.isEnabled()) {
       captureException(error, {
@@ -597,14 +591,18 @@ class Onboarding extends PureComponent {
           context: 'OAuth login failed - user consented to analytics',
         },
       });
-    } else {
-      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
-      this.setState({
-        loading: false,
-        errorToThrow: new Error(`OAuth login failed: ${error.message}`),
-      });
+      // should show error bottom sheet
+      return true;
     }
+    // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
+    this.setState({
+      loading: false,
+      errorToThrow: new Error(`OAuth login failed: ${error.message}`),
+    });
+    // show error boundary screen
+    return false;
   };
+
   track = (event, properties) => {
     trackOnboarding(
       MetricsEventBuilder.createEventBuilder(event)

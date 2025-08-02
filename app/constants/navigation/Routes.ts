@@ -111,6 +111,7 @@ const Routes = {
   },
   SETTINGS: {
     ADVANCED_SETTINGS: 'AdvancedSettings',
+    SECURITY_SETTINGS: 'SecuritySettings',
     CHANGE_PASSWORD: 'ResetPassword',
     CONTACT_FORM: 'ContactForm',
     DEVELOPER_OPTIONS: 'DeveloperOptions',
