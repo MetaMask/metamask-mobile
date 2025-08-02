@@ -139,14 +139,8 @@ function getPartialTokens(
         t.chainId === chainId,
     );
 
-    if (!balanceToken) {
-      throw new Error(
-        `Balance token not found for address: ${token.address} on chain: ${chainId}`,
-      );
-    }
-
-    const balanceHuman = balanceToken.balance ?? '0';
-    const decimals = balanceToken.decimals ?? 18;
+    const balanceHuman = balanceToken?.balance ?? '0';
+    const decimals = balanceToken?.decimals ?? 18;
     const amountRaw = new BigNumber(token.amount, 16);
     const amountHuman = amountRaw.shiftedBy(-decimals);
     const balanceRaw = new BigNumber(balanceHuman, 10).shiftedBy(decimals);

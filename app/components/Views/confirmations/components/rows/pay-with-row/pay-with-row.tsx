@@ -6,23 +6,23 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenPill } from '../../token-pill/';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import Text from '../../../../../../component-library/components/Texts/Text';
-import { useConfirmationContext } from '../../../context/confirmation-context';
 import AnimatedSpinner, {
   SpinnerSize,
 } from '../../../../../UI/AnimatedSpinner';
 import { strings } from '../../../../../../../locales/i18n';
 import { TouchableOpacity } from 'react-native';
+import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
 
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { quotes, quotesLoading } = useConfirmationContext();
+  const { quotes, loading } = useTransactionBridgeQuotes();
 
   const handleClick = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [navigation]);
 
-  const showEstimate = quotesLoading || Boolean(quotes?.length);
+  const showEstimate = loading || Boolean(quotes?.length);
 
   const estimatedTimeSeconds = quotes?.reduce(
     (acc, quote) => acc + quote.estimatedProcessingTimeInSeconds,
@@ -38,7 +38,7 @@ export function PayWithRow() {
       </InfoRow>
       {showEstimate && (
         <InfoRow label={strings('confirm.label.bridge_estimated_time')}>
-          {quotesLoading ? (
+          {loading ? (
             <AnimatedSpinner testID="pay-with-spinner" size={SpinnerSize.SM} />
           ) : (
             <Text>

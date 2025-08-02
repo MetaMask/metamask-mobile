@@ -1,11 +1,7 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { useTransactionBridgeQuotes } from '../../hooks/pay/useTransactionBridgeQuotes';
-import { TransactionBridgeQuote } from '../../utils/bridge';
 
 export interface ConfirmationContextParams {
   isTransactionValueUpdating: boolean;
-  quotes?: TransactionBridgeQuote[];
-  quotesLoading: boolean;
   setIsTransactionValueUpdating: (isTransactionValueUpdating: boolean) => void;
 }
 
@@ -15,8 +11,6 @@ const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   isTransactionValueUpdating: false,
   // eslint-disable-next-line no-empty-function
   setIsTransactionValueUpdating: () => {},
-  quotes: undefined,
-  quotesLoading: false,
 });
 
 interface ConfirmationContextProviderProps {
@@ -29,21 +23,12 @@ export const ConfirmationContextProvider: React.FC<
   const [isTransactionValueUpdating, setIsTransactionValueUpdating] =
     useState(false);
 
-  const { quotes, loading: quotesLoading } = useTransactionBridgeQuotes();
-
   const contextValue = useMemo(
     () => ({
       isTransactionValueUpdating,
-      quotes,
-      quotesLoading,
       setIsTransactionValueUpdating,
     }),
-    [
-      isTransactionValueUpdating,
-      quotes,
-      quotesLoading,
-      setIsTransactionValueUpdating,
-    ],
+    [isTransactionValueUpdating, setIsTransactionValueUpdating],
   );
 
   return (

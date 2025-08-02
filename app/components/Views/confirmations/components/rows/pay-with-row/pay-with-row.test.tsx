@@ -2,16 +2,14 @@ import React from 'react';
 import { PayWithRow } from './pay-with-row';
 import { TokenPillProps } from '../../token-pill/token-pill';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import {
-  ConfirmationContextParams,
-  useConfirmationContext,
-} from '../../../context/confirmation-context';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { Text as MockText, View as MockView } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
+import { TransactionBridgeQuote } from '../../../utils/bridge';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -19,7 +17,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../../context/confirmation-context');
+jest.mock('../../../hooks/pay/useTransactionBridgeQuotes');
 
 jest.mock('../../../../../UI/AnimatedSpinner', () => ({
   __esModule: true,
@@ -61,7 +59,7 @@ describe('PayWithRow', () => {
       setPayToken: jest.fn(),
     });
 
-    jest.mocked(useConfirmationContext).mockReturnValue({
+    jest.mocked(useTransactionBridgeQuotes).mockReturnValue({
       quotes: [
         {
           estimatedProcessingTimeInSeconds: 10,
@@ -69,8 +67,9 @@ describe('PayWithRow', () => {
         {
           estimatedProcessingTimeInSeconds: 15,
         },
-      ],
-    } as ConfirmationContextParams);
+      ] as TransactionBridgeQuote[],
+      loading: false,
+    });
 
     jest.mocked(useNavigation).mockReturnValue({
       navigate: navigateMock,
@@ -88,9 +87,10 @@ describe('PayWithRow', () => {
   });
 
   it('renders spinner if quotes loading', async () => {
-    jest.mocked(useConfirmationContext).mockReturnValue({
-      quotesLoading: true,
-    } as ConfirmationContextParams);
+    jest.mocked(useTransactionBridgeQuotes).mockReturnValue({
+      quotes: [],
+      loading: true,
+    });
 
     const { getByTestId } = render();
     expect(getByTestId(`pay-with-spinner`)).toBeDefined();
