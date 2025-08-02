@@ -56,9 +56,11 @@ export const useInitialSlippage = () => {
           prevSourceTokenAddress,
           prevDestTokenAddress,
         });
-      } else {
-        dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE.toString()));
+        return;
       }
+        dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE.toString()));
+        return;
+
     }
 
     // Bridge
