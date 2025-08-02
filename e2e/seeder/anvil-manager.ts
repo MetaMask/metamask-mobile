@@ -97,11 +97,11 @@ class AnvilManager {
    * @throws {Error} If server fails to start
    */
   async start(opts: AnvilNodeOptions = {}): Promise<void> {
-    const options = { ...defaultOptions, ...opts, port: AnvilPort() };
+    const options = { ...defaultOptions, ...opts };
     const { port } = options;
 
     try {
-      logger.debug('Starting Anvil server...');
+      logger.debug(`Starting Anvil server on port ${port}`);
 
       // Create and start the server instance
       this.server = createAnvil({

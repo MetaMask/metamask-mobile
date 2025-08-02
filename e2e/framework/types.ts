@@ -78,6 +78,7 @@ export enum LocalNodeType {
   anvil = 'anvil',
   ganache = 'ganache',
   bitcoin = 'bitcoin',
+  solana = 'solana',
 }
 
 export enum GanacheHardfork {
@@ -92,6 +93,7 @@ export interface LocalNodeConfig {
 export interface GanacheNodeOptions {
   hardfork: GanacheHardfork;
   mnemonic: string;
+  port?: number;
   [key: string]: unknown; // Allow additional properties of any type
 }
 export interface AnvilNodeOptions {
