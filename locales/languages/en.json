@@ -5123,6 +5123,20 @@
     "back_button": "Back",
     "continue_button": "Continue"
   },
+  "card": {
+    "card": "MetaMask Card",
+    "card_home": {
+      "error_title": "Can’t fetch data",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "try_again": "Try again",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "add_funds": "Add funds",
+      "manage_card_options": {
+        "manage_card": "Manage card",
+        "advanced_card_management_description": "See transactions, freeze card, and more"
+      }
+    }
+  },
   "onboarding_error_fallback": {
     "title": "An error occurred",
     "description": "Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.",

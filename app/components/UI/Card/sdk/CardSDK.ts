@@ -124,13 +124,11 @@ export class CardSDK {
    * @returns Promise resolving to object containing array of cardholder accounts
    */
   isCardHolder = async (
-    accounts: `eip155:${string}:0x${string}`[],
-  ): Promise<{
-    cardholderAccounts: `eip155:${string}:0x${string}`[];
-  }> => {
+    accounts: `${string}:${string}:${string}`[],
+  ): Promise<`${string}:${string}:${string}`[]> => {
     // Early return for invalid input or disabled feature
     if (!this.isCardEnabled || !accounts?.length) {
-      return { cardholderAccounts: [] };
+      return [];
     }
 
     const BATCH_SIZE = 50;
@@ -154,7 +152,7 @@ export class CardSDK {
    */
   private async performCardholderRequest(
     accountIds: string[],
-  ): Promise<{ cardholderAccounts: `eip155:${string}:0x${string}`[] }> {
+  ): Promise<`${string}:${string}:${string}`[]> {
     try {
       const url = this.buildCardholderApiUrl(accountIds);
       const response = await fetch(url);
@@ -164,15 +162,13 @@ export class CardSDK {
       }
 
       const data = await response.json();
-      return {
-        cardholderAccounts: data.is || [],
-      };
+      return data.is || [];
     } catch (error) {
       Logger.error(
         error as Error,
         'Failed to check if address is a card holder',
       );
-      return { cardholderAccounts: [] };
+      return [];
     }
   }
 
@@ -190,10 +186,10 @@ export class CardSDK {
    * Processes multiple batches of accounts to check cardholder status
    */
   private async processBatchedCardholderRequests(
-    accounts: `eip155:${string}:0x${string}`[],
+    accounts: `${string}:${string}:${string}`[],
     batchSize: number,
     maxBatches: number,
-  ): Promise<{ cardholderAccounts: `eip155:${string}:0x${string}`[] }> {
+  ): Promise<`${string}:${string}:${string}`[]> {
     const batches = this.createAccountBatches(accounts, batchSize, maxBatches);
     const batchPromises = batches.map((batch) =>
       this.performCardholderRequest(batch),
@@ -201,21 +197,21 @@ export class CardSDK {
 
     const results = await Promise.all(batchPromises);
     const allCardholderAccounts = results.flatMap(
-      (result) => result.cardholderAccounts,
+      (result) => result as `${string}:${string}:${string}`[],
     );
 
-    return { cardholderAccounts: allCardholderAccounts };
+    return allCardholderAccounts;
   }
 
   /**
    * Creates batches of accounts for API processing
    */
   private createAccountBatches(
-    accounts: `eip155:${string}:0x${string}`[],
+    accounts: `${string}:${string}:${string}`[],
     batchSize: number,
     maxBatches: number,
-  ): `eip155:${string}:0x${string}`[][] {
-    const batches: `eip155:${string}:0x${string}`[][] = [];
+  ): `${string}:${string}:${string}`[][] {
+    const batches: `${string}:${string}:${string}`[][] = [];
     let remainingAccounts = accounts;
 
     while (remainingAccounts.length > 0 && batches.length < maxBatches) {

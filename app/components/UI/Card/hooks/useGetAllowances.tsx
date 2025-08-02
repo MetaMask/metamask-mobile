@@ -1,27 +1,34 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { useCardSDK } from '../sdk';
 import { CardTokenAllowance, AllowanceState } from '../types';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
+import Logger from '../../../../util/Logger';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 /**
  * Hook to retrieve allowances for supported tokens.
  */
-export const useGetAllowances = (address?: string, autoFetch = false) => {
+export const useGetAllowances = (selectedAddress?: string) => {
   const { sdk } = useCardSDK();
-  const [allowances, setAllowances] = useState<CardTokenAllowance[] | null>(
-    null,
-  );
-  const [isLoading, setIsLoading] = useState<boolean>(autoFetch);
   const chainId = useSelector(selectChainId);
 
   const fetchAllowances = useCallback(async () => {
-    if (sdk && address) {
-      setIsLoading(true);
+    if (sdk && selectedAddress) {
       try {
+        trace({
+          name: TraceName.Card,
+          op: TraceOperation.CardGetSupportedTokensAllowances,
+        });
         const supportedTokensAllowances =
-          await sdk.getSupportedTokensAllowances(address);
+          await sdk.getSupportedTokensAllowances(selectedAddress);
+
         const supportedTokens = sdk.supportedTokens;
 
         const mappedAllowances = supportedTokensAllowances.map((token) => {
@@ -34,11 +41,11 @@ export const useGetAllowances = (address?: string, autoFetch = false) => {
           let allowanceState;
 
           if (allowance.isZero()) {
-            allowanceState = AllowanceState.NotActivated;
+            allowanceState = AllowanceState.NotEnabled;
           } else if (allowance.lt(ARBITRARY_ALLOWANCE)) {
             allowanceState = AllowanceState.Limited;
           } else {
-            allowanceState = AllowanceState.Unlimited;
+            allowanceState = AllowanceState.Enabled;
           }
 
           if (!tokenInfo) {
@@ -62,20 +69,20 @@ export const useGetAllowances = (address?: string, autoFetch = false) => {
           Boolean,
         ) as CardTokenAllowance[];
 
-        setAllowances(filteredAllowances);
+        endTrace({
+          name: TraceName.Card,
+        });
+
+        return filteredAllowances;
       } catch (error) {
-        console.error('Error fetching allowances:', error);
-      } finally {
-        setIsLoading(false);
+        Logger.error(
+          error as Error,
+          'useGetAllowances::Failed to fetch token allowances',
+        );
+        throw new Error('Failed to fetch token allowances');
       }
     }
-  }, [sdk, address, chainId]);
+  }, [sdk, selectedAddress, chainId]);
 
-  useEffect(() => {
-    if (autoFetch) {
-      fetchAllowances();
-    }
-  }, [autoFetch, fetchAllowances]);
-
-  return { allowances, fetchAllowances, isLoading };
+  return { fetchAllowances };
 };

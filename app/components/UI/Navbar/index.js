@@ -940,6 +940,7 @@ export function getWalletNavbarOptions(
   isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
+  isCardholder = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerContainer: {
@@ -1012,6 +1013,15 @@ export function getWalletNavbarOptions(
 
   const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
 
+  const handleCardPress = () => {
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CARD_HOME_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.CARD.ROOT);
+  };
+
   // Action buttons for right side
   const actionButtons = (
     <View style={innerStyles.actionButtonsContainer}>
@@ -1021,6 +1031,16 @@ export function getWalletNavbarOptions(
           hitSlop={innerStyles.touchAreaSlop}
         />
       </View>
+      {isCardholder ? (
+        <ButtonIcon
+          iconProps={{ color: MMDSIconColor.Default }}
+          onPress={handleCardPress}
+          iconName={IconName.Card}
+          size={ButtonIconSize.Lg}
+          testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+          hitSlop={innerStyles.touchAreaSlop}
+        />
+      ) : null}
       {isNotificationsFeatureEnabled() && (
         <BadgeWrapper
           position={BadgeWrapperPosition.TopRight}
