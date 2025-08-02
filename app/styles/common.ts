@@ -18,7 +18,6 @@ export const colors = {
   // https://developer.apple.com/design/human-interface-guidelines/apple-pay
   applePayBlack: '#000000',
   applePayWhite: '#FFFFFF',
-  btnBlack: '#1C1E21',
   modalScrollButton: '#ECEEFF',
   gettingStartedPageBackgroundColor: '#EAC2FF',
   gettingStartedTextColor: '#3D065F',
