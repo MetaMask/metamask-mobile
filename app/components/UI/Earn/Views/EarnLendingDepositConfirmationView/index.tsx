@@ -582,6 +582,7 @@ const EarnLendingDepositConfirmationView = () => {
         await Engine.context.EarnController.executeLendingTokenApprove({
           protocol: earnToken?.experience?.market?.protocol,
           amount: '0',
+          chainId: earnToken.chainId,
           underlyingTokenAddress:
             earnToken?.experience?.market?.underlying?.address,
           gasOptions: {
@@ -617,6 +618,7 @@ const EarnLendingDepositConfirmationView = () => {
       await Engine.context.EarnController.executeLendingTokenApprove({
         protocol: earnToken?.experience?.market?.protocol,
         amount: amountTokenMinimalUnit,
+        chainId: earnToken.chainId,
         underlyingTokenAddress:
           earnToken?.experience?.market?.underlying?.address,
         gasOptions: {
@@ -640,13 +642,13 @@ const EarnLendingDepositConfirmationView = () => {
   };
 
   const depositTokens = async (networkClientId: string) => {
-    if (!earnToken?.experience?.market?.protocol) return;
+    if (!earnToken?.experience?.market?.protocol || !earnToken?.chainId) return;
 
     // start trace between user intiating deposit and generic confirmation bottom sheet showing
     trace({
       name: TraceName.EarnDepositConfirmationScreen,
       data: {
-        chainId: earnToken?.chainId || '',
+        chainId: earnToken.chainId,
         experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
       },
     });
@@ -657,6 +659,7 @@ const EarnLendingDepositConfirmationView = () => {
       await Engine.context.EarnController.executeLendingDeposit({
         amount: amountTokenMinimalUnit,
         protocol: earnToken?.experience?.market?.protocol,
+        chainId: earnToken.chainId,
         underlyingTokenAddress:
           earnToken?.experience?.market?.underlying?.address,
         gasOptions: {
