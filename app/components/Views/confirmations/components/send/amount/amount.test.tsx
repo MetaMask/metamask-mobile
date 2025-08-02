@@ -55,4 +55,10 @@ describe('Amount', () => {
 
     expect(getByText('Max')).toBeTruthy();
   });
+
+  it('display option for fiat toggle', async () => {
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('fiat_toggle')).toBeTruthy();
+  });
 });

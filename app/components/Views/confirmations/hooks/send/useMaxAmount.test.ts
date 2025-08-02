@@ -123,11 +123,11 @@ describe('getMaxValueFn', () => {
 });
 
 describe('useMaxAmount', () => {
-  it('return function updateToMaxAmount', () => {
+  it('return function getMaxAmount', () => {
     const { result } = renderHookWithProvider(
       () => useMaxAmount(),
       mockState as ProviderValues,
     );
-    expect(result.current.updateToMaxAmount).toBeDefined();
+    expect(result.current.getMaxAmount).toBeDefined();
   });
 });

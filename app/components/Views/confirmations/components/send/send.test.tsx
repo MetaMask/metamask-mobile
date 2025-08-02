@@ -89,6 +89,23 @@ const renderComponent = () =>
                 },
               },
             },
+            TokenRatesController: {
+              marketData: {
+                '0x1': {
+                  '0x123': {
+                    price: 3890,
+                  },
+                },
+              },
+            },
+            CurrencyRateController: {
+              currentCurrency: 'usd',
+              currencyRates: {
+                ETH: {
+                  conversionRate: 1,
+                },
+              },
+            },
           },
         },
       },
@@ -278,9 +295,10 @@ describe('Send', () => {
     } as RouteProp<ParamListBase, string>);
 
     const { getByText, getByTestId } = renderComponent();
-    expect(getByTestId('send_amount').props.value).toBe(undefined);
+    expect(getByTestId('send_amount').props.value).toBe('');
     fireEvent.press(getByText('Max'));
     expect(getByTestId('send_amount').props.value).toBe('0.05');
+    expect(getByText('$ 0.05')).toBeTruthy();
   });
 
   it('pressing Max uses max balance minus gas for native token', () => {
@@ -294,8 +312,67 @@ describe('Send', () => {
     } as RouteProp<ParamListBase, string>);
 
     const { getByText, getByTestId } = renderComponent();
-    expect(getByTestId('send_amount').props.value).toBe(undefined);
+    expect(getByTestId('send_amount').props.value).toBe('');
     fireEvent.press(getByText('Max'));
     expect(getByTestId('send_amount').props.value).toBe('0.9999685');
+    expect(getByText('$ 0.99')).toBeTruthy();
+  });
+
+  it('display fiat conversion of amount entered', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: '0x123',
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '1');
+    expect(getByText('$ 3890')).toBeTruthy();
+  });
+
+  it('if fiatmode is enabled display native conversion of amount entered', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: '0x123',
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.press(getByTestId('fiat_toggle'));
+    fireEvent.changeText(getByTestId('send_amount'), '7780');
+    expect(getByText('ETH 2')).toBeTruthy();
+  });
+
+  it('pressing Max in fiat mode should work as expected', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: '0x123',
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    expect(getByTestId('send_amount').props.value).toBe('');
+    fireEvent.press(getByTestId('fiat_toggle'));
+    fireEvent.press(getByText('Max'));
+    expect(getByTestId('send_amount').props.value).toBe('3889.87746');
+    expect(getByText('ETH 0.99997')).toBeTruthy();
   });
 });

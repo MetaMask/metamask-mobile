@@ -148,8 +148,7 @@ export const validateToAddress = async (
 const useToAddressValidation = () => {
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const { to, asset } = useSendContext();
-  const { chainId } = asset ?? { chainId: undefined };
+  const { chainId, to } = useSendContext();
 
   const { value } = useAsyncResult(async () => {
     if (
