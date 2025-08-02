@@ -96,8 +96,8 @@ const EvmAccountSelectorList = ({
   const accountAvatarType = useSelector(
     (state: RootState) =>
       state.settings.useBlockieIcon
-        ? AvatarAccountType.Blockies
-        : AvatarAccountType.JazzIcon,
+        ? AvatarAccountType.Maskicon
+        : AvatarAccountType.Maskicon,
     shallowEqual,
   );
 
