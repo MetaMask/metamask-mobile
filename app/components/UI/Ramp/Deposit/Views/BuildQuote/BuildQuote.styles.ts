@@ -73,6 +73,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       borderWidth: 1,
       borderColor: theme.colors.border.muted,
+      marginBottom: 16,
     },
     keypad: {
       paddingHorizontal: 0,

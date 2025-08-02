@@ -65,7 +65,7 @@ import PerpsTokenSelector, {
   type PerpsToken,
 } from '../../components/PerpsTokenSelector';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import Keypad from '../../../Ramp/Aggregator/components/Keypad';
+import Keypad from '../../../../Base/Keypad';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
   HYPERLIQUID_MAINNET_CHAIN_ID,
