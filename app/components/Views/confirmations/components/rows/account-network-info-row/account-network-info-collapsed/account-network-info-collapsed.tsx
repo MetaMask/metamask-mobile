@@ -29,10 +29,8 @@ import Text, {
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { getLabelTextByAddress } from '../../../../../../../util/address';
 import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
-import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
-import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
-import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
+import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './account-network-info-collapsed.styles';
@@ -41,26 +39,10 @@ const AccountNetworkInfoCollapsed = () => {
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
+  const { chainId, fromAddress } = useApprovalInfo() ?? {};
 
-  const signatureRequest = useSignatureRequest();
-  const transactionMetadata = useTransactionMetadataRequest();
-  const transactionBatchesMetadata = useTransactionBatchesMetadata();
-
-  let chainId: Hex | undefined;
-  let fromAddress: string | undefined;
-  if (signatureRequest) {
-    chainId = signatureRequest?.chainId;
-    fromAddress = signatureRequest?.messageParams?.from;
-  } else if (transactionMetadata) {
-    chainId = transactionMetadata?.chainId as Hex;
-    fromAddress = transactionMetadata?.txParams?.from as string;
-  } else {
-    // transactionBatchesMetadata
-    chainId = transactionBatchesMetadata?.chainId as Hex;
-    fromAddress = transactionBatchesMetadata?.from as string;
-  }
-  const { accountName } = useAccountInfo(fromAddress, chainId as Hex);
-  const accountLabel = getLabelTextByAddress(fromAddress);
+  const { accountName } = useAccountInfo(fromAddress as string, chainId as Hex);
+  const accountLabel = getLabelTextByAddress(fromAddress as string);
   const { styles } = useStyles(styleSheet, {
     accountNameWide: Boolean(!accountLabel),
   });
@@ -89,7 +71,7 @@ const AccountNetworkInfoCollapsed = () => {
                   ? AvatarAccountType.Blockies
                   : AvatarAccountType.JazzIcon
               }
-              accountAddress={fromAddress}
+              accountAddress={fromAddress as string}
             />
           </BadgeWrapper>
           <View>
