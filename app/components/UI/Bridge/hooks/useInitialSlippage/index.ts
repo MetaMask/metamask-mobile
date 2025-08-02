@@ -8,9 +8,13 @@ import {
   selectSourceToken,
   setSlippage,
 } from '../../../../../core/redux/slices/bridge';
-import { handleEvmStablecoinSlippage } from '../../../Swaps/useStablecoinsDefaultSlippage';
+import {
+  getIsStablecoinPair,
+  handleEvmStablecoinSlippage,
+} from '../../../Swaps/useStablecoinsDefaultSlippage';
 import { isHex } from 'viem';
 import usePrevious from '../../../../hooks/usePrevious';
+import AppConstants from '../../../../../core/AppConstants';
 
 export const useInitialSlippage = () => {
   const dispatch = useDispatch();
@@ -36,15 +40,25 @@ export const useInitialSlippage = () => {
       sourceToken?.address &&
       destToken?.address
     ) {
-      handleEvmStablecoinSlippage({
-        sourceTokenAddress: sourceToken?.address,
-        destTokenAddress: destToken?.address,
-        chainId: sourceToken?.chainId,
-        setSlippage: (slippage: number) =>
-          dispatch(setSlippage(slippage.toString())),
-        prevSourceTokenAddress,
-        prevDestTokenAddress,
-      });
+      if (
+        getIsStablecoinPair(
+          sourceToken?.address,
+          destToken?.address,
+          sourceToken?.chainId,
+        )
+      ) {
+        handleEvmStablecoinSlippage({
+          sourceTokenAddress: sourceToken?.address,
+          destTokenAddress: destToken?.address,
+          chainId: sourceToken?.chainId,
+          setSlippage: (slippage: number) =>
+            dispatch(setSlippage(slippage.toString())),
+          prevSourceTokenAddress,
+          prevDestTokenAddress,
+        });
+      } else {
+        dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE.toString()));
+      }
     }
 
     // Bridge
