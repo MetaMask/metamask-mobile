@@ -1,6 +1,6 @@
-import { createDeepEqualSelector } from '../../selectors/util';
+import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
-import { selectMultichainAccountsState1Enabled } from '../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectMultichainAccountsState1Enabled } from '../featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { AccountWalletId } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
@@ -10,7 +10,7 @@ import { AccountWalletObject } from '@metamask/account-tree-controller';
  * @param state - Root redux state
  * @returns AccountTreeController state
  */
-const selectAccountTreeControllerState = (state: RootState) =>
+export const selectAccountTreeControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTreeController;
 
 /**
