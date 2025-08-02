@@ -307,7 +307,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       params: {
         hostInfo: {
           metadata: {
-            origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
+            origin: urlWithProtocol && new URL(urlWithProtocol).origin,
           },
         },
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,

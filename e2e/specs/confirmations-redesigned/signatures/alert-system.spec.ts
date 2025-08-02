@@ -11,6 +11,7 @@ import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import { buildPermissions } from '../../../fixtures/utils';
+import { TEST_DAPP_LOCAL_URL } from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
 import { MockApiEndpoint } from '../../../framework/types';
 
@@ -23,7 +24,7 @@ const typedSignRequestBody = {
     ],
     '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
   ],
-  origin: 'localhost',
+  origin: TEST_DAPP_LOCAL_URL,
 };
 
 describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {

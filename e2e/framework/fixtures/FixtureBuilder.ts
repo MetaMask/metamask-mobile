@@ -1,4 +1,9 @@
-import { getGanachePort, getTestDappLocalUrl } from './FixtureUtils';
+import {
+  getGanachePort,
+  getSecondTestDappLocalUrl,
+  getTestDappLocalUrl,
+  TEST_DAPP_LOCAL_URL,
+} from './FixtureUtils';
 import { merge } from 'lodash';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
@@ -29,8 +34,6 @@ export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
 
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
-
-const DAPP_URL = 'localhost';
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -797,7 +800,7 @@ class FixtureBuilder {
    */
   createPermissionControllerConfig(
     additionalPermissions: Record<string, unknown> = {},
-    dappUrl = DAPP_URL,
+    dappUrl = TEST_DAPP_LOCAL_URL,
   ) {
     const permission = additionalPermissions?.[
       Caip25EndowmentPermissionName
@@ -871,7 +874,7 @@ class FixtureBuilder {
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
+        getSecondTestDappLocalUrl(),
       );
     }
     this.withPermissionController(

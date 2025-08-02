@@ -10,6 +10,7 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
 import { SmokeConfirmations } from '../../../tags';
 import { buildPermissions } from '../../../fixtures/utils';
+import { TEST_DAPP_LOCAL_URL } from '../../../framework/fixtures/FixtureUtils';
 import { MockApiEndpoint } from '../../../framework/types';
 import { DappVariants } from '../../../framework/Constants';
 
@@ -65,7 +66,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
       ],
       '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
     ],
-    origin: 'localhost',
+    origin: TEST_DAPP_LOCAL_URL,
   };
 
   it('should sign typed message', async () => {
