@@ -13,6 +13,109 @@ import { getPersistentState } from './getPersistentState/getPersistentState';
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
 
+// will still be using this storage mechanism
+// Controller list from migration 028.ts
+const CONTROLLER_LIST = [
+  'AccountTrackerController',
+  'AddressBookController',
+  'AssetsContractController',
+  'NftController',
+  'TokensController',
+  'TokenDetectionController',
+  'NftDetectionController',
+  'KeyringController',
+  'NetworkController',
+  'PhishingController',
+  'PreferencesController',
+  'TokenBalancesController',
+  'TokenRatesController',
+  'TransactionController',
+  'SwapsController',
+  'TokenListController',
+  'CurrencyRateController',
+  'GasFeeController',
+  'ApprovalController',
+  'SnapController',
+  'subjectMetadataController',
+  'PermissionController',
+  'LoggingController',
+  'PPOMController',
+];
+
+export const ControllerStorage = {
+  async getItem(key: string) {
+    try {
+      const res = await FilesystemStorage.getItem(key);
+      if (res) {
+        // Using new storage system
+        return res;
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: `Failed to get item for ${key}`,
+      });
+    }
+  },
+  async setItem(key: string, value: string) {
+    try {
+      return await FilesystemStorage.setItem(key, value, Device.isIos());
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: `Failed to set item for ${key}`,
+      });
+    }
+  },
+  async removeItem(key: string) {
+    try {
+      return await FilesystemStorage.removeItem(key);
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: `Failed to remove item for ${key}`,
+      });
+    }
+  },
+  async getKey(): Promise<Record<string, unknown>> {
+    try {
+      // Gather all controller states from individual storage keys using Promise.all
+      const controllerStates = await Promise.all(
+        CONTROLLER_LIST.map(async (controllerName) => {
+          const key = `persist:${controllerName}`;
+          try {
+            const data = await FilesystemStorage.getItem(key);
+            if (data) {
+              // Parse the JSON data
+              const parsedData = JSON.parse(data);
+              // TODO: Remove _persist metadata if it exists - this needs to be moved later
+              // to the migration that will change the data from redux to simple FileSystem
+              const { _persist, ...controllerState } = parsedData;
+              return { [controllerName]: controllerState };
+            }
+            return { [controllerName]: {} };
+          } catch (error) {
+            Logger.error(error as Error, {
+              message: `Failed to get controller state for ${controllerName}`,
+            });
+            return { [controllerName]: {} };
+          }
+        }),
+      );
+
+      // Combine all controller states into a single object
+      const backgroundState = controllerStates.reduce(
+        (acc, controllerState) => ({ ...acc, ...controllerState }),
+        {},
+      );
+
+      return { backgroundState };
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: 'Failed to gather controller states',
+      });
+      return { backgroundState: {} };
+    }
+  },
+};
+
 const MigratedStorage = {
   async getItem(key: string) {
     try {
@@ -57,6 +160,44 @@ const MigratedStorage = {
       });
     }
   },
+};
+
+import { debounce } from 'lodash';
+import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../core/Engine/constants';
+
+export const setupEnginePersistence = () => {
+  try {
+    if (Engine.controllerMessenger) {
+      BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
+        const controllerName = eventName.split(':')[0];
+        Engine.controllerMessenger.subscribe(
+          eventName,
+          debounce(async (controllerState) => {
+            try {
+              await ControllerStorage.setItem(
+                `persist:${controllerName}`,
+                JSON.stringify(controllerState),
+              );
+              Logger.log(`${controllerName} state persisted successfully`);
+            } catch (error) {
+              Logger.error(
+                error as Error,
+                `Failed to persist ${controllerName} state`,
+              );
+            }
+          }, 200),
+        );
+      });
+      Logger.log(
+        'Individual controller persistence subscriptions set up successfully',
+      );
+    }
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'Failed to set up Engine persistence subscription',
+    );
+  }
 };
 
 /**
@@ -135,7 +276,7 @@ const persistOnboardingTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics'],
+  blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics', 'engine'],
   storage: MigratedStorage,
   transforms: [
     persistTransform,
