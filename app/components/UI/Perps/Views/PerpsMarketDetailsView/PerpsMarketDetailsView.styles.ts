@@ -115,4 +115,11 @@ export const createStyles = ({
       alignItems: 'center',
       padding: 24,
     },
+    positionWarning: {
+      marginBottom: 12,
+      paddingHorizontal: 16,
+    },
+    positionWarningText: {
+      textAlign: 'center',
+    },
   });

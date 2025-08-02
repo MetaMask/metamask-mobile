@@ -79,6 +79,7 @@ export type ClosePositionParams = {
   size?: string; // Size to close (omit for full close)
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
+  currentPrice?: number; // Current market price for validation
 };
 
 export interface InitializeResult {
@@ -106,6 +107,7 @@ export interface MarketInfo {
   marginTableId: number; // HyperLiquid: margin requirements table ID
   onlyIsolated?: true; // HyperLiquid: isolated margin only (optional, only when true)
   isDelisted?: true; // HyperLiquid: delisted status (optional, only when true)
+  minimumOrderSize?: number; // Minimum order size in USD (protocol-specific)
 }
 
 /**
@@ -366,7 +368,18 @@ export interface IPerpsProvider {
   getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
-  validateDeposit(params: DepositParams): { isValid: boolean; error?: string }; // Protocol-specific deposit validation
+  validateDeposit(
+    params: DepositParams,
+  ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific deposit validation
+  validateOrder(
+    params: OrderParams,
+  ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific order validation
+  validateClosePosition(
+    params: ClosePositionParams,
+  ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific position close validation
+  validateWithdrawal(
+    params: WithdrawParams,
+  ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific withdrawal validation
 
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;

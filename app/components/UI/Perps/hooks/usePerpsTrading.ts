@@ -162,6 +162,36 @@ export function usePerpsTrading() {
     [],
   );
 
+  const validateOrder = useCallback(
+    async (
+      params: OrderParams,
+    ): Promise<{ isValid: boolean; error?: string }> => {
+      const controller = Engine.context.PerpsController;
+      return controller.validateOrder(params);
+    },
+    [],
+  );
+
+  const validateClosePosition = useCallback(
+    async (
+      params: ClosePositionParams,
+    ): Promise<{ isValid: boolean; error?: string }> => {
+      const controller = Engine.context.PerpsController;
+      return controller.validateClosePosition(params);
+    },
+    [],
+  );
+
+  const validateWithdrawal = useCallback(
+    async (
+      params: WithdrawParams,
+    ): Promise<{ isValid: boolean; error?: string }> => {
+      const controller = Engine.context.PerpsController;
+      return controller.validateWithdrawal(params);
+    },
+    [],
+  );
+
   return {
     placeOrder,
     cancelOrder,
@@ -181,5 +211,8 @@ export function usePerpsTrading() {
     getMaxLeverage,
     updatePositionTPSL,
     calculateFees,
+    validateOrder,
+    validateClosePosition,
+    validateWithdrawal,
   };
 }

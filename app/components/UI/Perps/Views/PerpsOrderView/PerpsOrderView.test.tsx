@@ -1,11 +1,11 @@
-import React from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
+  fireEvent,
   render,
   screen,
   waitFor,
-  fireEvent,
 } from '@testing-library/react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React from 'react';
 
 // Mock react-native-reanimated before importing components
 jest.mock('react-native-reanimated', () => {
@@ -41,16 +41,17 @@ jest.mock('react-native-gesture-handler', () => {
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-import PerpsOrderView from './PerpsOrderView';
 import {
   usePerpsAccount,
-  usePerpsTrading,
-  usePerpsNetwork,
-  usePerpsPrices,
-  usePerpsPaymentTokens,
-  usePerpsMarketData,
   usePerpsLiquidationPrice,
+  usePerpsMarketData,
+  usePerpsNetwork,
+  usePerpsOrderForm,
+  usePerpsPaymentTokens,
+  usePerpsPrices,
+  usePerpsTrading,
 } from '../../hooks';
+import PerpsOrderView from './PerpsOrderView';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -86,6 +87,49 @@ jest.mock('../../hooks', () => ({
     error: null,
   })),
   formatFeeRate: jest.fn((rate) => `${(rate * 100).toFixed(3)}%`),
+  usePerpsOrderForm: jest.fn(() => ({
+    orderForm: {
+      asset: 'ETH',
+      direction: 'long',
+      amount: '100',
+      leverage: 10,
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      limitPrice: undefined,
+    },
+    setAmount: jest.fn(),
+    setLeverage: jest.fn(),
+    setTakeProfitPrice: jest.fn(),
+    setStopLossPrice: jest.fn(),
+    setLimitPrice: jest.fn(),
+    handlePercentageAmount: jest.fn(),
+    handleMaxAmount: jest.fn(),
+    handleMinAmount: jest.fn(),
+    calculations: {
+      marginRequired: 10,
+      positionSize: 0.00222,
+      liquidationPrice: 36000,
+    },
+  })),
+  usePerpsOrderValidation: jest.fn(() => ({
+    isValid: true,
+    errors: [],
+    isValidating: false,
+  })),
+  usePerpsOrderExecution: jest.fn(() => ({
+    placeOrder: jest.fn().mockResolvedValue({ success: true }),
+    isPlacing: false,
+  })),
+  useHasExistingPosition: jest.fn(() => ({
+    hasPosition: false,
+    isLoading: false,
+    error: null,
+  })),
+  useMinimumOrderAmount: jest.fn(() => ({
+    minimumOrderAmount: 10,
+    isLoading: false,
+    error: null,
+  })),
 }));
 
 // Mock Redux selectors
@@ -351,7 +395,7 @@ describe('PerpsOrderView', () => {
     // Find leverage text
     await waitFor(() => {
       expect(screen.getByText('Leverage')).toBeDefined();
-      expect(screen.getByText('3x')).toBeDefined(); // Default leverage value from route params
+      expect(screen.getByText('10x')).toBeDefined(); // Default leverage value from usePerpsOrderForm mock
     });
   });
 
@@ -509,7 +553,33 @@ describe('PerpsOrderView', () => {
     (useRoute as jest.Mock).mockReturnValue({
       params: {
         asset: 'BTC',
+        action: 'short',
+      },
+    });
+
+    // Update the usePerpsOrderForm mock to return short direction
+    (usePerpsOrderForm as jest.Mock).mockReturnValue({
+      orderForm: {
+        asset: 'BTC',
         direction: 'short',
+        amount: '100',
+        leverage: 10,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+        limitPrice: undefined,
+      },
+      setAmount: jest.fn(),
+      setLeverage: jest.fn(),
+      setTakeProfitPrice: jest.fn(),
+      setStopLossPrice: jest.fn(),
+      setLimitPrice: jest.fn(),
+      handlePercentageAmount: jest.fn(),
+      handleMaxAmount: jest.fn(),
+      handleMinAmount: jest.fn(),
+      calculations: {
+        marginRequired: 10,
+        positionSize: 0.00222,
+        liquidationPrice: 36000,
       },
     });
 

@@ -108,7 +108,10 @@ describe('PerpsController', () => {
       withdraw: jest.fn(),
       getDepositRoutes: jest.fn(),
       getWithdrawalRoutes: jest.fn(),
-      validateDeposit: jest.fn(),
+      validateDeposit: jest.fn().mockResolvedValue({ isValid: true }),
+      validateOrder: jest.fn().mockResolvedValue({ isValid: true }),
+      validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
+      validateWithdrawal: jest.fn().mockResolvedValue({ isValid: true }),
       subscribeToPrices: jest.fn(),
       subscribeToPositions: jest.fn(),
       subscribeToOrderFills: jest.fn(),
@@ -2291,6 +2294,113 @@ describe('PerpsController', () => {
 
         expect(controller.state.isEligible).toBe(false);
         expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('validateOrder', () => {
+    it('should delegate to active provider', async () => {
+      const mockParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market' as const,
+      };
+
+      const mockResult = { isValid: true };
+      mockHyperLiquidProvider.validateOrder.mockResolvedValue(mockResult);
+
+      await withController(async ({ controller }) => {
+        const result = await controller.validateOrder(mockParams);
+
+        expect(mockHyperLiquidProvider.validateOrder).toHaveBeenCalledWith(
+          mockParams,
+        );
+        expect(result).toBe(mockResult);
+      });
+    });
+
+    it('should throw error if no active provider', async () => {
+      await withController(async ({ controller }) => {
+        // Set the state to have a non-existent provider
+        controller.update((state) => {
+          state.activeProvider = 'nonexistent' as any;
+        });
+
+        await expect(controller.validateOrder({} as any)).rejects.toThrow(
+          'PROVIDER_NOT_AVAILABLE',
+        );
+      });
+    });
+  });
+
+  describe('validateClosePosition', () => {
+    it('should delegate to active provider', async () => {
+      const mockParams = {
+        coin: 'BTC',
+        orderType: 'market' as const,
+      };
+
+      const mockResult = { isValid: true };
+      mockHyperLiquidProvider.validateClosePosition.mockResolvedValue(
+        mockResult,
+      );
+
+      await withController(async ({ controller }) => {
+        const result = await controller.validateClosePosition(mockParams);
+
+        expect(
+          mockHyperLiquidProvider.validateClosePosition,
+        ).toHaveBeenCalledWith(mockParams);
+        expect(result).toBe(mockResult);
+      });
+    });
+
+    it('should throw error if no active provider', async () => {
+      await withController(async ({ controller }) => {
+        // Set the state to have a non-existent provider
+        controller.update((state) => {
+          state.activeProvider = 'nonexistent' as any;
+        });
+
+        await expect(
+          controller.validateClosePosition({} as any),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+  });
+
+  describe('validateWithdrawal', () => {
+    it('should delegate to active provider', async () => {
+      const mockParams = {
+        amount: '100',
+        destination: '0x123' as Hex,
+        assetId: 'eip155:42161/erc20:0x123/default' as CaipAssetId,
+      };
+
+      const mockResult = { isValid: true };
+      mockHyperLiquidProvider.validateWithdrawal.mockResolvedValue(mockResult);
+
+      await withController(async ({ controller }) => {
+        const result = await controller.validateWithdrawal(mockParams);
+
+        expect(mockHyperLiquidProvider.validateWithdrawal).toHaveBeenCalledWith(
+          mockParams,
+        );
+        expect(result).toBe(mockResult);
+      });
+    });
+
+    it('should throw error if no active provider', async () => {
+      await withController(async ({ controller }) => {
+        // Set the state to have a non-existent provider
+        controller.update((state) => {
+          state.activeProvider = 'nonexistent' as any;
+        });
+
+        await expect(controller.validateWithdrawal({} as any)).rejects.toThrow(
+          'PROVIDER_NOT_AVAILABLE',
+        );
       });
     });
   });

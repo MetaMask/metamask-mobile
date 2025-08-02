@@ -28,6 +28,7 @@ import type {
 } from '../../controllers/types';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
+import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 interface MarketDetailsRouteParams {
@@ -51,6 +52,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { candleData, isLoadingHistory } = usePerpsPositionData({
     coin: market?.symbol || '',
     selectedInterval,
+  });
+
+  // Check if user has an existing position for this market
+  const { hasPosition: hasExistingPosition } = useHasExistingPosition({
+    asset: market?.symbol || '',
+    loadOnMount: true,
   });
 
   const handleIntervalChange = useCallback((newInterval: string) => {
@@ -248,24 +255,43 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       {/* Action Buttons */}
       <View style={styles.actionsContainer}>
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.market.long')}
-          onPress={handleLongPress}
-          style={[styles.actionButton, styles.longButton]}
-          testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-        />
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.market.short')}
-          onPress={handleShortPress}
-          style={[styles.actionButton, styles.shortButton]}
-          testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-        />
+        {hasExistingPosition && (
+          <View style={styles.positionWarning}>
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.positionWarningText}
+            >
+              {strings('perps.market.existing_position_warning', {
+                asset: market.symbol,
+              })}
+            </Text>
+          </View>
+        )}
+        {!hasExistingPosition && (
+          <>
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('perps.market.long')}
+              onPress={handleLongPress}
+              style={[styles.actionButton, styles.longButton]}
+              testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+              disabled={hasExistingPosition}
+            />
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+              label={strings('perps.market.short')}
+              onPress={handleShortPress}
+              style={[styles.actionButton, styles.shortButton]}
+              testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+              disabled={hasExistingPosition}
+            />
+          </>
+        )}
       </View>
     </SafeAreaView>
   );
