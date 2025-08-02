@@ -120,13 +120,7 @@ const createStyles = (colors) =>
       padding: 2,
       borderColor: colors.primary.default,
     },
-    onboardingWizardLabel: {
-      borderWidth: 2,
-      borderRadius: 4,
-      paddingVertical: Device.isIos() ? 2 : -4,
-      paddingHorizontal: Device.isIos() ? 5 : 5,
-      top: Device.isIos() ? 0 : -2,
-    },
+
     actions: {
       flex: 1,
       justifyContent: 'center',
@@ -164,10 +158,6 @@ class AccountOverview extends PureComponent {
     /* Triggers global alert
     */
     showAlert: PropTypes.func,
-    /**
-     * whether component is being rendered from onboarding wizard
-     */
-    onboardingWizard: PropTypes.bool,
     /**
      * Used to get child ref
      */
@@ -207,9 +197,8 @@ class AccountOverview extends PureComponent {
   mainView = React.createRef();
 
   openAccountSelector = () => {
-    const { onboardingWizard, navigation } = this.props;
-    !onboardingWizard &&
-      navigation.navigate(...createAccountSelectorNavDetails({}));
+    const { navigation } = this.props;
+    navigation.navigate(...createAccountSelectorNavDetails({}));
   };
 
   isAccountLabelDefined = (accountLabel) =>
@@ -337,7 +326,6 @@ class AccountOverview extends PureComponent {
   render() {
     const {
       account: { address, name },
-      onboardingWizard,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -359,15 +347,10 @@ class AccountOverview extends PureComponent {
           <View style={styles.info} ref={this.mainView}>
             <TouchableOpacity
               style={styles.identiconBorder}
-              disabled={onboardingWizard}
               onPress={this.openAccountSelector}
               testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
             >
-              <Identicon
-                address={address}
-                diameter={38}
-                noFadeIn={onboardingWizard}
-              />
+              <Identicon address={address} diameter={38} />
             </TouchableOpacity>
             <View
               ref={this.editableLabelRef}
@@ -379,10 +362,7 @@ class AccountOverview extends PureComponent {
                   style={[
                     styles.label,
                     styles.labelInput,
-                    styles.onboardingWizardLabel,
-                    onboardingWizard
-                      ? { borderColor: colors.primary.default }
-                      : { borderColor: colors.background.default },
+                    { borderColor: colors.background.default },
                   ]}
                   editable={accountLabelEditable}
                   onChangeText={this.onAccountLabelChange}
@@ -405,11 +385,8 @@ class AccountOverview extends PureComponent {
                     <Text
                       style={[
                         styles.label,
-                        styles.onboardingWizardLabel,
                         {
-                          borderColor: onboardingWizard
-                            ? colors.primary.default
-                            : colors.background.default,
+                          borderColor: colors.background.default,
                         },
                       ]}
                       numberOfLines={1}
