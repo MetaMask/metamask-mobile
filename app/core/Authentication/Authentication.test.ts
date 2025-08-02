@@ -1715,7 +1715,7 @@ describe('Authentication', () => {
 
       await expect(
         Authentication.userEntryAuth(mockGlobalPassword, mockAuthType),
-      ).resolves.toBeUndefined();
+      ).resolves.toBeTruthy();
 
       expect(spySyncPasswordAndUnlockWallet).toHaveBeenCalled();
       expect(spyRehydrateSeedPhrase).toHaveBeenCalled();
