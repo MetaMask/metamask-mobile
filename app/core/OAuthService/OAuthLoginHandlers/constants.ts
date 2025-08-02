@@ -31,7 +31,7 @@ const buildTypeMapping = (buildType: string, isDev: boolean) => {
   }
 
   switch (buildType) {
-    case 'QA':
+    case 'qa':
       return 'main_uat';
     case 'main':
       return isQa ? 'main_uat' : isDev ? 'main_dev' : 'main_prod';
