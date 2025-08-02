@@ -4,13 +4,10 @@ import { Theme } from '../../../../../util/theme/models';
 const styleSheet = (_params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      paddingTop: 40,
-      paddingBottom: 10,
+      paddingBottom: 20,
     },
-    input: {
+    text: {
       textAlign: 'center',
-      fontSize: 64,
-      fontWeight: '500',
     },
   });
 
