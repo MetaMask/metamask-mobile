@@ -1,6 +1,13 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   NativeSyntheticEvent,
+  Pressable,
   TextInput,
   TextInputSubmitEditingEventData,
   TouchableOpacity,
@@ -51,6 +58,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     ref,
   ) => {
     const inputValueRef = useRef<string>('');
+    const [displayedUrl, setDisplayedUrl] = useState('');
     const inputRef = useRef<TextInput>(null);
     const shouldTriggerBlurCallbackRef = useRef(true);
     const accountsLength = useSelector(selectAccountsLength);
@@ -82,8 +90,13 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
       focus: () => inputRef?.current?.focus(),
-      setNativeProps: (props: object) =>
-        inputRef?.current?.setNativeProps(props),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setNativeProps: async (props: any) => {
+        inputRef?.current?.setNativeProps(props);
+        if (props.text) {
+          setDisplayedUrl(props.text);
+        }
+      },
     }));
 
     /**
@@ -188,26 +201,47 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
               style={styles.connectionIcon}
             />
           ) : null}
-          <View style={styles.textInputWrapper}>
-            <TextInput
-              testID={BrowserURLBarSelectorsIDs.URL_INPUT}
-              keyboardType={'web-search'}
-              autoCapitalize={'none'}
-              autoCorrect={false}
-              ref={inputRef}
-              numberOfLines={1}
-              placeholder={strings('autocomplete.placeholder')}
-              placeholderTextColor={colors.text.muted}
-              returnKeyType={'go'}
-              selectTextOnFocus
-              keyboardAppearance={themeAppearance}
-              style={styles.textInput}
-              onChangeText={onChangeTextInput}
-              onSubmitEditing={onSubmitEditingInput}
-              onBlur={onBlurInput}
-              onFocus={onFocusInput}
-            />
-          </View>
+          {isUrlBarFocused ? (
+            <View style={styles.textInputWrapper}>
+              <TextInput
+                testID={BrowserURLBarSelectorsIDs.URL_INPUT}
+                keyboardType={'web-search'}
+                autoCapitalize={'none'}
+                autoCorrect={false}
+                ref={inputRef}
+                numberOfLines={1}
+                placeholder={strings('autocomplete.placeholder')}
+                placeholderTextColor={colors.text.muted}
+                returnKeyType={'go'}
+                selectTextOnFocus
+                keyboardAppearance={themeAppearance}
+                style={styles.textInput}
+                onChangeText={onChangeTextInput}
+                onSubmitEditing={onSubmitEditingInput}
+                onBlur={onBlurInput}
+                onFocus={onFocusInput}
+              />
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => {
+                onFocusInput();
+                setTimeout(() => {
+                  inputRef.current?.focus();
+                }, 0);
+              }}
+              style={styles.displayedUrlWrapper}
+            >
+              <Text
+                testID={BrowserURLBarSelectorsIDs.DISPLAYED_URL}
+                style={styles.displayedUrlText}
+                numberOfLines={1}
+                ellipsizeMode="head"
+              >
+                {displayedUrl}
+              </Text>
+            </Pressable>
+          )}
           {isUrlBarFocused ? (
             <ButtonIcon
               iconName={IconName.CircleX}
