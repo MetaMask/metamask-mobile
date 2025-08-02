@@ -33,8 +33,6 @@ import {
   selectSourceToken,
   selectBridgeControllerState,
   selectIsEvmSolanaBridge,
-  selectIsSolanaSwap,
-  setSlippage,
   selectIsSubmittingTx,
   setIsSubmittingTx,
   selectDestAddress,
@@ -73,6 +71,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
+import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -112,7 +111,6 @@ const BridgeView = () => {
     : false;
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
-  const isSolanaSwap = useSelector(selectIsSolanaSwap);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -130,12 +128,7 @@ const BridgeView = () => {
     endTrace({ name: TraceName.SwapViewLoaded, timestamp: Date.now() });
   }, []);
 
-  // Set slippage to undefined for Solana swaps
-  useEffect(() => {
-    if (isSolanaSwap) {
-      dispatch(setSlippage(undefined));
-    }
-  }, [isSolanaSwap, dispatch]);
+  useInitialSlippage();
 
   const hasDestinationPicker = isEvmSolanaBridge;
 
