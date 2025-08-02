@@ -8,12 +8,8 @@ import {
   selectSourceToken,
   setSlippage,
 } from '../../../../../core/redux/slices/bridge';
-import {
-  getIsStablecoinPair,
-  handleEvmStablecoinSlippage,
-} from '../../../Swaps/useStablecoinsDefaultSlippage';
+import { getIsStablecoinPair } from '../../../Swaps/useStablecoinsDefaultSlippage';
 import { isHex } from 'viem';
-import usePrevious from '../../../../hooks/usePrevious';
 import AppConstants from '../../../../../core/AppConstants';
 
 export const useInitialSlippage = () => {
@@ -23,9 +19,6 @@ export const useInitialSlippage = () => {
   const isEvmSwap = useSelector(selectIsEvmSwap);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-
-  const prevSourceTokenAddress = usePrevious(sourceToken?.address);
-  const prevDestTokenAddress = usePrevious(destToken?.address);
 
   useEffect(() => {
     // Solana Swaps
@@ -47,20 +40,15 @@ export const useInitialSlippage = () => {
           sourceToken?.chainId,
         )
       ) {
-        handleEvmStablecoinSlippage({
-          sourceTokenAddress: sourceToken?.address,
-          destTokenAddress: destToken?.address,
-          chainId: sourceToken?.chainId,
-          setSlippage: (slippage: number) =>
-            dispatch(setSlippage(slippage.toString())),
-          prevSourceTokenAddress,
-          prevDestTokenAddress,
-        });
+        dispatch(
+          setSlippage(
+            AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS.toString(),
+          ),
+        );
         return;
       }
-        dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE.toString()));
-        return;
-
+      dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE.toString()));
+      return;
     }
 
     // Bridge
@@ -76,7 +64,5 @@ export const useInitialSlippage = () => {
     destToken?.address,
     sourceToken?.chainId,
     isEvmSwap,
-    prevSourceTokenAddress,
-    prevDestTokenAddress,
   ]);
 };
