@@ -73,7 +73,6 @@ describe('Footer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseConfirmationContext.mockReturnValue({
-      quotesLoading: false,
       isTransactionValueUpdating: false,
       setIsTransactionValueUpdating: jest.fn(),
     });
@@ -173,7 +172,6 @@ describe('Footer', () => {
 
   it('disables confirm button if there is a blocker alert', () => {
     mockUseConfirmationContext.mockReturnValue({
-      quotesLoading: false,
       isTransactionValueUpdating: true,
       setIsTransactionValueUpdating: jest.fn(),
     });
