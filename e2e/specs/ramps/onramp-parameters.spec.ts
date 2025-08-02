@@ -13,7 +13,7 @@ import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../fixtures/utils';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';

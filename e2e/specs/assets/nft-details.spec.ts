@@ -8,7 +8,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 
 describe(SmokeNetworkAbstractions('NFT Details page'), () => {

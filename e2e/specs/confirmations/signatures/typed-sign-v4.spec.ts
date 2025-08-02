@@ -8,7 +8,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { SmokeConfirmations } from '../../../tags';
 import Assertions from '../../../framework/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
 
 describe(SmokeConfirmations('Typed Sign V4'), () => {

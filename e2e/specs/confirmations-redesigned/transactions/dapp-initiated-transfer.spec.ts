@@ -8,7 +8,7 @@ import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import {
   SEND_ETH_SIMULATION_MOCK,
