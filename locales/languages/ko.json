@@ -1011,6 +1011,7 @@
       "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "failed_to_toggle_network": "Failed to toggle network",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1129,7 +1130,14 @@
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "perpetual_trading": "Perpetual Trading",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet",
+    "developer_options": {
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "perps_sandbox_button": "Perps Sandbox"
+    }
   },
   "receive": {
     "title": "받기"
@@ -2142,7 +2150,6 @@
     "portfolio_button": "Portfolio",
     "earn_button": "수익 창출",
     "perps_button": "영구계약",
-    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "추가",
     "info": "정보",
     "swap": "스와프",
@@ -2157,8 +2164,7 @@
       "send": "이 계정에서는 전송이 지원되지 않음",
       "action": "이 계정에서는 이 작업이 지원되지 않습니다",
       "earn": "이 계정은 수익 기능을 지원하지 않습니다",
-      "perps": "이 계정은 영구계약 거래를 지원하지 않습니다",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "이 계정은 영구계약 거래를 지원하지 않습니다"
     },
     "description": "설명",
     "totalSupply": "총 공급",
@@ -2177,7 +2183,6 @@
     "receive_description": "암호화폐 수령",
     "earn_description": "토큰으로 보상을 획득하세요",
     "perps_description": "영구계약 거래하기",
-    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "오늘",
       "7d": "지난 7일",
@@ -4905,6 +4910,9 @@
     "fee_disclaimer": "MetaMask 수수료 0.875% 포함",
     "hardware_wallet_not_supported": "하드웨어 지갑은 아직 지원되지 않습니다. 핫월렛을 사용하여 계속하세요.",
     "hardware_wallet_not_supported_solana": "솔라나는 아직 하드웨어 지갑이 지원하지 않습니다. 계속하려면 핫월렛을 사용하세요.",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "최대"
   },

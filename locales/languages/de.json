@@ -1011,6 +1011,7 @@
       "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "failed_to_toggle_network": "Failed to toggle network",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1129,7 +1130,14 @@
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "perpetual_trading": "Perpetual Trading",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet",
+    "developer_options": {
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "perps_sandbox_button": "Perps Sandbox"
+    }
   },
   "receive": {
     "title": "Empfangen"
@@ -2142,7 +2150,6 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Verdienen",
     "perps_button": "Perpetuals",
-    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "Hinzufügen",
     "info": "Info",
     "swap": "Tauschen",
@@ -2157,8 +2164,7 @@
       "send": "Senden wird für dieses Konto nicht unterstützt",
       "action": "Diese Aktion wird für dieses Konto nicht unterstützt",
       "earn": "Verdienen wird für dieses Konto nicht unterstützt",
-      "perps": "Perpetuals-Trading wird für dieses Konto nicht unterstützt",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "Perpetuals-Trading wird für dieses Konto nicht unterstützt"
     },
     "description": "Beschreibung",
     "totalSupply": "Gesamtvorrat",
@@ -2177,7 +2183,6 @@
     "receive_description": "Krypto empfangen",
     "earn_description": "Verdienen Sie Belohnungen für Ihre Tokens",
     "perps_description": "Trading mit unbefristeten Kontrakten",
-    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "Heute",
       "7d": "Die letzten 7 Tage",
@@ -4905,6 +4910,9 @@
     "fee_disclaimer": "Einschließlich 0,875 % MM-Gebühr",
     "hardware_wallet_not_supported": "Hardware-Wallets werden noch nicht unterstützt. Verwenden Sie eine Hot Wallet, um fortzufahren.",
     "hardware_wallet_not_supported_solana": "Hardware-Wallets werden für Solana noch nicht unterstützt. Verwenden Sie ein Hot Wallet, um fortzufahren.",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "Max."
   },
