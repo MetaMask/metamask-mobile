@@ -32,6 +32,8 @@ import type {
 } from '../../controllers/types';
 import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -84,7 +86,7 @@ const PerpsMarketListView = ({
   const { styles, theme } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-
+  const { top } = useSafeAreaInsets();
   const hiddenButtonStyle = {
     position: 'absolute' as const,
     opacity: 0,
@@ -124,7 +126,13 @@ const PerpsMarketListView = ({
   }, [markets.length, fadeAnimation]);
 
   const handleMarketPress = (market: PerpsMarketData) => {
-    onMarketSelect?.(market);
+    if (onMarketSelect) {
+      onMarketSelect(market);
+    } else {
+      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+        market,
+      });
+    }
   };
 
   const handleRefresh = () => {
@@ -292,112 +300,108 @@ const PerpsMarketListView = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.container}>
-        {/* Hidden close button for navigation tests */}
-        <TouchableOpacity
-          onPress={handleClose}
-          testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
-          style={hiddenButtonStyle}
-        />
-        {/* Header */}
-        <View style={styles.header}>
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Default}
-            style={styles.headerTitle}
+    <SafeAreaView style={[styles.container, { marginTop: top }]}>
+      {/* Hidden close button for navigation tests */}
+      <TouchableOpacity
+        onPress={handleClose}
+        testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+        style={hiddenButtonStyle}
+      />
+      {/* Header */}
+      <View style={styles.header}>
+        <Text
+          variant={TextVariant.HeadingMD}
+          color={TextColor.Default}
+          style={styles.headerTitle}
+        >
+          {strings('perps.perpetuals')}
+        </Text>
+        {activeTab === 'markets' && (
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={handleSearchToggle}
+            testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
           >
-            {strings('perps.perpetuals')}
-          </Text>
-          {activeTab === 'markets' && (
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={handleSearchToggle}
-              testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
-            >
-              <Icon
-                name={isSearchVisible ? IconName.Close : IconName.Search}
-                size={IconSize.Md}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Tab Buttons or Search Bar */}
-        {!isSearchVisible ? (
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[
-                styles.tabButton,
-                activeTab === 'markets'
-                  ? styles.tabButtonActive
-                  : styles.tabButtonInactive,
-              ]}
-              onPress={() => setActiveTab('markets')}
-            >
-              <Text
-                variant={TextVariant.BodyMDBold}
-                color={
-                  activeTab === 'markets' ? TextColor.Default : TextColor.Muted
-                }
-              >
-                {strings('perps.perpetual_markets')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.tabButton,
-                activeTab === 'positions'
-                  ? styles.tabButtonActive
-                  : styles.tabButtonInactive,
-              ]}
-              onPress={() => setActiveTab('positions')}
-            >
-              <Text
-                variant={TextVariant.BodyMDBold}
-                color={
-                  activeTab === 'positions'
-                    ? TextColor.Default
-                    : TextColor.Muted
-                }
-              >
-                {strings('perps.your_positions')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputContainer}>
-              <Icon
-                name={IconName.Search}
-                size={IconSize.Lg}
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder={strings('perps.search')}
-                placeholderTextColor={theme.colors.text.muted}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoFocus
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setSearchQuery('')}
-                  style={styles.clearButton}
-                  testID={PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON}
-                >
-                  <Icon name={IconName.Close} size={IconSize.Sm} />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
+            <Icon
+              name={isSearchVisible ? IconName.Close : IconName.Search}
+              size={IconSize.Md}
+            />
+          </TouchableOpacity>
         )}
-        <View style={styles.listContainer}>
-          {activeTab === 'markets' ? renderMarketList() : renderPositionsList()}
+      </View>
+
+      {/* Tab Buttons or Search Bar */}
+      {!isSearchVisible ? (
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === 'markets'
+                ? styles.tabButtonActive
+                : styles.tabButtonInactive,
+            ]}
+            onPress={() => setActiveTab('markets')}
+          >
+            <Text
+              variant={TextVariant.BodyMDBold}
+              color={
+                activeTab === 'markets' ? TextColor.Default : TextColor.Muted
+              }
+            >
+              {strings('perps.perpetual_markets')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === 'positions'
+                ? styles.tabButtonActive
+                : styles.tabButtonInactive,
+            ]}
+            onPress={() => setActiveTab('positions')}
+          >
+            <Text
+              variant={TextVariant.BodyMDBold}
+              color={
+                activeTab === 'positions' ? TextColor.Default : TextColor.Muted
+              }
+            >
+              {strings('perps.your_positions')}
+            </Text>
+          </TouchableOpacity>
         </View>
+      ) : (
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <Icon
+              name={IconName.Search}
+              size={IconSize.Lg}
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder={strings('perps.search')}
+              placeholderTextColor={theme.colors.text.muted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoFocus
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                style={styles.clearButton}
+                testID={PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON}
+              >
+                <Icon name={IconName.Close} size={IconSize.Sm} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
+      <View style={styles.listContainer}>
+        {activeTab === 'markets' ? renderMarketList() : renderPositionsList()}
       </View>
     </SafeAreaView>
   );
