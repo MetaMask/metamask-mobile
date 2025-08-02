@@ -29,6 +29,8 @@ import {
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
+import SDKConnect from '../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -191,6 +193,14 @@ export function* startAppServices() {
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
 
+  try {
+    yield all([
+      call(WC2Manager.init, {}),
+      call(SDKConnect.init, { context: 'Nav/App' }),
+    ]);
+  } catch (e) {
+    Logger.log('Failed to initialize services', e);
+  }
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
 }

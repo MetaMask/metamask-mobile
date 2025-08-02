@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import {
   useNavigation,
   useRoute,
@@ -39,7 +33,6 @@ import {
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
@@ -82,10 +75,6 @@ import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import MultichainEditAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
-import WC2Manager, {
-  isWC2Enabled,
-} from '../../../../app/core/WalletConnect/WalletConnectV2';
-import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -136,7 +125,6 @@ import {
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
-import NavigationService from '../../../core/NavigationService';
 import AccountStatus from '../../Views/AccountStatus';
 import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
@@ -914,12 +902,9 @@ const AppFlow = () => {
 
 const App: React.FC = () => {
   const navigation = useNavigation();
-  const userLoggedIn = useSelector(selectUserLoggedIn);
   const routes = useNavigationState((state) => state.routes);
-  const [onboarded, setOnboarded] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
-  const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
 
   const isSeedlessOnboardingLoginFlow = useSelector(
@@ -963,7 +948,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
-      setOnboarded(!!existingUser);
       try {
         if (existingUser) {
           // Check if we came from Settings screen to skip auto-authentication
@@ -1108,45 +1092,6 @@ const App: React.FC = () => {
     initMetrics().catch((err) => {
       Logger.error(err, 'Error initializing MetaMetrics');
     });
-  }, []);
-
-  useEffect(() => {
-    // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
-    async function initSDKConnect() {
-      if (onboarded && sdkInit.current === undefined && userLoggedIn) {
-        sdkInit.current = false;
-        try {
-          const sdkConnect = SDKConnect.getInstance();
-          await sdkConnect.init({
-            context: 'Nav/App',
-            navigation: NavigationService.navigation,
-          });
-          await SDKConnect.getInstance().postInit();
-          sdkInit.current = true;
-        } catch (err) {
-          sdkInit.current = undefined;
-          Logger.error(err as Error, 'Cannot initialize SDKConnect');
-        }
-      }
-    }
-
-    initSDKConnect().catch((err) => {
-      Logger.error(err, 'Error initializing SDKConnect');
-    });
-  }, [onboarded, userLoggedIn]);
-
-  useEffect(() => {
-    if (isWC2Enabled) {
-      DevLogger.log(`WalletConnect: Initializing WalletConnect Manager`);
-      WC2Manager.init({ navigation: NavigationService.navigation }).catch(
-        (err) => {
-          Logger.error(
-            err as Error,
-            'Cannot initialize WalletConnect Manager.',
-          );
-        },
-      );
-    }
   }, []);
 
   useEffect(() => {
