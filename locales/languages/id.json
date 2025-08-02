@@ -1011,6 +1011,7 @@
       "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "failed_to_toggle_network": "Failed to toggle network",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1129,7 +1130,14 @@
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "perpetual_trading": "Perpetual Trading",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet",
+    "developer_options": {
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "perps_sandbox_button": "Perps Sandbox"
+    }
   },
   "receive": {
     "title": "Terima"
@@ -2142,7 +2150,6 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Dapatkan",
     "perps_button": "Abadi",
-    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "Tambahkan",
     "info": "Informasi",
     "swap": "Tukar",
@@ -2157,8 +2164,7 @@
       "send": "Pengiriman tidak didukung untuk akun ini",
       "action": "Tindakan ini tidak didukung untuk akun ini",
       "earn": "Penghasilan tidak didukung untuk akun ini",
-      "perps": "Perdagangan abadi tidak didukung untuk akun ini",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "Perdagangan abadi tidak didukung untuk akun ini"
     },
     "description": "Deskripsi",
     "totalSupply": "Jumlah Pasokan",
@@ -2177,7 +2183,6 @@
     "receive_description": "Terima kripto",
     "earn_description": "Dapatkan imbalan atas token Anda",
     "perps_description": "Kontrak perdagangan abadi",
-    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "Hari ini",
       "7d": "7 hari terakhir",
@@ -4905,6 +4910,9 @@
     "fee_disclaimer": "Termasuk biaya MM 0,875%",
     "hardware_wallet_not_supported": "Dompet perangkat keras belum didukung. Gunakan hot wallet untuk melanjutkan.",
     "hardware_wallet_not_supported_solana": "Dompet perangkat keras belum didukung untuk Solana. Gunakan hot wallet untuk melanjutkan.",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "Maks"
   },
