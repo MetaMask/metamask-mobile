@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
-import { View, RefreshControl, Dimensions } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import { View, RefreshControl } from 'react-native';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -48,17 +48,10 @@ const TokenListComponent = ({
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  const listRef = useRef<FlashList<FlashListAssetKey>>(null);
+  const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
-
-  const { width: deviceWidth } = Dimensions.get('window');
-
-  const itemHeight = 70; // Adjust this to match TokenListItem height
-  const numberOfItemsOnScreen = 6; // Adjust this to match number of items on screen
-
-  const estimatedListHeight = itemHeight * numberOfItemsOnScreen;
 
   useLayoutEffect(() => {
     listRef.current?.recomputeViewableItems();
@@ -93,8 +86,6 @@ const TokenListComponent = ({
       ref={listRef}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokenKeys}
-      estimatedItemSize={itemHeight}
-      estimatedListSize={{ height: estimatedListHeight, width: deviceWidth }}
       removeClippedSubviews
       viewabilityConfig={{
         waitForInteraction: true,
@@ -102,7 +93,6 @@ const TokenListComponent = ({
         minimumViewTime: 1000,
       }}
       decelerationRate={0}
-      disableAutoLayout
       renderItem={renderTokenListItem}
       keyExtractor={(item) => {
         const staked = item.isStaked ? 'staked' : 'unstaked';

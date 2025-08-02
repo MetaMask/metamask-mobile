@@ -2422,27 +2422,6 @@ PODS:
     - FirebaseCoreExtension
     - React-Core
     - RNFBApp
-  - RNFlashList (1.8.0):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.10.14.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.25.0):
@@ -2903,7 +2882,6 @@ DEPENDENCIES:
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBMessaging (from `../node_modules/@react-native-firebase/messaging`)"
-  - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNI18n (from `../node_modules/react-native-i18n`)
@@ -3198,8 +3176,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/app"
   RNFBMessaging:
     :path: "../node_modules/@react-native-firebase/messaging"
-  RNFlashList:
-    :path: "../node_modules/@shopify/flash-list"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -3385,7 +3361,6 @@ SPEC CHECKSUMS:
   RNDeviceInfo: e5219d380b51ddb7f97e650ab99a518476b90203
   RNFBApp: 0e66b9f844efdf2ac3fa2b30e64c9db41a263b3d
   RNFBMessaging: 70b12c9f22c7c9d5011ac9b12ac2bafbfb081267
-  RNFlashList: 0dbea8359f8d0fb99c416ca09b91203ff65e26cc
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 9c8bf98209e658e1ceb13026f176e4ede1f24491
   RNI18n: 11ec5086508673ef71b5b567da3e8bcca8a926e1
