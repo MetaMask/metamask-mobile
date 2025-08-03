@@ -16,8 +16,9 @@ export function PerpsDeposit() {
 
   return (
     <View>
-      <EditAmount prefix={AMOUNT_PREFIX} />
-      <PayTokenBalance />
+      <EditAmount prefix={AMOUNT_PREFIX}>
+        <PayTokenBalance />
+      </EditAmount>
       <TokenAmountNative />
       <PayWithRow />
       <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly />

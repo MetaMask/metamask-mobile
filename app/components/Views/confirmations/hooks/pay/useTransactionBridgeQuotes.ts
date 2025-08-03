@@ -25,17 +25,14 @@ export function useTransactionBridgeQuotes() {
     payToken: { address: sourceTokenAddress, chainId: sourceChainId },
   } = useTransactionPayToken();
 
-  const sourceAmounts = useTransactionPayTokenAmounts();
+  const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
   const requiredTokens = useTransactionRequiredTokens();
 
   const requests: (BridgeQuoteRequest | undefined)[] = useMemo(
     () =>
-      sourceAmounts?.map((sourceTokenAmount, index) => {
+      sourceAmounts?.map((sourceAmount, index) => {
         const { address: targetTokenAddress } = requiredTokens[index] || {};
-
-        if (!sourceTokenAmount) {
-          return undefined;
-        }
+        const { amountRaw: sourceTokenAmount } = sourceAmount;
 
         return {
           from: from as Hex,

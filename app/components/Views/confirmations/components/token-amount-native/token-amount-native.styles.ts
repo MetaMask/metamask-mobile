@@ -11,9 +11,9 @@ const styleSheet = (params: { theme: Theme }) =>
       display: 'flex',
       flexDirection: 'row',
       gap: 4,
-      marginBottom: 40,
       paddingInline: 16,
       paddingVertical: 6,
+      marginBottom: 32,
     },
   });
 
