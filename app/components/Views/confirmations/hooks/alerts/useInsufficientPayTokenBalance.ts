@@ -5,6 +5,7 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
+import { strings } from '../../../../../../locales/i18n';
 
 export function useInsufficientPayTokenBalance(): Alert[] {
   const { totalHuman } = useTransactionPayTokenAmounts();
@@ -23,7 +24,7 @@ export function useInsufficientPayTokenBalance(): Alert[] {
       {
         key: AlertKeys.InsufficientPayTokenBalance,
         field: RowAlertKey.Amount,
-        message: `Insufficient funds. Select different token.`,
+        message: strings('alert_system.insufficient_pay_token_balance.message'),
         severity: Severity.Danger,
         isBlocking: true,
       },

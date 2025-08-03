@@ -4,6 +4,7 @@ import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { BigNumber } from 'bignumber.js';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
+import { strings } from '../../../../../../locales/i18n';
 
 export const MINIMUM_DEPOSIT_USD = 10;
 
@@ -23,7 +24,7 @@ export function usePerpsDepositMinimumAlert(): Alert[] {
       {
         key: AlertKeys.PerpsDepositMinimum,
         field: RowAlertKey.Amount,
-        message: `Min order value is $10`,
+        message: strings('alert_system.perps_deposit_minimum.message'),
         severity: Severity.Danger,
         isBlocking: true,
       },
