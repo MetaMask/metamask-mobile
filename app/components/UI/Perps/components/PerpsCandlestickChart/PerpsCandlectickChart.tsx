@@ -11,7 +11,8 @@ import {
   PERPS_CHART_CONFIG,
   getCandlestickColors,
 } from '../../constants/chartConfig';
-import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector';
+import PerpsTimeDurationSelector from '../PerpsTimeDurationSelector';
+import PerpsCandlePeriodBottomSheet from '../PerpsCandlePeriodBottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import type { CandleData } from '../../types';
 
@@ -19,8 +20,10 @@ interface CandlestickChartComponentProps {
   candleData: CandleData | null;
   isLoading?: boolean;
   height?: number;
-  selectedInterval?: string;
-  onIntervalChange?: (interval: string) => void;
+  selectedDuration?: string;
+  selectedCandlePeriod?: string;
+  onDurationChange?: (duration: string) => void;
+  onCandlePeriodChange?: (period: string) => void;
 }
 
 const screenWidth = Dimensions.get('window').width;
@@ -30,10 +33,20 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   candleData,
   isLoading = false,
   height = PERPS_CHART_CONFIG.DEFAULT_HEIGHT,
-  selectedInterval = '1h',
-  onIntervalChange,
+  selectedDuration = '1D',
+  selectedCandlePeriod = '15m',
+  onDurationChange,
+  onCandlePeriodChange,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const [
+    isCandlePeriodBottomSheetVisible,
+    setIsCandlePeriodBottomSheetVisible,
+  ] = React.useState(false);
+
+  const handleGearPress = React.useCallback(() => {
+    setIsCandlePeriodBottomSheetVisible(true);
+  }, []);
 
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
@@ -132,11 +145,12 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           </View>
         </View>
 
-        {/* Interval Selector */}
-        <PerpsCandlestickChartIntervalSelector
-          selectedInterval={selectedInterval}
-          onIntervalChange={onIntervalChange}
-          testID="perps-chart-interval-selector-loading"
+        {/* Time Duration Selector */}
+        <PerpsTimeDurationSelector
+          selectedDuration={selectedDuration}
+          onDurationChange={onDurationChange}
+          onGearPress={handleGearPress}
+          testID="perps-chart-duration-selector-loading"
         />
       </View>
     );
@@ -166,11 +180,12 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           </View>
         </View>
 
-        {/* Interval Selector */}
-        <PerpsCandlestickChartIntervalSelector
-          selectedInterval={selectedInterval}
-          onIntervalChange={onIntervalChange}
-          testID="perps-chart-interval-selector-no-data"
+        {/* Time Duration Selector */}
+        <PerpsTimeDurationSelector
+          selectedDuration={selectedDuration}
+          onDurationChange={onDurationChange}
+          onGearPress={handleGearPress}
+          testID="perps-chart-duration-selector-no-data"
         />
       </View>
     );
@@ -218,13 +233,22 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           </CandlestickChart>
         </View>
 
-        {/* Interval Selector */}
-        <PerpsCandlestickChartIntervalSelector
-          selectedInterval={selectedInterval}
-          onIntervalChange={onIntervalChange}
-          testID="perps-chart-interval-selector"
+        {/* Time Duration Selector */}
+        <PerpsTimeDurationSelector
+          selectedDuration={selectedDuration}
+          onDurationChange={onDurationChange}
+          onGearPress={handleGearPress}
+          testID="perps-chart-duration-selector"
         />
       </View>
+
+      {/* Candle Period Bottom Sheet */}
+      <PerpsCandlePeriodBottomSheet
+        isVisible={isCandlePeriodBottomSheetVisible}
+        selectedPeriod={selectedCandlePeriod}
+        onPeriodChange={onCandlePeriodChange}
+        testID="perps-candle-period-bottom-sheet"
+      />
     </CandlestickChart.Provider>
   );
 };

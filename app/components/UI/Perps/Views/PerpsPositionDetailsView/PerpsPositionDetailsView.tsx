@@ -39,7 +39,8 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const { position } = route.params || {};
 
-  const [selectedInterval, setSelectedInterval] = useState('1h');
+  const [selectedDuration, setSelectedDuration] = useState('1D');
+  const [selectedCandlePeriod, setSelectedCandlePeriod] = useState('15m');
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
@@ -56,11 +57,15 @@ const PerpsPositionDetailsView: React.FC = () => {
   });
   const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
     coin: position?.coin || '',
-    selectedInterval,
+    selectedInterval: selectedCandlePeriod, // Use candle period for data fetching
   });
 
-  const handleIntervalChange = useCallback((newInterval: string) => {
-    setSelectedInterval(newInterval);
+  const handleDurationChange = useCallback((newDuration: string) => {
+    setSelectedDuration(newDuration);
+  }, []);
+
+  const handleCandlePeriodChange = useCallback((newPeriod: string) => {
+    setSelectedCandlePeriod(newPeriod);
   }, []);
 
   // Handle position close button click
@@ -115,8 +120,10 @@ const PerpsPositionDetailsView: React.FC = () => {
             candleData={candleData}
             isLoading={isLoadingHistory}
             height={350}
-            selectedInterval={selectedInterval}
-            onIntervalChange={handleIntervalChange}
+            selectedDuration={selectedDuration}
+            selectedCandlePeriod={selectedCandlePeriod}
+            onDurationChange={handleDurationChange}
+            onCandlePeriodChange={handleCandlePeriodChange}
           />
         </View>
 

@@ -35,6 +35,29 @@ export const CHART_INTERVALS = [
 ] as const;
 
 /**
+ * Available time durations for chart view
+ */
+export const TIME_DURATIONS = [
+  { label: '1hr', value: '1hr' },
+  { label: '1D', value: '1d' },
+  { label: '1W', value: '1w' },
+  { label: '1M', value: '1m' },
+  { label: 'YTD', value: 'ytd' },
+  { label: 'Max', value: 'max' },
+] as const;
+
+/**
+ * Available candle periods for bottom sheet selection
+ */
+export const CANDLE_PERIODS = [
+  { label: '1 minute', value: '1m' },
+  { label: '3 minute', value: '3m' },
+  { label: '5 minute', value: '5m' },
+  { label: '15 minute', value: '15m' },
+  { label: '30 minute', value: '30m' },
+] as const;
+
+/**
  * Helper function to get candlestick colors from theme
  * Prevents object creation on every render
  */

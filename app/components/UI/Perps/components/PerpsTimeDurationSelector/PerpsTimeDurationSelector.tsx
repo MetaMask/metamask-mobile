@@ -1,0 +1,77 @@
+import React from 'react';
+import { Pressable } from 'react-native';
+import {
+  Box,
+  Text,
+  Icon,
+  IconName,
+  IconSize,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../component-library/hooks';
+import { TIME_DURATIONS } from '../../constants/chartConfig';
+import { timeDurationSelectorStyleSheet } from './PerpsTimeDurationSelector.styles';
+
+interface PerpsTimeDurationSelectorProps {
+  selectedDuration: string;
+  onDurationChange?: (duration: string) => void;
+  onGearPress?: () => void;
+  testID?: string;
+}
+
+const PerpsTimeDurationSelector: React.FC<PerpsTimeDurationSelectorProps> = ({
+  selectedDuration,
+  onDurationChange,
+  onGearPress,
+  testID,
+}) => {
+  const { styles } = useStyles(timeDurationSelectorStyleSheet, {});
+
+  return (
+    <Box style={styles.container} testID={testID}>
+      {/* Time Duration Buttons */}
+      <Box style={styles.durationButtonsContainer}>
+        {TIME_DURATIONS.map((duration) => (
+          <Pressable
+            key={duration.value}
+            style={({ pressed }) => [
+              styles.durationButton,
+              selectedDuration === duration.value
+                ? styles.durationButtonActive
+                : styles.durationButtonInactive,
+              pressed && styles.durationButtonPressed,
+            ]}
+            onPress={() => onDurationChange?.(duration.value)}
+            testID={`${testID}-duration-${duration.value}`}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              style={[
+                styles.durationButtonText,
+                selectedDuration === duration.value
+                  ? styles.durationButtonTextActive
+                  : styles.durationButtonTextInactive,
+              ]}
+            >
+              {duration.label}
+            </Text>
+          </Pressable>
+        ))}
+      </Box>
+
+      {/* Gear Icon */}
+      <Pressable
+        style={({ pressed }) => [
+          styles.gearButton,
+          pressed && styles.gearButtonPressed,
+        ]}
+        onPress={onGearPress}
+        testID={`${testID}-gear-button`}
+      >
+        <Icon name={IconName.Setting} size={IconSize.Md} />
+      </Pressable>
+    </Box>
+  );
+};
+
+export default PerpsTimeDurationSelector;
