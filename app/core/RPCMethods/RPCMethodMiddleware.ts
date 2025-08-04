@@ -547,12 +547,11 @@ export const getRpcMethodMiddleware = ({
               {
                 getAccounts: (...args) => getPermittedAccounts(origin, ...args),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
-                  requestedPermissions,
+                  requestedPermissions?: RequestedPermissions,
                 ) =>
                   getCaip25PermissionFromLegacyPermissions(
-                    // FIXME: [ffmcgee] come back to this...
                     requestedPermissions,
-                  ),
+                  ) as unknown as RequestedPermissions,
                 requestPermissionsForOrigin: (requestedPermissions) =>
                   Engine.context.PermissionController.requestPermissions(
                     { origin: channelId ?? hostname },
@@ -631,7 +630,7 @@ export const getRpcMethodMiddleware = ({
                 getAccounts: (opts?: { ignoreLock?: boolean }) =>
                   getPermittedAccounts(origin, opts),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
-                  requestedPermissions: RequestedPermissions,
+                  requestedPermissions?: RequestedPermissions,
                 ) =>
                   getCaip25PermissionFromLegacyPermissions(
                     requestedPermissions,
