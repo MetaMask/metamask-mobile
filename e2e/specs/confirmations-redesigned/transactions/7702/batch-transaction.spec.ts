@@ -13,7 +13,6 @@ import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import WalletView from '../../../../pages/wallet/WalletView';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
-import { buildPermissions } from '../../../../fixtures/utils';
 import { loginToApp } from '../../../../viewHelper';
 import { mockEvents } from '../../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
@@ -59,7 +58,7 @@ async function tapSwitchAccountModal() {
 async function connectTestDappToLocalhost() {
   await TabBarComponent.tapBrowser();
   await Browser.navigateToTestDApp();
-  await TestDApp.tapRevokeAccountPermission();
+  // await TestDApp.tapRevokeAccountPermission();
   await TestDApp.tapRequestPermissions();
   await TestDApp.tapConnectButton();
 }
@@ -85,11 +84,7 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
-          .build(),
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         localNodeOptions: [
           {
@@ -104,7 +99,6 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
 
         // Submit send calls
         await TabBarComponent.tapWallet();
-        await changeNetworkFromNetworkListModal();
         await connectTestDappToLocalhost();
         await TestDApp.tapSendCallsButton();
 
