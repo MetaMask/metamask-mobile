@@ -36,7 +36,7 @@ export default defineConfig({
           name: 'Samsung Galaxy S23 Ultra', // this can changed
           osVersion: '13.0', // this can changed
         },
-        buildPath: 'bs://ea381b24b190dd9a578d3ac9351474e20b4372df', // Path to Browserstack url bs:// link
+        buildPath: 'bs://url', // Path to Browserstack url bs:// link
       },
     },
     {
@@ -48,7 +48,7 @@ export default defineConfig({
           name: 'iPhone 14 Pro Max', // this can changed
           osVersion: '16.0', // this can changed
         },
-        buildPath: 'bs://ffbc9a9f506c5d0a94eaf2dfaf39f16d0aff948d', // Path to Browserstack url bs:// link
+        buildPath: 'bs://url', // Path to Browserstack url bs:// link
       },
     },
   ],
