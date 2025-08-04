@@ -13,6 +13,9 @@ jest.mock('react-native-reanimated', () =>
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
   GestureDetector: 'View',
+  PanGestureHandler: 'View',
+  TapGestureHandler: 'View',
+  State: {},
   Gesture: {
     Pan: jest.fn().mockReturnValue({
       onUpdate: jest.fn().mockReturnThis(),
@@ -37,6 +40,19 @@ jest.mock('react-native-safe-area-context', () => {
     useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
   };
 });
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(() => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  })),
+  useRoute: jest.fn(() => ({
+    params: {},
+  })),
+}));
+
+// Mock BottomSheet components - we don't need to actually mock these
+// The component will work with the real implementations mocked at a lower level
 
 jest.mock('../PerpsSlider/PerpsSlider', () => {
   const { View } = jest.requireActual('react-native');
@@ -350,16 +366,19 @@ describe('PerpsClosePositionBottomSheet', () => {
 
   describe('Loading State', () => {
     it('should show loading overlay when closing', () => {
-      const { getByText } = renderComponent({ isClosing: true });
+      const { getAllByText } = renderComponent({ isClosing: true });
 
-      expect(getByText('perps.close_position.closing')).toBeTruthy();
+      // There should be multiple instances (button and overlay)
+      const loadingTexts = getAllByText('perps.close_position.closing');
+      expect(loadingTexts.length).toBeGreaterThan(0);
     });
 
     it('should disable button when closing', () => {
-      const { getByText } = renderComponent({ isClosing: true });
+      const { getByTestId } = renderComponent({ isClosing: true });
 
-      // The button should show loading text when closing
-      expect(getByText('perps.close_position.closing')).toBeTruthy();
+      // The button should be disabled when closing
+      const confirmButton = getByTestId('close-position-confirm-button');
+      expect(confirmButton.props.disabled).toBe(true);
 
       // Verify onConfirm is not called initially
       expect(mockOnConfirm).not.toHaveBeenCalled();
