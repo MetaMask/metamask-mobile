@@ -31,3 +31,29 @@ For reference on how to use `Redux DevTools`, refer to [Redux DevTools](https://
 - Make sure the value of `webviewDebuggingEnabled` prop on the Webview component is `true`
 - Open Safari on your desktop
 - Go to the menu Develop -> [Your device] -> [Website]
+
+## Debugging Network Requests using Reactotron
+
+Reactotron is already configured in the app and can be used to monitor API calls
+
+### Install the Reactotron Desktop App
+
+```bash
+brew install --cask reactotron
+```
+
+### Start monitoring
+
+- Open Reactotron
+- Refresh simulator
+- API logs should appear under Timeline tab in Reactotron.
+
+### Troubleshooting (Android)
+
+If Reactotron isn’t picking up connections on Android, run:
+
+```bash
+adb reverse tcp:9090 tcp:9090
+```
+
+Then refresh the app again.
