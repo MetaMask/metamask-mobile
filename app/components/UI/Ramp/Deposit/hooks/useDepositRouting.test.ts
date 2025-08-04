@@ -54,6 +54,7 @@ let mockGetOrder = jest.fn().mockResolvedValue({
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockReset = jest.fn();
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
@@ -138,6 +139,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     dispatch: mockDispatch,
+    reset: mockReset,
   }),
 }));
 
@@ -248,10 +250,14 @@ describe('useDepositRouting', () => {
       expect(mockCreateReservation).toHaveBeenCalledWith(mockQuote, '0x123');
       expect(mockCreateOrder).toHaveBeenCalledWith({ id: 'reservation-id' });
 
-      verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('BankDetails', {
-        orderId: 'order-id',
-        shouldUpdate: false,
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'BankDetails',
+            params: { orderId: 'order-id', shouldUpdate: false },
+          },
+        ],
       });
     });
 
