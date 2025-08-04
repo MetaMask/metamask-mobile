@@ -65,8 +65,6 @@ buck-out/
 # bundle artifact
 *.jsbundle
 
-# testing
-tests
 
 # app-specific
 /scripts/inpage-bridge/dist
