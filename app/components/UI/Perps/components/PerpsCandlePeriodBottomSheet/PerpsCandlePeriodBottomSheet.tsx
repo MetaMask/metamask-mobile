@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
+import { TouchableOpacity } from 'react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
   TextColor,
@@ -8,6 +8,7 @@ import Text, {
 import Icon, {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
@@ -15,6 +16,7 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { getCandlePeriodsForDuration } from '../../constants/chartConfig';
 import { Box } from '@metamask/design-system-react-native';
+import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
@@ -35,45 +37,8 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   onPeriodChange,
   testID,
 }) => {
-  const { colors } = useTheme();
+  const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const styles = StyleSheet.create({
-    container: {
-      // paddingHorizontal: 16,
-      paddingTop: 8,
-      // paddingBottom: 24, // Extra bottom padding for safe area
-    },
-    periodOption: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 12, // Reduced from 16 to make more compact
-      paddingHorizontal: 16,
-      // borderRadius: 8,
-      marginBottom: 6, // Reduced from 8 for tighter spacing
-      // borderWidth: 1,
-      // borderColor: colors.border.muted,
-      // backgroundColor: colors.background.default,
-    },
-    periodOptionActive: {
-      backgroundColor: colors.primary.muted,
-      borderColor: colors.primary.default,
-      borderWidth: 2,
-    },
-    periodText: {
-      // flex: 1,
-    },
-    periodTextActive: {
-      color: colors.primary.default,
-      fontWeight: '600',
-    },
-    checkIcon: {
-      marginLeft: 8,
-    },
-    periodOptionLast: {
-      marginBottom: 0,
-    },
-  });
 
   useEffect(() => {
     if (isVisible) {
@@ -132,17 +97,13 @@ const PerpsCandlePeriodBottomSheet: React.FC<
               <Icon
                 name={IconName.Check}
                 size={IconSize.Md}
-                color={colors.primary.default}
+                color={IconColor.Primary}
                 style={styles.checkIcon}
               />
             )}
           </TouchableOpacity>
         ))}
       </Box>
-
-      {/* <View style={styles.container}> */}
-
-      {/* </View> */}
     </BottomSheet>
   );
 };
