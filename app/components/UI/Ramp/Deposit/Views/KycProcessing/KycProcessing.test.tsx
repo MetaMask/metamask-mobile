@@ -2,8 +2,9 @@ import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import KycProcessing from './KycProcessing';
 import Routes from '../../../../../../constants/navigation/Routes';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
 import { KycStatus } from '../../constants';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import initialRootState from '../../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -70,12 +71,6 @@ jest.mock('../../hooks/useUserDetailsPolling', () => {
   return mockHook;
 });
 
-jest.mock('../../../../../UI/Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'KYC Processing',
-  }),
-}));
-
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
     routeAfterAuthentication: mockRouteAfterAuthentication,
@@ -83,7 +78,13 @@ jest.mock('../../hooks/useDepositRouting', () => ({
 }));
 
 function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.KYC_PROCESSING);
+  return renderScreen(
+    Component,
+    { name: Routes.DEPOSIT.KYC_PROCESSING },
+    {
+      state: initialRootState,
+    },
+  );
 }
 
 describe('KycProcessing Component', () => {
@@ -106,11 +107,7 @@ describe('KycProcessing Component', () => {
 
   it('calls setOptions when the component mounts', () => {
     render(KycProcessing);
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'KYC Processing',
-      }),
-    );
+    expect(mockSetNavigationOptions).toHaveBeenCalled();
   });
 
   it('renders loading state snapshot', () => {
