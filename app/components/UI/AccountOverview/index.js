@@ -120,7 +120,13 @@ const createStyles = (colors) =>
       padding: 2,
       borderColor: colors.primary.default,
     },
-
+    onboardingWizardLabel: {
+      borderWidth: 2,
+      borderRadius: 4,
+      paddingVertical: Device.isIos() ? 2 : -4,
+      paddingHorizontal: Device.isIos() ? 5 : 5,
+      top: Device.isIos() ? 0 : -2,
+    },
     actions: {
       flex: 1,
       justifyContent: 'center',
@@ -362,6 +368,7 @@ class AccountOverview extends PureComponent {
                   style={[
                     styles.label,
                     styles.labelInput,
+                    styles.onboardingWizardLabel,
                     { borderColor: colors.background.default },
                   ]}
                   editable={accountLabelEditable}
@@ -385,6 +392,7 @@ class AccountOverview extends PureComponent {
                     <Text
                       style={[
                         styles.label,
+                        styles.onboardingWizardLabel,
                         {
                           borderColor: colors.background.default,
                         },
