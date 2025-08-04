@@ -5,13 +5,13 @@ import AccountCell from '.';
 import { mockTheme } from '../../../../util/theme';
 
 const SAMPLE_ACCOUNT_GROUP = {
-  metadata: { name: 'Account 1' },
+  metadata: { name: 'Account 1 with a long name' },
   accounts: [],
   id: 'keyring:test-group/ethereum' as const,
 } as AccountGroupObject;
 
 const MultichainAccountRowMeta = {
-  title: 'Component Library / MultichainAccounts',
+  title: 'Component Library / MultichainAccounts/ AccountCell',
   component: AccountCell,
   argTypes: {
     accountGroup: {
