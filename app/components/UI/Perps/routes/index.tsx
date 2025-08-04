@@ -12,6 +12,9 @@ import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
+import PerpsPositionTransactionView from '../Views/PerpsTransactionsView/PerpsPositionTransactionView';
+import PerpsOrderTransactionView from '../Views/PerpsTransactionsView/PerpsOrderTransactionView';
+import PerpsFundingTransactionView from '../Views/PerpsTransactionsView/PerpsFundingTransactionView';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -128,6 +131,48 @@ const PerpsScreenStack = () => (
       - PerpsOrderHistoryView (Order history)
       - PerpsOrderDetailsView (Order details)
     */}
+      {/* Transaction Detail Views */}
+      <Stack.Screen
+        name={Routes.PERPS.POSITION_TRANSACTION}
+        component={PerpsPositionTransactionView}
+        options={{
+          title: 'Position Transaction',
+          headerShown: true,
+        }}
+      />
+
+      <Stack.Screen
+        name={Routes.PERPS.ORDER_TRANSACTION}
+        component={PerpsOrderTransactionView}
+        options={{
+          title: 'Order Transaction',
+          headerShown: true,
+        }}
+      />
+
+      <Stack.Screen
+        name={Routes.PERPS.FUNDING_TRANSACTION}
+        component={PerpsFundingTransactionView}
+        options={{
+          title: 'Funding Transaction',
+          headerShown: true,
+        }}
+      />
+
+      {/*
+        Removed for minimal PR (can be added back in future PRs):
+        - PerpsMarketListView (Market list)
+        - PerpsPositionsView (Positions list)
+        - PerpsPositionDetailsView (Position details)
+        - PerpsOrderView (Order placement)
+        - PerpsOrderSuccessView (Order success)
+        - PerpsDepositAmountView (Deposit flow)
+        - PerpsDepositPreviewView (Deposit preview)
+        - PerpsDepositProcessingView (Deposit processing)
+        - PerpsDepositSuccessView (Deposit success)
+        - PerpsOrderHistoryView (Order history)
+        - PerpsOrderDetailsView (Order details)
+      */}
     </Stack.Navigator>
   </PerpsConnectionProvider>
 );

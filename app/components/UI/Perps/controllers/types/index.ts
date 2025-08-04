@@ -266,11 +266,15 @@ export interface PriceUpdate {
 export interface OrderFill {
   orderId: string; // Order ID that was filled
   symbol: string; // Asset symbol
-  side: string; // Order side (from SDK)
+  side: string; // Normalized order side ('buy' or 'sell')
   size: string; // Fill size
   price: string; // Fill price
+  pnl: string; // PNL
+  direction: string; // Direction of the fill
   fee: string; // Fee paid
+  feeToken: string; // Fee token symbol
   timestamp: number; // Fill timestamp
+  startPosition?: string; // Start position
   success?: boolean; // Whether the order was filled successfully
 }
 
@@ -282,6 +286,31 @@ export interface GetPositionsParams {
 
 export interface GetAccountStateParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
+export interface GetOrderFillsParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  user: Hex; // Optional: user address
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  aggregateByTime?: boolean; // Optional: aggregate by time
+}
+
+export interface GetOrdersParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  offset?: number; // Optional: offset for pagination
+}
+
+export interface GetFundingParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  offset?: number; // Optional: offset for pagination
 }
 
 export interface GetSupportedPathsParams {
@@ -349,6 +378,29 @@ export interface UpdatePositionTPSLParams {
   stopLossPrice?: string; // Optional: undefined to remove
 }
 
+export interface Order {
+  orderId: string; // Order ID
+  symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
+  side: 'buy' | 'sell'; // Normalized order side
+  orderType: OrderType; // Order type (market/limit)
+  size: string; // Order size
+  originalSize: string; // Original order size
+  price: string; // Order price (for limit orders)
+  filledSize: string; // Amount filled
+  remainingSize: string; // Amount remaining
+  status: 'open' | 'filled' | 'canceled' | 'rejected' | 'triggered' | 'queued'; // Normalized status
+  timestamp: number; // Order timestamp
+  lastUpdated: number; // Last status update timestamp
+}
+
+export interface Funding {
+  symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
+  amountUsd: string; // Funding amount in USD (positive = received, negative = paid)
+  rate: string; // Funding rate applied
+  timestamp: number; // Funding payment timestamp
+  transactionHash?: string; // Optional transaction hash
+}
+
 export interface IPerpsProvider {
   readonly protocolId: string;
 
@@ -380,6 +432,11 @@ export interface IPerpsProvider {
   validateWithdrawal(
     params: WithdrawParams,
   ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific withdrawal validation
+
+  // Historical data operations
+  getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>; // Historical trade fills
+  getOrders(params?: GetOrdersParams): Promise<Order[]>; // Historical order lifecycle
+  getFunding(params?: GetFundingParams): Promise<Funding[]>; // Historical funding payments
 
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;

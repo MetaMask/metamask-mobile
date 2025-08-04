@@ -39,6 +39,11 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { usePerpsPositions } from '../../UI/Perps/hooks';
+import { usePerpsEligibility } from '../../UI/Perps/hooks/usePerpsEligibility';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -115,6 +120,7 @@ const ActivityView = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const tabViewRef = useRef();
   const params = useParams();
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   const isTestnetOrNotPopularNetwork =
     isTestNet(currentChainId) || !isPopularNetwork;
@@ -163,15 +169,25 @@ const ActivityView = () => {
     [navigation, hasOrders, colors, selectedAddress, openAccountSelector],
   );
 
-  const renderTabBar = () => (hasOrders ? <TabBar /> : <View />);
+  const renderTabBar = () =>
+    hasOrders || isPerpsEnabled ? <TabBar /> : <View />;
 
   useFocusEffect(
     useCallback(() => {
       if (hasOrders && params.redirectToOrders) {
         navigation.setParams({ redirectToOrders: false });
         tabViewRef.current?.goToPage(1);
+      } else if (isPerpsEnabled && params.redirectToPerpsTransactions) {
+        navigation.setParams({ redirectToPerpsTransactions: false });
+        tabViewRef.current?.goToPage(1);
       }
-    }, [hasOrders, navigation, params.redirectToOrders]),
+    }, [
+      hasOrders,
+      navigation,
+      params.redirectToOrders,
+      isPerpsEnabled,
+      params.redirectToPerpsTransactions,
+    ]),
   );
 
   return (
@@ -209,7 +225,7 @@ const ActivityView = () => {
         <ScrollableTabView
           ref={tabViewRef}
           renderTabBar={renderTabBar}
-          locked={!hasOrders}
+          locked={!hasOrders && !isPerpsEnabled}
         >
           {selectedAddress && isNonEvmAddress(selectedAddress) ? (
             <MultichainTransactionsView
@@ -223,6 +239,13 @@ const ActivityView = () => {
             <RampOrdersList
               tabLabel={strings('fiat_on_ramp_aggregator.orders')}
             />
+          )}
+          {isPerpsEnabled && (
+            <PerpsConnectionProvider
+              tabLabel={strings('perps.transactions.title')}
+            >
+              <PerpsTransactionsView />
+            </PerpsConnectionProvider>
           )}
         </ScrollableTabView>
       </View>
