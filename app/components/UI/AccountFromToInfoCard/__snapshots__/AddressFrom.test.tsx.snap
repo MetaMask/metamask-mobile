@@ -77,7 +77,7 @@ exports[`AddressFrom Basic Rendering should match snapshot with global network c
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "height": 32,
                   "overflow": "hidden",
                   "width": 32,
@@ -97,7 +97,9 @@ exports[`AddressFrom Basic Rendering should match snapshot with global network c
                       "height": 32,
                       "width": 32,
                     },
-                    undefined,
+                    {
+                      "borderRadius": 8,
+                    },
                   ]
                 }
               >
@@ -255,9 +257,9 @@ exports[`AddressFrom Basic Rendering should match snapshot with global network c
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "#f3f5f9",
                     "borderColor": "#ffffff",
-                    "borderRadius": 8,
+                    "borderRadius": 16,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
@@ -278,18 +280,20 @@ exports[`AddressFrom Basic Rendering should match snapshot with global network c
                   }
                 }
               >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source="network-image.png"
+                <Text
+                  accessibilityRole="text"
                   style={
                     {
-                      "height": 32,
-                      "width": 32,
+                      "color": "#121314",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
                     }
                   }
-                  testID="network-avatar-image"
-                />
+                >
+                  E
+                </Text>
               </View>
             </View>
           </View>
@@ -475,7 +479,7 @@ exports[`AddressFrom Basic Rendering should render correctly with default props 
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "height": 32,
                   "overflow": "hidden",
                   "width": 32,
@@ -495,7 +499,9 @@ exports[`AddressFrom Basic Rendering should render correctly with default props 
                       "height": 32,
                       "width": 32,
                     },
-                    undefined,
+                    {
+                      "borderRadius": 8,
+                    },
                   ]
                 }
               >
@@ -653,9 +659,9 @@ exports[`AddressFrom Basic Rendering should render correctly with default props 
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "#f3f5f9",
                     "borderColor": "#ffffff",
-                    "borderRadius": 8,
+                    "borderRadius": 16,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
@@ -676,18 +682,20 @@ exports[`AddressFrom Basic Rendering should render correctly with default props 
                   }
                 }
               >
-                <Image
-                  onError={[Function]}
-                  resizeMode="contain"
-                  source="network-image.png"
+                <Text
+                  accessibilityRole="text"
                   style={
                     {
-                      "height": 32,
-                      "width": 32,
+                      "color": "#121314",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
                     }
                   }
-                  testID="network-avatar-image"
-                />
+                >
+                  E
+                </Text>
               </View>
             </View>
           </View>
@@ -873,7 +881,7 @@ exports[`AddressFrom Different Asset Types handles ERC20 token correctly 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "height": 32,
                   "overflow": "hidden",
                   "width": 32,
@@ -893,7 +901,9 @@ exports[`AddressFrom Different Asset Types handles ERC20 token correctly 1`] = `
                       "height": 32,
                       "width": 32,
                     },
-                    undefined,
+                    {
+                      "borderRadius": 8,
+                    },
                   ]
                 }
               >
@@ -1086,7 +1096,7 @@ exports[`AddressFrom Different Asset Types handles ERC20 token correctly 1`] = `
                     }
                   }
                 >
-                  ?
+                  E
                 </Text>
               </View>
             </View>
@@ -1105,7 +1115,7 @@ exports[`AddressFrom Different Asset Types handles ERC20 token correctly 1`] = `
               }
             }
           >
-            null
+            Ethereum Main Network
           </Text>
           <View
             style={
@@ -1273,7 +1283,7 @@ exports[`AddressFrom Different Asset Types handles NFT asset correctly 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "height": 32,
                   "overflow": "hidden",
                   "width": 32,
@@ -1293,7 +1303,9 @@ exports[`AddressFrom Different Asset Types handles NFT asset correctly 1`] = `
                       "height": 32,
                       "width": 32,
                     },
-                    undefined,
+                    {
+                      "borderRadius": 8,
+                    },
                   ]
                 }
               >
@@ -1486,7 +1498,7 @@ exports[`AddressFrom Different Asset Types handles NFT asset correctly 1`] = `
                     }
                   }
                 >
-                  ?
+                  E
                 </Text>
               </View>
             </View>
@@ -1505,7 +1517,7 @@ exports[`AddressFrom Different Asset Types handles NFT asset correctly 1`] = `
               }
             }
           >
-            null
+            Ethereum Main Network
           </Text>
           <View
             style={

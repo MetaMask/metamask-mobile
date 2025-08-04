@@ -13,6 +13,10 @@ import { RootState } from '../../../reducers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { MOCK_KEYRING_CONTROLLER_STATE } from '../../../util/test/keyringControllerTestUtils';
 import { RpcEndpointType } from '@metamask/network-controller';
+import {
+  getNetworkImageSource,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 
 const MOCK_ADDRESS_1 = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
@@ -98,16 +102,19 @@ const mockInitialState: DeepPartial<RootState> = {
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
-  getNetworkImageSource: jest.fn(() => 'network-image.png'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
+  getNetworkImageSource: jest.fn(),
 }));
 
-jest.mock('../../Views/confirmations/hooks/useNetworkInfo', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    networkImage: 'per-dapp-network-image.png',
+jest.mock('../../../selectors/selectedNetworkController', () => ({
+  ...jest.requireActual('../../../selectors/selectedNetworkController'),
+  useNetworkInfo: jest.fn(() => ({
+    networkImageSource: 'per-dapp-network-image.png',
     networkName: 'Per-dapp Network',
-    networkNativeCurrency: 'ETH',
+    chainId: '0x1',
+    rpcUrl: 'https://mainnet.infura.io/v3/',
+    domainNetworkClientId: 'mainnet',
+    domainIsConnectedDapp: true,
   })),
 }));
 
@@ -133,9 +140,14 @@ describe('AddressFrom', () => {
     from: MOCK_ADDRESS_1,
     dontWatchAsset: false,
   };
+  const mockIsRemoveGlobalNetworkSelectorEnabled =
+    isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
+      typeof isRemoveGlobalNetworkSelectorEnabled
+    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
   });
 
   describe('Basic Rendering', () => {
@@ -203,10 +215,7 @@ describe('AddressFrom', () => {
     });
 
     it('displays contextual network when enabled and chainId provided', async () => {
-      const {
-        isRemoveGlobalNetworkSelectorEnabled,
-      } = require('../../../util/networks');
-      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
 
       const propsWithChainId = {
         ...defaultProps,
@@ -360,8 +369,11 @@ describe('AddressFrom', () => {
     });
 
     it('handles missing network image gracefully', async () => {
-      const { getNetworkImageSource } = require('../../../util/networks');
-      getNetworkImageSource.mockReturnValue(null);
+      const mockGetNetworkImageSource =
+        getNetworkImageSource as jest.MockedFunction<
+          typeof getNetworkImageSource
+        >;
+      mockGetNetworkImageSource.mockReturnValue('');
 
       const component = renderWithProvider(
         <AddressFrom {...defaultProps} chainId="0x38" />,
@@ -374,10 +386,7 @@ describe('AddressFrom', () => {
 
   describe('Feature Flag Interactions', () => {
     it('uses contextual network when feature flag is enabled', async () => {
-      const {
-        isRemoveGlobalNetworkSelectorEnabled,
-      } = require('../../../util/networks');
-      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
 
       const propsWithChainId = {
         ...defaultProps,
@@ -393,10 +402,7 @@ describe('AddressFrom', () => {
     });
 
     it('falls back to global network when feature flag is disabled', async () => {
-      const {
-        isRemoveGlobalNetworkSelectorEnabled,
-      } = require('../../../util/networks');
-      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
 
       const { findByText } = renderWithProvider(
         <AddressFrom {...defaultProps} chainId="0x38" />,

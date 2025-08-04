@@ -465,7 +465,7 @@ class Confirm extends PureComponent {
       return;
     }
 
-    const currentContractBalances = isRemoveGlobalNetworkSelectorEnabled
+    const currentContractBalances = isRemoveGlobalNetworkSelectorEnabled()
       ? contractBalancesByChainId[sendFlowContextualChainId]
       : contractBalances;
 
@@ -548,7 +548,7 @@ class Confirm extends PureComponent {
     // add transaction
     const { TransactionController, NetworkController } = Engine.context;
     const transactionParams = this.prepareTransactionToSend();
-    const currentNetworkClientId = isRemoveGlobalNetworkSelectorEnabled
+    const currentNetworkClientId = isRemoveGlobalNetworkSelectorEnabled()
       ? NetworkController.findNetworkClientIdByChainId(chainId)
       : globalNetworkClientId;
 
@@ -962,7 +962,7 @@ class Confirm extends PureComponent {
     const totalTransactionValue = transactionValueHex.add(transactionFeeMax);
 
     const selectedAddress = transaction?.from;
-    const currentAccountBalance = isRemoveGlobalNetworkSelectorEnabled
+    const currentAccountBalance = isRemoveGlobalNetworkSelectorEnabled()
       ? accountsByChainId?.[sendFlowContextualChainId]?.[transaction?.from]
           ?.balance
       : accounts[selectedAddress].balance;
@@ -995,7 +995,7 @@ class Confirm extends PureComponent {
     }
 
     // TODO: Add test coverage for this if possible
-    const currentContractBalances = isRemoveGlobalNetworkSelectorEnabled
+    const currentContractBalances = isRemoveGlobalNetworkSelectorEnabled()
       ? contractBalancesByChainId[sendFlowContextualChainId]
       : contractBalances;
 
@@ -1682,7 +1682,7 @@ const mapStateToProps = (state) => {
 
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
-  const currentChainId = isRemoveGlobalNetworkSelectorEnabled
+  const currentChainId = isRemoveGlobalNetworkSelectorEnabled()
     ? sendFlowContextualChainId
     : chainId;
 
