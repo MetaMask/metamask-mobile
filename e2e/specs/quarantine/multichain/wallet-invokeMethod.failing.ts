@@ -18,21 +18,21 @@
  * 2. Result elements are created in the DOM
  * 3. Results appear in the expected format (truncated vs non-truncated)
  */
-import { SmokeMultiChainAPI } from '../../tags';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
-import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import MultichainUtilities from '../../utils/MultichainUtilities';
-import Assertions from '../../framework/Assertions';
-import { MULTICHAIN_TEST_TIMEOUTS } from '../../selectors/Browser/MultichainTestDapp.selectors';
+import { SmokeMultiChainAPI } from '../../../tags';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import MultichainTestDApp from '../../../pages/Browser/MultichainTestDApp';
+import { BrowserViewSelectorsIDs } from '../../../selectors/Browser/BrowserView.selectors';
+import MultichainUtilities from '../../../utils/MultichainUtilities';
+import Assertions from '../../../framework/Assertions';
+import { MULTICHAIN_TEST_TIMEOUTS } from '../../../selectors/Browser/MultichainTestDapp.selectors';
 import { waitFor } from 'detox';
-import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
+import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import { isHexString } from '@metamask/utils';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { DappVariants } from '../../framework/Constants';
-import { LocalNodeType } from '../../framework';
-import { AnvilNodeOptions } from '../../framework/types';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import { DappVariants } from '../../../framework/Constants';
+import { LocalNodeType } from '../../../framework';
+import { AnvilNodeOptions } from '../../../framework/types';
 
 const ANVIL_NODE_OPTIONS_WITH_GATOR = [
   {
