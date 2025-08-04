@@ -12,7 +12,7 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { isSendRedesignEnabled } from '../confirmations/utils/confirm';
+import { handleSendPageNavigation } from '../confirmations/utils/send';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -84,14 +84,7 @@ class CollectibleView extends PureComponent {
       route: { params },
     } = this.props;
     this.props.newAssetTransaction(params);
-    if (isSendRedesignEnabled()) {
-      this.props.navigation.navigate(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ROOT,
-        params,
-      });
-    } else {
-      this.props.navigation.navigate('SendFlowView');
-    }
+    handleSendPageNavigation(this.props.navigation.navigate, params);
   };
 
   render() {

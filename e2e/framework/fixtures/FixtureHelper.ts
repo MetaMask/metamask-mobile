@@ -1,5 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
-import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './FixtureServer';
+import FixtureServer from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
 import Ganache from '../../../app/util/test/ganache';
 
@@ -7,7 +7,6 @@ import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import createStaticServer from '../../create-static-server';
 import {
-  DEFAULT_MOCKSERVER_PORT,
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
@@ -28,7 +27,12 @@ import {
   AnvilNodeOptions,
   GanacheNodeOptions,
 } from '../types';
-import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
+import {
+  TestDapps,
+  DappVariants,
+  defaultGanacheOptions,
+  DEFAULT_MOCKSERVER_PORT,
+} from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
@@ -37,14 +41,7 @@ const logger = createLogger({
   name: 'FixtureHelper',
 });
 
-export const DEFAULT_DAPP_SERVER_PORT = 8085;
-
-// While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
-const getFixturesPort =
-  typeof getFixturesServerPort === 'function'
-    ? getFixturesServerPort
-    : () => DEFAULT_FIXTURE_SERVER_PORT;
-const FIXTURE_SERVER_URL = `http://localhost:${getFixturesPort()}/state.json`;
+const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
@@ -282,6 +279,7 @@ export const loadFixture = async (
   const state = fixture || new FixtureBuilder({ onboarding: true }).build();
   await fixtureServer.loadJsonState(state, null);
   // Checks if state is loaded
+  logger.debug(`Loading fixture into fixture server: ${FIXTURE_SERVER_URL}`);
   const response = await axios.get(FIXTURE_SERVER_URL);
 
   // Throws if state is not properly loaded

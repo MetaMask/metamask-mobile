@@ -9,6 +9,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Device as LedgerDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../../components/UI/StyledButton';
 import Text from '../../../components/Base/Text';
@@ -63,7 +64,11 @@ const LedgerConnect = ({
 }: LedgerConnectProps) => {
   const theme = useAppThemeFromContext() ?? mockTheme;
   const navigation = useNavigation();
-  const styles = useMemo(() => createStyles(theme.colors), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(
+    () => createStyles(theme.colors, insets),
+    [theme, insets],
+  );
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
   const [hasMatchingDeviceId, setHasMatchingDeviceId] = useState(true);

@@ -1,8 +1,9 @@
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
 import { Theme } from '../../../../util/theme/models';
+import { EdgeInsets } from 'react-native-safe-area-context';
 
-export const createStyles = (theme: Theme) =>
+export const createStyles = (theme: Theme, insets: EdgeInsets) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
@@ -40,9 +41,7 @@ export const createStyles = (theme: Theme) =>
       ...fontStyles.bold,
     },
     bottom: {
-      alignItems: 'center',
-      height: 80,
-      justifyContent: 'space-between',
+      marginBottom: insets.bottom + 20,
     },
     button: {
       padding: 5,

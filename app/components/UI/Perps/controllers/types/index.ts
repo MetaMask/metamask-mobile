@@ -323,6 +323,24 @@ export interface MaintenanceMarginParams {
   positionSize?: number; // Optional: for tiered margin systems
 }
 
+export interface FeeCalculationParams {
+  orderType: 'market' | 'limit';
+  isMaker?: boolean;
+  amount?: string;
+}
+
+export interface FeeCalculationResult {
+  feeRate: number; // Fee rate as decimal (e.g., 0.00045 for 0.045%)
+  feeAmount?: number; // Fee amount in USD (when amount is provided)
+  // Optional breakdown for transparency
+  breakdown?: {
+    baseFeeRate: number;
+    volumeTier?: string;
+    volumeDiscount?: number;
+    stakingDiscount?: number;
+  };
+}
+
 export interface UpdatePositionTPSLParams {
   coin: string; // Asset symbol
   takeProfitPrice?: string; // Optional: undefined to remove
@@ -354,6 +372,7 @@ export interface IPerpsProvider {
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
   calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
   getMaxLeverage(asset: string): Promise<number>;
+  calculateFees(params: FeeCalculationParams): Promise<FeeCalculationResult>;
 
   // Live data subscriptions → Direct UI (NO Redux, maximum speed)
   subscribeToPrices(params: SubscribePricesParams): () => void;
