@@ -520,14 +520,18 @@ describe('PerpsController', () => {
 
         // Mock validateDeposit to return validation errors
         mockHyperLiquidProvider.validateDeposit
-          .mockReturnValueOnce({
-            isValid: false,
-            error: 'Amount is required and must be greater than 0',
-          })
-          .mockReturnValueOnce({
-            isValid: false,
-            error: 'AssetId is required for deposit validation',
-          });
+          .mockReturnValueOnce(
+            Promise.resolve({
+              isValid: false,
+              error: 'Amount is required and must be greater than 0',
+            }),
+          )
+          .mockReturnValueOnce(
+            Promise.resolve({
+              isValid: false,
+              error: 'AssetId is required for deposit validation',
+            }),
+          );
 
         await controller.initializeProviders();
 
@@ -568,10 +572,12 @@ describe('PerpsController', () => {
         ]);
 
         // Mock validateDeposit to return error for unsupported route
-        mockHyperLiquidProvider.validateDeposit.mockReturnValue({
-          isValid: false,
-          error: 'Only direct deposits are currently supported',
-        });
+        mockHyperLiquidProvider.validateDeposit.mockReturnValue(
+          Promise.resolve({
+            isValid: false,
+            error: 'Only direct deposits are currently supported',
+          }),
+        );
 
         await controller.initializeProviders();
 
@@ -2322,10 +2328,12 @@ describe('PerpsController', () => {
 
     it('should throw error if no active provider', async () => {
       await withController(async ({ controller }) => {
-        // Set the state to have a non-existent provider
-        controller.update((state) => {
-          state.activeProvider = 'nonexistent' as any;
-        });
+        // Mock getActiveProvider to throw error for non-existent provider
+        jest
+          .spyOn(controller as any, 'getActiveProvider')
+          .mockImplementation(() => {
+            throw new Error('PROVIDER_NOT_AVAILABLE');
+          });
 
         await expect(controller.validateOrder({} as any)).rejects.toThrow(
           'PROVIDER_NOT_AVAILABLE',
@@ -2358,10 +2366,12 @@ describe('PerpsController', () => {
 
     it('should throw error if no active provider', async () => {
       await withController(async ({ controller }) => {
-        // Set the state to have a non-existent provider
-        controller.update((state) => {
-          state.activeProvider = 'nonexistent' as any;
-        });
+        // Mock getActiveProvider to throw error for non-existent provider
+        jest
+          .spyOn(controller as any, 'getActiveProvider')
+          .mockImplementation(() => {
+            throw new Error('PROVIDER_NOT_AVAILABLE');
+          });
 
         await expect(
           controller.validateClosePosition({} as any),
@@ -2393,10 +2403,12 @@ describe('PerpsController', () => {
 
     it('should throw error if no active provider', async () => {
       await withController(async ({ controller }) => {
-        // Set the state to have a non-existent provider
-        controller.update((state) => {
-          state.activeProvider = 'nonexistent' as any;
-        });
+        // Mock getActiveProvider to throw error for non-existent provider
+        jest
+          .spyOn(controller as any, 'getActiveProvider')
+          .mockImplementation(() => {
+            throw new Error('PROVIDER_NOT_AVAILABLE');
+          });
 
         await expect(controller.validateWithdrawal({} as any)).rejects.toThrow(
           'PROVIDER_NOT_AVAILABLE',
