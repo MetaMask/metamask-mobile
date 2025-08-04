@@ -1,10 +1,14 @@
-import { createDeepEqualSelector } from '../util';
+import { createDeepEqualSelector } from '../../selectors/util';
+import { createSelector } from 'reselect';
 import { RootState } from '../../reducers';
-import { selectMultichainAccountsState1Enabled } from '../featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectMultichainAccountsState1Enabled } from '../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectSelectedInternalAccountId } from '../../selectors/accountsController';
 import { AccountWalletId } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
-import { AccountWalletObject } from '@metamask/account-tree-controller';
-import { selectInternalAccounts } from '../accountsController';
+import {
+  AccountWalletObject,
+  AccountGroupObject,
+} from '@metamask/account-tree-controller';
 
 /**
  * Get the AccountTreeController state
@@ -15,21 +19,29 @@ export const selectAccountTreeControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTreeController;
 
 /**
+ * Get validated AccountTreeController state with feature flag and wallets checks
+ * @param state - Root redux state
+ * @returns Object with validation status and account tree state
+ */
+export const selectValidatedAccountTreeState = createDeepEqualSelector(
+  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
+  (accountTreeState, multichainAccountsState1Enabled) => ({
+    isValid:
+      multichainAccountsState1Enabled &&
+      accountTreeState?.accountTree?.wallets &&
+      Object.keys(accountTreeState.accountTree.wallets).length > 0,
+    accountTreeState,
+  }),
+);
+
+/**
  * Get account sections from AccountTreeController
  * For now, this returns a simple structure until the controller is fully integrated
  */
 export const selectAccountSections = createDeepEqualSelector(
-  [
-    selectAccountTreeControllerState,
-    selectInternalAccounts,
-    selectMultichainAccountsState1Enabled,
-  ],
-  (accountTreeState, internalAccounts, multichainAccountsState1Enabled) => {
-    if (
-      !multichainAccountsState1Enabled ||
-      !accountTreeState?.accountTree?.wallets ||
-      Object.keys(accountTreeState.accountTree.wallets).length === 0
-    ) {
+  [selectValidatedAccountTreeState],
+  ({ isValid, accountTreeState }) => {
+    if (!isValid) {
       return null;
     }
 
@@ -59,14 +71,11 @@ export const selectAccountSections = createDeepEqualSelector(
  * @param walletId - The ID of the wallet to find
  * @returns The wallet if found, null otherwise
  */
-export const selectWalletById = createDeepEqualSelector(
-  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
-  (accountTreeState, multichainAccountsState1Enabled) =>
+export const selectWalletById = createSelector(
+  [selectValidatedAccountTreeState],
+  ({ isValid, accountTreeState }) =>
     (walletId: AccountWalletId): AccountWalletObject | null => {
-      if (
-        !multichainAccountsState1Enabled ||
-        !accountTreeState?.accountTree?.wallets
-      ) {
+      if (!isValid) {
         return null;
       }
 
@@ -82,18 +91,14 @@ export const selectWalletById = createDeepEqualSelector(
  * Get a wallet by account ID from AccountTreeController
  * Returns a selector function that can be called with an account ID to find the wallet containing that account
  * @param state - Root redux state
- * @param multichainAccountsState1Enabled - Whether multichain accounts feature is enabled
  * @returns Selector function that takes an account ID and returns the containing wallet or null
  **/
 // TODO: Use reverse mapping once available, for fast indexing.
-export const selectWalletByAccount = createDeepEqualSelector(
-  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
-  (accountTreeState, multichainAccountsState1Enabled) =>
+export const selectWalletByAccount = createSelector(
+  [selectValidatedAccountTreeState],
+  ({ isValid, accountTreeState }) =>
     (accountId: AccountId): AccountWalletObject | null => {
-      if (
-        !multichainAccountsState1Enabled ||
-        !accountTreeState?.accountTree?.wallets
-      ) {
+      if (!isValid) {
         return null;
       }
 
@@ -114,4 +119,66 @@ export const selectWalletByAccount = createDeepEqualSelector(
         ? accountTreeState.accountTree.wallets[accountWallet.walletId]
         : null;
     },
+);
+/**
+ * Get all account groups from all wallets in the AccountTreeController
+ * Returns a flat array of all account groups across all wallets
+ */
+export const selectAccountGroups = createDeepEqualSelector(
+  [selectValidatedAccountTreeState],
+  ({ isValid, accountTreeState }): AccountGroupObject[] => {
+    if (!isValid) {
+      return [];
+    }
+
+    return Object.values(accountTreeState.accountTree.wallets).flatMap(
+      (wallet: AccountWalletObject) =>
+        Object.values(wallet.groups) as AccountGroupObject[],
+    );
+  },
+);
+
+/**
+ * Get account groups organized by wallet sections
+ * Returns wallet sections containing account groups instead of account IDs
+ */
+export const selectAccountGroupsByWallet = createDeepEqualSelector(
+  [selectValidatedAccountTreeState],
+  ({ isValid, accountTreeState }) => {
+    if (!isValid) {
+      return null;
+    }
+
+    return Object.values(accountTreeState.accountTree.wallets).map(
+      (wallet: AccountWalletObject) => ({
+        title: wallet.metadata.name,
+        wallet,
+        // Return account groups instead of flattened accounts
+        data: Object.values(wallet.groups) as AccountGroupObject[],
+      }),
+    );
+  },
+);
+
+export const selectSelectedAccountGroup = createDeepEqualSelector(
+  [selectValidatedAccountTreeState, selectSelectedInternalAccountId],
+  (
+    { isValid, accountTreeState },
+    selectedAccountId,
+  ): AccountGroupObject | null => {
+    if (!isValid || !selectedAccountId) {
+      return null;
+    }
+
+    // Search through all wallets and groups to find the one containing the selected account
+    for (const wallet of Object.values(accountTreeState.accountTree.wallets)) {
+      for (const group of Object.values(wallet.groups)) {
+        if (group.accounts.includes(selectedAccountId)) {
+          return group as AccountGroupObject;
+        }
+      }
+    }
+
+    return null;
+  },
 );
