@@ -45,12 +45,3 @@ export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
-// - usePerpsDeposit (deposit flows)
-// - usePerpsPendingOrders (order management)
-// - usePerpsError (error handling)
-// - usePerpsLivePositions (live position tracking)
-// - usePerpsOrderFills (order fills)
-// - usePerpsPositionPnL (P&L calculations)
-// - usePerpsReadiness (readiness checks)
-// - usePerpsOrderManagement (order workflows)
-// - useStableArray (utility hook for stable array references)
