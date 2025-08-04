@@ -9,9 +9,6 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
-jest.mock('../../util/permissions', () => ({
-  getCaip25PermissionFromLegacyPermissions: jest.fn(),
-}));
 
 jest.mock('../Permissions', () => ({
   ...jest.requireActual('../Permissions'),
