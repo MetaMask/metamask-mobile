@@ -448,6 +448,7 @@ class TestDApp {
   async tapSendCallsButton(): Promise<void> {
     await this.tapButton(this.sendCallsButton, {
       elemDescription: 'Send Calls Button',
+      delay: 1000,
     });
   }
 
