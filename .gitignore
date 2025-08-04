@@ -65,6 +65,8 @@ buck-out/
 # bundle artifact
 *.jsbundle
 
+# testing
+/tests
 
 # app-specific
 /scripts/inpage-bridge/dist
@@ -112,7 +114,6 @@ e2e/specs/performance/reports/*-performance-results.json
 appwright/report
 playwright-report/*
 test-results/
-appwright/reporters/reports/*
 *.apk
 
 # anvil binaries
