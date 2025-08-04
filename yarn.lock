@@ -15133,6 +15133,39 @@ appium-ios-device@^2.0.0, appium-ios-device@^2.7.25, appium-ios-device@^2.8.0:
     source-map-support "^0.x"
     uuid "^11.0.1"
 
+appium-ios-device@^2.5.0, appium-ios-device@^2.5.4:
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/appium-ios-device/-/appium-ios-device-2.9.0.tgz#29ffae8425823cb196be5fc5b2fb67cc8f3fac64"
+  integrity sha512-WwTPG15cpU2+7PV3zeVZCX09++dLBSxRFoMMdftxfBHB9iHxbxYonIp2i/ansX9yuFtNJlUPBdKVlruKmLG0hQ==
+  dependencies:
+    "@appium/support" "^6.0.0"
+    asyncbox "^3.0.0"
+    axios "^1.6.7"
+    bluebird "^3.1.1"
+    bplist-creator "^0.x"
+    bplist-parser "^0.x"
+    lodash "^4.17.15"
+    semver "^7.0.0"
+    source-map-support "^0.x"
+    uuid "^11.0.1"
+
+appium-ios-simulator@^5.0.1, appium-ios-simulator@^5.5.1:
+  version "5.5.3"
+  resolved "https://registry.yarnpkg.com/appium-ios-simulator/-/appium-ios-simulator-5.5.3.tgz#b50560eb40cfdc4ac3c186df73941a1d7365e1a2"
+  integrity sha512-dP3MMFXcewYIfd6Efewae6X0o/XU8/GPyY2alhMCMqdLucoR/tx7+mL7UJyMEPJsvPVRPXrej7yKOoljDVEU0w==
+  dependencies:
+    "@appium/support" "^4.0.0"
+    "@xmldom/xmldom" "^0.x"
+    appium-xcode "^5.0.0"
+    async-lock "^1.0.0"
+    asyncbox "^3.0.0"
+    bluebird "^3.5.1"
+    lodash "^4.2.1"
+    node-simctl "^7.1.0"
+    semver "^7.0.0"
+    source-map-support "^0.x"
+    teen_process "^2.0.0"
+
 appium-ios-simulator@^6.0.0, appium-ios-simulator@^6.1.7:
   version "6.2.6"
   resolved "https://registry.yarnpkg.com/appium-ios-simulator/-/appium-ios-simulator-6.2.6.tgz#4adda03998d92da0fbe917d36c3653e8f62c12a3"
@@ -15147,6 +15180,23 @@ appium-ios-simulator@^6.0.0, appium-ios-simulator@^6.1.7:
     lodash "^4.2.1"
     node-simctl "^7.7.1"
     semver "^7.0.0"
+    source-map-support "^0.x"
+    teen_process "^2.0.0"
+
+appium-remote-debugger@^10.0.0:
+  version "10.2.2"
+  resolved "https://registry.yarnpkg.com/appium-remote-debugger/-/appium-remote-debugger-10.2.2.tgz#685e3436d905f082a73480c767857063a0a1d8a0"
+  integrity sha512-+Lvjp2NkI1m7I987Q/f/zpkY0ocStm3j80Z0q4vLd8zYjVZriuwdfMbKvSWSFYNTMxeBaH2uDGm79Z/1TNcFng==
+  dependencies:
+    "@appium/base-driver" "^9.0.0"
+    "@appium/support" "^4.0.0"
+    appium-ios-device "^2.0.0"
+    async-lock "^1.2.2"
+    asyncbox "^3.0.0"
+    bluebird "^3.4.7"
+    fancy-log "^2.0.0"
+    glob "^10.3.3"
+    lodash "^4.17.11"
     source-map-support "^0.x"
     teen_process "^2.0.0"
 
@@ -15226,6 +15276,25 @@ appium-webdriveragent@^8.12.0:
     source-map-support "^0.x"
     teen_process "^2.2.0"
 
+appium-webdriveragent@~5.15.9:
+  version "5.15.9"
+  resolved "https://registry.yarnpkg.com/appium-webdriveragent/-/appium-webdriveragent-5.15.9.tgz#13087ce473c7564ed3a43421845180db8b3014a4"
+  integrity sha512-03brYer2B68V+Jqjy8VVYNEeDftSzizZaXGazZsAq1ENDhvXgzIErKWjFAswTQWu/ciDmXASt8I96K6ks+Gy0A==
+  dependencies:
+    "@appium/base-driver" "^9.0.0"
+    "@appium/strongbox" "^0.x"
+    "@appium/support" "^4.0.0"
+    appium-ios-device "^2.5.0"
+    appium-ios-simulator "^5.0.1"
+    async-lock "^1.0.0"
+    asyncbox "^3.0.0"
+    axios "^1.4.0"
+    bluebird "^3.5.5"
+    lodash "^4.17.11"
+    node-simctl "^7.0.1"
+    source-map-support "^0.x"
+    teen_process "^2.0.0"
+
 appium-xcode@^5.0.0, appium-xcode@^5.1.4:
   version "5.2.23"
   resolved "https://registry.yarnpkg.com/appium-xcode/-/appium-xcode-5.2.23.tgz#bec20612438f03eba75640a38c51b0e64d39f0dd"
@@ -15241,6 +15310,35 @@ appium-xcode@^5.0.0, appium-xcode@^5.1.4:
     semver "^7.0.0"
     source-map-support "^0.x"
     teen_process "^2.0.0"
+
+appium-xcuitest-driver@^5.8.0:
+  version "5.16.1"
+  resolved "https://registry.yarnpkg.com/appium-xcuitest-driver/-/appium-xcuitest-driver-5.16.1.tgz#9f353491e7d4e28c3c783937bb13c4ad1f194800"
+  integrity sha512-QtXZzm8y2Y/cNgK/3ya+j/zriKMHnQHu2ZioIrdy33nDhKcjcna+OBF7MoRNVyNsqFjHhM3l8symkRkpSuqtSQ==
+  dependencies:
+    "@colors/colors" "^1.6.0"
+    appium-idb "^1.6.13"
+    appium-ios-device "^2.5.4"
+    appium-ios-simulator "^5.5.1"
+    appium-remote-debugger "^10.0.0"
+    appium-webdriveragent "~5.15.9"
+    appium-xcode "^5.1.4"
+    async-lock "^1.4.0"
+    asyncbox "^3.0.0"
+    bluebird "^3.7.2"
+    css-selector-parser "^3.0.0"
+    fancy-log "^2.0.0"
+    js2xmlparser2 "^0.x"
+    lodash "^4.17.21"
+    lru-cache "^10.0.0"
+    moment "^2.29.4"
+    moment-timezone "^0.x"
+    node-simctl "^7.1.17"
+    portscanner "^2.2.0"
+    semver "^7.5.4"
+    source-map-support "^0.x"
+    teen_process "^2.0.60"
+    ws "^8.13.0"
 
 appium-xcuitest-driver@^7.27.0:
   version "7.35.1"
@@ -15759,7 +15857,7 @@ async-limiter@~1.0.0:
   resolved "https://registry.yarnpkg.com/async-limiter/-/async-limiter-1.0.1.tgz#dd379e94f0db8310b08291f9d64c3209766617fd"
   integrity sha512-csOlWGAcRFJaI6m+F2WKdnMKr4HhdhFVBk0H/QbJFMCr+uO2kwohwXQPxw/9OCxp05r5ghVBFSyioixx3gfkNQ==
 
-async-lock@1.4.1, async-lock@^1.0.0, async-lock@^1.4.0:
+async-lock@1.4.1, async-lock@^1.0.0, async-lock@^1.2.2, async-lock@^1.4.0:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/async-lock/-/async-lock-1.4.1.tgz#56b8718915a9b68b10fce2f2a9a3dddf765ef53f"
   integrity sha512-Az2ZTpuytrtqENulXwO3GGv1Bztugx6TT37NIo7imr/Qo0gsYiGtSdBa2B6fsXhTpVZDNfu1Qn3pk531e3q+nQ==
@@ -20927,6 +21025,13 @@ fancy-log@^1.3.2:
     color-support "^1.1.3"
     parse-node-version "^1.0.0"
     time-stamp "^1.0.0"
+
+fancy-log@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/fancy-log/-/fancy-log-2.0.0.tgz#cad207b8396d69ae4796d74d17dff5f68b2f7343"
+  integrity sha512-9CzxZbACXMUXW13tS0tI8XsGGmxWzO2DmYrGuBJOJ8k8q2K7hwfJA5qHjuPPe8wtsco33YR9wc+Rlr5wYFvhSA==
+  dependencies:
+    color-support "^1.1.3"
 
 fast-base64-decode@^1.0.0:
   version "1.0.0"
@@ -26550,7 +26655,7 @@ node-releases@^2.0.19:
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.19.tgz#9e445a52950951ec4d177d843af370b411caf314"
   integrity sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==
 
-node-simctl@^7.6.0, node-simctl@^7.7.1:
+node-simctl@^7.0.1, node-simctl@^7.1.0, node-simctl@^7.1.17, node-simctl@^7.6.0, node-simctl@^7.7.1:
   version "7.7.5"
   resolved "https://registry.yarnpkg.com/node-simctl/-/node-simctl-7.7.5.tgz#393555e5ae5af77d16c33a1daf08570ea7888e72"
   integrity sha512-lWflzDW9xLuOOvR6mTJ9efbDtO/iSCH6rEGjxFxTV0vGgz5XjoZlW2BkNCCZib0B6Y23tCOiYhYJaMQYB8FKIQ==
@@ -31680,7 +31785,7 @@ teen_process@2.3.2:
     shell-quote "^1.8.1"
     source-map-support "^0.x"
 
-teen_process@^2.0.0, teen_process@^2.2.0:
+teen_process@^2.0.0, teen_process@^2.0.60, teen_process@^2.2.0:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/teen_process/-/teen_process-2.3.3.tgz#188a214f109306a20e5749ad87b1927d33ccc0b5"
   integrity sha512-NIdeetf/6gyEqLjnzvfgQe7PfipSceq2xDQM2Py2BkBnIIeWh3HRD3vNhulyO5WppfCv9z4mtsEHyq8kdiULTA==
