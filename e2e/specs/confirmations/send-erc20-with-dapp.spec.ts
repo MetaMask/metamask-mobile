@@ -124,7 +124,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
           // Check activity tab
           await TabBarComponent.tapActivity();
-          await Assertions.checkIfTextIsDisplayed('Confirmed');
+          await Assertions.expectTextDisplayed('Confirmed');
         },
       );
     });
