@@ -229,6 +229,12 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
+          # Skip step if event is not a PR
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "This job only runs for pull requests."
+            exit 0
+          fi
+
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
@@ -255,7 +261,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Skip step if event is a PR
+          # Skip step if event is not a PR
           if [[ "${{ github.event_name }}" != "pull_request" ]]; then
             echo "This job only runs for pull requests."
             exit 0
