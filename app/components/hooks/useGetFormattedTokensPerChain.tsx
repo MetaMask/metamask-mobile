@@ -110,6 +110,11 @@ export const useGetFormattedTokensPerChain = (
   const currencyRates = useSelector(selectCurrencyRates);
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
+  // Use stable references to prevent unnecessary recalculations
+  const stableMarketData = useStableReference(marketData);
+  const stableCurrencyRates = useStableReference(currencyRates);
+  const stableTokenBalances = useStableReference(currentTokenBalances);
+
   return useMemo(() => {
     const validAccounts =
       stableAccounts.length > 0 &&
@@ -142,7 +147,7 @@ export const useGetFormattedTokensPerChain = (
       const formattedTokens = [];
       for (const token of tokens) {
         const hexBalance =
-          currentTokenBalances[accountAddress]?.[chainId]?.[token.address] ??
+          stableTokenBalances[accountAddress]?.[chainId]?.[token.address] ??
           '0x0';
 
         const decimalBalance = renderFromTokenMinimalUnit(
@@ -192,8 +197,9 @@ export const useGetFormattedTokensPerChain = (
           importedTokens?.[singleChain]?.[account?.address] ?? [];
         const matchedChainSymbol = allNetworks[singleChain].nativeCurrency;
         const conversionRate =
-          currencyRates?.[matchedChainSymbol]?.conversionRate ?? 0;
-        const tokenExchangeRates = marketData?.[toHexadecimal(singleChain)];
+          stableCurrencyRates?.[matchedChainSymbol]?.conversionRate ?? 0;
+        const tokenExchangeRates =
+          stableMarketData?.[toHexadecimal(singleChain)];
         const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
         const tokensWithBalances = getTokenFiatBalances({
           tokens,
@@ -214,16 +220,16 @@ export const useGetFormattedTokensPerChain = (
     return result;
   }, [
     stableAccounts,
+    shouldAggregateAcrossChains,
     stableAllChainIDs,
-    allNetworks,
     currentEvmChainID,
     currentSolChainID,
-    currentCurrency,
-    currentTokenBalances,
-    currencyRates,
-    importedTokens,
-    marketData,
-    shouldAggregateAcrossChains,
+    stableTokenBalances,
+    allNetworks,
     showFiatOnTestnets,
+    importedTokens,
+    stableCurrencyRates,
+    stableMarketData,
+    currentCurrency,
   ]);
 };

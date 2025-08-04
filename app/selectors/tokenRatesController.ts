@@ -38,7 +38,7 @@ export const selectContractExchangeRatesByChainId = createSelector(
     tokenRatesControllerState.marketData[chainId],
 );
 
-export const selectTokenMarketData = createSelector(
+export const selectTokenMarketData = createDeepEqualSelector(
   selectTokenRatesControllerState,
   (tokenRatesControllerState: TokenRatesControllerState) =>
     tokenRatesControllerState.marketData,
