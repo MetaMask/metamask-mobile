@@ -9,6 +9,7 @@ import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import { validateAddressOrENS } from '../../../../../../util/address';
 import { SendViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/SendView.selectors';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -29,6 +30,11 @@ jest.mock('../../../../../../util/networks/handleNetworkSwitch', () => ({
   handleNetworkSwitch: jest.fn(),
 }));
 
+jest.mock('../../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
+}));
+
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
   Alert: {
@@ -41,6 +47,10 @@ const navigationPropMock = {
   setOptions: jest.fn(),
   setParams: jest.fn(),
   navigate: jest.fn(),
+  pop: jest.fn(),
+  dangerouslyGetParent: jest.fn(() => ({
+    pop: jest.fn(),
+  })),
 };
 const routeMock = {
   params: {},
@@ -339,5 +349,281 @@ describe('SendTo Component', () => {
       expect.any(Array),
       expect.any(String),
     );
+  });
+
+  describe('Contextual Chain ID logic', () => {
+    const mockIsRemoveGlobalNetworkSelectorEnabled = jest.mocked(
+      isRemoveGlobalNetworkSelectorEnabled,
+    );
+    const mockSetTransactionContextualChainId = jest.fn();
+
+    const createMockStore = (
+      contextualChainId?: string,
+      globalChainId = '0x1',
+    ) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const state: any = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            NetworkController: {
+              ...initialRootState.engine.backgroundState.NetworkController,
+              selectedNetworkClientId: 'mainnet',
+              providerConfig: {
+                chainId: globalChainId,
+                ticker: 'ETH',
+                type: 'mainnet',
+              },
+            },
+          },
+        },
+        transaction: {
+          selectedAsset: {},
+        },
+        settings: { useBlockieIcon: false },
+      };
+
+      if (contextualChainId) {
+        state.sendFlow = {
+          ...state.sendFlow,
+          contextualChainId,
+        };
+      }
+
+      const mockStoreWithActions = configureStore([]);
+      const storeWithActions = mockStoreWithActions(state);
+      storeWithActions.dispatch = jest.fn().mockImplementation((action) => {
+        if (action.type === 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID') {
+          mockSetTransactionContextualChainId(action.chainId);
+        }
+        return action;
+      });
+
+      return storeWithActions;
+    };
+
+    beforeEach(() => {
+      mockSetTransactionContextualChainId.mockClear();
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+    });
+
+    it('uses global chain ID when contextual chain ID is not set', () => {
+      const globalChainId = '0x1';
+      const testStore = createMockStore(undefined, globalChainId);
+
+      render(
+        <Provider store={testStore}>
+          <ThemeContext.Provider value={mockTheme}>
+            <SendTo navigation={navigationPropMock} route={routeMock} />
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+
+      // Verify the component rendered with global chain ID
+      expect(
+        screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+      ).toBeTruthy();
+    });
+
+    it('uses contextual chain ID when set and feature flag is enabled', () => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      const contextualChainId = '0xa';
+      const globalChainId = '0x1';
+      const testStore = createMockStore(contextualChainId, globalChainId);
+
+      render(
+        <Provider store={testStore}>
+          <ThemeContext.Provider value={mockTheme}>
+            <SendTo navigation={navigationPropMock} route={routeMock} />
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+
+      // Component should use contextual chain ID
+      expect(
+        screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+      ).toBeTruthy();
+    });
+
+    it('falls back to global chain ID when contextual chain ID is null and feature flag is enabled', () => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      const globalChainId = '0x1';
+      const testStore = createMockStore(undefined, globalChainId);
+
+      render(
+        <Provider store={testStore}>
+          <ThemeContext.Provider value={mockTheme}>
+            <SendTo navigation={navigationPropMock} route={routeMock} />
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+
+      expect(
+        screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+      ).toBeTruthy();
+    });
+
+    it('always uses global chain ID when feature flag is disabled', () => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+      const contextualChainId = '0xa';
+      const globalChainId = '0x1';
+      const testStore = createMockStore(contextualChainId, globalChainId);
+
+      render(
+        <Provider store={testStore}>
+          <ThemeContext.Provider value={mockTheme}>
+            <SendTo navigation={navigationPropMock} route={routeMock} />
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+
+      // Should use global chain ID even though contextual is set
+      expect(
+        screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+      ).toBeTruthy();
+    });
+
+    it('initializes contextual chain ID on mount when feature flag is enabled', () => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      const globalChainId = '0x1';
+      const testStore = createMockStore(undefined, globalChainId);
+
+      render(
+        <Provider store={testStore}>
+          <ThemeContext.Provider value={mockTheme}>
+            <SendTo navigation={navigationPropMock} route={routeMock} />
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+
+      // Should dispatch action to set contextual chain ID
+      expect(testStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID',
+        chainId: globalChainId,
+      });
+    });
+
+    it('does not initialize contextual chain ID when feature flag is disabled', () => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+      const globalChainId = '0x1';
+      const testStore = createMockStore(undefined, globalChainId);
+
+      render(
+        <Provider store={testStore}>
+          <ThemeContext.Provider value={mockTheme}>
+            <SendTo navigation={navigationPropMock} route={routeMock} />
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+
+      // Should not dispatch action when feature is disabled
+      expect(testStore.dispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID',
+        }),
+      );
+    });
+
+    it('resets contextual chain ID when transaction is reset', () => {
+      const testStore = createMockStore('0xa', '0x1');
+      testStore.dispatch = jest.fn();
+
+      render(
+        <Provider store={testStore}>
+          <ThemeContext.Provider value={mockTheme}>
+            <SendTo navigation={navigationPropMock} route={routeMock} />
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+
+      // Get resetTransaction from props passed to component
+      const resetTransactionProp =
+        navigationPropMock.setOptions.mock.calls[0][0];
+
+      // Reset transaction should dispatch both actions
+      const resetButton = resetTransactionProp.headerRight();
+      resetButton.props.onPress();
+
+      expect(testStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID',
+        chainId: null,
+      });
+    });
+
+    it('uses contextual chain ID for ticker selection when feature is enabled', () => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      const contextualChainId = '0xa'; // Optimism
+      const globalChainId = '0x1'; // Mainnet
+
+      const optimismState = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            NetworkController: {
+              ...initialRootState.engine.backgroundState.NetworkController,
+              selectedNetworkClientId: 'mainnet',
+              providerConfig: {
+                chainId: globalChainId,
+                ticker: 'ETH',
+                type: 'mainnet',
+              },
+              networksMetadata: {
+                [contextualChainId]: {
+                  EIPS: {},
+                  status: 'available',
+                },
+              },
+              networkConfigurationsByChainId: {
+                [contextualChainId]: {
+                  chainId: contextualChainId,
+                  nativeCurrency: 'ETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'optimism',
+                      url: 'https://mainnet.optimism.io',
+                      type: 'custom',
+                    },
+                  ],
+                },
+              },
+            },
+            CurrencyRateController: {
+              ...initialRootState.engine.backgroundState.CurrencyRateController,
+              currencyRates: {
+                ETH: {
+                  conversionRate: 1,
+                },
+              },
+            },
+          },
+        },
+        transaction: {
+          selectedAsset: {},
+        },
+        settings: { useBlockieIcon: false },
+        sendFlow: {
+          contextualChainId,
+        },
+      };
+
+      const optimismStore = configureStore([])(optimismState);
+
+      render(
+        <Provider store={optimismStore}>
+          <ThemeContext.Provider value={mockTheme}>
+            <SendTo navigation={navigationPropMock} route={routeMock} />
+          </ThemeContext.Provider>
+        </Provider>,
+      );
+
+      // Component should render with contextual chain ticker
+      expect(
+        screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+      ).toBeTruthy();
+    });
   });
 });

@@ -59,6 +59,7 @@ import {
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
   getDecimalChainId,
+  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../../../../util/networks';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../../../util/networks/engineNetworkUtils';
 import Text from '../../../../../Base/Text';
@@ -90,8 +91,14 @@ import {
   selectCurrentCurrency,
 } from '../../../../../../selectors/currencyRateController';
 
-import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
+import {
+  selectAccounts,
+  selectAccountsByChainId,
+} from '../../../../../../selectors/accountTrackerController';
+import {
+  selectContractBalances,
+  selectAllTokenBalances,
+} from '../../../../../../selectors/tokenBalancesController';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { ConfirmViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
@@ -135,18 +142,15 @@ import {
   // eslint-disable-next-line no-restricted-syntax
   selectNetworkClientId,
   selectProviderTypeByChainId,
+  selectNetworkConfigurationByChainId,
 } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../../utils/generic';
 import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
-import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
-import { selectAllTokens } from '../../../../../../selectors/tokensController';
-import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
-import { selectAllTokenBalances } from '../../../../../../selectors/tokenBalancesController';
 import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
+import { selectAllTokens } from '../../../../../../selectors/tokensController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -281,17 +285,17 @@ class Confirm extends PureComponent {
      */
     shouldUseSmartTransaction: PropTypes.bool,
     /**
+     * Object containing confirmation metrics by id
+     */
+    confirmationMetricsById: PropTypes.object,
+    /**
      * Transaction metadata from the transaction controller
      */
     transactionMetadata: PropTypes.object,
     /**
-     * Update transaction metrics
+     * Update confirmation metrics
      */
-    updateTransactionMetrics: PropTypes.func,
-    /**
-     * Indicates whether the transaction simulations feature is enabled
-     */
-    useTransactionSimulations: PropTypes.bool,
+    updateConfirmationMetric: PropTypes.func,
     /**
      * Object containing blockaid validation response for confirmation
      */
@@ -308,6 +312,18 @@ class Confirm extends PureComponent {
      * ID of the send flow contextual chain
      */
     sendFlowContextualChainId: PropTypes.string,
+    /**
+     * Object containing token balances in the format address => balance by chain id
+     */
+    contractBalancesByChainId: PropTypes.object,
+    /**
+     * Object containing accounts in the format address => account by chain id
+     */
+    accountsByChainId: PropTypes.object,
+    /**
+     * Object containing network configuration by chain id
+     */
+    sendFlowContextualNetworkConfiguration: PropTypes.object,
   };
 
   state = {
@@ -423,6 +439,8 @@ class Confirm extends PureComponent {
     const {
       contractBalances,
       transactionState: { selectedAsset },
+      contractBalancesByChainId,
+      sendFlowContextualChainId,
     } = this.props;
 
     const { transactionMeta } = this.state;
@@ -447,7 +465,11 @@ class Confirm extends PureComponent {
       return;
     }
 
-    const weiBalance = hexToBN(contractBalances[selectedAsset.address]);
+    const currentContractBalances = isRemoveGlobalNetworkSelectorEnabled
+      ? contractBalancesByChainId[sendFlowContextualChainId]
+      : contractBalances;
+
+    const weiBalance = hexToBN(currentContractBalances[selectedAsset.address]);
     if (weiBalance?.isZero()) {
       await TokensController.ignoreTokens(
         [selectedAsset.address],
@@ -526,8 +548,9 @@ class Confirm extends PureComponent {
     // add transaction
     const { TransactionController, NetworkController } = Engine.context;
     const transactionParams = this.prepareTransactionToSend();
-    const contextualNetworkClientId =
-      NetworkController.findNetworkClientIdByChainId(chainId);
+    const currentNetworkClientId = isRemoveGlobalNetworkSelectorEnabled
+      ? NetworkController.findNetworkClientIdByChainId(chainId)
+      : globalNetworkClientId;
 
     let result, transactionMeta;
     try {
@@ -535,7 +558,7 @@ class Confirm extends PureComponent {
         transactionParams,
         {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId: contextualNetworkClientId ?? globalNetworkClientId,
+          networkClientId: currentNetworkClientId || globalNetworkClientId,
           origin: TransactionTypes.MMM,
         },
       ));
@@ -748,34 +771,40 @@ class Confirm extends PureComponent {
       prepareTransaction,
       transactionState: { transaction },
       networkClientId,
-      globalNetworkClientId,
       sendFlowContextualNetworkConfiguration,
     } = this.props;
 
-    let effectiveNetworkClientId = networkClientId;
-
-    // Only use contextual network logic when feature flag is enabled
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      if (sendFlowContextualNetworkConfiguration?.rpcEndpoints) {
-        const { rpcEndpoints, defaultRpcEndpointIndex } =
-          sendFlowContextualNetworkConfiguration;
-        const { networkClientId: sendFlowContextualNetworkClientId } =
-          rpcEndpoints[defaultRpcEndpointIndex] || {};
-
-        effectiveNetworkClientId =
-          sendFlowContextualNetworkClientId || globalNetworkClientId;
-      } else {
-        // Fallback to globalNetworkClientId if no contextual config
-        effectiveNetworkClientId = globalNetworkClientId;
-      }
-    }
+    const effectiveNetworkClientId = this.getEffectiveNetworkClientId(
+      networkClientId,
+      sendFlowContextualNetworkConfiguration,
+    );
 
     const estimation = await getGasLimit(
       transaction,
       true,
       effectiveNetworkClientId,
     );
+
     prepareTransaction({ ...transaction, ...estimation });
+  };
+
+  getEffectiveNetworkClientId = (
+    networkClientId,
+    sendFlowContextualNetworkConfiguration,
+  ) => {
+    if (!isRemoveGlobalNetworkSelectorEnabled()) {
+      return networkClientId;
+    }
+
+    const { rpcEndpoints, defaultRpcEndpointIndex } =
+      sendFlowContextualNetworkConfiguration || {};
+
+    if (!rpcEndpoints || defaultRpcEndpointIndex === undefined) {
+      return networkClientId;
+    }
+
+    const defaultEndpoint = rpcEndpoints[defaultRpcEndpointIndex];
+    return defaultEndpoint?.networkClientId || networkClientId;
   };
 
   parseTransactionDataHeader = async () => {
@@ -906,18 +935,18 @@ class Confirm extends PureComponent {
    */
   validateAmount = ({ transaction }) => {
     const {
+      accounts,
+      contractBalances,
       selectedAsset,
       ticker,
       transactionState: {
         transaction: { value },
       },
       updateConfirmationMetric,
-      allTokenBalances,
-      accountsByChainId,
       sendFlowContextualChainId,
+      contractBalancesByChainId,
+      accountsByChainId,
     } = this.props;
-    const account =
-      accountsByChainId?.[sendFlowContextualChainId]?.[transaction?.from];
     const { EIP1559GasTransaction, legacyGasTransaction, transactionMeta } =
       this.state;
     const { id: transactionId } = transactionMeta;
@@ -931,12 +960,14 @@ class Confirm extends PureComponent {
     const transactionValueHex = hexToBN(value);
 
     const totalTransactionValue = transactionValueHex.add(transactionFeeMax);
-    const tokenBalances =
-      allTokenBalances?.[transaction?.from.toLowerCase()]?.[
-        sendFlowContextualChainId
-      ];
+
     const selectedAddress = transaction?.from;
-    const weiBalance = hexToBN(account?.balance);
+    const currentAccountBalance = isRemoveGlobalNetworkSelectorEnabled
+      ? accountsByChainId?.[sendFlowContextualChainId]?.[transaction?.from]
+          ?.balance
+      : accounts[selectedAddress].balance;
+
+    const weiBalance = hexToBN(currentAccountBalance);
 
     if (!isDecimal(value)) {
       return strings('transaction.invalid_amount');
@@ -963,9 +994,14 @@ class Confirm extends PureComponent {
       return insufficientBalanceMessage;
     }
 
+    // TODO: Add test coverage for this if possible
+    const currentContractBalances = isRemoveGlobalNetworkSelectorEnabled
+      ? contractBalancesByChainId[sendFlowContextualChainId]
+      : contractBalances;
+
     const insufficientTokenBalanceMessage = validateSufficientTokenBalance(
       transaction,
-      tokenBalances,
+      currentContractBalances,
       selectedAsset,
     );
 
@@ -987,7 +1023,6 @@ class Confirm extends PureComponent {
     assetType,
     gaParams,
   ) => {
-    const { TransactionController } = Engine.context;
     const { navigation } = this.props;
     // Manual cancel from UI or rejected from ledger device.
     try {
@@ -1642,24 +1677,24 @@ Confirm.contextType = ThemeContext;
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
   const chainId = transaction?.chainId || selectEvmChainId(state);
+  const sendFlowContextualChainId =
+    selectSendFlowContextualChainId(state) || chainId;
+
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
-
-  const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
+  const currentChainId = isRemoveGlobalNetworkSelectorEnabled
+    ? sendFlowContextualChainId
+    : chainId;
 
   const transactionState = {
     ...state.transaction,
-    chainId: sendFlowContextualChainId || chainId,
+    chainId: currentChainId,
   };
+
   return {
     accounts: selectAccounts(state),
-    accountsByChainId: selectAccountsByChainId(state),
-    contractExchangeRates: selectContractExchangeRatesByChainId(
-      state,
-      sendFlowContextualChainId,
-    ),
+    contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
     contractBalances: selectContractBalances(state),
-    allTokenBalances: selectAllTokenBalances(state),
     conversionRate: selectConversionRateByChainId(state, chainId),
     currentCurrency: selectCurrentCurrency(state),
     providerType: selectProviderTypeByChainId(state, chainId),
@@ -1684,12 +1719,18 @@ const mapStateToProps = (state) => {
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-    sendFlowContextualChainId: sendFlowContextualChainId,
+    // new selectors
+    sendFlowContextualChainId,
     sendFlowContextualNetworkConfiguration: selectNetworkConfigurationByChainId(
       state,
       toHexadecimal(sendFlowContextualChainId),
     ),
-    allTokens: selectAllTokens(state),
+    allTokensByChainId: selectAllTokens(state),
+    accountsByChainId: selectAccountsByChainId(state),
+    contractExchangeRatesByChainId: selectContractExchangeRatesByChainId(
+      state,
+      sendFlowContextualChainId,
+    ),
   };
 };
 

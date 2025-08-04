@@ -18,7 +18,6 @@ import {
   resetTransaction,
   setMaxValueMode,
 } from '../../../../../../actions/transaction';
-import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
 import StyledButton from '../../../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -80,13 +79,18 @@ import {
   selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../../selectors/currencyRateController';
-import { selectTokens } from '../../../../../../selectors/tokensController';
+import {
+  selectTokens,
+  selectAllTokens,
+} from '../../../../../../selectors/tokensController';
 import {
   selectAccounts,
+  selectAccountsByChainId,
   selectAccountsByContextualChainId,
 } from '../../../../../../selectors/accountTrackerController';
 import {
   selectContractBalances,
+  selectAllTokenBalances,
   selectContractBalancesByContextualChainId,
 } from '../../../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
@@ -111,19 +115,15 @@ import {
   /* eslint-enable no-restricted-syntax */
   selectNativeCurrencyByChainId,
   selectProviderTypeByChainId,
+  selectNetworkConfigurationByChainId,
 } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { isNativeToken } from '../../../utils/generic';
 import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
 import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
-import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
-import { selectAllTokens } from '../../../../../../selectors/tokensController';
-import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
-import { selectAllTokenBalances } from '../../../../../../selectors/tokenBalancesController';
-import { BigNumber } from 'bignumber.js';
-import { isHardwareAccount } from '../../../../../../util/address';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
+import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -371,8 +371,7 @@ const createStyles = (colors) =>
     },
     warningTextContainer: {
       lineHeight: 20,
-      paddingLeft: 10,
-      paddingRight: 10,
+      paddingLeft: 4,
     },
     warningText: {
       lineHeight: 20,
@@ -417,10 +416,6 @@ class Amount extends PureComponent {
      * Object containing token balances in the format address => balance
      */
     contractBalances: PropTypes.object,
-    /**
-     * Object containing token balances in the format address => balance by contextual chain id
-     */
-    contractBalancesByContextualChainId: PropTypes.object,
     /**
      * ETH to current currency conversion rate
      */
@@ -524,30 +519,54 @@ class Amount extends PureComponent {
     /**
      * Boolean that indicates if the redesigned transfer confirmation is enabled
      */
-    isRedesignedTransferConfirmationEnabled: PropTypes.bool,
+    isRedesignedTransferConfirmationEnabledForTransfer: PropTypes.bool,
+    /**
+     * Object containing token balances in the format address => balance by contextual chain id
+     */
+    contractBalancesByContextualChainId: PropTypes.object,
     /**
      * Send flow contextual chain id
      */
-    sendFlowContextualChainId: PropTypes.string,
-    /**
-     * All tokens
-     */
-    allTokens: PropTypes.object,
+    contextualChainId: PropTypes.string,
     /**
      * All token balances
      */
     allTokenBalances: PropTypes.object,
     /**
-     * Accounts by chain id
+     * Accounts by contextual chain id
      */
-    accountsByChainId: PropTypes.object,
+    accountsByContextualChainId: PropTypes.object,
+    /**
+     * Send flow contextual network configuration
+     */
+    contextualNetworkConfiguration: PropTypes.object,
+    /**
+     * Object containing token exchange rates in the format address => exchangeRate by contextual chain id
+     */
+    contractExchangeRatesByContextualChainId: PropTypes.object,
+    /**
+     * ETH to current currency conversion rate by contextual chain id
+     */
+    conversionRateByContextualChainId: PropTypes.number,
+    /**
+     * Network provider type by contextual chain id
+     */
+    providerTypeByContextualChainId: PropTypes.string,
+    /**
+     * Current provider ticker by contextual chain id
+     */
+    tickerByContextualChainId: PropTypes.string,
+    /**
+     * All tokens by chain id
+     */
+    allTokensByChainId: PropTypes.object,
   };
 
   state = {
     amountError: undefined,
     inputValue: undefined,
     inputValueConversion: undefined,
-    renderableInputValueConversion: undefined,
+    displayableInputValueConversion: undefined,
     assetsModalVisible: false,
     internalPrimaryCurrencyIsCrypto: this.props.primaryCurrency === 'ETH',
     estimatedTotalGas: undefined,
@@ -560,10 +579,13 @@ class Amount extends PureComponent {
   collectibles = [];
 
   updateNavBar = () => {
-    const { navigation, route, resetTransaction } = this.props;
+    const {
+      navigation,
+      route,
+      resetTransaction,
+      contextualNetworkConfiguration,
+    } = this.props;
     const colors = this.context.colors || mockTheme.colors;
-    // Check initial value before setting
-
     navigation.setOptions(
       getSendFlowTitle(
         'send.amount',
@@ -574,34 +596,14 @@ class Amount extends PureComponent {
         null,
         true,
         true,
-        this.props.sendFlowContextualNetworkConfiguration?.name || '',
+        contextualNetworkConfiguration?.name || '',
       ),
     );
-  };
-
-  UNSAFE_componentWillMount = async () => {
-    // TODO: check with Salim if the content of this function is still needed
-    // this was debugging code in attempt to fix https://github.com/MetaMask/MetaMask-planning/issues/5200
-    // since then, Salim confirmed the issue will be fixed in his PR https://github.com/MetaMask/core/pull/6012
-    // Salim also offered to provide a patch (yarn) that could fix this locally until his PR is merged and controller updated
-    await Engine.context.TokenDetectionController.detectTokens({
-      chainIds: [this.props.sendFlowContextualChainId],
-    });
-    await Engine.context.TokenListController.fetchTokenList(
-      this.props.sendFlowContextualChainId,
-    );
-    await Engine.context.TokenBalancesController.updateBalancesByChainId({
-      chainId: this.props.sendFlowContextualChainId,
-    });
-    // await Engine.context.AccountTrackerController.updateAccountsByChainId({
-    //   chainId: this.props.sendFlowContextualChainId,
-    // });
   };
 
   componentDidMount = async () => {
     const {
       tokens,
-      allTokens,
       ticker,
       transactionState: { readableValue },
       navigation,
@@ -610,19 +612,34 @@ class Amount extends PureComponent {
       isPaymentRequest,
       gasEstimateType,
       gasFeeEstimates,
+      providerTypeByContextualChainId,
+      allTokensByChainId,
+      selectedAddress,
+      contextualChainId,
+      tickerByContextualChainId,
     } = this.props;
     // For analytics
     this.updateNavBar();
-    navigation.setParams({ providerType, isPaymentRequest });
-    const allTokensFilteredByChainId =
-      allTokens?.[this.props.sendFlowContextualChainId]?.[
-        this.props.selectedAddress?.toLowerCase()
+    const currentProviderType = isRemoveGlobalNetworkSelectorEnabled()
+      ? providerTypeByContextualChainId
+      : providerType;
+    navigation.setParams({
+      providerType: currentProviderType,
+      isPaymentRequest,
+    });
+    const allTokensByChainIdAndAddress =
+      allTokensByChainId?.[contextualChainId]?.[
+        selectedAddress?.toLowerCase()
       ] ?? [];
-
-    const tokensToDisplay = isRemoveGlobalNetworkSelectorEnabled()
-      ? allTokensFilteredByChainId
+    const tokensToRender = isRemoveGlobalNetworkSelectorEnabled()
+      ? allTokensByChainIdAndAddress
       : tokens;
-    this.tokens = [getEther(ticker), ...tokensToDisplay];
+    const currentTicker = isRemoveGlobalNetworkSelectorEnabled()
+      ? tickerByContextualChainId
+      : ticker;
+
+    this.tokens = [getEther(currentTicker), ...tokensToRender];
+
     this.collectibles = this.processCollectibles();
     // Wait until navigation finishes to focus
     InteractionManager.runAfterInteractions(() =>
@@ -686,20 +703,35 @@ class Amount extends PureComponent {
   };
 
   hasExchangeRate = () => {
-    const { selectedAsset, conversionRate, contractExchangeRates } = this.props;
-
+    const {
+      selectedAsset,
+      conversionRate,
+      conversionRateByContextualChainId,
+      contractExchangeRates,
+      contractExchangeRatesByContextualChainId,
+    } = this.props;
+    const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
+      ? conversionRateByContextualChainId
+      : conversionRate;
     if (isNativeToken(selectedAsset)) {
-      return !!conversionRate;
+      return !!currentConversionRate;
     }
-    const exchangeRate =
+    const globallySelectedExchangeRate =
       contractExchangeRates?.[selectedAsset.address]?.price ?? null;
+    const contextuallySelectedExchangeRate =
+      contractExchangeRatesByContextualChainId?.[selectedAsset.address]
+        ?.price ?? null;
+    const exchangeRate = isRemoveGlobalNetworkSelectorEnabled()
+      ? contextuallySelectedExchangeRate
+      : globallySelectedExchangeRate;
+
     return !!exchangeRate;
   };
 
   /**
    * Method to validate collectible ownership.
    *
-   * @returns Promise that resolves ownershio as a boolean.
+   * @returns Promise that resolves ownership as a boolean.
    */
   validateCollectibleOwnership = async () => {
     const { NftController } = Engine.context;
@@ -726,12 +758,14 @@ class Amount extends PureComponent {
     const {
       navigation,
       selectedAsset,
-      setSelectedAsset,
       transactionState: { transaction },
       providerType,
       onConfirm,
       globalNetworkClientId,
       isRedesignedTransferConfirmationEnabledForTransfer,
+      contextualNetworkConfiguration,
+      conversionRateByContextualChainId,
+      conversionRate,
     } = this.props;
     const {
       inputValue,
@@ -746,11 +780,11 @@ class Amount extends PureComponent {
     } else {
       value = inputValueConversion;
       if (maxFiatInput) {
+        const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
+          ? conversionRateByContextualChainId
+          : conversionRate;
         value = `${renderFromWei(
-          fiatNumberToWei(
-            handleWeiNumber(maxFiatInput),
-            this.props.conversionRate,
-          ),
+          fiatNumberToWei(handleWeiNumber(maxFiatInput), currentConversionRate),
           18,
         )}`;
       }
@@ -788,7 +822,6 @@ class Amount extends PureComponent {
     const shouldUseRedesignedTransferConfirmation =
       isRedesignedTransferConfirmationEnabledForTransfer;
 
-    setSelectedAsset(selectedAsset);
     if (onConfirm) {
       onConfirm();
     } else if (shouldUseRedesignedTransferConfirmation) {
@@ -804,19 +837,20 @@ class Amount extends PureComponent {
             : BNToHex(transaction.value),
       };
 
-      const { globalNetworkClientId } = this.props;
-
       const { rpcEndpoints, defaultRpcEndpointIndex } =
-        this.props.sendFlowContextualNetworkConfiguration;
+        contextualNetworkConfiguration;
       const { networkClientId: sendFlowContextualNetworkClientId } =
         rpcEndpoints[defaultRpcEndpointIndex];
+
       const effectiveNetworkClientId =
         sendFlowContextualNetworkClientId || globalNetworkClientId;
+      const currentNetworkClientId = isRemoveGlobalNetworkSelectorEnabled()
+        ? effectiveNetworkClientId
+        : globalNetworkClientId;
 
-      // console.log('>>> Amount addTransaction effectiveNetworkClientId', effectiveNetworkClientId);
       await addTransaction(transactionParams, {
         origin: MMM_ORIGIN,
-        networkClientId: effectiveNetworkClientId,
+        networkClientId: currentNetworkClientId,
       });
       this.setState({ isRedesignedTransferTransactionLoading: false });
       navigation.navigate('SendFlowView', {
@@ -827,7 +861,7 @@ class Amount extends PureComponent {
     }
   };
 
-  getCollectibleTranferTransactionProperties() {
+  getCollectibleTransferTransactionProperties() {
     const {
       selectedAsset,
       transactionState: { transaction, transactionTo },
@@ -881,7 +915,7 @@ class Amount extends PureComponent {
       transaction.value = BNToHex(toWei(value));
     } else if (selectedAsset.tokenId) {
       const collectibleTransferTransactionProperties =
-        this.getCollectibleTranferTransactionProperties();
+        this.getCollectibleTransferTransactionProperties();
       transaction.data = collectibleTransferTransactionProperties.data;
       transaction.to = collectibleTransferTransactionProperties.to;
       transaction.value = collectibleTransferTransactionProperties.value;
@@ -905,12 +939,13 @@ class Amount extends PureComponent {
    */
   validateAmount = (inputValue, internalPrimaryCurrencyIsCrypto) => {
     const {
+      accounts,
       selectedAddress,
       selectedAsset,
       contractBalances,
       allTokenBalances,
-      accountsByChainId,
-      sendFlowContextualChainId,
+      accountsByContextualChainId,
+      contextualChainId,
     } = this.props;
     const { estimatedTotalGas, inputValueConversion } = this.state;
     let value = inputValue;
@@ -918,12 +953,14 @@ class Amount extends PureComponent {
     if (!internalPrimaryCurrencyIsCrypto) {
       value = inputValueConversion;
     }
-    const account =
-      accountsByChainId?.[sendFlowContextualChainId]?.[selectedAddress];
-    const tokenBalances =
-      allTokenBalances?.[selectedAddress.toLowerCase()]?.[
-        sendFlowContextualChainId
-      ]?.[selectedAsset.address];
+
+    const contextuallySelectedAccount =
+      accountsByContextualChainId?.[selectedAddress];
+    const contextuallySelectedBalance =
+      allTokenBalances?.[selectedAddress.toLowerCase()]?.[contextualChainId]?.[
+        selectedAsset.address
+      ];
+
     let weiBalance, weiInput, amountError;
     if (isDecimal(value)) {
       // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
@@ -940,10 +977,25 @@ class Amount extends PureComponent {
 
       if (!amountError) {
         if (isNativeToken(selectedAsset)) {
-          weiBalance = hexToBN(account?.balance);
+          const globallySelectedBalance =
+            accounts?.[selectedAddress]?.balance || '0x0';
+          const contextuallySelectedBalance = hexToBN(
+            contextuallySelectedAccount?.balance || '0x0',
+          );
+          const balance = isRemoveGlobalNetworkSelectorEnabled()
+            ? contextuallySelectedBalance
+            : hexToBN(globallySelectedBalance);
+
+          weiBalance = hexToBN(balance);
           weiInput = weiValue.add(estimatedTotalGas);
         } else {
-          weiBalance = hexToBN(tokenBalances);
+          const globallySelectedBalance =
+            contractBalances?.[selectedAsset.address] || '0x0';
+          const balance = isRemoveGlobalNetworkSelectorEnabled()
+            ? contextuallySelectedBalance || '0x0'
+            : globallySelectedBalance;
+
+          weiBalance = hexToBN(balance);
           weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
         }
         // TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
@@ -966,17 +1018,25 @@ class Amount extends PureComponent {
    */
   estimateGasLimit = async () => {
     const {
+      globalNetworkClientId,
+      transactionState,
+      contextualNetworkConfiguration,
+    } = this.props;
+    const {
       transaction: { from },
       transactionTo,
-    } = this.props.transactionState;
-    const { globalNetworkClientId } = this.props;
+    } = transactionState;
 
     const { rpcEndpoints, defaultRpcEndpointIndex } =
-      this.props.sendFlowContextualNetworkConfiguration;
+      contextualNetworkConfiguration;
     const { networkClientId: sendFlowContextualNetworkClientId } =
       rpcEndpoints[defaultRpcEndpointIndex];
     const effectiveNetworkClientId =
       sendFlowContextualNetworkClientId || globalNetworkClientId;
+
+    const currentNetworkClientId = isRemoveGlobalNetworkSelectorEnabled()
+      ? effectiveNetworkClientId
+      : globalNetworkClientId;
 
     const { gas } = await getGasLimit(
       {
@@ -984,9 +1044,8 @@ class Amount extends PureComponent {
         to: transactionTo,
       },
       false,
-      effectiveNetworkClientId,
+      currentNetworkClientId,
     );
-
     return gas;
   };
 
@@ -999,43 +1058,69 @@ class Amount extends PureComponent {
       conversionRate,
       contractExchangeRates,
       contractBalancesByContextualChainId,
+      contractExchangeRatesByContextualChainId,
+      conversionRateByContextualChainId,
+      accountsByContextualChainId,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
+    const contextuallySelectedBalance =
+      contractBalancesByContextualChainId?.[selectedAsset.address];
+    const globallySelectedBalance =
+      contractBalances?.[selectedAsset.address] || '0x0';
     const tokenBalance =
-      isRemoveGlobalNetworkSelectorEnabled() &&
-      contractBalancesByContextualChainId?.[selectedAsset.address]
-        ? contractBalancesByContextualChainId[selectedAsset.address]
-        : contractBalances?.[selectedAsset.address] || '0x0';
+      isRemoveGlobalNetworkSelectorEnabled() && contextuallySelectedBalance
+        ? contextuallySelectedBalance
+        : globallySelectedBalance;
 
     let input;
     if (isNativeToken(selectedAsset)) {
-      const balanceBN = hexToBN(accounts[selectedAddress].balance);
+      const currentBalance = isRemoveGlobalNetworkSelectorEnabled()
+        ? accountsByContextualChainId?.[selectedAddress]?.balance || '0x0'
+        : accounts?.[selectedAddress]?.balance || '0x0';
+      const balanceBN = hexToBN(currentBalance);
       const realMaxValue = balanceBN.sub(estimatedTotalGas);
       const maxValue =
         balanceBN.isZero() || realMaxValue.isNeg()
           ? hexToBN('0x0')
           : realMaxValue;
+
       if (internalPrimaryCurrencyIsCrypto) {
         input = fromWei(maxValue);
       } else {
-        input = `${weiToFiatNumber(maxValue, conversionRate)}`;
+        const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
+          ? conversionRateByContextualChainId
+          : conversionRate;
+        input = `${weiToFiatNumber(maxValue, currentConversionRate)}`;
         this.setState({
-          maxFiatInput: `${weiToFiatNumber(maxValue, conversionRate, 12)}`,
+          maxFiatInput: `${weiToFiatNumber(
+            maxValue,
+            currentConversionRate,
+            12,
+          )}`,
         });
       }
     } else {
-      const exchangeRate = contractExchangeRates
-        ? contractExchangeRates[selectedAsset.address]?.price
-        : undefined;
+      const globallySelectedExchangeRate =
+        contractExchangeRates?.[selectedAsset.address]?.price ?? null;
+      const contextuallySelectedExchangeRate =
+        contractExchangeRatesByContextualChainId?.[selectedAsset.address]
+          ?.price ?? null;
+      const exchangeRate = isRemoveGlobalNetworkSelectorEnabled()
+        ? contextuallySelectedExchangeRate
+        : globallySelectedExchangeRate;
+
       if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
         input = fromTokenMinimalUnitString(
           tokenBalance,
           selectedAsset.decimals,
         );
       } else {
+        const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
+          ? conversionRateByContextualChainId
+          : conversionRate;
         input = `${balanceToFiatNumber(
           fromTokenMinimalUnitString(tokenBalance, selectedAsset.decimals),
-          conversionRate,
+          currentConversionRate,
           exchangeRate,
         )}`;
       }
@@ -1050,12 +1135,15 @@ class Amount extends PureComponent {
       currentCurrency,
       ticker,
       setMaxValueMode,
+      contractExchangeRatesByContextualChainId,
+      conversionRateByContextualChainId,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
+
     setMaxValueMode(useMax ?? false);
 
     let inputValueConversion,
-      renderableInputValueConversion,
+      displayableInputValueConversion,
       hasExchangeRate,
       comma;
     // Remove spaces from input
@@ -1080,48 +1168,64 @@ class Amount extends PureComponent {
         // Do nothing
       }
 
-      hasExchangeRate = !!conversionRate;
+      const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
+        ? conversionRateByContextualChainId
+        : conversionRate;
+      hasExchangeRate = !!currentConversionRate;
+
       if (internalPrimaryCurrencyIsCrypto) {
-        inputValueConversion = `${weiToFiatNumber(weiValue, conversionRate)}`;
-        renderableInputValueConversion = `${weiToFiat(
+        inputValueConversion = `${weiToFiatNumber(
           weiValue,
-          conversionRate,
+          currentConversionRate,
+        )}`;
+        displayableInputValueConversion = `${weiToFiat(
+          weiValue,
+          currentConversionRate,
           currentCurrency,
         )}`;
       } else {
         inputValueConversion = `${renderFromWei(
-          fiatNumberToWei(processedInputValue, conversionRate),
+          fiatNumberToWei(processedInputValue, currentConversionRate),
         )}`;
-        renderableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
+        displayableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
       }
     } else {
-      const exchangeRate = contractExchangeRates
-        ? contractExchangeRates[selectedAsset.address]?.price
-        : null;
-      hasExchangeRate = !!exchangeRate;
+      const globallySelectedExchangeRate =
+        contractExchangeRates?.[selectedAsset.address]?.price ?? null;
+      const contextuallySelectedExchangeRate =
+        contractExchangeRatesByContextualChainId?.[selectedAsset.address]
+          ?.price ?? null;
+      const exchangeRatePrice = isRemoveGlobalNetworkSelectorEnabled()
+        ? contextuallySelectedExchangeRate
+        : globallySelectedExchangeRate;
+      const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
+        ? conversionRateByContextualChainId
+        : conversionRate;
+
+      hasExchangeRate = !!exchangeRatePrice;
       if (internalPrimaryCurrencyIsCrypto) {
         inputValueConversion = `${balanceToFiatNumber(
           processedInputValue,
-          conversionRate,
-          exchangeRate,
+          currentConversionRate,
+          exchangeRatePrice,
         )}`;
-        renderableInputValueConversion = `${balanceToFiat(
+        displayableInputValueConversion = `${balanceToFiat(
           processedInputValue,
-          conversionRate,
-          exchangeRate,
+          currentConversionRate,
+          exchangeRatePrice,
           currentCurrency,
         )}`;
       } else {
         inputValueConversion = `${renderFromTokenMinimalUnit(
           fiatNumberToTokenMinimalUnit(
             processedInputValue,
-            conversionRate,
-            exchangeRate,
+            currentConversionRate,
+            exchangeRatePrice,
             selectedAsset.decimals,
           ),
           selectedAsset.decimals,
         )}`;
-        renderableInputValueConversion = `${inputValueConversion} ${selectedAsset.symbol}`;
+        displayableInputValueConversion = `${inputValueConversion} ${selectedAsset.symbol}`;
       }
     }
     if (comma) inputValue = inputValue && inputValue.replace('.', ',');
@@ -1130,7 +1234,7 @@ class Amount extends PureComponent {
     this.setState({
       inputValue,
       inputValueConversion,
-      renderableInputValueConversion,
+      displayableInputValueConversion,
       amountError: undefined,
       hasExchangeRate,
       maxFiatInput: !useMax && undefined,
@@ -1142,35 +1246,52 @@ class Amount extends PureComponent {
     this.setState({ assetsModalVisible: !assetsModalVisible });
   };
 
-  handleSelectedAssetBalance = (selectedAsset, renderableBalance) => {
+  handleSelectedAssetBalance = (selectedAsset, displayableBalance) => {
     const {
-      accountsByChainId,
+      accounts,
+      accountsByContextualChainId,
       selectedAddress,
       contractBalances,
-      sendFlowContextualChainId,
+      contextualChainId,
       allTokenBalances,
     } = this.props;
-    const account =
-      accountsByChainId?.[sendFlowContextualChainId]?.[selectedAddress];
+    const contextuallySelectedAccount =
+      accountsByContextualChainId?.[selectedAddress];
 
     let currentBalance;
-
-    if (renderableBalance) {
-      currentBalance = `${renderableBalance} ${selectedAsset.symbol}`;
+    if (displayableBalance) {
+      currentBalance = `${displayableBalance} ${selectedAsset.symbol || ''}`;
     } else if (isNativeToken(selectedAsset)) {
-      currentBalance = `${renderFromWei(account?.balance)} ${
-        selectedAsset.symbol
-      }`;
+      const globallySelectedBalance =
+        accounts?.[selectedAddress]?.balance || '0x0';
+      const contextuallySelectedBalance =
+        contextuallySelectedAccount?.balance || '0x0';
+      const balanceToRender = isRemoveGlobalNetworkSelectorEnabled()
+        ? contextuallySelectedBalance
+        : globallySelectedBalance;
+      const balanceValue = renderFromWei(balanceToRender) || '0';
+      const symbol = selectedAsset.symbol || 'ETH';
+      currentBalance = `${balanceValue} ${symbol}`;
     } else {
-      const tokenBalances =
-        this.props.allTokenBalances?.[selectedAddress.toLowerCase()]?.[
-          sendFlowContextualChainId
-        ]?.[selectedAsset.address];
-      const tokenBalance = renderFromTokenMinimalUnit(
-        tokenBalances,
-        selectedAsset.decimals,
-      );
-      currentBalance = `${tokenBalance} ${selectedAsset.symbol}`;
+      const globallySelectedBalance =
+        contractBalances?.[selectedAsset.address] || '0x0';
+      const contextuallySelectedBalance =
+        allTokenBalances?.[selectedAddress?.toLowerCase()]?.[
+          contextualChainId
+        ]?.[selectedAsset.address] || '0x0';
+      const balanceMinUnit =
+        renderFromTokenMinimalUnit(
+          contextuallySelectedBalance,
+          selectedAsset.decimals,
+        ) || '0';
+      const balanceToRender = isRemoveGlobalNetworkSelectorEnabled()
+        ? balanceMinUnit
+        : renderFromTokenMinimalUnit(
+            globallySelectedBalance,
+            selectedAsset.decimals,
+          ) || '0';
+      const symbol = selectedAsset.symbol || '';
+      currentBalance = `${balanceToRender} ${symbol}`;
     }
     this.setState({ currentBalance });
   };
@@ -1178,6 +1299,7 @@ class Amount extends PureComponent {
   pickSelectedAsset = (selectedAsset) => {
     this.toggleAssetsModal();
     this.props.setSelectedAsset(selectedAsset);
+
     if (!selectedAsset.tokenId) {
       this.onInputChange(undefined, selectedAsset);
       this.handleSelectedAssetBalance(selectedAsset);
@@ -1201,44 +1323,69 @@ class Amount extends PureComponent {
 
   renderToken = (token, index) => {
     const {
+      accounts,
       selectedAddress,
       conversionRate,
       currentCurrency,
       contractBalances,
       contractExchangeRates,
-      accountsByChainId,
-      sendFlowContextualChainId,
+      accountsByContextualChainId,
+      contextualChainId,
       ticker,
+      tickerByContextualChainId,
+      contractExchangeRatesByContextualChainId,
+      conversionRateByContextualChainId,
     } = this.props;
+    const contextuallySelectedAccount =
+      accountsByContextualChainId?.[selectedAddress];
 
-    const accounts =
-      accountsByChainId?.[this.props.sendFlowContextualChainId]?.[
-        selectedAddress
-      ];
     let balance, balanceFiat;
     const { address, decimals, symbol } = token;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     if (isNativeToken(token)) {
-      balance = renderFromWei(accounts.balance);
+      const globallySelectedBalance =
+        accounts?.[selectedAddress]?.balance || '0x0';
+      const contextuallySelectedBalance =
+        contextuallySelectedAccount?.balance || '0x0';
+      const balanceToRender = isRemoveGlobalNetworkSelectorEnabled()
+        ? contextuallySelectedBalance
+        : globallySelectedBalance;
+      const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
+        ? conversionRateByContextualChainId
+        : conversionRate;
+
+      balance = renderFromWei(balanceToRender) || '0';
       balanceFiat = weiToFiat(
-        hexToBN(accounts.balance),
-        conversionRate,
+        hexToBN(balanceToRender),
+        currentConversionRate,
         currentCurrency,
       );
     } else {
-      const tokenBalances =
-        this.props.allTokenBalances?.[selectedAddress.toLowerCase()]?.[
-          sendFlowContextualChainId
-        ]?.[address];
-      balance = renderFromTokenMinimalUnit(tokenBalances, decimals);
-      const exchangeRate = contractExchangeRates
-        ? contractExchangeRates[address]?.price
-        : undefined;
+      const globallySelectedBalance = contractBalances?.[address] || '0x0';
+      const contextuallySelectedBalance =
+        this.props.allTokenBalances?.[selectedAddress?.toLowerCase()]?.[
+          contextualChainId
+        ]?.[address] || '0x0';
+      const balanceToRender = isRemoveGlobalNetworkSelectorEnabled()
+        ? contextuallySelectedBalance
+        : globallySelectedBalance;
+      balance = renderFromTokenMinimalUnit(balanceToRender, decimals) || '0';
+      const globallySelectedExchangeRate =
+        contractExchangeRates?.[address]?.price ?? null;
+      const contextuallySelectedExchangeRate =
+        contractExchangeRatesByContextualChainId?.[address]?.price ?? null;
+      const exchangeRate = isRemoveGlobalNetworkSelectorEnabled()
+        ? contextuallySelectedExchangeRate
+        : globallySelectedExchangeRate;
+      const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
+        ? conversionRateByContextualChainId
+        : conversionRate;
+
       balanceFiat = balanceToFiat(
         balance,
-        conversionRate,
+        currentConversionRate,
         exchangeRate,
         currentCurrency,
       );
@@ -1253,14 +1400,16 @@ class Amount extends PureComponent {
       >
         <View style={styles.assetElement}>
           {isNativeToken(token) ? (
-            // TODO: add badge wraper with network image for native token
             <NetworkMainAssetLogo
               big
-              ticker={ticker}
-              chainId={sendFlowContextualChainId}
+              ticker={
+                isRemoveGlobalNetworkSelectorEnabled()
+                  ? tickerByContextualChainId
+                  : ticker
+              }
+              chainId={contextualChainId}
             />
           ) : (
-            // TODO: add badge wraper with network image and erc20 token
             <TokenImage
               asset={token}
               iconStyle={styles.tokenImage}
@@ -1390,7 +1539,7 @@ class Amount extends PureComponent {
   renderTokenInput = () => {
     const {
       inputValue,
-      renderableInputValueConversion,
+      displayableInputValueConversion,
       amountError,
       hasExchangeRate,
       internalPrimaryCurrencyIsCrypto,
@@ -1473,7 +1622,7 @@ class Amount extends PureComponent {
               placeholder={'0'}
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}
-              testID={AmountViewSelectorsIDs.AMOUNT_INPUT}
+              testID={AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT}
             />
           </View>
         </View>
@@ -1492,7 +1641,7 @@ class Amount extends PureComponent {
                     AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE
                   }
                 >
-                  {renderableInputValueConversion}
+                  {displayableInputValueConversion}
                 </Text>
                 <View styles={styles.switchWrapper}>
                   <MaterialCommunityIcons
@@ -1596,10 +1745,6 @@ class Amount extends PureComponent {
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-
-    const isEstimateedTotalGasValid = estimatedTotalGas
-      ? BigNumber(estimatedTotalGas).gt(0)
-      : false;
 
     return (
       <SafeAreaView
@@ -1715,47 +1860,40 @@ const mapStateToProps = (state, ownProps) => {
   const transaction = ownProps.transaction || state.transaction;
   const globalChainId = selectEvmChainId(state);
   const globalNetworkClientId = selectNetworkClientId(state);
-  const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
-  const sendFlowContextualNetworkConfiguration =
-    selectNetworkConfigurationByChainId(
-      state,
-      toHexadecimal(selectSendFlowContextualChainId(state)),
-    );
+  const contextualChainId =
+    selectSendFlowContextualChainId(state) || globalChainId;
+  const contextualNetworkConfiguration = selectNetworkConfigurationByChainId(
+    state,
+    toHexadecimal(contextualChainId),
+  );
+
+  const currentChainId = isRemoveGlobalNetworkSelectorEnabled()
+    ? contextualChainId
+    : globalChainId;
 
   return {
-    accounts: isRemoveGlobalNetworkSelectorEnabled()
-      ? selectAccountsByContextualChainId(state)
-      : selectAccounts(state),
-    accountsByChainId: selectAccountsByChainId(state),
+    accounts: selectAccounts(state),
     contractExchangeRates: selectContractExchangeRatesByChainId(
       state,
-      sendFlowContextualChainId,
+      globalChainId,
     ),
     contractBalances: selectContractBalances(state),
-    contractBalancesByContextualChainId:
-      selectContractBalancesByContextualChainId(state),
-    allTokenBalances: selectAllTokenBalances(state),
     collectibles: collectiblesSelector(state),
     collectibleContracts: collectibleContractsSelector(state),
-    conversionRate: selectConversionRateByChainId(
-      state,
-      sendFlowContextualChainId,
-    ),
-
+    conversionRate: selectConversionRateByChainId(state, globalChainId),
     currentCurrency: selectCurrentCurrency(state),
     gasEstimateType: selectGasFeeControllerEstimateType(state),
     gasFeeEstimates: selectGasFeeEstimates(state),
-    providerType: selectProviderTypeByChainId(state, sendFlowContextualChainId),
+    providerType: selectProviderTypeByChainId(state, globalChainId),
     primaryCurrency: state.settings.primaryCurrency,
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-    ticker: selectNativeCurrencyByChainId(state, sendFlowContextualChainId),
+    ticker: selectNativeCurrencyByChainId(state, globalChainId),
     tokens: selectTokens(state),
-    allTokens: selectAllTokens(state),
     transactionState: transaction,
     selectedAsset: state.transaction.selectedAsset,
     isPaymentRequest: state.transaction.paymentRequest,
     isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-      globalChainId,
+      currentChainId,
       getRampNetworks(state),
     ),
     isRedesignedTransferConfirmationEnabledForTransfer:
@@ -1763,8 +1901,28 @@ const mapStateToProps = (state, ownProps) => {
     swapsIsLive: swapsLivenessSelector(state),
     globalChainId,
     globalNetworkClientId,
-    sendFlowContextualChainId: selectSendFlowContextualChainId(state),
-    sendFlowContextualNetworkConfiguration,
+    // New selectors relating to the send flow
+    contextualChainId,
+    contextualNetworkConfiguration,
+    accountsByContextualChainId: selectAccountsByContextualChainId(state),
+    contractExchangeRatesByContextualChainId:
+      selectContractExchangeRatesByChainId(state, contextualChainId),
+    contractBalancesByContextualChainId:
+      selectContractBalancesByContextualChainId(state),
+    allTokenBalances: selectAllTokenBalances(state),
+    conversionRateByContextualChainId: selectConversionRateByChainId(
+      state,
+      contextualChainId,
+    ),
+    providerTypeByContextualChainId: selectProviderTypeByChainId(
+      state,
+      contextualChainId,
+    ),
+    tickerByContextualChainId: selectNativeCurrencyByChainId(
+      state,
+      contextualChainId,
+    ),
+    allTokensByChainId: selectAllTokens(state),
   };
 };
 

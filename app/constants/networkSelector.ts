@@ -18,3 +18,10 @@ export type NetworkSelectorSource =
 export const NETWORK_SELECTOR_SOURCE_VALUES = Object.values(
   NETWORK_SELECTOR_SOURCES,
 );
+
+/**
+ * Constants for Network Selector test IDs
+ */
+export const NETWORK_SELECTOR_TEST_IDS = {
+  CONTEXTUAL_NETWORK_PICKER: 'contextual-network-picker',
+} as const;

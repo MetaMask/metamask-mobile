@@ -6,6 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddressList from '../AddressList';
 import Text from '../../../../../Base/Text';
+import { IconSize } from '../../../../../../component-library/components/Icons/Icon';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../../component-library/components/Avatars/Avatar';
+import PickerBase from '../../../../../../component-library/components/Pickers/PickerBase';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
 import StyledButton from '../../../../../UI/StyledButton';
@@ -51,6 +57,8 @@ import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectProviderTypeByChainId,
+  selectNetworkConfigurationByChainId,
+  selectNetworkConfigurations,
 } from '../../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
@@ -68,9 +76,12 @@ import { withMetricsAwareness } from '../../../../../../components/hooks/useMetr
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
 import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
-import { store } from '../../../../../../store';
-import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { toHexadecimal } from '../../../../../../util/number';
+import { selectNetworkImageSourceByChainId } from '../../../../../../selectors/networkInfos';
+import {
+  NETWORK_SELECTOR_SOURCES,
+  NETWORK_SELECTOR_TEST_IDS,
+} from '../../../../../../constants/networkSelector';
 
 const dummy = () => true;
 
@@ -155,7 +166,23 @@ class SendFlow extends PureComponent {
     /**
      * Send flow contextual chain id
      */
-    sendFlowContextualChainId: PropTypes.string,
+    contextualChainId: PropTypes.string,
+    /**
+     * Send flow contextual network configuration
+     */
+    contextualNetworkConfiguration: PropTypes.object,
+    /**
+     * Set transaction send flow contextual chain id
+     */
+    setTransactionContextualChainId: PropTypes.func,
+    /**
+     * Network name
+     */
+    networkName: PropTypes.string,
+    /**
+     * Network image source
+     */
+    networkImageSource: PropTypes.object,
   };
 
   addressToInputRef = React.createRef();
@@ -185,11 +212,6 @@ class SendFlow extends PureComponent {
         colors,
         resetTransaction,
         null,
-        isRemoveGlobalNetworkSelectorEnabled() ? false : undefined,
-        isRemoveGlobalNetworkSelectorEnabled() ? true : undefined,
-        isRemoveGlobalNetworkSelectorEnabled()
-          ? this.props.sendFlowContextualNetworkConfiguration?.name || ''
-          : undefined,
       ),
     );
   };
@@ -203,6 +225,8 @@ class SendFlow extends PureComponent {
       providerType,
       route,
       isPaymentRequest,
+      setTransactionContextualChainId,
+      newAssetTransaction,
     } = this.props;
     this.updateNavBar();
     // For analytics
@@ -218,7 +242,7 @@ class SendFlow extends PureComponent {
     //Fills in to address and sets the transaction if coming from QR code scan
     const targetAddress = route.params?.txMeta?.target_address;
     if (targetAddress) {
-      this.props.newAssetTransaction(getEther(ticker));
+      newAssetTransaction(getEther(ticker));
       this.onToSelectedAddressChange(targetAddress);
     }
 
@@ -228,13 +252,11 @@ class SendFlow extends PureComponent {
 
     // Initialize contextual chain ID with global chain ID
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      this.props.dispatch(
-        setTransactionSendFlowContextualChainId(this.props.globalChainId),
-      );
+      setTransactionContextualChainId(globalChainId);
     }
   };
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate() {
     this.updateNavBar();
   }
 
@@ -336,25 +358,25 @@ class SendFlow extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.navigation.navigate(...createBuyNavigationDetails());
+    const { navigation, metrics, globalChainId } = this.props;
+    navigation.navigate(...createBuyNavigationDetails());
 
-    this.props.metrics.trackEvent(
-      this.props.metrics
+    metrics.trackEvent(
+      metrics
         .createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
         .addProperties({
           button_location: 'Send Flow warning',
           button_copy: 'Buy Native Token',
-          chain_id_destination: this.props.globalChainId,
+          chain_id_destination: globalChainId,
         })
         .build(),
     );
   };
 
   renderBuyEth = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { isNativeTokenBuySupported } = this.props;
 
-    if (!this.props.isNativeTokenBuySupported) {
+    if (!isNativeTokenBuySupported) {
       return null;
     }
 
@@ -455,9 +477,9 @@ class SendFlow extends PureComponent {
   };
 
   onToSelectedAddressChange = (toAccount) => {
+    const { ambiguousAddressEntries, globalChainId } = this.props;
     const currentChain =
-      this.props.ambiguousAddressEntries &&
-      this.props.ambiguousAddressEntries[this.props.globalChainId];
+      ambiguousAddressEntries && ambiguousAddressEntries[globalChainId];
     const isAmbiguousAddress = includes(currentChain, toAccount);
     if (isAmbiguousAddress) {
       this.setState({ showAmbiguousAcountWarning: isAmbiguousAddress });
@@ -467,7 +489,7 @@ class SendFlow extends PureComponent {
             MetaMetricsEvents.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
           )
           .addProperties({
-            chain_id: getDecimalChainId(this.props.globalChainId),
+            chain_id: getDecimalChainId(globalChainId),
           })
           .build(),
       );
@@ -518,8 +540,25 @@ class SendFlow extends PureComponent {
     }
   };
 
+  onNetworkSelectorPress = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+      params: {
+        source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
+      },
+    });
+  };
+
   render = () => {
-    const { ticker, addressBook, globalChainId } = this.props;
+    const {
+      ticker,
+      addressBook,
+      globalChainId,
+      contextualChainId,
+      networkName,
+      networkImageSource,
+    } = this.props;
     const {
       toAccount,
       toSelectedAddressReady,
@@ -536,10 +575,9 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const contextualChainId =
-      isRemoveGlobalNetworkSelectorEnabled() &&
-      this.props?.sendFlowContextualChainId
-        ? this.props?.sendFlowContextualChainId
+    const currentChainId =
+      isRemoveGlobalNetworkSelectorEnabled() && contextualChainId
+        ? contextualChainId
         : globalChainId;
 
     const checksummedAddress = this.safeChecksumAddress(toAccount);
@@ -559,16 +597,37 @@ class SendFlow extends PureComponent {
     const explanations =
       displayConfusableWarning &&
       getConfusablesExplanations(confusableCollection);
-
     return (
       <SafeAreaView
         edges={['bottom']}
         style={styles.wrapper}
         {...generateTestId(Platform, SendViewSelectorsIDs.CONTAINER_ID)}
       >
+        <View style={styles.accountSelectorWrapper}>
+          <PickerBase
+            onPress={this.onNetworkSelectorPress}
+            iconSize={IconSize.Xs}
+            style={styles.base}
+            dropdownIconStyle={styles.dropDownIcon}
+          >
+            <View style={styles.row}>
+              <View style={styles.avatarWrapper}>
+                <Avatar
+                  variant={AvatarVariant.Network}
+                  size={AvatarSize.Xs}
+                  name={networkName}
+                  imageSource={networkImageSource}
+                  testID={NETWORK_SELECTOR_TEST_IDS.CONTEXTUAL_NETWORK_PICKER}
+                  accessibilityLabel={networkName}
+                />
+              </View>
+              <Text>{networkName}</Text>
+            </View>
+          </PickerBase>
+        </View>
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
-            chainId={contextualChainId}
+            chainId={currentChainId}
             fromAccountBalanceState={this.fromAccountBalanceState}
             setFromAddress={this.setFromAddress}
           />
@@ -732,6 +791,11 @@ SendFlow.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
   const globalChainId = selectEvmChainId(state);
+  const contextualChainId =
+    selectSendFlowContextualChainId(state) || globalChainId;
+  const currentChainId = isRemoveGlobalNetworkSelectorEnabled()
+    ? contextualChainId
+    : globalChainId;
 
   return {
     addressBook: selectAddressBook(state),
@@ -739,18 +803,24 @@ const mapStateToProps = (state) => {
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     selectedAsset: state.transaction.selectedAsset,
     internalAccounts: selectInternalAccounts(state),
-    ticker: selectNativeCurrencyByChainId(state, globalChainId),
-    providerType: selectProviderTypeByChainId(state, globalChainId),
+    ticker: selectNativeCurrencyByChainId(state, currentChainId),
+    providerType: selectProviderTypeByChainId(state, currentChainId),
     isPaymentRequest: state.transaction.paymentRequest,
     isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
-      globalChainId,
+      currentChainId,
       getRampNetworks(state),
     ),
     ambiguousAddressEntries: state.user.ambiguousAddressEntries,
-    sendFlowContextualChainId: selectSendFlowContextualChainId(state),
-    sendFlowContextualNetworkConfiguration: selectNetworkConfigurationByChainId(
+    contextualChainId,
+    contextualNetworkConfiguration: selectNetworkConfigurationByChainId(
       state,
-      toHexadecimal(selectSendFlowContextualChainId(state)),
+      toHexadecimal(contextualChainId),
+    ),
+    networkName:
+      selectNetworkConfigurations(state)?.[currentChainId]?.name || '',
+    networkImageSource: selectNetworkImageSourceByChainId(
+      state,
+      currentChainId,
     ),
   };
 };
@@ -781,7 +851,8 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setTransactionSendFlowContextualChainId(null));
     dispatch(resetTransaction());
   },
-  dispatch: dispatch,
+  setTransactionContextualChainId: (chainId) =>
+    dispatch(setTransactionSendFlowContextualChainId(chainId)),
 });
 
 export default connect(
