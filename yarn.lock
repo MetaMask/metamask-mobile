@@ -4801,9 +4801,13 @@
 "@metamask/accounts-controller@^32.0.1":
   version "32.0.1"
 <<<<<<< HEAD
+<<<<<<< HEAD
   resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-32.0.1.tgz#f2380bc6ddbca1135a167d71c3163a400712a10f"
 =======
   resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/accounts-controller/-/accounts-controller-32.0.1.tgz#f2380bc6ddbca1135a167d71c3163a400712a10f"
+=======
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-32.0.1.tgz#f2380bc6ddbca1135a167d71c3163a400712a10f"
+>>>>>>> 2464162f4d (chore: update yarn.lock)
   integrity sha512-ggAJdOJuId40jVPrvAZVWwHWKJUHQZsd/MtounHhfYTzvKxlOi6sVmBCodLvk4rexOdgSatoM2lrHgNRnr29lw==
     "@metamask/eth-snap-keyring" "^14.0.0"
     "@metamask/keyring-api" "^19.0.0"
