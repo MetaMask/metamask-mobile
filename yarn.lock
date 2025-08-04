@@ -4792,7 +4792,7 @@
 
 "@metamask/account-tree-controller@0.7.0":
   version "0.7.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/account-tree-controller/-/account-tree-controller-0.7.0.tgz#5fdaada8915125cc278bb98ef03346efe12621ec"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.7.0.tgz#5fdaada8915125cc278bb98ef03346efe12621ec"
   integrity sha512-CfDUKuktFs++X/NeEz4lsdDsyLcLZqB81gCribGNebQH8b8uD0lp+0iwPSpHb0k2yHmaz+vGtLIKEdIVCkCHrg==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
@@ -4802,7 +4802,7 @@
 
 "@metamask/accounts-controller@^32.0.1":
   version "32.0.1"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/accounts-controller/-/accounts-controller-32.0.1.tgz#f2380bc6ddbca1135a167d71c3163a400712a10f"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-32.0.1.tgz#f2380bc6ddbca1135a167d71c3163a400712a10f"
   integrity sha512-ggAJdOJuId40jVPrvAZVWwHWKJUHQZsd/MtounHhfYTzvKxlOi6sVmBCodLvk4rexOdgSatoM2lrHgNRnr29lw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
