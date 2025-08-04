@@ -3,7 +3,6 @@ import {
   importWalletWithRecoveryPhrase,
   loginToApp,
 } from '../../../viewHelper';
-import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
@@ -13,19 +12,18 @@ import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController.ts';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
-import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
+import { defaultGanacheOptions } from '../../../framework/Constants';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import LoginView from '../../../pages/wallet/LoginView';
 import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView';
 import { createUserStorageController } from '../utils/mocks.ts';
-import FixtureBuilder from '../../../fixtures/fixture-builder.js';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 
 describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
     sharedUserStorageController = createUserStorageController();
   });
 
