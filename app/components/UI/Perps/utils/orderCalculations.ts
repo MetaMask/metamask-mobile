@@ -11,6 +11,7 @@ interface MarginRequiredParams {
 
 /**
  * Calculate position size based on USD amount and asset price
+ * Uses Math.ceil to ensure orders meet minimum USD requirements
  * @param params - Amount in USD, current asset price, and optional decimal precision
  * @returns Position size formatted to the asset's decimal precision
  */
@@ -24,7 +25,8 @@ export function calculatePositionSize(params: PositionSizeParams): string {
 
   const positionSize = amountNum / price;
   const multiplier = Math.pow(10, szDecimals);
-  const rounded = Math.round(positionSize * multiplier) / multiplier;
+  // Math.ceil prevents orders from falling below minimum USD requirements
+  const rounded = Math.ceil(positionSize * multiplier) / multiplier;
 
   return rounded.toFixed(szDecimals);
 }

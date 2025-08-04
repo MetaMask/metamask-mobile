@@ -29,7 +29,7 @@ describe('orderCalculations', () => {
         price: 3000,
         szDecimals: 4,
       });
-      expect(ethResult).toBe('3.3333'); // Properly rounded from 3.3333...
+      expect(ethResult).toBe('3.3334'); // Properly rounded up from 3.3333...
 
       // DOGE-style decimals (0)
       const dogeResult = calculatePositionSize({
@@ -97,23 +97,23 @@ describe('orderCalculations', () => {
       expect(result).toBe('20.000000');
     });
 
-    it('should use proper rounding (Math.round)', () => {
-      // Test that proper rounding is used (not always rounding up)
+    it('should use proper rounding (Math.ceil)', () => {
+      // Test that Math.ceil is used (always rounding up to ensure minimum requirements)
       const result = calculatePositionSize({
         amount: '11',
         price: 50000,
         szDecimals: 6,
       });
-      expect(result).toBe('0.000220'); // Properly rounded
+      expect(result).toBe('0.000220'); // Exact value, no rounding needed
 
-      // Test case where Math.ceil would give different result
+      // Test case where Math.ceil rounds up
       const result2 = calculatePositionSize({
         amount: '100',
         price: 30000,
         szDecimals: 8,
       });
       // 100 / 30000 = 0.00333333...
-      expect(result2).toBe('0.00333333'); // Math.round gives this, Math.ceil would give 0.00333334
+      expect(result2).toBe('0.00333334'); // Math.ceil rounds up to ensure minimum
     });
   });
 

@@ -2,6 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 import { usePerpsTrading } from './usePerpsTrading';
+import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
 
 jest.mock('./usePerpsTrading');
 
@@ -140,8 +141,12 @@ describe('usePerpsClosePositionValidation', () => {
     );
   });
 
-  it('should return error for limit order without price', async () => {
-    mockValidateClosePosition.mockResolvedValue({ isValid: true });
+  it('should return error for limit order without price from protocol', async () => {
+    // Protocol validation should catch missing limit price
+    mockValidateClosePosition.mockResolvedValue({
+      isValid: false,
+      error: strings('perps.order.validation.limit_price_required'),
+    });
 
     const params = {
       ...defaultParams,
@@ -166,10 +171,16 @@ describe('usePerpsClosePositionValidation', () => {
   it('should return warning for limit price far from current price', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 
+    // Calculate price that's above the threshold
+    const currentPrice = defaultParams.currentPrice;
+    const priceAboveThreshold =
+      currentPrice *
+      (1 + VALIDATION_THRESHOLDS.LIMIT_PRICE_DIFFERENCE_WARNING + 0.1);
+
     const params = {
       ...defaultParams,
       orderType: 'limit' as const,
-      limitPrice: '60000', // 20% above current price of 50000
+      limitPrice: priceAboveThreshold.toString(),
     };
 
     const { result } = renderHook(() =>
@@ -189,9 +200,13 @@ describe('usePerpsClosePositionValidation', () => {
   it('should return warning for very small partial closes', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 
+    // Use a percentage below the threshold
+    const smallPercentage =
+      VALIDATION_THRESHOLDS.SMALL_CLOSE_PERCENTAGE_WARNING - 5;
+
     const params = {
       ...defaultParams,
-      closePercentage: 5, // Only 5% close
+      closePercentage: smallPercentage,
     };
 
     const { result } = renderHook(() =>
@@ -205,7 +220,7 @@ describe('usePerpsClosePositionValidation', () => {
     expect(result.current.isValid).toBe(true);
     expect(result.current.warnings).toContain(
       strings('perps.close_position.small_close_warning', {
-        percentage: '5',
+        percentage: smallPercentage.toString(),
       }),
     );
   });

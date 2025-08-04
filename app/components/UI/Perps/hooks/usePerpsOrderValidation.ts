@@ -7,6 +7,7 @@ import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
 } from '../constants/hyperLiquidConfig';
+import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
@@ -52,7 +53,7 @@ export function usePerpsOrderValidation(
     errors: [],
     warnings: [],
     isValid: false,
-    isValidating: true,
+    isValidating: false, // Start with false to prevent initial flickering
   });
 
   useEffect(() => {
@@ -134,7 +135,7 @@ export function usePerpsOrderValidation(
         }
 
         // High leverage warning
-        if (orderForm.leverage > 20) {
+        if (orderForm.leverage > VALIDATION_THRESHOLDS.HIGH_LEVERAGE_WARNING) {
           warnings.push(
             strings('perps.order.validation.high_leverage_warning'),
           );

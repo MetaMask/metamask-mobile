@@ -9,6 +9,7 @@ import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
 } from '../constants/hyperLiquidConfig';
+import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
 import type { OrderFormState } from '../types';
 
 jest.mock('./usePerpsTrading');
@@ -227,7 +228,7 @@ describe('usePerpsOrderValidation', () => {
           ...defaultParams,
           orderForm: {
             ...defaultOrderForm,
-            leverage: 25,
+            leverage: VALIDATION_THRESHOLDS.HIGH_LEVERAGE_WARNING + 5, // Test with leverage above threshold
           },
         }),
       );
@@ -248,7 +249,7 @@ describe('usePerpsOrderValidation', () => {
           ...defaultParams,
           orderForm: {
             ...defaultOrderForm,
-            leverage: 10,
+            leverage: VALIDATION_THRESHOLDS.HIGH_LEVERAGE_WARNING - 5, // Test with leverage below threshold
           },
         }),
       );

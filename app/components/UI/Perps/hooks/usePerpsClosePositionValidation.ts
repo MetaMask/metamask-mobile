@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import type { OrderType, ClosePositionParams } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
+import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface UsePerpsClosePositionValidationParams {
@@ -58,9 +59,10 @@ interface ValidationResult {
  * - Example: ERROR - Position worth $10, fees are $12, user would receive -$2
  * - Protects users from paying to close losing positions
  *
- * 5. MISSING LIMIT PRICE
+ * 5. MISSING LIMIT PRICE (checked by protocol validation)
  * - Limit orders require a price to be specified
  * - Example: ERROR - Limit order with no price or price <= 0
+ * - Note: This is validated by the provider, not duplicate-checked in UI
  *
  * 6. ZERO AMOUNT FOR MARKET ORDER
  * - Market orders with 0% close percentage
@@ -70,13 +72,13 @@ interface ValidationResult {
  * WARNINGS (Non-blocking - yellow text, user can proceed)
  * ==========================================
  *
- * 1. LIMIT PRICE FAR FROM MARKET (>10% difference)
+ * 1. LIMIT PRICE FAR FROM MARKET (>VALIDATION_THRESHOLDS.LIMIT_PRICE_DIFFERENCE_WARNING)
  * - Warns when limit price unlikely to execute soon
  * - Example: WARNING - BTC at $50,000, limit set at $60,000 (20% higher)
  * - Example: WARNING - ETH at $3,000, limit set at $2,500 (16.7% lower)
  * - User can still place the order if they want
  *
- * 2. VERY SMALL PARTIAL CLOSE (<10% of position)
+ * 2. VERY SMALL PARTIAL CLOSE (<VALIDATION_THRESHOLDS.SMALL_CLOSE_PERCENTAGE_WARNING of position)
  * - Warns about closing tiny portions that may not be worth the fees
  * - Example: WARNING - Closing only 5% of a $1,000 position ($50)
  * - Example: WARNING - Closing only 2% of a $5,000 position ($100)
@@ -113,7 +115,7 @@ export function usePerpsClosePositionValidation(
     errors: [],
     warnings: [],
     isValid: false,
-    isValidating: true,
+    isValidating: false, // Start with false to prevent initial flickering
   });
 
   useEffect(() => {
@@ -189,22 +191,20 @@ export function usePerpsClosePositionValidation(
           errors.push(strings('perps.close_position.negative_receive_amount'));
         }
 
-        // Limit order specific validation
-        if (orderType === 'limit') {
-          if (!limitPrice || parseFloat(limitPrice) <= 0) {
-            errors.push(strings('perps.order.validation.limit_price_required'));
-          } else {
-            const limitPriceNum = parseFloat(limitPrice);
-            // Add warning if limit price is far from current price
-            const priceDifference = Math.abs(
-              (limitPriceNum - currentPrice) / currentPrice,
+        // Limit order specific validation (price warning only - required check is done by protocol)
+        if (orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0) {
+          const limitPriceNum = parseFloat(limitPrice);
+          // Add warning if limit price is far from current price
+          const priceDifference = Math.abs(
+            (limitPriceNum - currentPrice) / currentPrice,
+          );
+          if (
+            priceDifference >
+            VALIDATION_THRESHOLDS.LIMIT_PRICE_DIFFERENCE_WARNING
+          ) {
+            warnings.push(
+              strings('perps.order.validation.limit_price_far_warning'),
             );
-            if (priceDifference > 0.1) {
-              // More than 10% difference
-              warnings.push(
-                strings('perps.order.validation.limit_price_far_warning'),
-              );
-            }
           }
         }
 
@@ -214,7 +214,10 @@ export function usePerpsClosePositionValidation(
         }
 
         // Add warning for very small partial closes
-        if (isPartialClose && closePercentage < 10) {
+        if (
+          isPartialClose &&
+          closePercentage < VALIDATION_THRESHOLDS.SMALL_CLOSE_PERCENTAGE_WARNING
+        ) {
           warnings.push(
             strings('perps.close_position.small_close_warning', {
               percentage: closePercentage.toString(),
