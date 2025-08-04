@@ -4,7 +4,7 @@ import Assertions from '../../framework/Assertions';
 import { mockNotificationServices } from './utils/mocks';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
-  DEFAULT_FIXTURE_ACCOUNT,
+  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -66,11 +66,11 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
 
         // Test account notifications toggle functionality
         await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
-          DEFAULT_FIXTURE_ACCOUNT,
+          DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
           'off',
         );
         await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
-          DEFAULT_FIXTURE_ACCOUNT,
+          DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
           'on',
         );
 

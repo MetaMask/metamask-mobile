@@ -9,9 +9,10 @@ import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSh
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
 import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
+import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
 
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const ACCOUNT_TWO_TEXT = 'Solana Account 2';
@@ -89,11 +90,12 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
 
         await WalletView.tapIdenticon();
         await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
-        await AccountActionsBottomSheet.tapEditAccount();
-        await EditAccountNameView.updateAccountName(NEW_ACCOUNT_NAME);
-        await EditAccountNameView.tapSave();
+        await AccountDetails.tapEditAccountName();
+        await EditAccountName.updateAccountName(NEW_ACCOUNT_NAME);
+        await EditAccountName.tapSave();
+        await Assertions.expectTextDisplayed(NEW_ACCOUNT_NAME);
+        await AccountDetails.tapBackButton();
         await WalletView.tapIdenticon();
-
         await Assertions.expectTextDisplayed(NEW_ACCOUNT_NAME);
       },
     );
