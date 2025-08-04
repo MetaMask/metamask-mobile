@@ -13,7 +13,7 @@ import {
   selectChainId,
   selectEvmTicker,
 } from '../../../selectors/networkController';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { swapsLivenessMultichainSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
@@ -54,8 +54,8 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
+import useDepositEnabled from '../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
-import { selectDepositEntrypointWalletActions } from '../../../selectors/featureFlagController/deposit';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import Engine from '../../../core/Engine';
@@ -63,6 +63,7 @@ import { selectMultichainTokenListForAccountId } from '../../../selectors/multic
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -73,15 +74,13 @@ const WalletActions = () => {
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector(swapsLivenessMultichainSelector);
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
-  const isDepositWalletActionEnabled = useSelector(
-    selectDepositEntrypointWalletActions,
-  );
+  const { isDepositEnabled } = useDepositEnabled();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const { trackEvent, createEventBuilder } = useMetrics();
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -95,6 +94,7 @@ const WalletActions = () => {
       location: SwapBridgeNavigationLocation.TabBar,
       sourcePage: 'MainView',
     });
+  const { navigateToSendPage } = useSendNavigation();
 
   const selectedAsset = useSelector(
     (state: RootState) => state.transaction.selectedAsset,
@@ -299,21 +299,24 @@ const WalletActions = () => {
     }
 
     closeBottomSheetAndNavigate(() => {
+      let asset = assetToSend;
       if (
         !assetToSend ||
         assetToSend.isETH ||
         assetToSend.isNative ||
         Object.keys(assetToSend).length === 0
       ) {
-        ticker && dispatch(newAssetTransaction(getEther(ticker)));
+        if (ticker) {
+          asset = getEther(ticker);
+          dispatch(newAssetTransaction(asset));
+        }
       } else {
         dispatch(newAssetTransaction(assetToSend));
       }
-      navigate('SendFlowView', {});
+      navigateToSendPage(asset);
     });
   }, [
     closeBottomSheetAndNavigate,
-    navigate,
     ticker,
     dispatch,
     trackEvent,
@@ -321,6 +324,7 @@ const WalletActions = () => {
     createEventBuilder,
     selectedAsset,
     assetToSend,
+    navigateToSendPage,
     sendNonEvmAsset,
   ]);
 
@@ -355,7 +359,9 @@ const WalletActions = () => {
 
   const onPerps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PERPS.ROOT);
+      navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
     });
   }, [closeBottomSheetAndNavigate, navigate]);
 
@@ -381,6 +387,16 @@ const WalletActions = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
+        {isDepositEnabled && (
+          <WalletAction
+            actionType={WalletActionType.Deposit}
+            iconName={IconName.Cash}
+            onPress={onDeposit}
+            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+          />
+        )}
         {isNetworkRampSupported && (
           <WalletAction
             actionType={WalletActionType.Buy}
@@ -402,16 +418,6 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
-        {isDepositWalletActionEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Deposit}
-            iconName={IconName.Cash}
-            onPress={onDeposit}
-            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-          />
-        )}
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
           <WalletAction
             actionType={WalletActionType.Swap}
@@ -423,17 +429,19 @@ const WalletActions = () => {
             disabled={!canSignTransactions || !swapsIsLive}
           />
         )}
-        {AppConstants.BRIDGE.ACTIVE && isBridgeAllowed(chainId) && !isUnifiedSwapsEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Bridge}
-            iconName={IconName.Bridge}
-            onPress={goToBridge}
-            actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
-          />
-        )}
+        {AppConstants.BRIDGE.ACTIVE &&
+          isBridgeAllowed(chainId) &&
+          !isUnifiedSwapsEnabled && (
+            <WalletAction
+              actionType={WalletActionType.Bridge}
+              iconName={IconName.Bridge}
+              onPress={goToBridge}
+              actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
+              iconStyle={styles.icon}
+              iconSize={AvatarSize.Md}
+              disabled={!canSignTransactions}
+            />
+          )}
         {isPerpsEnabled && (
           <WalletAction
             actionType={WalletActionType.Perps}

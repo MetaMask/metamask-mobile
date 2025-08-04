@@ -5,8 +5,14 @@
 
 declare global {
   // Common element types
-  type DetoxElement = Promise<Detox.IndexableNativeElement | Detox.NativeElement | Detox.IndexableSystemElement>;
-  type TappableElement = Promise<Detox.IndexableNativeElement | Detox.SystemElement>;
+  type DetoxElement = Promise<
+    | Detox.IndexableNativeElement
+    | Detox.NativeElement
+    | Detox.IndexableSystemElement
+  >;
+  type TappableElement = Promise<
+    Detox.IndexableNativeElement | Detox.SystemElement
+  >;
   type TypableElement = Promise<Detox.IndexableNativeElement>;
 
   // Web element types
@@ -14,6 +20,7 @@ declare global {
 
   // Individual element types - useful for specific casting
   type IndexableNativeElement = Detox.IndexableNativeElement;
+  type IndexableWebElement = Detox.IndexableWebElement;
   type NativeElement = Detox.NativeElement;
   type SystemElement = Detox.SystemElement;
 

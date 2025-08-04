@@ -37,6 +37,7 @@ export const createWebviewModalNavigationDetails =
 
 function WebviewModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const previousUrlRef = useRef<string | null>(null);
   const { sourceUrl, handleNavigationStateChange } =
     useParams<WebviewModalParams>();
 
@@ -48,8 +49,20 @@ function WebviewModal() {
 
   const [webviewError, setWebviewError] = useState<string | null>(null);
 
+  const handleNavigationStateChangeWithDedup = (navState: { url: string }) => {
+    if (navState.url !== previousUrlRef.current) {
+      previousUrlRef.current = navState.url;
+      handleNavigationStateChange?.(navState);
+    }
+  };
+
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack style={styles.bottomSheet}>
+    <BottomSheet
+      ref={sheetRef}
+      shouldNavigateBack
+      isFullscreen
+      keyboardAvoidingViewEnabled={false}
+    >
       <BottomSheetHeader
         endAccessory={
           <TouchableOpacity>
@@ -70,8 +83,9 @@ function WebviewModal() {
             <ErrorView description={webviewError} />
           ) : (
             <WebView
+              style={styles.webview}
               source={{ uri: sourceUrl }}
-              onNavigationStateChange={handleNavigationStateChange}
+              onNavigationStateChange={handleNavigationStateChangeWithDedup}
               onHttpError={(syntheticEvent) => {
                 const { nativeEvent } = syntheticEvent;
                 if (nativeEvent.url === sourceUrl) {

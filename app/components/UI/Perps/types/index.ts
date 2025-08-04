@@ -35,5 +35,34 @@ export interface HyperliquidAsset {
   [key: string]: unknown;
 }
 
+/**
+ * Represents a single candlestick data point
+ */
+export interface CandleStick {
+  time: number;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume: string;
+}
+
+/**
+ * Represents historical candlestick data for a specific coin and interval
+ */
+export interface CandleData {
+  coin: string;
+  interval: string;
+  candles: CandleStick[];
+}
+
 // Export all configuration types directly
 export * from './config';
+
+/**
+ * Standard Structure for Perps LaunchDarkly Feature Flags
+ */
+export interface PerpsLaunchDarklyFlag {
+  enabled: boolean;
+  minimumVersion: string;
+}

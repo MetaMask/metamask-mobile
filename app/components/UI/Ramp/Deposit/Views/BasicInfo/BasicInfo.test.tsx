@@ -9,6 +9,8 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
 import { timestampToTransakFormat } from '../../utils';
 
+const mockTrackEvent = jest.fn();
+
 const FIXED_DATE = new Date(2024, 0, 1);
 const FIXED_TIMESTAMP = FIXED_DATE.getTime();
 
@@ -19,6 +21,19 @@ const mockQuote = {
 const mockSelectedRegion = DEPOSIT_REGIONS.find(
   (region) => region.isoCode === 'US',
 ) as DepositRegion;
+
+let mockUseParamsReturnValue: {
+  quote: BuyQuote;
+  previousFormData?: {
+    firstName: string;
+    lastName: string;
+    mobileNumber: string;
+    dob: string;
+    ssn?: string;
+  };
+} = {
+  quote: mockQuote,
+};
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -36,15 +51,19 @@ jest.mock('@react-navigation/native', () => {
         actualReactNavigation.useNavigation().setOptions,
       ),
     }),
-    useRoute: () => ({
-      params: { quote: mockQuote as unknown as BuyQuote },
-    }),
   };
 });
+
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: () => mockUseParamsReturnValue,
+}));
 
 jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
 }));
+
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -76,6 +95,7 @@ describe('BasicInfo Component', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockSetNavigationOptions.mockClear();
+    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -118,7 +138,6 @@ describe('BasicInfo Component', () => {
           mobileNumber: '+1234567890',
           ssn: '123456789',
         },
-        kycUrl: undefined,
         quote: mockQuote,
       }),
     );
@@ -128,8 +147,48 @@ describe('BasicInfo Component', () => {
     render(BasicInfo);
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Enter your basic info',
+        title: 'Verify your identity',
       }),
     );
+  });
+
+  it('tracks analytics event when continue button is pressed with valid form data', () => {
+    const dob = new Date('1990-01-01').getTime().toString();
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '234567890',
+    );
+    fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
+    fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BASIC_INFO_ENTERED', {
+      region: 'US',
+      ramp_type: 'DEPOSIT',
+      kyc_type: 'SIMPLE',
+    });
+  });
+
+  it('prefills form data when previousFormData is provided', () => {
+    const mockPreviousFormData = {
+      firstName: 'John',
+      lastName: 'Doe',
+      mobileNumber: '+1234567890',
+      dob: '1993-03-25T00:00:00.000Z',
+      ssn: '123456789',
+    };
+
+    mockUseParamsReturnValue = {
+      quote: mockQuote,
+      previousFormData: mockPreviousFormData,
+    };
+
+    render(BasicInfo);
+
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

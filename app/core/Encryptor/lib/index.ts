@@ -3,9 +3,7 @@ import { QuickCryptoLib } from './quick-crypto';
 import { ENCRYPTION_LIBRARY } from '../constants';
 import { EncryptionLibrary } from '../types';
 
-function getEncryptionLibrary(
-  lib: string | undefined,
-): EncryptionLibrary {
+function getEncryptionLibrary(lib: string | undefined): EncryptionLibrary {
   switch (lib) {
     case ENCRYPTION_LIBRARY.original:
       return AesLib;
@@ -16,9 +14,4 @@ function getEncryptionLibrary(
   }
 }
 
-export {
-  AesLib,
-  AesForkedLib,
-  QuickCryptoLib,
-  getEncryptionLibrary,
-};
+export { AesLib, AesForkedLib, QuickCryptoLib, getEncryptionLibrary };

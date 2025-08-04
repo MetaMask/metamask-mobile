@@ -1,4 +1,3 @@
-'use strict';
 import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
@@ -8,13 +7,14 @@ import LoginView from '../../pages/wallet/LoginView';
 import { CreateNewWallet } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import CommonView from '../../pages/CommonView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
   getEventsPayloads,
   onboardingEvents,
   filterEvents,
- EventPayload } from '../analytics/helpers';
+  EventPayload,
+} from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 import { MockttpServer } from 'mockttp';
 import { getMockServerPort } from '../../fixtures/utils';
@@ -28,7 +28,9 @@ const testSpecificMock = {
 };
 
 describe(
-  Regression('Onboarding wizard opt-in, metametrics opt out from settings WITH ANALYTICS'),
+  Regression(
+    'Onboarding wizard opt-in, metametrics opt out from settings WITH ANALYTICS',
+  ),
   () => {
     let mockServer: MockttpServer;
     let eventsBeforeDisablingAnalytics: EventPayload[];
@@ -65,20 +67,27 @@ describe(
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
       await TestHelpers.delay(1500);
-      await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
+      await Assertions.expectToggleToBeOn(
+        SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>,
+      );
     });
 
     it('should disable metametrics and track preference change', async () => {
       await SecurityAndPrivacy.tapMetaMetricsToggle();
       await TestHelpers.delay(1000); // Wait for toggle action
       await CommonView.tapOkAlert();
-      await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
+      await Assertions.expectToggleToBeOff(
+        SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>,
+      );
 
       const events = await getEventsPayloads(mockServer);
 
       const softAssert = new SoftAssert();
       await softAssert.checkAndCollect(async () => {
-        const e = filterEvents(events, onboardingEvents.ANALYTICS_PREFERENCE_SELECTED) as EventPayload[];
+        const e = filterEvents(
+          events,
+          onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
+        ) as EventPayload[];
         await Assertions.checkIfValueIsDefined(e);
         await Assertions.checkIfArrayHasLength(e, 1);
         await Assertions.checkIfObjectContains(e[0].properties, {
@@ -110,11 +119,14 @@ describe(
       await TestHelpers.delay(2000); // Wait for app launch
 
       await LoginView.enterPassword(PASSWORD);
-      await Assertions.checkIfVisible(WalletView.container);
+      await Assertions.expectElementToBeVisible(WalletView.container);
       // Removed delay - we already wait for wallet view to be visible
 
       const eventsAfterRelaunch = await getEventsPayloads(mockServer);
-      await Assertions.checkIfArrayHasLength(eventsAfterRelaunch, eventsBeforeDisablingAnalytics.length);
+      await Assertions.checkIfArrayHasLength(
+        eventsAfterRelaunch,
+        eventsBeforeDisablingAnalytics.length,
+      );
     });
 
     it('should verify metametrics remains turned off after app restart', async () => {
@@ -127,9 +139,11 @@ describe(
       await TestHelpers.delay(500); // Wait for animation
 
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>);
+      await Assertions.expectToggleToBeOff(
+        SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>,
+      );
 
       await device.enableSynchronization();
     });
-  }
+  },
 );

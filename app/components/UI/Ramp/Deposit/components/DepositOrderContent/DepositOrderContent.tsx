@@ -19,8 +19,7 @@ import {
   getCryptoCurrencyFromTransakId,
   hasDepositOrderField,
 } from '../../utils';
-import { selectChainId } from '../../../../../../selectors/networkController';
-import { selectEvmNetworkName } from '../../../../../../selectors/networkInfos';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useAccountName } from '../../../../../hooks/useAccountName';
 import Avatar, {
@@ -28,18 +27,18 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
-import { SEPA_PAYMENT_METHOD } from '../../constants';
+import { MANUAL_BANK_TRANSFER_PAYMENT_METHODS } from '../../constants';
 import { DepositOrder } from '@consensys/native-ramps-sdk';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 interface DepositOrderContentProps {
   order: FiatOrder;
@@ -47,8 +46,6 @@ interface DepositOrderContentProps {
 
 const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const chainId = useSelector(selectChainId);
-  const networkName = useSelector(selectEvmNetworkName);
   const accountName = useAccountName();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -64,10 +61,22 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {
       return null;
     }
-    return getCryptoCurrencyFromTransakId(order.data.cryptoCurrency);
+    return getCryptoCurrencyFromTransakId(
+      order.data.cryptoCurrency,
+      order.data.network,
+    );
   };
 
   const cryptoToken = getCryptoToken();
+
+  const allNetworkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+  const networkName =
+    allNetworkConfigurations[order.network as `${string}:${string}`]?.name;
+  const networkImageSource = getNetworkImageSource({
+    chainId: cryptoToken?.chainId ?? '',
+  });
 
   const getIconContainerStyle = () => {
     if (order.state === FIAT_ORDER_STATES.COMPLETED) {
@@ -91,12 +100,6 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   }, [providerOrderId]);
 
   const shortOrderId = providerOrderId?.slice(-6) ?? order.id.slice(-6);
-  const totalAmount =
-    order.amount && order.fee
-      ? (
-          parseFloat(order.amount.toString()) + parseFloat(order.fee.toString())
-        ).toString()
-      : order.amount;
 
   const orderFee = formatCurrency(
     order.fee || order.cryptoFee || 0,
@@ -111,15 +114,28 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
       currency: order.currency,
     });
   } else if (order.state === FIAT_ORDER_STATES.FAILED) {
-    subtitle = strings('deposit.order_processing.error_description');
+    if (
+      hasDepositOrderField(order.data, 'statusDescription') &&
+      order.data.statusDescription
+    ) {
+      subtitle = order.data.statusDescription;
+    } else {
+      subtitle = strings('deposit.order_processing.error_description');
+    }
   } else if (order.state === FIAT_ORDER_STATES.CANCELLED) {
     subtitle = strings('deposit.order_processing.cancel_order_description');
   } else if (
     order.state === FIAT_ORDER_STATES.PENDING &&
-    hasDepositOrderField(order.data, 'paymentMethod') &&
-    order.data.paymentMethod === SEPA_PAYMENT_METHOD.id
+    hasDepositOrderField(order.data, 'paymentMethod')
   ) {
-    subtitle = strings('deposit.order_processing.bank_transfer_description');
+    const paymentMethodId = order.data.paymentMethod;
+    const isManualBankTransfer = MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
+      (method) => method.id === paymentMethodId,
+    );
+
+    if (isManualBankTransfer) {
+      subtitle = strings('deposit.order_processing.bank_transfer_description');
+    }
   }
 
   return (
@@ -150,7 +166,9 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
               badgeElement={
                 <BadgeNetwork
                   name={networkName}
-                  imageSource={getNetworkImageSource({ chainId })}
+                  imageSource={getNetworkImageSource({
+                    chainId: cryptoToken.chainId,
+                  })}
                 />
               }
             >
@@ -199,10 +217,9 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             {strings('deposit.order_processing.network')}
           </Text>
           <View style={styles.networkInfo}>
-            <Image
-              source={getNetworkImageSource({ chainId })}
-              style={styles.networkIcon}
-            />
+            {networkImageSource ? (
+              <Image source={networkImageSource} style={styles.networkIcon} />
+            ) : null}
             <Text variant={TextVariant.BodyMD}>{networkName}</Text>
           </View>
         </View>
@@ -240,7 +257,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             {strings('deposit.order_processing.total')}
           </Text>
           <Text variant={TextVariant.BodyMD}>
-            {formatCurrency(totalAmount || order.amount, order.currency)}
+            {formatCurrency(order.amount, order.currency)}
           </Text>
         </View>
       </View>

@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { View, TextInput, Keyboard } from 'react-native';
+import { View, TextInput, Keyboard, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -18,7 +20,11 @@ import { useForm } from '../../hooks/useForm';
 import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import DepositDateField from '../../components/DepositDateField';
-import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
+import {
+  AddressFormData,
+  createEnterAddressNavDetails,
+} from '../EnterAddress/EnterAddress';
+import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
 import { VALIDATION_REGEX } from '../../constants/constants';
@@ -27,13 +33,19 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../../component-library/components/Icons/Icon';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import PrivacySection from '../../components/PrivacySection';
 import { timestampToTransakFormat } from '../../utils';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
-  kycUrl?: string;
+  previousFormData?: BasicInfoFormData & AddressFormData;
 }
 
 export const createBasicInfoNavDetails =
@@ -50,7 +62,8 @@ export interface BasicInfoFormData {
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { quote, kycUrl } = useParams<BasicInfoParams>();
+  const trackEvent = useAnalytics();
+  const { quote, previousFormData } = useParams<BasicInfoParams>();
   const { selectedRegion } = useDepositSDK();
 
   const firstNameInputRef = useRef<TextInput>(null);
@@ -59,12 +72,18 @@ const BasicInfo = (): JSX.Element => {
   const dateInputRef = useRef<TextInput>(null);
   const ssnInputRef = useRef<TextInput>(null);
 
+  const utcDateToPrefill = new Date(previousFormData?.dob || '');
+  const timestamp = utcDateToPrefill.getTime();
+  const localTimestampToUseInternally = isNaN(timestamp)
+    ? ''
+    : (timestamp + utcDateToPrefill.getTimezoneOffset() * 60 * 1000).toString();
+
   const initialFormData: BasicInfoFormData = {
-    firstName: '',
-    lastName: '',
-    mobileNumber: '',
-    dob: new Date(2000, 0, 1).getTime().toString(),
-    ssn: '',
+    firstName: previousFormData?.firstName || '',
+    lastName: previousFormData?.lastName || '',
+    mobileNumber: previousFormData?.mobileNumber || '',
+    dob: localTimestampToUseInternally,
+    ssn: previousFormData?.ssn || '',
   };
 
   const validateForm = (
@@ -92,12 +111,13 @@ const BasicInfo = (): JSX.Element => {
       errors.mobileNumber = strings('deposit.basic_info.mobile_number_invalid');
     }
 
-    const transakFormattedDate = timestampToTransakFormat(formData.dob);
-
-    if (!transakFormattedDate.trim()) {
+    if (!formData.dob.trim()) {
       errors.dob = strings('deposit.basic_info.dob_required');
-    } else if (!VALIDATION_REGEX.dateOfBirth.test(transakFormattedDate)) {
-      errors.dob = strings('deposit.basic_info.dob_invalid');
+    } else {
+      const transakFormattedDate = timestampToTransakFormat(formData.dob);
+      if (!VALIDATION_REGEX.dateOfBirth.test(transakFormattedDate)) {
+        errors.dob = strings('deposit.basic_info.dob_invalid');
+      }
     }
 
     if (selectedRegion?.isoCode === 'US' && !formData.ssn?.trim()) {
@@ -124,7 +144,7 @@ const BasicInfo = (): JSX.Element => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.basic_info.title') },
+        { title: strings('deposit.basic_info.navbar_title') },
         theme,
       ),
     );
@@ -132,18 +152,34 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
+      trackEvent('RAMPS_BASIC_INFO_ENTERED', {
+        region: selectedRegion?.isoCode || '',
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'SIMPLE',
+      });
+
       navigation.navigate(
         ...createEnterAddressNavDetails({
+          previousFormData,
           formData: {
             ...formData,
-            dob: timestampToTransakFormat(formData.dob),
+            dob: formData.dob.trim()
+              ? timestampToTransakFormat(formData.dob)
+              : '',
           },
           quote,
-          kycUrl,
         }),
       );
     }
-  }, [navigation, validateFormData, formData, quote, kycUrl]);
+  }, [
+    previousFormData,
+    navigation,
+    validateFormData,
+    formData,
+    quote,
+    selectedRegion?.isoCode,
+    trackEvent,
+  ]);
 
   const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
@@ -167,6 +203,10 @@ const BasicInfo = (): JSX.Element => {
     [formData, handleFormDataChange],
   );
 
+  const handleSsnInfoPress = useCallback(() => {
+    navigation.navigate(...createSsnInfoModalNavigationDetails());
+  }, [navigation]);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -176,10 +216,12 @@ const BasicInfo = (): JSX.Element => {
         >
           <ScreenLayout.Content>
             <DepositProgressBar steps={4} currentStep={2} />
+            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+              {strings('deposit.basic_info.title')}
+            </Text>
             <Text style={styles.subtitle}>
               {strings('deposit.basic_info.subtitle')}
             </Text>
-
             <View style={styles.nameInputRow}>
               <DepositTextField
                 label={strings('deposit.basic_info.first_name')}
@@ -264,7 +306,23 @@ const BasicInfo = (): JSX.Element => {
             />
             {selectedRegion?.isoCode === 'US' && (
               <DepositTextField
-                label={strings('deposit.basic_info.social_security_number')}
+                label={
+                  <View style={styles.ssnLabel}>
+                    <Text variant={TextVariant.BodyMD}>
+                      {strings('deposit.basic_info.social_security_number')}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={handleSsnInfoPress}
+                      testID="ssn-info-button"
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                }
                 placeholder="XXX-XX-XXXX"
                 value={formData.ssn || ''}
                 onChangeText={handleFieldChange('ssn')}

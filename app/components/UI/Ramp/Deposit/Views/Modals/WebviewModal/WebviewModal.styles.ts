@@ -1,21 +1,14 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../../../util/theme/models';
 
-interface WebviewModalStyleSheetVars {
-  screenHeight: number;
-}
-
-const styleSheet = (params: { vars: WebviewModalStyleSheetVars }) => {
-  const { vars } = params;
-  const { screenHeight } = vars;
-
-  return StyleSheet.create({
+const styleSheet = (params: { theme: Theme; vars: { screenHeight: number } }) =>
+  StyleSheet.create({
     headerWithoutPadding: {
       paddingVertical: 0,
     },
-    bottomSheet: {
-      height: screenHeight * 0.92,
+    webview: {
+      backgroundColor: params.theme.colors.background.default,
     },
   });
-};
 
 export default styleSheet;

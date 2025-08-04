@@ -1,7 +1,8 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -22,7 +23,6 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { useDepositSDK } from '../../sdk';
-import { useDepositRouting } from '../../hooks/useDepositRouting';
 import Row from '../../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../constants';
 import PoweredByTransak from '../../components/PoweredByTransak';
@@ -32,12 +32,11 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../../util/Logger';
+import useAnalytics from '../../../hooks/useAnalytics';
+import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 
 export interface OtpCodeParams {
-  quote: BuyQuote;
   email: string;
-  paymentMethodId: string;
-  cryptoCurrencyChainId: string;
 }
 
 export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
@@ -58,7 +57,7 @@ const ResendButton: FC<{
     <>
       <Text style={styles.resendButtonText}>{strings(text)}</Text>
       <TouchableOpacity onPress={onPress}>
-        <Text style={styles.contactSupportButton}>{strings(button)}</Text>
+        <Text style={styles.inlineLink}>{strings(button)}</Text>
       </TouchableOpacity>
     </>
   );
@@ -68,17 +67,13 @@ const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { setAuthToken } = useDepositSDK();
-  const { quote, email, paymentMethodId, cryptoCurrencyChainId } =
-    useParams<OtpCodeParams>();
+  const { email } = useParams<OtpCodeParams>();
+  const trackEvent = useAnalytics();
+  const { selectedRegion } = useDepositSDK();
 
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
-
-  const { routeAfterAuthentication } = useDepositRouting({
-    cryptoCurrencyChainId,
-    paymentMethodId,
-  });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
@@ -92,7 +87,7 @@ const OtpCode = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.otp_code.title') },
+        { title: strings('deposit.otp_code.navbar_title') },
         theme,
       ),
     );
@@ -135,6 +130,9 @@ const OtpCode = () => {
   }, [resendButtonState, cooldownSeconds]);
 
   const handleResend = useCallback(async () => {
+    setValue('');
+    setError(null);
+    inputRef.current?.focus();
     try {
       if (resetAttemptCount > MAX_RESET_ATTEMPTS) {
         setResendButtonState('contactSupport');
@@ -143,11 +141,21 @@ const OtpCode = () => {
       setResetAttemptCount((prev) => prev + 1);
       setResendButtonState('cooldown');
       await resendOtp();
+      trackEvent('RAMPS_OTP_RESENT', {
+        ramp_type: 'DEPOSIT',
+        region: selectedRegion?.isoCode || '',
+      });
     } catch (e) {
       setResendButtonState('resendError');
       Logger.error(e as Error, 'Error resending OTP code');
     }
-  }, [resendOtp, resetAttemptCount]);
+  }, [
+    inputRef,
+    resendOtp,
+    resetAttemptCount,
+    selectedRegion?.isoCode,
+    trackEvent,
+  ]);
 
   const handleContactSupport = useCallback(() => {
     Linking.openURL(TRANSAK_SUPPORT_URL);
@@ -158,14 +166,33 @@ const OtpCode = () => {
       try {
         setIsLoading(true);
         setError(null);
+
         const response = await submitCode();
+
         if (!response) {
           throw new Error('No response from submitCode');
         }
         await setAuthToken(response);
-        await routeAfterAuthentication(quote);
+        trackEvent('RAMPS_OTP_CONFIRMED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+        });
+
+        navigation.navigate(
+          ...createBuildQuoteNavDetails({
+            shouldRouteImmediately: true,
+          }),
+        );
       } catch (e) {
-        setError(strings('deposit.otp_code.error'));
+        trackEvent('RAMPS_OTP_FAILED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+        });
+        setError(
+          e instanceof Error && e.message
+            ? e.message
+            : strings('deposit.otp_code.error'),
+        );
         Logger.error(
           e as Error,
           'Error submitting OTP code, setAuthToken, or routing after authentication',
@@ -175,12 +202,13 @@ const OtpCode = () => {
       }
     }
   }, [
+    navigation,
     isLoading,
-    quote,
-    routeAfterAuthentication,
     setAuthToken,
     submitCode,
     value.length,
+    selectedRegion?.isoCode,
+    trackEvent,
   ]);
 
   const handleValueChange = useCallback((text: string) => {
@@ -206,7 +234,12 @@ const OtpCode = () => {
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={1} />
-          <Text>{strings('deposit.otp_code.description', { email })}</Text>
+          <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            {strings('deposit.otp_code.title')}
+          </Text>
+          <Text style={styles.description}>
+            {strings('deposit.otp_code.description', { email })}
+          </Text>
           <CodeField
             testID="otp-code-input"
             ref={inputRef as React.RefObject<TextInput>}

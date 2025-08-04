@@ -125,19 +125,20 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -201,38 +202,85 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -350,7 +398,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={12}
+              handlerTag={18}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -487,6 +535,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -536,7 +585,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    🇺🇸
+                                  </Text>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -548,7 +599,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    US
+                                  </Text>
                                   <SvgMock
                                     color="#686e7d"
                                     fill="currentColor"
@@ -797,10 +850,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
-                                  Failed to fetch quote.
+                                  Failed to fetch quote
                                 </Text>
                               </View>
                             </View>
@@ -1939,19 +1993,20 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -2015,38 +2070,85 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -2164,7 +2266,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={13}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2301,6 +2403,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -2350,7 +2453,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    🇺🇸
+                                  </Text>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -2362,7 +2467,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    US
+                                  </Text>
                                   <SvgMock
                                     color="#686e7d"
                                     fill="currentColor"
@@ -2611,6 +2718,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -3753,19 +3861,20 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -3829,38 +3938,85 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -3978,7 +4134,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={14}
+              handlerTag={22}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4115,6 +4271,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -4164,7 +4321,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    🇺🇸
+                                  </Text>
                                   <Text
                                     accessibilityRole="text"
                                     style={
@@ -4176,7 +4335,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         "lineHeight": 24,
                                       }
                                     }
-                                  />
+                                  >
+                                    US
+                                  </Text>
                                   <SvgMock
                                     color="#686e7d"
                                     fill="currentColor"
@@ -4425,10 +4586,11 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
-                                  An unexpected error occurred.
+                                  Routing failed
                                 </Text>
                               </View>
                             </View>
@@ -5567,19 +5729,20 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -5643,38 +5806,85 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -5792,7 +6002,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={8}
+              handlerTag={11}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5929,6 +6139,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -7362,19 +7573,20 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -7438,38 +7650,85 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -7587,7 +7846,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={7}
+              handlerTag={10}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7724,6 +7983,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -9156,19 +9416,20 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -9232,38 +9493,85 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -9518,6 +9826,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -10951,19 +11260,20 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -11027,38 +11337,85 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -11313,6 +11670,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"
@@ -12746,19 +13104,20 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                     "paddingRight": 18,
                   }
                 }
+                testID="deposit-configuration-menu-button"
               >
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
-                  name="ArrowLeft"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -12822,38 +13181,85 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -13108,6 +13514,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                     "padding": 8,
                                   }
                                 }
+                                testID="ramps-account-picker"
                               >
                                 <Text
                                   accessibilityRole="text"

@@ -14,8 +14,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import ButtonIcon, {
-} from '../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import HeaderBase from '../../../component-library/components/HeaderBase';
 import {
   IconColor,
@@ -107,7 +106,8 @@ const UpdateNeeded = () => {
             iconName={IconName.Close}
             iconColor={IconColor.Default}
             testID="update-needed-modal-close-button"
-          />}
+          />
+        }
       >
         <Image
           style={styles.headerLogo}
@@ -117,7 +117,8 @@ const UpdateNeeded = () => {
       </HeaderBase>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.images}>
-          <Image source={foxLogo}
+          <Image
+            source={foxLogo}
             style={styles.foxImage}
             resizeMethod="auto"
             resizeMode="contain"
@@ -139,7 +140,7 @@ const UpdateNeeded = () => {
           style={styles.actionButton}
         />
       </View>
-    </ReusableModal >
+    </ReusableModal>
   );
 };
 

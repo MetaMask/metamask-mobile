@@ -2,6 +2,7 @@ import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities';
 import { AssertionOptions } from './types';
 import Matchers from './Matchers';
+import { Json } from '@metamask/utils';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -11,7 +12,11 @@ export default class Assertions {
    * Assert element is visible with auto-retry
    */
   static async expectElementToBeVisible(
-    detoxElement: DetoxElement | WebElement,
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -43,7 +48,11 @@ export default class Assertions {
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
-    detoxElement: DetoxElement | WebElement,
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -213,7 +222,9 @@ export default class Assertions {
     return Utilities.executeWithRetry(
       async () => {
         try {
-          const el = await Utilities.waitForReadyState(detoxElement) as Detox.IndexableNativeElement;
+          const el = (await Utilities.waitForReadyState(
+            detoxElement,
+          )) as Detox.IndexableNativeElement;
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).toHaveToggleValue(true);
         } catch (error) {
@@ -246,11 +257,12 @@ export default class Assertions {
       description = 'element should be disabled',
     } = options;
 
-
     return Utilities.executeWithRetry(
       async () => {
         try {
-          const el = await Utilities.waitForReadyState(detoxElement) as Detox.IndexableNativeElement;
+          const el = (await Utilities.waitForReadyState(
+            detoxElement,
+          )) as Detox.IndexableNativeElement;
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).toHaveToggleValue(false);
         } catch (error) {
@@ -522,7 +534,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if an element has specific label
-   * @deprecated Use expectLabel() instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToHaveLabel() instead for better error handling and retry mechanisms
    */
   static async checkIfElementHasLabel(
     detoxElement: DetoxElement,
@@ -665,5 +677,17 @@ export default class Assertions {
         description: `Label contains text "${text}"`,
       },
     );
+  }
+
+  static async checkIfJsonEqual(actual: Json, expected: Json): Promise<void> {
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      throw new Error(
+        `Object equality check failed.\nExpected: ${JSON.stringify(
+          expected,
+          null,
+          2,
+        )}\nActual: ${JSON.stringify(actual, null, 2)}`,
+      );
+    }
   }
 }

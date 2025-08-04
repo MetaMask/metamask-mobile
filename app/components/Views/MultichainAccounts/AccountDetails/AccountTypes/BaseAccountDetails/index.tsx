@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { SafeAreaView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
@@ -30,6 +30,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
+import { selectWalletByAccount } from '../../../../../../multichain-accounts/selectors/accountTreeController';
 
 interface BaseAccountDetailsProps {
   account: InternalAccount;
@@ -48,26 +49,34 @@ export const BaseAccountDetails = ({
   )
     ? AvatarAccountType.Blockies
     : AvatarAccountType.JazzIcon;
-  const walletName = 'Wallet 1'; //TODO: replace with useSelector(selectWalletName);
+  const selectWallet = useSelector(selectWalletByAccount);
+  const wallet = selectWallet?.(account.id);
 
   const handleEditAccountName = useCallback(() => {
-    navigation.navigate(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
-      {
-        account,
-      },
-    );
-  }, [navigation, account]);
-
-  const handleShareAddress = useCallback(() => {
-    navigation.navigate(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS, {
-      account,
+    navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+      params: { account },
     });
   }, [navigation, account]);
 
-  const handleEditWalletName = useCallback(() => {
-    // TODO: implement when the account group
-  }, []);
+  const handleShareAddress = useCallback(() => {
+    navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
+      params: {
+        account,
+      },
+    });
+  }, [navigation, account]);
+
+  const handleWalletClick = useCallback(() => {
+    if (!wallet) {
+      return;
+    }
+
+    navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
+      walletId: wallet.id,
+    });
+  }, [navigation, wallet]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -84,7 +93,7 @@ export const BaseAccountDetails = ({
       >
         {account.metadata.name}
       </HeaderBase>
-      <View
+      <ScrollView
         style={styles.container}
         testID={AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER}
       >
@@ -149,7 +158,7 @@ export const BaseAccountDetails = ({
         <TouchableOpacity
           style={styles.wallet}
           testID={AccountDetailsIds.WALLET_NAME_LINK}
-          onPress={handleEditWalletName}
+          onPress={handleWalletClick}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.wallet')}
@@ -160,7 +169,7 @@ export const BaseAccountDetails = ({
             gap={8}
           >
             <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {walletName}
+              {wallet?.metadata.name}
             </Text>
             <Icon
               name={IconName.ArrowRight}
@@ -170,7 +179,7 @@ export const BaseAccountDetails = ({
           </Box>
         </TouchableOpacity>
         {children}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

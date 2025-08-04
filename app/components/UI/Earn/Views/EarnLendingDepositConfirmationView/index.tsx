@@ -99,8 +99,12 @@ const EarnLendingDepositConfirmationView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { earnToken, outputToken, getTokenSnapshot, tokenSnapshot } =
-    useEarnToken(token as TokenI);
+  const { earnTokenPair, getTokenSnapshot, tokenSnapshot } = useEarnToken(
+    token as TokenI,
+  );
+
+  const earnToken = earnTokenPair?.earnToken;
+  const outputToken = earnTokenPair?.outputToken;
 
   const needsTokenAllowanceReset = useMemo(() => {
     if (!earnToken?.chainId || !earnToken?.symbol) return false;
@@ -196,8 +200,7 @@ const EarnLendingDepositConfirmationView = () => {
   useEffect(() => {
     if (action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE) {
       endTrace({ name: TraceName.EarnDepositSpendingCapScreen });
-    }
-    else {
+    } else {
       endTrace({ name: TraceName.EarnDepositReviewScreen });
     }
   }, [action]);
@@ -394,7 +397,7 @@ const EarnLendingDepositConfirmationView = () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED);
           // start trace of time between tx submitted and tx confirmed
           trace({
-            name: TraceName.EarnDepositTxConfirmed,
+            name: TraceName.EarnLendingDepositTxConfirmed,
             data: {
               chainId: earnToken?.chainId || '',
               experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -412,25 +415,29 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
-          endTrace({ name: TraceName.EarnDepositTxConfirmed });
+          endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
           if (!outputToken) {
-            const networkClientId =
-              Engine.context.NetworkController.findNetworkClientIdByChainId(
-                tokenSnapshot?.chainId as Hex,
-              );
-            Engine.context.TokensController.addToken({
-              decimals: tokenSnapshot?.token?.decimals || 0,
-              symbol: tokenSnapshot?.token?.symbol || '',
-              address: tokenSnapshot?.token?.address || '',
-              name: tokenSnapshot?.token?.name || '',
-              networkClientId,
-            }).catch((error) => {
+            try {
+              const networkClientId =
+                Engine.context.NetworkController.findNetworkClientIdByChainId(
+                  tokenSnapshot?.chainId as Hex,
+                );
+              Engine.context.TokensController.addToken({
+                decimals: tokenSnapshot?.token?.decimals || 0,
+                symbol: tokenSnapshot?.token?.symbol || '',
+                address: tokenSnapshot?.token?.address || '',
+                name: tokenSnapshot?.token?.name || '',
+                networkClientId,
+              }).catch(console.error);
+            } catch (error) {
               console.error(
                 error,
-                'error adding counter-token on confirmation',
+                `error adding counter-token for ${
+                  earnToken?.symbol || earnToken?.ticker || ''
+                } on confirmation`,
               );
-            });
+            }
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
@@ -445,7 +452,7 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, navigation, outputToken, tokenSnapshot, earnToken?.chainId],
+    [emitTxMetaMetric, navigation, outputToken, earnToken, tokenSnapshot],
   );
 
   const createTransactionEventListeners = useCallback(

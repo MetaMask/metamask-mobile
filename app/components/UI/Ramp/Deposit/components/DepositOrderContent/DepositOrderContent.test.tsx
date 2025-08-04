@@ -23,11 +23,11 @@ describe('DepositOrderContent Component', () => {
     amount: '100',
     currency: 'USD',
     cryptoAmount: '0.05',
-    cryptocurrency: 'ETH',
+    cryptocurrency: 'USDC',
     fee: '2.50',
     state: FIAT_ORDER_STATES.COMPLETED,
     account: '0x1234567890123456789012345678901234567890',
-    network: '1',
+    network: 'eip155:1',
     excludeFromPurchases: false,
     orderType: DepositOrderType.Deposit,
     data: {
@@ -37,7 +37,7 @@ describe('DepositOrderContent Component', () => {
       createdAt: Date.now(),
       fiatAmount: 100,
       fiatCurrency: 'USD',
-      cryptoCurrency: 'eth',
+      cryptoCurrency: 'USDC',
       network: 'ethereum',
       status: 'COMPLETED',
       orderType: 'DEPOSIT',
@@ -61,7 +61,7 @@ describe('DepositOrderContent Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders error state correctly', () => {
+  it('renders error state correctly with generic message when no statusDescription', () => {
     const errorOrder = { ...mockOrder, state: FIAT_ORDER_STATES.FAILED };
 
     renderWithProvider(<DepositOrderContent order={errorOrder} />, {
@@ -71,6 +71,61 @@ describe('DepositOrderContent Component', () => {
         },
       },
     });
+
+    expect(
+      screen.getByText('We were unable to complete your deposit'),
+    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders error state with specific failure reason when statusDescription is available', () => {
+    const errorOrderWithReason = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+      data: {
+        ...mockOrder.data,
+        statusDescription: 'Payment declined due to insufficient funds',
+      },
+    };
+
+    renderWithProvider(<DepositOrderContent order={errorOrderWithReason} />, {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    });
+
+    expect(
+      screen.getByText('Payment declined due to insufficient funds'),
+    ).toBeOnTheScreen();
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders error state with generic message when statusDescription is empty string', () => {
+    const errorOrderWithEmptyReason = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+      data: {
+        ...mockOrder.data,
+        statusDescription: '',
+      },
+    };
+
+    renderWithProvider(
+      <DepositOrderContent order={errorOrderWithEmptyReason} />,
+      {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      },
+    );
+
+    expect(
+      screen.getByText('We were unable to complete your deposit'),
+    ).toBeOnTheScreen();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
