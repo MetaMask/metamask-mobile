@@ -59,7 +59,6 @@ export const timeDurationSelectorStyleSheet = (params: { theme: Theme }) => {
     gearButtonPressed: {
       opacity: 0.7,
       backgroundColor: colors.background.pressed,
-      color: colors.text.default, // White text
     },
   });
 };
