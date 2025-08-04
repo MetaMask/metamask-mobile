@@ -8,7 +8,6 @@ import AccountBalance from '../../../component-library/components-temp/Accounts/
 import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectNetworkConfigurationByChainId } from '../../../selectors/networkController';
 import { RootState } from '../../../reducers';
 import {
@@ -19,11 +18,15 @@ import {
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
-import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
-import { getNetworkImageSource } from '../../../util/networks';
-import { selectEvmNetworkName } from '../../../selectors/networkInfos';
-import { selectEvmNetworkImageSource } from '../../../selectors/networkInfos';
+import {
+  isRemoveGlobalNetworkSelectorEnabled,
+  getNetworkImageSource,
+} from '../../../util/networks';
+import {
+  selectEvmNetworkImageSource,
+  selectEvmNetworkName,
+} from '../../../selectors/networkInfos';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 interface Asset {
   isETH?: boolean;
@@ -61,7 +64,6 @@ const AddressFrom = ({
     chainId,
   );
 
-  const accountsByChainId = useSelector(selectAccountsByChainId);
   const hexChainId = useMemo(
     () => (chainId ? toHex(chainId) : null),
     [chainId],
@@ -85,10 +87,7 @@ const AddressFrom = ({
     [],
   );
 
-  const perDappNetworkInfo = useMemo(() => {
-    if (!origin) return null;
-    return useNetworkInfo(origin);
-  }, [origin]);
+  const perDappNetworkInfo = useNetworkInfo(origin || '');
 
   const sendFlowNetworkData = useMemo(() => {
     if (!isContextualNetworkEnabled) {
@@ -133,7 +132,7 @@ const AddressFrom = ({
 
   const displayNetworkImage = useMemo(() => {
     if (origin && perDappNetworkInfo) {
-      return perDappNetworkInfo.networkImage;
+      return perDappNetworkInfo.networkImageSource;
     }
     if (isContextualNetworkEnabled) {
       return sendFlowNetworkData.imageSource;

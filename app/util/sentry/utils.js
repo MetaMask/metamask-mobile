@@ -5,7 +5,7 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import StorageWrapper from '../../store/storage-wrapper';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
-import { isE2E } from '../test/utils';
+import { isE2E, isQa } from '../test/utils';
 import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
@@ -516,6 +516,7 @@ function sanitizeAddressesFromErrorMessages(report) {
  */
 export function deriveSentryEnvironment(
   isDev,
+  // TODO: Replace local with dev
   metamaskEnvironment = 'local',
   metamaskBuildType = 'main',
 ) {
@@ -531,6 +532,10 @@ export function deriveSentryEnvironment(
         return 'main-rc';
       case 'exp':
         return 'main-exp';
+      case 'e2e':
+        return 'main-e2e';
+      case 'test':
+        return 'main-test';
       default:
         return metamaskEnvironment;
     }
@@ -548,7 +553,6 @@ export async function setupSentry(forceEnabled = false) {
     return;
   }
 
-  const isQa = METAMASK_ENVIRONMENT === 'qa';
   const isDev = __DEV__;
 
   const init = async () => {

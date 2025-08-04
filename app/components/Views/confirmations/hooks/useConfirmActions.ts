@@ -1,11 +1,13 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { ApprovalType } from '@metamask/controller-utils';
 
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Routes from '../../../../constants/navigation/Routes';
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import { RootState } from '../../../../reducers';
+import { resetTransaction } from '../../../../actions/transaction';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
 import { useLedgerContext } from '../context/ledger-context';
@@ -34,9 +36,11 @@ export const useConfirmActions = () => {
     selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
   );
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-
-  const isSignatureReq =
-    approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
+  const dispatch = useDispatch();
+  const approvalType = approvalRequest?.type;
+  const isSignatureReq = approvalType && isSignatureRequest(approvalType);
+  const isTransactionReq =
+    approvalType && approvalType === ApprovalType.Transaction;
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false) => {
@@ -84,16 +88,23 @@ export const useConfirmActions = () => {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
       PPOMUtil.clearSignatureSecurityAlertResponse();
     }
+
+    if (isTransactionReq) {
+      // Replace/remove this once we have redesigned send flow
+      dispatch(resetTransaction());
+    }
   }, [
+    captureSignatureMetrics,
+    dispatch,
+    isFullScreenConfirmation,
     isQRSigningInProgress,
+    isSignatureReq,
+    isTransactionReq,
     ledgerSigningInProgress,
     navigation,
+    onRequestConfirm,
     openLedgerSignModal,
     setScannerVisible,
-    captureSignatureMetrics,
-    onRequestConfirm,
-    isSignatureReq,
-    isFullScreenConfirmation,
     shouldUseSmartTransaction,
   ]);
 

@@ -1,4 +1,4 @@
-import { Dispatch, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../core/Engine';
 import {
@@ -178,6 +178,7 @@ export function useSwitchNetworks({
       createEventBuilder,
       parentSpan,
       dismissModal,
+      source,
       dispatch,
     ],
   );
@@ -259,6 +260,7 @@ export function useSwitchNetworks({
       dismissModal,
       closeRpcModal,
       dispatch,
+      source,
     ],
   );
 
