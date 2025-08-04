@@ -1,4 +1,4 @@
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import ImportPrivateKey from './';
@@ -14,6 +14,7 @@ import { Alert } from 'react-native';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockFetchAccountsWithActivity = jest.fn();
+const mockCheckIsSeedlessPasswordOutdated = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -34,6 +35,14 @@ jest.mock('../../hooks/useAccountsWithNetworkActivitySync', () => ({
   useAccountsWithNetworkActivitySync: () => ({
     fetchAccountsWithActivity: mockFetchAccountsWithActivity,
   }),
+}));
+
+jest.mock('../../../core', () => ({
+  ...jest.requireActual('../../../core'),
+  Authentication: {
+    checkIsSeedlessPasswordOutdated: () =>
+      mockCheckIsSeedlessPasswordOutdated(),
+  },
 }));
 
 // Mock Alert
@@ -78,6 +87,7 @@ describe('ImportPrivateKey', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
   });
 
   it('render matches snapshot', () => {
@@ -267,7 +277,7 @@ describe('ImportPrivateKey', () => {
   });
 
   describe('onScanSuccess function', () => {
-    it('imports private key when scanned data contains private_key', () => {
+    it('imports private key when scanned data contains private_key', async () => {
       mockImportAccountFromPrivateKey.mockResolvedValue(undefined);
 
       const { getByText } = renderScreen(
@@ -279,18 +289,21 @@ describe('ImportPrivateKey', () => {
       const scanButton = getByText(
         strings('import_private_key.or_scan_a_qr_code'),
       );
-      fireEvent.press(scanButton);
 
-      // Get the onScanSuccess callback from the navigation call
-      const navCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.QR_TAB_SWITCHER,
-      );
-      const onScanSuccess = navCall[1].onScanSuccess;
+      await act(async () => {
+        fireEvent.press(scanButton);
 
-      // Simulate successful scan with private key
-      onScanSuccess({
-        private_key:
-          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        // Get the onScanSuccess callback from the navigation call
+        const navCall = mockNavigate.mock.calls.find(
+          (call) => call[0] === Routes.QR_TAB_SWITCHER,
+        );
+        const onScanSuccess = navCall[1].onScanSuccess;
+
+        // Simulate successful scan with private key
+        await onScanSuccess({
+          private_key:
+            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        });
       });
 
       expect(mockImportAccountFromPrivateKey).toHaveBeenCalledWith(

@@ -366,6 +366,13 @@ const generateTermsOfUseTask = {
     ),
 };
 
+const installHuskyTask = {
+  title: 'Install Husky git hooks',
+  task: async () => {
+    await $`npx husky install`;
+  },
+};
+
 /**
  * Tasks that changes node modules and should run sequentially
  */
@@ -383,6 +390,7 @@ const prepareDependenciesTask = {
         patchPackageTask,
         installFoundryTask,
         expoBuildLinks,
+        installHuskyTask,
       ],
       {
         exitOnError: true,

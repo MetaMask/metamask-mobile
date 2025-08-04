@@ -24,12 +24,15 @@ const mockInteractionManager = {
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockSetParams = jest.fn();
 const mockGetQuote = jest.fn();
 const mockRouteAfterAuthentication = jest.fn();
 const mockNavigateToVerifyIdentity = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
+const mockUseAccountTokenCompatible = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
 
 const createMockSDKReturn = (overrides = {}) => ({
   isAuthenticated: false,
@@ -55,8 +58,10 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+      setParams: mockSetParams,
     }),
     useFocusEffect: jest.fn().mockImplementation((callback) => callback()),
+    useRoute: () => mockUseRoute(),
   };
 });
 
@@ -76,6 +81,11 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 jest.mock(
   '../../hooks/useDepositTokenExchange',
   () => () => mockUseDepositTokenExchange(),
+);
+
+jest.mock(
+  '../../hooks/useAccountTokenCompatible',
+  () => () => mockUseAccountTokenCompatible(),
 );
 
 jest.mock('../../hooks/useDepositRouting', () => ({
@@ -124,6 +134,7 @@ describe('BuildQuote Component', () => {
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
+    mockUseAccountTokenCompatible.mockReturnValue(true);
     // Ensure trackEvent mock is reset
     mockTrackEvent.mockClear();
   });
@@ -371,6 +382,23 @@ describe('BuildQuote Component', () => {
       });
     });
 
+    it('navigates to incompatible token modal when user they are not compatible', async () => {
+      mockUseAccountTokenCompatible.mockReturnValue(false);
+      render(BuildQuote);
+
+      const continueButton = screen.getByText('Continue');
+      fireEvent.press(continueButton);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'DepositModals',
+          expect.objectContaining({
+            screen: 'IncompatibleAccountTokenModal',
+          }),
+        );
+      });
+    });
+
     it('tracks RAMPS_ORDER_SELECTED event when user is authenticated and quote is successful', async () => {
       const mockQuote = {
         quoteId: 'test-quote',
@@ -564,6 +592,28 @@ describe('BuildQuote Component', () => {
           error_message: 'BuildQuote - Error handling authentication',
           is_authenticated: true,
         });
+      });
+    });
+    it('calls handleOnPressContinue when shouldRouteImmediately is true', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockGetQuote).toHaveBeenCalledWith(
+          'USD',
+          'USDC',
+          'ethereum',
+          'credit_debit_card',
+          '0',
+        );
       });
     });
   });

@@ -3,6 +3,9 @@ import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { Hex, isHexString } from '@metamask/utils';
+
 import styleSheet from './BuildQuote.styles';
 
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -39,13 +42,18 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import useDepositTokenExchange from '../../hooks/useDepositTokenExchange';
 
 import { useStyles } from '../../../../../hooks/useStyles';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
+import useAnalytics from '../../../hooks/useAnalytics';
 import useSupportedTokens from '../../hooks/useSupportedTokens';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
+import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
 
 import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
 import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
 import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal';
 import { createUnsupportedRegionModalNavigationDetails } from '../Modals/UnsupportedRegionModal';
+import { createIncompatibleAccountTokenModalNavigationDetails } from '../Modals/IncompatibleAccountTokenModal';
+import { createConfigurationModalNavigationDetails } from '../Modals/ConfigurationModal/ConfigurationModal';
 
 import {
   getTransakCryptoCurrencyId,
@@ -57,8 +65,12 @@ import {
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';
+import Logger from '../../../../../../util/Logger';
 
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../../../selectors/networkController';
 import {
   USDC_TOKEN,
   DepositCryptoCurrency,
@@ -68,16 +80,27 @@ import {
   EUR_CURRENCY,
   APPLE_PAY_PAYMENT_METHOD,
 } from '../../constants';
-import { useDepositRouting } from '../../hooks/useDepositRouting';
-import Logger from '../../../../../../util/Logger';
-import useAnalytics from '../../../hooks/useAnalytics';
-import { createConfigurationModalNavigationDetails } from '../Modals/ConfigurationModal/ConfigurationModal';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
+
+interface BuildQuoteParams {
+  shouldRouteImmediately?: boolean;
+}
+
+export const createBuildQuoteNavDetails =
+  createNavigationDetails<BuildQuoteParams>(Routes.DEPOSIT.BUILD_QUOTE);
 
 const BuildQuote = () => {
+  const { shouldRouteImmediately } = useParams<BuildQuoteParams>();
+
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
 
+  const chainId = useSelector(selectChainId);
   const supportedTokens = useSupportedTokens();
   const paymentMethods = usePaymentMethods();
 
@@ -94,6 +117,8 @@ const BuildQuote = () => {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
+
+  const isAccountTokenCompatible = useAccountTokenCompatible(cryptoCurrency);
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting({
@@ -165,6 +190,36 @@ const BuildQuote = () => {
     }
   }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
 
+  useEffect(() => {
+    if (supportedTokens.length > 0) {
+      let caipChainId;
+      if (isHexString(chainId)) {
+        caipChainId = toEvmCaipChainId(chainId as Hex);
+      } else {
+        caipChainId = chainId;
+      }
+
+      if (cryptoCurrency.chainId !== caipChainId) {
+        const token = supportedTokens.find(
+          (supportedToken) => supportedToken.chainId === caipChainId,
+        );
+        if (token) {
+          setCryptoCurrency(token);
+          return;
+        }
+      }
+
+      if (
+        !supportedTokens.some(
+          (token) => token.assetId === cryptoCurrency.assetId,
+        )
+      ) {
+        setCryptoCurrency(supportedTokens[0]);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chainId, supportedTokens]);
+
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());
   }, [navigation]);
@@ -181,7 +236,17 @@ const BuildQuote = () => {
     }, [selectedRegion, navigation]),
   );
 
+  const handleNavigateToIncompatibleAccountTokenModal = useCallback(() => {
+    navigation.navigate(
+      ...createIncompatibleAccountTokenModalNavigationDetails(),
+    );
+  }, [navigation]);
+
   const handleOnPressContinue = useCallback(async () => {
+    if (!isAccountTokenCompatible) {
+      handleNavigateToIncompatibleAccountTokenModal();
+      return;
+    }
     setIsLoading(true);
     let quote: BuyQuote | undefined;
 
@@ -294,6 +359,8 @@ const BuildQuote = () => {
       setIsLoading(false);
     }
   }, [
+    isAccountTokenCompatible,
+    handleNavigateToIncompatibleAccountTokenModal,
     trackEvent,
     amountAsNumber,
     tokenAmount,
@@ -395,12 +462,21 @@ const BuildQuote = () => {
     chainId: cryptoCurrency.chainId,
   });
 
+  useEffect(() => {
+    if (shouldRouteImmediately) {
+      navigation.setParams({
+        shouldRouteImmediately: false,
+      });
+      handleOnPressContinue();
+    }
+  }, [handleOnPressContinue, shouldRouteImmediately, navigation]);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.selectionRow}>
-            <AccountSelector />
+            <AccountSelector isEvmOnly={false} />
             <TouchableOpacity
               style={styles.fiatSelector}
               onPress={handleRegionPress}
@@ -479,7 +555,11 @@ const BuildQuote = () => {
             </TouchableOpacity>
             {error && (
               <View style={styles.errorContainer}>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Error}
+                  style={styles.errorText}
+                >
                   {error}
                 </Text>
               </View>

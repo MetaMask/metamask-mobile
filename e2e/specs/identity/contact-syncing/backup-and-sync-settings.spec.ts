@@ -10,7 +10,7 @@ import { getContactsSyncMockResponse } from './mock-data';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
@@ -75,25 +75,29 @@ describe(SmokeIdentity('Contact syncing - backup and sync settings'), () => {
 
     await TabBarComponent.tapSettings();
     await TestHelpers.delay(1000);
-    await Assertions.checkIfVisible(SettingsView.backupAndSyncSectionButton);
+    await Assertions.expectElementToBeVisible(
+      SettingsView.backupAndSyncSectionButton,
+    );
     await SettingsView.tapBackupAndSync();
     await TestHelpers.delay(2000);
 
-    await Assertions.checkIfVisible(BackupAndSyncView.backupAndSyncToggle);
+    await Assertions.expectElementToBeVisible(
+      BackupAndSyncView.backupAndSyncToggle,
+    );
     await BackupAndSyncView.toggleBackupAndSync();
     await TestHelpers.delay(2000);
 
     await CommonView.tapBackButton();
     await SettingsView.tapContacts();
-    await Assertions.checkIfVisible(ContactsView.container);
+    await Assertions.expectElementToBeVisible(ContactsView.container);
     await ContactsView.tapAddContactButton();
-    await Assertions.checkIfVisible(AddContactView.container);
+    await Assertions.expectElementToBeVisible(AddContactView.container);
 
     await AddContactView.typeInName(NEW_CONTACT_NAME);
     await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
     await AddContactView.tapAddContactButton();
     await TestHelpers.delay(2000);
-    await Assertions.checkIfVisible(ContactsView.container);
+    await Assertions.expectElementToBeVisible(ContactsView.container);
     await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
     // Verify contact was NOT synced (since sync is off)
@@ -116,7 +120,7 @@ describe(SmokeIdentity('Contact syncing - backup and sync settings'), () => {
     await TabBarComponent.tapSettings();
     await TestHelpers.delay(2000);
     await SettingsView.tapContacts();
-    await Assertions.checkIfVisible(ContactsView.container);
+    await Assertions.expectElementToBeVisible(ContactsView.container);
     await TestHelpers.delay(4000);
 
     await ContactsView.isContactAliasNotVisible(NEW_CONTACT_NAME);

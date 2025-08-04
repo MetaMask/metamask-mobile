@@ -151,6 +151,18 @@ export const mockEvents = {
       responseCode: 200,
     },
 
+    // TODO: Remove when this feature is no longer behind a feature flag
+    remoteFeatureFlagsNotificationsEnabledByDefault: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          assetsEnableNotificationsByDefault: true,
+        },
+      ],
+      responseCode: 200,
+    },
+
     defiPositionsWithNoData: {
       urlEndpoint:
         'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
@@ -161,6 +173,7 @@ export const mockEvents = {
     defiPositionsError: {
       urlEndpoint:
         'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      response: { error: 'Internal server error' },
       responseCode: 500,
     },
 
