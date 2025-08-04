@@ -26,7 +26,7 @@ on:
 
 jobs:
   build-android-app:
-    name: Build Android QA App for E2E
+    name: Build Android E2E App
     if: ${{ inputs.platform == 'android' }}
     runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
     outputs:
@@ -59,21 +59,19 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      # Run project setup and build the Android QA app (APK and AAB)
-      - name: Setup and Build Android App
+      # Run project setup and build the Android E2E app (APK and Test APK)
+      - name: Setup and Build Android E2E App
         run: |
           echo "🚀 Finishing Android Setup..."
           yarn setup:github-ci --no-build-ios
-          echo "🏗 Building Android APP..."
+          echo "🏗 Building Android E2E APP (Main + Test APKs)..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
-          yarn build:android:qa
-          echo "🏗 Building Android Test APK..."
-          yarn test:e2e:android:build:qa-release
+          yarn build:android:main:e2e
         shell: bash
         env:
           PLATFORM: android
-          METAMASK_ENVIRONMENT: qa
+          METAMASK_ENVIRONMENT: local
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
           IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -99,8 +97,8 @@ jobs:
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-qa-release.apk
-          path: android/app/build/outputs/apk/qa/release/app-qa-release.apk
+          name: app-main-release.apk
+          path: android/app/build/outputs/apk/main/release/app-main-release.apk
           retention-days: 7
           if-no-files-found: error
         continue-on-error: true
@@ -110,8 +108,8 @@ jobs:
         id: upload-aab
         uses: actions/upload-artifact@v4
         with:
-          name: app-qa-release.aab
-          path: android/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+          name: app-main-release.aab
+          path: android/app/build/outputs/bundle/mainRelease/app-main-release.aab
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true
@@ -121,8 +119,8 @@ jobs:
         id: upload-test-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-qa-release-androidTest.apk
-          path: android/app/build/outputs/apk/androidTest/qa/release/app-qa-release-androidTest.apk
+          name: app-main-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/main/release/app-main-release-androidTest.apk
           retention-days: 7
           if-no-files-found: error
         continue-on-error: true
@@ -195,8 +193,8 @@ jobs:
           echo "🏗 Setting up Android artifacts from build job..."
           
           # Create required directories
-          mkdir -p android/app/build/outputs/apk/qa/release/
-          mkdir -p android/app/build/outputs/apk/androidTest/qa/release/
+          mkdir -p android/app/build/outputs/apk/main/release/
+          mkdir -p android/app/build/outputs/apk/androidTest/main/release/
 
       - name: Download Android build artifacts
         if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
@@ -208,8 +206,8 @@ jobs:
         if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
         run: |
           # Move main APK
-          if [[ -f "artifacts/app-qa-release.apk/app-qa-release.apk" ]]; then
-            cp "artifacts/app-qa-release.apk/app-qa-release.apk" "android/app/build/outputs/apk/qa/release/"
+          if [[ -f "artifacts/app-main-release.apk/app-main-release.apk" ]]; then
+            cp "artifacts/app-main-release.apk/app-main-release.apk" "android/app/build/outputs/apk/main/release/"
             echo "✅ Android main APK ready for E2E tests"
           else
             echo "❌ Android main APK not found"
@@ -218,8 +216,8 @@ jobs:
           fi
           
           # Move test APK
-          if [[ -f "artifacts/app-qa-release-androidTest.apk/app-qa-release-androidTest.apk" ]]; then
-            cp "artifacts/app-qa-release-androidTest.apk/app-qa-release-androidTest.apk" "android/app/build/outputs/apk/androidTest/qa/release/"
+          if [[ -f "artifacts/app-main-release-androidTest.apk/app-main-release-androidTest.apk" ]]; then
+            cp "artifacts/app-main-release-androidTest.apk/app-main-release-androidTest.apk" "android/app/build/outputs/apk/androidTest/main/release/"
             echo "✅ Android test APK ready for E2E tests"
           else
             echo "❌ Android test APK not found"
