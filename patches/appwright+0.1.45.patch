@@ -1,0 +1,14 @@
+diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
+index 638c5df..71b3d65 100644
+--- a/node_modules/appwright/dist/providers/browserstack/index.js
++++ b/node_modules/appwright/dist/providers/browserstack/index.js
+@@ -242,6 +242,9 @@ class BrowserStackDeviceProvider {
+                 "bstack:options": {
+                     debug: true,
+                     interactiveDebugging: true,
++                    local: process.env.BROWSERSTACK_LOCAL || false, // needed to run e2e on CI
++                    localIdentifier: process.env.GITHUB_RUN_ID, // needed to run e2e on CI
++                    appProfiling: true, // needed to profile the app
+                     networkLogs: true,
+                     appiumVersion: "2.6.0",
+                     enableCameraImageInjection: this.project.use.device?.enableCameraImageInjection,
