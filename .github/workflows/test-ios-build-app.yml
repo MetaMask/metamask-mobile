@@ -57,6 +57,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
+          is-self-hosted: true
 
       - name: Print iOS tool versions
         run: |
@@ -73,7 +74,7 @@ jobs:
         shell: bash
 
       # Run project setup and build the iOS QA app for simulator
-      - name: Setup iOS Environment
+      - name: Setup iOS Environment & Build iOS QA App
         run: |
           echo "🚀 Finishing iOS Setup..."
           yarn setup:github-ci --build-ios --no-build-android
