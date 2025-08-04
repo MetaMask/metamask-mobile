@@ -116,6 +116,7 @@ import {
   selectNativeCurrencyByChainId,
   selectProviderTypeByChainId,
   selectNetworkConfigurationByChainId,
+  selectNetworkConfigurations,
 } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { isNativeToken } from '../../../utils/generic';
@@ -124,6 +125,8 @@ import { MMM_ORIGIN } from '../../../constants/confirmations';
 import { selectSendFlowContextualChainId } from '../../../../../../selectors/sendFlow';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
 import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
+import { selectNetworkImageSourceByChainId } from '../../../../../../selectors/networkInfos';
+import ContextualNetworkPicker from '../../../../../UI/ContextualNetworkPicker/ContextualNetworkPicker';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -560,6 +563,14 @@ class Amount extends PureComponent {
      * All tokens by chain id
      */
     allTokensByChainId: PropTypes.object,
+    /**
+     * Network name
+     */
+    networkName: PropTypes.string,
+    /**
+     * Network image source
+     */
+    networkImageSource: PropTypes.object,
   };
 
   state = {
@@ -579,12 +590,7 @@ class Amount extends PureComponent {
   collectibles = [];
 
   updateNavBar = () => {
-    const {
-      navigation,
-      route,
-      resetTransaction,
-      contextualNetworkConfiguration,
-    } = this.props;
+    const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getSendFlowTitle(
@@ -594,9 +600,6 @@ class Amount extends PureComponent {
         colors,
         resetTransaction,
         null,
-        true,
-        true,
-        contextualNetworkConfiguration?.name || '',
       ),
     );
   };
@@ -1742,6 +1745,8 @@ class Amount extends PureComponent {
     const {
       selectedAsset,
       transactionState: { isPaymentRequest },
+      networkName,
+      networkImageSource,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -1752,6 +1757,12 @@ class Amount extends PureComponent {
         style={styles.wrapper}
         testID={AmountViewSelectorsIDs.CONTAINER}
       >
+        <ContextualNetworkPicker
+          networkName={networkName}
+          networkImageSource={networkImageSource}
+          onPress={this.onNetworkSelectorPress}
+          disabled
+        />
         <ScrollView style={styles.scrollWrapper}>
           {!hasExchangeRate && !selectedAsset.tokenId ? (
             <Alert
@@ -1923,6 +1934,12 @@ const mapStateToProps = (state, ownProps) => {
       contextualChainId,
     ),
     allTokensByChainId: selectAllTokens(state),
+    networkName:
+      selectNetworkConfigurations(state)?.[currentChainId]?.name || '',
+    networkImageSource: selectNetworkImageSourceByChainId(
+      state,
+      currentChainId,
+    ),
   };
 };
 

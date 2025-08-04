@@ -6,12 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddressList from '../AddressList';
 import Text from '../../../../../Base/Text';
-import { IconSize } from '../../../../../../component-library/components/Icons/Icon';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../../component-library/components/Avatars/Avatar';
-import PickerBase from '../../../../../../component-library/components/Pickers/PickerBase';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
 import StyledButton from '../../../../../UI/StyledButton';
@@ -78,10 +72,8 @@ import { selectSendFlowContextualChainId } from '../../../../../../selectors/sen
 import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
 import { toHexadecimal } from '../../../../../../util/number';
 import { selectNetworkImageSourceByChainId } from '../../../../../../selectors/networkInfos';
-import {
-  NETWORK_SELECTOR_SOURCES,
-  NETWORK_SELECTOR_TEST_IDS,
-} from '../../../../../../constants/networkSelector';
+import { NETWORK_SELECTOR_SOURCES } from '../../../../../../constants/networkSelector';
+import ContextualNetworkPicker from '../../../../../UI/ContextualNetworkPicker/ContextualNetworkPicker';
 
 const dummy = () => true;
 
@@ -603,29 +595,12 @@ class SendFlow extends PureComponent {
         style={styles.wrapper}
         {...generateTestId(Platform, SendViewSelectorsIDs.CONTAINER_ID)}
       >
-        <View style={styles.accountSelectorWrapper}>
-          <PickerBase
-            onPress={this.onNetworkSelectorPress}
-            iconSize={IconSize.Xs}
-            style={styles.base}
-            dropdownIconStyle={styles.dropDownIcon}
-          >
-            <View style={styles.row}>
-              <View style={styles.avatarWrapper}>
-                <Avatar
-                  variant={AvatarVariant.Network}
-                  size={AvatarSize.Xs}
-                  name={networkName}
-                  imageSource={networkImageSource}
-                  testID={NETWORK_SELECTOR_TEST_IDS.CONTEXTUAL_NETWORK_PICKER}
-                  accessibilityLabel={networkName}
-                />
-              </View>
-              <Text>{networkName}</Text>
-            </View>
-          </PickerBase>
-        </View>
-        <View style={styles.imputWrapper}>
+        <ContextualNetworkPicker
+          networkName={networkName}
+          networkImageSource={networkImageSource}
+          onPress={this.onNetworkSelectorPress}
+        />
+        <View style={styles.inputWrapper}>
           <SendFlowAddressFrom
             chainId={currentChainId}
             fromAccountBalanceState={this.fromAccountBalanceState}

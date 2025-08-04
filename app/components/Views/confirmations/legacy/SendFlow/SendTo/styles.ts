@@ -2,15 +2,13 @@ import { StyleSheet } from 'react-native';
 import type { ThemeColors } from '@metamask/design-tokens';
 import { fontStyles } from '../../../../../../styles/common';
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    imputWrapper: {
+    inputWrapper: {
       flex: 0,
       borderBottomWidth: 1,
       borderBottomColor: colors.border.muted,
