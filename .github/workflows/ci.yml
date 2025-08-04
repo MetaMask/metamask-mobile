@@ -203,7 +203,6 @@ jobs:
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-tests
-    if: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -220,7 +219,7 @@ jobs:
         continue-on-error: true
         uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
       - name: SonarCloud Scan
-        if: ${{ env.HAVE_SONAR_TOKEN == 'true' }}
+        if: ${{ env.HAVE_SONAR_TOKEN == 'true' && github.event_name == 'pull_request' }}
         continue-on-error: true
         # This is SonarSource/sonarcloud-github-action@v2.0.0
         uses: SonarSource/sonarcloud-github-action@4b4d7634dab97dcee0b75763a54a6dc92a9e6bc1
@@ -230,12 +229,6 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
-          # Skip step if event is not a PR
-          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
-            echo "This job only runs for pull requests."
-            exit 0
-          fi
-
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
