@@ -1,28 +1,23 @@
-/* eslint-disable no-console */
-'use strict';
 /**
  * E2E tests for wallet_getSession API
  * Tests getting session information in different scenarios
  */
-import TestHelpers from '../../helpers';
 import { SmokeMultiChainAPI } from '../../tags';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import MultichainUtilities from '../../utils/MultichainUtilities';
+import { DappVariants } from '../../framework/Constants';
 
 describe(SmokeMultiChainAPI('wallet_getSession'), () => {
-  beforeEach(() => {
-    jest.setTimeout(150000);
-  });
-
   it('should successfully receive empty session scopes when there is no existing session', async () => {
     await withFixtures(
       {
-        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+        dapps: [
+          {
+            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -65,7 +60,11 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
   it('should successfully receive result that specifies its permitted session scopes for selected chains', async () => {
     await withFixtures(
       {
-        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+        dapps: [
+          {
+            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -75,8 +74,6 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
         await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-        // Wait for session creation and get the data separately
-        await TestHelpers.delay(1000);
         const sessionData = await MultichainTestDApp.getSessionData();
         const createAssertions = MultichainUtilities.generateSessionAssertions(
           sessionData,
@@ -86,8 +83,6 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
         if (!createAssertions.success) {
           throw new Error('Initial session creation failed');
         }
-
-        await TestHelpers.delay(1000);
 
         const getSessionResult = await MultichainTestDApp.getSessionData();
         const getAssertions = MultichainUtilities.generateSessionAssertions(
@@ -139,7 +134,11 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
   it('should return consistent session data across multiple getSession calls', async () => {
     await withFixtures(
       {
-        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+        dapps: [
+          {
+            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -149,8 +148,6 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
         await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-        // Wait for session creation and get the data separately
-        await TestHelpers.delay(1000);
         const sessionData = await MultichainTestDApp.getSessionData();
         const createAssertions = MultichainUtilities.generateSessionAssertions(
           sessionData,
@@ -161,12 +158,8 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
           throw new Error('Session creation failed');
         }
 
-        await TestHelpers.delay(1000);
-
         const getSessionResult1 = await MultichainTestDApp.getSessionData();
-        await TestHelpers.delay(500);
         const getSessionResult2 = await MultichainTestDApp.getSessionData();
-        await TestHelpers.delay(500);
         const getSessionResult3 = await MultichainTestDApp.getSessionData();
 
         const assertions1 = MultichainUtilities.generateSessionAssertions(
@@ -223,7 +216,11 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
   it('should handle getSession after session has been modified', async () => {
     await withFixtures(
       {
-        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+        dapps: [
+          {
+            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -234,8 +231,6 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
         await MultichainTestDApp.createSessionWithNetworks(initialNetworks);
 
-        // Wait for session creation and get the data separately
-        await TestHelpers.delay(1000);
         const sessionData1 = await MultichainTestDApp.getSessionData();
         const createAssertions1 = MultichainUtilities.generateSessionAssertions(
           sessionData1,
@@ -246,7 +241,6 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
           throw new Error('Initial session creation failed');
         }
 
-        await TestHelpers.delay(1000);
         const getSessionResult1 = await MultichainTestDApp.getSessionData();
         const getAssertions1 = MultichainUtilities.generateSessionAssertions(
           getSessionResult1,
@@ -268,8 +262,6 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
 
         await MultichainTestDApp.createSessionWithNetworks(newNetworks);
 
-        // Wait for session creation and get the data separately
-        await TestHelpers.delay(1000);
         const getSessionResult2 = await MultichainTestDApp.getSessionData();
         const getAssertions2 = MultichainUtilities.generateSessionAssertions(
           getSessionResult2,

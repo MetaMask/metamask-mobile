@@ -106,8 +106,8 @@ import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOn
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
-import { Send } from '../../Views/confirmations/components/send';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
+import { SendRoot } from '../../Views/confirmations/components/send/send-root';
+import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -621,16 +621,6 @@ const SendView = () => (
   </Stack.Navigator>
 );
 
-const SendComponent = () => (
-  <Stack.Navigator headerMode="screen">
-    <Stack.Screen name={Routes.SEND.ROOT} component={Send} />
-    <Stack.Screen
-      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-      component={RedesignedConfirm}
-    />
-  </Stack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const NftDetailsModeView = (props) => (
   <Stack.Navigator>
@@ -847,13 +837,13 @@ const MainNavigator = () => {
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
         name="Send"
-        component={SendComponent}
+        component={SendRoot}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
         name="SendFlowView"
-        component={isSendRedesignEnabled() ? SendComponent : SendFlowView}
+        component={isSendRedesignEnabled() ? SendRoot : SendFlowView}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />

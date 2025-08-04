@@ -12,8 +12,6 @@ const styleSheet = (params: {
   return StyleSheet.create({
     container: {
       gap: 16,
-      paddingLeft: 16,
-      paddingRight: 8,
       paddingTop: 16,
       paddingBottom: 16,
     },
@@ -28,15 +26,21 @@ const styleSheet = (params: {
     accountName: {
       display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       alignItems: 'center',
+      flex: 1,
+      minWidth: 0,
+    },
+    accountNameText: {
+      minWidth: 0,
     },
     endContainer: {
       display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end',
       alignItems: 'center',
       gap: 8,
+      flexShrink: 0,
     },
     balance: {
       verticalAlign: 'middle',

@@ -18,12 +18,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, View } from 'react-native';
+import { SafeAreaView, ScrollView, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { toHex } from '@metamask/controller-utils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
+import { handlePerpsError } from '../../utils/perpsErrorHandler';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -68,7 +69,6 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
 } from '../../../../../util/number';
-import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../../UI/Box/Box';
 import {
   MAX_INPUT_LENGTH,
@@ -448,7 +448,13 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         // Navigate to trading view
         navigation.navigate(Routes.PERPS.TRADING_VIEW);
       } else {
-        setError(depositResult.error || strings('perps.errors.depositFailed'));
+        // Use centralized error handler for all errors
+        const errorMessage = handlePerpsError({
+          error: depositResult.error,
+          context: { token: sourceToken.symbol },
+          fallbackMessage: strings('perps.errors.depositFailed'),
+        });
+        setError(errorMessage);
       }
     } catch (err) {
       setError(
@@ -509,8 +515,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const { top } = useSafeAreaInsets();
 
   return (
-    // @ts-expect-error The type is incorrect, this will work
-    <ScreenView contentContainerStyle={[styles.screen, { paddingTop: top }]}>
+    <SafeAreaView style={[styles.screen, { marginTop: top }]}>
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon
@@ -666,7 +671,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           </View>
         )}
       </View>
-    </ScreenView>
+    </SafeAreaView>
   );
 };
 

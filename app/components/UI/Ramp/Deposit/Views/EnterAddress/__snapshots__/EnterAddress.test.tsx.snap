@@ -201,38 +201,85 @@ exports[`EnterAddress Component displays form validation errors when continue is
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -686,7 +733,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -786,7 +833,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -881,7 +928,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -1104,7 +1151,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -1225,7 +1272,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -1620,38 +1667,85 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -2105,7 +2199,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -2190,7 +2284,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -2285,7 +2379,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2478,7 +2572,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2584,7 +2678,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2979,38 +3073,85 @@ exports[`EnterAddress Component shows text input for state when region is not US
                   }
                 }
               >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
+                <View
                   style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    }
+                    [
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                      {
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                      },
+                    ]
                   }
                 >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={24}
-                    name="Close"
-                    style={
+                  <View
+                    accessibilityState={
                       {
-                        "height": 24,
-                        "width": 24,
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": false,
+                        "expanded": undefined,
+                        "selected": undefined,
                       }
                     }
-                    width={24}
-                  />
-                </TouchableOpacity>
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "transparent",
+                          "borderRadius": 2,
+                          "height": 40,
+                          "justifyContent": "center",
+                          "opacity": 1,
+                          "width": 40,
+                        },
+                        undefined,
+                      ]
+                    }
+                    testID="button-icon"
+                  >
+                    <SvgMock
+                      fill="currentColor"
+                      name="Close"
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "height": 24,
+                            "width": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -3464,7 +3605,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -3549,7 +3690,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         returnKeyType="next"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -3644,7 +3785,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3730,7 +3871,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3827,7 +3968,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3933,7 +4074,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           returnKeyType="done"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
