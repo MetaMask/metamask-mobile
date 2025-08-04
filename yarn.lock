@@ -5774,14 +5774,14 @@
     fastest-levenshtein "^1.0.16"
     punycode "^2.1.1"
 
-"@metamask/phishing-controller@^13.1.0":
-  version "13.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-13.1.0.tgz#c07799a8d553d1f4cd5aba0711177b3b2d9dd782"
-  integrity sha512-idjxMIStvkl7YR9Kj9wyKkcexDdhJNtFRgn1bPJSPTTylm2YGpoePTNNVx0nEu7TSXvJ+YME0qfvb6tOw1xDVA==
+"@metamask/phishing-controller@npm:@metamask-previews/phishing-controller@13.1.0-preview-79b0b08":
+  version "13.1.0-preview-79b0b08"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/phishing-controller/-/phishing-controller-13.1.0-preview-79b0b08.tgz#73e52e80faf833d1f638a78daab8531a3644fb3e"
+  integrity sha512-ZzMYmM4+RBuQoZa7zxR9BWCPkycGKPJTkOEkzKwvcD5PEyIq8P3iSGW6X1Hx0hV177mZrLXaVbJKQZZ9o96g9g==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.11.0"
-    "@noble/hashes" "^1.4.0"
+    "@noble/hashes" "^1.8.0"
     "@types/punycode" "^2.1.0"
     ethereum-cryptography "^2.1.2"
     fastest-levenshtein "^1.0.16"
@@ -5860,16 +5860,16 @@
   dependencies:
     "@metamask/snaps-sdk" "^9.1.0"
 
-"@metamask/profile-sync-controller@^23.0.0":
-  version "23.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-23.0.0.tgz#fb40435f3635c36650445dba15521186853d9f13"
-  integrity sha512-4NQ9UmyJxwznRDpnnEdqisJ612ZxETxVLit4CjZbbw2d2UyZ9nVq2tszhcTRIfI2mp8RMUmTT/1V1ZgqnRxVyg==
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@23.0.0-preview-79b0b08":
+  version "23.0.0-preview-79b0b08"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-23.0.0-preview-79b0b08.tgz#baae467064aad61f1dbbc2cba5582d021660cbfc"
+  integrity sha512-iyczilDIL2tq44FLxJlnQtPS6PMqdfm3Us2zOYME3BZC3+reXq2vRk09pFSJpYk2ShD4NmqO0C1wGn/hbmDrDw==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
-    "@noble/ciphers" "^0.5.2"
-    "@noble/hashes" "^1.4.0"
+    "@noble/ciphers" "^1.3.0"
+    "@noble/hashes" "^1.8.0"
     immer "^9.0.6"
     loglevel "^1.8.1"
     siwe "^2.3.2"
@@ -5997,15 +5997,18 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@2.5.0":
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/seedless-onboarding-controller/-/seedless-onboarding-controller-2.5.0.tgz#3af69838242799515b5844da6db6edbf822e717d"
-  integrity sha512-0L/GrEhBbqhcSUzhnsP8lADr5udNkfn83P7f0IRT+XPGC1nvOekwI4HofhYxkHiCVHqm1mxUyfS33AE6oMgaiA==
+"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@2.5.0-preview-79b0b08":
+  version "2.5.0-preview-79b0b08"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/seedless-onboarding-controller/-/seedless-onboarding-controller-2.5.0-preview-79b0b08.tgz#6161e0b500f7f76fc7da0ab6f1132deb69db94a3"
+  integrity sha512-YB6rGGF5UB6zcxODAne8kclCBfrKgQ668CFc6RmK+825KI2ozNwrFtnBHoitUcv7STW/rhhHgKMlHXT04/GbSA==
   dependencies:
     "@metamask/auth-network-utils" "^0.3.0"
     "@metamask/base-controller" "^8.0.1"
     "@metamask/toprf-secure-backup" "^0.7.1"
     "@metamask/utils" "^11.4.2"
+    "@noble/ciphers" "^1.3.0"
+    "@noble/curves" "^1.9.2"
+    "@noble/hashes" "^1.8.0"
     async-mutex "^0.5.0"
 
 "@metamask/selected-network-controller@^22.1.0":
@@ -6459,11 +6462,6 @@
   resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-1.3.0.tgz#f64b8ff886c240e644e5573c097f86e5b43676dc"
   integrity sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==
 
-"@noble/ciphers@^0.5.2":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-0.5.3.tgz#48b536311587125e0d0c1535f73ec8375cd76b23"
-  integrity sha512-B0+6IIHiqEs3BPMT0hcRmHvEj2QHOLu+uwt+tqDDeVd0oyVzh7BPrDcPjRnV1PV/5LaknXJJQvOuRGR0zQJz+w==
-
 "@noble/curves@1.4.2", "@noble/curves@~1.4.0":
   version "1.4.2"
   resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.4.2.tgz#40309198c76ed71bc6dbf7ba24e81ceb4d0d1fe9"
@@ -6496,6 +6494,13 @@
   version "1.9.2"
   resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.9.2.tgz#73388356ce733922396214a933ff7c95afcef911"
   integrity sha512-HxngEd2XUcg9xi20JkwlLCtYwfoFw4JGkuZpT+WlsPD4gB/cxkvTD8fSsoAnphGZhFdZYKeQIPCuFlWPm1uE0g==
+  dependencies:
+    "@noble/hashes" "1.8.0"
+
+"@noble/curves@^1.9.2":
+  version "1.9.6"
+  resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.9.6.tgz#b45ebedca85bb75782f6be7e7f120f0c423c99e0"
+  integrity sha512-GIKz/j99FRthB8icyJQA51E8Uk5hXmdyThjgQXRKiv9h0zeRlzSCLIzFw6K1LotZ3XuB7yzlf76qk7uBmTdFqA==
   dependencies:
     "@noble/hashes" "1.8.0"
 
