@@ -13,28 +13,38 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 import { AccountConnectSingleSelectorProps } from './AccountConnectSingleSelector.types';
 import styles from './AccountConnectSingleSelector.styles';
 import { USER_INTENT } from '../../../../constants/permissions';
+import { CaipAccountId } from '@metamask/utils';
+import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts';
 import { AccountGroupId } from '@metamask/account-api';
 
-const AccountConnectSingleSelector = ({
-  accounts,
-  ensByAccountAddress,
-  selectedAddresses,
+interface MultichainAccountConnectSingleSelectorProps {
+  accountsGroups: AccountGroupWithInternalAccounts[];
+  selectedAccountGroupIds: AccountGroupId[];
+  isLoading: boolean;
+  onSetScreen: (screen: AccountConnectScreens) => void;
+  onSetSelectedAccountGroupIds: (accountGroupIds: AccountGroupId[]) => void;
+  onUserAction: (intent: USER_INTENT) => void;
+}
+
+const MultichainAccountConnectSingleSelector = ({
+  accountsGroups,
+  selectedAccountGroupIds,
   isLoading,
   onSetScreen,
-  onSetSelectedAddresses: onSetSelectedGroupIds,
+  onSetSelectedAccountGroupIds,
   onUserAction,
-}: AccountConnectSingleSelectorProps) => {
+}: MultichainAccountConnectSingleSelectorProps) => {
   const onBack = useCallback(
     () => onSetScreen(AccountConnectScreens.SingleConnect),
     [onSetScreen],
   );
 
-  const onSelectAccount = useCallback(
+  const onSelectAccountGroupId = useCallback(
     (accountGroupId: AccountGroupId) => {
       onSetScreen(AccountConnectScreens.SingleConnect);
-      onSetSelectedGroupIds([accountGroupId]);
+      onSetSelectedAccountGroupIds([accountGroupId]);
     },
-    [onSetScreen, onSetSelectedGroupIds],
+    [onSetScreen, onSetSelectedAccountGroupIds],
   );
 
   const renderSheetActions = useCallback(
@@ -67,16 +77,16 @@ const AccountConnectSingleSelector = ({
   return (
     <>
       <SheetHeader onBack={onBack} title={strings('accounts.accounts_title')} />
-      <CaipAccountSelectorList
+      {/* <CaipAccountSelectorList
         onSelectAccount={onSelectAccount}
         accounts={accounts}
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}
-        selectedAddresses={selectedAddresses}
-      />
+        selectedAddresses={selectedAccountGroupIds}
+      /> */}
       {renderSheetActions()}
     </>
   );
 };
 
-export default AccountConnectSingleSelector;
+export default MultichainAccountConnectSingleSelector;

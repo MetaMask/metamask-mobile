@@ -26,12 +26,8 @@ import { USER_INTENT } from '../../../constants/permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectInternalAccountsWithCaipAccountId } from '../../../selectors/accountsController';
 import Logger from '../../../util/Logger';
-import {
-  getAddressAccountType,
-  safeToChecksumAddress,
-} from '../../../util/address';
+import { safeToChecksumAddress } from '../../../util/address';
 import {
   getHost,
   getUrlObj,
@@ -60,10 +56,6 @@ import {
   AccountConnectProps,
   AccountConnectScreens,
 } from './AccountConnect.types';
-import AccountConnectMultiSelector from './AccountConnectMultiSelector';
-import AccountConnectSingleSelector from './AccountConnectSingleSelector';
-import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
-import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import {
@@ -89,22 +81,29 @@ import {
   KnownCaipNamespace,
   parseCaipAccountId,
   parseCaipChainId,
-  toCaipAccountId,
 } from '@metamask/utils';
 import {
   Caip25EndowmentPermissionName,
   getAllNamespacesFromCaip25CaveatValue,
   getAllScopesFromCaip25CaveatValue,
   getAllScopesFromPermission,
-  getCaipAccountIdsFromCaip25CaveatValue,
   isCaipAccountIdInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
 import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import AddNewAccount from '../AddNewAccount';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import { useAccountGroupConnectionStatus } from '../../hooks/useAccountGroupConnectionStatus/useAccountGroupConnectionStatus';
+import {
+  AccountGroupWithInternalAccounts,
+  selectAccountGroupWithInternalAccounts,
+} from '../../../selectors/multichainAccounts/accounts';
+import { AccountGroupId } from '@metamask/account-api';
+import MultichainAccountConnectSingleSelector from './AccountConnectSingleSelector/MultichainAccountConnectSingleSelector';
+import MultichainPermissionsSummary, {
+  MultichainPermissionsSummaryProps,
+} from '../../UI/PermissionsSummary/MultichainPermissionsSummary';
+import MultichainAccountConnectMultiSelector from './AccountConnectMultiSelector/MultichainAccountConnectMultiSelector';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -117,7 +116,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   });
 
   const previousIdentitiesListSize = useRef<number>();
-  const internalAccounts = useSelector(selectInternalAccountsWithCaipAccountId);
+  const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -132,11 +131,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     [hostInfo.permissions, hostInfo.metadata.origin],
   );
 
-  const requestedCaipAccountIds = useMemo(
-    () => getCaipAccountIdsFromCaip25CaveatValue(requestedCaip25CaveatValue),
-    [requestedCaip25CaveatValue],
-  );
-
   const requestedCaipChainIds = useMemo(
     () => getAllScopesFromCaip25CaveatValue(requestedCaip25CaveatValue),
     [requestedCaip25CaveatValue],
@@ -145,6 +139,15 @@ const AccountConnect = (props: AccountConnectProps) => {
   const requestedNamespaces = useMemo(
     () => getAllNamespacesFromCaip25CaveatValue(requestedCaip25CaveatValue),
     [requestedCaip25CaveatValue],
+  );
+
+  const {
+    connectedAccountGroups,
+    supportedAccountGroups,
+    existingConnectedCaipAccountIds,
+  } = useAccountGroupConnectionStatus(
+    requestedCaip25CaveatValue,
+    requestedCaipChainIds,
   );
 
   const networkConfigurations = useSelector(
@@ -213,38 +216,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     [networkConfigurations, selectedChainIds],
   );
 
-  // all accounts that match the requested namespaces
-  const supportedAccountsForRequestedNamespaces = internalAccounts.filter(
-    (account) => {
-      const {
-        chain: { namespace },
-      } = parseCaipAccountId(account.caipAccountId);
-      return requestedNamespaces.includes(namespace);
-    },
-  );
+  const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
+    AccountGroupId[]
+  >(Array.from(connectedAccountGroups).map((group) => group.id));
 
-  // All requested accounts that are found in the wallet
-  const supportedRequestedAccounts =
-    supportedAccountsForRequestedNamespaces.filter((account) =>
-      isCaipAccountIdInPermittedAccountIds(
-        account.caipAccountId,
-        requestedCaipAccountIds,
-      ),
-    );
-
-  const defaultAccounts = getDefaultAccounts(
-    requestedNamespaces,
-    supportedRequestedAccounts,
-    supportedAccountsForRequestedNamespaces,
-  );
-
-  const defaultCaipAccountAddresses = defaultAccounts.map(
-    ({ caipAccountId }) => caipAccountId,
-  );
-
-  const [selectedAddresses, setSelectedAddresses] = useState<CaipAccountId[]>(
-    defaultCaipAccountAddresses,
-  );
+  const [selectedCaipAccountIds, setSelectedCaipAccountIds] = useState<
+    CaipAccountId[]
+  >(existingConnectedCaipAccountIds ?? []);
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
@@ -257,35 +235,17 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { toastRef } = useContext(ToastContext);
 
   const accountsLength = useSelector(selectAccountsLength);
-  const solanaAccountExistsInWallet = useMemo(
-    () =>
-      accounts.some(({ caipAccountId }) => {
-        const { chain } = parseCaipAccountId(caipAccountId);
-        return chain.namespace === KnownCaipNamespace.Solana;
-      }),
-    [accounts],
-  );
-
-  const promptToCreateSolanaAccount = useMemo(
-    () =>
-      hostInfo.metadata.promptToCreateSolanaAccount &&
-      !solanaAccountExistsInWallet,
-    [
-      hostInfo.metadata.promptToCreateSolanaAccount,
-      solanaAccountExistsInWallet,
-    ],
-  );
 
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
 
   // If it is undefined, it will enter the regular eth account creation flow.
-  const [multichainAccountOptions, setMultichainAccountOptions] = useState<
-    | {
-        clientType?: WalletClientType;
-        scope?: CaipChainId;
-      }
-    | undefined
-  >(undefined);
+  // const [multichainAccountOptions, setMultichainAccountOptions] = useState<
+  //   | {
+  //       clientType?: WalletClientType;
+  //       scope?: CaipChainId;
+  //     }
+  //   | undefined
+  // >(undefined);
 
   const { domainTitle, hostname } = useMemo(() => {
     let title = strings('sdk.unknown');
@@ -351,20 +311,23 @@ const AccountConnect = (props: AccountConnectProps) => {
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
     // Extract the address list from the internalAccounts array
-    const accountsAddressList = internalAccounts.map(
-      (account) => account.caipAccountId,
+    const accountsAddressList = accountGroups.map(
+      (accountGroup) => accountGroup.id,
     );
 
     if (previousIdentitiesListSize.current !== accountsAddressList.length) {
-      // Clean up selected addresses that are no longer part of accounts.
-      const updatedSelectedAddresses = selectedAddresses.filter((address) =>
-        isCaipAccountIdInPermittedAccountIds(address, accountsAddressList),
-      );
+      // // Clean up selected addresses that are no longer part of accounts.
+      // const updatedSelectedAddresses = selectedAddresses.filter((address) =>
+      //   isCaipAccountIdInPermittedAccountIds(address, accountsAddressList),
+      // );
 
-      setSelectedAddresses(updatedSelectedAddresses);
+      setSelectedAccountGroupIds(
+        supportedAccountGroups.map((group) => group.id),
+      );
+      setSelectedCaipAccountIds(existingConnectedCaipAccountIds);
       previousIdentitiesListSize.current = accountsAddressList.length;
     }
-  }, [internalAccounts, selectedAddresses]);
+  }, [accountGroups, selectedAccountGroupIds]);
 
   const cancelPermissionRequest = useCallback(
     (requestId: string) => {
@@ -472,14 +435,15 @@ const AccountConnect = (props: AccountConnectProps) => {
         ...hostInfo.permissions,
         ...getCaip25PermissionsResponse(
           requestedCaip25CaveatValue,
-          selectedAddresses,
+          selectedCaipAccountIds,
           selectedChainIds,
         ),
       },
     };
 
-    const connectedAccountLength = selectedAddresses.length;
-    const activeAddress = selectedAddresses[0];
+    const connectedAccountLength = selectedAccountGroupIds.length;
+    const activeAccountGroup: AccountGroupWithInternalAccounts =
+      selectedAccountGroupIds[0];
 
     const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
 
@@ -500,7 +464,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             number_of_accounts: accountsLength,
             number_of_accounts_connected: connectedAccountLength,
             // TODO: Fix this. Not accurate
-            account_type: getAddressAccountType(activeAddress),
+            account_type: 'multichain', //getAddressAccountType(activeAddress),
             source: eventSource,
             chain_id_list: selectedChainIds,
             referrer: request.metadata.origin,
@@ -528,18 +492,19 @@ const AccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
     }
   }, [
-    eventSource,
-    selectedAddresses,
     hostInfo,
-    toastRef,
-    accountsLength,
     channelIdOrHostname,
+    requestedCaip25CaveatValue,
+    selectedCaipAccountIds,
+    selectedChainIds,
+    selectedAccountGroupIds,
     triggerDappViewedEvent,
     trackEvent,
-    faviconSource,
     createEventBuilder,
-    selectedChainIds,
-    requestedCaip25CaveatValue,
+    accountsLength,
+    eventSource,
+    toastRef,
+    faviconSource,
   ]);
 
   // This only handles EVM
@@ -570,56 +535,74 @@ const AccountConnect = (props: AccountConnectProps) => {
     [trackEvent, createEventBuilder],
   );
 
-  const handleAccountsSelected = useCallback(
-    (newSelectedAccountAddresses: CaipAccountId[]) => {
-      let updatedSelectedChains = [...selectedChainIds];
+  const handleAccountGroupsSelected = useCallback(
+    (newSelectedAccountGroupIds: AccountGroupId[]) => {
+      const updatedSelectedChains = [...selectedChainIds];
 
-      newSelectedAccountAddresses.forEach((caipAccountAddress) => {
-        const {
-          chain: { namespace: accountNamespace },
-        } = parseCaipAccountId(caipAccountAddress);
-
-        const existsSelectedChainForNamespace = updatedSelectedChains.some(
-          (caipChainId) => {
-            try {
-              const { namespace: chainNamespace } =
-                parseCaipChainId(caipChainId);
-              return accountNamespace === chainNamespace;
-            } catch (err) {
-              return false;
-            }
-          },
-        );
-
-        if (!existsSelectedChainForNamespace) {
-          const chainIdsForNamespace = allNetworksList.filter((caipChainId) => {
-            try {
-              const { namespace: chainNamespace } =
-                parseCaipChainId(caipChainId);
-              return accountNamespace === chainNamespace;
-            } catch (err) {
-              return false;
-            }
-          });
-
-          updatedSelectedChains = [
-            ...updatedSelectedChains,
-            ...chainIdsForNamespace,
-          ];
+      // Pre-parse all chain namespaces and cache common strings
+      const chainNamespaces = new Map<CaipChainId, string>();
+      const eip155Scope = `${KnownCaipNamespace.Eip155}:0`;
+      updatedSelectedChains.forEach((chainId) => {
+        try {
+          const { namespace } = parseCaipChainId(chainId);
+          chainNamespaces.set(chainId, namespace);
+        } catch (err) {
+          // Skip invalid chain IDs
         }
       });
 
+      // Create lookup sets for selected account group IDs
+      const selectedGroupIds = new Set(newSelectedAccountGroupIds);
+      console.log('new group ids', selectedGroupIds);
+
+      // Filter to only selected account groups
+      const selectedAccountGroups = supportedAccountGroups.filter((group) =>
+        selectedGroupIds.has(group.id),
+      );
+
+      // Build account addresses more efficiently
+      const updatedSelectedCaipAccountAddresses = new Set<CaipAccountId>();
+
+      // Process each selected account group
+      selectedAccountGroups.forEach((accountGroup) => {
+        accountGroup.accounts.forEach((account) => {
+          // Convert scopes to Set for O(1) lookup
+          const accountScopesSet = new Set(account.scopes);
+
+          // Check each selected chain
+          updatedSelectedChains.forEach((chainId) => {
+            const namespace = chainNamespaces.get(chainId);
+            if (!namespace) {
+              return;
+            }
+
+            let shouldAdd = false;
+
+            if (namespace === KnownCaipNamespace.Eip155) {
+              shouldAdd = accountScopesSet.has(eip155Scope);
+            } else if (namespace === chainId) {
+              shouldAdd = accountScopesSet.has(chainId);
+            }
+
+            if (shouldAdd) {
+              updatedSelectedCaipAccountAddresses.add(
+                `${chainId}:${account.address}`,
+              );
+            }
+          });
+        });
+      });
+
       setSelectedChainIds(updatedSelectedChains);
-      setSelectedAddresses(newSelectedAccountAddresses);
+      setSelectedAccountGroupIds(
+        selectedAccountGroups.map((group) => group.id),
+      );
+      setSelectedCaipAccountIds(
+        Array.from(updatedSelectedCaipAccountAddresses),
+      );
       setScreen(AccountConnectScreens.SingleConnect);
     },
-    [
-      setSelectedAddresses,
-      setScreen,
-      selectedChainIds,
-      allNetworksList,
-      setSelectedChainIds,
-    ],
+    [selectedChainIds, supportedAccountGroups],
   );
 
   const handleNetworksSelected = useCallback(
@@ -714,7 +697,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   };
 
   const renderPermissionsSummaryScreen = useCallback(() => {
-    const permissionsSummaryProps: PermissionsSummaryProps = {
+    const permissionsSummaryProps: MultichainPermissionsSummaryProps = {
       currentPageInformation: {
         currentEnsName: '',
         icon: faviconSource as string,
@@ -727,70 +710,50 @@ const AccountConnect = (props: AccountConnectProps) => {
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
-      accountAddresses: selectedAddresses,
-      ensByAccountAddress,
-      accounts,
+      accountGroups: supportedAccountGroups,
+      selectedAccountGroupIds,
       networkAvatars: selectedNetworkAvatars,
       setTabIndex,
       tabIndex,
-      promptToCreateSolanaAccount,
       onCreateAccount: (clientType, scope) => {
-        setMultichainAccountOptions({
-          clientType,
-          scope,
-        });
-        setScreen(AccountConnectScreens.AddNewAccount);
+        console.log('onCreateAccount', clientType, scope);
       },
     };
-    return <PermissionsSummary {...permissionsSummaryProps} />;
+    return <MultichainPermissionsSummary {...permissionsSummaryProps} />;
   }, [
     faviconSource,
     urlWithProtocol,
-    selectedAddresses,
+    selectedAccountGroupIds,
     selectedNetworkAvatars,
-    accounts,
-    ensByAccountAddress,
+    supportedAccountGroups,
     tabIndex,
     setTabIndex,
-    promptToCreateSolanaAccount,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
     () => (
-      <AccountConnectSingleSelector
-        accounts={accounts}
-        ensByAccountAddress={ensByAccountAddress}
+      <MultichainAccountConnectSingleSelector
+        accountsGroups={accountGroups}
         onSetScreen={setScreen}
-        onSetSelectedAddresses={handleAccountsSelected}
-        selectedAddresses={selectedAddresses}
+        onSetSelectedAccountGroupIds={setSelectedAccountGroupIds}
+        selectedAccountGroupIds={selectedAccountGroupIds}
         isLoading={isLoading}
         onUserAction={setUserIntent}
       />
     ),
-    [
-      accounts,
-      ensByAccountAddress,
-      selectedAddresses,
-      isLoading,
-      setUserIntent,
-      setScreen,
-      handleAccountsSelected,
-    ],
+    [accountGroups, selectedAccountGroupIds, isLoading],
   );
 
   const renderMultiConnectSelectorScreen = useCallback(
     () => (
-      <AccountConnectMultiSelector
-        accounts={accounts}
-        ensByAccountAddress={ensByAccountAddress}
-        defaultSelectedAddresses={selectedAddresses}
-        onSubmit={handleAccountsSelected}
-        onCreateAccount={(clientType, scope) => {
-          setMultichainAccountOptions({
-            clientType,
-            scope,
-          });
-          setScreen(AccountConnectScreens.AddNewAccount);
+      <MultichainAccountConnectMultiSelector
+        accountGroups={supportedAccountGroups}
+        selectedAccountGroupIds={selectedAccountGroupIds}
+        onSubmit={handleAccountGroupsSelected}
+        onCreateAccount={() => {
+          console.log(
+            'onCreateAccount from multichain account connect multi selector',
+          );
         }}
         isLoading={isLoading}
         onBack={() => {
@@ -799,16 +762,20 @@ const AccountConnect = (props: AccountConnectProps) => {
         connection={sdkConnection}
         hostname={hostnameFromUrlObj}
         screenTitle={strings('accounts.edit_accounts_title')}
+        onSetScreen={setScreen}
+        onSetSelectedAccountGroupIds={setSelectedAccountGroupIds}
+        onUserAction={setUserIntent}
+        isRenderedAsBottomSheet={false}
+        showDisconnectAllButton={false}
       />
     ),
     [
-      accounts,
-      ensByAccountAddress,
+      supportedAccountGroups,
+      selectedAccountGroupIds,
+      handleAccountGroupsSelected,
       isLoading,
       sdkConnection,
       hostnameFromUrlObj,
-      handleAccountsSelected,
-      selectedAddresses,
     ],
   );
 
@@ -826,33 +793,26 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleAccountSelection = useCallback(
-    (account: InternalAccount) => {
-      const [scope] = account.scopes;
-      const { namespace, reference } = parseCaipChainId(scope);
-      const caipAccountId = toCaipAccountId(
-        namespace,
-        reference,
-        account.address,
-      );
-      setSelectedAddresses([...selectedAddresses, caipAccountId]);
+    (accountGroupId: AccountGroupId) => {
+      setSelectedAccountGroupIds([...selectedAccountGroupIds, accountGroupId]);
       setScreen(AccountConnectScreens.SingleConnect);
     },
-    [selectedAddresses, setSelectedAddresses, setScreen],
+    [selectedAccountGroupIds, setSelectedAccountGroupIds, setScreen],
   );
 
-  const renderAddNewAccount = useCallback(
-    () => (
-      <AddNewAccount
-        scope={multichainAccountOptions?.scope}
-        clientType={multichainAccountOptions?.clientType}
-        onActionComplete={handleAccountSelection}
-        onBack={() => {
-          setScreen(AccountConnectScreens.SingleConnect);
-        }}
-      />
-    ),
-    [handleAccountSelection, setScreen, multichainAccountOptions],
-  );
+  // const renderAddNewAccount = useCallback(
+  //   () => (
+  //     <AddNewAccount
+  //       scope={multichainAccountOptions?.scope}
+  //       clientType={multichainAccountOptions?.clientType}
+  //       onActionComplete={handleAccountSelection}
+  //       onBack={() => {
+  //         setScreen(AccountConnectScreens.SingleConnect);
+  //       }}
+  //     />
+  //   ),
+  //   [handleAccountSelection, setScreen, multichainAccountOptions],
+  // );
 
   const renderPhishingModal = useCallback(
     () => (
@@ -900,8 +860,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         return renderMultiConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectNetworkSelector:
         return renderMultiConnectNetworkSelectorScreen();
-      case AccountConnectScreens.AddNewAccount:
-        return renderAddNewAccount();
+      // case AccountConnectScreens.AddNewAccount:
+      //   return renderAddNewAccount();
     }
   }, [
     screen,
@@ -909,7 +869,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     renderSingleConnectSelectorScreen,
     renderMultiConnectSelectorScreen,
     renderMultiConnectNetworkSelectorScreen,
-    renderAddNewAccount,
+    // renderAddNewAccount,
   ]);
 
   return (
