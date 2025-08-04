@@ -145,9 +145,9 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
 
             //Signing Flow
             await testDappBtn();
-            await Assertions.checkIfVisible(requestType);
+            await Assertions.expectElementToBeVisible(requestType);
             await FooterActions.tapConfirmButton();
-            await Assertions.checkIfNotVisible(requestType);
+            await Assertions.expectElementToNotBeVisible(requestType);
           },
         );
       });

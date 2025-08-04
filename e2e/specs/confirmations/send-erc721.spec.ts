@@ -117,8 +117,8 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
 
           // Check activity tab
           await TabBarComponent.tapActivity();
-          await Assertions.checkIfTextIsDisplayed('Confirmed');
-          await Assertions.checkIfTextIsDisplayed(
+          await Assertions.expectTextDisplayed('Confirmed');
+          await Assertions.expectTextDisplayed(
             ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
           );
         },
