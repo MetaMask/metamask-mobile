@@ -12,6 +12,7 @@ import React, {
   useState,
 } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
@@ -88,10 +89,11 @@ import {
   usePerpsTrading,
   usePerpsMarketData,
   usePerpsLiquidationPrice,
+  usePerpsOrderFees,
+  formatFeeRate,
 } from '../../hooks';
 import { formatPrice } from '../../utils/formatUtils';
 import {
-  calculateEstimatedFees,
   calculateMarginRequired,
   calculatePositionSize,
 } from '../../utils/orderCalculations';
@@ -124,6 +126,7 @@ const PerpsOrderView: React.FC = () => {
   const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  const { top } = useSafeAreaInsets();
   const toastContext = useContext(ToastContext);
 
   const toastRef = toastContext?.toastRef;
@@ -201,6 +204,14 @@ const PerpsOrderView: React.FC = () => {
 
   const paymentTokens = usePerpsPaymentTokens();
 
+  // Calculate estimated fees using the new hook
+  const feeResults = usePerpsOrderFees({
+    orderType,
+    amount: orderForm.amount,
+    isMaker: false, // Conservative estimate for UI display
+  });
+  const estimatedFees = feeResults.totalFee;
+
   // Tooltip content for educational info
   const tooltipContent = {
     leverage: (
@@ -277,16 +288,17 @@ const PerpsOrderView: React.FC = () => {
         </Text>
         <View style={styles.tooltipSection}>
           <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Market orders: 0.075% of position size
+            • Market orders: {formatFeeRate(feeResults.protocolFeeRate)} taker
+            fee
           </Text>
           <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Limit orders: 0.02% of position size
+            • Limit orders: Fee varies by order type and liquidity
           </Text>
           <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Fees are deducted from your margin balance
+            • Base rates shown (volume discounts may apply)
           </Text>
           <Text variant={TextVariant.BodyMD}>
-            • No funding fees for the first 8 hours
+            • Fees deducted from margin balance
           </Text>
         </View>
       </View>
@@ -369,16 +381,6 @@ const PerpsOrderView: React.FC = () => {
       });
     }
   }, [marketDataError, asset, toastRef, navigation]);
-
-  // Calculate estimated fees
-  const estimatedFees = useMemo(
-    () =>
-      calculateEstimatedFees({
-        amount: orderForm.amount,
-        orderType,
-      }),
-    [orderForm.amount, orderType],
-  );
 
   // Real-time position size calculation
   const positionSize = useMemo(
@@ -627,7 +629,7 @@ const PerpsOrderView: React.FC = () => {
   ]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { marginTop: top }]}>
       {/* Header */}
       <PerpsOrderHeader
         asset={orderForm.asset}
