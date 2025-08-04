@@ -197,3 +197,21 @@ export const PerpsMarketHeaderSelectorsIDs = {
   PRICE_CHANGE: 'perps-market-header-price-change',
   MORE_BUTTON: 'perps-market-header-more-button',
 };
+
+// ========================================
+// PERPS TESTNET TOGGLE SELECTORS
+// ========================================
+
+export const PerpsTestnetToggleSelectorsIDs = {
+  ROOT: 'perps-testnet-toggle-root',
+  SWITCH: 'perps-testnet-toggle-switch',
+  LOADING_INDICATOR: 'perps-testnet-toggle-loading-indicator',
+};
+
+// ========================================
+// PERPS DEVELOPER OPTIONS SECTION SELECTORS
+// ========================================
+
+export const PerpsDeveloperOptionsSectionSelectorsIDs = {
+  PERPS_SANDBOX_BUTTON: 'perps-developer-options-section-perps-sandbox-button',
+};
