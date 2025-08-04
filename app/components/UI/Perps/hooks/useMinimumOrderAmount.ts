@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 
 interface UseMinimumOrderAmountParams {
   /** Asset symbol to get minimum order amount for */
@@ -45,10 +46,10 @@ export function useMinimumOrderAmount(
     // Note: These match HyperLiquid's TRADING_DEFAULTS values
     // Future providers should implement their own defaults via protocol config
     if (network === 'mainnet') {
-      return 6; // $6 minimum for mainnet (matches TRADING_DEFAULTS.amount.mainnet)
+      return TRADING_DEFAULTS.amount.mainnet;
     }
 
-    return 11; // $11 minimum for testnet (matches TRADING_DEFAULTS.amount.testnet)
+    return TRADING_DEFAULTS.amount.testnet;
   }, [marketData, network]);
 
   return {

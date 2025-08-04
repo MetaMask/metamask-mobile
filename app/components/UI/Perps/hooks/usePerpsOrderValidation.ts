@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import type { OrderType, OrderParams } from '../controllers/types';
 import type { OrderFormState } from '../types';
@@ -56,117 +56,92 @@ export function usePerpsOrderValidation(
     isValidating: false, // Start with false to prevent initial flickering
   });
 
-  useEffect(() => {
-    // Skip validation if critical data is missing
-    if (!positionSize || assetPrice === 0) {
+  const performValidation = useCallback(async () => {
+    setValidation((prev) => ({ ...prev, isValidating: true }));
+
+    try {
+      // Convert form state to OrderParams for protocol validation
+      const orderParams: OrderParams = {
+        coin: orderForm.asset,
+        isBuy: orderForm.direction === 'long',
+        size: positionSize, // Use BTC amount, not USD amount
+        orderType,
+        price: orderForm.limitPrice,
+        leverage: orderForm.leverage,
+        currentPrice: assetPrice,
+      };
+
+      // Get protocol-specific validation
+      DevLogger.log(
+        'usePerpsOrderValidation: Validating order params',
+        orderParams,
+      );
+      const protocolValidation = await validateOrder(orderParams);
+      DevLogger.log(
+        'usePerpsOrderValidation: Validation result',
+        protocolValidation,
+      );
+
+      // Start with protocol validation results
+      const errors: string[] = protocolValidation.isValid
+        ? []
+        : protocolValidation.error
+        ? [protocolValidation.error]
+        : [];
+      const warnings: string[] = [];
+
+      // Add UI-specific validations
+
+      // Check for existing position
+      if (hasExistingPosition) {
+        errors.push(
+          strings('perps.order.validation.existing_position', {
+            asset: orderForm.asset,
+          }),
+        );
+      }
+
+      // Balance validation
+      const requiredMargin = parseFloat(marginRequired);
+      if (requiredMargin > availableBalance) {
+        errors.push(
+          strings('perps.order.validation.insufficient_balance', {
+            required: marginRequired,
+            available: availableBalance.toString(),
+          }),
+        );
+      }
+
+      // Payment token validation (UI-specific for HyperLiquid)
+      const tokenChainId = selectedPaymentToken?.chainId;
+      if (
+        tokenChainId &&
+        tokenChainId !== HYPERLIQUID_MAINNET_CHAIN_ID &&
+        tokenChainId !== HYPERLIQUID_TESTNET_CHAIN_ID
+      ) {
+        errors.push(strings('perps.order.validation.only_hyperliquid_usdc'));
+      }
+
+      // High leverage warning
+      if (orderForm.leverage > VALIDATION_THRESHOLDS.HIGH_LEVERAGE_WARNING) {
+        warnings.push(strings('perps.order.validation.high_leverage_warning'));
+      }
+
       setValidation({
-        errors: [],
+        errors,
+        warnings,
+        isValid: errors.length === 0,
+        isValidating: false,
+      });
+    } catch (error) {
+      DevLogger.log('usePerpsOrderValidation: Error during validation', error);
+      setValidation({
+        errors: [strings('perps.order.validation.error')],
         warnings: [],
         isValid: false,
         isValidating: false,
       });
-      return;
     }
-
-    const performValidation = async () => {
-      setValidation((prev) => ({ ...prev, isValidating: true }));
-
-      try {
-        // Convert form state to OrderParams for protocol validation
-        const orderParams: OrderParams = {
-          coin: orderForm.asset,
-          isBuy: orderForm.direction === 'long',
-          size: positionSize, // Use BTC amount, not USD amount
-          orderType,
-          price: orderForm.limitPrice,
-          leverage: orderForm.leverage,
-          currentPrice: assetPrice,
-        };
-
-        // Get protocol-specific validation
-        DevLogger.log(
-          'usePerpsOrderValidation: Validating order params',
-          orderParams,
-        );
-        const protocolValidation = await validateOrder(orderParams);
-        DevLogger.log(
-          'usePerpsOrderValidation: Validation result',
-          protocolValidation,
-        );
-
-        // Start with protocol validation results
-        const errors: string[] = protocolValidation.isValid
-          ? []
-          : protocolValidation.error
-          ? [protocolValidation.error]
-          : [];
-        const warnings: string[] = [];
-
-        // Add UI-specific validations
-
-        // Check for existing position
-        if (hasExistingPosition) {
-          errors.push(
-            strings('perps.order.validation.existing_position', {
-              asset: orderForm.asset,
-            }),
-          );
-        }
-
-        // Balance validation
-        const requiredMargin = parseFloat(marginRequired);
-        if (requiredMargin > availableBalance) {
-          errors.push(
-            strings('perps.order.validation.insufficient_balance', {
-              required: marginRequired,
-              available: availableBalance.toString(),
-            }),
-          );
-        }
-
-        // Payment token validation (UI-specific for HyperLiquid)
-        const tokenChainId = selectedPaymentToken?.chainId;
-        if (
-          tokenChainId &&
-          tokenChainId !== HYPERLIQUID_MAINNET_CHAIN_ID &&
-          tokenChainId !== HYPERLIQUID_TESTNET_CHAIN_ID
-        ) {
-          errors.push(strings('perps.order.validation.only_hyperliquid_usdc'));
-        }
-
-        // High leverage warning
-        if (orderForm.leverage > VALIDATION_THRESHOLDS.HIGH_LEVERAGE_WARNING) {
-          warnings.push(
-            strings('perps.order.validation.high_leverage_warning'),
-          );
-        }
-
-        // Limit order specific validation
-        if (orderType === 'limit' && !orderForm.limitPrice) {
-          errors.push(strings('perps.order.validation.limit_price_required'));
-        }
-
-        setValidation({
-          errors,
-          warnings,
-          isValid: errors.length === 0,
-          isValidating: false,
-        });
-      } catch (error) {
-        DevLogger.log(
-          'usePerpsOrderValidation: Error during validation',
-          error,
-        );
-        setValidation({
-          errors: [strings('perps.order.validation.error')],
-          warnings: [],
-          isValid: false,
-          isValidating: false,
-        });
-      }
-    };
-
-    performValidation();
   }, [
     orderForm.asset,
     orderForm.direction,
@@ -181,6 +156,21 @@ export function usePerpsOrderValidation(
     hasExistingPosition,
     validateOrder,
   ]);
+
+  useEffect(() => {
+    // Skip validation if critical data is missing
+    if (!positionSize || assetPrice === 0) {
+      setValidation({
+        errors: [],
+        warnings: [],
+        isValid: false,
+        isValidating: false,
+      });
+      return;
+    }
+
+    performValidation();
+  }, [performValidation, positionSize, assetPrice]);
 
   return validation;
 }

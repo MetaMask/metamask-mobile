@@ -79,38 +79,38 @@ export function usePerpsOrderForm(
   });
 
   // Update entire form
-  const updateOrderForm = useCallback((updates: Partial<OrderFormState>) => {
+  const updateOrderForm = (updates: Partial<OrderFormState>) => {
     setOrderForm((prev) => ({ ...prev, ...updates }));
-  }, []);
+  };
 
   // Individual setters for common operations
-  const setAmount = useCallback((amount: string) => {
+  const setAmount = (amount: string) => {
     setOrderForm((prev) => ({ ...prev, amount: amount || '0' }));
-  }, []);
+  };
 
-  const setLeverage = useCallback((leverage: number) => {
+  const setLeverage = (leverage: number) => {
     setOrderForm((prev) => ({ ...prev, leverage }));
-  }, []);
+  };
 
-  const setDirection = useCallback((direction: 'long' | 'short') => {
+  const setDirection = (direction: 'long' | 'short') => {
     setOrderForm((prev) => ({ ...prev, direction }));
-  }, []);
+  };
 
-  const setAsset = useCallback((asset: string) => {
+  const setAsset = (asset: string) => {
     setOrderForm((prev) => ({ ...prev, asset }));
-  }, []);
+  };
 
-  const setTakeProfitPrice = useCallback((price?: string) => {
+  const setTakeProfitPrice = (price?: string) => {
     setOrderForm((prev) => ({ ...prev, takeProfitPrice: price }));
-  }, []);
+  };
 
-  const setStopLossPrice = useCallback((price?: string) => {
+  const setStopLossPrice = (price?: string) => {
     setOrderForm((prev) => ({ ...prev, stopLossPrice: price }));
-  }, []);
+  };
 
-  const setLimitPrice = useCallback((price?: string) => {
+  const setLimitPrice = (price?: string) => {
     setOrderForm((prev) => ({ ...prev, limitPrice: price }));
-  }, []);
+  };
 
   // Handle percentage-based amount selection
   const handlePercentageAmount = useCallback(

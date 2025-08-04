@@ -264,7 +264,11 @@ describe('usePerpsOrderValidation', () => {
 
   describe('limit order validation', () => {
     it('should require limit price for limit orders', async () => {
-      mockValidateOrder.mockResolvedValue({ isValid: true });
+      // Protocol validation should catch missing limit price
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: 'Limit price required',
+      });
 
       const { result } = renderHook(() =>
         usePerpsOrderValidation({
