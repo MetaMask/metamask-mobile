@@ -38,7 +38,7 @@ export const selectContractExchangeRatesByChainId = createSelector(
     tokenRatesControllerState.marketData[chainId],
 );
 
-export const selectTokenMarketData = createSelector(
+export const selectTokenMarketData = createDeepEqualSelector(
   selectTokenRatesControllerState,
   (tokenRatesControllerState: TokenRatesControllerState) =>
     tokenRatesControllerState.marketData,
@@ -75,6 +75,10 @@ export const selectSingleTokenPriceMarketData = createSelector(
 export const selectTokenMarketPriceData = createDeepEqualSelector(
   [selectTokenMarketData],
   (marketData) => {
+    // Since we're using createDeepEqualSelector, it will only recalculate
+    // when the marketData actually changes (deep equality check)
+    if (!marketData) return {};
+
     const marketPriceData = mapValues(marketData, (tokenData) =>
       mapValues(tokenData, (tokenInfo) => ({ price: tokenInfo?.price })),
     );

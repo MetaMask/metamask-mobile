@@ -578,7 +578,6 @@ const EvmAccountSelectorList = ({
           ScrollView as React.ComponentType<ScrollViewProps>
         }
         testID={ACCOUNT_SELECTOR_LIST_TESTID}
-        disableAutoLayout
         {...props}
       />
     </View>

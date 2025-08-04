@@ -1,4 +1,5 @@
 import { createSelector, weakMapMemoize } from 'reselect';
+import { createDeepEqualSelector } from './util';
 import { CurrencyRateState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import {
@@ -8,7 +9,6 @@ import {
   selectNetworkConfigurationByChainId,
 } from './networkController';
 import { isTestNet } from '../../app/util/networks';
-import { createDeepEqualSelector } from './util';
 import { Hex } from '@metamask/utils';
 
 const selectCurrencyRateControllerState = (state: RootState) =>
@@ -34,7 +34,7 @@ export const selectConversionRate = createSelector(
   },
 );
 
-export const selectCurrencyRates = createSelector(
+export const selectCurrencyRates = createDeepEqualSelector(
   selectCurrencyRateControllerState,
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currencyRates,
