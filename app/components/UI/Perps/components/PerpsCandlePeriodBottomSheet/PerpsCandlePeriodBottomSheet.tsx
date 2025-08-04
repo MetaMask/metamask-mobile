@@ -1,53 +1,81 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
-import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  Text,
-  Icon,
+import React, { useRef, useEffect } from 'react';
+import { TouchableOpacity, StyleSheet } from 'react-native';
+import { useTheme } from '../../../../../util/theme';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
+import Icon, {
   IconName,
   IconSize,
-  TextVariant,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { CANDLE_PERIODS } from '../../constants/chartConfig';
-
-export interface PerpsCandlePeriodBottomSheetRef {
-  show: () => void;
-  hide: () => void;
-}
+import { Box } from '@metamask/design-system-react-native';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
+  onClose: () => void;
   selectedPeriod: string;
   onPeriodChange?: (period: string) => void;
   testID?: string;
 }
 
-const PerpsCandlePeriodBottomSheet = forwardRef<
-  PerpsCandlePeriodBottomSheetRef,
+const PerpsCandlePeriodBottomSheet: React.FC<
   PerpsCandlePeriodBottomSheetProps
->(({ isVisible, selectedPeriod, onPeriodChange, testID }, ref) => {
-  const tw = useTailwind();
+> = ({ isVisible, onClose, selectedPeriod, onPeriodChange, testID }) => {
+  const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const styles = StyleSheet.create({
+    container: {
+      // paddingHorizontal: 16,
+      paddingTop: 8,
+      // paddingBottom: 24, // Extra bottom padding for safe area
+    },
+    periodOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12, // Reduced from 16 to make more compact
+      paddingHorizontal: 16,
+      // borderRadius: 8,
+      marginBottom: 6, // Reduced from 8 for tighter spacing
+      // borderWidth: 1,
+      // borderColor: colors.border.muted,
+      // backgroundColor: colors.background.default,
+    },
+    periodOptionActive: {
+      backgroundColor: colors.primary.muted,
+      borderColor: colors.primary.default,
+      borderWidth: 2,
+    },
+    periodText: {
+      // flex: 1,
+    },
+    periodTextActive: {
+      color: colors.primary.default,
+      fontWeight: '600',
+    },
+    checkIcon: {
+      marginLeft: 8,
+    },
+    periodOptionLast: {
+      marginBottom: 0,
+    },
+  });
 
-  useImperativeHandle(ref, () => ({
-    show: () => {
+  useEffect(() => {
+    if (isVisible) {
       bottomSheetRef.current?.onOpenBottomSheet();
-    },
-    hide: () => {
-      bottomSheetRef.current?.onCloseBottomSheet();
-    },
-  }));
+    }
+  }, [isVisible]);
 
   const handlePeriodSelect = (period: string) => {
     onPeriodChange?.(period);
-    bottomSheetRef.current?.onCloseBottomSheet();
+    onClose();
   };
 
   if (!isVisible) return null;
@@ -56,82 +84,57 @@ const PerpsCandlePeriodBottomSheet = forwardRef<
     <BottomSheet
       ref={bottomSheetRef}
       shouldNavigateBack={false}
+      onClose={onClose}
+      isFullscreen={false}
       testID={testID}
     >
-      <Box twClassName="px-6 py-4">
-        {/* Header */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="mb-6"
-        >
-          <Text variant={TextVariant.HeadingMd} twClassName="text-text-default">
-            Select Candle Period
-          </Text>
-          <Pressable
-            style={({ pressed }) =>
-              tw.style(
-                'w-8 h-8 rounded-full justify-center items-center',
-                pressed && 'bg-background-pressed',
-              )
-            }
-            onPress={() => bottomSheetRef.current?.onCloseBottomSheet()}
-            testID={`${testID}-close-button`}
+      <BottomSheetHeader onClose={onClose}>
+        <Text variant={TextVariant.HeadingMD}>Select Candle Period</Text>
+      </BottomSheetHeader>
+      <Box>
+        {CANDLE_PERIODS.map((period, index) => (
+          <TouchableOpacity
+            key={period.value}
+            style={[
+              styles.periodOption,
+              selectedPeriod === period.value && styles.periodOptionActive,
+              index === CANDLE_PERIODS.length - 1 && styles.periodOptionLast,
+            ]}
+            onPress={() => handlePeriodSelect(period.value)}
+            testID={`${testID}-period-${period.value}`}
           >
-            <Icon
-              name={IconName.Close}
-              size={IconSize.Md}
-              twClassName="text-icon-default"
-            />
-          </Pressable>
-        </Box>
-
-        {/* Period Options */}
-        <Box>
-          {CANDLE_PERIODS.map((period, index) => (
-            <Pressable
-              key={period.value}
-              style={({ pressed }) =>
-                tw.style(
-                  'flex-row items-center justify-between py-4 px-4 rounded-lg',
-                  index < CANDLE_PERIODS.length - 1 && 'mb-2',
-                  selectedPeriod === period.value
-                    ? 'bg-primary-muted border-2 border-primary-default'
-                    : 'bg-background-default border border-border-muted',
-                  pressed && 'opacity-70',
-                )
+            <Text
+              variant={TextVariant.BodyMD}
+              color={
+                selectedPeriod === period.value
+                  ? TextColor.Primary
+                  : TextColor.Default
               }
-              onPress={() => handlePeriodSelect(period.value)}
-              testID={`${testID}-period-${period.value}`}
+              style={[
+                styles.periodText,
+                selectedPeriod === period.value && styles.periodTextActive,
+              ]}
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                twClassName={
-                  selectedPeriod === period.value
-                    ? 'text-primary-default font-medium'
-                    : 'text-text-default'
-                }
-              >
-                {period.label}
-              </Text>
-              {selectedPeriod === period.value && (
-                <Icon
-                  name={IconName.Check}
-                  size={IconSize.Md}
-                  twClassName="text-primary-default"
-                />
-              )}
-            </Pressable>
-          ))}
-        </Box>
-
-        {/* Bottom Padding for Safe Area */}
-        <Box twClassName="h-6" />
+              {period.label}
+            </Text>
+            {selectedPeriod === period.value && (
+              <Icon
+                name={IconName.Check}
+                size={IconSize.Md}
+                color={colors.primary.default}
+                style={styles.checkIcon}
+              />
+            )}
+          </TouchableOpacity>
+        ))}
       </Box>
+
+      {/* <View style={styles.container}> */}
+
+      {/* </View> */}
     </BottomSheet>
   );
-});
+};
 
 PerpsCandlePeriodBottomSheet.displayName = 'PerpsCandlePeriodBottomSheet';
 
