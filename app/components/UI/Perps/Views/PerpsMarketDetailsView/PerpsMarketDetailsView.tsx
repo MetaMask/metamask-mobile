@@ -55,10 +55,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   });
 
   // Check if user has an existing position for this market
-  const { hasPosition: hasExistingPosition } = useHasExistingPosition({
-    asset: market?.symbol || '',
-    loadOnMount: true,
-  });
+  const { hasPosition: hasExistingPosition, isLoading: isLoadingPosition } =
+    useHasExistingPosition({
+      asset: market?.symbol || '',
+      loadOnMount: true,
+    });
 
   const handleIntervalChange = useCallback((newInterval: string) => {
     setSelectedInterval(newInterval);
@@ -255,7 +256,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       {/* Action Buttons */}
       <View style={styles.actionsContainer}>
-        {hasExistingPosition && (
+        {!isLoadingPosition && hasExistingPosition && (
           <View style={styles.positionWarning}>
             <Text
               variant={TextVariant.BodySM}
@@ -268,7 +269,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </Text>
           </View>
         )}
-        {!hasExistingPosition && (
+        {!isLoadingPosition && !hasExistingPosition && (
           <>
             <Button
               variant={ButtonVariants.Primary}

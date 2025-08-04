@@ -30,6 +30,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/useHasExistingPosition', () => ({
+  useHasExistingPosition: () => ({
+    hasPosition: false,
+    isLoading: false,
+    error: null,
+    existingPosition: null,
+  }),
+}));
+
 const initialState = {
   engine: {
     backgroundState,
