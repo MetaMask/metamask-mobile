@@ -959,8 +959,8 @@ class Amount extends PureComponent {
 
     const contextuallySelectedAccount =
       accountsByContextualChainId?.[selectedAddress];
-    const contextuallySelectedBalance =
-      allTokenBalances?.[selectedAddress.toLowerCase()]?.[contextualChainId]?.[
+    const contextuallySelectedTokenBalance =
+      allTokenBalances?.[selectedAddress?.toLowerCase()]?.[contextualChainId]?.[
         selectedAsset.address
       ];
 
@@ -982,11 +982,11 @@ class Amount extends PureComponent {
         if (isNativeToken(selectedAsset)) {
           const globallySelectedBalance =
             accounts?.[selectedAddress]?.balance || '0x0';
-          const contextuallySelectedBalance = hexToBN(
+          const contextuallySelectedNativeBalance = hexToBN(
             contextuallySelectedAccount?.balance || '0x0',
           );
           const balance = isRemoveGlobalNetworkSelectorEnabled()
-            ? contextuallySelectedBalance
+            ? contextuallySelectedNativeBalance
             : hexToBN(globallySelectedBalance);
 
           weiBalance = hexToBN(balance);
@@ -995,7 +995,7 @@ class Amount extends PureComponent {
           const globallySelectedBalance =
             contractBalances?.[selectedAsset.address] || '0x0';
           const balance = isRemoveGlobalNetworkSelectorEnabled()
-            ? contextuallySelectedBalance || '0x0'
+            ? contextuallySelectedTokenBalance || '0x0'
             : globallySelectedBalance;
 
           weiBalance = hexToBN(balance);

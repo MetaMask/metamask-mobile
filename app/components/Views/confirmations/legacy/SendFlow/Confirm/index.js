@@ -97,7 +97,7 @@ import {
 } from '../../../../../../selectors/accountTrackerController';
 import {
   selectContractBalances,
-  selectAllTokenBalances,
+  selectContractBalancesByContextualChainId,
 } from '../../../../../../selectors/tokenBalancesController';
 import { isNetworkRampNativeTokenSupported } from '../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
@@ -1695,6 +1695,7 @@ const mapStateToProps = (state) => {
     accounts: selectAccounts(state),
     contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
     contractBalances: selectContractBalances(state),
+    contractBalancesByChainId: selectContractBalancesByContextualChainId(state),
     conversionRate: selectConversionRateByChainId(state, chainId),
     currentCurrency: selectCurrentCurrency(state),
     providerType: selectProviderTypeByChainId(state, chainId),
@@ -1719,7 +1720,6 @@ const mapStateToProps = (state) => {
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-    // new selectors
     sendFlowContextualChainId,
     sendFlowContextualNetworkConfiguration: selectNetworkConfigurationByChainId(
       state,
