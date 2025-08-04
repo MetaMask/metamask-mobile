@@ -31,7 +31,9 @@ jobs:
     runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
+      aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
       test-apk-uploaded: ${{ steps.upload-test-apk.outcome == 'success' }}
+      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     steps:
       # Get the source code from the repository
       - name: Checkout repo
@@ -45,7 +47,6 @@ jobs:
           setup-simulator: false
           configure-keystores: false
 
-
       # Cache Gradle dependencies (most important for build speed)
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -58,7 +59,7 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      # Run project setup and build the Android QA app (APK and Test APK)
+      # Run project setup and build the Android QA app (APK and AAB)
       - name: Setup and Build Android App
         run: |
           echo "🚀 Finishing Android Setup..."
@@ -93,47 +94,6 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
-      # Cache Android SDK and environment for test job reuse
-      - name: Cache Android SDK Setup
-        uses: actions/cache@v4
-        with:
-          path: |
-            /opt/android-sdk
-            $HOME/.android
-          key: android-complete-${{ runner.os }}-v1-${{ hashFiles('android/**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            android-complete-${{ runner.os }}-v1-
-
-      # Cache Node modules for test job reuse
-      - name: Cache Node Modules for E2E
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: e2e-node-modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            e2e-node-modules-${{ runner.os }}-
-
-      # Create Android AVD for E2E tests (reused by test job)
-      - name: Create Android AVD for E2E Tests
-        run: |
-          echo "🤖 Creating Android AVD for E2E tests..."
-          
-          # Set up AVD environment
-          export ANDROID_AVD_HOME="$HOME/.android/avd"
-          mkdir -p "$ANDROID_AVD_HOME"
-          
-          # Create AVD (same config as test job expects)
-          IMAGE="system-images;android-34;google_apis;x86_64"
-          echo "Creating AVD with image: $IMAGE"
-          echo "no" | "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" create avd \
-            --name "emulator" \
-            --package "$IMAGE" \
-            --device "pixel" \
-            --force
-          
-          echo "✅ Android AVD created and ready for E2E tests"
-        shell: bash
-
       # Upload the Android APK file for device installation and testing
       - name: Upload Android APK Artifact
         id: upload-apk
@@ -143,6 +103,18 @@ jobs:
           path: android/app/build/outputs/apk/qa/release/app-qa-release.apk
           retention-days: 7
           if-no-files-found: error
+        continue-on-error: true
+
+      # Upload the Android App Bundle (AAB) for Play Store distribution
+      - name: Upload Android AAB Artifact
+        id: upload-aab
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-qa-release.aab
+          path: android/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+          retention-days: 7
+          if-no-files-found: warn
+        continue-on-error: true
 
       # Upload the Android Test APK for E2E testing
       - name: Upload Android Test APK Artifact
@@ -153,16 +125,28 @@ jobs:
           path: android/app/build/outputs/apk/androidTest/qa/release/app-qa-release-androidTest.apk
           retention-days: 7
           if-no-files-found: error
+        continue-on-error: true
+
+      # Upload source map file for crash debugging and error tracking
+      - name: Upload Android Source Map
+        id: upload-sourcemap
+        uses: actions/upload-artifact@v4
+        with:
+          name: index.android.bundle.map
+          path: sourcemaps/android/index.android.bundle.map
+          retention-days: 7
+          if-no-files-found: warn
+        continue-on-error: true
 
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
     runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'large-mm-test' }}
     needs: build-android-app
-    if: always()
+    if: ${{ inputs.platform == 'ios' || (inputs.platform == 'android' && needs.build-android-app.result == 'success') }}
     #runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
 
     env:
-      METAMASK_ENVIRONMENT: 'local'
+      METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
@@ -189,85 +173,14 @@ jobs:
           clean: true
           fetch-depth: 0
 
-      # iOS: Full environment setup (unchanged)
-      - name: Set up E2E environment (iOS)
-        if: ${{ inputs.platform == 'ios' }}
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions 
+      - name: Set up E2E environment
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config 
         with:
-          platform: ios
-          setup-simulator: true
+          platform: ${{ inputs.platform }}
+          setup-simulator: ${{ inputs.platform == 'ios' }}
+          android-avd-name: emulator
+          android-abi: x86_64
           configure-keystores: false
-
-      # Android: Restore cached environment and minimal setup
-      - name: Restore Android SDK Cache
-        if: ${{ inputs.platform == 'android' }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            /opt/android-sdk
-            $HOME/.android
-          key: android-complete-${{ runner.os }}-v1-${{ hashFiles('android/**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            android-complete-${{ runner.os }}-v1-
-
-      - name: Restore Node Modules Cache
-        if: ${{ inputs.platform == 'android' }}
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: e2e-node-modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            e2e-node-modules-${{ runner.os }}-
-
-      - name: Minimal Android E2E Setup
-        if: ${{ inputs.platform == 'android' }}
-        run: |
-          echo "🚀 Setting up minimal Android E2E environment..."
-          
-          # Restore Android environment variables
-          echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
-          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
-          echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
-          
-          # Ensure Detox CLI is available
-          if ! command -v detox &> /dev/null; then
-            echo "Installing Detox CLI..."
-            yarn global add detox-cli
-          else
-            echo "Detox CLI already available"
-          fi
-          
-          # Verify AVD exists (created by build job)
-          if [ -d "$HOME/.android/avd/emulator.avd" ]; then
-            echo "✅ AVD 'emulator' found - ready for testing"
-          else
-            echo "⚠️ AVD not found, creating fresh one..."
-            IMAGE="system-images;android-34;google_apis;x86_64"
-            echo "no" | "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" create avd \
-              --name "emulator" \
-              --package "$IMAGE" \
-              --device "pixel" \
-              --force
-          fi
-          
-          echo "✅ Minimal Android E2E setup complete (reusing cached environment)"
-        shell: bash
-
-      # OPTIONAL: Uncomment to create fresh AVD each time instead of reusing
-      #- name: Create Fresh Android AVD (Optional)
-      #  if: ${{ inputs.platform == 'android' }}
-      #  run: |
-      #    echo "🔄 Creating fresh Android AVD..."
-      #    # Remove existing AVD
-      #    "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" delete avd -n emulator || true
-      #    # Create fresh AVD
-      #    IMAGE="system-images;android-34;google_apis;x86_64"
-      #    echo "no" | "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" create avd \
-      #      --name "emulator" \
-      #      --package "$IMAGE" \
-      #      --device "pixel" \
-      #      --force
-      #    echo "✅ Fresh AVD created"
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
@@ -276,13 +189,7 @@ jobs:
           yarn detox clean-framework-cache
           yarn detox build-framework-cache
 
-      - name: Download Android build artifacts
-        if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-
-      - name: Setup Android artifacts
+      - name: Setup Android artifacts from build job
         if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
         run: |
           echo "🏗 Setting up Android artifacts from build job..."
@@ -290,7 +197,16 @@ jobs:
           # Create required directories
           mkdir -p android/app/build/outputs/apk/qa/release/
           mkdir -p android/app/build/outputs/apk/androidTest/qa/release/
-          
+
+      - name: Download Android build artifacts
+        if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Move Android artifacts to expected locations
+        if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
+        run: |
           # Move main APK
           if [[ -f "artifacts/app-qa-release.apk/app-qa-release.apk" ]]; then
             cp "artifacts/app-qa-release.apk/app-qa-release.apk" "android/app/build/outputs/apk/qa/release/"
