@@ -823,7 +823,7 @@ class FixtureBuilder {
     const permittedEthAccounts =
       incomingEthAccounts.length > 0
         ? incomingEthAccounts
-        : [DEFAULT_FIXTURE_ACCOUNT];
+        : [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM];
 
     // Cast addresses to the required 0x${string} format
     const typedAddresses = permittedEthAccounts.map(
@@ -937,7 +937,7 @@ class FixtureBuilder {
     );
     const caip25CaveatValueWithDefaultAccount = setEthAccounts(
       caip25CaveatValueWithChains,
-      [DEFAULT_FIXTURE_ACCOUNT],
+      [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM],
     );
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
