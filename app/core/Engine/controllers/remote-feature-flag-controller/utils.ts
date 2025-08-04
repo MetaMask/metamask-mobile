@@ -38,8 +38,6 @@ const getFeatureFlagAppDistribution = () => {
       return DistributionType.Main;
     case 'flask':
       return DistributionType.Flask;
-    case 'beta':
-      return DistributionType.Beta;
     default:
       return DistributionType.Main;
   }
