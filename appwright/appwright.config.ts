@@ -4,7 +4,7 @@ dotenv.config({ path: '.e2e.env' });
 import { defineConfig, Platform } from 'appwright';
 export default defineConfig({
   testDir: './tests',
-  //reporter: [['./reporters/custom-reporter.js']],
+  reporter: [['./reporters/custom-reporter.js']],
   projects: [
     {
       name: 'android',
@@ -12,9 +12,9 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'emulator', // or 'local-device' or 'browserstack'
+          name: 'Pixel 6', // this can changed
         },
-        buildPath: './Users/curtisdavid/Downloads/app-qa-release.apk', // Path to your .apk file
-        expectTimeout: 10000,
+        buildPath: '/Users/javi/Downloads/app-qa-release.apk', // Path to your .apk file
       },
     },
     {
@@ -24,7 +24,7 @@ export default defineConfig({
         device: {
           provider: 'emulator', // or 'local-device' or 'browserstack'
         },
-        buildPath: 'Metamask-QA.ipa', // Path to your .app file
+        buildPath: 'Metamask-QA.app', // Path to your .app file
       },
     },
     {

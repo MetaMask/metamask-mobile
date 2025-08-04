@@ -3,23 +3,25 @@ export class PerformanceTracker {
       this.timers = {};
     }
   
-    addTimer(name, timer) {
-        if (this.timers[name]) {
-            console.log('Timer already exists', name);
+    addTimer(timer) {
+        if (this.timers[timer.id]) {
+            console.log('Timer already exists', timer.id);
             return;
         }
-        this.timers[name] = timer;
+        this.timers[timer.id] = timer;
     }
   
     async attachToTest(testInfo) {
       const metrics = {};
       let totalSeconds = 0;
-      for (const [name, timer] of Object.entries(this.timers)) {
-        metrics[name] = timer.getDuration();
+      for (const [id, timer] of Object.entries(this.timers)) {
+        metrics[id] = timer.getDuration();
         totalSeconds += timer.getDurationInSeconds();
       }
-      metrics.totalTimeSeconds = totalSeconds;
+      metrics.total = totalSeconds;
   
+      console.log('testInfo', testInfo);
+      console.log('Name ', `performance-metrics-${testInfo.title}`);
       await testInfo.attach(`performance-metrics-${testInfo.title}`, {
         body: JSON.stringify(metrics),
         contentType: 'application/json'

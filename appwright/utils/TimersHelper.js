@@ -2,7 +2,7 @@ import Timers from './Timers';
 
 class TimerHelper {
     constructor(id) {
-        this.id = id;
+        this._id = id;
         Timers.createTimer(this.id);
     }
 
@@ -22,6 +22,10 @@ class TimerHelper {
     getDurationInSeconds() {
         const timer = Timers.getTimer(this.id);
         return timer.duration / 1000;
+    }
+
+    get id() {
+        return this._id;
     }
 }
 

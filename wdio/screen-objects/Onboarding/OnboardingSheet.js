@@ -1,8 +1,18 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import { OnboardingSheetSelectorIDs } from '../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
 
 class OnboardingSheet {
+
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get container() {
     return Selectors.getXpathElementByResourceId(OnboardingSheetSelectorIDs.CONTAINER_ID);
   }
@@ -16,7 +26,11 @@ class OnboardingSheet {
   }
 
   get importSeedButton() {
-    return Selectors.getXpathElementByResourceId(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON);
+    }
   }
 
   async tapGoogleLoginButton() {
@@ -28,7 +42,12 @@ class OnboardingSheet {
   }
 
   async tapImportSeedButton() {
-    await Gestures.waitAndTap(this.importSeedButton);
+    if (!this.device) {
+      await Gestures.waitAndTap(this.importSeedButton);
+    } else {
+      const button = await this.importSeedButton;
+      await button.tap();
+    }
   }
 
 }

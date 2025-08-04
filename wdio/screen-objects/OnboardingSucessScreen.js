@@ -1,15 +1,33 @@
 import { OnboardingSuccessSelectorIDs } from '../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
+import AppwrightSelectors from '../helpers/AppwrightSelectors';
+
 
 class OnboardingSuccessView {
 
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
   get doneButton() {
-    return Selectors.getXpathElementByResourceId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, OnboardingSuccessSelectorIDs.DONE_BUTTON);
+    }
   }
 
   async tapDone() {
-    await Gestures.waitAndTap(this.doneButton);
+    if (!this.device) {
+      await Gestures.waitAndTap(this.doneButton);
+    } else {
+      const button = await this.doneButton;
+      await button.tap();
+    }
   }
 }
 
