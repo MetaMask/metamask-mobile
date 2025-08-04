@@ -230,6 +230,12 @@ jobs:
       - name: Require clean working directory
         shell: bash
         run: |
+          # Skip step if event is not a PR
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "This job only runs for pull requests."
+            exit 0
+          fi
+
           if ! git diff --exit-code; then
             echo "Working tree dirty at end of job"
             exit 1
@@ -257,6 +263,12 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Skip step if event is not a PR
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "This job only runs for pull requests."
+            exit 0
+          fi
+
           # Bypass step if skip-sonar-cloud label is found
           LABEL=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
           "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" | \
