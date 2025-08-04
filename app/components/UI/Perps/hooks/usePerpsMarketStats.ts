@@ -40,6 +40,7 @@ export const usePerpsMarketStats = (symbol: string): MarketStats => {
   const { candleData } = usePerpsPositionData({
     coin: symbol,
     selectedInterval: '1h', // Use 1h candles for 24h calculation
+    selectedDuration: '1d',
   });
 
   // Subscribe to market data updates (funding, open interest, volume)
