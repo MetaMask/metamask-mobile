@@ -31,6 +31,68 @@ interface ValidationResult {
  * Hook to handle close position validation combining protocol-specific and UI-specific rules
  * Uses the existing validateClosePosition method from the provider for protocol validation
  * and adds UI-specific validation on top
+ *
+ * VALIDATION LOGIC:
+ *
+ * ==========================================
+ * ERRORS (Block user action - button disabled)
+ * ==========================================
+ *
+ * 1. PROTOCOL VALIDATION FAILURE
+ * - Any validation error from the provider (e.g., insufficient balance, invalid params)
+ * - Example: User has $100 balance but tries to close position requiring $150 margin
+ *
+ * 2. PARTIAL CLOSE WITH REMAINDER BELOW MINIMUM
+ * - When closing part of a position leaves remainder below minimum order amount
+ * - Minimum: $11 (mainnet) or $10 (testnet)
+ * - Example: ERROR - Closing 90% of a $100 position leaves $10 (below $11 minimum)
+ * - Example: ERROR - Closing $89 of a $100 position leaves $11 (exactly at minimum, allowed)
+ *
+ * 3. FULL CLOSE BELOW MINIMUM ORDER AMOUNT
+ * - When closing 100% but the total position value is below minimum
+ * - Example: ERROR - Trying to close a $8 position (below $11 minimum)
+ * - Note: This shouldn't happen if positions were opened correctly
+ *
+ * 4. NEGATIVE RECEIVE AMOUNT
+ * - When fees exceed the position value + P&L
+ * - Example: ERROR - Position worth $10, fees are $12, user would receive -$2
+ * - Protects users from paying to close losing positions
+ *
+ * 5. MISSING LIMIT PRICE
+ * - Limit orders require a price to be specified
+ * - Example: ERROR - Limit order with no price or price <= 0
+ *
+ * 6. ZERO AMOUNT FOR MARKET ORDER
+ * - Market orders with 0% close percentage
+ * - Example: ERROR - Slider at 0% for market order
+ *
+ * ==========================================
+ * WARNINGS (Non-blocking - yellow text, user can proceed)
+ * ==========================================
+ *
+ * 1. LIMIT PRICE FAR FROM MARKET (>10% difference)
+ * - Warns when limit price unlikely to execute soon
+ * - Example: WARNING - BTC at $50,000, limit set at $60,000 (20% higher)
+ * - Example: WARNING - ETH at $3,000, limit set at $2,500 (16.7% lower)
+ * - User can still place the order if they want
+ *
+ * 2. VERY SMALL PARTIAL CLOSE (<10% of position)
+ * - Warns about closing tiny portions that may not be worth the fees
+ * - Example: WARNING - Closing only 5% of a $1,000 position ($50)
+ * - Example: WARNING - Closing only 2% of a $5,000 position ($100)
+ * - Useful for taking small profits but may not justify transaction costs
+ *
+ * ==========================================
+ * SPECIAL BEHAVIORS:
+ * ==========================================
+ *
+ * - AUTO-SNAP TO 100%: If user drags slider to a value that would leave remainder
+ * below minimum, the UI automatically snaps to 100% to prevent the error
+ * Example: $100 position, user drags to 92% ($8 remainder) -> snaps to 100%
+ *
+ * - VALIDATION IS ASYNC: Protocol validation may take time, isValidating flag indicates loading
+ *
+ * - ERRORS TAKE PRECEDENCE: If both errors and warnings exist, button is disabled
  */
 export function usePerpsClosePositionValidation(
   params: UsePerpsClosePositionValidationParams,
