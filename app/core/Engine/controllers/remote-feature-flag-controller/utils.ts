@@ -18,10 +18,14 @@ const getFeatureFlagAppEnvironment = () => {
     case 'rc':
       return EnvironmentType.ReleaseCandidate;
     case 'production':
-    case 'beta':
       return EnvironmentType.Production;
-    case 'local':
+    case 'beta':
+      return EnvironmentType.Beta;
     case 'exp':
+      return EnvironmentType.Exp;
+    case 'test':
+      return EnvironmentType.Test;
+    case 'local':
     default:
       return EnvironmentType.Development;
   }
@@ -29,10 +33,9 @@ const getFeatureFlagAppEnvironment = () => {
 
 const getFeatureFlagAppDistribution = () => {
   const dist = process.env.METAMASK_BUILD_TYPE;
-  const env = process.env.METAMASK_ENVIRONMENT;
   switch (dist) {
     case 'main':
-      return env === 'beta' ? DistributionType.Beta : DistributionType.Main;
+      return DistributionType.Main;
     case 'flask':
       return DistributionType.Flask;
     case 'beta':

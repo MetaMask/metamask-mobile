@@ -6,7 +6,7 @@ readonly __DIRNAME__="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
 readonly REPO_ROOT_DIR="$(dirname "${__DIRNAME__}")"
 
 PLATFORM=$1
-MODE=$2
+TARGET=$2
 ENVIRONMENT=$3
 RUN_DEVICE=false
 PRE_RELEASE=false
@@ -15,12 +15,12 @@ ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 
 echo "PLATFORM = $PLATFORM"
-echo "MODE = $MODE"
+echo "TARGET = $TARGET"
 echo "ENVIRONMENT = $ENVIRONMENT"
 
 # Enable Sentry to auto upload source maps and debug symbols
 export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
-export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
+export METAMASK_BUILD_TYPE=${TARGET:-"$METAMASK_BUILD_TYPE"}
 export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
 export EXPO_NO_TYPESCRIPT_SETUP=1
 
@@ -57,7 +57,7 @@ printTitle(){
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
-	echo "  🚀 BUILDING $PLATFORM in $MODE mode $ENVIRONMENT" | tr [a-z] [A-Z]
+	echo "  🚀 BUILDING $PLATFORM in $TARGET mode $ENVIRONMENT" | tr [a-z] [A-Z]
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
@@ -150,7 +150,7 @@ remapEnvVariableQA() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-# Mapping for environmental values in the e2e environment. 
+# Mapping for environmental values in the e2e environment.
 # This is the same as the QA mapping since e2e used QA values before. Subject to change as build configs are updated.
 remapEnvVariableE2E() {
   	echo "Remapping E2E env variable names to match E2E values"
@@ -167,7 +167,7 @@ remapEnvVariableE2E() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-# Mapping for environmental values in the test environment. 
+# Mapping for environmental values in the test environment.
 # This is the same as the QA mapping since e2e used QA values before. Subject to change as build configs are updated.
 remapEnvVariableTest() {
   	echo "Remapping test env variable names to match test values"
@@ -577,31 +577,31 @@ buildAndroidReleaseE2E(){
 }
 
 buildAndroid() {
-	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
+	if [ "$TARGET" == "release" ] || [ "$TARGET" == "main" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildAndroidMainLocal
 		else
 			buildAndroidMainProduction
 		fi
-	elif [ "$MODE" == "flask" ] ; then
+	elif [ "$TARGET" == "flask" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildAndroidFlaskLocal
 		else
 			buildAndroidFlaskProduction
 		fi
-	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+	elif [ "$TARGET" == "QA" ] || [ "$TARGET" == "qa" ] ; then
 		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
 			buildAndroidQaLocal
 		else
 			buildAndroidQaProduction
 		fi
-	elif [ "$MODE" == "releaseE2E" ] ; then
+	elif [ "$TARGET" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
-  	elif [ "$MODE" == "debugE2E" ] ; then
+  	elif [ "$TARGET" == "debugE2E" ] ; then
 		buildAndroidRunE2E
-	elif [ "$MODE" == "qaDebug" ] ; then
+	elif [ "$TARGET" == "qaDebug" ] ; then
 		buildAndroidRunQA
-	elif [ "$MODE" == "flaskDebug" ] ; then
+	elif [ "$TARGET" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
 	else
 		buildAndroidRun
@@ -619,43 +619,43 @@ buildAndroidRunE2E(){
 }
 
 buildIos() {
-	echo "Build iOS $MODE started..."
-	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
+	echo "Build iOS $TARGET started..."
+	if [ "$TARGET" == "release" ] || [ "$TARGET" == "main" ] ; then
 		# Prepare iOS dependencies
 		prebuild_ios
 		# Go to ios directory
 		cd ios
 		# Generate iOS binary
 		generateIosBinary "MetaMask"
-	elif [ "$MODE" == "flask" ] ; then
+	elif [ "$TARGET" == "flask" ] ; then
 		# Prepare iOS dependencies
 		prebuild_ios
 		# Go to ios directory
 		cd ios
 		# Generate iOS binary
 		generateIosBinary "MetaMask-Flask"
-	elif [ "$MODE" == "releaseE2E" ] ; then
+	elif [ "$TARGET" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
-	elif [ "$MODE" == "debugE2E" ] ; then
+	elif [ "$TARGET" == "debugE2E" ] ; then
 			buildIosSimulatorE2E
-	elif [ "$MODE" == "qadebugE2E" ] ; then
+	elif [ "$TARGET" == "qadebugE2E" ] ; then
 			buildIosQASimulatorE2E
-	elif [ "$MODE" == "flaskDebugE2E" ] ; then
+	elif [ "$TARGET" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
-	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+	elif [ "$TARGET" == "QA" ] || [ "$TARGET" == "qa" ] ; then
 		# Prepare iOS dependencies
 		prebuild_ios
 		# Go to ios directory
 		cd ios
 		# Generate iOS binary
 		generateIosBinary "MetaMask-QA"
-	elif [ "$MODE" == "qaDebug" ] ; then
+	elif [ "$TARGET" == "qaDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDeviceQA
 		else
 			buildIosSimulatorQA
 		fi
-	elif [ "$MODE" == "flaskDebug" ] ; then
+	elif [ "$TARGET" == "flaskDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDeviceFlask
 		else
@@ -674,7 +674,7 @@ startWatcher() {
 	source $JS_ENV_FILE
 	remapEnvVariableLocal
   	WATCHER_PORT=${WATCHER_PORT:-8081}
-	if [ "$MODE" == "clean" ]; then
+	if [ "$TARGET" == "clean" ]; then
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache
 		#react-native start --port=$WATCHER_PORT -- --reset-cache
@@ -713,8 +713,7 @@ printTitle
 loadJSEnv
 
 # Map environment variables based on mode.
-# TODO: MODE should be renamed to TARGET
-if [ "$MODE" == "main" ]; then
+if [ "$TARGET" == "main" ]; then
 	export GENERATE_BUNDLE=true # Used only for Android
 	export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
 	if [ "$ENVIRONMENT" == "production" ]; then
@@ -730,10 +729,10 @@ if [ "$MODE" == "main" ]; then
 	elif [ "$ENVIRONMENT" == "e2e" ]; then
 		remapEnvVariableE2E
 	fi
-elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
+elif [ "$TARGET" == "flask" ] || [ "$TARGET" == "flaskDebug" ]; then
 	# TODO: Map environment variables based on environment
 	remapFlaskEnvVariables
-elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" ] || [ "$MODE" == "QA" ]; then
+elif [ "$TARGET" == "qa" ] || [ "$TARGET" == "qaDebug" ] || [ "$TARGET" == "QA" ]; then
 	# TODO: Map environment variables based on environment
 	remapEnvVariableQA
 fi
@@ -745,11 +744,11 @@ if [ "$ENVIRONMENT" == "e2e" ]; then
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
 fi
 
-if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
+if [ "$TARGET" == "releaseE2E" ] || [ "$TARGET" == "QA" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ] || [ "$MODE" == "main" ]; then
+elif [ "$TARGET" == "release" ] || [ "$TARGET" == "flask" ] || [ "$TARGET" == "main" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"

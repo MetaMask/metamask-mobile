@@ -148,6 +148,22 @@ describe('deriveSentryEnvironment', () => {
     const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
     expect(env).toBe('main-beta');
   });
+
+  it('returns main-test for test environment and main build type', async () => {
+    const METAMASK_ENVIRONMENT = 'test';
+    const isDev = false;
+
+    const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
+    expect(env).toBe('main-test');
+  });
+
+  it('returns main-e2e for e2e environment and main build type', async () => {
+    const METAMASK_ENVIRONMENT = 'e2e';
+    const isDev = false;
+
+    const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
+    expect(env).toBe('main-e2e');
+  });
 });
 
 describe('excludeEvents', () => {
