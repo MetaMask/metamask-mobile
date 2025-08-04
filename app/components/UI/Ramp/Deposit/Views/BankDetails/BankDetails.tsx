@@ -63,7 +63,7 @@ const BankDetails = () => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const { sdk, selectedWalletAddress, selectedRegion } = useDepositSDK();
+  const { sdk, selectedRegion } = useDepositSDK();
   const trackEvent = useAnalytics();
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
@@ -231,7 +231,7 @@ const BankDetails = () => {
         payment_method_id: order.data.paymentMethod,
         country: selectedRegion?.isoCode || '',
         chain_id: cryptoCurrency?.chainId || '',
-        currency_destination: selectedWalletAddress || order.data.walletAddress,
+        currency_destination: cryptoCurrency?.assetId || '',
         currency_source: order.data.fiatCurrency,
       });
 
@@ -253,7 +253,6 @@ const BankDetails = () => {
     handleOnRefresh,
     order,
     selectedRegion?.isoCode,
-    selectedWalletAddress,
     trackEvent,
   ]);
 
