@@ -5,7 +5,10 @@ import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useDispatch } from 'react-redux';
-import { setTransactionBridgeQuotes } from '../../../../../core/redux/slices/confirmationMetrics';
+import {
+  setTransactionBridgeQuotes,
+  setTransactionBridgeQuotesLoading,
+} from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { Hex, createProjectLogger } from '@metamask/utils';
 
@@ -60,6 +63,12 @@ export function useTransactionBridgeQuotes() {
 
     return getBridgeQuotes(requests as BridgeQuoteRequest[]);
   }, [requests]);
+
+  useEffect(() => {
+    dispatch(
+      setTransactionBridgeQuotesLoading({ transactionId, isLoading: loading }),
+    );
+  }, [dispatch, transactionId, loading]);
 
   useEffect(() => {
     dispatch(setTransactionBridgeQuotes({ transactionId, quotes }));
