@@ -36,7 +36,7 @@ const PerpsTimeDurationSelector: React.FC<PerpsTimeDurationSelectorProps> = ({
             key={duration.value}
             style={({ pressed }) => [
               styles.durationButton,
-              selectedDuration === duration.value
+              selectedDuration.toLowerCase() === duration.value.toLowerCase()
                 ? styles.durationButtonActive
                 : styles.durationButtonInactive,
               pressed && styles.durationButtonPressed,
@@ -48,7 +48,7 @@ const PerpsTimeDurationSelector: React.FC<PerpsTimeDurationSelectorProps> = ({
               variant={TextVariant.BodySm}
               style={[
                 styles.durationButtonText,
-                selectedDuration === duration.value
+                selectedDuration.toLowerCase() === duration.value.toLowerCase()
                   ? styles.durationButtonTextActive
                   : styles.durationButtonTextInactive,
               ]}

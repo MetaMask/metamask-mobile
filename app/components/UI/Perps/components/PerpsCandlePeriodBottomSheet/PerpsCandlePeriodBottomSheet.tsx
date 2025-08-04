@@ -13,20 +13,28 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { CANDLE_PERIODS } from '../../constants/chartConfig';
+import { getCandlePeriodsForDuration } from '../../constants/chartConfig';
 import { Box } from '@metamask/design-system-react-native';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
   selectedPeriod: string;
+  selectedDuration: string; // New prop to determine available periods
   onPeriodChange?: (period: string) => void;
   testID?: string;
 }
 
 const PerpsCandlePeriodBottomSheet: React.FC<
   PerpsCandlePeriodBottomSheetProps
-> = ({ isVisible, onClose, selectedPeriod, onPeriodChange, testID }) => {
+> = ({
+  isVisible,
+  onClose,
+  selectedPeriod,
+  selectedDuration,
+  onPeriodChange,
+  testID,
+}) => {
   const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const styles = StyleSheet.create({
@@ -73,6 +81,9 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     }
   }, [isVisible]);
 
+  // Get available periods for the selected duration
+  const availablePeriods = getCandlePeriodsForDuration(selectedDuration);
+
   const handlePeriodSelect = (period: string) => {
     onPeriodChange?.(period);
     onClose();
@@ -92,13 +103,13 @@ const PerpsCandlePeriodBottomSheet: React.FC<
         <Text variant={TextVariant.HeadingMD}>Select Candle Period</Text>
       </BottomSheetHeader>
       <Box>
-        {CANDLE_PERIODS.map((period, index) => (
+        {availablePeriods.map((period, index) => (
           <TouchableOpacity
             key={period.value}
             style={[
               styles.periodOption,
               selectedPeriod === period.value && styles.periodOptionActive,
-              index === CANDLE_PERIODS.length - 1 && styles.periodOptionLast,
+              index === availablePeriods.length - 1 && styles.periodOptionLast,
             ]}
             onPress={() => handlePeriodSelect(period.value)}
             testID={`${testID}-period-${period.value}`}

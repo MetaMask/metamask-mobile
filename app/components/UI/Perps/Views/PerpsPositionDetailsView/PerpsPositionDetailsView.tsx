@@ -25,6 +25,7 @@ import { createStyles } from './PerpsPositionDetailsView.styles';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import PerpsClosePositionBottomSheet from '../../components/PerpsClosePositionBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
+import { getDefaultCandlePeriodForDuration } from '../../constants/chartConfig';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
@@ -42,8 +43,10 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const { position } = route.params || {};
 
-  const [selectedDuration, setSelectedDuration] = useState('1D');
-  const [selectedCandlePeriod, setSelectedCandlePeriod] = useState('15m');
+  const [selectedDuration, setSelectedDuration] = useState('1d');
+  const [selectedCandlePeriod, setSelectedCandlePeriod] = useState(() =>
+    getDefaultCandlePeriodForDuration('1d'),
+  );
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
   const [
@@ -64,11 +67,15 @@ const PerpsPositionDetailsView: React.FC = () => {
   });
   const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
     coin: position?.coin || '',
-    selectedInterval: selectedCandlePeriod, // Use candle period for data fetching
+    selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
+    selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
   });
 
   const handleDurationChange = useCallback((newDuration: string) => {
     setSelectedDuration(newDuration);
+    // Auto-update candle period to the appropriate default for the new duration
+    const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
+    setSelectedCandlePeriod(defaultPeriod);
   }, []);
 
   const handleCandlePeriodChange = useCallback((newPeriod: string) => {
@@ -192,6 +199,7 @@ const PerpsPositionDetailsView: React.FC = () => {
           isVisible
           onClose={() => setIsCandlePeriodBottomSheetVisible(false)}
           selectedPeriod={selectedCandlePeriod}
+          selectedDuration={selectedDuration}
           onPeriodChange={handleCandlePeriodChange}
           testID="perps-candle-period-bottom-sheet"
         />
