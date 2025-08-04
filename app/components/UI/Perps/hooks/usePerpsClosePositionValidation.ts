@@ -44,13 +44,13 @@ interface ValidationResult {
  *
  * 2. PARTIAL CLOSE WITH REMAINDER BELOW MINIMUM
  * - When closing part of a position leaves remainder below minimum order amount
- * - Minimum: $11 (mainnet) or $10 (testnet)
- * - Example: ERROR - Closing 90% of a $100 position leaves $10 (below $11 minimum)
- * - Example: ERROR - Closing $89 of a $100 position leaves $11 (exactly at minimum, allowed)
+ * - Minimum: $6 (mainnet) or $11 (testnet)
+ * - Example: ERROR - Closing 95% of a $100 position leaves $5 (below $6 minimum)
+ * - Example: ERROR - Closing $94 of a $100 position leaves $6 (exactly at minimum, allowed)
  *
  * 3. FULL CLOSE BELOW MINIMUM ORDER AMOUNT
  * - When closing 100% but the total position value is below minimum
- * - Example: ERROR - Trying to close a $8 position (below $11 minimum)
+ * - Example: ERROR - Trying to close a $5 position (below $6 minimum on mainnet)
  * - Note: This shouldn't happen if positions were opened correctly
  *
  * 4. NEGATIVE RECEIVE AMOUNT
@@ -85,10 +85,6 @@ interface ValidationResult {
  * ==========================================
  * SPECIAL BEHAVIORS:
  * ==========================================
- *
- * - AUTO-SNAP TO 100%: If user drags slider to a value that would leave remainder
- * below minimum, the UI automatically snaps to 100% to prevent the error
- * Example: $100 position, user drags to 92% ($8 remainder) -> snaps to 100%
  *
  * - VALIDATION IS ASYNC: Protocol validation may take time, isValidating flag indicates loading
  *

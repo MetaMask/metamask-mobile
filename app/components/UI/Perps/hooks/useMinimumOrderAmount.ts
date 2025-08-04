@@ -42,13 +42,13 @@ export function useMinimumOrderAmount(
     }
 
     // Fallback: Use network-specific defaults
-    // Note: These are HyperLiquid-specific defaults
-    // Future providers should implement their own defaults
+    // Note: These match HyperLiquid's TRADING_DEFAULTS values
+    // Future providers should implement their own defaults via protocol config
     if (network === 'mainnet') {
-      return 10; // $10 minimum for mainnet
+      return 6; // $6 minimum for mainnet (matches TRADING_DEFAULTS.amount.mainnet)
     }
 
-    return 11; // $11 minimum for testnet
+    return 11; // $11 minimum for testnet (matches TRADING_DEFAULTS.amount.testnet)
   }, [marketData, network]);
 
   return {
