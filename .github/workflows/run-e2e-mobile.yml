@@ -25,9 +25,138 @@ on:
         default: true
 
 jobs:
+  build-android-app:
+    name: Build Android QA App for E2E
+    if: ${{ inputs.platform == 'android' }}
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    outputs:
+      apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
+      test-apk-uploaded: ${{ steps.upload-test-apk.outcome == 'success' }}
+    steps:
+      # Get the source code from the repository
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # Install Android SDK, Node.js, and other Android development dependencies
+      - name: Installing Android Environment Setup
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
+        with:
+          platform: android
+          setup-simulator: false
+
+      # Cache Gradle dependencies (most important for build speed)
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            android/.gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      # Run project setup and build the Android QA app (APK and Test APK)
+      - name: Setup and Build Android App
+        run: |
+          echo "🚀 Finishing Android Setup..."
+          yarn setup:github-ci --no-build-ios
+          echo "🏗 Building Android APP..."
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          cp android/gradle.properties.github android/gradle.properties
+          yarn build:android:qa
+          echo "🏗 Building Android Test APK..."
+          yarn test:e2e:android:build:qa-release
+        shell: bash
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: "true"
+          CI: "true"
+          NODE_OPTIONS: "--max-old-space-size=8192"
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+
+      # Cache Android SDK and environment for test job reuse
+      - name: Cache Android SDK Setup
+        uses: actions/cache@v4
+        with:
+          path: |
+            /opt/android-sdk
+            $HOME/.android
+          key: android-complete-${{ runner.os }}-v1-${{ hashFiles('android/**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            android-complete-${{ runner.os }}-v1-
+
+      # Cache Node modules for test job reuse
+      - name: Cache Node Modules for E2E
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: e2e-node-modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            e2e-node-modules-${{ runner.os }}-
+
+      # Create Android AVD for E2E tests (reused by test job)
+      - name: Create Android AVD for E2E Tests
+        run: |
+          echo "🤖 Creating Android AVD for E2E tests..."
+          
+          # Set up AVD environment
+          export ANDROID_AVD_HOME="$HOME/.android/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          
+          # Create AVD (same config as test job expects)
+          IMAGE="system-images;android-34;google_apis;x86_64"
+          echo "Creating AVD with image: $IMAGE"
+          echo "no" | "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" create avd \
+            --name "emulator" \
+            --package "$IMAGE" \
+            --device "pixel" \
+            --force
+          
+          echo "✅ Android AVD created and ready for E2E tests"
+        shell: bash
+
+      # Upload the Android APK file for device installation and testing
+      - name: Upload Android APK Artifact
+        id: upload-apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-qa-release.apk
+          path: android/app/build/outputs/apk/qa/release/app-qa-release.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      # Upload the Android Test APK for E2E testing
+      - name: Upload Android Test APK Artifact
+        id: upload-test-apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-qa-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/qa/release/app-qa-release-androidTest.apk
+          retention-days: 7
+          if-no-files-found: error
+
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
     runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'large-mm-test' }}
+    needs: build-android-app
+    if: always()
     #runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
 
     env:
@@ -45,6 +174,9 @@ jobs:
       MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
       SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
       MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+      MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+      GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+      GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
 
     steps:
@@ -55,14 +187,85 @@ jobs:
           clean: true
           fetch-depth: 0
 
-      - name: Set up E2E environment
+      # iOS: Full environment setup (unchanged)
+      - name: Set up E2E environment (iOS)
+        if: ${{ inputs.platform == 'ios' }}
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions 
         with:
-          platform: ${{ inputs.platform }}
-          setup-simulator: ${{ inputs.platform == 'ios' }}
-          android-avd-name: emulator
-          android-abi: x86_64
+          platform: ios
+          setup-simulator: true
           configure-keystores: false
+
+      # Android: Restore cached environment and minimal setup
+      - name: Restore Android SDK Cache
+        if: ${{ inputs.platform == 'android' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            /opt/android-sdk
+            $HOME/.android
+          key: android-complete-${{ runner.os }}-v1-${{ hashFiles('android/**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            android-complete-${{ runner.os }}-v1-
+
+      - name: Restore Node Modules Cache
+        if: ${{ inputs.platform == 'android' }}
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: e2e-node-modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            e2e-node-modules-${{ runner.os }}-
+
+      - name: Minimal Android E2E Setup
+        if: ${{ inputs.platform == 'android' }}
+        run: |
+          echo "🚀 Setting up minimal Android E2E environment..."
+          
+          # Restore Android environment variables
+          echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
+          
+          # Ensure Detox CLI is available
+          if ! command -v detox &> /dev/null; then
+            echo "Installing Detox CLI..."
+            yarn global add detox-cli
+          else
+            echo "Detox CLI already available"
+          fi
+          
+          # Verify AVD exists (created by build job)
+          if [ -d "$HOME/.android/avd/emulator.avd" ]; then
+            echo "✅ AVD 'emulator' found - ready for testing"
+          else
+            echo "⚠️ AVD not found, creating fresh one..."
+            IMAGE="system-images;android-34;google_apis;x86_64"
+            echo "no" | "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" create avd \
+              --name "emulator" \
+              --package "$IMAGE" \
+              --device "pixel" \
+              --force
+          fi
+          
+          echo "✅ Minimal Android E2E setup complete (reusing cached environment)"
+        shell: bash
+
+      # OPTIONAL: Uncomment to create fresh AVD each time instead of reusing
+      #- name: Create Fresh Android AVD (Optional)
+      #  if: ${{ inputs.platform == 'android' }}
+      #  run: |
+      #    echo "🔄 Creating fresh Android AVD..."
+      #    # Remove existing AVD
+      #    "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" delete avd -n emulator || true
+      #    # Create fresh AVD
+      #    IMAGE="system-images;android-34;google_apis;x86_64"
+      #    echo "no" | "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" create avd \
+      #      --name "emulator" \
+      #      --package "$IMAGE" \
+      #      --device "pixel" \
+      #      --force
+      #    echo "✅ Fresh AVD created"
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
@@ -70,6 +273,41 @@ jobs:
           echo "Building Detox framework cache for iOS..."
           yarn detox clean-framework-cache
           yarn detox build-framework-cache
+
+      - name: Download Android build artifacts
+        if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Setup Android artifacts
+        if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
+        run: |
+          echo "🏗 Setting up Android artifacts from build job..."
+          
+          # Create required directories
+          mkdir -p android/app/build/outputs/apk/qa/release/
+          mkdir -p android/app/build/outputs/apk/androidTest/qa/release/
+          
+          # Move main APK
+          if [[ -f "artifacts/app-qa-release.apk/app-qa-release.apk" ]]; then
+            cp "artifacts/app-qa-release.apk/app-qa-release.apk" "android/app/build/outputs/apk/qa/release/"
+            echo "✅ Android main APK ready for E2E tests"
+          else
+            echo "❌ Android main APK not found"
+            ls -la artifacts/
+            exit 1
+          fi
+          
+          # Move test APK
+          if [[ -f "artifacts/app-qa-release-androidTest.apk/app-qa-release-androidTest.apk" ]]; then
+            cp "artifacts/app-qa-release-androidTest.apk/app-qa-release-androidTest.apk" "android/app/build/outputs/apk/androidTest/qa/release/"
+            echo "✅ Android test APK ready for E2E tests"
+          else
+            echo "❌ Android test APK not found"
+            ls -la artifacts/
+            exit 1
+          fi
 
       #- name: Build E2E app
       #  if: ${{ !inputs.use_prebuilt_apps }}
@@ -90,91 +328,92 @@ jobs:
       #      yarn test:e2e:android:build:qa-release
       #    fi
 
-      - name: Setup pre-built apps from GitHub release
-        if: ${{ inputs.use_prebuilt_apps }}
-        run: |
-          platform="${{ inputs.platform }}"
-
-          echo "🚀 Setting up pre-built apps for $platform..."
-
-          # Base URL for artifacts
-          base_url="https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/test6"
-
-          # Create required directories
-          mkdir -p android/app/build/outputs/apk/qa/release/
-          mkdir -p ios/build/Build/Products/Release-iphonesimulator/
-
-          if [[ "$platform" == "ios" ]]; then
-            echo "📥 Downloading iOS artifacts..."
-
-            # Clean up any existing lock files
-            find . -name "*.lock" -type f -delete 2>/dev/null || true
-
-            # Download Release-iphonesimulator.zip
-            if curl -L --fail -o /tmp/Release-iphonesimulator.zip "${base_url}/Release-iphonesimulator.zip"; then
-              echo "✅ Downloaded Release-iphonesimulator.zip"
-              echo "📦 Extracting iOS app..."
-
-              # Extract preserving directory structure (remove -j flag)
-              cd ios/build/Build/Products/Release-iphonesimulator/
-              unzip -o /tmp/Release-iphonesimulator.zip "MetaMask-QA.app/*"
-              cd - > /dev/null
-
-              # Set proper permissions for the app bundle
-              chmod -R 755 "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" 2>/dev/null || true
-
-            else
-              echo "❌ Failed to download iOS artifacts (Release-iphonesimulator.zip)"
-              exit 1
-            fi
-
-            # Verify iOS setup
-            if [[ -f "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/Info.plist" ]]; then
-              echo "✅ iOS app ready for E2E tests"
-              echo "📋 App bundle contents:"
-              find "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" -maxdepth 1 -exec ls -la {} \; | head -10
-            else
-              echo "❌ iOS app setup failed - Info.plist not found"
-              echo "📋 Directory contents:"
-              find "ios/build/Build/Products/Release-iphonesimulator/" -maxdepth 1 -exec ls -la {} \; 2>/dev/null || true
-              exit 1
-            fi
-
-          else
-            echo "📥 Downloading Android artifacts..."
-
-            if curl -L --fail -o /tmp/outputs.zip "${base_url}/outputs.zip"; then
-              echo "✅ Downloaded outputs.zip"
-              echo "📦 Extracting Android APKs..."
-
-              # Create required directories for both main and test APKs
-              mkdir -p android/app/build/outputs/apk/androidTest/qa/release/
-
-              # Extract main APK
-              unzip -o -j /tmp/outputs.zip "apk/qa/release/app-qa-release.apk" -d "android/app/build/outputs/apk/qa/release/"
-
-              # Extract test APK (androidTest)
-              unzip -o -j /tmp/outputs.zip "apk/androidTest/qa/release/app-qa-release-androidTest.apk" -d "android/app/build/outputs/apk/androidTest/qa/release/"
-
-              # Verify Android setup
-              if [[ -f "android/app/build/outputs/apk/qa/release/app-qa-release.apk" ]]; then
-                echo "✅ Android main APK ready for E2E tests"
-              else
-                echo "❌ Android main APK setup failed"
-                exit 1
-              fi
-
-              if [[ -f "android/app/build/outputs/apk/androidTest/qa/release/app-qa-release-androidTest.apk" ]]; then
-                echo "✅ Android test APK ready for E2E tests"
-              else
-                echo "❌ Android test APK setup failed"
-                exit 1
-              fi
-            else
-              echo "❌ Failed to download Android artifacts (outputs.zip not available)"
-              exit 1
-            fi
-          fi
+      # COMMENTED OUT: Pre-built app setup - now using fresh builds from build-android-app job
+      #- name: Setup pre-built apps from GitHub release
+      #  if: ${{ inputs.use_prebuilt_apps }}
+      #  run: |
+      #    platform="${{ inputs.platform }}"
+      #
+      #    echo "🚀 Setting up pre-built apps for $platform..."
+      #
+      #    # Base URL for artifacts
+      #    base_url="https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/test6"
+      #
+      #    # Create required directories
+      #    mkdir -p android/app/build/outputs/apk/qa/release/
+      #    mkdir -p ios/build/Build/Products/Release-iphonesimulator/
+      #
+      #    if [[ "$platform" == "ios" ]]; then
+      #      echo "📥 Downloading iOS artifacts..."
+      #
+      #      # Clean up any existing lock files
+      #      find . -name "*.lock" -type f -delete 2>/dev/null || true
+      #
+      #      # Download Release-iphonesimulator.zip
+      #      if curl -L --fail -o /tmp/Release-iphonesimulator.zip "${base_url}/Release-iphonesimulator.zip"; then
+      #        echo "✅ Downloaded Release-iphonesimulator.zip"
+      #        echo "📦 Extracting iOS app..."
+      #
+      #        # Extract preserving directory structure (remove -j flag)
+      #        cd ios/build/Build/Products/Release-iphonesimulator/
+      #        unzip -o /tmp/Release-iphonesimulator.zip "MetaMask-QA.app/*"
+      #        cd - > /dev/null
+      #
+      #        # Set proper permissions for the app bundle
+      #        chmod -R 755 "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" 2>/dev/null || true
+      #
+      #      else
+      #        echo "❌ Failed to download iOS artifacts (Release-iphonesimulator.zip)"
+      #        exit 1
+      #      fi
+      #
+      #      # Verify iOS setup
+      #      if [[ -f "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/Info.plist" ]]; then
+      #        echo "✅ iOS app ready for E2E tests"
+      #        echo "📋 App bundle contents:"
+      #        find "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" -maxdepth 1 -exec ls -la {} \; | head -10
+      #      else
+      #        echo "❌ iOS app setup failed - Info.plist not found"
+      #        echo "📋 Directory contents:"
+      #        find "ios/build/Build/Products/Release-iphonesimulator/" -maxdepth 1 -exec ls -la {} \; 2>/dev/null || true
+      #        exit 1
+      #      fi
+      #
+      #    else
+      #      echo "📥 Downloading Android artifacts..."
+      #
+      #      if curl -L --fail -o /tmp/outputs.zip "${base_url}/outputs.zip"; then
+      #        echo "✅ Downloaded outputs.zip"
+      #        echo "📦 Extracting Android APKs..."
+      #
+      #        # Create required directories for both main and test APKs
+      #        mkdir -p android/app/build/outputs/apk/androidTest/qa/release/
+      #
+      #        # Extract main APK
+      #        unzip -o -j /tmp/outputs.zip "apk/qa/release/app-qa-release.apk" -d "android/app/build/outputs/apk/qa/release/"
+      #
+      #        # Extract test APK (androidTest)
+      #        unzip -o -j /tmp/outputs.zip "apk/androidTest/qa/release/app-qa-release-androidTest.apk" -d "android/app/build/outputs/apk/androidTest/qa/release/"
+      #
+      #        # Verify Android setup
+      #        if [[ -f "android/app/build/outputs/apk/qa/release/app-qa-release.apk" ]]; then
+      #          echo "✅ Android main APK ready for E2E tests"
+      #        else
+      #          echo "❌ Android main APK setup failed"
+      #          exit 1
+      #        fi
+      #
+      #        if [[ -f "android/app/build/outputs/apk/androidTest/qa/release/app-qa-release-androidTest.apk" ]]; then
+      #          echo "✅ Android test APK ready for E2E tests"
+      #        else
+      #          echo "❌ Android test APK setup failed"
+      #          exit 1
+      #        fi
+      #      else
+      #        echo "❌ Failed to download Android artifacts (outputs.zip not available)"
+      #        exit 1
+      #      fi
+      #    fi
 
       - name: Clean environment before tests (iOS only)
         if: ${{ inputs.platform == 'ios' }}
