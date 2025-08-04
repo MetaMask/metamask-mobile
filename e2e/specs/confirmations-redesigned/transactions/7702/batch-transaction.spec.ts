@@ -19,6 +19,7 @@ import { SmokeConfirmationsRedesigned } from '../../../../tags';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../../../framework/Constants';
 import { AnvilNodeOptions, LocalNodeType } from '../../../../framework';
+import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
 
 const LOCAL_CHAIN_NAME = 'Localhost';
 
@@ -59,8 +60,8 @@ async function connectTestDappToLocalhost() {
   await TabBarComponent.tapBrowser();
   await Browser.navigateToTestDApp();
   // await TestDApp.tapRevokeAccountPermission();
-  await TestDApp.tapRequestPermissions();
-  await TestDApp.tapConnectButton();
+  // await TestDApp.tapRequestPermissions();
+  // await TestDApp.tapConnectButton();
 }
 
 describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
@@ -84,7 +85,12 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
+          .build(),
         restartDevice: true,
         localNodeOptions: [
           {
@@ -98,7 +104,6 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
         await loginToApp();
 
         // Submit send calls
-        await TabBarComponent.tapWallet();
         await connectTestDappToLocalhost();
         await TestDApp.tapSendCallsButton();
 
