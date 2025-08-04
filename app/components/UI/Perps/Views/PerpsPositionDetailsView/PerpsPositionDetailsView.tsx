@@ -27,7 +27,7 @@ import PerpsClosePositionBottomSheet from '../../components/PerpsClosePositionBo
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getDefaultCandlePeriodForDuration } from '../../constants/chartConfig';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface PositionDetailsRouteParams {
   position: Position;

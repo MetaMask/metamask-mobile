@@ -49,7 +49,7 @@ describe('usePerpsPositionData', () => {
 
     await waitForNextUpdate();
 
-    expect(mockFetchHistoricalCandles).toHaveBeenCalledWith('ETH', '1h', 100);
+    expect(mockFetchHistoricalCandles).toHaveBeenCalledWith('ETH', '1h', 24);
   });
 
   it('should subscribe to price updates on mount', () => {

@@ -270,10 +270,10 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId('perps-chart-interval-selector'),
+        screen.getByTestId('perps-chart-duration-selector'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('perps-chart-interval-selector-1h'),
+        screen.getByTestId('perps-chart-duration-selector-duration-1d'),
       ).toBeOnTheScreen();
     });
   });
@@ -344,7 +344,7 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId('perps-chart-interval-selector-loading'),
+        screen.getByTestId('perps-chart-duration-selector-loading'),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId('perps-chart-loading-skeleton'),
@@ -363,21 +363,23 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId('perps-chart-interval-selector-no-data'),
+        screen.getByTestId('perps-chart-duration-selector-no-data'),
       ).toBeOnTheScreen();
       expect(screen.getByText('No chart data available')).toBeOnTheScreen();
     });
 
-    it('handles interval change correctly', () => {
+    it('handles duration change correctly', () => {
       // Act
       render(<PerpsPositionDetailsView />);
-      fireEvent.press(screen.getByTestId('perps-chart-interval-selector-5m'));
+      fireEvent.press(
+        screen.getByTestId('perps-chart-duration-selector-duration-1w'),
+      );
 
       // Assert
-      // The component should re-render with new interval, but we can't easily test state changes
-      // This test ensures the interval change handler doesn't crash
+      // The component should re-render with new duration, but we can't easily test state changes
+      // This test ensures the duration change handler doesn't crash
       expect(
-        screen.getByTestId('perps-chart-interval-selector'),
+        screen.getByTestId('perps-chart-duration-selector'),
       ).toBeOnTheScreen();
     });
   });
@@ -428,6 +430,7 @@ describe('PerpsPositionDetailsView', () => {
       // Assert
       expect(usePerpsPositionData).toHaveBeenCalledWith({
         coin: 'ETH',
+        selectedDuration: '1d',
         selectedInterval: '1h',
       });
     });
@@ -449,6 +452,7 @@ describe('PerpsPositionDetailsView', () => {
       // Assert
       expect(usePerpsPositionData).toHaveBeenCalledWith({
         coin: 'BTC',
+        selectedDuration: '1d',
         selectedInterval: '1h',
       });
       expect(screen.getByText('BTC-USD')).toBeOnTheScreen();
