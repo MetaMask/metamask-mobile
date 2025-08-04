@@ -43,6 +43,7 @@ export { useHasExistingPosition } from './useHasExistingPosition';
 export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
+export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
 // - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)

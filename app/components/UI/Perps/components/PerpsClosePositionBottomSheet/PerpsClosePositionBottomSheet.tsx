@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   TextInput,
@@ -25,7 +25,7 @@ import {
   useMinimumOrderAmount,
   usePerpsOrderFees,
   usePerpsPrices,
-  usePerpsTrading,
+  usePerpsClosePositionValidation,
 } from '../../hooks';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
 import PerpsSlider from '../PerpsSlider/PerpsSlider';
@@ -50,9 +50,6 @@ const PerpsClosePositionBottomSheet: React.FC<
   const { colors } = theme;
   const styles = createStyles(theme);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  // Get validation method from trading hook
-  const { validateClosePosition } = usePerpsTrading();
 
   // State for order type tabs
   const [orderType, setOrderType] = useState<OrderType>('market');
@@ -113,68 +110,22 @@ const PerpsClosePositionBottomSheet: React.FC<
   const remainingPositionValue = positionValue * (1 - closePercentage / 100);
   const isPartialClose = closePercentage < 100;
 
-  // Validate close position
-  const [validationResult, setValidationResult] = useState<{
-    isValid: boolean;
-    error?: string;
-  }>({ isValid: true });
-
-  useEffect(() => {
-    const validateAsync = async () => {
-      const closeParams = {
-        coin: position.coin,
-        size: closePercentage === 100 ? undefined : closeAmount.toString(),
-        orderType,
-        price: orderType === 'limit' ? limitPrice : undefined,
-        currentPrice,
-      };
-
-      const validation = await validateClosePosition(closeParams);
-
-      // Additional UI validation for remaining position
-      if (
-        validation.isValid &&
-        isPartialClose &&
-        remainingPositionValue < minimumOrderAmount
-      ) {
-        setValidationResult({
-          isValid: false,
-          error: strings('perps.close_position.minimum_remaining_warning', {
-            minimum: minimumOrderAmount.toString(),
-            remaining: formatPrice(remainingPositionValue),
-          }),
-        });
-      } else if (
-        validation.isValid &&
-        closingValue > 0 &&
-        closingValue < minimumOrderAmount
-      ) {
-        // Check if the close order value itself meets minimum requirements
-        setValidationResult({
-          isValid: false,
-          error: strings('perps.order.validation.minimum_amount', {
-            amount: minimumOrderAmount.toString(),
-          }),
-        });
-      } else {
-        setValidationResult(validation);
-      }
-    };
-
-    validateAsync();
-  }, [
-    position.coin,
-    closeAmount,
+  // Use the validation hook
+  const validationResult = usePerpsClosePositionValidation({
+    coin: position.coin,
     closePercentage,
+    closeAmount: closeAmount.toString(),
     orderType,
     limitPrice,
-    validateClosePosition,
-    isPartialClose,
-    remainingPositionValue,
+    currentPrice,
+    positionSize: absSize,
+    positionValue,
     minimumOrderAmount,
     closingValue,
-    currentPrice,
-  ]);
+    remainingPositionValue,
+    receiveAmount,
+    isPartialClose,
+  });
 
   useEffect(() => {
     if (isVisible) {
@@ -205,14 +156,14 @@ const PerpsClosePositionBottomSheet: React.FC<
     );
   };
 
-  const handleLimitPriceChange = useCallback((text: string) => {
+  const handleLimitPriceChange = (text: string) => {
     // Allow only numbers and decimal point
     const sanitized = text.replace(/[^0-9.]/g, '');
     // Prevent multiple decimal points
     const parts = sanitized.split('.');
     if (parts.length > 2) return;
     setLimitPrice(sanitized);
-  }, []);
+  };
 
   const footerButtonProps = [
     {
@@ -402,15 +353,32 @@ const PerpsClosePositionBottomSheet: React.FC<
             </View>
           </View>
 
-          {!validationResult.isValid && (
+          {validationResult.errors.length > 0 && (
             <View style={styles.warningContainer}>
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Error}
-                style={styles.warningText}
-              >
-                {validationResult.error}
-              </Text>
+              {validationResult.errors.map((error, index) => (
+                <Text
+                  key={`error-${index}`}
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  style={styles.warningText}
+                >
+                  {error}
+                </Text>
+              ))}
+            </View>
+          )}
+          {validationResult.warnings.length > 0 && (
+            <View style={styles.warningContainer}>
+              {validationResult.warnings.map((warning, index) => (
+                <Text
+                  key={`warning-${index}`}
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Warning}
+                  style={styles.warningText}
+                >
+                  {warning}
+                </Text>
+              ))}
             </View>
           )}
         </View>

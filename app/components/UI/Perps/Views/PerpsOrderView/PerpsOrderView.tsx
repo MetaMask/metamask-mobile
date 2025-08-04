@@ -462,9 +462,9 @@ const PerpsOrderView: React.FC = () => {
 
   // Handlers
 
-  const handleAmountPress = useCallback(() => {
+  const handleAmountPress = () => {
     setIsInputFocused(true);
-  }, []);
+  };
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
@@ -473,24 +473,21 @@ const PerpsOrderView: React.FC = () => {
     [setAmount],
   );
 
-  const handlePercentagePress = useCallback(
-    (percentage: number) => {
-      handlePercentageAmount(percentage);
-    },
-    [handlePercentageAmount],
-  );
+  const handlePercentagePress = (percentage: number) => {
+    handlePercentageAmount(percentage);
+  };
 
-  const handleMaxPress = useCallback(() => {
+  const handleMaxPress = () => {
     handleMaxAmount();
-  }, [handleMaxAmount]);
+  };
 
-  const handleMinPress = useCallback(() => {
+  const handleMinPress = () => {
     handleMinAmount();
-  }, [handleMinAmount]);
+  };
 
-  const handleDonePress = useCallback(() => {
+  const handleDonePress = () => {
     setIsInputFocused(false);
-  }, []);
+  };
 
   const handlePlaceOrder = useCallback(async () => {
     // Validation errors are shown in the UI

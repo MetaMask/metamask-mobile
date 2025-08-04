@@ -6,13 +6,37 @@ import PerpsClosePositionBottomSheet from './PerpsClosePositionBottomSheet';
 import type { Position } from '../../controllers/types';
 
 // Mock dependencies
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => ({
-    __esModule: true,
-    default: jest.fn(({ children }) => children),
-  }),
+jest.mock('react-native-reanimated', () =>
+  jest.requireActual('react-native-reanimated/mock'),
 );
+
+jest.mock('react-native-gesture-handler', () => ({
+  GestureHandlerRootView: 'View',
+  GestureDetector: 'View',
+  Gesture: {
+    Pan: jest.fn().mockReturnValue({
+      onUpdate: jest.fn().mockReturnThis(),
+      onEnd: jest.fn().mockReturnThis(),
+    }),
+    Tap: jest.fn().mockReturnValue({
+      onEnd: jest.fn().mockReturnThis(),
+    }),
+    Simultaneous: jest.fn(),
+  },
+}));
+
+jest.mock('react-native-safe-area-context', () => {
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  const frame = { width: 0, height: 0, x: 0, y: 0 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+  };
+});
 
 jest.mock('../PerpsSlider/PerpsSlider', () => {
   const { View } = jest.requireActual('react-native');
@@ -46,6 +70,48 @@ jest.mock('../../hooks', () => ({
     isLoading: false,
     error: null,
   })),
+  // Mock validation hook with realistic behavior
+  usePerpsClosePositionValidation: jest.fn((params) => {
+    const errors = [];
+    const warnings = [];
+
+    // Check if the closing value is below minimum (10)
+    if (params?.closingValue < 10) {
+      errors.push('perps.order.validation.minimum_amount');
+    }
+
+    // Check if remaining position is below minimum for partial closes
+    if (params?.isPartialClose && params.remainingPositionValue < 10) {
+      errors.push('perps.close_position.minimum_remaining_warning');
+    }
+
+    // Check if user receives negative amount
+    if (params?.receiveAmount <= 0) {
+      errors.push('perps.close_position.negative_receive_amount');
+    }
+
+    // Check for limit order without price
+    if (params?.orderType === 'limit' && !params.limitPrice) {
+      errors.push('perps.order.validation.limit_price_required');
+    }
+
+    // Check for market order with 0% close
+    if (params?.orderType === 'market' && params?.closePercentage === 0) {
+      errors.push('perps.close_position.no_amount_selected');
+    }
+
+    // Warning for small partial closes
+    if (params?.isPartialClose && params?.closePercentage < 10) {
+      warnings.push('perps.close_position.small_close_warning');
+    }
+
+    return {
+      errors,
+      warnings,
+      isValid: errors.length === 0,
+      isValidating: false,
+    };
+  }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
