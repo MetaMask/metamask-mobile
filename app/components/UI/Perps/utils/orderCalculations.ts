@@ -22,10 +22,9 @@ export function calculatePositionSize(params: PositionSizeParams): string {
     return (0).toFixed(szDecimals);
   }
 
-  // Use Math.ceil to round up to ensure we don't lose value due to precision
   const positionSize = amountNum / price;
   const multiplier = Math.pow(10, szDecimals);
-  const rounded = Math.ceil(positionSize * multiplier) / multiplier;
+  const rounded = Math.round(positionSize * multiplier) / multiplier;
 
   return rounded.toFixed(szDecimals);
 }

@@ -1043,10 +1043,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
         : TRADING_DEFAULTS.amount.mainnet;
 
       // Convert coin amount to USD value for comparison with minimum
-      // If currentPrice is provided, calculate USD value; otherwise fallback to treating size as USD
-      const orderValueUSD = params.currentPrice
-        ? coinAmount * params.currentPrice
-        : coinAmount;
+      // Price is required for proper validation
+      if (!params.currentPrice) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.price_required'),
+        };
+      }
+
+      const orderValueUSD = coinAmount * params.currentPrice;
 
       if (orderValueUSD < minimumOrderSize) {
         return {

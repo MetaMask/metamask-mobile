@@ -2634,4 +2634,125 @@ describe('HyperLiquidProvider', () => {
       });
     });
   });
+
+  describe('validateOrder', () => {
+    beforeEach(() => {
+      mockValidateOrderParams.mockReturnValue({ isValid: true });
+    });
+
+    it('should validate order successfully with valid params and price', async () => {
+      const params: OrderParams = {
+        coin: 'BTC',
+        size: '0.1',
+        isBuy: true,
+        orderType: 'market',
+        currentPrice: 50000,
+        leverage: 10,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeUndefined();
+      expect(mockValidateOrderParams).toHaveBeenCalledWith({
+        coin: 'BTC',
+        size: '0.1',
+        price: undefined,
+      });
+    });
+
+    it('should fail validation when currentPrice is missing', async () => {
+      const params: OrderParams = {
+        coin: 'BTC',
+        size: '0.1',
+        isBuy: true,
+        orderType: 'market',
+        // currentPrice missing
+        leverage: 10,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('perps.order.validation.price_required');
+    });
+
+    it('should fail validation when order value is below minimum', async () => {
+      const params: OrderParams = {
+        coin: 'BTC',
+        size: '0.00001', // Very small size
+        isBuy: true,
+        orderType: 'market',
+        currentPrice: 50000, // 0.00001 * 50000 = $0.5 (below minimum)
+        leverage: 10,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('perps.order.validation.minimum_amount');
+    });
+
+    it('should fail validation when basic params are invalid', async () => {
+      mockValidateOrderParams.mockReturnValue({
+        isValid: false,
+        error: 'Invalid coin',
+      });
+
+      const params: OrderParams = {
+        coin: 'INVALID',
+        size: '0.1',
+        isBuy: true,
+        orderType: 'market',
+        currentPrice: 50000,
+        leverage: 10,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Invalid coin');
+    });
+
+    it('should validate limit order with price', async () => {
+      const params: OrderParams = {
+        coin: 'ETH',
+        size: '1',
+        isBuy: true,
+        orderType: 'limit',
+        price: '3000',
+        currentPrice: 3050,
+        leverage: 5,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(true);
+      expect(mockValidateOrderParams).toHaveBeenCalledWith({
+        coin: 'ETH',
+        size: '1',
+        price: '3000',
+      });
+    });
+
+    it('should handle validation errors gracefully', async () => {
+      mockValidateOrderParams.mockImplementation(() => {
+        throw new Error('Unexpected error');
+      });
+
+      const params: OrderParams = {
+        coin: 'BTC',
+        size: '0.1',
+        isBuy: true,
+        orderType: 'market',
+        currentPrice: 50000,
+        leverage: 10,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Unexpected error');
+    });
+  });
 });

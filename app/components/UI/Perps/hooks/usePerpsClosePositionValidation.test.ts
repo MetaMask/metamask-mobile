@@ -66,12 +66,15 @@ describe('usePerpsClosePositionValidation', () => {
     expect(result.current.errors).toContain(errorMessage);
   });
 
-  it('should return error when closing value is below minimum', async () => {
+  it('should return error when full close value is below minimum', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 
     const params = {
       ...defaultParams,
+      closePercentage: 100,
       closingValue: 5, // Below minimum of 10
+      isPartialClose: false,
+      remainingPositionValue: 0,
     };
 
     const { result } = renderHook(() =>
@@ -108,7 +111,7 @@ describe('usePerpsClosePositionValidation', () => {
 
     expect(result.current.isValid).toBe(false);
     expect(result.current.errors).toContain(
-      strings('perps.close_position.minimum_remaining_warning', {
+      strings('perps.close_position.minimum_remaining_error', {
         minimum: '10',
         remaining: '5.00',
       }),

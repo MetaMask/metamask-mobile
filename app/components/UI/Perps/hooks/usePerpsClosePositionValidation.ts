@@ -104,23 +104,26 @@ export function usePerpsClosePositionValidation(
 
         // UI-specific validations that don't belong in the provider
 
-        // Check if the close order value itself meets minimum requirements
-        if (closingValue > 0 && closingValue < minimumOrderAmount) {
-          errors.push(
-            strings('perps.order.validation.minimum_amount', {
-              amount: minimumOrderAmount.toString(),
-            }),
-          );
-        }
-
-        // For partial closes, check if remaining position meets minimum
-        if (isPartialClose && remainingPositionValue < minimumOrderAmount) {
-          errors.push(
-            strings('perps.close_position.minimum_remaining_warning', {
-              minimum: minimumOrderAmount.toString(),
-              remaining: remainingPositionValue.toFixed(2),
-            }),
-          );
+        // Check partial close constraints
+        if (closePercentage > 0 && closePercentage < 100) {
+          // For any partial close, ensure remaining position meets minimum
+          if (remainingPositionValue < minimumOrderAmount) {
+            errors.push(
+              strings('perps.close_position.minimum_remaining_error', {
+                minimum: minimumOrderAmount.toString(),
+                remaining: remainingPositionValue.toFixed(2),
+              }),
+            );
+          }
+        } else if (closePercentage === 100) {
+          // For full closes, check if the close order value meets minimum
+          if (closingValue > 0 && closingValue < minimumOrderAmount) {
+            errors.push(
+              strings('perps.order.validation.minimum_amount', {
+                amount: minimumOrderAmount.toString(),
+              }),
+            );
+          }
         }
 
         // Check if user will receive a positive amount after fees

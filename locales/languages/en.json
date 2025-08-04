@@ -989,7 +989,11 @@
       "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
       "error_title": "Close Position Failed",
       "fox_points_earned": "{{points}} Fox Points earned!",
-      "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}"
+      "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
+      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
+      "small_close_warning": "Warning: You're closing only {{percentage}}% of your position",
+      "negative_receive_amount": "The fees exceed your position value",
+      "no_amount_selected": "Please select an amount to close"
     },
     "tpsl": {
       "title": "Set take profit and stop loss",
