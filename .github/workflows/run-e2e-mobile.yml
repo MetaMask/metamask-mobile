@@ -138,7 +138,7 @@ jobs:
 
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'large-mm-test' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
     needs: build-android-app
     if: ${{ inputs.platform == 'ios' || (inputs.platform == 'android' && needs.build-android-app.result == 'success') }}
     #runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
