@@ -20,7 +20,10 @@ import {
 } from '../utils';
 
 import { createKycProcessingNavDetails } from '../Views/KycProcessing/KycProcessing';
-import { createBasicInfoNavDetails } from '../Views/BasicInfo/BasicInfo';
+import {
+  BasicInfoFormData,
+  createBasicInfoNavDetails,
+} from '../Views/BasicInfo/BasicInfo';
 import { createBankDetailsNavDetails } from '../Views/BankDetails/BankDetails';
 import { createWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/WebviewModal';
 import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/KycWebviewModal';
@@ -30,6 +33,7 @@ import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyId
 import useAnalytics from '../../hooks/useAnalytics';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
 import Logger from '../../../../../../app/util/Logger';
+import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 
 export interface UseDepositRoutingParams {
@@ -135,9 +139,17 @@ export const useDepositRouting = ({
   );
 
   const navigateToBasicInfoCallback = useCallback(
-    ({ quote }: { quote: BuyQuote }) => {
+    ({
+      quote,
+      previousFormData,
+    }: {
+      quote: BuyQuote;
+      previousFormData?: BasicInfoFormData & AddressFormData;
+    }) => {
       popToBuildQuote();
-      navigation.navigate(...createBasicInfoNavDetails({ quote }));
+      navigation.navigate(
+        ...createBasicInfoNavDetails({ quote, previousFormData }),
+      );
     },
     [navigation, popToBuildQuote],
   );
@@ -320,6 +332,19 @@ export const useDepositRouting = ({
   const routeAfterAuthentication = useCallback(
     async (quote: BuyQuote, depth = 0) => {
       try {
+        const userDetails = await fetchUserDetails();
+        const previousFormData = {
+          firstName: userDetails?.firstName || '',
+          lastName: userDetails?.lastName || '',
+          mobileNumber: userDetails?.mobileNumber || '',
+          dob: userDetails?.dob || '',
+          addressLine1: userDetails?.address?.addressLine1 || '',
+          addressLine2: userDetails?.address?.addressLine2 || '',
+          city: userDetails?.address?.city || '',
+          state: userDetails?.address?.state || '',
+          postCode: userDetails?.address?.postCode || '',
+          countryCode: userDetails?.address?.countryCode || '',
+        };
         const forms = await fetchKycForms(quote);
         const { forms: requiredForms } = forms || {};
 
@@ -330,8 +355,6 @@ export const useDepositRouting = ({
         // check kyc status and route to approved or pending flow
         if (requiredForms?.length === 0) {
           try {
-            const userDetails = await fetchUserDetails();
-
             if (!userDetails) {
               throw new Error('Missing user details');
             }
@@ -432,7 +455,7 @@ export const useDepositRouting = ({
             region: selectedRegion?.isoCode || '',
           });
 
-          navigateToBasicInfoCallback({ quote });
+          navigateToBasicInfoCallback({ quote, previousFormData });
           return;
         }
 
