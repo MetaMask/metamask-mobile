@@ -346,7 +346,9 @@ describe('PerpsPositionDetailsView', () => {
       expect(
         screen.getByTestId('perps-chart-interval-selector-loading'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Loading chart data...')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-chart-loading-skeleton'),
+      ).toBeOnTheScreen();
     });
 
     it('displays chart with no data state when candle data is null', () => {

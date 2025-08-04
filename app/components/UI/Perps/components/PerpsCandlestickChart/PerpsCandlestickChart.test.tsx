@@ -139,7 +139,9 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('Loading chart data...')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-chart-loading-skeleton'),
+      ).toBeOnTheScreen();
     });
 
     it('shows interval selector when loading', () => {
@@ -289,7 +291,9 @@ describe('CandlestickChartComponent', () => {
 
       // Assert
       expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
-      expect(screen.queryByText('Loading chart data...')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('perps-chart-loading-skeleton'),
+      ).not.toBeOnTheScreen();
     });
   });
 

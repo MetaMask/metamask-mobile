@@ -12,6 +12,7 @@ import {
   getCandlestickColors,
 } from '../../constants/chartConfig';
 import PerpsTimeDurationSelector from '../PerpsTimeDurationSelector';
+import PerpsCandlestickChartSkeleton from './PerpsCandlestickChartSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import type { CandleData } from '../../types';
 
@@ -116,23 +117,10 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       <View style={styles.chartContainer}>
         {/* Chart placeholder with same height */}
         <View style={styles.relativeContainer}>
-          <View
-            style={[
-              styles.chartLoadingContainer,
-              {
-                height: height - PERPS_CHART_CONFIG.PADDING.VERTICAL, // Same as loaded chart
-                width: chartWidth, // Same as loaded chart
-              },
-            ]}
-          >
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Muted}
-              style={styles.loadingText}
-            >
-              Loading chart data...
-            </Text>
-          </View>
+          <PerpsCandlestickChartSkeleton
+            height={height}
+            testID="perps-chart-loading-skeleton"
+          />
         </View>
 
         {/* Time Duration Selector */}
