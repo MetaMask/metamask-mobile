@@ -66,6 +66,7 @@ import {
 import { getHighestFiatToken } from '../../util/getHighestFiatToken';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
+import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 
 /**
  * CardHome Component
@@ -254,7 +255,7 @@ const CardHome = () => {
                 setRetries((prevState) => prevState + 1);
                 fetchPriorityToken();
               }}
-              testID="try-again-button"
+              testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
             />
           </View>
         )}
@@ -272,7 +273,7 @@ const CardHome = () => {
         <ActivityIndicator
           size="large"
           color={theme.colors.primary.default}
-          testID="loader"
+          testID={CardHomeSelectors.LOADER}
         />
       </View>
     );
@@ -301,7 +302,7 @@ const CardHome = () => {
             </SensitiveText>
             <TouchableOpacity
               onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-              testID="privacy-toggle-button"
+              testID={CardHomeSelectors.PRIVACY_TOGGLE_BUTTON}
             >
               <Icon
                 name={privacyMode ? IconName.EyeSlash : IconName.Eye}
@@ -371,7 +372,7 @@ const CardHome = () => {
               size={ButtonSize.Sm}
               onPress={openSwaps}
               width={ButtonWidthTypes.Full}
-              testID="add-funds-button"
+              testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
             />
           </View>
         </View>
@@ -384,7 +385,7 @@ const CardHome = () => {
         )}
         rightIcon={IconName.Export}
         onPress={navigateToCardPage}
-        testID="advanced-card-management-item"
+        testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
       />
     </ScrollView>
   );

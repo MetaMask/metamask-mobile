@@ -66,6 +66,7 @@ import { BridgeViewMode } from '../Bridge/types';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import CardButton from '../Card/components/CardButton';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -1032,13 +1033,9 @@ export function getWalletNavbarOptions(
         />
       </View>
       {isCardholder ? (
-        <ButtonIcon
-          iconProps={{ color: MMDSIconColor.Default }}
+        <CardButton
           onPress={handleCardPress}
-          iconName={IconName.Card}
-          size={ButtonIconSize.Lg}
-          testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-          hitSlop={innerStyles.touchAreaSlop}
+          touchAreaSlop={innerStyles.touchAreaSlop}
         />
       ) : null}
       {isNotificationsFeatureEnabled() && (

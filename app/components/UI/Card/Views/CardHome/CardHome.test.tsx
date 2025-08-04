@@ -132,6 +132,7 @@ jest.mock('../../../../../core/Engine', () => ({
 
 // Import the Engine to get typed references to the mocked functions
 import Engine from '../../../../../core/Engine';
+import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 
 // Get references to the mocked functions
 const mockSetActiveNetwork = Engine.context.NetworkController
@@ -312,7 +313,9 @@ describe('CardHome Component', () => {
     const { toJSON } = render();
 
     // Check that privacy is enabled
-    expect(screen.getByTestId('privacy-toggle-button')).toBeTruthy();
+    expect(
+      screen.getByTestId(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON),
+    ).toBeTruthy();
     expect(screen.getByText('••••••••••••')).toBeTruthy();
 
     expect(toJSON()).toMatchSnapshot();
@@ -327,13 +330,15 @@ describe('CardHome Component', () => {
     });
 
     render();
-    expect(screen.getByTestId('loader')).toBeTruthy();
+    expect(screen.getByTestId(CardHomeSelectors.LOADER)).toBeTruthy();
   });
 
   it('calls goToSwaps when add funds button is pressed', async () => {
     render();
 
-    const addFundsButton = screen.getByTestId('add-funds-button');
+    const addFundsButton = screen.getByTestId(
+      CardHomeSelectors.ADD_FUNDS_BUTTON,
+    );
     fireEvent.press(addFundsButton);
 
     await waitFor(() => {
@@ -345,7 +350,7 @@ describe('CardHome Component', () => {
     render();
 
     const advancedManagementItem = screen.getByTestId(
-      'advanced-card-management-item',
+      CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM,
     );
     fireEvent.press(advancedManagementItem);
 
@@ -371,7 +376,9 @@ describe('CardHome Component', () => {
   it('displays manage card section', () => {
     render();
 
-    expect(screen.getByTestId('advanced-card-management-item')).toBeTruthy();
+    expect(
+      screen.getByTestId(CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM),
+    ).toBeTruthy();
   });
 
   it('displays priority token information when available', async () => {
@@ -391,7 +398,9 @@ describe('CardHome Component', () => {
   it('toggles privacy mode when privacy toggle button is pressed', async () => {
     render();
 
-    const privacyToggleButton = screen.getByTestId('privacy-toggle-button');
+    const privacyToggleButton = screen.getByTestId(
+      CardHomeSelectors.PRIVACY_TOGGLE_BUTTON,
+    );
     fireEvent.press(privacyToggleButton);
 
     await waitFor(() => {
@@ -420,7 +429,7 @@ describe('CardHome Component', () => {
 
     expect(screen.getByText('Unable to load card')).toBeTruthy();
     expect(screen.getByText('Please try again later')).toBeTruthy();
-    expect(screen.getByTestId('try-again-button')).toBeTruthy();
+    expect(screen.getByTestId(CardHomeSelectors.TRY_AGAIN_BUTTON)).toBeTruthy();
   });
 
   it('calls fetchPriorityToken when try again button is pressed', async () => {
@@ -433,7 +442,9 @@ describe('CardHome Component', () => {
 
     render();
 
-    const tryAgainButton = screen.getByTestId('try-again-button');
+    const tryAgainButton = screen.getByTestId(
+      CardHomeSelectors.TRY_AGAIN_BUTTON,
+    );
     fireEvent.press(tryAgainButton);
 
     await waitFor(() => {
@@ -602,7 +613,9 @@ describe('CardHome Component', () => {
 
     render();
 
-    const addFundsButton = screen.getByTestId('add-funds-button');
+    const addFundsButton = screen.getByTestId(
+      CardHomeSelectors.ADD_FUNDS_BUTTON,
+    );
     fireEvent.press(addFundsButton);
 
     await waitFor(() => {
