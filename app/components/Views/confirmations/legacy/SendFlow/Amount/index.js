@@ -85,7 +85,6 @@ import {
 } from '../../../../../../selectors/tokensController';
 import {
   selectAccounts,
-  selectAccountsByChainId,
   selectAccountsByContextualChainId,
 } from '../../../../../../selectors/accountTrackerController';
 import {

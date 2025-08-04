@@ -967,7 +967,7 @@ class Confirm extends PureComponent {
           ?.balance
       : accounts[selectedAddress].balance;
 
-    const weiBalance = hexToBN(currentAccountBalance);
+    const weiBalance = hexToBN(currentAccountBalance || '0x0');
 
     if (!isDecimal(value)) {
       return strings('transaction.invalid_amount');
@@ -996,7 +996,7 @@ class Confirm extends PureComponent {
 
     // TODO: Add test coverage for this if possible
     const currentContractBalances = isRemoveGlobalNetworkSelectorEnabled()
-      ? contractBalancesByChainId[sendFlowContextualChainId]
+      ? contractBalancesByChainId[sendFlowContextualChainId] || {}
       : contractBalances;
 
     const insufficientTokenBalanceMessage = validateSufficientTokenBalance(

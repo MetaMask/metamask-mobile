@@ -110,6 +110,7 @@ describe('selectAccountsByContextualChainId', () => {
     const result = selectAccountsByContextualChainId.resultFunc(
       mockAccountsByChainId,
       '0x5',
+      '0x1',
     );
 
     expect(result).toEqual({
@@ -122,6 +123,7 @@ describe('selectAccountsByContextualChainId', () => {
     const result = selectAccountsByContextualChainId.resultFunc(
       mockAccountsByChainId,
       '0xUnknownChain',
+      '0x1',
     );
 
     expect(result).toEqual({});
@@ -134,17 +136,22 @@ describe('selectAccountsByContextualChainId', () => {
         { [address: string]: AccountInformation }
       >,
       '0x1',
+      '0x1',
     );
 
     expect(result).toEqual({});
   });
 
-  it('returns an empty object if contextual chain ID is undefined', () => {
+  it('falls back to chainId when contextual chain ID is undefined', () => {
     const result = selectAccountsByContextualChainId.resultFunc(
       mockAccountsByChainId,
       undefined,
+      '0x1',
     );
 
-    expect(result).toEqual({});
+    expect(result).toEqual({
+      [MOCK_ADDRESS_2]: { balance: '0x100' },
+      '0xAccount2': { balance: '0x200' },
+    });
   });
 });

@@ -1430,6 +1430,9 @@ describe('Amount', () => {
 
     // Find and press the dropdown button (parent of the text element)
     const dropdownText = getByText('ETH');
+    if (!dropdownText.parent) {
+      throw new Error('Expected dropdown parent element to exist');
+    }
     fireEvent.press(dropdownText.parent);
 
     // Now we should see ETH twice (one in dropdown, one in modal)
