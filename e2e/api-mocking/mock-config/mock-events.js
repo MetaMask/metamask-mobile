@@ -8,6 +8,7 @@ import {
   suggestedGasFeesApiGanache,
 } from '../mock-responses/gas-api-responses.json';
 import defiPositionsWithData from '../mock-responses/defi-api-response-data.json';
+import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
 
 export const mockEvents = {
   /**
@@ -164,22 +165,19 @@ export const mockEvents = {
     },
 
     defiPositionsWithNoData: {
-      urlEndpoint:
-        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      urlEndpoint: `https://defiadapters.api.cx.metamask.io/positions/${DEFAULT_FIXTURE_ACCOUNT}`,
       response: { data: [] },
       responseCode: 200,
     },
 
     defiPositionsError: {
-      urlEndpoint:
-        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      urlEndpoint: `https://defiadapters.api.cx.metamask.io/positions/${DEFAULT_FIXTURE_ACCOUNT}`,
       response: { error: 'Internal server error' },
       responseCode: 500,
     },
 
     defiPositionsWithData: {
-      urlEndpoint:
-        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      urlEndpoint: `https://defiadapters.api.cx.metamask.io/positions/${DEFAULT_FIXTURE_ACCOUNT}`,
       response: { data: defiPositionsWithData },
       responseCode: 200,
     },
