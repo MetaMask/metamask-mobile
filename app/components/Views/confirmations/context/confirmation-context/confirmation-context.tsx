@@ -4,7 +4,7 @@ import React, { useContext, useMemo, useState } from 'react';
 export interface ConfirmationContextParams {
   isFooterVisible?: boolean;
   isTransactionValueUpdating: boolean;
-  setIsFooterVisible?: (isFooterVisible: boolean) => void;
+  setIsFooterVisible: (isFooterVisible: boolean) => void;
   setIsTransactionValueUpdating: (isTransactionValueUpdating: boolean) => void;
 }
 
