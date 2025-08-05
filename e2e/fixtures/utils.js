@@ -78,6 +78,7 @@ export function buildPermissions(chainIds) {
       caveats: [
         {
           type: Caip25CaveatType,
+          /** @type {import('@metamask/chain-agnostic-permission').Caip25CaveatValue} */
           value: {
             optionalScopes,
             requiredScopes: {},
