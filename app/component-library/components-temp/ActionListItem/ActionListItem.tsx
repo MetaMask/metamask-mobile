@@ -72,15 +72,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   // Render start content (either startAccessory or icon)
   const renderStartContent = () => {
     if (startAccessory) {
-      return (
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="h-6"
-        >
-          {startAccessory}
-        </Box>
-      );
+      return startAccessory;
     }
 
     if (iconName) {
