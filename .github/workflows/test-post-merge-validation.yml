@@ -1,0 +1,18 @@
+name: Test Merge Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  test-validation:
+    uses: MetaMask/github-tools/.github/workflows/post-feature-validation.yml@chore-post-validation
+    with:
+      repo-owner: MetaMask
+      repo-name: metamask-mobile
+      pr-number: '17572'
+      pr-author: 'christopherferreira9'
+      pr-title: 'feat: fixes fixtures and migrates solana tests'
