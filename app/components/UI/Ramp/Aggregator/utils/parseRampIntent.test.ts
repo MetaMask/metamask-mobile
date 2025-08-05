@@ -76,6 +76,8 @@ describe('parseRampIntent', () => {
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '1',
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         amount: '10',
         currency: 'usd',
       });
@@ -98,13 +100,14 @@ describe('parseRampIntent', () => {
 
     it('handles Solana CAIP-19 format in assetId parameter', () => {
       const pathParams = {
-        assetId: `${SOLANA_NETWORK}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        assetId: SOLANA_ASSET_ID,
         amount: '10',
         currency: 'usd',
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
-        assetId: `${SOLANA_NETWORK}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        assetId: SOLANA_ASSET_ID,
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         amount: '10',
         currency: 'usd',
       });
@@ -134,6 +137,7 @@ describe('parseRampIntent', () => {
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
         assetId: 'eip155:1/slip44:60',
+        chainId: '1',
         amount: '10',
         currency: 'usd',
       });
@@ -185,13 +189,13 @@ describe('parseRampIntent', () => {
   });
 
   describe('Edge Cases', () => {
-    it('returns undefined for empty pathParams', () => {
+    it('returns undefined for empty rampPath', () => {
       const pathParams = {};
       const result = parseRampIntent(pathParams);
       expect(result).toBeUndefined();
     });
 
-    it('returns undefined for pathParams with only undefined values', () => {
+    it('returns undefined for rampPath with only undefined values', () => {
       const pathParams = {
         address: undefined,
         chainId: undefined,

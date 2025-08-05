@@ -76,6 +76,7 @@ function NetworkSwitcher() {
 
   const isLoading = isLoadingNetworks || isLoadingNetworksDetail;
   const error = errorFetchingNetworks || errorFetchingNetworksDetail;
+
   const rampNetworksDetails = useMemo(() => {
     const activeNetworkDetails: Network[] = [];
     // TODO(ramp, btc): filter supportedNetworks by EVM compatible chains (chainId are strings of decimal numbers)
@@ -189,6 +190,16 @@ function NetworkSwitcher() {
         chainId: networkConfiguration.chainId,
       }));
 
+      // Handle non-EVM networks (like Solana, Bitcoin, etc.)
+      if (networkConfiguration.chainId.includes(':')) {
+        const { MultichainNetworkController } = Engine.context;
+        await MultichainNetworkController.setActiveNetwork(
+          networkConfiguration.chainId,
+        );
+        navigateToGetStarted();
+        return;
+      }
+
       const networkConfigurationWithHexChainId = {
         ...networkConfiguration,
         chainId: toHex(networkConfiguration.chainId),
@@ -200,14 +211,29 @@ function NetworkSwitcher() {
         setNetworkToBeAdded(networkConfigurationWithHexChainId);
       }
     },
-    [setIntent, switchNetwork],
+    [setIntent, switchNetwork, navigateToGetStarted],
   );
 
   const handleIntentChainId = useCallback(
     async (chainId: string) => {
+      // Handle non-EVM networks (like Solana, Bitcoin, etc.)
+      if (chainId.includes(':')) {
+        const { MultichainNetworkController } = Engine.context;
+        try {
+          await MultichainNetworkController.setActiveNetwork(chainId);
+
+          navigateToGetStarted();
+        } catch (networkError) {
+          // Network switching failed, continue with normal flow
+        }
+        return;
+      }
+
+      // For EVM networks, check if they are supported
       if (!isNetworkRampSupported(chainId, supportedNetworks)) {
         return;
       }
+
       if (getDecimalChainId(ChainId.mainnet) === chainId) {
         return switchToMainnet('mainnet');
       }
@@ -245,6 +271,7 @@ function NetworkSwitcher() {
       rampNetworksDetails,
       networkConfigurations,
       handleNetworkPress,
+      navigateToGetStarted,
     ],
   );
 
@@ -262,7 +289,6 @@ function NetworkSwitcher() {
     intent?.chainId,
     isCurrentNetworkRampSupported,
     navigateToGetStarted,
-    navigation,
     selectedChainId,
   ]);
 

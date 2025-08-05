@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useRampSDK } from '../sdk';
 import useSDKMethod from './useSDKMethod';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
+import { parseCAIP19AssetId } from '../types';
 
 export default function useCryptoCurrencies() {
   const {
@@ -14,6 +15,36 @@ export default function useCryptoCurrencies() {
     intent,
     setIntent,
   } = useRampSDK();
+
+  // Extract chainId from intent's assetId if present
+  const intentChainId = useMemo(() => {
+    if (intent?.assetId) {
+      const parsed = parseCAIP19AssetId(intent.assetId);
+      if (parsed) {
+        if (parsed.namespace === 'eip155') {
+          // For EVM networks, use just the chainId number
+          return parsed.chainId;
+        }
+        // For non-EVM networks, use the full CAIP format
+        return `${parsed.namespace}:${parsed.chainId}`;
+      }
+      return null;
+    }
+    return null;
+  }, [intent?.assetId]);
+
+  // Use intent chainId if available, otherwise fall back to selectedChainId
+  const effectiveChainId = intentChainId || selectedChainId;
+
+  // Set the chainId in the intent if we extracted it from assetId
+  useEffect(() => {
+    if (intentChainId && intent?.assetId && !intent.chainId) {
+      setIntent((prevIntent) => ({
+        ...prevIntent,
+        chainId: intentChainId,
+      }));
+    }
+  }, [intentChainId, intent?.assetId, intent?.chainId, setIntent]);
 
   const [
     {
@@ -36,8 +67,9 @@ export default function useCryptoCurrencies() {
       sdkCryptoCurrencies
     ) {
       const filteredTokens = sdkCryptoCurrencies.filter(
-        (token) => token.network?.chainId === selectedChainId,
+        (token) => token.network?.chainId === effectiveChainId,
       );
+
       return filteredTokens;
     }
     return null;
@@ -45,7 +77,7 @@ export default function useCryptoCurrencies() {
     errorCryptoCurrencies,
     isFetchingCryptoCurrencies,
     sdkCryptoCurrencies,
-    selectedChainId,
+    effectiveChainId,
   ]);
 
   /**
@@ -65,6 +97,18 @@ export default function useCryptoCurrencies() {
           setIntent((prevIntent) => ({ ...prevIntent, assetId: undefined }));
           return;
         }
+
+        // Handle slip44 asset references for native tokens
+        if (intent.assetId.includes('slip44:')) {
+          const nativeToken = cryptoCurrencies.find(
+            (token) => token.address === NATIVE_ADDRESS,
+          );
+          if (nativeToken) {
+            setSelectedAsset(nativeToken);
+            setIntent((prevIntent) => ({ ...prevIntent, assetId: undefined }));
+            return;
+          }
+        }
       }
 
       // Handle address from intent (legacy support)
@@ -80,9 +124,21 @@ export default function useCryptoCurrencies() {
         }
       }
 
+      // Handle chainId-only intent (select native token) - only if no specific token was requested
+      if (intent?.chainId && !intent?.assetId && !intent?.address) {
+        const nativeAsset = cryptoCurrencies.find(
+          (token) => token.address === NATIVE_ADDRESS,
+        );
+        if (nativeAsset) {
+          setSelectedAsset(nativeAsset);
+          setIntent((prevIntent) => ({ ...prevIntent, chainId: undefined }));
+          return;
+        }
+      }
+
       if (
         !selectedAsset ||
-        `${selectedAsset.network?.chainId}` !== selectedChainId ||
+        `${selectedAsset.network?.chainId}` !== effectiveChainId ||
         !cryptoCurrencies.find(
           (token) => token.address === selectedAsset.address,
         )
@@ -97,8 +153,9 @@ export default function useCryptoCurrencies() {
     cryptoCurrencies,
     intent?.assetId,
     intent?.address,
+    intent?.chainId,
     selectedAsset,
-    selectedChainId,
+    effectiveChainId,
     setSelectedAsset,
     setIntent,
   ]);
