@@ -208,6 +208,85 @@ describe('isNetworkBuySupported', () => {
       ]),
     ).toBe(false);
   });
+
+  it('should return true for CAIP-2 format chainId (eip155:1)', () => {
+    expect(
+      isNetworkRampSupported('eip155:1', [
+        {
+          active: true,
+          chainId: 'eip155:1',
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: true,
+          shortName: 'Ethereum',
+        } as unknown as AggregatorNetwork,
+      ]),
+    ).toBe(true);
+  });
+
+  it('should return true for CAIP-19 format chainId (eip155:1/erc20:0x...)', () => {
+    expect(
+      isNetworkRampSupported(
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        [
+          {
+            active: true,
+            chainId: '1',
+            chainName: 'Ethereum Mainnet',
+            nativeTokenSupported: true,
+            shortName: 'Ethereum',
+          } as unknown as AggregatorNetwork,
+        ],
+      ),
+    ).toBe(true);
+  });
+
+  it('should return true for Solana CAIP-2 format chainId', () => {
+    expect(
+      isNetworkRampSupported('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', [
+        {
+          active: true,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          chainName: 'Solana Mainnet',
+          nativeTokenSupported: true,
+          shortName: 'Solana',
+        } as unknown as AggregatorNetwork,
+      ]),
+    ).toBe(true);
+  });
+
+  it('should return true for Solana CAIP-19 format chainId', () => {
+    expect(
+      isNetworkRampSupported(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        [
+          {
+            active: true,
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            chainName: 'Solana Mainnet',
+            nativeTokenSupported: true,
+            shortName: 'Solana',
+          } as unknown as AggregatorNetwork,
+        ],
+      ),
+    ).toBe(true);
+  });
+
+  it('should return false for unsupported CAIP-19 format', () => {
+    expect(
+      isNetworkRampSupported(
+        'eip155:999/erc20:0x1234567890123456789012345678901234567890',
+        [
+          {
+            active: true,
+            chainId: '1',
+            chainName: 'Ethereum Mainnet',
+            nativeTokenSupported: true,
+            shortName: 'Ethereum',
+          } as unknown as AggregatorNetwork,
+        ],
+      ),
+    ).toBe(false);
+  });
 });
 
 describe('isNetworkBuyNativeTokenSupported', () => {

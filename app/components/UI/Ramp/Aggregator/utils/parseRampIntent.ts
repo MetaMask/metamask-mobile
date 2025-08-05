@@ -25,17 +25,15 @@ export default function parseRampIntent(
     const parsed = parseCAIP19AssetId(rampIntent.assetId);
     if (parsed) {
       if (parsed.namespace === 'eip155') {
-        // For EVM networks, use just the chainId number
-        rampIntent.chainId = parsed.chainId;
+        // For EVM networks, use CAIP-2 format: eip155:1
+        rampIntent.chainId = `eip155:${parsed.chainId}`;
       } else {
         // For non-EVM networks, use the full CAIP format
         rampIntent.chainId = `${parsed.namespace}:${parsed.chainId}`;
       }
 
-      // Extract token address if present (for ERC20 tokens)
-      if (parsed.assetNamespace === 'erc20' && parsed.assetReference) {
-        rampIntent.address = parsed.assetReference;
-      }
+      // Remove address if assetId is present to avoid conflicts
+      delete rampIntent.address;
     }
   }
 

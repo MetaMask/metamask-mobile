@@ -76,8 +76,7 @@ describe('parseRampIntent', () => {
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        chainId: '1',
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: 'eip155:1',
         amount: '10',
         currency: 'usd',
       });
@@ -137,10 +136,28 @@ describe('parseRampIntent', () => {
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
         assetId: 'eip155:1/slip44:60',
-        chainId: '1',
+        chainId: 'eip155:1',
         amount: '10',
         currency: 'usd',
       });
+    });
+
+    it('removes address when assetId is present to avoid conflicts', () => {
+      const pathParams = {
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        address: '0x1234567890', // This should be removed
+        amount: '10',
+        currency: 'usd',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: 'eip155:1',
+        amount: '10',
+        currency: 'usd',
+      });
+      // Ensure address was removed
+      expect(result?.address).toBeUndefined();
     });
   });
 
@@ -150,12 +167,14 @@ describe('parseRampIntent', () => {
         chainId: '1',
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         amount: '10',
+        currency: 'usd',
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
         chainId: '1',
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         amount: '10',
+        currency: 'usd',
       });
     });
 
@@ -164,12 +183,14 @@ describe('parseRampIntent', () => {
         chainId: 'eip155:1',
         address: '0x1234567890',
         amount: '10',
+        currency: 'usd',
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
         chainId: 'eip155:1',
         address: '0x1234567890',
         amount: '10',
+        currency: 'usd',
       });
     });
 
@@ -178,12 +199,14 @@ describe('parseRampIntent', () => {
         chainId: 'eip155:137/erc20:0x1234567890123456789012345678901234567890',
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         amount: '10',
+        currency: 'usd',
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
         chainId: 'eip155:137/erc20:0x1234567890123456789012345678901234567890',
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         amount: '10',
+        currency: 'usd',
       });
     });
   });
@@ -223,11 +246,13 @@ describe('parseRampIntent', () => {
       const pathParams = {
         chainId: 'eip155:1',
         amount: '10',
+        currency: 'usd',
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
         chainId: 'eip155:1',
         amount: '10',
+        currency: 'usd',
       });
     });
 
@@ -235,11 +260,13 @@ describe('parseRampIntent', () => {
       const pathParams = {
         assetId: 'invalid:format',
         amount: '10',
+        currency: 'usd',
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
         assetId: 'invalid:format',
         amount: '10',
+        currency: 'usd',
       });
     });
   });

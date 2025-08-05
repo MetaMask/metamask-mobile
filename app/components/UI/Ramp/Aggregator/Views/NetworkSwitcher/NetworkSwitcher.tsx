@@ -162,6 +162,14 @@ function NetworkSwitcher() {
     [navigateToGetStarted],
   );
 
+  const switchToSolana = useCallback(() => {
+    const { MultichainNetworkController } = Engine.context;
+    MultichainNetworkController.setActiveNetwork(
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    );
+    navigateToGetStarted();
+  }, [navigateToGetStarted]);
+
   const switchNetwork = useCallback(
     async (networkConfiguration: Network) => {
       const { MultichainNetworkController } = Engine.context;
@@ -406,6 +414,36 @@ function NetworkSwitcher() {
                     <View style={customNetworkStyle.popularWrapper}>
                       {selectedChainId ===
                       getDecimalChainId(ChainId['linea-mainnet']) ? (
+                        <Text link>{strings('networks.continue')}</Text>
+                      ) : (
+                        <Text link>{strings('networks.switch')}</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ) : null}
+
+                {isNetworkRampSupported(
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                  supportedNetworks,
+                ) ? (
+                  <TouchableOpacity
+                    style={customNetworkStyle.popularNetwork}
+                    onPress={() => switchToSolana()}
+                  >
+                    <View style={customNetworkStyle.popularWrapper}>
+                      <View style={customNetworkStyle.popularNetworkImage}>
+                        <Avatar
+                          variant={AvatarVariant.Network}
+                          size={AvatarSize.Sm}
+                          name={'Solana Mainnet'}
+                          imageSource={imageIcons.SOLANA as ImageSourcePropType}
+                        />
+                      </View>
+                      <Text bold>Solana Main Network</Text>
+                    </View>
+                    <View style={customNetworkStyle.popularWrapper}>
+                      {selectedChainId ===
+                      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' ? (
                         <Text link>{strings('networks.continue')}</Text>
                       ) : (
                         <Text link>{strings('networks.switch')}</Text>
