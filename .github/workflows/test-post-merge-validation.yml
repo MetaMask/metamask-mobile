@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   test-validation:
-    uses: MetaMask/github-tools/.github/workflows/post-feature-validation.yml@chore-post-validation
+    uses: MetaMask/github-tools/.github/workflows/post-merge-validation.yml@chore-post-validation
     with:
       repo-owner: MetaMask
       repo-name: metamask-mobile
