@@ -22,7 +22,7 @@ interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
   selectedPeriod: string;
-  selectedDuration: string; // New prop to determine available periods
+  selectedDuration: string;
   onPeriodChange?: (period: string) => void;
   testID?: string;
 }
@@ -80,16 +80,16 @@ const PerpsCandlePeriodBottomSheet: React.FC<
             testID={`${testID}-period-${period.value}`}
           >
             <Text
-              variant={TextVariant.BodyMD}
+              variant={
+                selectedPeriod === period.value
+                  ? TextVariant.BodyMD
+                  : TextVariant.BodyMDBold
+              }
               color={
                 selectedPeriod === period.value
                   ? TextColor.Primary
                   : TextColor.Default
               }
-              style={[
-                styles.periodText,
-                selectedPeriod === period.value && styles.periodTextActive,
-              ]}
             >
               {period.label}
             </Text>
@@ -107,7 +107,5 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     </BottomSheet>
   );
 };
-
-PerpsCandlePeriodBottomSheet.displayName = 'PerpsCandlePeriodBottomSheet';
 
 export default PerpsCandlePeriodBottomSheet;

@@ -13,11 +13,11 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-// import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../../locales/i18n';
 import type { Position } from '../../controllers/types';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
-// import PerpsPositionCard from '../../components/PerpsPositionCard';
+import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPositionHeader from '../../components/PerpsPostitionHeader/PerpsPositionHeader';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsTPSLUpdate, usePerpsClosePosition } from '../../hooks';
@@ -26,8 +26,6 @@ import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import PerpsClosePositionBottomSheet from '../../components/PerpsClosePositionBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getDefaultCandlePeriodForDuration } from '../../constants/chartConfig';
-import PerpsPositionCard from '../../components/PerpsPositionCard';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface PositionDetailsRouteParams {
   position: Position;

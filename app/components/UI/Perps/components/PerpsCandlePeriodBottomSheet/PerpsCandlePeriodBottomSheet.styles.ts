@@ -22,13 +22,6 @@ const styleSheet = (params: { theme: Theme }) => {
       borderColor: colors.primary.default,
       borderWidth: 2,
     },
-    periodText: {
-      // Base text styles handled by Text component
-    },
-    periodTextActive: {
-      color: colors.primary.default,
-      fontWeight: '600',
-    },
     checkIcon: {
       marginLeft: 8,
     },
