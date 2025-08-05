@@ -1,7 +1,11 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
+import { CaipChainId } from '@metamask/utils';
+
+import NetworksFilterBar from '../../../components/NetworksFilterBar';
+import NetworksFilterSelector from '../../../components/NetworksFilterSelector/NetworksFilterSelector';
 
 import Text, {
   TextVariant,
@@ -38,7 +42,6 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
 import { useTheme } from '../../../../../../../util/theme';
-
 interface TokenSelectorModalNavigationDetails {
   selectedAssetId?: string;
   handleSelectAssetId?: (assetId: string) => void;
@@ -57,6 +60,10 @@ function TokenSelectorModal() {
   const { selectedAssetId, handleSelectAssetId } =
     useParams<TokenSelectorModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
+  const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
+    null,
+  );
+  const [isEditingNetworkFilter, setIsEditingNetworkFilter] = useState(false);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
@@ -167,6 +174,14 @@ function TokenSelectorModal() {
     [searchString],
   );
 
+  const uniqueNetworks = useMemo(() => {
+    const uniqueNetworksSet = new Set<CaipChainId>();
+    for (const token of supportedTokens) {
+      uniqueNetworksSet.add(token.chainId);
+    }
+    return Array.from(uniqueNetworksSet);
+  }, [supportedTokens]);
+
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
@@ -174,27 +189,46 @@ function TokenSelectorModal() {
           {strings('deposit.token_modal.select_a_token')}
         </Text>
       </BottomSheetHeader>
-      <View style={styles.searchContainer}>
-        <TextFieldSearch
-          value={searchString}
-          showClearButton={searchString.length > 0}
-          onPressClearButton={clearSearchText}
-          onFocus={scrollToTop}
-          onChangeText={handleSearchTextChange}
-          placeholder={strings('deposit.token_modal.search_by_name_or_address')}
+      {isEditingNetworkFilter ? (
+        <NetworksFilterSelector
+          uniqueNetworks={uniqueNetworks}
+          networkFilter={networkFilter}
+          setNetworkFilter={setNetworkFilter}
+          setIsEditingNetworkFilter={setIsEditingNetworkFilter}
         />
-      </View>
-      <FlatList
-        style={styles.list}
-        ref={listRef}
-        data={searchTokenResults}
-        renderItem={renderToken}
-        extraData={selectedAssetId}
-        keyExtractor={(item) => item.assetId}
-        ListEmptyComponent={renderEmptyList}
-        keyboardDismissMode="none"
-        keyboardShouldPersistTaps="always"
-      ></FlatList>
+      ) : (
+        <>
+          <NetworksFilterBar
+            uniqueNetworks={uniqueNetworks}
+            networkFilter={networkFilter}
+            setNetworkFilter={setNetworkFilter}
+            setIsEditingNetworkFilter={setIsEditingNetworkFilter}
+          />
+          <View style={styles.searchContainer}>
+            <TextFieldSearch
+              value={searchString}
+              showClearButton={searchString.length > 0}
+              onPressClearButton={clearSearchText}
+              onFocus={scrollToTop}
+              onChangeText={handleSearchTextChange}
+              placeholder={strings(
+                'deposit.token_modal.search_by_name_or_address',
+              )}
+            />
+          </View>
+          <FlatList
+            style={styles.list}
+            ref={listRef}
+            data={searchTokenResults}
+            renderItem={renderToken}
+            extraData={selectedAssetId}
+            keyExtractor={(item) => item.assetId}
+            ListEmptyComponent={renderEmptyList}
+            keyboardDismissMode="none"
+            keyboardShouldPersistTaps="always"
+          ></FlatList>
+        </>
+      )}
     </BottomSheet>
   );
 }

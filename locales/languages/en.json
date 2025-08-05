@@ -517,6 +517,14 @@
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\""
     },
+    "networks_filter_bar": {
+      "all_networks": "All networks"
+    },
+    "networks_filter_selector": {
+      "select_all":"Select all",
+      "deselect_all": "Deselect all",
+      "apply": "Apply"
+    },
     "configuration_modal": {
       "title": "Options",
       "view_order_history": "View order history",
