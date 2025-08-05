@@ -31,14 +31,14 @@ import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 
 interface NetworksFilterBarProps {
-  uniqueNetworks: CaipChainId[];
+  networks: CaipChainId[];
   networkFilter: CaipChainId[] | null;
   setNetworkFilter: React.Dispatch<React.SetStateAction<CaipChainId[] | null>>;
   setIsEditingNetworkFilter: (isEditing: boolean) => void;
 }
 
 function NetworksFilterBar({
-  uniqueNetworks,
+  networks,
   networkFilter,
   setNetworkFilter,
   setIsEditingNetworkFilter,
@@ -52,8 +52,7 @@ function NetworksFilterBar({
 
   const allNetworksIcons = useMemo(() => {
     const headSize = 3;
-    const head = uniqueNetworks.slice(0, headSize);
-    const reversedHead = [...head].reverse();
+    const reversedHead = networks.slice(0, headSize).reverse();
     return (
       <Box flexDirection={FlexDirection.RowReverse} gap={0}>
         {reversedHead.map((chainId) => (
@@ -68,7 +67,7 @@ function NetworksFilterBar({
         ))}
       </Box>
     );
-  }, [allNetworkConfigurations, styles.overlappedNetworkIcon, uniqueNetworks]);
+  }, [allNetworkConfigurations, styles.overlappedNetworkIcon, networks]);
 
   return (
     <ScrollView
@@ -76,7 +75,7 @@ function NetworksFilterBar({
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.networksContainer}
     >
-      {networkFilter && networkFilter.length !== uniqueNetworks.length ? (
+      {networkFilter && networkFilter.length !== networks.length ? (
         <>
           <Button
             variant={ButtonVariants.Secondary}
@@ -97,7 +96,7 @@ function NetworksFilterBar({
             }
             onPress={() => setIsEditingNetworkFilter(true)}
           />
-          {uniqueNetworks.map((chainId) => {
+          {networks.map((chainId) => {
             const isSelected = networkFilter.includes(chainId);
             const networkName =
               DEPOSIT_NETWORKS_BY_CHAIN_ID[chainId]?.name ??
@@ -162,7 +161,7 @@ function NetworksFilterBar({
             </Box>
           }
           onPress={() => {
-            setNetworkFilter(uniqueNetworks);
+            setNetworkFilter(networks);
             setIsEditingNetworkFilter(true);
           }}
         />

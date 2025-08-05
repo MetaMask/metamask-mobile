@@ -12,11 +12,7 @@ function render(component: React.ReactElement) {
 }
 
 describe('NetworksFilterSelector', () => {
-  const uniqueNetworks: CaipChainId[] = [
-    'eip155:1',
-    'eip155:59144',
-    'eip155:56',
-  ];
+  const networks: CaipChainId[] = ['eip155:1', 'eip155:59144', 'eip155:56'];
   const mockSetNetworkFilter = jest.fn();
   const mockSetIsEditingNetworkFilter = jest.fn();
 
@@ -27,7 +23,7 @@ describe('NetworksFilterSelector', () => {
   it('renders correctly when networkFilter is null', () => {
     const { toJSON, getByText } = render(
       <NetworksFilterSelector
-        uniqueNetworks={uniqueNetworks}
+        networks={networks}
         networkFilter={null}
         setNetworkFilter={mockSetNetworkFilter}
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
@@ -39,14 +35,14 @@ describe('NetworksFilterSelector', () => {
     const selectAllButton = getByText('Select all');
     fireEvent.press(selectAllButton);
 
-    expect(mockSetNetworkFilter).toHaveBeenCalledWith(uniqueNetworks);
+    expect(mockSetNetworkFilter).toHaveBeenCalledWith(networks);
   });
 
   it('renders correctly when networkFilter is the same as uniqueNetworks', () => {
     const { toJSON, getByText } = render(
       <NetworksFilterSelector
-        uniqueNetworks={uniqueNetworks}
-        networkFilter={uniqueNetworks}
+        networks={networks}
+        networkFilter={networks}
         setNetworkFilter={mockSetNetworkFilter}
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
       />,
@@ -64,7 +60,7 @@ describe('NetworksFilterSelector', () => {
     const subsetNetworkFilter: CaipChainId[] = ['eip155:1', 'eip155:59144'];
     const { toJSON, getByText } = render(
       <NetworksFilterSelector
-        uniqueNetworks={uniqueNetworks}
+        networks={networks}
         networkFilter={subsetNetworkFilter}
         setNetworkFilter={mockSetNetworkFilter}
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
@@ -96,8 +92,8 @@ describe('NetworksFilterSelector', () => {
   it('applies the filter and closes the selector if all items are selected', () => {
     const { getByText } = render(
       <NetworksFilterSelector
-        uniqueNetworks={uniqueNetworks}
-        networkFilter={uniqueNetworks}
+        networks={networks}
+        networkFilter={networks}
         setNetworkFilter={mockSetNetworkFilter}
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
       />,
@@ -113,7 +109,7 @@ describe('NetworksFilterSelector', () => {
   it('applies the filter and closes the selector if no items are selected', () => {
     const { getByText } = render(
       <NetworksFilterSelector
-        uniqueNetworks={uniqueNetworks}
+        networks={networks}
         networkFilter={[]}
         setNetworkFilter={mockSetNetworkFilter}
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
@@ -130,7 +126,7 @@ describe('NetworksFilterSelector', () => {
   it('applies the filter and closes the selector if some items are selected', () => {
     const { getByText } = render(
       <NetworksFilterSelector
-        uniqueNetworks={uniqueNetworks}
+        networks={networks}
         networkFilter={['eip155:1']}
         setNetworkFilter={mockSetNetworkFilter}
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}

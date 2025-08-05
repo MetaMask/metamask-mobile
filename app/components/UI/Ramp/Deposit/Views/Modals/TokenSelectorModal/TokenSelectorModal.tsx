@@ -187,12 +187,14 @@ function TokenSelectorModal() {
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD}>
-          {strings('deposit.token_modal.select_a_token')}
+          {isEditingNetworkFilter
+            ? strings('deposit.networks_filter_selector.select_network')
+            : strings('deposit.token_modal.select_token')}
         </Text>
       </BottomSheetHeader>
       {isEditingNetworkFilter ? (
         <NetworksFilterSelector
-          uniqueNetworks={uniqueNetworks}
+          networks={uniqueNetworks}
           networkFilter={networkFilter}
           setNetworkFilter={setNetworkFilter}
           setIsEditingNetworkFilter={setIsEditingNetworkFilter}
@@ -200,7 +202,7 @@ function TokenSelectorModal() {
       ) : (
         <>
           <NetworksFilterBar
-            uniqueNetworks={uniqueNetworks}
+            networks={uniqueNetworks}
             networkFilter={networkFilter}
             setNetworkFilter={setNetworkFilter}
             setIsEditingNetworkFilter={setIsEditingNetworkFilter}

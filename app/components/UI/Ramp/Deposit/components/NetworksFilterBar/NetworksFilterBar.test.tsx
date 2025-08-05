@@ -12,11 +12,7 @@ function render(component: React.ReactElement) {
 }
 
 describe('NetworksFilterBar', () => {
-  const uniqueNetworks: CaipChainId[] = [
-    'eip155:1',
-    'eip155:59144',
-    'eip155:56',
-  ];
+  const networks: CaipChainId[] = ['eip155:1', 'eip155:59144', 'eip155:56'];
   const mockSetNetworkFilter = jest.fn();
   const mockSetIsEditingNetworkFilter = jest.fn();
 
@@ -27,7 +23,7 @@ describe('NetworksFilterBar', () => {
   it('renders correctly when networkFilter is null', () => {
     const { toJSON, getByText } = render(
       <NetworksFilterBar
-        uniqueNetworks={uniqueNetworks}
+        networks={networks}
         networkFilter={null}
         setNetworkFilter={mockSetNetworkFilter}
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
@@ -39,15 +35,15 @@ describe('NetworksFilterBar', () => {
     const allNetworksButton = getByText('All networks');
     fireEvent.press(allNetworksButton);
 
-    expect(mockSetNetworkFilter).toHaveBeenCalledWith(uniqueNetworks);
+    expect(mockSetNetworkFilter).toHaveBeenCalledWith(networks);
     expect(mockSetIsEditingNetworkFilter).toHaveBeenCalledWith(true);
   });
 
   it('renders correctly when networkFilter is the same as uniqueNetworks', () => {
     const { toJSON, getByText } = render(
       <NetworksFilterBar
-        uniqueNetworks={uniqueNetworks}
-        networkFilter={uniqueNetworks}
+        networks={networks}
+        networkFilter={networks}
         setNetworkFilter={mockSetNetworkFilter}
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
       />,
@@ -58,7 +54,7 @@ describe('NetworksFilterBar', () => {
     const allNetworksButton = getByText('All networks');
     fireEvent.press(allNetworksButton);
 
-    expect(mockSetNetworkFilter).toHaveBeenCalledWith(uniqueNetworks);
+    expect(mockSetNetworkFilter).toHaveBeenCalledWith(networks);
     expect(mockSetIsEditingNetworkFilter).toHaveBeenCalledWith(true);
   });
 
@@ -66,7 +62,7 @@ describe('NetworksFilterBar', () => {
     const subsetNetworkFilter: CaipChainId[] = ['eip155:1', 'eip155:59144'];
     const { toJSON, getByText } = render(
       <NetworksFilterBar
-        uniqueNetworks={uniqueNetworks}
+        networks={networks}
         networkFilter={subsetNetworkFilter}
         setNetworkFilter={mockSetNetworkFilter}
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
@@ -87,7 +83,7 @@ describe('NetworksFilterBar', () => {
     const singleNetworkFilter: CaipChainId[] = ['eip155:1'];
     const { getByText } = render(
       <NetworksFilterBar
-        uniqueNetworks={uniqueNetworks}
+        networks={networks}
         networkFilter={singleNetworkFilter}
         setNetworkFilter={mockSetNetworkFilter}
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}

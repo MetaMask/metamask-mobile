@@ -30,13 +30,13 @@ import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../constants/networks';
 import { excludeFromArray } from '../../utils';
 
 interface NetworksFilterSelectorProps {
-  uniqueNetworks: CaipChainId[];
+  networks: CaipChainId[];
   networkFilter: CaipChainId[] | null;
   setNetworkFilter: React.Dispatch<React.SetStateAction<CaipChainId[] | null>>;
   setIsEditingNetworkFilter: (isEditing: boolean) => void;
 }
 function NetworksFilterSelector({
-  uniqueNetworks,
+  networks,
   networkFilter,
   setNetworkFilter,
   setIsEditingNetworkFilter,
@@ -67,21 +67,19 @@ function NetworksFilterSelector({
         variant={ButtonVariants.Link}
         size={ButtonSize.Sm}
         label={
-          uniqueNetworks.length === networkFilter?.length
+          networks.length === networkFilter?.length
             ? strings('deposit.networks_filter_selector.deselect_all')
             : strings('deposit.networks_filter_selector.select_all')
         }
         onPress={() => {
           setNetworkFilter(
-            uniqueNetworks.length === networkFilter?.length
-              ? []
-              : uniqueNetworks,
+            networks.length === networkFilter?.length ? [] : networks,
           );
         }}
       />
       <FlatList
         style={styles.list}
-        data={uniqueNetworks}
+        data={networks}
         renderItem={({ item: chainId }) => (
           <ListItemSelect onPress={handleNetworkOnPress(chainId)}>
             <ListItemColumn>
@@ -118,7 +116,7 @@ function NetworksFilterSelector({
           label={strings('deposit.networks_filter_selector.apply')}
           onPress={() => {
             if (
-              networkFilter?.length === uniqueNetworks.length ||
+              networkFilter?.length === networks.length ||
               networkFilter?.length === 0
             ) {
               setNetworkFilter(null);
