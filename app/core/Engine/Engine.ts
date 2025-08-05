@@ -235,6 +235,11 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
+import {
+  AppState,
+  AppStateStatus,
+  NativeEventSubscription,
+} from 'react-native';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -276,6 +281,12 @@ export class Engine {
   lastIncomingTxBlockInfo: any;
 
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  /**
+   * The app state event listener.
+   * This is used to handle app state changes in snaps lifecycle hooks.
+   */
+  appStateListener: NativeEventSubscription;
+
   subjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
 
@@ -1757,6 +1768,22 @@ export class Engine {
         }
       },
     );
+
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      (state: AppStateStatus) => {
+        if (state === 'active') {
+          this.controllerMessenger.call('SnapController:setClientActive', true);
+        }
+
+        if (state === 'background') {
+          this.controllerMessenger.call(
+            'SnapController:setClientActive',
+            false,
+          );
+        }
+      },
+    );
     ///: END:ONLY_INCLUDE_IF
 
     // @TODO(snaps): This fixes an issue where `withKeyring` would lock the `KeyringController` mutex.
@@ -2214,6 +2241,10 @@ export class Engine {
 
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    this.appStateListener.remove();
+    ///: END:ONLY_INCLUDE_IF
   }
 
   async destroyEngineInstance() {
@@ -2226,6 +2257,7 @@ export class Engine {
     });
     this.removeAllListeners();
     await this.resetState();
+
     Engine.instance = null;
   }
 
