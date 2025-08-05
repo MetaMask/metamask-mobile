@@ -29,10 +29,6 @@ on:
         type: boolean
         default: false
 
-permissions:
-  contents: write
-  id-token: write
-  
 jobs:
   build-android-app:
     name: Build Android E2E App
