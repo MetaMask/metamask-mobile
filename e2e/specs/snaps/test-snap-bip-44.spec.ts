@@ -31,10 +31,6 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
       },
       async () => {
-        await loginToApp();
-        await TabBarComponent.tapBrowser();
-        await TestSnaps.navigateToTestSnap();
-
         await TestSnaps.tapButton('getPublicKeyBip44Button');
         await TestSnaps.checkResultSpan(
           'bip44ResultSpan',

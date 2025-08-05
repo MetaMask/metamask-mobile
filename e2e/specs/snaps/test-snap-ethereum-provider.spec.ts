@@ -15,7 +15,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
   it('can use the Ethereum provider', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         testSpecificMock: {
           GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmationsFlask],

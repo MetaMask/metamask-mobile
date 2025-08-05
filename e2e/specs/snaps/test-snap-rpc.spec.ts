@@ -11,7 +11,7 @@ describe(FlaskBuildTests('Snap RPC Tests'), () => {
   it('can use the cross-snap RPC endowment and produce a public key', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
       },
       async () => {
