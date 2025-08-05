@@ -11,6 +11,7 @@ describe(Regression('Settings'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        restartDevice: true,
       },
       async () => {
         await loginToApp();
