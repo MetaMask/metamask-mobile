@@ -5,10 +5,19 @@ import { isNativeToken } from '../../../utils/generic';
 import { useSendContext } from '../../../context/send-context';
 
 export const getMaxValueFn = (asset?: AssetType) => {
-  if (!asset || isNativeToken(asset)) {
-    return undefined;
+  if (!asset) {
+    return { maxAmount: '0', balance: '0' };
   }
-  return asset.balance;
+  if (isNativeToken(asset)) {
+    return {
+      maxAmount: undefined,
+      balance: asset.balance,
+    };
+  }
+  return {
+    maxAmount: asset.balance,
+    balance: asset.balance,
+  };
 };
 
 export const useNonEvmMaxAmount = () => {
