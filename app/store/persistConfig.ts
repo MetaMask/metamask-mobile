@@ -174,9 +174,15 @@ export const setupEnginePersistence = () => {
           eventName,
           debounce(async (controllerState) => {
             try {
+              const filteredState = getPersistentState(
+                controllerState,
+                // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
+                Engine.context[controllerName as keyof EngineContext]?.metadata,
+              );
+
               await ControllerStorage.setItem(
                 `persist:${controllerName}`,
-                JSON.stringify(controllerState),
+                JSON.stringify(filteredState),
               );
               Logger.log(`${controllerName} state persisted successfully`);
             } catch (error) {
@@ -199,58 +205,6 @@ export const setupEnginePersistence = () => {
     );
   }
 };
-
-/**
- * Transform middleware that blacklists fields from redux persist that we deem too large for persisted storage
- */
-const persistTransform = createTransform(
-  (inboundState: RootState['engine']) => {
-    // Do not transform data in Fresh Installs
-    if (
-      !inboundState ||
-      Object.keys(inboundState.backgroundState).length === 0
-    ) {
-      return inboundState;
-    }
-
-    const controllers = inboundState.backgroundState || {};
-
-    try {
-      // Check if Engine is initialized by trying to access context
-      if (Engine.context) {
-        // This is just to trigger the error if engine does not exist
-      }
-    } catch (error) {
-      // Engine not initialized, skipping transform
-      return inboundState;
-    }
-
-    const persistableControllersState: Record<
-      string,
-      Record<string, unknown>
-    > = {};
-    for (const [key, value] of Object.entries(controllers)) {
-      if (!value || typeof value !== 'object') continue;
-
-      const persistedState = getPersistentState(
-        value,
-        // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
-        Engine.context[key as keyof EngineContext]?.metadata,
-      );
-      persistableControllersState[key] = persistedState;
-    }
-    // Reconstruct data to persist
-    const newState = {
-      backgroundState: {
-        ...persistableControllersState,
-      },
-    };
-
-    return newState;
-  },
-  null,
-  { whitelist: ['engine'] },
-);
 
 const persistUserTransform = createTransform(
   (inboundState: UserState) => {
@@ -278,11 +232,7 @@ const persistConfig = {
   version,
   blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics', 'engine'],
   storage: MigratedStorage,
-  transforms: [
-    persistTransform,
-    persistUserTransform,
-    persistOnboardingTransform,
-  ],
+  transforms: [persistUserTransform, persistOnboardingTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, {
     debug: false,

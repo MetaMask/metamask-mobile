@@ -64,21 +64,12 @@ export class EngineService {
   start = async () => {
     const reduxState = ReduxService.store.getState();
     const persistedState = await ControllerStorage.getKey();
-    // // TODO: this state will need to be migrated before
-    // Logger.log(' ======= Persisted State is ====== ', persistedState);
-
-    // // Logging state for inspection
-    // Logger.log(
-    //   ' ======= Persisted State Debug: ======= ',
-    //   JSON.stringify(persistedState, null, 2),
-    // );
     trace({
       name: TraceName.EngineInitialization,
       op: TraceOperation.EngineInitialization,
       parentContext: getUIStartupSpan(),
       tags: getTraceTags(reduxState),
     });
-    // Using the new ControllerStorage.getKey() method instead of Redux state to get the state
     const state = persistedState?.backgroundState ?? {};
     const Engine = UntypedEngine;
     try {
@@ -91,7 +82,6 @@ export class EngineService {
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.updateControllers(Engine as unknown as TypedEngine);
 
-      // Set up the new Engine persistence mechanism
       setupEnginePersistence();
     } catch (error) {
       Logger.error(
