@@ -509,7 +509,8 @@ class AuthenticationService {
   userEntryAuth = async (
     password: string,
     authData: AuthData,
-  ): Promise<void> => {
+  ): Promise<boolean> => {
+    let isConnectionRemoved = false;
     try {
       trace({
         name: TraceName.VaultCreation,
@@ -521,7 +522,10 @@ class AuthenticationService {
         await this.rehydrateSeedPhrase(password, authData);
       } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-        await this.syncPasswordAndUnlockWallet(password, authData);
+        isConnectionRemoved = await this.syncPasswordAndUnlockWallet(
+          password,
+          authData,
+        );
       } else {
         // else srp flow
         await this.loginVaultCreation(password);
@@ -555,6 +559,7 @@ class AuthenticationService {
       );
     }
     password = this.wipeSensitiveData();
+    return isConnectionRemoved;
   };
 
   /**
@@ -1011,7 +1016,7 @@ class AuthenticationService {
   syncPasswordAndUnlockWallet = async (
     globalPassword: string,
     authData: AuthData,
-  ): Promise<void> => {
+  ): Promise<boolean> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
 
     const { success: isKeyringPasswordValid } =
@@ -1051,7 +1056,7 @@ class AuthenticationService {
         await SeedlessOnboardingController.refreshAuthTokens();
         await this.rehydrateSeedPhrase(globalPassword, authData);
         // skip the rest of the flow ( change password and sync keyring encryption key)
-        return;
+        return true;
       } else if (
         errorMessage ===
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword
@@ -1094,6 +1099,13 @@ class AuthenticationService {
       throw err;
     }
     await this.resetPassword();
+
+    // set discovery pending to true
+    for (const clientType of Object.values(WalletClientType)) {
+      const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+      await StorageWrapper.setItem(discoveryStorageId, TRUE);
+    }
+    return false;
   };
 
   /**
