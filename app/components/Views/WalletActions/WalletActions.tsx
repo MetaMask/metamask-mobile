@@ -390,7 +390,7 @@ const WalletActions = () => {
         {isDepositEnabled && (
           <WalletAction
             actionType={WalletActionType.Deposit}
-            iconName={IconName.Cash}
+            iconName={IconName.Money}
             onPress={onDeposit}
             actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
             iconStyle={styles.icon}
