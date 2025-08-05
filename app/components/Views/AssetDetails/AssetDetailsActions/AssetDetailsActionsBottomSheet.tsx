@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -10,16 +9,14 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { selectChainId } from '../../../../selectors/networkController';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import WalletAction from '../../../../components/UI/WalletAction';
-import { useStyles } from '../../../../component-library/hooks';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import { IconName } from '@metamask/design-system-react-native';
+import ActionListItem from '../../../../component-library/components-temp/ActionListItem';
 import useRampNetwork from '../../../UI/Ramp/Aggregator/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../../util/networks';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies
-import styleSheet from './AssetDetailsActionsBottomSheet.styles';
 import { useMetrics } from '../../../hooks/useMetrics';
 import {
   createBuyNavigationDetails,
@@ -27,18 +24,15 @@ import {
 } from '../../../UI/Ramp/Aggregator/routes/utils';
 import { trace, TraceName } from '../../../../util/trace';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
-import { WalletActionType } from '../../../UI/WalletAction/WalletAction.types';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 import Routes from '../../../../constants/navigation/Routes';
 
 const AssetDetailsActionsBottomSheet = () => {
-  const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
 
   const chainId = useSelector(selectChainId);
-  const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
   const { isDepositEnabled } = useDepositEnabled();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -139,39 +133,34 @@ const AssetDetailsActionsBottomSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.actionsContainer}>
-        {isDepositEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Deposit}
-            iconName={IconName.Cash}
-            onPress={onDeposit}
-            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-          />
-        )}
-        {isNetworkRampSupported && (
-          <WalletAction
-            actionType={WalletActionType.Buy}
-            iconName={IconName.Add}
-            onPress={onBuy}
-            actionID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-          />
-        )}
-        {isNetworkRampSupported && (
-          <WalletAction
-            actionType={WalletActionType.Sell}
-            iconName={IconName.MinusBold}
-            onPress={onSell}
-            actionID={WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
-          />
-        )}
-      </View>
+      {isDepositEnabled && (
+        <ActionListItem
+          label="Deposit"
+          description={strings('asset_overview.deposit_description')}
+          iconName={IconName.Cash}
+          onPress={onDeposit}
+          testID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
+        />
+      )}
+      {isNetworkRampSupported && (
+        <ActionListItem
+          label={strings('asset_overview.buy_button')}
+          description={strings('asset_overview.buy_description')}
+          iconName={IconName.Add}
+          onPress={onBuy}
+          testID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
+        />
+      )}
+      {isNetworkRampSupported && (
+        <ActionListItem
+          label={strings('asset_overview.sell_button')}
+          description={strings('asset_overview.sell_description')}
+          iconName={IconName.MinusBold}
+          onPress={onSell}
+          testID={WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}
+          disabled={!canSignTransactions}
+        />
+      )}
     </BottomSheet>
   );
 };
