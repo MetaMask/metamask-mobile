@@ -7,7 +7,6 @@ on:
 
 permissions:
   pull-requests: write
-  issues: write
   contents: read
 
 jobs:
@@ -16,6 +15,6 @@ jobs:
     with:
       repo-owner: MetaMask
       repo-name: metamask-mobile
-      pr-number: '17911'
+      pr-number: '17572'
       pr-author: 'christopherferreira9'
-      pr-title: 'fix: cp-7.53.0 disables flaky E2E tests'
+      pr-title: 'feat: fixes fixtures and migrates solana tests'
