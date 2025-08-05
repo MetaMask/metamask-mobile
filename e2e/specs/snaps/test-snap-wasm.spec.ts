@@ -7,8 +7,8 @@ import TestSnaps from '../../pages/Browser/TestSnaps';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Client Status Snap Tests'), () => {
-  it('connects to the Client Status Snap', async () => {
+describe(FlaskBuildTests('WASM Snap Tests'), () => {
+  it('can connect to the WASM Snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
@@ -19,27 +19,21 @@ describe(FlaskBuildTests('Client Status Snap Tests'), () => {
         await TabBarComponent.tapBrowser();
         await TestSnaps.navigateToTestSnap();
 
-        await TestSnaps.installSnap('connectClientStatusSnapButton');
+        await TestSnaps.installSnap('connectWasmButton');
       },
     );
   });
 
-  it('returns the client status', async () => {
+  it('return a response for the given number', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
       },
       async () => {
-        await TestSnaps.tapButton('sendClientStatusButton');
-        await TestSnaps.checkResultJson('clientStatusResultSpan', {
-          locked: false,
-          active: true,
-        });
+        await TestSnaps.fillMessage('wasmInput', '23');
+        await TestSnaps.tapButton('sendWasmMessageButton');
+        await TestSnaps.checkResultSpan('wasmResultSpan', '28657');
       },
     );
   });
-
-  // Can't test this right now because the client needs to be unlocked in order
-  // to interact with the Snap.
-  it.todo('returns the client status with a locked client');
 });
