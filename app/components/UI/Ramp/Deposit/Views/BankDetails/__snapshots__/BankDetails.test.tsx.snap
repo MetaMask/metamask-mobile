@@ -174,7 +174,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  SEPA Bank Transfer bank transfer
+                  SEPA bank transfer
                 </Text>
               </TouchableOpacity>
             </View>
@@ -440,7 +440,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                       >
                         <RCTScrollView
                           collapsable={false}
-                          handlerTag={1}
+                          handlerTag={-1}
                           handlerType="NativeViewGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -452,10 +452,11 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                 ]
                               }
                               onRefresh={[Function]}
-                              refreshing={true}
+                              refreshing={false}
                               tintColor="#121314"
                             />
                           }
+                          testID="bank-details-refresh-control-scrollview"
                         >
                           <RCTRefreshControl />
                           <View>
@@ -531,7 +532,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Once you’re finished, come back and click “Bank transfer sent” to confirm.
+                                    Once you’re finished, come back and click “Confirm transfer” to confirm.
                                   </Text>
                                 </View>
                                 <View
@@ -909,6 +910,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
+                                  disabled={false}
+                                  loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
                                   onPressOut={[Function]}
@@ -948,6 +951,8 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
+                                  disabled={false}
+                                  loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
                                   onPressOut={[Function]}
@@ -979,7 +984,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    Bank transfer sent
+                                    Confirm transfer
                                   </Text>
                                 </TouchableOpacity>
                               </View>
@@ -1174,7 +1179,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                     }
                   }
                 >
-                  SEPA Bank Transfer bank transfer
+                  SEPA bank transfer
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1452,10 +1457,11 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                 ]
                               }
                               onRefresh={[Function]}
-                              refreshing={true}
+                              refreshing={false}
                               tintColor="#121314"
                             />
                           }
+                          testID="bank-details-refresh-control-scrollview"
                         >
                           <RCTRefreshControl />
                           <View>
@@ -1531,7 +1537,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       }
                                     }
                                   >
-                                    Once you’re finished, come back and click “Bank transfer sent” to confirm.
+                                    Once you’re finished, come back and click “Confirm transfer” to confirm.
                                   </Text>
                                 </View>
                                 <View
@@ -2051,6 +2057,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
+                                  disabled={false}
+                                  loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
                                   onPressOut={[Function]}
@@ -2090,6 +2098,8 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                   accessibilityRole="button"
                                   accessible={true}
                                   activeOpacity={1}
+                                  disabled={false}
+                                  loading={false}
                                   onPress={[Function]}
                                   onPressIn={[Function]}
                                   onPressOut={[Function]}
@@ -2121,7 +2131,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       }
                                     }
                                   >
-                                    Bank transfer sent
+                                    Confirm transfer
                                   </Text>
                                 </TouchableOpacity>
                               </View>

@@ -164,12 +164,16 @@ export const useDepositRouting = ({
       orderId: string;
       shouldUpdate?: boolean;
     }) => {
-      popToBuildQuote();
-      navigation.navigate(
-        ...createBankDetailsNavDetails({ orderId, shouldUpdate }),
-      );
+      const [name, params] = createBankDetailsNavDetails({
+        orderId,
+        shouldUpdate,
+      });
+      navigation.reset({
+        index: 0,
+        routes: [{ name, params }],
+      });
     },
-    [navigation, popToBuildQuote],
+    [navigation],
   );
 
   const navigateToOrderProcessingCallback = useCallback(
