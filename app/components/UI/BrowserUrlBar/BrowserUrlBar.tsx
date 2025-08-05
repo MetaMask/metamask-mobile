@@ -11,7 +11,8 @@ import {
   TextInputSubmitEditingEventData,
   TouchableOpacity,
   View,
- TouchableWithoutFeedback } from 'react-native';
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
 import Icon, {
   IconName,
