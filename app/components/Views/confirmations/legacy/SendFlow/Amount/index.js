@@ -547,14 +547,6 @@ class Amount extends PureComponent {
      */
     contractExchangeRatesByContextualChainId: PropTypes.object,
     /**
-     * ETH to current currency conversion rate by contextual chain id
-     */
-    conversionRateByContextualChainId: PropTypes.number,
-    /**
-     * Network provider type by contextual chain id
-     */
-    providerTypeByContextualChainId: PropTypes.string,
-    /**
      * Current provider ticker by contextual chain id
      */
     tickerByContextualChainId: PropTypes.string,
@@ -614,7 +606,6 @@ class Amount extends PureComponent {
       isPaymentRequest,
       gasEstimateType,
       gasFeeEstimates,
-      providerTypeByContextualChainId,
       allTokensByChainId,
       selectedAddress,
       contextualChainId,
@@ -622,11 +613,8 @@ class Amount extends PureComponent {
     } = this.props;
     // For analytics
     this.updateNavBar();
-    const currentProviderType = isRemoveGlobalNetworkSelectorEnabled()
-      ? providerTypeByContextualChainId
-      : providerType;
     navigation.setParams({
-      providerType: currentProviderType,
+      providerType,
       isPaymentRequest,
     });
     const allTokensByChainIdAndAddress =
@@ -708,15 +696,11 @@ class Amount extends PureComponent {
     const {
       selectedAsset,
       conversionRate,
-      conversionRateByContextualChainId,
       contractExchangeRates,
       contractExchangeRatesByContextualChainId,
     } = this.props;
-    const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
-      ? conversionRateByContextualChainId
-      : conversionRate;
     if (isNativeToken(selectedAsset)) {
-      return !!currentConversionRate;
+      return !!conversionRate;
     }
     const globallySelectedExchangeRate =
       contractExchangeRates?.[selectedAsset.address]?.price ?? null;
@@ -766,7 +750,6 @@ class Amount extends PureComponent {
       globalNetworkClientId,
       isRedesignedTransferConfirmationEnabledForTransfer,
       contextualNetworkConfiguration,
-      conversionRateByContextualChainId,
       conversionRate,
     } = this.props;
     const {
@@ -782,11 +765,8 @@ class Amount extends PureComponent {
     } else {
       value = inputValueConversion;
       if (maxFiatInput) {
-        const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
-          ? conversionRateByContextualChainId
-          : conversionRate;
         value = `${renderFromWei(
-          fiatNumberToWei(handleWeiNumber(maxFiatInput), currentConversionRate),
+          fiatNumberToWei(handleWeiNumber(maxFiatInput), conversionRate),
           18,
         )}`;
       }
@@ -1061,7 +1041,6 @@ class Amount extends PureComponent {
       contractExchangeRates,
       contractBalancesByContextualChainId,
       contractExchangeRatesByContextualChainId,
-      conversionRateByContextualChainId,
       accountsByContextualChainId,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
@@ -1089,16 +1068,9 @@ class Amount extends PureComponent {
       if (internalPrimaryCurrencyIsCrypto) {
         input = fromWei(maxValue);
       } else {
-        const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
-          ? conversionRateByContextualChainId
-          : conversionRate;
-        input = `${weiToFiatNumber(maxValue, currentConversionRate)}`;
+        input = `${weiToFiatNumber(maxValue, conversionRate)}`;
         this.setState({
-          maxFiatInput: `${weiToFiatNumber(
-            maxValue,
-            currentConversionRate,
-            12,
-          )}`,
+          maxFiatInput: `${weiToFiatNumber(maxValue, conversionRate, 12)}`,
         });
       }
     } else {
@@ -1117,12 +1089,9 @@ class Amount extends PureComponent {
           selectedAsset.decimals,
         );
       } else {
-        const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
-          ? conversionRateByContextualChainId
-          : conversionRate;
         input = `${balanceToFiatNumber(
           fromTokenMinimalUnitString(tokenBalance, selectedAsset.decimals),
-          currentConversionRate,
+          conversionRate,
           exchangeRate,
         )}`;
       }
@@ -1138,7 +1107,6 @@ class Amount extends PureComponent {
       ticker,
       setMaxValueMode,
       contractExchangeRatesByContextualChainId,
-      conversionRateByContextualChainId,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
 
@@ -1170,24 +1138,18 @@ class Amount extends PureComponent {
         // Do nothing
       }
 
-      const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
-        ? conversionRateByContextualChainId
-        : conversionRate;
-      hasExchangeRate = !!currentConversionRate;
+      hasExchangeRate = !!conversionRate;
 
       if (internalPrimaryCurrencyIsCrypto) {
-        inputValueConversion = `${weiToFiatNumber(
-          weiValue,
-          currentConversionRate,
-        )}`;
+        inputValueConversion = `${weiToFiatNumber(weiValue, conversionRate)}`;
         displayableInputValueConversion = `${weiToFiat(
           weiValue,
-          currentConversionRate,
+          conversionRate,
           currentCurrency,
         )}`;
       } else {
         inputValueConversion = `${renderFromWei(
-          fiatNumberToWei(processedInputValue, currentConversionRate),
+          fiatNumberToWei(processedInputValue, conversionRate),
         )}`;
         displayableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
       }
@@ -1200,20 +1162,17 @@ class Amount extends PureComponent {
       const exchangeRatePrice = isRemoveGlobalNetworkSelectorEnabled()
         ? contextuallySelectedExchangeRate
         : globallySelectedExchangeRate;
-      const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
-        ? conversionRateByContextualChainId
-        : conversionRate;
 
       hasExchangeRate = !!exchangeRatePrice;
       if (internalPrimaryCurrencyIsCrypto) {
         inputValueConversion = `${balanceToFiatNumber(
           processedInputValue,
-          currentConversionRate,
+          conversionRate,
           exchangeRatePrice,
         )}`;
         displayableInputValueConversion = `${balanceToFiat(
           processedInputValue,
-          currentConversionRate,
+          conversionRate,
           exchangeRatePrice,
           currentCurrency,
         )}`;
@@ -1221,7 +1180,7 @@ class Amount extends PureComponent {
         inputValueConversion = `${renderFromTokenMinimalUnit(
           fiatNumberToTokenMinimalUnit(
             processedInputValue,
-            currentConversionRate,
+            conversionRate,
             exchangeRatePrice,
             selectedAsset.decimals,
           ),
@@ -1336,7 +1295,6 @@ class Amount extends PureComponent {
       ticker,
       tickerByContextualChainId,
       contractExchangeRatesByContextualChainId,
-      conversionRateByContextualChainId,
     } = this.props;
     const contextuallySelectedAccount =
       accountsByContextualChainId?.[selectedAddress];
@@ -1354,14 +1312,11 @@ class Amount extends PureComponent {
       const balanceToRender = isRemoveGlobalNetworkSelectorEnabled()
         ? contextuallySelectedBalance
         : globallySelectedBalance;
-      const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
-        ? conversionRateByContextualChainId
-        : conversionRate;
 
       balance = renderFromWei(balanceToRender) || '0';
       balanceFiat = weiToFiat(
         hexToBN(balanceToRender),
-        currentConversionRate,
+        conversionRate,
         currentCurrency,
       );
     } else {
@@ -1381,13 +1336,10 @@ class Amount extends PureComponent {
       const exchangeRate = isRemoveGlobalNetworkSelectorEnabled()
         ? contextuallySelectedExchangeRate
         : globallySelectedExchangeRate;
-      const currentConversionRate = isRemoveGlobalNetworkSelectorEnabled()
-        ? conversionRateByContextualChainId
-        : conversionRate;
 
       balanceFiat = balanceToFiat(
         balance,
-        currentConversionRate,
+        conversionRate,
         exchangeRate,
         currentCurrency,
       );
@@ -1761,6 +1713,7 @@ class Amount extends PureComponent {
             networkName={networkName}
             networkImageSource={networkImageSource}
             onPress={this.onNetworkSelectorPress}
+            disabled
           />
         ) : null}
         <ScrollView style={styles.scrollWrapper}>
@@ -1891,14 +1844,14 @@ const mapStateToProps = (state, ownProps) => {
     contractBalances: selectContractBalances(state),
     collectibles: collectiblesSelector(state),
     collectibleContracts: collectibleContractsSelector(state),
-    conversionRate: selectConversionRateByChainId(state, globalChainId),
+    conversionRate: selectConversionRateByChainId(state, currentChainId),
     currentCurrency: selectCurrentCurrency(state),
     gasEstimateType: selectGasFeeControllerEstimateType(state),
     gasFeeEstimates: selectGasFeeEstimates(state),
-    providerType: selectProviderTypeByChainId(state, globalChainId),
+    providerType: selectProviderTypeByChainId(state, currentChainId),
     primaryCurrency: state.settings.primaryCurrency,
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-    ticker: selectNativeCurrencyByChainId(state, globalChainId),
+    ticker: selectNativeCurrencyByChainId(state, currentChainId),
     tokens: selectTokens(state),
     transactionState: transaction,
     selectedAsset: state.transaction.selectedAsset,
@@ -1912,7 +1865,6 @@ const mapStateToProps = (state, ownProps) => {
     swapsIsLive: swapsLivenessSelector(state),
     globalChainId,
     globalNetworkClientId,
-    // New selectors relating to the send flow
     contextualChainId,
     contextualNetworkConfiguration,
     accountsByContextualChainId: selectAccountsByContextualChainId(state),
@@ -1921,14 +1873,6 @@ const mapStateToProps = (state, ownProps) => {
     contractBalancesByContextualChainId:
       selectContractBalancesByContextualChainId(state),
     allTokenBalances: selectAllTokenBalances(state),
-    conversionRateByContextualChainId: selectConversionRateByChainId(
-      state,
-      contextualChainId,
-    ),
-    providerTypeByContextualChainId: selectProviderTypeByChainId(
-      state,
-      contextualChainId,
-    ),
     tickerByContextualChainId: selectNativeCurrencyByChainId(
       state,
       contextualChainId,

@@ -25,6 +25,7 @@ import {
   isPerDappSelectedNetworkEnabled,
   isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
+import { selectSendFlowContextualChainId } from '../../../selectors/sendFlow';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const {
@@ -33,6 +34,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
     transactionState,
     origin,
     chainId: globalChainId,
+    contextualChainId,
   } = props;
   const {
     transaction: { from: rawFromAddress, data, to },
@@ -43,8 +45,8 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   } = transactionState;
 
   const chainId = isRemoveGlobalNetworkSelectorEnabled()
-    ? globalChainId
-    : props.chainId;
+    ? contextualChainId || globalChainId
+    : globalChainId;
   const fromAddress = toFormattedAddress(rawFromAddress);
 
   const [toAddress, setToAddress] = useState(transactionTo || to);
@@ -216,6 +218,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
 const mapStateToProps = (state: RootState) => ({
   internalAccounts: selectInternalAccounts(state),
   chainId: selectEvmChainId(state),
+  contextualChainId: selectSendFlowContextualChainId(state),
   ticker: selectEvmTicker(state),
 });
 
