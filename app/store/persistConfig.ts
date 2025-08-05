@@ -164,6 +164,8 @@ const MigratedStorage = {
 
 import { debounce } from 'lodash';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../core/Engine/constants';
+import ReduxService from '../core/redux';
+import { UPDATE_BG_STATE_KEY } from '../core/EngineService/constants';
 
 export const setupEnginePersistence = () => {
   try {
@@ -185,6 +187,11 @@ export const setupEnginePersistence = () => {
                 JSON.stringify(filteredState),
               );
               Logger.log(`${controllerName} state persisted successfully`);
+
+              ReduxService.store.dispatch({
+                type: UPDATE_BG_STATE_KEY,
+                payload: { key: controllerName },
+              });
             } catch (error) {
               Logger.error(
                 error as Error,
@@ -195,7 +202,7 @@ export const setupEnginePersistence = () => {
         );
       });
       Logger.log(
-        'Individual controller persistence subscriptions set up successfully',
+        'Individual controller persistence and Redux update subscriptions set up successfully',
       );
     }
   } catch (error) {

@@ -16,13 +16,13 @@ import {
 import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
-import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
+
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
-import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY, LOG_TAG } from './constants';
+import { INIT_BG_STATE_KEY, LOG_TAG } from './constants';
 
 export class EngineService {
   private engineInitialized = false;
@@ -33,12 +33,6 @@ export class EngineService {
         if (key === INIT_BG_STATE_KEY) {
           // first-time init action
           ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
-        } else {
-          // incremental update action
-          ReduxService.store.dispatch({
-            type: UPDATE_BG_STATE_KEY,
-            payload: { key },
-          });
         }
       });
     }),
@@ -124,19 +118,6 @@ export class EngineService {
       },
       () => !this.engineInitialized,
     );
-
-    const update_bg_state_cb = (controllerName: string) => {
-      if (!engine.context.KeyringController.metadata.vault) {
-        Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
-      }
-      this.updateBatcher.add(controllerName);
-    };
-
-    BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
-      engine.controllerMessenger.subscribe(eventName, () =>
-        update_bg_state_cb(eventName.split(':')[0]),
-      );
-    });
   };
 
   /**
