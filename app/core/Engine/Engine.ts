@@ -2125,8 +2125,9 @@ export class Engine {
 
   /**
    * Returns true or false whether the user has funds or not
+   * @param address - Optional address to check funds for. If not provided, uses selected address or checks all addresses
    */
-  hasFunds = () => {
+  hasFunds = (address?: string) => {
     try {
       const {
         engine: { backgroundState },
@@ -2136,9 +2137,27 @@ export class Engine {
       const nfts = backgroundState.NftController.nfts;
 
       const { tokenBalances } = backgroundState.TokenBalancesController;
+      const { selectedAddress } = backgroundState.PreferencesController;
 
+      // Use provided address, fallback to selected address, or check all
+      const targetAddress = address || selectedAddress;
+
+      // Check token balances (ERC-20 tokens)
+      let allUserTokenBalances = Object.values(tokenBalances);
       let tokenFound = false;
-      tokenLoop: for (const chains of Object.values(tokenBalances)) {
+
+      if (targetAddress) {
+        const addressLower = targetAddress.toLowerCase();
+
+        const selectedAccountTokenBalances = tokenBalances[addressLower as Hex];
+
+        allUserTokenBalances = selectedAccountTokenBalances
+          ? [selectedAccountTokenBalances]
+          : [];
+      }
+
+      // Check for ERC-20 token balances
+      tokenLoop: for (const chains of allUserTokenBalances) {
         for (const tokens of Object.values(chains)) {
           for (const balance of Object.values(tokens)) {
             if (!isZero(balance)) {
@@ -2149,10 +2168,31 @@ export class Engine {
         }
       }
 
-      const fiatBalance = this.getTotalEvmFiatAccountBalance() || 0;
-      const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
+      // Check fiat balance (includes native ETH + converted token values)
+      // This is crucial for accounts that only have ETH but no ERC-20 tokens
+      const fiatBalance = address
+        ? this.getTotalEvmFiatAccountBalance(
+            // Find internal account by address for fiat balance calculation
+            Object.values(
+              backgroundState.AccountsController.internalAccounts?.accounts ||
+                {},
+            ).find(
+              (acc) => acc.address.toLowerCase() === address.toLowerCase(),
+            ),
+          )
+        : this.getTotalEvmFiatAccountBalance() || 0;
 
-      return totalFiatBalance > 0 || tokenFound || nfts.length > 0;
+      const totalFiatBalance = fiatBalance?.ethFiat
+        ? fiatBalance.ethFiat + fiatBalance.tokenFiat
+        : 0;
+
+      // Account has funds if:
+      // 1. Has fiat balance (ETH or token value) > 0,
+      // 2. Has any ERC-20 token balances > 0,
+      // 3. Has any NFTs
+      const hasFunds = totalFiatBalance > 0 || tokenFound || nfts?.length > 0;
+
+      return hasFunds;
     } catch (e) {
       Logger.log('Error while getting user funds', e);
     }
@@ -2448,9 +2488,9 @@ export default {
     return instance.getTotalEvmFiatAccountBalance(account);
   },
 
-  hasFunds() {
+  hasFunds(address?: string) {
     assertEngineExists(instance);
-    return instance.hasFunds();
+    return instance.hasFunds(address);
   },
 
   resetState() {
