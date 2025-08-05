@@ -377,6 +377,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
+  const handleSentryCapture = (captureError: Error) => {
+    if (isMetricsEnabled()) {
+      // If user has already consented to analytics, report error using regular Sentry
+      captureException(captureError, {
+        tags: {
+          view: 'Login',
+          context: 'OAuth rehydration failed - user consented to analytics',
+        },
+      });
+    } else {
+      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
+      oauthLoginSuccess &&
+        setErrorToThrow(
+          new Error(`OAuth rehydration failed: ${captureError.message}`),
+        );
+    }
+  };
+
   const handleSeedlessOnboardingControllerError = (
     seedlessError:
       | Error
@@ -384,60 +402,53 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       | SeedlessOnboardingControllerError,
   ) => {
     setLoading(false);
-
-    if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
-      if (
-        seedlessError.message ===
-        SeedlessOnboardingControllerErrorMessage.IncorrectPassword
-      ) {
-        setError(strings('login.invalid_password'));
-        return;
-      } else if (
-        seedlessError.message ===
-        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
-      ) {
-        // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
-        if (seedlessError.data?.numberOfAttempts !== undefined) {
-          setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
-        }
-        if (typeof seedlessError.data?.remainingTime === 'number') {
-          tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
-            () => null,
-          );
-        }
-        return;
-      }
-    } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
-      if (
-        seedlessError.code ===
-        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
-      ) {
-        setError(strings('login.seedless_password_outdated'));
-        return;
-      }
-    }
-    const errMessage = seedlessError.message.replace(
-      'SeedlessOnboardingController - ',
-      '',
-    );
-    setError(errMessage);
-
-    // If user has already consented to analytics, report error using regular Sentry
     if (isMetricsEnabled()) {
-      oauthLoginSuccess &&
-        captureException(seedlessError, {
-          tags: {
-            view: 'Login',
-            context: 'OAuth rehydration failed - user consented to analytics',
-          },
-        });
-    } else {
-      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
-      oauthLoginSuccess &&
-        setErrorToThrow(
-          new Error(`OAuth rehydration failed: ${seedlessError.message}`),
+      if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
+        if (
+          seedlessError.message ===
+          SeedlessOnboardingControllerErrorMessage.IncorrectPassword
+        ) {
+          setError(strings('login.invalid_password'));
+          return;
+        } else if (
+          seedlessError.message ===
+          SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
+        ) {
+          // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
+          if (seedlessError.data?.numberOfAttempts !== undefined) {
+            setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+          }
+          if (typeof seedlessError.data?.remainingTime === 'number') {
+            tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
+              () => null,
+            );
+          }
+        } else {
+          const errMessage = seedlessError.message.replace(
+            'SeedlessOnboardingController - ',
+            '',
+          );
+          setError(errMessage);
+        }
+        // return - skip
+      } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
+        if (
+          seedlessError.code ===
+          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+        ) {
+          setError(strings('login.seedless_password_outdated'));
+        }
+      } else {
+        const errMessage = seedlessError.message.replace(
+          'SeedlessOnboardingController - ',
+          '',
         );
+        setError(errMessage);
+      }
     }
+
+    // if metric not enable handleSentryCapture will throw error to ErrorBoundary onboarding flow
+    handleSentryCapture(seedlessError);
   };
 
   const handlePasswordError = (loginErrorMessage: string) => {
