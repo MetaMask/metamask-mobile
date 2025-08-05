@@ -14,14 +14,20 @@ import AppConstants from '../../../AppConstants';
 const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
   switch (env) {
+    case 'production':
+      return EnvironmentType.Production;
+    case 'beta':
+      return EnvironmentType.Beta;
     case 'pre-release':
     case 'rc':
       return EnvironmentType.ReleaseCandidate;
-    case 'production':
-    case 'beta':
-      return EnvironmentType.Production;
-    case 'local':
+    case 'e2e':
+    case 'test':
+      return EnvironmentType.Test;
     case 'exp':
+      return EnvironmentType.Exp;
+    case 'dev':
+      return EnvironmentType.Development;
     default:
       return EnvironmentType.Development;
   }
