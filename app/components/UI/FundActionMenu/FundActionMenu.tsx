@@ -158,7 +158,7 @@ const FundActionMenu = () => {
           iconName={IconName.MinusBold}
           onPress={onSell}
           testID={WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}
-          disabled={!canSignTransactions}
+          isDisabled={!canSignTransactions}
         />
       )}
     </BottomSheet>
