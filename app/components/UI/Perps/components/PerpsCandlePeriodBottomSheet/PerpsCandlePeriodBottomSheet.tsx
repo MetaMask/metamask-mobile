@@ -90,8 +90,8 @@ const PerpsCandlePeriodBottomSheet: React.FC<
             <Text
               variant={
                 selectedPeriod === period.value
-                  ? TextVariant.BodyMD
-                  : TextVariant.BodyMDBold
+                  ? TextVariant.BodyMDBold
+                  : TextVariant.BodyMD
               }
               color={
                 selectedPeriod === period.value
