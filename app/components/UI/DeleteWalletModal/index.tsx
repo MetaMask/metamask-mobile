@@ -120,11 +120,11 @@ const DeleteWalletModal: React.FC = () => {
     await deleteUser();
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     await dispatch(setCompletedOnboarding(false));
+    setIsDeletingWallet(false);
+    triggerClose();
     track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();
-      setIsDeletingWallet(false);
-      triggerClose();
     });
   };
 
