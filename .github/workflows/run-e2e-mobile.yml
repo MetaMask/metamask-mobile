@@ -29,6 +29,10 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: write
+  id-token: write
+  
 jobs:
   build-android-app:
     name: Build Android E2E App
@@ -37,7 +41,6 @@ jobs:
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
-      test-apk-uploaded: ${{ steps.upload-test-apk.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     steps:
       # Get the source code from the repository
@@ -65,12 +68,12 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      # Run project setup and build the Android E2E app (APK and Test APK)
+      # Run project setup and build the Android E2E app (Main APK only)
       - name: Setup and Build Android E2E App
         run: |
           echo "🚀 Finishing Android Setup..."
           yarn setup:github-ci --no-build-ios
-          echo "🏗 Building Android E2E APP (Main + Test APKs)..."
+          echo "🏗 Building Android E2E APP"
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
           yarn build:android:main:e2e
@@ -119,16 +122,6 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true
-
-      # Upload the Android Test APK for E2E testing
-      - name: Upload Android Test APK Artifact
-        id: upload-test-apk
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-prod-release-androidTest.apk
-          path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
-          retention-days: 7
-          if-no-files-found: error
 
       # Upload source map file for crash debugging and error tracking
       - name: Upload Android Source Map
@@ -198,7 +191,6 @@ jobs:
           
           # Create required directories
           mkdir -p android/app/build/outputs/apk/prod/release/
-          mkdir -p android/app/build/outputs/apk/androidTest/prod/release/
 
       - name: Download Android build artifacts
         if: ${{ inputs.platform == 'android' && (inputs.skip_build || needs.build-android-app.result == 'success') }}
@@ -215,16 +207,6 @@ jobs:
             echo "✅ Android main APK ready for E2E tests"
           else
             echo "❌ Android main APK not found"
-            ls -la artifacts/
-            exit 1
-          fi
-          
-          # Move test APK
-          if [[ -f "artifacts/app-prod-release-androidTest.apk/app-prod-release-androidTest.apk" ]]; then
-            cp "artifacts/app-prod-release-androidTest.apk/app-prod-release-androidTest.apk" "android/app/build/outputs/apk/androidTest/prod/release/"
-            echo "✅ Android test APK ready for E2E tests"
-          else
-            echo "❌ Android test APK not found"
             ls -la artifacts/
             exit 1
           fi
