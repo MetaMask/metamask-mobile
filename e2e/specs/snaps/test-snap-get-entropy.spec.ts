@@ -12,7 +12,7 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
   it('connects to the Get Entropy Snap', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
       },
       async () => {
@@ -28,7 +28,7 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
   it('signs a message with the Snap entropy', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
       },
       async () => {
         await TestSnaps.fillMessage('entropyMessageInput', '1234');
@@ -56,7 +56,7 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
     async (entropySource, result) => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder().build(),
+          fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         },
         async () => {
           await TestSnaps.selectInDropdown('getEntropyDropDown', entropySource);
@@ -75,7 +75,7 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
   it('fails when choosing an invalid entropy source', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
       },
       async () => {
         await TestSnaps.selectInDropdown('getEntropyDropDown', 'Invalid');
