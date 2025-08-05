@@ -81,7 +81,6 @@ import type {
   PerpsNavigationParamList,
 } from '../../controllers/types';
 import {
-  formatFeeRate,
   useHasExistingPosition,
   usePerpsAccount,
   usePerpsLiquidationPrice,
@@ -250,98 +249,67 @@ const PerpsOrderView: React.FC = () => {
   });
   const estimatedFees = feeResults.totalFee;
 
+  // Helper function to create tooltip content with "Got it" button
+  const createTooltipContent = useCallback(
+    (content: React.ReactNode) => (
+      <View>
+        <View style={styles.tooltipContent}>{content}</View>
+        <View style={styles.tooltipButtonContainer}>
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label={strings('perps.got_it')}
+            onPress={() => {
+              // Navigate to the current screen to effectively close the modal
+              navigation.navigate(Routes.PERPS.ORDER, route.params || {});
+            }}
+          />
+        </View>
+      </View>
+    ),
+    [navigation, route.params, styles],
+  );
+
   // Tooltip content for educational info
-  const tooltipContent = {
-    leverage: (
-      <View>
+  const tooltipContent = useMemo(
+    () => ({
+      leverage: createTooltipContent(
         <Text variant={TextVariant.BodyMD}>
-          Leverage allows you to control a larger position with less capital,
-          amplifying both profits and losses.
-        </Text>
-        <View style={styles.tooltipSection}>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Higher leverage = Higher risk & reward
-          </Text>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Maximum leverage varies by asset
-          </Text>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Liquidation occurs when losses exceed margin
-          </Text>
-          <Text variant={TextVariant.BodyMD}>
-            • Start with lower leverage if you&apos;re new
-          </Text>
-        </View>
-      </View>
-    ),
-    executionTime: (
-      <View>
+          {strings('perps.tooltips.leverage.content')}
+        </Text>,
+      ),
+      liquidationPrice: createTooltipContent(
         <Text variant={TextVariant.BodyMD}>
-          Orders are executed nearly instantly on HyperLiquid&apos;s
-          high-performance blockchain.
-        </Text>
-        <View style={styles.tooltipSection}>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Market orders: &lt; 1 second
-          </Text>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Limit orders: Execute when price is matched
-          </Text>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Network congestion may cause slight delays
-          </Text>
-          <Text variant={TextVariant.BodyMD}>
-            • Failed orders are automatically retried
-          </Text>
-        </View>
-      </View>
-    ),
-    margin: (
-      <View>
+          {strings('perps.tooltips.liquidation_price.content')}
+        </Text>,
+      ),
+      margin: createTooltipContent(
         <Text variant={TextVariant.BodyMD}>
-          Margin is the collateral required to open and maintain a leveraged
-          position.
-        </Text>
-        <View style={styles.tooltipSection}>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Initial margin = Position size ÷ Leverage
-          </Text>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Maintenance margin varies by asset (1.25% to 16.7%)
-          </Text>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Available balance must exceed initial margin
-          </Text>
-          <Text variant={TextVariant.BodyMD}>
-            • Margin is locked when position is open
-          </Text>
-        </View>
-      </View>
-    ),
-    fees: (
-      <View>
-        <Text variant={TextVariant.BodyMD}>
-          Fees are charged on every trade to cover the cost of execution and
-          liquidity provision.
-        </Text>
-        <View style={styles.tooltipSection}>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Market orders: {formatFeeRate(feeResults.protocolFeeRate)} taker
-            fee
-          </Text>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Limit orders: Fee varies by order type and liquidity
-          </Text>
-          <Text variant={TextVariant.BodyMD} style={styles.tooltipItem}>
-            • Base rates shown (volume discounts may apply)
-          </Text>
-          <Text variant={TextVariant.BodyMD}>
-            • Fees deducted from margin balance
-          </Text>
-        </View>
-      </View>
-    ),
-  };
+          {strings('perps.tooltips.margin.content')}
+        </Text>,
+      ),
+      fees: createTooltipContent(
+        <View style={styles.tooltipFeesContainer}>
+          <View style={styles.tooltipFeeRow}>
+            <Text variant={TextVariant.BodyMD}>
+              {strings('perps.tooltips.fees.metamask_fee')}
+            </Text>
+            <Text variant={TextVariant.BodyMD}>0.1%</Text>
+          </View>
+          <View style={styles.tooltipFeeRow}>
+            <Text variant={TextVariant.BodyMD}>
+              {strings('perps.tooltips.fees.provider_fee')}
+            </Text>
+            <Text variant={TextVariant.BodyMD}>
+              {(feeResults.protocolFeeRate * 100).toFixed(3)}%
+            </Text>
+          </View>
+        </View>,
+      ),
+    }),
+    [createTooltipContent, feeResults.protocolFeeRate, styles],
+  );
 
   // Set initial selected token to Hyperliquid USDC (always first in array)
   useEffect(() => {
@@ -586,7 +554,7 @@ const PerpsOrderView: React.FC = () => {
                     <TouchableOpacity
                       onPress={() =>
                         openTooltipModal(
-                          'What is Leverage?',
+                          strings('perps.tooltips.leverage.title'),
                           tooltipContent.leverage,
                         )
                       }
@@ -747,37 +715,14 @@ const PerpsOrderView: React.FC = () => {
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.order.estimated_execution_time')}
-              </Text>
-              <TouchableOpacity
-                onPress={() =>
-                  openTooltipModal(
-                    'Execution Time',
-                    tooltipContent.executionTime,
-                  )
-                }
-                style={styles.infoIcon}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Xss}
-                  color={IconColor.Muted}
-                />
-              </TouchableOpacity>
-            </View>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.order.one_to_three_seconds')}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <View style={styles.detailLeft}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.order.margin')}
               </Text>
               <TouchableOpacity
                 onPress={() =>
-                  openTooltipModal('Margin Requirements', tooltipContent.margin)
+                  openTooltipModal(
+                    strings('perps.tooltips.margin.title'),
+                    tooltipContent.margin,
+                  )
                 }
                 style={styles.infoIcon}
               >
@@ -794,9 +739,26 @@ const PerpsOrderView: React.FC = () => {
           </View>
 
           <View style={styles.infoRow}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.order.liquidation_price')}
-            </Text>
+            <View style={styles.detailLeft}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('perps.order.liquidation_price')}
+              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  openTooltipModal(
+                    strings('perps.tooltips.liquidation_price.title'),
+                    tooltipContent.liquidationPrice,
+                  )
+                }
+                style={styles.infoIcon}
+              >
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Xss}
+                  color={IconColor.Muted}
+                />
+              </TouchableOpacity>
+            </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {parseFloat(orderForm.amount) > 0
                 ? formatPrice(liquidationPrice)
@@ -811,7 +773,10 @@ const PerpsOrderView: React.FC = () => {
               </Text>
               <TouchableOpacity
                 onPress={() =>
-                  openTooltipModal('Trading Fees', tooltipContent.fees)
+                  openTooltipModal(
+                    strings('perps.tooltips.fees.title'),
+                    tooltipContent.fees,
+                  )
                 }
                 style={styles.infoIcon}
               >
