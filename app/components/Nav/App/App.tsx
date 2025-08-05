@@ -215,7 +215,11 @@ const OnboardingNav = () => (
     <Stack.Screen name="Onboarding" component={Onboarding} />
     <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
-    <Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
+    <Stack.Screen
+      name="AccountBackupStep1"
+      component={AccountBackupStep1}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS_FLOW}

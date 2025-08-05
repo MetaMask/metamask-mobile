@@ -1,5 +1,4 @@
 import React from 'react';
-import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -37,18 +36,5 @@ describe('Asset', () => {
     const { getByText } = renderComponent();
 
     expect(getByText('Asset: NA')).toBeTruthy();
-  });
-
-  it('asset passed in nav params should be used if present', () => {
-    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-      params: {
-        asset: {
-          name: 'Ethereum',
-          address: '0x123',
-        },
-      },
-    } as RouteProp<ParamListBase, string>);
-    const { getByText } = renderComponent();
-    expect(getByText('Asset: 0x123')).toBeTruthy();
   });
 });

@@ -10,8 +10,8 @@ import type {
   TransactionControllerTransactionSubmittedEvent,
   TransactionParams,
 } from '@metamask/transaction-controller';
+import { successfulFetch } from '@metamask/controller-utils';
 import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
-import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { generateTransferData } from '../../../../util/transactions';
@@ -27,6 +27,7 @@ import type {
   DepositResult,
   DepositStatus,
   EditOrderParams,
+  FeeCalculationResult,
   GetAccountStateParams,
   GetPositionsParams,
   IPerpsProvider,
@@ -44,6 +45,34 @@ import type {
   WithdrawParams,
   WithdrawResult,
 } from './types';
+import { getEnvironment } from './utils';
+
+/**
+ * Error codes for PerpsController
+ * These codes are returned to the UI layer for translation
+ */
+export const PERPS_ERROR_CODES = {
+  CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
+  PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
+  TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
+  BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
+  WITHDRAW_FAILED: 'WITHDRAW_FAILED',
+  POSITIONS_FAILED: 'POSITIONS_FAILED',
+  ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
+  MARKETS_FAILED: 'MARKETS_FAILED',
+  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+} as const;
+
+export type PerpsErrorCode =
+  (typeof PERPS_ERROR_CODES)[keyof typeof PERPS_ERROR_CODES];
+
+const ON_RAMP_GEO_BLOCKING_URLS = {
+  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
+};
+
+// Unknown is the default/fallback in case the location API call fails
+const DEFAULT_GEO_BLOCKED_REGIONS = ['US', 'CA-ON', 'UNKNOWN'];
 
 /**
  * State shape for PerpsController
@@ -68,6 +97,9 @@ export type PerpsControllerState = {
   depositError: string | null;
   activeDepositTransactions: Record<string, { amount: string; token: string }>; // Track active deposits by tx id
 
+  // Eligibility (Geo-Blocking)
+  isEligible: boolean;
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -90,6 +122,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeDepositTransactions: {},
   lastError: null,
   lastUpdateTimestamp: 0,
+  isEligible: false,
 });
 
 /**
@@ -109,6 +142,7 @@ const metadata = {
   activeDepositTransactions: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
+  isEligible: { persist: false, anonymous: false },
 };
 
 /**
@@ -168,12 +202,20 @@ export type PerpsControllerActions =
       handler: PerpsController['getMarkets'];
     }
   | {
+      type: 'PerpsController:refreshEligibility';
+      handler: PerpsController['refreshEligibility'];
+    }
+  | {
       type: 'PerpsController:toggleTestnet';
       handler: PerpsController['toggleTestnet'];
     }
   | {
       type: 'PerpsController:disconnect';
       handler: PerpsController['disconnect'];
+    }
+  | {
+      type: 'PerpsController:calculateFees';
+      handler: PerpsController['calculateFees'];
     };
 
 /**
@@ -258,7 +300,17 @@ export class PerpsController extends BaseController<
         error:
           error instanceof Error
             ? error.message
-            : strings('perps.errors.unknownError'),
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        timestamp: new Date().toISOString(),
+      });
+    });
+
+    this.refreshEligibility().catch((error) => {
+      DevLogger.log('PerpsController: Error refreshing eligibility', {
+        error:
+          error instanceof Error
+            ? error.message
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
         timestamp: new Date().toISOString(),
       });
     });
@@ -404,24 +456,20 @@ export class PerpsController extends BaseController<
    */
   getActiveProvider(): IPerpsProvider {
     if (!this.isInitialized) {
-      const error = strings('perps.errors.clientNotInitialized');
       this.update((state) => {
-        state.lastError = error;
+        state.lastError = PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
         state.lastUpdateTimestamp = Date.now();
       });
-      throw new Error(error);
+      throw new Error(PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED);
     }
 
     const provider = this.providers.get(this.state.activeProvider);
     if (!provider) {
-      const error = strings('perps.errors.providerNotAvailable', {
-        providerId: this.state.activeProvider,
-      });
       this.update((state) => {
-        state.lastError = error;
+        state.lastError = PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE;
         state.lastUpdateTimestamp = Date.now();
       });
-      throw new Error(error);
+      throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
     }
 
     return provider;
@@ -571,26 +619,25 @@ export class PerpsController extends BaseController<
       });
 
       if (depositRoutes.length === 0) {
-        const error = strings('perps.errors.tokenNotSupported', {
-          token: params.assetId,
-        });
         this.update((state) => {
           state.depositStatus = 'error';
-          state.depositError = error;
+          state.depositError = PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED;
         });
-        return { success: false, error };
+        return { success: false, error: PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED };
       }
 
       const route = depositRoutes[0];
       const bridgeContractAddress = route.contractAddress;
 
       if (!bridgeContractAddress) {
-        const error = strings('perps.errors.bridgeContractNotFound');
         this.update((state) => {
           state.depositStatus = 'error';
-          state.depositError = error;
+          state.depositError = PERPS_ERROR_CODES.BRIDGE_CONTRACT_NOT_FOUND;
         });
-        return { success: false, error };
+        return {
+          success: false,
+          error: PERPS_ERROR_CODES.BRIDGE_CONTRACT_NOT_FOUND,
+        };
       }
 
       DevLogger.log('PerpsController: Preparing deposit', {
@@ -699,8 +746,7 @@ export class PerpsController extends BaseController<
       }
 
       this.update((state) => {
-        state.lastError =
-          result.error || strings('perps.errors.withdrawFailed');
+        state.lastError = result.error || PERPS_ERROR_CODES.WITHDRAW_FAILED;
         state.lastUpdateTimestamp = Date.now();
       });
       DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
@@ -713,7 +759,7 @@ export class PerpsController extends BaseController<
       const errorMessage =
         error instanceof Error
           ? error.message
-          : strings('perps.errors.withdrawFailed');
+          : PERPS_ERROR_CODES.WITHDRAW_FAILED;
 
       DevLogger.log('💥 PerpsController: WITHDRAWAL EXCEPTION', {
         error: errorMessage,
@@ -753,7 +799,7 @@ export class PerpsController extends BaseController<
       const errorMessage =
         error instanceof Error
           ? error.message
-          : strings('perps.errors.positionsFailed');
+          : PERPS_ERROR_CODES.POSITIONS_FAILED;
 
       // Update error state but don't modify positions (keep existing data)
       this.update((state) => {
@@ -791,7 +837,7 @@ export class PerpsController extends BaseController<
       const errorMessage =
         error instanceof Error
           ? error.message
-          : strings('perps.errors.accountStateFailed');
+          : PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED;
 
       // Update error state but don't modify accountState (keep existing data)
       this.update((state) => {
@@ -832,7 +878,7 @@ export class PerpsController extends BaseController<
       const errorMessage =
         error instanceof Error
           ? error.message
-          : strings('perps.errors.marketsFailed');
+          : PERPS_ERROR_CODES.MARKETS_FAILED;
 
       // Update error state
       this.update((state) => {
@@ -983,7 +1029,7 @@ export class PerpsController extends BaseController<
         error:
           error instanceof Error
             ? error.message
-            : strings('perps.errors.unknownError'),
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
       };
     }
   }
@@ -1194,7 +1240,7 @@ export class PerpsController extends BaseController<
         error:
           error instanceof Error
             ? error.message
-            : strings('perps.errors.unknownError'),
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
         transaction,
         timestamp: new Date().toISOString(),
       });
@@ -1259,6 +1305,19 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Calculate trading fees for the active provider
+   * Each provider implements its own fee structure
+   */
+  async calculateFees(params: {
+    orderType: 'market' | 'limit';
+    isMaker?: boolean;
+    amount?: string;
+  }): Promise<FeeCalculationResult> {
+    const provider = this.getActiveProvider();
+    return provider.calculateFees(params);
+  }
+
+  /**
    * Disconnect provider and cleanup subscriptions
    * Call this when navigating away from Perps screens to prevent battery drain
    */
@@ -1276,5 +1335,69 @@ export class PerpsController extends BaseController<
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
     this.initializationPromise = null;
+  }
+
+  /**
+   * Eligibility (Geo-Blocking)
+   * Users in the USA and Ontario (Canada) are not eligible for Perps
+   */
+
+  /**
+   * Fetch geo location
+   *
+   * Returned in Country or Country-Region format
+   * Example: FR, DE, US-MI, CA-ON
+   */
+  async #fetchGeoLocation(): Promise<string> {
+    let location = 'UNKNOWN';
+
+    try {
+      const environment = getEnvironment();
+
+      const response = await successfulFetch(
+        ON_RAMP_GEO_BLOCKING_URLS[environment],
+      );
+
+      location = await response?.text();
+
+      return location;
+    } catch (e) {
+      DevLogger.log('PerpsController: Failed to fetch geo location', {
+        error: e,
+      });
+      return location;
+    }
+  }
+
+  /**
+   * Refresh eligibility status
+   */
+  async refreshEligibility(
+    blockedLocations = DEFAULT_GEO_BLOCKED_REGIONS,
+  ): Promise<void> {
+    // Default to false in case of error.
+    let isEligible = false;
+
+    try {
+      DevLogger.log('PerpsController: Refreshing eligibility');
+
+      const geoLocation = await this.#fetchGeoLocation();
+
+      isEligible = blockedLocations.every(
+        (blockedLocation) => !geoLocation.startsWith(blockedLocation),
+      );
+    } catch (error) {
+      DevLogger.log('PerpsController: Eligibility refresh failed', {
+        error:
+          error instanceof Error
+            ? error.message
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        timestamp: new Date().toISOString(),
+      });
+    } finally {
+      this.update((state) => {
+        state.isEligible = isEligible;
+      });
+    }
   }
 }
