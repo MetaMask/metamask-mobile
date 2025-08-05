@@ -97,6 +97,15 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
+      - name: Upload Android Test APK
+        id: upload-test-apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          retention-days: 7
+          if-no-files-found: error
+
       - name: Upload Android AAB
         id: upload-aab
         uses: actions/upload-artifact@v4
