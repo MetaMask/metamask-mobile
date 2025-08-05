@@ -24,7 +24,7 @@ export const useInitialSlippage = () => {
     // Solana Swaps
     if (isSolanaSwap) {
       // We pass undefined to use dynamic slippage from providers
-      dispatch(setSlippage(undefined));
+      dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_SOLANA));
       return;
     }
     // EVM Swaps
@@ -54,7 +54,9 @@ export const useInitialSlippage = () => {
 
     // Bridge
     if (isBridge) {
-      dispatch(setSlippage('0.5'));
+      dispatch(
+        setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_BRIDGE.toString()),
+      );
       return;
     }
   }, [
