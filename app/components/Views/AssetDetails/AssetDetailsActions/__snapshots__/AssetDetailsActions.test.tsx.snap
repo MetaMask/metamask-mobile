@@ -65,7 +65,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           color="#ffffff"
           fill="currentColor"
           height={24}
-          name="Cash"
+          name="Money"
           style={
             {
               "height": 24,

@@ -135,8 +135,8 @@ const FundActionMenu = () => {
     <BottomSheet ref={sheetRef}>
       {isDepositEnabled && (
         <ActionListItem
-          label="Deposit"
-          description={strings('asset_overview.deposit_description')}
+          label={strings('fund_actionmenu.deposit')}
+          description={strings('fund_actionmenu.deposit_description')}
           iconName={IconName.Money}
           onPress={onDeposit}
           testID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
@@ -144,8 +144,8 @@ const FundActionMenu = () => {
       )}
       {isNetworkRampSupported && (
         <ActionListItem
-          label={strings('asset_overview.buy_button')}
-          description={strings('asset_overview.buy_description')}
+          label={strings('fund_actionmenu.buy')}
+          description={strings('fund_actionmenu.buy_description')}
           iconName={IconName.Add}
           onPress={onBuy}
           testID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
@@ -153,8 +153,8 @@ const FundActionMenu = () => {
       )}
       {isNetworkRampSupported && (
         <ActionListItem
-          label={strings('asset_overview.sell_button')}
-          description={strings('asset_overview.sell_description')}
+          label={strings('fund_actionmenu.sell')}
+          description={strings('fund_actionmenu.sell_description')}
           iconName={IconName.MinusBold}
           onPress={onSell}
           testID={WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}

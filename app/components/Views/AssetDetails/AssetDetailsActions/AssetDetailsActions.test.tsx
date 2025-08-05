@@ -123,7 +123,7 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
 
-    expect(queryByText(strings('asset_overview.buy_button'))).toBeNull();
+    expect(queryByText(strings('asset_overview.fund_button'))).toBeNull();
   });
 
   it('does not render the swap button when displaySwapsButton is false', () => {

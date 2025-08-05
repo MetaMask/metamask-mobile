@@ -20,7 +20,7 @@ exports[`FundActionMenu renders correctly 1`] = `
     onPress={[Function]}
     testID="wallet-sell-action"
   >
-    Sell
+    Withdraw
   </div>
 </div>
 `;
