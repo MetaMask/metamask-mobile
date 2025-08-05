@@ -580,4 +580,71 @@ describe('CandlestickChartComponent', () => {
       expect(screen.getByText('No chart data available')).toBeOnTheScreen();
     });
   });
+
+  describe('TP/SL Lines', () => {
+    it('renders TP/SL lines when tpslLines prop is provided with valid prices', () => {
+      // Arrange
+      const propsWithTPSL = {
+        ...defaultProps,
+        tpslLines: {
+          takeProfitPrice: '35000',
+          stopLossPrice: '30000',
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithTPSL} />);
+
+      // Assert
+      const tpslElements = screen.getAllByTestId(/tpsl-/);
+      expect(tpslElements).toHaveLength(2); // One for TP, one for SL
+    });
+
+    it('does not render TP/SL lines when tpslLines prop is not provided', () => {
+      // Arrange & Act
+      render(<CandlestickChartComponent {...defaultProps} />);
+
+      // Assert
+      const tpslElements = screen.queryAllByTestId(/tpsl-/);
+      expect(tpslElements).toHaveLength(0);
+    });
+
+    it('renders only TP line when only takeProfitPrice is provided', () => {
+      // Arrange
+      const propsWithTPOnly = {
+        ...defaultProps,
+        tpslLines: {
+          takeProfitPrice: '35000',
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithTPOnly} />);
+
+      // Assert
+      const tpslElements = screen.getAllByTestId(/tpsl-tp/);
+      expect(tpslElements).toHaveLength(1);
+      const slElements = screen.queryAllByTestId(/tpsl-sl/);
+      expect(slElements).toHaveLength(0);
+    });
+
+    it('renders only SL line when only stopLossPrice is provided', () => {
+      // Arrange
+      const propsWithSLOnly = {
+        ...defaultProps,
+        tpslLines: {
+          stopLossPrice: '30000',
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithSLOnly} />);
+
+      // Assert
+      const tpslElements = screen.getAllByTestId(/tpsl-sl/);
+      expect(tpslElements).toHaveLength(1);
+      const tpElements = screen.queryAllByTestId(/tpsl-tp/);
+      expect(tpElements).toHaveLength(0);
+    });
+  });
 });
