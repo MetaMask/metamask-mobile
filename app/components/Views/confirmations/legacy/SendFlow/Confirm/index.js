@@ -440,7 +440,6 @@ class Confirm extends PureComponent {
       contractBalances,
       transactionState: { selectedAsset },
       contractBalancesByChainId,
-      sendFlowContextualChainId,
     } = this.props;
 
     const { transactionMeta } = this.state;
@@ -466,7 +465,7 @@ class Confirm extends PureComponent {
     }
 
     const currentContractBalances = isRemoveGlobalNetworkSelectorEnabled()
-      ? contractBalancesByChainId[sendFlowContextualChainId]
+      ? contractBalancesByChainId
       : contractBalances;
 
     const weiBalance = hexToBN(currentContractBalances[selectedAsset.address]);
@@ -558,7 +557,9 @@ class Confirm extends PureComponent {
         transactionParams,
         {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId: currentNetworkClientId || globalNetworkClientId,
+          networkClientId: isRemoveGlobalNetworkSelectorEnabled()
+            ? currentNetworkClientId
+            : globalNetworkClientId,
           origin: TransactionTypes.MMM,
         },
       ));
@@ -994,9 +995,8 @@ class Confirm extends PureComponent {
       return insufficientBalanceMessage;
     }
 
-    // TODO: Add test coverage for this if possible
     const currentContractBalances = isRemoveGlobalNetworkSelectorEnabled()
-      ? contractBalancesByChainId[sendFlowContextualChainId] || {}
+      ? contractBalancesByChainId || {}
       : contractBalances;
 
     const insufficientTokenBalanceMessage = validateSufficientTokenBalance(
@@ -1422,12 +1422,23 @@ class Confirm extends PureComponent {
   async persistTransactionParameters(transactionParams) {
     const { TransactionController } = Engine.context;
     const { transactionMeta } = this.state;
+
+    if (!transactionMeta?.id) {
+      Logger.error('Transaction meta or ID not available', transactionMeta);
+      return;
+    }
+
     const { id: transactionId } = transactionMeta;
 
     const controllerTransactionMeta =
       TransactionController.state.transactions.find(
         (tx) => tx.id === transactionId,
       );
+
+    if (!controllerTransactionMeta) {
+      Logger.log('Transaction not found in controller state');
+      return;
+    }
 
     const updatedTx = {
       ...controllerTransactionMeta,
