@@ -587,8 +587,8 @@ describe('CandlestickChartComponent', () => {
       const propsWithTPSL = {
         ...defaultProps,
         tpslLines: {
-          takeProfitPrice: '35000',
-          stopLossPrice: '30000',
+          takeProfitPrice: '46800', // Within chart range (44000-47000)
+          stopLossPrice: '44500', // Within chart range (44000-47000)
         },
       };
 
@@ -614,7 +614,7 @@ describe('CandlestickChartComponent', () => {
       const propsWithTPOnly = {
         ...defaultProps,
         tpslLines: {
-          takeProfitPrice: '35000',
+          takeProfitPrice: '46800', // Within chart range (44000-47000)
         },
       };
 
@@ -633,7 +633,7 @@ describe('CandlestickChartComponent', () => {
       const propsWithSLOnly = {
         ...defaultProps,
         tpslLines: {
-          stopLossPrice: '30000',
+          stopLossPrice: '44500', // Within chart range (44000-47000)
         },
       };
 
