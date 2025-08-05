@@ -84,7 +84,7 @@ export default function ActionView({
         enableOnAndroid={enableOnAndroid}
         enableAutomaticScroll={enableAutomaticScroll}
         extraScrollHeight={extraScrollHeight}
-        showsVerticalScrollIndicator={showsVerticalScrollIndicator || true}
+        showsVerticalScrollIndicator={showsVerticalScrollIndicator ?? true}
       >
         <TouchableWithoutFeedback
           style={baseStyles.flexGrow}
