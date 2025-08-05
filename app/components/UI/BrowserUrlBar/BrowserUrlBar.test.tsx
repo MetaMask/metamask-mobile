@@ -1,7 +1,7 @@
 import React, { createRef } from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import BrowserUrlBar from './BrowserUrlBar';
-import { ConnectionType , BrowserUrlBarRef } from './BrowserUrlBar.types';
+import { ConnectionType, BrowserUrlBarRef } from './BrowserUrlBar.types';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
@@ -13,7 +13,6 @@ import { fireEvent, act } from '@testing-library/react-native';
 import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
 import Routes from '../../../constants/navigation/Routes';
-
 
 const mockNavigate = jest.fn();
 const navigation = {
