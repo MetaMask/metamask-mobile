@@ -1,11 +1,17 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   NativeSyntheticEvent,
   TextInput,
   TextInputSubmitEditingEventData,
   TouchableOpacity,
   View,
-} from 'react-native';
+ TouchableWithoutFeedback } from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
 import Icon, {
   IconName,
@@ -50,6 +56,9 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     },
     ref,
   ) => {
+    const [displayedUrl, setDisplayedUrl] = useState(
+      activeUrl ? new URLParse(activeUrl).hostname : '',
+    );
     const inputValueRef = useRef<string>('');
     const inputRef = useRef<TextInput>(null);
     const shouldTriggerBlurCallbackRef = useRef(true);
@@ -81,9 +90,15 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     useImperativeHandle(ref, () => ({
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
-      focus: () => inputRef?.current?.focus(),
-      setNativeProps: (props: object) =>
-        inputRef?.current?.setNativeProps(props),
+      focus: () => {
+        inputRef?.current?.focus();
+      },
+      setNativeProps: (props: { text?: string }) => {
+        if (typeof props.text === 'string') {
+          setDisplayedUrl(props.text);
+        }
+        inputRef?.current?.setNativeProps(props);
+      },
     }));
 
     /**
@@ -201,12 +216,25 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
               returnKeyType={'go'}
               selectTextOnFocus
               keyboardAppearance={themeAppearance}
-              style={styles.textInput}
+              style={[styles.textInput, !isUrlBarFocused && styles.hidden]}
               onChangeText={onChangeTextInput}
               onSubmitEditing={onSubmitEditingInput}
               onBlur={onBlurInput}
               onFocus={onFocusInput}
             />
+            {!isUrlBarFocused && (
+              <TouchableWithoutFeedback
+                onPress={() => inputRef?.current?.focus()}
+              >
+                <Text
+                  style={styles.urlBarText}
+                  numberOfLines={1}
+                  ellipsizeMode="head"
+                >
+                  {displayedUrl}
+                </Text>
+              </TouchableWithoutFeedback>
+            )}
           </View>
           {isUrlBarFocused ? (
             <ButtonIcon
