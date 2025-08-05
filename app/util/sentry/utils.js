@@ -250,7 +250,7 @@ export const sentryStateMask = {
   wizard: true,
 };
 
-const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
+const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'dev'; // eslint-disable-line dot-notation
 const METAMASK_BUILD_TYPE = process.env['METAMASK_BUILD_TYPE'] || 'main'; // eslint-disable-line dot-notation
 
 const ERROR_URL_ALLOWLIST = [
@@ -505,9 +505,9 @@ function sanitizeAddressesFromErrorMessages(report) {
  * - https://github.com/MetaMask/metamask-extension/blob/34375a57e558853aab95fe35d5f278aa52b66636/app/scripts/lib/setupSentry.js#L91
  *
  * @param {boolean} isDev - Represents if the current environment is development (__DEV__ global variable).
- * @param {string} [metamaskEnvironment='local'] - The environment MetaMask is running in
+ * @param {string} [metamaskEnvironment='dev'] - The environment MetaMask is running in
  *                                                  (process.env.METAMASK_ENVIRONMENT).
- *                                                  It defaults to 'local' if not provided.
+ *                                                  It defaults to 'dev' if not provided.
  * @param {string} [metamaskBuildType='main'] - The build type of MetaMask
  *                                              (process.env.METAMASK_BUILD_TYPE).
  *                                              It defaults to 'main' if not provided.
@@ -516,8 +516,7 @@ function sanitizeAddressesFromErrorMessages(report) {
  */
 export function deriveSentryEnvironment(
   isDev,
-  // TODO: Replace local with dev
-  metamaskEnvironment = 'local',
+  metamaskEnvironment = 'dev',
   metamaskBuildType = 'main',
 ) {
   if (isDev || !metamaskEnvironment) {
