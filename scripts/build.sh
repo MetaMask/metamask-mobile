@@ -8,7 +8,7 @@ readonly REPO_ROOT_DIR="$(dirname "${__DIRNAME__}")"
 PLATFORM=$1
 MODE=$2
 ENVIRONMENT=$3
-RUN_DEVICE=false
+DEVICE_TYPE=""
 PRE_RELEASE=false
 JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
@@ -96,17 +96,26 @@ checkParameters(){
 		exit 0;
 	fi
 
-	if [[ $# -gt 2 ]] ; then
-		if [ "$3"  == "--device" ] ; then
-			RUN_DEVICE=true
+	# Check if the --device flag is present
+	if [[ "$*" == *"--device"* ]]; then
+		DEVICE_TYPE="device"
+	elif [[ "$*" == *"--simulator"* ]]; then
+		DEVICE_TYPE="simulator"
+	elif [[ "$*" == *"--auto"* ]]; then
+		DEVICE_TYPE="auto"
+	fi
 
-		   if [ "$#" -gt  "3" ] ; then
-				printError "Incorrect number of arguments"
-				displayHelp
-				exit 0;
-			fi
-		elif [ "$3"  == "--pre" ] ; then
-			PRE_RELEASE=true
+	# Check if the --pre flag is present
+	if [[ "$*" == *"--pre"* ]]; then
+		PRE_RELEASE=true
+	fi
+
+	# Validate platform-specific flags
+	if [ "$PLATFORM" == "android" ]; then
+		if [ "$DEVICE_TYPE" == "device" ] || [ "$DEVICE_TYPE" == "simulator" ]; then
+			printError "--device and --simulator flags are not supported for Android builds at this moment. Please use --auto instead."
+			echo "Android builds automatically detect connected devices and emulators"
+			exit 1
 		fi
 	fi
 }
@@ -130,8 +139,9 @@ remapEnvVariable() {
     echo "Successfully remapped $old_var_name to $new_var_name."
 }
 
-remapEnvVariableLocal() {
-  	echo "Remapping local env variables for development"
+# Mapping for Main env variables in the dev environment
+remapMainDevEnvVariables() {
+  	echo "Remapping Main target environment variables for the dev environment"
   	remapEnvVariable "MM_SENTRY_DSN_DEV" "MM_SENTRY_DSN"
 }
 
@@ -150,10 +160,9 @@ remapEnvVariableQA() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-# Mapping for environmental values in the e2e environment. 
-# This is the same as the QA mapping since e2e used QA values before. Subject to change as build configs are updated.
-remapEnvVariableE2E() {
-  	echo "Remapping E2E env variable names to match E2E values"
+# Mapping for Main env variables in the e2e environment
+remapMainE2EEnvVariables() {
+  	echo "Remapping Main target environment variables for the e2e environment"
   	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
@@ -167,10 +176,9 @@ remapEnvVariableE2E() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-# Mapping for environmental values in the test environment. 
-# This is the same as the QA mapping since e2e used QA values before. Subject to change as build configs are updated.
-remapEnvVariableTest() {
-  	echo "Remapping test env variable names to match test values"
+# Mapping for Main env variables in the test environment
+remapMainTestEnvVariables() {
+  	echo "Remapping Main target environment variables for the test environment"
   	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
@@ -184,7 +192,8 @@ remapEnvVariableTest() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-remapEnvVariableProduction() {
+# Mapping for Main env variables in the production environment
+remapMainProdEnvVariables() {
   	echo "Remapping release env variable names to match production values"
   	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
   	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
@@ -198,8 +207,9 @@ remapEnvVariableProduction() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-remapFlaskEnvVariables() {
-  	echo "Remapping Flask env variable names to match Flask values"
+# Mapping for Flask env variables in the production environment
+remapFlaskProdEnvVariables() {
+  	echo "Remapping Flask target environment variables for the production environment"
   	remapEnvVariable "SEGMENT_WRITE_KEY_FLASK" "SEGMENT_WRITE_KEY"
   	remapEnvVariable "SEGMENT_PROXY_URL_FLASK" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_FLASK" "SEGMENT_DELETE_API_SOURCE_ID"
@@ -212,8 +222,39 @@ remapFlaskEnvVariables() {
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-remapEnvVariableBeta() {
-  	echo "Remapping Beta env variable names to match Beta values"
+# Mapping for Flask env variables in the test environment
+remapFlaskTestEnvVariables() {
+  	echo "Remapping Flask target environment variables for the test environment"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+
+	remapEnvVariable "FLASK_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+}
+
+# Mapping for Flask env variables in the e2e environment
+remapFlaskE2EEnvVariables() {
+  	echo "Remapping Flask target environment variables for the e2e environment"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+
+	remapEnvVariable "FLASK_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "FLASK_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "FLASK_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+}
+
+# Mapping for Main env variables in the beta environment
+remapMainBetaEnvVariables() {
+  	echo "Remapping Main target environment variables for the beta environment"
   	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
     remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
@@ -226,12 +267,13 @@ remapEnvVariableBeta() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-remapEnvVariableReleaseCandidate() {
-  	echo "Remapping Release Candidate env variable names to match Release Candidate values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
-    remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
-    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+# Mapping for Main env variables in the release candidate environment
+remapMainReleaseCandidateEnvVariables() {
+  	echo "Remapping Main target environment variables for the release candidate environment"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
 
 	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
@@ -240,9 +282,9 @@ remapEnvVariableReleaseCandidate() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-# Mapping for environmental values in the experimental environment
-remapEnvVariableExperimental() {
-  	echo "Remapping Experimental env variable names to match Experimental values"
+# Mapping for Main env variables in the experimental environment
+remapMainExperimentalEnvVariables() {
+  	echo "Remapping Main target environment variables for the experimental environment"
   	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
@@ -322,30 +364,29 @@ prebuild_android(){
 }
 
 buildAndroidRun(){
-	remapEnvVariableLocal
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
 	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
 }
 
-# Builds the Main APK for local development
-buildAndroidMainLocal(){
+# Builds the Main APK for dev development
+buildAndroidMainDev(){
 	prebuild_android
 
 	# Generate both APK (for development) and test APK (for E2E testing)
 	cd android && ./gradlew app:assembleProdDebug app:assembleProdDebugAndroidTest --build-cache --parallel && cd ..
 }
 
-# Builds the Flask APK for local development
-buildAndroidFlaskLocal(){
+# Builds the Flask APK for dev development
+buildAndroidFlaskDev(){
 	prebuild_android
 
 	# Generate both APK (for development) and test APK (for E2E testing)
 	cd android && ./gradlew app:assembleFlaskDebug app:assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
 }
 
-# Builds the QA APK for local development
-buildAndroidQaLocal(){
+# Builds the QA APK for dev development
+buildAndroidQaDev(){
 	prebuild_android
 
 	# Generate both APK (for development) and test APK (for E2E testing)
@@ -353,7 +394,7 @@ buildAndroidQaLocal(){
 }
 
 buildAndroidRunQA(){
-	remapEnvVariableLocal
+	remapMainDevEnvVariables
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
 	npx expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug'
@@ -366,7 +407,6 @@ buildAndroidRunFlask(){
 }
 
 buildIosSimulator(){
-	remapEnvVariableLocal
 	prebuild_ios
 	if [ -n "$IOS_SIMULATOR" ]; then
 		SIM_OPTION="--device \"$IOS_SIMULATOR\""
@@ -411,7 +451,6 @@ runIosE2E(){
 }
 
 buildIosDevice(){
-	remapEnvVariableLocal
 	prebuild_ios
 	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device
 }
@@ -578,20 +617,24 @@ buildAndroidReleaseE2E(){
 
 buildAndroid() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
-		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
-			buildAndroidMainLocal
+		if [ "$DEVICE_TYPE" == "auto" ] ; then
+			buildAndroidRun
+		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
+			buildAndroidMainDev
 		else
 			buildAndroidMainProduction
 		fi
 	elif [ "$MODE" == "flask" ] ; then
-		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
-			buildAndroidFlaskLocal
+		if [ "$DEVICE_TYPE" == "auto" ] ; then
+			buildAndroidRunFlask
+		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
+			buildAndroidFlaskDev
 		else
 			buildAndroidFlaskProduction
 		fi
 	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
-		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
-			buildAndroidQaLocal
+		if [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
+			buildAndroidQaDev
 		else
 			buildAndroidQaProduction
 		fi
@@ -621,19 +664,31 @@ buildAndroidRunE2E(){
 buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
-		# Prepare iOS dependencies
-		prebuild_ios
-		# Go to ios directory
-		cd ios
-		# Generate iOS binary
-		generateIosBinary "MetaMask"
+		if [ "$DEVICE_TYPE" = "device" ] ; then
+			buildIosDevice
+		elif [ "$DEVICE_TYPE" = "simulator" ] ; then
+			buildIosSimulator
+		else
+			# Prepare iOS dependencies
+			prebuild_ios
+			# Go to ios directory
+			cd ios
+			# Generate iOS binary
+			generateIosBinary "MetaMask"
+		fi
 	elif [ "$MODE" == "flask" ] ; then
-		# Prepare iOS dependencies
-		prebuild_ios
-		# Go to ios directory
-		cd ios
-		# Generate iOS binary
-		generateIosBinary "MetaMask-Flask"
+		if [ "$DEVICE_TYPE" = "device" ] ; then
+			buildIosDeviceFlask
+		elif [ "$DEVICE_TYPE" = "simulator" ] ; then
+			buildIosSimulatorFlask
+		else
+			# Prepare iOS dependencies
+			prebuild_ios
+			# Go to ios directory
+			cd ios
+			# Generate iOS binary
+			generateIosBinary "MetaMask-Flask"
+		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
@@ -650,19 +705,19 @@ buildIos() {
 		# Generate iOS binary
 		generateIosBinary "MetaMask-QA"
 	elif [ "$MODE" == "qaDebug" ] ; then
-		if [ "$RUN_DEVICE" = true ] ; then
+		if [ "$DEVICE_TYPE" = "device" ] ; then
 			buildIosDeviceQA
 		else
 			buildIosSimulatorQA
 		fi
 	elif [ "$MODE" == "flaskDebug" ] ; then
-		if [ "$RUN_DEVICE" = true ] ; then
+		if [ "$DEVICE_TYPE" = "device" ] ; then
 			buildIosDeviceFlask
 		else
 			buildIosSimulatorFlask
 		fi
 	else
-		if [ "$RUN_DEVICE" = true ] ; then
+		if [ "$DEVICE_TYPE" = "device" ] ; then
 			buildIosDevice
 		else
 			buildIosSimulator
@@ -672,7 +727,7 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
-	remapEnvVariableLocal
+	remapMainDevEnvVariables
   	WATCHER_PORT=${WATCHER_PORT:-8081}
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
@@ -718,21 +773,29 @@ if [ "$MODE" == "main" ]; then
 	export GENERATE_BUNDLE=true # Used only for Android
 	export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
 	if [ "$ENVIRONMENT" == "production" ]; then
-		remapEnvVariableProduction
+		remapMainProdEnvVariables
 	elif [ "$ENVIRONMENT" == "beta" ]; then
-		remapEnvVariableBeta
+		remapMainBetaEnvVariables
 	elif [ "$ENVIRONMENT" == "rc" ]; then
-		remapEnvVariableReleaseCandidate
+		remapMainReleaseCandidateEnvVariables
 	elif [ "$ENVIRONMENT" == "exp" ]; then
-		remapEnvVariableExperimental
+		remapMainExperimentalEnvVariables
 	elif [ "$ENVIRONMENT" == "test" ]; then
-		remapEnvVariableTest
+		remapMainTestEnvVariables
 	elif [ "$ENVIRONMENT" == "e2e" ]; then
-		remapEnvVariableE2E
+		remapMainE2EEnvVariables
+	elif [ "$ENVIRONMENT" == "dev" ]; then
+		remapMainDevEnvVariables
 	fi
 elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
 	# TODO: Map environment variables based on environment
-	remapFlaskEnvVariables
+	if [ "$ENVIRONMENT" == "production" ]; then
+		remapFlaskProdEnvVariables
+	elif [ "$ENVIRONMENT" == "test" ]; then
+		remapFlaskTestEnvVariables
+	elif [ "$ENVIRONMENT" == "e2e" ]; then
+		remapFlaskE2EEnvVariables
+	fi
 elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" ] || [ "$MODE" == "QA" ]; then
 	# TODO: Map environment variables based on environment
 	remapEnvVariableQA
@@ -763,7 +826,7 @@ else
 fi
 
 if [ -z "$METAMASK_ENVIRONMENT" ]; then
-	printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'local' otherwise"
+	printError "Missing METAMASK_ENVIRONMENT; set to 'production' for a production release, 'prerelease' for a pre-release, or 'dev' otherwise"
 	exit 1
 else
     echo "METAMASK_ENVIRONMENT is set to: $METAMASK_ENVIRONMENT"
