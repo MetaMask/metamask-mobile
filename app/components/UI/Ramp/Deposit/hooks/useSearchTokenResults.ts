@@ -20,12 +20,16 @@ function useSearchTokenResults({
     return tokens.filter((token) => networkFilter.includes(token.chainId));
   }, [tokens, networkFilter]);
 
-  const tokensWithNetworkName = useMemo(() => networkFilteredTokens.map((token) => ({
-      ...token,
-      networkName: token.chainId
-        ? DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name
-        : '',
-    })), [networkFilteredTokens]);
+  const tokensWithNetworkName = useMemo(
+    () =>
+      networkFilteredTokens.map((token) => ({
+        ...token,
+        networkName: token.chainId
+          ? DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name
+          : '',
+      })),
+    [networkFilteredTokens],
+  );
 
   const tokenFuse = useMemo(
     () =>
