@@ -15,6 +15,7 @@ import BottomSheet, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { getCandlePeriodsForDuration } from '../../constants/chartConfig';
+import { getPerpsCandlePeriodBottomSheetSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { Box } from '@metamask/design-system-react-native';
 import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
 
@@ -77,7 +78,14 @@ const PerpsCandlePeriodBottomSheet: React.FC<
               index === availablePeriods.length - 1 && styles.periodOptionLast,
             ]}
             onPress={() => handlePeriodSelect(period.value)}
-            testID={`${testID}-period-${period.value}`}
+            testID={
+              testID
+                ? getPerpsCandlePeriodBottomSheetSelector.periodButton(
+                    testID,
+                    period.value,
+                  )
+                : undefined
+            }
           >
             <Text
               variant={

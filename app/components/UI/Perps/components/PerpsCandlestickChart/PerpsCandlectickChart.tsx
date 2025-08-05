@@ -11,6 +11,7 @@ import {
   PERPS_CHART_CONFIG,
   getCandlestickColors,
 } from '../../constants/chartConfig';
+import { PerpsCandlestickChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsTimeDurationSelector from '../PerpsTimeDurationSelector';
 import PerpsCandlestickChartSkeleton from './PerpsCandlestickChartSkeleton';
 import { strings } from '../../../../../../locales/i18n';
@@ -119,7 +120,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         <View style={styles.relativeContainer}>
           <PerpsCandlestickChartSkeleton
             height={height}
-            testID="perps-chart-loading-skeleton"
+            testID={PerpsCandlestickChartSelectorsIDs.LOADING_SKELETON}
           />
         </View>
 
@@ -128,7 +129,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           selectedDuration={selectedDuration}
           onDurationChange={onDurationChange}
           onGearPress={onGearPress}
-          testID="perps-chart-duration-selector-loading"
+          testID={PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR_LOADING}
         />
       </View>
     );
@@ -163,7 +164,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           selectedDuration={selectedDuration}
           onDurationChange={onDurationChange}
           onGearPress={onGearPress}
-          testID="perps-chart-duration-selector-no-data"
+          testID={PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR_NO_DATA}
         />
       </View>
     );
@@ -217,7 +218,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
             selectedDuration={selectedDuration}
             onDurationChange={onDurationChange}
             onGearPress={onGearPress}
-            testID="perps-chart-duration-selector"
+            testID={PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR}
           />
         </View>
       </CandlestickChart.Provider>

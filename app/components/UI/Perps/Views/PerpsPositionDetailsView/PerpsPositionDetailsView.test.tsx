@@ -8,6 +8,7 @@ import {
   PerpsPositionCardSelectorsIDs,
   PerpsPositionHeaderSelectorsIDs,
   PerpsPositionDetailsViewSelectorsIDs,
+  PerpsCandlestickChartSelectorsIDs,
   getPerpsViewSelector,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
@@ -285,9 +286,7 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId(
-          PerpsPositionDetailsViewSelectorsIDs.CHART_DURATION_SELECTOR,
-        ),
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(getPerpsViewSelector.chartDurationButton('1d')),
@@ -362,13 +361,11 @@ describe('PerpsPositionDetailsView', () => {
       // Assert
       expect(
         screen.getByTestId(
-          PerpsPositionDetailsViewSelectorsIDs.CHART_DURATION_SELECTOR_LOADING,
+          PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR_LOADING,
         ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(
-          PerpsPositionDetailsViewSelectorsIDs.CHART_LOADING_SKELETON,
-        ),
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.LOADING_SKELETON),
       ).toBeOnTheScreen();
     });
 
@@ -385,7 +382,7 @@ describe('PerpsPositionDetailsView', () => {
       // Assert
       expect(
         screen.getByTestId(
-          PerpsPositionDetailsViewSelectorsIDs.CHART_DURATION_SELECTOR_NO_DATA,
+          PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR_NO_DATA,
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('No chart data available')).toBeOnTheScreen();
@@ -402,9 +399,7 @@ describe('PerpsPositionDetailsView', () => {
       // The component should re-render with new duration, but we can't easily test state changes
       // This test ensures the duration change handler doesn't crash
       expect(
-        screen.getByTestId(
-          PerpsPositionDetailsViewSelectorsIDs.CHART_DURATION_SELECTOR,
-        ),
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR),
       ).toBeOnTheScreen();
     });
   });

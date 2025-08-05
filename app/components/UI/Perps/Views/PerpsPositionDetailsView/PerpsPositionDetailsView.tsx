@@ -15,6 +15,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../../locales/i18n';
+import { PerpsPositionDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import type { Position } from '../../controllers/types';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
@@ -199,7 +200,9 @@ const PerpsPositionDetailsView: React.FC = () => {
           selectedPeriod={selectedCandlePeriod}
           selectedDuration={selectedDuration}
           onPeriodChange={handleCandlePeriodChange}
-          testID="perps-candle-period-bottom-sheet"
+          testID={
+            PerpsPositionDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOMSHEET
+          }
         />
       )}
     </SafeAreaView>

@@ -18,6 +18,11 @@ export const PerpsCandlestickChartSelectorsIDs = {
   SELECTED_INTERVAL: 'chart-selected-interval',
   INTERVAL_CHANGE: 'chart-interval-change',
 
+  // Duration selector states
+  DURATION_SELECTOR: 'perps-chart-duration-selector',
+  DURATION_SELECTOR_LOADING: 'perps-chart-duration-selector-loading',
+  DURATION_SELECTOR_NO_DATA: 'perps-chart-duration-selector-no-data',
+
   // Interval selector states
   INTERVAL_SELECTOR: 'perps-chart-interval-selector',
   INTERVAL_SELECTOR_LOADING: 'perps-chart-interval-selector-loading',
@@ -149,16 +154,12 @@ export const PerpsPositionsViewSelectorsIDs = {
 
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
-  // Chart duration selector
-  CHART_DURATION_SELECTOR: 'perps-chart-duration-selector',
-  CHART_DURATION_SELECTOR_LOADING: 'perps-chart-duration-selector-loading',
-  CHART_DURATION_SELECTOR_NO_DATA: 'perps-chart-duration-selector-no-data',
-  CHART_LOADING_SKELETON: 'perps-chart-loading-skeleton',
   // Bottom sheets
   TPSL_BOTTOMSHEET: 'perps-tpsl-bottomsheet',
   CLOSE_POSITION_BOTTOMSHEET: 'perps-close-position-bottomsheet',
   CONFIRM_CLOSE_POSITION: 'confirm-close-position',
-  // Chart component mocks
+  CANDLE_PERIOD_BOTTOMSHEET: 'perps-candle-period-bottom-sheet',
+  // Chart component mocks (for tests)
   CHART_PROVIDER: 'chart-provider',
   CHART_CANDLES: 'chart-candles',
   CHART_CROSSHAIR: 'chart-crosshair',
@@ -177,6 +178,12 @@ export const getPerpsTimeDurationSelector = {
   durationButton: (baseTestID: string, duration: string) =>
     `${baseTestID}-duration-${duration}`,
   gearButton: (baseTestID: string) => `${baseTestID}-gear-button`,
+};
+
+// Helper functions for PerpsCandlePeriodBottomSheet dynamic selectors
+export const getPerpsCandlePeriodBottomSheetSelector = {
+  periodButton: (baseTestID: string, period: string) =>
+    `${baseTestID}-period-${period}`,
 };
 
 // ========================================
