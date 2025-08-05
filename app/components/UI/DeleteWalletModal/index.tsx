@@ -110,22 +110,33 @@ const DeleteWalletModal: React.FC = () => {
   };
 
   const deleteWallet = async () => {
-    setIsDeletingWallet(true);
-    await dispatch(
-      clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
-    );
-    signOut();
-    await CookieManager.clearAll(true);
-    await resetWalletState();
-    await deleteUser();
-    await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-    await dispatch(setCompletedOnboarding(false));
-    setIsDeletingWallet(false);
-    triggerClose();
-    track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
-    InteractionManager.runAfterInteractions(() => {
-      navigateOnboardingRoot();
-    });
+    try {
+      setIsDeletingWallet(true);
+      await dispatch(
+        clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
+      );
+      signOut();
+      await CookieManager.clearAll(true);
+      await resetWalletState();
+      await deleteUser();
+      await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
+      await dispatch(setCompletedOnboarding(false));
+
+      // Track analytics before closing modal to ensure it completes
+      track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
+
+      // Schedule navigation before closing modal
+      InteractionManager.runAfterInteractions(() => {
+        navigateOnboardingRoot();
+      });
+    } catch (error) {
+      // Log error but don't prevent cleanup
+      console.error('Error during wallet deletion:', error);
+    } finally {
+      // Always reset loading state and close modal
+      setIsDeletingWallet(false);
+      triggerClose();
+    }
   };
 
   return (
