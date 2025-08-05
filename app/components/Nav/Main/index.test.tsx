@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 // eslint-disable-next-line import/named
 import { NavigationContainer } from '@react-navigation/native';
-import Main from './';
+import Main, { ConnectedMain } from './';
 import { useSwapConfirmedEvent } from './RootRPCMethodsUI';
 import { act } from '@testing-library/react-hooks';
 import { MetaMetricsEvents } from '../../hooks/useMetrics';
@@ -11,6 +11,7 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockStore = configureMockStore();
 const mockInitialState = {
@@ -23,6 +24,15 @@ jest.mock('../../../core/Engine', () => ({
   controllerMessenger: {
     subscribeOnceIf: jest.fn(),
   },
+}));
+
+// Mock navigation at module level
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
 }));
 
 const TRANSACTION_META_ID_MOCK = '04541dc0-2e69-11ef-b995-33aef2c88d1e';
@@ -100,13 +110,14 @@ function renderUseSwapConfirmedEventHook({
 describe('Main', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockNavigate.mockClear();
   });
 
   it('should render correctly', () => {
     const MainAppContainer = () => (
       <Provider store={mockStore(mockInitialState)}>
         <NavigationContainer>
-          <Main />
+          <ConnectedMain />
         </NavigationContainer>
       </Provider>
     );
@@ -130,6 +141,41 @@ describe('Main', () => {
     );
     const wrapper = shallow(<MainAppContainer />);
     expect(wrapper).toMatchSnapshot();
+  });
+
+  it.only('should navigate to SUCCESS_ERROR_SHEET when isConnectionRemoved is true', () => {
+    // Arrange - Given isConnectionRemoved is true in state
+    const mockInitialStateWithConnectionRemoved = {
+      user: {
+        isConnectionRemoved: true,
+      },
+    };
+
+    const MainAppContainerWithConnectionRemoved = () => (
+      <Provider store={mockStore(mockInitialStateWithConnectionRemoved)}>
+        <NavigationContainer>
+          <Main />
+        </NavigationContainer>
+      </Provider>
+    );
+
+    // Act - When component renders with connection removed state
+    const wrapper = shallow(<MainAppContainerWithConnectionRemoved />);
+
+    // Assert - Then component should render without errors
+    expect(wrapper).toBeDefined();
+
+    // Assert - Then navigation should be called to SUCCESS_ERROR_SHEET
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: expect.objectContaining({
+        type: 'error',
+        icon: 'Danger',
+        iconColor: 'Warning',
+        isInteractable: false,
+        closeOnPrimaryButtonPress: true,
+      }),
+    });
   });
 
   describe('useSwapConfirmedEvent', () => {
