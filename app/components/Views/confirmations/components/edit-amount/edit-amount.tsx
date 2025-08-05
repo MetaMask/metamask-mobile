@@ -4,7 +4,6 @@ import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './edit-amount.styles';
 import { useAlerts } from '../../context/alert-system-context';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 import { EditAmountKeyboard } from '../edit-amount-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -27,7 +26,6 @@ export function EditAmount({
   const { fieldAlerts } = useAlerts();
   const alerts = fieldAlerts.filter((a) => a.field === RowAlertKey.Amount);
   const hasAlert = alerts.length > 0;
-  const alertMessage = alerts[0]?.message;
   const inputRef = createRef<TextInput>();
   const [showKeyboard, setShowKeyboard] = useState<boolean>(false);
   const [inputChanged, setInputChanged] = useState<boolean>(false);
@@ -85,7 +83,6 @@ export function EditAmount({
         onPress={handleInputPress}
       />
       {children}
-      {hasAlert ? <Text style={styles.alert}>{alertMessage}</Text> : null}
       {showKeyboard && (
         <EditAmountKeyboard
           value={amountHuman}

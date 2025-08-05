@@ -10,6 +10,8 @@ import { TotalRow } from '../../../../components/rows/total-row';
 import InfoSection from '../../../../components/UI/info-row/info-section/info-section';
 import { PayTokenBalance } from '../../../../components/pay-token-balance';
 import { BridgeTimeRow } from '../../../../components/rows/bridge-time-row';
+import { AlertMessage } from '../../../../components/alert-message';
+import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
 
 const AMOUNT_PREFIX = '$';
 
@@ -35,6 +37,7 @@ export function PerpsDeposit() {
         onKeyboardHide={handleKeyboardHide}
       >
         <PayTokenBalance />
+        <AlertMessage field={RowAlertKey.Amount} />
         <TokenAmountNative />
         <InfoSection>
           <PayWithRow />
