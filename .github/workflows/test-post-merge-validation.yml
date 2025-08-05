@@ -1,7 +1,9 @@
 name: Test Merge Validation
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - chore-post-validation
 
 permissions:
   pull-requests: write
