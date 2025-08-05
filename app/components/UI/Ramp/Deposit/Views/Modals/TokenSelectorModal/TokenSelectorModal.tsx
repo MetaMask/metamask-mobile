@@ -74,6 +74,7 @@ function TokenSelectorModal() {
   const supportedTokens = useSupportedTokens();
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens,
+    networkFilter,
     searchString,
   });
 
