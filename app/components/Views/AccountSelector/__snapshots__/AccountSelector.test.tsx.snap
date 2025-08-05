@@ -389,7 +389,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "display": "flex",
-                                "maxHeight": 1200.6000000000001,
+                                "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001a",
@@ -1205,7 +1205,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#3c4d9d1a",
+                                  "backgroundColor": "#3c4d9d0f",
                                   "borderColor": "transparent",
                                   "borderRadius": 12,
                                   "borderWidth": 1,
