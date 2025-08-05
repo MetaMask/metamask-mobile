@@ -25,4 +25,7 @@ export type PerpsTooltipContentKey =
   | 'leverage'
   | 'liquidation_price'
   | 'margin'
-  | 'fees';
+  | 'fees'
+  | 'open_interest'
+  | 'funding_rate'
+  | 'perps_geo_block';

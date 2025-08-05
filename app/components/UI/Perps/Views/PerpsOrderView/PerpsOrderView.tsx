@@ -79,7 +79,6 @@ import type {
   PerpsNavigationParamList,
 } from '../../controllers/types';
 import {
-  formatFeeRate,
   useHasExistingPosition,
   usePerpsAccount,
   usePerpsLiquidationPrice,
@@ -95,10 +94,10 @@ import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsOrderView.styles';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import Keypad from '../../../../Base/Keypad';
 
 // Navigation params interface
 interface OrderRouteParams {

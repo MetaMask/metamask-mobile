@@ -212,9 +212,11 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   STATISTICS_OPEN_INTEREST: 'perps-statistics-open-interest',
   STATISTICS_FUNDING_RATE: 'perps-statistics-funding-rate',
   STATISTICS_FUNDING_COUNTDOWN: 'perps-statistics-funding-countdown',
-  LONG_BUTTON: 'perps-long-button',
-  SHORT_BUTTON: 'perps-short-button',
+  LONG_BUTTON: 'perps-market-details-long-button',
+  SHORT_BUTTON: 'perps-market-details-short-button',
   CANDLE_PERIOD_BOTTOM_SHEET: 'perps-market-candle-period-bottom-sheet',
+  OPEN_INTEREST_INFO_ICON: 'perps-market-details-open-interest-info-icon',
+  FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
 };
 
 // ========================================

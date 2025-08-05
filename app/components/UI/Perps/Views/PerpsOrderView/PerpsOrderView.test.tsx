@@ -46,7 +46,6 @@ import {
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
-  usePerpsOrderFees,
   usePerpsOrderForm,
   usePerpsPaymentTokens,
   usePerpsPrices,
