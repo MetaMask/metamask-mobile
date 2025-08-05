@@ -101,7 +101,14 @@ jest.mock('react-native', () => ({
 // Mock the skeleton component to prevent animation warnings
 jest.mock('./PerpsCandlestickChartSkeleton', () => () => {
   const { View } = jest.requireActual('react-native');
-  return <View testID="perps-chart-loading-skeleton" />;
+  const {
+    PerpsCandlestickChartSelectorsIDs: PerpsCandlestickChartSelectorsIDsMock,
+  } = jest.requireActual(
+    '../../../../../../e2e/selectors/Perps/Perps.selectors',
+  );
+  return (
+    <View testID={PerpsCandlestickChartSelectorsIDsMock.LOADING_SKELETON} />
+  );
 });
 
 // Minimal test wrapper with only what we need
@@ -162,7 +169,7 @@ describe('CandlestickChartComponent', () => {
 
       // Assert
       expect(
-        screen.getByTestId('perps-chart-loading-skeleton'),
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.LOADING_SKELETON),
       ).toBeOnTheScreen();
     });
 
@@ -314,9 +321,13 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...propsWithoutLoading} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
       expect(
-        screen.queryByTestId('perps-chart-loading-skeleton'),
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsCandlestickChartSelectorsIDs.LOADING_SKELETON,
+        ),
       ).not.toBeOnTheScreen();
     });
   });
@@ -402,7 +413,9 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
       // The transformed data is used internally by the CandlestickChart.Provider
     });
 
@@ -492,7 +505,9 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
     it('handles large screen sizes', () => {
@@ -500,7 +515,9 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -527,7 +544,9 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
     it('handles invalid duration selection gracefully', () => {
@@ -538,7 +557,9 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
     it('handles undefined candleData gracefully', () => {

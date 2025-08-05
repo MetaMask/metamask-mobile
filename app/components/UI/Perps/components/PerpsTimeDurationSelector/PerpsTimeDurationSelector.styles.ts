@@ -18,7 +18,6 @@ export const timeDurationSelectorStyleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
-      //   gap: 8, // Proper spacing to prevent overlap
     },
     durationButton: {
       paddingHorizontal: 12,
@@ -26,7 +25,6 @@ export const timeDurationSelectorStyleSheet = (params: { theme: Theme }) => {
       borderRadius: 8,
       alignItems: 'center',
       justifyContent: 'center',
-      //   minWidth: 40, // Prevent buttons from being too small
     },
     durationButtonActive: {
       backgroundColor: colors.background.muted,
@@ -42,7 +40,6 @@ export const timeDurationSelectorStyleSheet = (params: { theme: Theme }) => {
     },
     durationButtonTextActive: {
       color: colors.text.default, // White text
-      //   fontWeight: '600',
     },
     durationButtonTextInactive: {
       color: colors.text.muted, // Gray text
@@ -51,7 +48,6 @@ export const timeDurationSelectorStyleSheet = (params: { theme: Theme }) => {
       width: 40,
       height: 40,
       borderRadius: 8,
-      //   backgroundColor: colors.background.alternative,
       justifyContent: 'center',
       alignItems: 'center',
       marginLeft: 12,

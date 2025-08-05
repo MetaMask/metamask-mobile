@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+import { PerpsCandlestickChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Device from '../../../../../util/device';
 
 const styles = StyleSheet.create({
@@ -19,7 +20,7 @@ const PerpsCandlestickChartSkeleton: React.FC<
   PerpsCandlestickChartSkeletonProps
 > = ({
   height = PERPS_CHART_CONFIG.DEFAULT_HEIGHT,
-  testID = 'perps-chart-skeleton',
+  testID = PerpsCandlestickChartSelectorsIDs.SKELETON,
 }) => (
   <Skeleton
     width={Device.getDeviceWidth() - PERPS_CHART_CONFIG.PADDING.HORIZONTAL * 2}

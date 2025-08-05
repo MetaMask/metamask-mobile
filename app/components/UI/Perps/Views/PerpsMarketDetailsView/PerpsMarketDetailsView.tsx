@@ -298,7 +298,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           selectedPeriod={selectedCandlePeriod}
           selectedDuration={selectedDuration}
           onPeriodChange={handleCandlePeriodChange}
-          testID="perps-market-candle-period-bottom-sheet"
+          testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
         />
       )}
     </SafeAreaView>

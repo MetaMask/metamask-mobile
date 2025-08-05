@@ -8,6 +8,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TIME_DURATIONS } from '../../constants/chartConfig';
+import { getPerpsTimeDurationSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { timeDurationSelectorStyleSheet } from './PerpsTimeDurationSelector.styles';
 
 interface PerpsTimeDurationSelectorProps {
@@ -40,7 +41,14 @@ const PerpsTimeDurationSelector: React.FC<PerpsTimeDurationSelectorProps> = ({
               pressed && styles.durationButtonPressed,
             ]}
             onPress={() => onDurationChange?.(duration.value)}
-            testID={`${testID}-duration-${duration.value}`}
+            testID={
+              testID
+                ? getPerpsTimeDurationSelector.durationButton(
+                    testID,
+                    duration.value,
+                  )
+                : undefined
+            }
           >
             <Text
               variant={TextVariant.BodySm}
@@ -64,7 +72,9 @@ const PerpsTimeDurationSelector: React.FC<PerpsTimeDurationSelectorProps> = ({
           pressed && styles.gearButtonPressed,
         ]}
         onPress={onGearPress}
-        testID={`${testID}-gear-button`}
+        testID={
+          testID ? getPerpsTimeDurationSelector.gearButton(testID) : undefined
+        }
       >
         <Icon
           name={IconName.Setting}

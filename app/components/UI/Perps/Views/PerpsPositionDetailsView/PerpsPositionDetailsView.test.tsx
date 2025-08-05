@@ -8,6 +8,7 @@ import {
   PerpsPositionCardSelectorsIDs,
   PerpsPositionHeaderSelectorsIDs,
   PerpsPositionDetailsViewSelectorsIDs,
+  getPerpsViewSelector,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock dependencies
@@ -47,7 +48,7 @@ jest.mock('../../components/PerpsTPSLBottomSheet', () => ({
     if (!isVisible) return null;
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
     return (
-      <View testID="perps-tpsl-bottomsheet">
+      <View testID={PerpsPositionDetailsViewSelectorsIDs.TPSL_BOTTOMSHEET}>
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
         </TouchableOpacity>
@@ -73,11 +74,16 @@ jest.mock('../../components/PerpsClosePositionBottomSheet', () => ({
     if (!isVisible) return null;
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
     return (
-      <View testID="perps-close-position-bottomsheet">
+      <View
+        testID={PerpsPositionDetailsViewSelectorsIDs.CLOSE_POSITION_BOTTOMSHEET}
+      >
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onConfirm} testID="confirm-close-position">
+        <TouchableOpacity
+          onPress={onConfirm}
+          testID={PerpsPositionDetailsViewSelectorsIDs.CONFIRM_CLOSE_POSITION}
+        >
           <Text>Confirm</Text>
         </TouchableOpacity>
       </View>
@@ -98,7 +104,11 @@ jest.mock('react-native-wagmi-charts', () => {
     height: number;
     width: number;
   }) => (
-    <View testID="candlestick-chart" data-height={height} data-width={width}>
+    <View
+      testID={PerpsPositionDetailsViewSelectorsIDs.CANDLESTICK_CHART}
+      data-height={height}
+      data-width={width}
+    >
       {children}
     </View>
   );
@@ -110,7 +120,10 @@ jest.mock('react-native-wagmi-charts', () => {
     children: React.ReactNode;
     data: unknown[];
   }) => (
-    <View testID="chart-provider" data-data-points={data?.length || 0}>
+    <View
+      testID={PerpsPositionDetailsViewSelectorsIDs.CHART_PROVIDER}
+      data-data-points={data?.length || 0}
+    >
       {children}
     </View>
   );
@@ -123,14 +136,16 @@ jest.mock('react-native-wagmi-charts', () => {
     negativeColor: string;
   }) => (
     <View
-      testID="chart-candles"
+      testID={PerpsPositionDetailsViewSelectorsIDs.CHART_CANDLES}
       data-positive-color={positiveColor}
       data-negative-color={negativeColor}
     />
   );
 
   MockChart.Crosshair = ({ children }: { children: React.ReactNode }) => (
-    <View testID="chart-crosshair">{children}</View>
+    <View testID={PerpsPositionDetailsViewSelectorsIDs.CHART_CROSSHAIR}>
+      {children}
+    </View>
   );
 
   MockChart.Tooltip = ({
@@ -143,7 +158,7 @@ jest.mock('react-native-wagmi-charts', () => {
     tooltipTextProps?: unknown;
   }) => (
     <View
-      testID="chart-tooltip"
+      testID={PerpsPositionDetailsViewSelectorsIDs.CHART_TOOLTIP}
       data-style={style}
       data-text-props={tooltipTextProps}
     >
@@ -270,10 +285,12 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId('perps-chart-duration-selector'),
+        screen.getByTestId(
+          PerpsPositionDetailsViewSelectorsIDs.CHART_DURATION_SELECTOR,
+        ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('perps-chart-duration-selector-duration-1d'),
+        screen.getByTestId(getPerpsViewSelector.chartDurationButton('1d')),
       ).toBeOnTheScreen();
     });
   });
@@ -344,10 +361,14 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId('perps-chart-duration-selector-loading'),
+        screen.getByTestId(
+          PerpsPositionDetailsViewSelectorsIDs.CHART_DURATION_SELECTOR_LOADING,
+        ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('perps-chart-loading-skeleton'),
+        screen.getByTestId(
+          PerpsPositionDetailsViewSelectorsIDs.CHART_LOADING_SKELETON,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -363,7 +384,9 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId('perps-chart-duration-selector-no-data'),
+        screen.getByTestId(
+          PerpsPositionDetailsViewSelectorsIDs.CHART_DURATION_SELECTOR_NO_DATA,
+        ),
       ).toBeOnTheScreen();
       expect(screen.getByText('No chart data available')).toBeOnTheScreen();
     });
@@ -372,14 +395,16 @@ describe('PerpsPositionDetailsView', () => {
       // Act
       render(<PerpsPositionDetailsView />);
       fireEvent.press(
-        screen.getByTestId('perps-chart-duration-selector-duration-1w'),
+        screen.getByTestId(getPerpsViewSelector.chartDurationButton('1w')),
       );
 
       // Assert
       // The component should re-render with new duration, but we can't easily test state changes
       // This test ensures the duration change handler doesn't crash
       expect(
-        screen.getByTestId('perps-chart-duration-selector'),
+        screen.getByTestId(
+          PerpsPositionDetailsViewSelectorsIDs.CHART_DURATION_SELECTOR,
+        ),
       ).toBeOnTheScreen();
     });
   });
@@ -405,7 +430,11 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Bottom sheet should not be visible initially
-      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+      expect(
+        screen.queryByTestId(
+          PerpsPositionDetailsViewSelectorsIDs.TPSL_BOTTOMSHEET,
+        ),
+      ).toBeNull();
 
       // Press edit button
       fireEvent.press(
@@ -413,7 +442,11 @@ describe('PerpsPositionDetailsView', () => {
       );
 
       // Assert - Bottom sheet should be visible
-      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeDefined();
+      expect(
+        screen.getByTestId(
+          PerpsPositionDetailsViewSelectorsIDs.TPSL_BOTTOMSHEET,
+        ),
+      ).toBeDefined();
 
       // Component should still be on screen
       expect(

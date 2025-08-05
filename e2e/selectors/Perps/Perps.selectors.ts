@@ -9,6 +9,8 @@ export const PerpsCandlestickChartSelectorsIDs = {
   CANDLES: 'candlestick-chart-candles',
   CROSSHAIR: 'candlestick-chart-crosshair',
   TOOLTIP: 'candlestick-chart-tooltip',
+  LOADING_SKELETON: 'perps-chart-loading-skeleton',
+  SKELETON: 'perps-chart-skeleton',
 
   // Chart states
   LOADING_STATE: 'chart-loading-state',
@@ -147,11 +149,34 @@ export const PerpsPositionsViewSelectorsIDs = {
 
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
+  // Chart duration selector
+  CHART_DURATION_SELECTOR: 'perps-chart-duration-selector',
+  CHART_DURATION_SELECTOR_LOADING: 'perps-chart-duration-selector-loading',
+  CHART_DURATION_SELECTOR_NO_DATA: 'perps-chart-duration-selector-no-data',
+  CHART_LOADING_SKELETON: 'perps-chart-loading-skeleton',
+  // Bottom sheets
+  TPSL_BOTTOMSHEET: 'perps-tpsl-bottomsheet',
+  CLOSE_POSITION_BOTTOMSHEET: 'perps-close-position-bottomsheet',
+  CONFIRM_CLOSE_POSITION: 'confirm-close-position',
+  // Chart component mocks
+  CHART_PROVIDER: 'chart-provider',
+  CHART_CANDLES: 'chart-candles',
+  CHART_CROSSHAIR: 'chart-crosshair',
+  CHART_TOOLTIP: 'chart-tooltip',
 };
 
 // Helper functions for dynamic view selectors
 export const getPerpsViewSelector = {
   buttonIcon: (iconName: string) => `button-icon-${iconName.toLowerCase()}`,
+  chartDurationButton: (duration: string) =>
+    `perps-chart-duration-selector-duration-${duration}`,
+};
+
+// Helper functions for PerpsTimeDurationSelector dynamic selectors
+export const getPerpsTimeDurationSelector = {
+  durationButton: (baseTestID: string, duration: string) =>
+    `${baseTestID}-duration-${duration}`,
+  gearButton: (baseTestID: string) => `${baseTestID}-gear-button`,
 };
 
 // ========================================
@@ -182,6 +207,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   STATISTICS_FUNDING_COUNTDOWN: 'perps-statistics-funding-countdown',
   LONG_BUTTON: 'perps-long-button',
   SHORT_BUTTON: 'perps-short-button',
+  CANDLE_PERIOD_BOTTOM_SHEET: 'perps-market-candle-period-bottom-sheet',
 };
 
 // ========================================
