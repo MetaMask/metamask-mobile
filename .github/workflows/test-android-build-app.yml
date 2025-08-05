@@ -36,6 +36,7 @@ jobs:
         with:
           platform: android
           setup-simulator: false
+          target: qa
 
       # Cache Gradle dependencies (most important for build speed)
       - name: Cache Gradle

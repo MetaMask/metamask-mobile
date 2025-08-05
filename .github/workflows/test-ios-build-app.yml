@@ -58,6 +58,7 @@ jobs:
           platform: ios
           setup-simulator: false
           is-self-hosted: true
+          target: qa
 
       - name: Print iOS tool versions
         run: |
