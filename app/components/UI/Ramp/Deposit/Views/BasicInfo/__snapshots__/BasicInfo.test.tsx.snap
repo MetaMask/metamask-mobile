@@ -1249,7 +1249,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                               accessible={true}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d1a",
+                                  "backgroundColor": "#3c4d9d0f",
                                   "borderRadius": 8,
                                   "marginVertical": 8,
                                   "padding": 16,
@@ -2647,7 +2647,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                               accessible={true}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d1a",
+                                  "backgroundColor": "#3c4d9d0f",
                                   "borderRadius": 8,
                                   "marginVertical": 8,
                                   "padding": 16,
@@ -4045,7 +4045,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                               accessible={true}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d1a",
+                                  "backgroundColor": "#3c4d9d0f",
                                   "borderRadius": 8,
                                   "marginVertical": 8,
                                   "padding": 16,
@@ -5503,7 +5503,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                               accessible={true}
                               style={
                                 {
-                                  "backgroundColor": "#3c4d9d1a",
+                                  "backgroundColor": "#3c4d9d0f",
                                   "borderRadius": 8,
                                   "marginVertical": 8,
                                   "padding": 16,
