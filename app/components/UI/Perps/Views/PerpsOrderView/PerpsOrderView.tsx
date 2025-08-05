@@ -295,7 +295,9 @@ const PerpsOrderView: React.FC = () => {
             <Text variant={TextVariant.BodyMD}>
               {strings('perps.tooltips.fees.metamask_fee')}
             </Text>
-            <Text variant={TextVariant.BodyMD}>0.1%</Text>
+            <Text variant={TextVariant.BodyMD}>
+              {(feeResults.metamaskFeeRate * 100).toFixed(3)}%
+            </Text>
           </View>
           <View style={styles.tooltipFeeRow}>
             <Text variant={TextVariant.BodyMD}>
@@ -308,7 +310,12 @@ const PerpsOrderView: React.FC = () => {
         </View>,
       ),
     }),
-    [createTooltipContent, feeResults.protocolFeeRate, styles],
+    [
+      createTooltipContent,
+      feeResults.metamaskFeeRate,
+      feeResults.protocolFeeRate,
+      styles,
+    ],
   );
 
   // Set initial selected token to Hyperliquid USDC (always first in array)
