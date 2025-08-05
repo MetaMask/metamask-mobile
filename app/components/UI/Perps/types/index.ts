@@ -47,12 +47,14 @@ export interface CandleStick {
   volume: string;
 }
 
+import { CandlePeriod } from '../constants/chartConfig';
+
 /**
  * Represents historical candlestick data for a specific coin and interval
  */
 export interface CandleData {
   coin: string;
-  interval: string;
+  interval: CandlePeriod;
   candles: CandleStick[];
 }
 
