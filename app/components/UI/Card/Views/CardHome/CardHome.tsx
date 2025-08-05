@@ -67,6 +67,12 @@ import { getHighestFiatToken } from '../../util/getHighestFiatToken';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
+import {
+  TOKEN_BALANCE_LOADING,
+  TOKEN_BALANCE_LOADING_UPPERCASE,
+  TOKEN_RATE_UNDEFINED,
+} from '../../../Tokens/constants';
+import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
 
 /**
  * CardHome Component
@@ -142,7 +148,7 @@ const CardHome = () => {
     cardholderAddresses?.[0],
     selectedChainId === LINEA_CHAIN_ID,
   );
-  const { balanceFiat, asset } = useAssetBalance(priorityToken);
+  const { balanceFiat, asset, mainBalance } = useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
@@ -224,6 +230,14 @@ const CardHome = () => {
     [error, errorPriorityToken],
   );
 
+  const balanceAmount = useMemo(() => {
+    if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
+      return mainBalance;
+    }
+
+    return balanceFiat;
+  }, [balanceFiat, mainBalance]);
+
   if (hasError) {
     return (
       <View style={styles.errorContainer}>
@@ -298,7 +312,12 @@ const CardHome = () => {
               length={SensitiveTextLength.Long}
               variant={TextVariant.HeadingLG}
             >
-              {balanceFiat ?? 0}
+              {balanceAmount === TOKEN_BALANCE_LOADING ||
+              balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                <SkeletonText thin style={styles.skeleton} />
+              ) : (
+                balanceAmount ?? '0'
+              )}
             </SensitiveText>
             <TouchableOpacity
               onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}

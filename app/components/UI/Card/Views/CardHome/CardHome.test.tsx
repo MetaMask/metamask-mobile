@@ -8,6 +8,12 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AllowanceState } from '../../types';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
+import {
+  TOKEN_BALANCE_LOADING,
+  TOKEN_BALANCE_LOADING_UPPERCASE,
+  TOKEN_RATE_UNDEFINED,
+} from '../../../Tokens/constants';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -53,6 +59,8 @@ const mockUseAssetBalance = jest.fn(() => ({
     symbol: 'USDC',
     image: 'usdc-image-url',
   },
+  mainBalance: '$1,000.00',
+  secondaryBalance: '1000 USDC',
 }));
 
 const mockUseNavigateToCardPage = jest.fn(() => ({
@@ -112,6 +120,13 @@ jest.mock('../../../../../util/Logger', () => ({
 // Mock Card SDK
 jest.mock('../../sdk', () => ({
   withCardSDK: (Component: React.ComponentType) => Component,
+}));
+
+// Mock token constants
+jest.mock('../../../Tokens/constants', () => ({
+  TOKEN_BALANCE_LOADING: 'tokenBalanceLoading',
+  TOKEN_BALANCE_LOADING_UPPERCASE: 'TOKENBALANCELOADING',
+  TOKEN_RATE_UNDEFINED: 'tokenRateUndefined',
 }));
 
 // Mock Engine properly to match how it's used in the component
@@ -234,6 +249,8 @@ describe('CardHome Component', () => {
         symbol: 'USDC',
         image: 'usdc-image-url',
       },
+      mainBalance: '$1,000.00',
+      secondaryBalance: '1000 USDC',
     });
 
     mockUseNavigateToCardPage.mockReturnValue({
@@ -245,15 +262,15 @@ describe('CardHome Component', () => {
     });
 
     mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPrivacyMode) {
+        return false;
+      }
       if (
         selector
           .toString()
           .includes('selectSelectedInternalAccountFormattedAddress')
       ) {
         return mockCurrentAddress;
-      }
-      if (selector.toString().includes('selectPrivacyMode')) {
-        return false;
       }
       if (selector.toString().includes('selectChainId')) {
         return '0xe708'; // Linea chain ID
@@ -285,15 +302,15 @@ describe('CardHome Component', () => {
   it('renders correctly with privacy mode enabled', async () => {
     // Temporarily override privacy mode for this test
     mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPrivacyMode) {
+        return true; // Enable privacy mode for this test
+      }
       if (
         selector
           .toString()
           .includes('selectSelectedInternalAccountFormattedAddress')
       ) {
         return mockCurrentAddress;
-      }
-      if (selector.toString().includes('selectPrivacyMode')) {
-        return true; // Enable privacy mode for this test
       }
       if (selector.toString().includes('selectChainId')) {
         return '0xe708'; // Linea chain ID
@@ -365,12 +382,9 @@ describe('CardHome Component', () => {
     // Check that we can see the USDC token info (this should work regardless of balance visibility)
     expect(screen.getByText('USDC')).toBeTruthy();
 
-    // The balance might be hidden due to privacy mode - let's check what's actually displayed
-    const hasPrivacyDots = screen.queryByText('••••••••••••');
-    const hasBalance = screen.queryByText('$1,000.00');
-
-    // Either privacy dots or balance should be displayed, but not both
-    expect(hasPrivacyDots || hasBalance).toBeTruthy();
+    // Since privacy mode is off by default, we should see the balance
+    expect(screen.getByTestId('balance-test-id')).toBeTruthy();
+    expect(screen.getByTestId('secondary-balance-test-id')).toBeTruthy();
   });
 
   it('displays manage card section', () => {
@@ -388,10 +402,9 @@ describe('CardHome Component', () => {
       // Check that USDC token is displayed
       expect(screen.getByText('USDC')).toBeTruthy();
 
-      // Either balance or privacy dots should be shown
-      const hasPrivacyDots = screen.queryByText('••••••••••••');
-      const hasBalance = screen.queryByText('$1,000.00');
-      expect(hasPrivacyDots || hasBalance).toBeTruthy();
+      // Since privacy mode is off by default, we should see the balance elements
+      expect(screen.getByTestId('balance-test-id')).toBeTruthy();
+      expect(screen.getByTestId('secondary-balance-test-id')).toBeTruthy();
     });
   });
 
@@ -622,5 +635,82 @@ describe('CardHome Component', () => {
       expect(mockDispatch).toHaveBeenCalled();
       expect(mockGoToSwaps).toHaveBeenCalled();
     });
+  });
+
+  it('displays skeleton loader when balance is TOKEN_BALANCE_LOADING', () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: TOKEN_BALANCE_LOADING,
+      asset: {
+        symbol: 'USDC',
+        image: 'usdc-image-url',
+      },
+      mainBalance: TOKEN_BALANCE_LOADING,
+      secondaryBalance: '1000 USDC',
+    });
+
+    const { getByText } = render();
+
+    // When balance is TOKEN_BALANCE_LOADING, it should render a SkeletonText component
+    // instead of actual balance text. Since we can't access testID easily, we check
+    // that the loading constants are not rendered as text
+    expect(() => getByText(TOKEN_BALANCE_LOADING)).toThrow();
+  });
+
+  it('displays skeleton loader when balance is TOKEN_BALANCE_LOADING_UPPERCASE', () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: TOKEN_BALANCE_LOADING_UPPERCASE,
+      asset: {
+        symbol: 'USDC',
+        image: 'usdc-image-url',
+      },
+      mainBalance: TOKEN_BALANCE_LOADING_UPPERCASE,
+      secondaryBalance: '1000 USDC',
+    });
+
+    const { getByText } = render();
+
+    // When balance is TOKEN_BALANCE_LOADING_UPPERCASE, it should render a SkeletonText component
+    // instead of actual balance text
+    expect(() => getByText(TOKEN_BALANCE_LOADING_UPPERCASE)).toThrow();
+  });
+
+  it('falls back to mainBalance when balanceFiat is TOKEN_RATE_UNDEFINED', () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: TOKEN_RATE_UNDEFINED,
+      asset: {
+        symbol: 'USDC',
+        image: 'usdc-image-url',
+      },
+      mainBalance: '1000 USDC',
+      secondaryBalance: 'Unable to find conversion rate',
+    });
+
+    render();
+
+    // Should display the mainBalance when rate is undefined
+    // The main balance should be displayed in the balance-test-id element
+    expect(screen.getByTestId('balance-test-id')).toHaveTextContent(
+      '1000 USDC',
+    );
+  });
+
+  it('displays fallback balance when balanceFiat is not available', () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: '',
+      asset: {
+        symbol: 'USDC',
+        image: 'usdc-image-url',
+      },
+      mainBalance: '1000 USDC',
+      secondaryBalance: 'Unable to find conversion rate',
+    });
+
+    render();
+
+    // Should display the mainBalance when balanceFiat is not available
+    // The main balance should be displayed in the balance-test-id element
+    expect(screen.getByTestId('balance-test-id')).toHaveTextContent(
+      '1000 USDC',
+    );
   });
 });

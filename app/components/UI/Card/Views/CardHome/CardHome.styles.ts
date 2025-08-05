@@ -17,6 +17,9 @@ const createStyles = (theme: Theme) =>
     tryAgainButtonContainer: {
       paddingTop: 8,
     },
+    skeleton: {
+      width: 50,
+    },
     loadingContainer: {
       flex: 1,
       alignItems: 'center',
