@@ -375,7 +375,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={3}
+                          handlerTag={15}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -1371,7 +1371,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#3c4d9d1a",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderColor": "transparent",
                                     "borderRadius": 12,
                                     "borderWidth": 1,

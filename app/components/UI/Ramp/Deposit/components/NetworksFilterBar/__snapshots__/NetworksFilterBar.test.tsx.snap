@@ -29,7 +29,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -222,7 +222,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -282,7 +282,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is null 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -471,7 +471,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is the same as u
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
