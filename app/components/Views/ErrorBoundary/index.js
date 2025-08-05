@@ -45,6 +45,8 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import { selectExistingUser } from '../../../reducers/user';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -188,10 +190,17 @@ export const Fallback = (props) => {
     ? strings('onboarding_error_fallback.error_message_report')
     : strings('error_screen.error_message');
 
+  const isExistingUser = useSelector(selectExistingUser);
   const navigateToOnboarding = () => {
-    props.onboardingErrorConfig?.navigation?.reset({
-      routes: [{ name: 'OnboardingRootNav' }],
-    });
+    if (isExistingUser) {
+      props.onboardingErrorConfig?.navigation?.reset({
+        routes: [{ name: Routes.ONBOARDING.LOGIN }],
+      });
+    } else {
+      props.onboardingErrorConfig?.navigation?.reset({
+        routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+      });
+    }
   };
 
   const onPrimary = isOnboardingError

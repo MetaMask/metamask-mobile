@@ -378,7 +378,7 @@ class ChoosePassword extends PureComponent {
     (error.message && error.message.includes('SeedlessOnboardingController')) ||
     error instanceof OAuthError;
 
-  handleOAuthPasswordCreationError = (error, authType) => {
+  handleSentryCapture = (error, authType) => {
     // If user has already consented to analytics, report error using regular Sentry
     if (this.props.metrics.isEnabled()) {
       authType.oauth2Login &&
@@ -464,10 +464,7 @@ class ChoosePassword extends PureComponent {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
           if (this.isOAuthPasswordCreationError(error)) {
-            const shouldRethrow = this.handleOAuthPasswordCreationError(
-              error,
-              authType,
-            );
+            const shouldRethrow = this.handleSentryCapture(error, authType);
             if (shouldRethrow) throw error;
           } else if (Device.isIos) {
             await this.handleRejectedOsBiometricPrompt();

@@ -366,6 +366,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
+  const handleSentryCapture = (captureError: Error) => {
+    if (isMetricsEnabled()) {
+      // If user has already consented to analytics, report error using regular Sentry
+      captureException(captureError, {
+        tags: {
+          view: 'Login',
+          context: 'OAuth rehydration failed - user consented to analytics',
+        },
+      });
+    } else {
+      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
+      oauthLoginSuccess &&
+        setErrorToThrow(
+          new Error(`OAuth rehydration failed: ${captureError.message}`),
+        );
+    }
+  };
+
   const handleSeedlessOnboardingControllerError = (
     seedlessError:
       | Error
@@ -373,15 +391,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       | SeedlessOnboardingControllerError,
   ) => {
     setLoading(false);
-    // If user has already consented to analytics, report error using regular Sentry
     if (isMetricsEnabled()) {
-      captureException(seedlessError, {
-        tags: {
-          view: 'Login',
-          context: 'OAuth rehydration failed - user consented to analytics',
-        },
-      });
-
       if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
         if (
           seedlessError.message ===
@@ -416,7 +426,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
         ) {
           setError(strings('login.seedless_password_outdated'));
-          return;
         }
       } else {
         const errMessage = seedlessError.message.replace(
@@ -425,13 +434,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         );
         setError(errMessage);
       }
-    } else {
-      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
-      oauthLoginSuccess &&
-        setErrorToThrow(
-          new Error(`OAuth rehydration failed: ${seedlessError.message}`),
-        );
     }
+
+    // if metric not enable handleSentryCapture will throw error to ErrorBoundary onboarding flow
+    handleSentryCapture(seedlessError);
   };
 
   const handlePasswordError = (loginErrorMessage: string) => {
