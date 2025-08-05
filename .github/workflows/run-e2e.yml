@@ -17,17 +17,15 @@ jobs:
   # Build Android APKs once for all Android tests
   build-android-apks:
     name: "Build Android APKs (Shared)"
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/build-android-e2e.yml
     with:
-      test-suite-name: build-android-apks
-      platform: android
-      test_suite_tag: "unused"
+      build-type: main
     secrets: inherit
 
   smoke-confirmations-ios:
     name: "Confirmations Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-confirmations-ios
       platform: ios
@@ -37,18 +35,17 @@ jobs:
   smoke-confirmations-android:
     name: "Confirmations Smoke (Android)"
     needs: build-android-apks
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-confirmations-android
       platform: android
       test_suite_tag: ".*SmokeConfirmations.*"
-      skip_build: true
     secrets: inherit
 
   smoke-confirmations-redesigned-ios:
     name: "Confirmations Redesigned Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-confirmations-redesigned-ios
       platform: ios
@@ -58,7 +55,7 @@ jobs:
   smoke-trade-ios:
     name: "Trade Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-trade-ios
       platform: ios
@@ -68,18 +65,17 @@ jobs:
   smoke-trade-android:
     name: "Trade Smoke (Android)"
     needs: build-android-apks
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-trade-android
       platform: android
       test_suite_tag: ".*SmokeTrade.*"
-      skip_build: true
     secrets: inherit
 
   smoke-wallet-platform-ios:
     name: "Wallet Platform Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-wallet-platform-ios
       platform: ios
@@ -89,18 +85,17 @@ jobs:
   smoke-wallet-platform-android:
     name: "Wallet Platform Smoke (Android)"
     needs: build-android-apks
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-wallet-platform-android
       platform: android
       test_suite_tag: ".*SmokeWalletPlatform.*"
-      skip_build: true
     secrets: inherit
 
   smoke-identity-ios:
     name: "Identity Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-identity-ios
       platform: ios
@@ -110,18 +105,17 @@ jobs:
   smoke-identity-android:
     name: "Identity Smoke (Android)"
     needs: build-android-apks
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-identity-android
       platform: android
       test_suite_tag: ".*SmokeIdentity.*"
-      skip_build: true
     secrets: inherit
 
   smoke-accounts-ios:
     name: "Accounts Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-accounts-ios
       platform: ios
@@ -131,18 +125,17 @@ jobs:
   smoke-accounts-android:
     name: "Accounts Smoke (Android)"
     needs: build-android-apks
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-accounts-android
       platform: android
       test_suite_tag: ".*SmokeAccounts.*"
-      skip_build: true
     secrets: inherit
 
   smoke-network-abstraction-ios:
     name: "Network Abstraction Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-abstraction-ios
       platform: ios
@@ -152,18 +145,17 @@ jobs:
   smoke-network-abstraction-android:
     name: "Network Abstraction Smoke (Android)"
     needs: build-android-apks
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-abstraction-android
       platform: android
       test_suite_tag: ".*SmokeNetworkAbstraction.*"
-      skip_build: true
     secrets: inherit
 
   smoke-network-expansion-ios:
     name: "Network Expansion Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-expansion-ios
       platform: ios
@@ -173,18 +165,17 @@ jobs:
   smoke-network-expansion-android:
     name: "Network Expansion Smoke (Android)"
     needs: build-android-apks
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-expansion-android
       platform: android
       test_suite_tag: ".*NetworkExpansion.*"
-      skip_build: true
     secrets: inherit
 
   smoke-performance-ios:
     name: "Performance Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-performance-ios
       platform: ios
@@ -194,12 +185,11 @@ jobs:
   smoke-performance-android:
     name: "Performance Smoke (Android)"
     needs: build-android-apks
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-performance-android
       platform: android
       test_suite_tag: ".*Performance.*"
-      skip_build: true
     secrets: inherit
 
   smoke-api-specs:
