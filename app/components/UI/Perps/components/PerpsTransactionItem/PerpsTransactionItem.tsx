@@ -26,11 +26,12 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
 
   return (
     <TouchableOpacity
+      testID="transaction-item"
       style={styles.transactionItem}
       onPress={() => onPress(item)}
       activeOpacity={0.7}
     >
-      <View style={styles.tokenIconContainer}>
+      <View testID="transaction-item-avatar" style={styles.tokenIconContainer}>
         {assetUrl ? (
           <RemoteImage
             source={{ uri: assetUrl }}

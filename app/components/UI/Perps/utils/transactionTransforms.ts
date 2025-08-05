@@ -11,8 +11,9 @@ import { Funding, Order } from '../controllers/types';
 export function transformFillsToTransactions(
   fills: OrderFill[],
 ): PerpsTransaction[] {
-  return fills.map((fill) => {
+  return fills.reduce((acc: PerpsTransaction[], fill) => {
     const {
+      direction,
       orderId,
       symbol,
       size,
@@ -20,10 +21,9 @@ export function transformFillsToTransactions(
       fee,
       timestamp,
       feeToken,
-      direction,
       pnl,
     } = fill;
-    // TODO: better logic handling for flipped fills, this feels brittle but will do for now
+
     const [part1, part2] = direction ? direction.split(' ') : [];
     const isOpened = part1 === 'Open';
     const isClosed = part1 === 'Close';
@@ -40,9 +40,12 @@ export function transformFillsToTransactions(
     } else if (isFlipped) {
       action = 'Flipped';
       isPositive = true;
+    } else if (!direction) {
+      console.error('Unknown fill direction', fill);
+      return acc;
     } else {
-      action = part1;
-      isPositive = true;
+      console.error('Unknown action', fill);
+      return acc;
     }
 
     let amount = '';
@@ -62,19 +65,21 @@ export function transformFillsToTransactions(
     const absAmount = Math.abs(parseFloat(amount)).toFixed(2);
     const amountUSD = `${isPositive ? '+' : '-'}$${absAmount}`;
 
-    return {
+    acc.push({
       id: orderId || `fill-${timestamp}`,
       type: 'trade' as const,
       category: isOpened ? 'position_open' : 'position_close',
       title: `${action} ${symbol} ${
-        isFlipped ? direction?.toLowerCase() : part2?.toLowerCase()
+        isFlipped ? direction?.toLowerCase() || '' : part2?.toLowerCase() || ''
       }`,
       subtitle: `${size} ${symbol}`,
       timestamp,
       asset: symbol,
       fill: {
         shortTitle: `${action} ${
-          isFlipped ? direction?.toLowerCase() : part2?.toLowerCase()
+          isFlipped
+            ? direction?.toLowerCase() || ''
+            : part2?.toLowerCase() || ''
         }`,
         amount: amountUSD,
         amountNumber: parseFloat(parseFloat(amount).toFixed(2)),
@@ -87,8 +92,9 @@ export function transformFillsToTransactions(
         feeToken,
         action,
       },
-    };
-  });
+    });
+    return acc;
+  }, []);
 }
 
 /**
@@ -166,7 +172,7 @@ export function transformOrdersToTransactions(
         statusType: orderStatusType,
         type: orderTypeSlug.includes('limit') ? 'limit' : 'market',
         size: BigNumber(originalSize).multipliedBy(price).toString(),
-        limitPrice: parseFloat(price),
+        limitPrice: price,
         filled: `${filledPercent}%`,
       },
     };

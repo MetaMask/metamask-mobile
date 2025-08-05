@@ -143,7 +143,10 @@ const PerpsOrderTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        testID="perps-order-transaction-view"
+        style={styles.container}
+      >
         <View style={styles.content}>
           <PerpsTransactionDetailAssetHero
             transaction={transaction}
@@ -199,6 +202,7 @@ const PerpsOrderTransactionView: React.FC = () => {
 
           {/* Block explorer button */}
           <Button
+            testID="block-explorer-button"
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}

@@ -71,10 +71,7 @@ const PerpsFundingTransactionView: React.FC = () => {
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
 
-  // Set navigation title
-  navigation.setOptions(
-    getPerpsTransactionsDetailsNavbar(navigation, transaction.title),
-  );
+  // Check if transaction exists before proceeding
   if (!transaction) {
     return (
       <ScreenView>
@@ -84,6 +81,11 @@ const PerpsFundingTransactionView: React.FC = () => {
       </ScreenView>
     );
   }
+
+  // Set navigation title
+  navigation.setOptions(
+    getPerpsTransactionsDetailsNavbar(navigation, transaction.title),
+  );
 
   const handleViewOnBlockExplorer = () => {
     if (!selectedInternalAccount) {
@@ -116,7 +118,10 @@ const PerpsFundingTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        testID="perps-funding-transaction-view"
+        style={styles.container}
+      >
         <View style={styles.content}>
           {/* Transaction details - clean list design */}
           <View style={styles.detailsContainer}>
@@ -137,6 +142,7 @@ const PerpsFundingTransactionView: React.FC = () => {
 
           {/* Block explorer button */}
           <Button
+            testID="block-explorer-button"
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}

@@ -22,8 +22,11 @@ const PerpsTransactionDetailAssetHero: React.FC<
   const { assetUrl } = usePerpsAssetMetadata(transaction.asset);
 
   return (
-    <View style={styles.assetContainer}>
-      <View style={styles.assetIconContainer}>
+    <View
+      testID="perps-transaction-detail-asset-hero"
+      style={styles.assetContainer}
+    >
+      <View testID="asset-icon-container" style={styles.assetIconContainer}>
         {assetUrl ? (
           <RemoteImage
             source={{ uri: assetUrl }}
