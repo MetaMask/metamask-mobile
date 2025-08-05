@@ -143,7 +143,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     if (tpslLines.takeProfitPrice) {
       const tpPrice = parseFloat(tpslLines.takeProfitPrice);
       if (tpPrice >= minPrice && tpPrice <= maxPrice && priceRange > 0) {
-        // Use exact same calculation as grid lines but for specific price
+        // Use exact same calculation as grid lines but for specific price with some additional number tweaks to account for wagmi chart positioning
         const normalizedPosition = (tpPrice - minPrice) / priceRange;
         const position = chartHeight * (1.012 - normalizedPosition);
         lines.push({ type: 'tp', price: tpPrice, position });
@@ -229,7 +229,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           <View style={styles.relativeContainer}>
             {/* TP/SL Lines - Render first so they're behind everything */}
             {tpslLinePositions && (
-              <View style={styles.gridContainer}>
+              <View style={styles.tpslContainer}>
                 {tpslLinePositions.map((line, index) => (
                   <View
                     key={`tpsl-${line.type}-${index}`}
