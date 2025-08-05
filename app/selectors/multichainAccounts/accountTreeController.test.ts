@@ -2,26 +2,35 @@ import {
   selectAccountSections,
   selectWalletById,
   selectWalletByAccount,
+  selectAccountGroups,
+  selectAccountGroupsByWallet,
+  selectSelectedAccountGroup,
+  selectValidatedAccountTreeState,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
 import { AccountWalletType } from '@metamask/account-api';
 
 const WALLET_ID_1 = 'keyring:wallet1' as const;
 const WALLET_ID_2 = 'keyring:wallet2' as const;
-const WALLET_ID_A = 'keyring:wallet-a' as const;
-const WALLET_ID_B = 'keyring:wallet-b' as const;
 const WALLET_ID_NONEXISTENT = 'keyring:nonexistent' as const;
-const WALLET_ID_WITH_GROUPS = 'keyring:wallet-with-groups' as const;
-const WALLET_ID_EMPTY = 'keyring:empty-wallet' as const;
 
 const ACCOUNT_ID_1 = 'entropy:1/1';
 const ACCOUNT_ID_2 = 'entropy:2/1';
 const ACCOUNT_ID_3 = 'entropy:3/1';
 const ACCOUNT_ID_NONEXISTENT = 'nonexistent-account';
 
-/**
- * Helper function to create a base mock state with RemoteFeatureFlagController
- */
+const createMockWallet = (
+  id: `keyring:${string}` | `entropy:${string}` | `snap:${string}`,
+  name: string,
+  groups: Record<string, { accounts: string[] }> = {},
+) => ({
+  id,
+  metadata: { name },
+  groups,
+});
+
+const createMockGroup = (accounts: string[]) => ({ accounts });
+
 const createMockState = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   accountTreeController: any = {},
@@ -64,23 +73,37 @@ const createMockState = (
   } as unknown as RootState);
 
 describe('AccountTreeController Selectors', () => {
-  describe('selectAccountSections', () => {
-    it('returns null when accountTree is undefined', () => {
-      const mockState = createMockState(undefined);
-
-      const result = selectAccountSections(mockState);
-      expect(result).toEqual(null);
-    });
-
-    it('returns null when accountTree.wallets is null', () => {
-      const mockState = createMockState({
-        accountTree: {
-          wallets: {},
+  describe('selectValidatedAccountTreeState', () => {
+    it.each([
+      ['undefined accountTree', undefined, false],
+      ['disabled multichain accounts', { accountTree: { wallets: {} } }, false],
+      ['empty wallets', { accountTree: { wallets: {} } }, false],
+      [
+        'valid wallets',
+        {
+          accountTree: {
+            wallets: {
+              [WALLET_ID_1]: createMockWallet(WALLET_ID_1, 'Wallet 1'),
+            },
+          },
         },
-      });
+        true,
+      ],
+    ])('returns %s correctly', (_, accountTreeController, expectedIsValid) => {
+      const mockState = createMockState(accountTreeController, expectedIsValid);
+      const result = selectValidatedAccountTreeState(mockState);
+      expect(result.isValid).toBe(expectedIsValid);
+    });
+  });
 
+  describe('selectAccountSections', () => {
+    it.each([
+      ['undefined accountTree', undefined, null],
+      ['empty wallets', { accountTree: { wallets: {} } }, null],
+    ])('returns %s correctly', (_, accountTreeController, expected) => {
+      const mockState = createMockState(accountTreeController);
       const result = selectAccountSections(mockState);
-      expect(result).toEqual(null);
+      expect(result).toEqual(expected);
     });
 
     it('returns wallet sections with accounts when wallets exist', () => {
@@ -214,8 +237,8 @@ describe('AccountTreeController Selectors', () => {
   });
 
   describe('selectWalletById', () => {
-    it('returns null when accountTree is undefined', () => {
-      const mockState = createMockState(undefined);
+    const mockWallet1 = createMockWallet(WALLET_ID_1, 'Wallet 1');
+    const mockWallet2 = createMockWallet(WALLET_ID_2, 'Wallet 2');
 
       const selector = selectWalletById(mockState);
       const result = selector(WALLET_ID_1);
@@ -323,6 +346,7 @@ describe('AccountTreeController Selectors', () => {
         },
       };
 
+    it('returns correct wallets when found', () => {
       const mockState = createMockState({
         accountTree: {
           wallets: {
@@ -425,16 +449,57 @@ describe('AccountTreeController Selectors', () => {
   });
 
   describe('selectWalletByAccount', () => {
-    it('returns null when accountTree is undefined', () => {
-      const mockState = createMockState(undefined);
-
-      const selector = selectWalletByAccount(mockState);
-      const result = selector(ACCOUNT_ID_1);
-      expect(result).toEqual(null);
+    const mockWallet = createMockWallet(WALLET_ID_1, 'Wallet 1', {
+      'keyring:1/ethereum': createMockGroup([ACCOUNT_ID_1, ACCOUNT_ID_2]),
+      'snap:solana/mainnet': createMockGroup([ACCOUNT_ID_3]),
     });
 
-    it('returns null when multichain accounts feature is disabled', () => {
-      const mockState = createMockState(
+    it.each([
+      ['undefined accountTree', undefined, ACCOUNT_ID_1, null],
+      [
+        'disabled multichain accounts',
+        { accountTree: { wallets: { [WALLET_ID_1]: mockWallet } } },
+        ACCOUNT_ID_1,
+        null,
+      ],
+      ['empty wallets', { accountTree: { wallets: {} } }, ACCOUNT_ID_1, null],
+      [
+        'account not found',
+        { accountTree: { wallets: { [WALLET_ID_1]: mockWallet } } },
+        ACCOUNT_ID_NONEXISTENT,
+        null,
+      ],
+    ])(
+      'returns %s correctly',
+      (_, accountTreeController, accountId, expected) => {
+        const isDisabled = expected === null && accountTreeController;
+        const mockState = createMockState(accountTreeController, !isDisabled);
+        const selector = selectWalletByAccount(mockState);
+        expect(selector(accountId)).toEqual(expected);
+      },
+    );
+
+    it('returns correct wallet for accounts in different groups', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: mockWallet,
+          },
+        },
+      });
+
+      const selector = selectWalletByAccount(mockState);
+      expect(selector(ACCOUNT_ID_1)).toEqual(mockWallet);
+      expect(selector(ACCOUNT_ID_2)).toEqual(mockWallet);
+      expect(selector(ACCOUNT_ID_3)).toEqual(mockWallet);
+    });
+  });
+
+  describe('selectAccountGroups', () => {
+    it.each([
+      ['undefined accountTree', undefined, []],
+      [
+        'disabled multichain accounts',
         {
           accountTree: {
             wallets: {
@@ -450,38 +515,16 @@ describe('AccountTreeController Selectors', () => {
             },
           },
         },
-        false, // multichain accounts disabled
-      );
+      } as unknown as RootState);
 
-      const selector = selectWalletByAccount(mockState);
-      const result = selector(ACCOUNT_ID_1);
-      expect(result).toEqual(null);
-    });
-
-    it('returns null when wallets is empty', () => {
-      const mockState = createMockState({
-        accountTree: {
-          wallets: {},
-        },
-      });
-
-      const selector = selectWalletByAccount(mockState);
-      const result = selector(ACCOUNT_ID_1);
-      expect(result).toEqual(null);
-    });
-
-    it('returns null when account ID is not found', () => {
-      const mockState = createMockState({
-        accountTree: {
-          wallets: {
-            [WALLET_ID_1]: {
-              id: WALLET_ID_1,
-              metadata: { name: 'Wallet 1' },
-              groups: {
-                'keyring:1/ethereum': {
-                  accounts: [ACCOUNT_ID_1],
-                },
-              },
+    it.each([
+      ['undefined accountTree', undefined, ACCOUNT_ID_1, null],
+      [
+        'disabled multichain accounts',
+        {
+          accountTree: {
+            wallets: {
+              [WALLET_ID_1]: createMockWallet(WALLET_ID_1, 'Wallet 1'),
             },
           },
         },
@@ -501,15 +544,32 @@ describe('AccountTreeController Selectors', () => {
             accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2] as [string, ...string[]],
           },
         },
-      };
-
-      const mockState = createMockState({
-        accountTree: {
-          wallets: {
-            [WALLET_ID_1]: mockWallet,
+        '',
+        null,
+      ],
+      [
+        'account not found',
+        {
+          accountTree: {
+            wallets: {
+              [WALLET_ID_1]: createMockWallet(WALLET_ID_1, 'Wallet 1'),
+            },
           },
         },
-      });
+        ACCOUNT_ID_NONEXISTENT,
+        null,
+      ],
+    ])(
+      'returns %s correctly',
+      (_, accountTreeController, selectedAccount, expected) => {
+        const mockState = createStateWithSelectedAccount(
+          accountTreeController,
+          selectedAccount,
+        );
+        const result = selectSelectedAccountGroup(mockState);
+        expect(result).toEqual(expected);
+      },
+    );
 
       const selector = selectWalletByAccount(mockState);
       const result = selector(ACCOUNT_ID_1);
@@ -528,7 +588,8 @@ describe('AccountTreeController Selectors', () => {
             accounts: [ACCOUNT_ID_2] as [string],
           },
         },
-      };
+        ACCOUNT_ID_1,
+      );
 
       const mockState = createMockState({
         accountTree: {
