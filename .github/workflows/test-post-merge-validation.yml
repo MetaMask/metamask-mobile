@@ -15,6 +15,6 @@ jobs:
     with:
       repo-owner: MetaMask
       repo-name: metamask-mobile
-      pr-number: '17572'
-      pr-author: 'christopherferreira9'
-      pr-title: 'feat: fixes fixtures and migrates solana testss'
+      pr-number: '17941'
+      pr-author: 'jvbriones'
+      pr-title: 'feat: test issue'
