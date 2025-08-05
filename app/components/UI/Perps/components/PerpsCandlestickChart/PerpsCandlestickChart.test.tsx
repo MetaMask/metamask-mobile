@@ -1,5 +1,10 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -582,7 +587,7 @@ describe('CandlestickChartComponent', () => {
   });
 
   describe('TP/SL Lines', () => {
-    it('renders TP/SL lines when tpslLines prop is provided with valid prices', () => {
+    it('renders TP/SL lines when tpslLines prop is provided with valid prices', async () => {
       // Arrange
       const propsWithTPSL = {
         ...defaultProps,
@@ -595,9 +600,11 @@ describe('CandlestickChartComponent', () => {
       // Act
       render(<CandlestickChartComponent {...propsWithTPSL} />);
 
-      // Assert
-      const tpslElements = screen.getAllByTestId(/tpsl-/);
-      expect(tpslElements).toHaveLength(2); // One for TP, one for SL
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/tpsl-/);
+        expect(tpslElements).toHaveLength(2); // One for TP, one for SL
+      });
     });
 
     it('does not render TP/SL lines when tpslLines prop is not provided', () => {
@@ -609,7 +616,7 @@ describe('CandlestickChartComponent', () => {
       expect(tpslElements).toHaveLength(0);
     });
 
-    it('renders only TP line when only takeProfitPrice is provided', () => {
+    it('renders only TP line when only takeProfitPrice is provided', async () => {
       // Arrange
       const propsWithTPOnly = {
         ...defaultProps,
@@ -621,14 +628,16 @@ describe('CandlestickChartComponent', () => {
       // Act
       render(<CandlestickChartComponent {...propsWithTPOnly} />);
 
-      // Assert
-      const tpslElements = screen.getAllByTestId(/tpsl-tp/);
-      expect(tpslElements).toHaveLength(1);
-      const slElements = screen.queryAllByTestId(/tpsl-sl/);
-      expect(slElements).toHaveLength(0);
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/tpsl-tp/);
+        expect(tpslElements).toHaveLength(1);
+        const slElements = screen.queryAllByTestId(/tpsl-sl/);
+        expect(slElements).toHaveLength(0);
+      });
     });
 
-    it('renders only SL line when only stopLossPrice is provided', () => {
+    it('renders only SL line when only stopLossPrice is provided', async () => {
       // Arrange
       const propsWithSLOnly = {
         ...defaultProps,
@@ -640,11 +649,13 @@ describe('CandlestickChartComponent', () => {
       // Act
       render(<CandlestickChartComponent {...propsWithSLOnly} />);
 
-      // Assert
-      const tpslElements = screen.getAllByTestId(/tpsl-sl/);
-      expect(tpslElements).toHaveLength(1);
-      const tpElements = screen.queryAllByTestId(/tpsl-tp/);
-      expect(tpElements).toHaveLength(0);
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/tpsl-sl/);
+        expect(tpslElements).toHaveLength(1);
+        const tpElements = screen.queryAllByTestId(/tpsl-tp/);
+        expect(tpElements).toHaveLength(0);
+      });
     });
   });
 });

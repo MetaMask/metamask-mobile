@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Dimensions } from 'react-native';
 import { CandlestickChart } from 'react-native-wagmi-charts';
 import { getGridLineStyle, styleSheet } from './PerpsCandlestickChart.styles';
@@ -89,7 +89,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   }, [candleData]);
 
   // Show TP/SL lines after a short delay to ensure chart is rendered
-  React.useEffect(() => {
+  useEffect(() => {
     if (tpslLines && !isLoading && transformedData.length > 0) {
       const timeout = setTimeout(() => {
         setShowTPSLLines(true);
