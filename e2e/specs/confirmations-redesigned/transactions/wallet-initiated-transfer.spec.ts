@@ -21,7 +21,7 @@ const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const AMOUNT = '1';
 
 describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
-  const localTestSpecificMock = {
+  const testSpecificMock = {
     POST: [SEND_ETH_SIMULATION_MOCK],
     GET: [
       SIMULATION_ENABLED_NETWORKS_MOCK,
@@ -43,7 +43,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
           )
           .build(),
         restartDevice: true,
-        testSpecificMock: localTestSpecificMock,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
