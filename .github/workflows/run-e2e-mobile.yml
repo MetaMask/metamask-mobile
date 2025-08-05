@@ -23,11 +23,16 @@ on:
         required: false
         type: boolean
         default: true
+      skip_build:
+        description: 'Skip building APKs (use existing artifacts from calling workflow)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-android-app:
     name: Build Android E2E App
-    if: ${{ inputs.platform == 'android' }}
+    if: ${{ inputs.platform == 'android' && !inputs.skip_build }}
     runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
@@ -45,7 +50,8 @@ jobs:
         with:
           platform: android
           setup-simulator: false
-          configure-keystores: false
+          target: qa
+
 
       # Cache Gradle dependencies (most important for build speed)
       - name: Cache Gradle
@@ -71,9 +77,10 @@ jobs:
         shell: bash
         env:
           PLATFORM: android
-          METAMASK_ENVIRONMENT: local
+          METAMASK_ENVIRONMENT: qa
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
+          E2E: "true"
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
           CI: "true"
@@ -97,19 +104,18 @@ jobs:
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-main-release.apk
-          path: android/app/build/outputs/apk/main/release/app-main-release.apk
+          name: app-prod-release.apk
+          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           retention-days: 7
           if-no-files-found: error
-        continue-on-error: true
 
       # Upload the Android App Bundle (AAB) for Play Store distribution
       - name: Upload Android AAB Artifact
         id: upload-aab
         uses: actions/upload-artifact@v4
         with:
-          name: app-main-release.aab
-          path: android/app/build/outputs/bundle/mainRelease/app-main-release.aab
+          name: app-prod-release.aab
+          path: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true
@@ -119,11 +125,10 @@ jobs:
         id: upload-test-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-main-release-androidTest.apk
-          path: android/app/build/outputs/apk/androidTest/main/release/app-main-release-androidTest.apk
+          name: app-prod-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
           retention-days: 7
           if-no-files-found: error
-        continue-on-error: true
 
       # Upload source map file for crash debugging and error tracking
       - name: Upload Android Source Map
@@ -140,8 +145,7 @@ jobs:
     name: ${{ inputs.test-suite-name }}
     runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
     needs: build-android-app
-    if: ${{ inputs.platform == 'ios' || (inputs.platform == 'android' && needs.build-android-app.result == 'success') }}
-    #runs-on: ${{ inputs.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    if: ${{ inputs.platform == 'ios' || (inputs.platform == 'android' && (inputs.skip_build || needs.build-android-app.result == 'success')) }}
 
     env:
       METAMASK_ENVIRONMENT: 'qa'
@@ -188,26 +192,26 @@ jobs:
           yarn detox build-framework-cache
 
       - name: Setup Android artifacts from build job
-        if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
+        if: ${{ inputs.platform == 'android' && (inputs.skip_build || needs.build-android-app.result == 'success') }}
         run: |
           echo "🏗 Setting up Android artifacts from build job..."
           
           # Create required directories
-          mkdir -p android/app/build/outputs/apk/main/release/
-          mkdir -p android/app/build/outputs/apk/androidTest/main/release/
+          mkdir -p android/app/build/outputs/apk/prod/release/
+          mkdir -p android/app/build/outputs/apk/androidTest/prod/release/
 
       - name: Download Android build artifacts
-        if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
+        if: ${{ inputs.platform == 'android' && (inputs.skip_build || needs.build-android-app.result == 'success') }}
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
 
       - name: Move Android artifacts to expected locations
-        if: ${{ inputs.platform == 'android' && needs.build-android-app.result == 'success' }}
+        if: ${{ inputs.platform == 'android' && (inputs.skip_build || needs.build-android-app.result == 'success') }}
         run: |
           # Move main APK
-          if [[ -f "artifacts/app-main-release.apk/app-main-release.apk" ]]; then
-            cp "artifacts/app-main-release.apk/app-main-release.apk" "android/app/build/outputs/apk/main/release/"
+          if [[ -f "artifacts/app-prod-release.apk/app-prod-release.apk" ]]; then
+            cp "artifacts/app-prod-release.apk/app-prod-release.apk" "android/app/build/outputs/apk/prod/release/"
             echo "✅ Android main APK ready for E2E tests"
           else
             echo "❌ Android main APK not found"
@@ -216,8 +220,8 @@ jobs:
           fi
           
           # Move test APK
-          if [[ -f "artifacts/app-main-release-androidTest.apk/app-main-release-androidTest.apk" ]]; then
-            cp "artifacts/app-main-release-androidTest.apk/app-main-release-androidTest.apk" "android/app/build/outputs/apk/androidTest/main/release/"
+          if [[ -f "artifacts/app-prod-release-androidTest.apk/app-prod-release-androidTest.apk" ]]; then
+            cp "artifacts/app-prod-release-androidTest.apk/app-prod-release-androidTest.apk" "android/app/build/outputs/apk/androidTest/prod/release/"
             echo "✅ Android test APK ready for E2E tests"
           else
             echo "❌ Android test APK not found"

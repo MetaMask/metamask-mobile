@@ -268,7 +268,12 @@ android {
           prod {
             dimension "version"
             applicationId "io.metamask"
-            signingConfig signingConfigs.release
+            // Use QA signing config for E2E testing to avoid keystore issues
+            if (System.getenv("E2E") == 'true') {
+              signingConfig signingConfigs.qa
+            } else {
+              signingConfig signingConfigs.release
+            }
           }
           flask {
             dimension "version"
