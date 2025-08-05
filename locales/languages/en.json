@@ -325,12 +325,10 @@
     "seedless_password_outdated_modal_confirm": "Continue",
     "security_alert_title": "Security Alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
-
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
     "other_methods": "Use a different login method",
-
     "forgot_password_desc": "Forgot your password?",
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
     "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
@@ -529,7 +527,7 @@
     },
     "networks_filter_selector": {
       "select_network": "Select network",
-      "select_all":"Select all",
+      "select_all": "Select all",
       "deselect_all": "Deselect all",
       "apply": "Apply"
     },
@@ -1141,7 +1139,6 @@
       "view_markets": "View Markets",
       "positions": "Positions"
     },
-    "got_it": "Got it",
     "tooltips": {
       "leverage": {
         "title": "Leverage",
@@ -1159,7 +1156,8 @@
         "title": "Fees",
         "metamask_fee": "MetaMask fee",
         "provider_fee": "Provider fee"
-      }
+      },
+      "got_it_button": "Got it"
     },
     "connection": {
       "failed": "Connection Failed",
@@ -5045,7 +5043,6 @@
     "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
     "support_button": "MetaMask Support.",
     "error_button": "Try again",
-
     "user_cancelled_title": "Login cancelled",
     "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
     "user_cancelled_button": "Try again",

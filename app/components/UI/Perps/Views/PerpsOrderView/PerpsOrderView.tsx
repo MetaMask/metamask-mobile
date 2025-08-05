@@ -53,8 +53,6 @@ import {
   getNetworkImageSource,
 } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
-import useTooltipModal from '../../../../hooks/useTooltipModal';
-import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
@@ -97,6 +95,10 @@ import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsOrderView.styles';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -115,15 +117,19 @@ interface OrderRouteParams {
 }
 
 const PerpsOrderView: React.FC = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   const { top } = useSafeAreaInsets();
+  const { colors } = useTheme();
+
+  const styles = createStyles(colors);
+
+  const [selectedTooltip, setSelectedTooltip] =
+    useState<PerpsTooltipContentKey | null>(null);
+
   const toastContext = useContext(ToastContext);
 
   const toastRef = toastContext?.toastRef;
-  const { openTooltipModal } = useTooltipModal();
 
   // Selectors
   const tokenList = useSelector(selectTokenList);
@@ -249,75 +255,6 @@ const PerpsOrderView: React.FC = () => {
     isMaker: false, // Conservative estimate for UI display
   });
   const estimatedFees = feeResults.totalFee;
-
-  // Helper function to create tooltip content with "Got it" button
-  const createTooltipContent = useCallback(
-    (content: React.ReactNode) => (
-      <View>
-        <View style={styles.tooltipContent}>{content}</View>
-        <View style={styles.tooltipButtonContainer}>
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('perps.got_it')}
-            onPress={() => {
-              // Navigate to the current screen to effectively close the modal
-              navigation.navigate(Routes.PERPS.ORDER, route.params || {});
-            }}
-          />
-        </View>
-      </View>
-    ),
-    [navigation, route.params, styles],
-  );
-
-  // Tooltip content for educational info
-  const tooltipContent = useMemo(
-    () => ({
-      leverage: createTooltipContent(
-        <Text variant={TextVariant.BodyMD}>
-          {strings('perps.tooltips.leverage.content')}
-        </Text>,
-      ),
-      liquidationPrice: createTooltipContent(
-        <Text variant={TextVariant.BodyMD}>
-          {strings('perps.tooltips.liquidation_price.content')}
-        </Text>,
-      ),
-      margin: createTooltipContent(
-        <Text variant={TextVariant.BodyMD}>
-          {strings('perps.tooltips.margin.content')}
-        </Text>,
-      ),
-      fees: createTooltipContent(
-        <View style={styles.tooltipFeesContainer}>
-          <View style={styles.tooltipFeeRow}>
-            <Text variant={TextVariant.BodyMD}>
-              {strings('perps.tooltips.fees.metamask_fee')}
-            </Text>
-            <Text variant={TextVariant.BodyMD}>
-              {formatFeeRate(feeResults.metamaskFeeRate)}
-            </Text>
-          </View>
-          <View style={styles.tooltipFeeRow}>
-            <Text variant={TextVariant.BodyMD}>
-              {strings('perps.tooltips.fees.provider_fee')}
-            </Text>
-            <Text variant={TextVariant.BodyMD}>
-              {formatFeeRate(feeResults.protocolFeeRate)}
-            </Text>
-          </View>
-        </View>,
-      ),
-    }),
-    [
-      createTooltipContent,
-      feeResults.metamaskFeeRate,
-      feeResults.protocolFeeRate,
-      styles,
-    ],
-  );
 
   // Set initial selected token to Hyperliquid USDC (always first in array)
   useEffect(() => {
@@ -509,6 +446,14 @@ const PerpsOrderView: React.FC = () => {
     orderType,
   ]);
 
+  const handleTooltipPress = (contentKey: PerpsTooltipContentKey) => {
+    setSelectedTooltip(contentKey);
+  };
+
+  const handleTooltipClose = () => {
+    setSelectedTooltip(null);
+  };
+
   return (
     <SafeAreaView style={[styles.container, { marginTop: top }]}>
       {/* Header */}
@@ -560,18 +505,14 @@ const PerpsOrderView: React.FC = () => {
                       {strings('perps.order.leverage')}
                     </Text>
                     <TouchableOpacity
-                      onPress={() =>
-                        openTooltipModal(
-                          strings('perps.tooltips.leverage.title'),
-                          tooltipContent.leverage,
-                        )
-                      }
+                      onPress={() => handleTooltipPress('leverage')}
                       style={styles.infoIcon}
                     >
                       <Icon
                         name={IconName.Info}
-                        size={IconSize.Xss}
+                        size={IconSize.Sm}
                         color={IconColor.Muted}
+                        testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
                       />
                     </TouchableOpacity>
                   </View>
@@ -726,18 +667,14 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.margin')}
               </Text>
               <TouchableOpacity
-                onPress={() =>
-                  openTooltipModal(
-                    strings('perps.tooltips.margin.title'),
-                    tooltipContent.margin,
-                  )
-                }
+                onPress={() => handleTooltipPress('margin')}
                 style={styles.infoIcon}
               >
                 <Icon
                   name={IconName.Info}
-                  size={IconSize.Xss}
+                  size={IconSize.Sm}
                   color={IconColor.Muted}
+                  testID={PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON}
                 />
               </TouchableOpacity>
             </View>
@@ -752,18 +689,16 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.liquidation_price')}
               </Text>
               <TouchableOpacity
-                onPress={() =>
-                  openTooltipModal(
-                    strings('perps.tooltips.liquidation_price.title'),
-                    tooltipContent.liquidationPrice,
-                  )
-                }
+                onPress={() => handleTooltipPress('liquidation_price')}
                 style={styles.infoIcon}
               >
                 <Icon
                   name={IconName.Info}
-                  size={IconSize.Xss}
+                  size={IconSize.Sm}
                   color={IconColor.Muted}
+                  testID={
+                    PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON
+                  }
                 />
               </TouchableOpacity>
             </View>
@@ -780,18 +715,14 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.fees')}
               </Text>
               <TouchableOpacity
-                onPress={() =>
-                  openTooltipModal(
-                    strings('perps.tooltips.fees.title'),
-                    tooltipContent.fees,
-                  )
-                }
+                onPress={() => handleTooltipPress('fees')}
                 style={styles.infoIcon}
               >
                 <Icon
                   name={IconName.Info}
-                  size={IconSize.Xss}
+                  size={IconSize.Sm}
                   color={IconColor.Muted}
+                  testID={PerpsOrderViewSelectorsIDs.FEES_INFO_ICON}
                 />
               </TouchableOpacity>
             </View>
@@ -979,6 +910,12 @@ const PerpsOrderView: React.FC = () => {
           setIsOrderTypeVisible(false);
         }}
         currentOrderType={orderType}
+      />
+      <PerpsBottomSheetTooltip
+        isVisible={selectedTooltip !== null}
+        onClose={handleTooltipClose}
+        contentKey={selectedTooltip || 'leverage'}
+        testID={PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
       />
     </SafeAreaView>
   );
