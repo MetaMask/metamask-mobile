@@ -26,6 +26,7 @@ export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 // Market data and calculation hooks
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 export { usePerpsMarketData } from './usePerpsMarketData';
+export { usePerpsMarketStats } from './usePerpsMarketStats';
 
 // Withdrawal specific hooks
 export { useWithdrawTokens } from './useWithdrawTokens';
@@ -36,7 +37,8 @@ export { useBalanceComparison } from './useBalanceComparison';
 export { useColorPulseAnimation } from './useColorPulseAnimation';
 export { usePerpsPositions } from './usePerpsPositions';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
-
+export { usePerpsClosePosition } from './usePerpsClosePosition';
+export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
 // - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)

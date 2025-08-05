@@ -202,6 +202,7 @@ const Routes = {
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
+      PRICE_IMPACT_WARNING_MODAL: 'PriceImpactWarningModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -213,6 +214,7 @@ const Routes = {
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     MARKETS: 'PerpsMarketListView',
+    MARKET_DETAILS: 'PerpsMarketDetails',
     POSITION_DETAILS: 'PerpsPositionDetails',
     MODALS: {
       ROOT: 'PerpsModals',
