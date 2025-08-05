@@ -22,6 +22,7 @@ import FoxVipers from '../../../images/Fox_Vipers.png';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { lightTheme } from '@metamask/design-tokens';
 import createStyles from './SolanaNewFeatureContent.styles';
 
 const SolanaNewFeatureContent = () => {
@@ -127,7 +128,14 @@ const SolanaNewFeatureContent = () => {
                 testID={
                   SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
                 }
-                label={strings('solana_new_feature_content.import_your_wallet')}
+                label={
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={lightTheme.colors.primary.inverse}
+                  >
+                    {strings('solana_new_feature_content.import_your_wallet')}
+                  </Text>
+                }
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
                 style={styles.importWalletButton}
