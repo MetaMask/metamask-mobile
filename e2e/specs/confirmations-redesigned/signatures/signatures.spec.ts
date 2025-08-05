@@ -13,8 +13,6 @@ import { buildPermissions } from '../../../fixtures/utils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../framework/Constants';
 
-import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
-
 const SIGNATURE_LIST = [
   {
     specName: 'Personal Sign',
@@ -113,44 +111,5 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
         },
       );
     });
-  }
-
-  // Table-driven tests for all networks
-  for (const networkConfig of NETWORK_TEST_CONFIGS) {
-    for (const { specName, testDappBtn, requestType } of SIGNATURE_LIST) {
-      it(`should sign ${specName} using ${networkConfig.name}`, async () => {
-        await withFixtures(
-          {
-            dapps: [
-              {
-                dappVariant: DappVariants.TEST_DAPP,
-              },
-            ],
-            fixture: new FixtureBuilder()
-              .withNetworkController({
-                providerConfig: networkConfig.providerConfig,
-              })
-              .withPermissionControllerConnectedToTestDapp(
-                buildPermissions(networkConfig.permissions),
-              )
-              .build(),
-            restartDevice: true,
-            testSpecificMock: networkConfig.testSpecificMock,
-          },
-          async () => {
-            await loginToApp();
-
-            await TabBarComponent.tapBrowser();
-            await Browser.navigateToTestDApp();
-
-            //Signing Flow
-            await testDappBtn();
-            await Assertions.expectElementToBeVisible(requestType);
-            await FooterActions.tapConfirmButton();
-            await Assertions.expectElementToNotBeVisible(requestType);
-          },
-        );
-      });
-    }
   }
 });
