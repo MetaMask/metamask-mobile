@@ -595,11 +595,13 @@ class SendFlow extends PureComponent {
         style={styles.wrapper}
         {...generateTestId(Platform, SendViewSelectorsIDs.CONTAINER_ID)}
       >
-        <ContextualNetworkPicker
-          networkName={networkName}
-          networkImageSource={networkImageSource}
-          onPress={this.onNetworkSelectorPress}
-        />
+        {isRemoveGlobalNetworkSelectorEnabled() ? (
+          <ContextualNetworkPicker
+            networkName={networkName}
+            networkImageSource={networkImageSource}
+            onPress={this.onNetworkSelectorPress}
+          />
+        ) : null}
         <View style={styles.inputWrapper}>
           <SendFlowAddressFrom
             chainId={currentChainId}

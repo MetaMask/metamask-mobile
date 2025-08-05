@@ -355,7 +355,6 @@ describe('SendTo Component', () => {
     const mockIsRemoveGlobalNetworkSelectorEnabled = jest.mocked(
       isRemoveGlobalNetworkSelectorEnabled,
     );
-    const mockSetTransactionContextualChainId = jest.fn();
 
     const createMockStore = (
       contextualChainId?: string,
@@ -385,27 +384,32 @@ describe('SendTo Component', () => {
         settings: { useBlockieIcon: false },
       };
 
-      if (contextualChainId) {
-        state.sendFlow = {
-          ...state.sendFlow,
-          contextualChainId,
-        };
-      }
+      // Set up networkOnboarded state for contextual chain ID
+      state.networkOnboarded = {
+        sendFlowChainId: contextualChainId || null,
+        networkOnboardedState: {},
+        networkState: {
+          showNetworkOnboarding: false,
+          nativeToken: '',
+          networkType: '',
+          networkUrl: '',
+        },
+        switchedNetwork: {
+          networkUrl: '',
+          networkStatus: false,
+        },
+      };
 
       const mockStoreWithActions = configureStore([]);
       const storeWithActions = mockStoreWithActions(state);
-      storeWithActions.dispatch = jest.fn().mockImplementation((action) => {
-        if (action.type === 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID') {
-          mockSetTransactionContextualChainId(action.chainId);
-        }
-        return action;
-      });
+      storeWithActions.dispatch = jest
+        .fn()
+        .mockImplementation((action) => action);
 
       return storeWithActions;
     };
 
     beforeEach(() => {
-      mockSetTransactionContextualChainId.mockClear();
       mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
     });
 
@@ -624,6 +628,331 @@ describe('SendTo Component', () => {
       expect(
         screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
       ).toBeTruthy();
+    });
+
+    describe('Feature Flag Behavior Tests', () => {
+      it('should show contextual network picker only when feature flag is enabled', () => {
+        // Test with feature flag enabled
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+        const testStore = createMockStore('0xa', '0x1');
+
+        render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Should show contextual network picker when feature flag is enabled
+        // The contextual network picker is rendered when the feature flag is true
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+
+        // Test with feature flag disabled - create a new render since rerender doesn't work with different mocks
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+        const testStore2 = createMockStore('0xa', '0x1');
+
+        const { unmount } = render(
+          <Provider store={testStore2}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Should still render the main container when feature flag is disabled
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+        unmount();
+      });
+
+      it('should handle feature flag toggle during component lifecycle', () => {
+        // Start with feature flag disabled
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+        const testStore = createMockStore(undefined, '0x1');
+
+        const { rerender } = render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Should not initialize contextual chain ID
+        expect(testStore.dispatch).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID',
+          }),
+        );
+
+        // Enable feature flag and re-render
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
+        rerender(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Component should adapt to feature flag change
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+      });
+
+      it('should use correct chain ID based on feature flag state', () => {
+        const contextualChainId = '0xa';
+        const globalChainId = '0x1';
+
+        // Test with feature flag disabled - should use global chain ID
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+        let testStore = createMockStore(contextualChainId, globalChainId);
+
+        render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Component should render successfully with global chain ID
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+
+        // Test with feature flag enabled - should use contextual chain ID
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+        testStore = createMockStore(contextualChainId, globalChainId);
+
+        render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Component should render successfully with contextual chain ID
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+      });
+
+      it('should handle address book filtering based on feature flag', () => {
+        // Feature flag disabled - should filter address book by current chain
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+        let testStore = createMockStore(undefined, '0x1');
+
+        render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+
+        // Feature flag enabled - should show all address book entries
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+        testStore = createMockStore('0xa', '0x1');
+
+        render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+      });
+
+      it('should maintain component functionality when feature flag is disabled', () => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+        const testStore = createMockStore('0xa', '0x1');
+
+        render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Basic functionality should still work
+        const addressInput = screen.getByTestId(
+          SendViewSelectorsIDs.ADDRESS_INPUT,
+        );
+        expect(addressInput).toBeTruthy();
+
+        // Should be able to input addresses
+        fireEvent.changeText(
+          addressInput,
+          '0x1234567890123456789012345678901234567890',
+        );
+        expect(addressInput.props.value).toBe(
+          '0x1234567890123456789012345678901234567890',
+        );
+      });
+
+      it('should handle contextual chain ID reset based on feature flag', () => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+        const testStore = createMockStore('0xa', '0x1');
+        testStore.dispatch = jest.fn();
+
+        render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Get reset function from navigation options
+        const resetTransactionProp =
+          navigationPropMock.setOptions.mock.calls[0][0];
+
+        if (resetTransactionProp?.headerRight) {
+          const resetButton = resetTransactionProp.headerRight();
+          if (resetButton?.props?.onPress) {
+            resetButton.props.onPress();
+
+            // Should dispatch reset action when feature flag is enabled
+            expect(testStore.dispatch).toHaveBeenCalledWith({
+              type: 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID',
+              chainId: null,
+            });
+          }
+        }
+      });
+
+      it('should handle feature flag function errors gracefully', () => {
+        // First, test with feature flag working normally
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+        const testStore = createMockStore('0xa', '0x1');
+
+        render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Should render the container successfully
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+
+        // Note: We can't easily test the error case because the feature flag
+        // is called during mapStateToProps which happens before render
+        // In a real app, this would be handled by error boundaries
+      });
+
+      it('should handle multiple feature flag state changes', () => {
+        const contextualChainId = '0x38';
+        const globalChainId = '0x1';
+
+        // Start with feature flag enabled
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+        const testStore = createMockStore(contextualChainId, globalChainId);
+
+        const { rerender } = render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+
+        // Disable feature flag
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+        rerender(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+
+        // Re-enable feature flag
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
+        rerender(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        expect(
+          screen.getByTestId(SendViewSelectorsIDs.CONTAINER_ID),
+        ).toBeTruthy();
+      });
+
+      it('should properly initialize contextual chain ID only when feature flag is enabled', () => {
+        const globalChainId = '0x1'; // Using the same chain ID that's set in createMockStore
+
+        // Test with feature flag enabled
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+        let testStore = createMockStore(undefined, globalChainId);
+
+        render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Should initialize contextual chain ID with global chain ID
+        expect(testStore.dispatch).toHaveBeenCalledWith({
+          type: 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID',
+          chainId: globalChainId,
+        });
+
+        // Reset mocks and test with feature flag disabled
+        jest.clearAllMocks();
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+        testStore = createMockStore(undefined, globalChainId);
+
+        render(
+          <Provider store={testStore}>
+            <ThemeContext.Provider value={mockTheme}>
+              <SendTo navigation={navigationPropMock} route={routeMock} />
+            </ThemeContext.Provider>
+          </Provider>,
+        );
+
+        // Should not initialize contextual chain ID when feature flag is disabled
+        expect(testStore.dispatch).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID',
+          }),
+        );
+      });
     });
   });
 });

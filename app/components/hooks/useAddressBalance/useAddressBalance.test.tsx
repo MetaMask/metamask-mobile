@@ -11,6 +11,7 @@ import { createMockAccountsControllerState } from '../../../util/test/accountsCo
 import { SolScope } from '@metamask/keyring-api';
 import type BN5 from 'bnjs5';
 import { mockNetworkState } from '../../../util/test/network';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 jest.mock('../../../util/networks', () => ({
   isPerDappSelectedNetworkEnabled: jest.fn(),
@@ -92,9 +93,7 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Wrapper = ({ children }: any) => (
+const Wrapper = ({ children }: React.PropsWithChildren) => (
   <Provider store={store}>{children}</Provider>
 );
 
@@ -115,7 +114,11 @@ describe('useAddressBalance', () => {
     };
 
     // Set up NetworkController mock for all tests
-    (Engine.context as any).NetworkController = {
+    (
+      Engine.context as unknown as {
+        NetworkController: { findNetworkClientIdByChainId: jest.Mock };
+      }
+    ).NetworkController = {
       findNetworkClientIdByChainId: jest.fn(),
     };
   });
@@ -196,14 +199,20 @@ describe('useAddressBalance', () => {
 
   describe('networkClientId selection logic', () => {
     const mockIsRemoveGlobalNetworkSelectorEnabled =
-      require('../../../util/networks').isRemoveGlobalNetworkSelectorEnabled;
+      isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
+        typeof isRemoveGlobalNetworkSelectorEnabled
+      >;
     const mockFindNetworkClientIdByChainId = jest.fn();
 
     beforeEach(() => {
       jest.clearAllMocks();
 
       // Use the existing NetworkController mock and update its method
-      (Engine.context as any).NetworkController.findNetworkClientIdByChainId =
+      (
+        Engine.context as unknown as {
+          NetworkController: { findNetworkClientIdByChainId: jest.Mock };
+        }
+      ).NetworkController.findNetworkClientIdByChainId =
         mockFindNetworkClientIdByChainId;
     });
 

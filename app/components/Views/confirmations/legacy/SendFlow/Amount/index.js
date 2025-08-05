@@ -1756,12 +1756,13 @@ class Amount extends PureComponent {
         style={styles.wrapper}
         testID={AmountViewSelectorsIDs.CONTAINER}
       >
-        <ContextualNetworkPicker
-          networkName={networkName}
-          networkImageSource={networkImageSource}
-          onPress={this.onNetworkSelectorPress}
-          disabled
-        />
+        {isRemoveGlobalNetworkSelectorEnabled() ? (
+          <ContextualNetworkPicker
+            networkName={networkName}
+            networkImageSource={networkImageSource}
+            onPress={this.onNetworkSelectorPress}
+          />
+        ) : null}
         <ScrollView style={styles.scrollWrapper}>
           {!hasExchangeRate && !selectedAsset.tokenId ? (
             <Alert

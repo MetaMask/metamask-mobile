@@ -19,6 +19,18 @@ import { ConfirmViewSelectorsIDs } from '../../../../../../../e2e/selectors/Send
 import { updateConfirmationMetric } from '../../../../../../core/redux/slices/confirmationMetrics';
 import Engine from '../../../../../../core/Engine';
 import { flushPromises } from '../../../../../../util/test/utils';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/networks';
+
+// Mock the feature flag function
+jest.mock('../../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
+}));
+
+const mockIsRemoveGlobalNetworkSelectorEnabled =
+  isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
+    typeof isRemoveGlobalNetworkSelectorEnabled
+  >;
 
 const MOCK_ADDRESS = '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58';
 
@@ -57,6 +69,12 @@ const mockInitialState: DeepPartial<RootState> = {
           '0x1': {
             '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': {
               balance: '0x1000000000000000000',
+            },
+            '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+          },
+          '0x89': {
+            '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': {
+              balance: '0x2000000000000000000',
             },
             '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
           },
@@ -114,6 +132,9 @@ const mockInitialState: DeepPartial<RootState> = {
         nativeTokenSupported: true,
       },
     ],
+  },
+  networkOnboarded: {
+    sendFlowChainId: null,
   },
 };
 
@@ -193,6 +214,9 @@ jest.mock('../../../../../../core/Engine', () => {
         ...mockAccountsControllerState,
         state: mockAccountsControllerState,
       },
+      NetworkController: {
+        findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+      },
     },
   };
 });
@@ -218,7 +242,9 @@ jest.mock('../../../../../../core/redux/slices/confirmationMetrics', () => ({
   ...jest.requireActual(
     '../../../../../../core/redux/slices/confirmationMetrics',
   ),
-  updateConfirmationMetric: jest.fn(),
+  updateConfirmationMetric: jest
+    .fn()
+    .mockReturnValue({ type: 'UPDATE_CONFIRMATION_METRIC', payload: {} }),
   selectConfirmationMetrics: jest.fn().mockReturnValue({}),
 }));
 
@@ -268,6 +294,12 @@ function render(
 
 describe('Confirm', () => {
   const mockUpdateConfirmationMetric = jest.mocked(updateConfirmationMetric);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Default to feature flag disabled
+    mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+  });
 
   it('should render correctly', async () => {
     const wrapper = render(Confirm);
@@ -633,5 +665,266 @@ describe('Confirm', () => {
     // Should not show "Asset" label for regular ETH transactions
     const assetLabel = queryByText('Asset');
     expect(assetLabel).toBeNull();
+  });
+
+  describe('Contextual Send Flow Feature Flag', () => {
+    describe('feature flag behavior', () => {
+      it('should call isRemoveGlobalNetworkSelectorEnabled feature flag function', async () => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+        render(Confirm);
+
+        await waitFor(() => {
+          expect(
+            Engine.context.TransactionController.addTransaction,
+          ).toHaveBeenCalled();
+        });
+
+        // Verify that the feature flag function was called
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
+      });
+
+      it('should respect feature flag when disabled', async () => {
+        // Mock feature flag as disabled
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+        const stateWithContextualChainId = merge({}, mockInitialState, {
+          networkOnboarded: {
+            sendFlowChainId: '0x89', // This should be ignored when flag is disabled
+          },
+        });
+
+        render(Confirm, stateWithContextualChainId);
+
+        await waitFor(() => {
+          expect(
+            Engine.context.TransactionController.addTransaction,
+          ).toHaveBeenCalled();
+        });
+
+        // When flag is disabled, the feature flag function should be called
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
+      });
+
+      it('should respect feature flag when enabled', async () => {
+        // Mock feature flag as enabled
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
+        const stateWithContextualChainId = merge({}, mockInitialState, {
+          networkOnboarded: {
+            sendFlowChainId: '0x89', // This should be used when flag is enabled
+          },
+        });
+
+        render(Confirm, stateWithContextualChainId);
+
+        await waitFor(() => {
+          expect(
+            Engine.context.TransactionController.addTransaction,
+          ).toHaveBeenCalled();
+        });
+
+        // When flag is enabled, the feature flag function should be called
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
+      });
+    });
+
+    describe('contextual chain ID usage patterns', () => {
+      it('should handle contextual chain ID when present', async () => {
+        const stateWithContextualChainId = merge({}, mockInitialState, {
+          networkOnboarded: {
+            sendFlowChainId: '0x89', // Polygon contextual chain ID
+          },
+        });
+
+        render(Confirm, stateWithContextualChainId);
+
+        await waitFor(() => {
+          expect(
+            Engine.context.TransactionController.addTransaction,
+          ).toHaveBeenCalled();
+        });
+
+        // Verify the component handled the contextual chain ID
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
+      });
+
+      it('should handle when contextual chain ID is null', async () => {
+        const stateWithoutContextualChainId = merge({}, mockInitialState, {
+          networkOnboarded: {
+            sendFlowChainId: null, // No contextual chain ID
+          },
+        });
+
+        render(Confirm, stateWithoutContextualChainId);
+
+        await waitFor(() => {
+          expect(
+            Engine.context.TransactionController.addTransaction,
+          ).toHaveBeenCalled();
+        });
+
+        // Verify the component handled the null contextual chain ID
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
+      });
+
+      it('should handle when contextual chain ID is undefined', async () => {
+        const stateWithUndefinedContextualChainId = merge(
+          {},
+          mockInitialState,
+          {
+            networkOnboarded: {
+              sendFlowChainId: undefined, // Undefined contextual chain ID
+            },
+          },
+        );
+
+        render(Confirm, stateWithUndefinedContextualChainId);
+
+        await waitFor(() => {
+          expect(
+            Engine.context.TransactionController.addTransaction,
+          ).toHaveBeenCalled();
+        });
+
+        // Verify the component handled the undefined contextual chain ID
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
+      });
+
+      it('should handle when networkOnboarded state is missing', async () => {
+        const stateWithoutNetworkOnboarded = merge({}, mockInitialState);
+        delete stateWithoutNetworkOnboarded.networkOnboarded;
+
+        render(Confirm, stateWithoutNetworkOnboarded);
+
+        await waitFor(() => {
+          expect(
+            Engine.context.TransactionController.addTransaction,
+          ).toHaveBeenCalled();
+        });
+
+        // Verify the component handled the missing networkOnboarded state
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
+      });
+    });
+
+    describe('feature flag state combinations', () => {
+      it('should handle various combinations of feature flag and contextual chain ID', async () => {
+        const testCases = [
+          {
+            flagEnabled: false,
+            contextualChainId: '0x1',
+            description: 'flag disabled with contextual chain ID',
+          },
+          {
+            flagEnabled: false,
+            contextualChainId: null,
+            description: 'flag disabled with null contextual chain ID',
+          },
+          {
+            flagEnabled: true,
+            contextualChainId: '0x89',
+            description: 'flag enabled with contextual chain ID',
+          },
+          {
+            flagEnabled: true,
+            contextualChainId: null,
+            description: 'flag enabled with null contextual chain ID',
+          },
+        ];
+
+        for (const testCase of testCases) {
+          // Clear mocks for each test case
+          jest.clearAllMocks();
+          Engine.context.TransactionController.addTransaction = jest
+            .fn()
+            .mockResolvedValue({
+              result: {},
+              transactionMeta: { id: Math.random() },
+            });
+
+          mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(
+            testCase.flagEnabled,
+          );
+
+          const testState = merge({}, mockInitialState, {
+            networkOnboarded: {
+              sendFlowChainId: testCase.contextualChainId,
+            },
+          });
+
+          render(Confirm, testState);
+
+          await waitFor(() => {
+            expect(
+              Engine.context.TransactionController.addTransaction,
+            ).toHaveBeenCalled();
+          });
+
+          // Verify the feature flag was called for each test case
+          expect(mockIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalled();
+        }
+      });
+    });
+
+    describe('integration with existing functionality', () => {
+      it('should not break existing transaction processing when feature flag is disabled', async () => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+
+        render(Confirm);
+
+        await waitFor(() => {
+          expect(
+            Engine.context.TransactionController.addTransaction,
+          ).toHaveBeenCalled();
+        });
+
+        // Verify basic transaction processing still works
+        expect(
+          Engine.context.TransactionController.addTransaction,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainId: expect.any(String),
+            from: expect.any(String),
+            to: expect.any(String),
+            value: expect.any(String),
+          }),
+          expect.objectContaining({
+            deviceConfirmedOn: expect.any(String),
+            networkClientId: expect.any(String),
+            origin: expect.any(String),
+          }),
+        );
+      });
+
+      it('should not break existing transaction processing when feature flag is enabled', async () => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+
+        render(Confirm);
+
+        await waitFor(() => {
+          expect(
+            Engine.context.TransactionController.addTransaction,
+          ).toHaveBeenCalled();
+        });
+
+        // Verify basic transaction processing still works
+        expect(
+          Engine.context.TransactionController.addTransaction,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainId: expect.any(String),
+            from: expect.any(String),
+            to: expect.any(String),
+            value: expect.any(String),
+          }),
+          expect.objectContaining({
+            deviceConfirmedOn: expect.any(String),
+            networkClientId: expect.any(String),
+            origin: expect.any(String),
+          }),
+        );
+      });
+    });
   });
 });

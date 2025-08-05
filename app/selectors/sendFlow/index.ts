@@ -1,2 +1,4 @@
-export const selectSendFlowContextualChainId = (state: any) =>
+import { RootState } from '../../reducers';
+
+export const selectSendFlowContextualChainId = (state: RootState) =>
   state?.networkOnboarded?.sendFlowChainId;
