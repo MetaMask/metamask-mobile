@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies.
 import {
@@ -9,6 +9,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies.
 import { default as ActionListItemComponent } from './ActionListItem';
@@ -33,7 +34,7 @@ const ActionListItemMeta = {
       },
       description: 'Optional icon name from design system',
     },
-    disabled: {
+    isDisabled: {
       control: { type: 'boolean' },
       description: 'Whether the item is disabled',
     },
@@ -109,67 +110,105 @@ export const Disabled = {
   args: {
     ...SAMPLE_ACTIONLISTITEM_PROPS,
     iconName: IconName.Setting,
-    disabled: true,
+    isDisabled: true,
   },
 };
 
+// Comparison of enabled vs disabled
+const EnabledVsDisabledComponent = () => {
+  const tw = useTailwind();
+
+  return (
+    <View style={tw.style('p-4 gap-1')}>
+      <Text style={tw.style('p-2 text-base font-medium')}>
+        Enabled vs Disabled Comparison
+      </Text>
+      <ActionListItemComponent
+        label="Enabled Item"
+        description="This item is interactive and fully opaque"
+        iconName={IconName.Setting}
+        isDisabled={false}
+        onPress={() => {
+          // Demo press handler
+        }}
+      />
+      <ActionListItemComponent
+        label="Disabled Item"
+        description="This item has 50% opacity and is not interactive"
+        iconName={IconName.Setting}
+        isDisabled
+        onPress={() => {
+          // This should not be called
+        }}
+      />
+    </View>
+  );
+};
+
+export const EnabledVsDisabled = {
+  render: () => <EnabledVsDisabledComponent />,
+};
+
 // Comprehensive demo showing multiple variations
-export const AllVariations = {
-  render: () => {
-    const styles = StyleSheet.create({
-      container: {
-        padding: 16,
-      },
-      section: {
-        marginBottom: 16,
-        borderRadius: 8,
-        overflow: 'hidden',
-      },
-      sectionTitle: {
-        padding: 16,
-      },
-    });
+const AllVariationsComponent = () => {
+  const tw = useTailwind();
 
-    return (
-      <View style={styles.container}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Basic Examples</Text>
-          <ActionListItemComponent
-            label="Basic item"
-            description="Simple label and description"
-          />
-          <ActionListItemComponent
-            label="With icon"
-            description="Has an icon on the left"
-            iconName={IconName.Setting}
-          />
-          <ActionListItemComponent
-            label="Label only"
-            iconName={IconName.Apps}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>With Accessories</Text>
-          <ActionListItemComponent
-            label="Custom start accessory"
-            description="Uses a custom component instead of icon"
-            startAccessory={<Icon name={IconName.Security} />}
-          />
-          <ActionListItemComponent
-            label="With end accessory"
-            description="Shows a chevron on the right"
-            iconName={IconName.Notification}
-            endAccessory={<Icon name={IconName.ArrowRight} />}
-          />
-          <ActionListItemComponent
-            label="Both accessories"
-            description="Start and end accessories together"
-            startAccessory={<Icon name={IconName.Star} />}
-            endAccessory={<Icon name={IconName.MoreVertical} />}
-          />
-        </View>
+  return (
+    <View style={tw.style('p-4')}>
+      <View style={tw.style('mb-4 rounded-lg overflow-hidden')}>
+        <Text style={tw.style('p-4')}>Basic Examples</Text>
+        <ActionListItemComponent
+          label="Basic item"
+          description="Simple label and description"
+        />
+        <ActionListItemComponent
+          label="With icon"
+          description="Has an icon on the left"
+          iconName={IconName.Setting}
+        />
+        <ActionListItemComponent label="Label only" iconName={IconName.Apps} />
       </View>
-    );
-  },
+
+      <View style={tw.style('mb-4 rounded-lg overflow-hidden')}>
+        <Text style={tw.style('p-4')}>With Accessories</Text>
+        <ActionListItemComponent
+          label="Custom start accessory"
+          description="Uses a custom component instead of icon"
+          startAccessory={<Icon name={IconName.Security} />}
+        />
+        <ActionListItemComponent
+          label="With end accessory"
+          description="Shows a chevron on the right"
+          iconName={IconName.Notification}
+          endAccessory={<Icon name={IconName.ArrowRight} />}
+        />
+        <ActionListItemComponent
+          label="Both accessories"
+          description="Start and end accessories together"
+          startAccessory={<Icon name={IconName.Star} />}
+          endAccessory={<Icon name={IconName.MoreVertical} />}
+        />
+      </View>
+
+      <View style={tw.style('mb-4 rounded-lg overflow-hidden')}>
+        <Text style={tw.style('p-4')}>Disabled State</Text>
+        <ActionListItemComponent
+          label="Disabled item"
+          description="This item is disabled with 50% opacity"
+          iconName={IconName.Setting}
+          isDisabled
+        />
+        <ActionListItemComponent
+          label="Normal item"
+          description="This item is enabled for comparison"
+          iconName={IconName.Setting}
+          isDisabled={false}
+        />
+      </View>
+    </View>
+  );
+};
+
+export const AllVariations = {
+  render: () => <AllVariationsComponent />,
 };

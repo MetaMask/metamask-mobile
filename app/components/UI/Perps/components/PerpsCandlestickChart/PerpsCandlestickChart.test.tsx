@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { PerpsCandlestickChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import CandlestickChartComponent from './PerpsCandlectickChart';
 
 // Minimal mock - only what we actually test
@@ -75,13 +76,41 @@ jest.mock('react-native-wagmi-charts', () => {
   return { CandlestickChart: MockChart };
 });
 
-// Mock Dimensions with fixed value
+// Mock Dimensions with fixed value and prevent animation warnings
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
   Dimensions: {
     get: () => ({ width: 750, height: 1334 }), // Fixed test dimensions
   },
+  Animated: {
+    ...jest.requireActual('react-native').Animated,
+    View: jest.requireActual('react-native').View,
+    timing: () => ({
+      start: jest.fn(),
+    }),
+    sequence: () => ({
+      start: jest.fn(),
+    }),
+    Value: jest.fn(() => ({
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      removeAllListeners: jest.fn(),
+    })),
+  },
 }));
+
+// Mock the skeleton component to prevent animation warnings
+jest.mock('./PerpsCandlestickChartSkeleton', () => () => {
+  const { View } = jest.requireActual('react-native');
+  const {
+    PerpsCandlestickChartSelectorsIDs: PerpsCandlestickChartSelectorsIDsMock,
+  } = jest.requireActual(
+    '../../../../../../e2e/selectors/Perps/Perps.selectors',
+  );
+  return (
+    <View testID={PerpsCandlestickChartSelectorsIDsMock.LOADING_SKELETON} />
+  );
+});
 
 // Minimal test wrapper with only what we need
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -97,7 +126,7 @@ const renderWithWrapper = (component: React.ReactElement) =>
 describe('CandlestickChartComponent', () => {
   const mockCandleData = {
     coin: 'BTC',
-    interval: '1h',
+    interval: CandlePeriod.ONE_HOUR,
     candles: [
       {
         time: 1640995200000,
@@ -122,8 +151,9 @@ describe('CandlestickChartComponent', () => {
     candleData: mockCandleData,
     isLoading: false,
     height: 300,
-    selectedInterval: '1h',
-    onIntervalChange: jest.fn(),
+    selectedDuration: TimeDuration.ONE_DAY,
+    onDurationChange: jest.fn(),
+    onGearPress: jest.fn(),
   };
 
   beforeEach(() => {
@@ -139,10 +169,12 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('Loading chart data...')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.LOADING_SKELETON),
+      ).toBeOnTheScreen();
     });
 
-    it('shows interval selector when loading', () => {
+    it('shows time duration selector when loading', () => {
       // Arrange
       const props = { ...defaultProps, isLoading: true };
 
@@ -150,21 +182,22 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('1H')).toBeOnTheScreen();
-      expect(screen.getByText('5M')).toBeOnTheScreen();
+      expect(screen.getByText('1hr')).toBeOnTheScreen();
+      expect(screen.getByText('1D')).toBeOnTheScreen();
+      expect(screen.getByText('1W')).toBeOnTheScreen();
     });
 
-    it('calls onIntervalChange when interval button is pressed during loading', () => {
+    it('calls onDurationChange when duration button is pressed during loading', () => {
       // Arrange
-      const onIntervalChange = jest.fn();
-      const props = { ...defaultProps, isLoading: true, onIntervalChange };
+      const onDurationChange = jest.fn();
+      const props = { ...defaultProps, isLoading: true, onDurationChange };
 
       // Act
       renderWithWrapper(<CandlestickChartComponent {...props} />);
-      fireEvent.press(screen.getByText('5M'));
+      fireEvent.press(screen.getByText('1W'));
 
       // Assert
-      expect(onIntervalChange).toHaveBeenCalledWith('5m');
+      expect(onDurationChange).toHaveBeenCalledWith('1w');
     });
   });
 
@@ -194,7 +227,7 @@ describe('CandlestickChartComponent', () => {
       expect(screen.getByText('No chart data available')).toBeOnTheScreen();
     });
 
-    it('shows interval selector when no data', () => {
+    it('shows time duration selector when no data', () => {
       // Arrange
       const props = { ...defaultProps, candleData: null };
 
@@ -202,8 +235,9 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('1H')).toBeOnTheScreen();
-      expect(screen.getByText('5M')).toBeOnTheScreen();
+      expect(screen.getByText('1hr')).toBeOnTheScreen();
+      expect(screen.getByText('1D')).toBeOnTheScreen();
+      expect(screen.getByText('1W')).toBeOnTheScreen();
     });
   });
 
@@ -269,15 +303,15 @@ describe('CandlestickChartComponent', () => {
       ).toBeOnTheScreen();
     });
 
-    it('uses default selectedInterval when not provided', () => {
+    it('uses default selectedDuration when not provided', () => {
       // Arrange
-      const { selectedInterval, ...propsWithoutInterval } = defaultProps;
+      const { selectedDuration, ...propsWithoutDuration } = defaultProps;
 
       // Act
-      render(<CandlestickChartComponent {...propsWithoutInterval} />);
+      render(<CandlestickChartComponent {...propsWithoutDuration} />);
 
       // Assert
-      expect(screen.getByText('1H')).toBeOnTheScreen();
+      expect(screen.getByText('1hr')).toBeOnTheScreen();
     });
 
     it('uses default isLoading when not provided', () => {
@@ -288,93 +322,91 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...propsWithoutLoading} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
-      expect(screen.queryByText('Loading chart data...')).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsCandlestickChartSelectorsIDs.LOADING_SKELETON,
+        ),
+      ).not.toBeOnTheScreen();
     });
   });
 
-  describe('Interval Selector', () => {
-    it('renders all available intervals', () => {
+  describe('Duration Selector', () => {
+    it('renders all available durations', () => {
       // Arrange
-      const expectedIntervals = [
-        '1M',
-        '5M',
-        '15M',
-        '30M',
-        '1H',
-        '2H',
-        '4H',
-        '8H',
-      ];
+      const expectedDurations = ['1hr', '1D', '1W', '1M', 'YTD', 'Max'];
 
       // Act
       render(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expectedIntervals.forEach((interval) => {
-        expect(screen.getByText(interval)).toBeOnTheScreen();
+      expectedDurations.forEach((duration) => {
+        expect(screen.getByText(duration)).toBeOnTheScreen();
       });
     });
 
-    it('highlights selected interval', () => {
+    it('highlights selected duration', () => {
       // Arrange
-      const props = { ...defaultProps, selectedInterval: '5m' };
+      const props = {
+        ...defaultProps,
+        selectedDuration: TimeDuration.ONE_WEEK,
+      };
 
       // Act
       render(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('5M')).toBeOnTheScreen();
+      expect(screen.getByText('1W')).toBeOnTheScreen();
     });
 
-    it('calls onIntervalChange when interval button is pressed', () => {
+    it('calls onDurationChange when duration button is pressed', () => {
       // Arrange
-      const onIntervalChange = jest.fn();
-      const props = { ...defaultProps, onIntervalChange };
+      const onDurationChange = jest.fn();
+      const props = { ...defaultProps, onDurationChange };
 
       // Act
       render(<CandlestickChartComponent {...props} />);
-      fireEvent.press(screen.getByText('5M'));
+      fireEvent.press(screen.getByText('1W'));
 
       // Assert
-      expect(onIntervalChange).toHaveBeenCalledWith('5m');
+      expect(onDurationChange).toHaveBeenCalledWith('1w');
     });
 
-    it('does not call onIntervalChange when callback is not provided', () => {
+    it('does not call onDurationChange when callback is not provided', () => {
       // Arrange
-      const { onIntervalChange, ...propsWithoutCallback } = defaultProps;
+      const { onDurationChange, ...propsWithoutCallback } = defaultProps;
 
       // Act
       render(<CandlestickChartComponent {...propsWithoutCallback} />);
 
-      // Assert - Should not throw error when pressing interval button
+      // Assert - Should not throw error when pressing duration button
       expect(() => {
-        fireEvent.press(screen.getByText('5M'));
+        fireEvent.press(screen.getByText('1W'));
       }).not.toThrow();
     });
 
     it.each([
+      ['1hr', '1hr'],
+      ['1D', '1d'],
+      ['1W', '1w'],
       ['1M', '1m'],
-      ['5M', '5m'],
-      ['15M', '15m'],
-      ['30M', '30m'],
-      ['1H', '1h'],
-      ['2H', '2h'],
-      ['4H', '4h'],
-      ['8H', '8h'],
+      ['YTD', 'ytd'],
+      ['Max', 'max'],
     ] as const)(
-      'calls onIntervalChange with correct value for %s',
+      'calls onDurationChange with correct value for %s',
       (label, expectedValue) => {
         // Arrange
-        const onIntervalChange = jest.fn();
-        const props = { ...defaultProps, onIntervalChange };
+        const onDurationChange = jest.fn();
+        const props = { ...defaultProps, onDurationChange };
 
         // Act
         render(<CandlestickChartComponent {...props} />);
         fireEvent.press(screen.getByText(label));
 
         // Assert
-        expect(onIntervalChange).toHaveBeenCalledWith(expectedValue);
+        expect(onDurationChange).toHaveBeenCalledWith(expectedValue);
       },
     );
   });
@@ -385,7 +417,9 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
       // The transformed data is used internally by the CandlestickChart.Provider
     });
 
@@ -475,7 +509,9 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
     it('handles large screen sizes', () => {
@@ -483,7 +519,9 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -492,7 +530,7 @@ describe('CandlestickChartComponent', () => {
       // Arrange
       const candleDataWithStrings = {
         coin: 'BTC',
-        interval: '1h',
+        interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
             time: 1640995200000,
@@ -510,18 +548,25 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
-    it('handles invalid interval selection gracefully', () => {
+    it('handles invalid duration selection gracefully', () => {
       // Arrange
-      const props = { ...defaultProps, selectedInterval: 'invalid' };
+      const props = {
+        ...defaultProps,
+        selectedDuration: 'invalid' as TimeDuration,
+      };
 
       // Act
       renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
     it('handles undefined candleData gracefully', () => {
