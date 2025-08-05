@@ -170,7 +170,7 @@ const Main = (props) => {
   }, [isSeedlessPasswordOutdated, props.navigation]);
 
   useEffect(() => {
-    const showConnectionRemovedPopup = async () => {
+    const showConnectionRemovedPopup = () => {
       if (isConnectionRemoved) {
         props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
