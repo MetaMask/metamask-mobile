@@ -661,6 +661,10 @@ const RevealPrivateCredential = ({
         contentContainerStyle={styles.stretch}
         // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
         showCancelButton={Boolean(showCancelButton || unlocked)}
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={40}
+        showsVerticalScrollIndicator={false}
       >
         <ScrollView>
           <View style={[styles.rowWrapper, styles.normalText]}>
