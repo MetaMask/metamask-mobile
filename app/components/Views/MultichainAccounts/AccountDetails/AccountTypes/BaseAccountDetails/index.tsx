@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { SafeAreaView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
@@ -30,7 +30,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
-import { selectWalletByAccount } from '../../../../../../multichain-accounts/selectors/accountTreeController';
+import { selectWalletByAccount } from '../../../../../../selectors/multichainAccounts/accountTreeController';
 
 interface BaseAccountDetailsProps {
   account: InternalAccount;
@@ -93,7 +93,7 @@ export const BaseAccountDetails = ({
       >
         {account.metadata.name}
       </HeaderBase>
-      <View
+      <ScrollView
         style={styles.container}
         testID={AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER}
       >
@@ -179,7 +179,7 @@ export const BaseAccountDetails = ({
           </Box>
         </TouchableOpacity>
         {children}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

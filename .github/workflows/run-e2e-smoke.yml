@@ -185,3 +185,53 @@ jobs:
     if: false
     uses: ./.github/workflows/run-e2e-api-specs.yml
     secrets: inherit
+
+  report-e2e-smoke-tests:
+    name: Report E2E Smoke Tests
+    runs-on: ubuntu-latest
+    if: false
+    needs:
+      - smoke-confirmations-ios
+      - smoke-confirmations-android
+      - smoke-confirmations-redesigned-ios
+      - smoke-trade-ios
+      - smoke-trade-android
+      - smoke-wallet-platform-ios
+      - smoke-wallet-platform-android
+      - smoke-identity-ios
+      - smoke-identity-android
+      - smoke-accounts-ios
+      - smoke-accounts-android
+      - smoke-network-abstraction-ios
+      - smoke-network-abstraction-android
+      - smoke-network-expansion-ios
+      - smoke-network-expansion-android
+      - smoke-performance-ios
+      - smoke-performance-android
+      - smoke-api-specs
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-test-results/
+          pattern: "*-test-results"
+
+      - name: Post Test Report
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        with:
+          name: "E2E Smoke Test Results"
+          path: "all-test-results/**/*.xml"
+          reporter: "jest-junit"
+          fail-on-error: false
+          list-suites: "all"
+          list-tests: "all"
+
+      - name: Upload merged report
+        uses: actions/upload-artifact@v4
+        with:
+          name: merged-test-report
+          path: all-test-results/**/*.xml

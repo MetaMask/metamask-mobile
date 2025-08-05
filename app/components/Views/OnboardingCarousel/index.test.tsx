@@ -19,6 +19,7 @@ jest.mock('../../../actions/onboarding', () => ({
 
 jest.mock('../../../util/test/utils', () => ({
   isTest: true,
+  isQa: true,
 }));
 
 jest.mock('../../../util/device', () => ({
@@ -83,7 +84,7 @@ describe('OnboardingCarousel', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render the App Start Time text when isTest is true', async () => {
+  it('should render the App Start Time text when isTest or isQa is true', async () => {
     const { toJSON, getAllByTestId } = renderWithProvider(
       <OnboardingCarousel navigation={mockNavigation} />,
     );

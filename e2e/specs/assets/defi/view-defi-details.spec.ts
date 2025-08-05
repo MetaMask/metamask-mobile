@@ -1,6 +1,6 @@
 import { SmokeNetworkAbstractions } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -23,25 +23,25 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
       async () => {
         await loginToApp();
 
-        await Assertions.checkIfVisible(WalletView.container);
-        await Assertions.checkIfVisible(WalletView.defiTab);
+        await Assertions.expectElementToBeVisible(WalletView.container);
+        await Assertions.expectElementToBeVisible(WalletView.defiTab);
 
         await WalletView.tapOnDeFiTab();
 
-        await Assertions.checkIfVisible(WalletView.defiTabContainer);
+        await Assertions.expectElementToBeVisible(WalletView.defiTabContainer);
         await WalletView.tapOnDeFiPosition('Aave V3');
 
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
           WalletView.defiPositionDetailsContainer,
         );
-        await Assertions.checkIfTextIsDisplayed('Aave V3');
-        await Assertions.checkIfTextIsDisplayed('$14.74');
-        await Assertions.checkIfTextIsDisplayed('USDT');
-        await Assertions.checkIfTextIsDisplayed('$0.30');
-        await Assertions.checkIfTextIsDisplayed('0.30011 USDT');
-        await Assertions.checkIfTextIsDisplayed('WETH');
-        await Assertions.checkIfTextIsDisplayed('$14.44');
-        await Assertions.checkIfTextIsDisplayed('0.00903 WETH');
+        await Assertions.expectTextDisplayed('Aave V3');
+        await Assertions.expectTextDisplayed('$14.74');
+        await Assertions.expectTextDisplayed('USDT');
+        await Assertions.expectTextDisplayed('$0.30');
+        await Assertions.expectTextDisplayed('0.30011 USDT');
+        await Assertions.expectTextDisplayed('WETH');
+        await Assertions.expectTextDisplayed('$14.44');
+        await Assertions.expectTextDisplayed('0.00903 WETH');
       },
     );
   });

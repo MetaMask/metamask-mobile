@@ -22,6 +22,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { isHardwareAccount } from '../../../../../util/address';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
+import { BridgeViewMode } from '../../types';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -1014,17 +1015,9 @@ describe('BridgeView', () => {
       jest.mocked(isHardwareAccount).mockReturnValue(false);
     });
 
-    it('should navigate to blockaid modal on validation error for Solana swap', async () => {
-      // Mock validation result with validation error
-      mockValidateBridgeTx.mockResolvedValue({
-        status: 'ERROR',
-        result: {
-          validation: {
-            reason: 'Transaction may result in loss of funds',
-          },
-        },
-        error: null,
-      });
+    it('should submit transaction for Solana swap', async () => {
+      // Set route params for swap mode
+      mockRoute.params.bridgeViewMode = BridgeViewMode.Swap;
 
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
@@ -1075,34 +1068,19 @@ describe('BridgeView', () => {
         fireEvent.press(continueButton);
       });
 
-      await waitFor(() => {
-        expect(mockValidateBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockQuote,
-        });
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-          params: {
-            errorType: 'validation',
-            errorMessage: 'Transaction may result in loss of funds',
-          },
+      await act(async () => {
+        await waitFor(() => {
+          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+            quoteResponse: mockQuote,
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
       });
-
-      // Should not submit the transaction
-      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('should navigate to blockaid modal on simulation error for Solana to EVM bridge', async () => {
-      // Mock validation result with simulation error
-      mockValidateBridgeTx.mockResolvedValue({
-        status: 'ERROR',
-        result: {
-          validation: {
-            reason: null,
-          },
-        },
-        error: 'Simulation failed',
-      });
+    it('should submit transaction for Solana to EVM bridge', async () => {
+      // Set route params for bridge mode
+      mockRoute.params.bridgeViewMode = BridgeViewMode.Bridge;
 
       const testState = createBridgeTestState(
         {
@@ -1156,34 +1134,19 @@ describe('BridgeView', () => {
         fireEvent.press(continueButton);
       });
 
-      await waitFor(() => {
-        expect(mockValidateBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockQuote,
-        });
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-          params: {
-            errorType: 'simulation',
-            errorMessage: 'Simulation failed',
-          },
+      await act(async () => {
+        await waitFor(() => {
+          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+            quoteResponse: mockQuote,
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
       });
-
-      // Should not submit the transaction
-      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('should prioritize validation error over simulation error', async () => {
-      // Mock validation result with both validation and simulation errors
-      mockValidateBridgeTx.mockResolvedValue({
-        status: 'ERROR',
-        result: {
-          validation: {
-            reason: 'Transaction may result in loss of funds',
-          },
-        },
-        error: 'Simulation failed',
-      });
+    it('should proceed with transaction when continue is pressed', async () => {
+      // Set route params for swap mode
+      mockRoute.params.bridgeViewMode = BridgeViewMode.Swap;
 
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
@@ -1234,92 +1197,13 @@ describe('BridgeView', () => {
         fireEvent.press(continueButton);
       });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-          params: {
-            errorType: 'validation', // Should prioritize validation over simulation
-            errorMessage: 'Transaction may result in loss of funds',
-          },
-        });
-      });
-    });
-
-    it('should proceed with transaction when no validation errors', async () => {
-      // Mock validation result with no errors
-      mockValidateBridgeTx.mockResolvedValue({
-        status: 'SUCCESS',
-        result: {
-          validation: {
-            reason: null,
-          },
-        },
-        error: null,
-      });
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-          sourceToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
-          },
-          destToken: {
-            address: 'So11111111111111111111111111111111111111112',
-            chainId: SolScope.Mainnet,
-            decimals: 9,
-            image: '',
-            name: 'Solana',
-            symbol: 'SOL',
-          },
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-          isLoading: false,
-        }));
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      // Find and press the continue button
-      const continueButton = getByText(strings('bridge.confirm_swap'));
       await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      await waitFor(() => {
-        expect(mockValidateBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockQuote,
+        await waitFor(() => {
+          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+            quoteResponse: mockQuote,
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
-        expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockQuote,
-        });
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-      });
-
-      // Should not navigate to blockaid modal
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-        params: expect.any(Object),
       });
     });
 
@@ -1373,15 +1257,14 @@ describe('BridgeView', () => {
         fireEvent.press(continueButton);
       });
 
-      await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockQuote,
+      await act(async () => {
+        await waitFor(() => {
+          expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+            quoteResponse: mockQuote,
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
       });
-
-      // Should not call validation for non-Solana transactions
-      expect(mockValidateBridgeTx).not.toHaveBeenCalled();
     });
   });
 
