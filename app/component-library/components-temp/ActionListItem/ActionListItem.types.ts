@@ -12,7 +12,7 @@ import {
 /**
  * ActionListItem component props.
  */
-export interface ActionListItemProps extends PressableProps {
+export interface ActionListItemProps extends Omit<PressableProps, 'disabled'> {
   /**
    * Label for the list item - can be string or React node.
    */
