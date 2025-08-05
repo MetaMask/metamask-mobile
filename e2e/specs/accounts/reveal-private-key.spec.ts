@@ -9,8 +9,8 @@ import Assertions from '../../framework/Assertions';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView';
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import WalletView from '../../pages/wallet/WalletView';
-import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 
 // These keys are from the fixture and are used to test the reveal private key functionality
 const HD_ACCOUNT_1_PRIVATE_KEY =
@@ -89,7 +89,7 @@ describe(Regression('reveal private key'), () => {
           IMPORTED_ACCOUNT_0_INDEX,
         );
 
-        await AccountActionsBottomSheet.tapShowPrivateKey();
+        await AccountDetails.tapExportPrivateKeyButton();
         await RevealPrivateKey.enterPasswordToRevealSecretCredential(PASSWORD);
         await RevealPrivateKey.tapToReveal();
         await Assertions.expectElementToBeVisible(RevealPrivateKey.container);
@@ -109,7 +109,7 @@ describe(Regression('reveal private key'), () => {
         );
         await RevealPrivateKey.scrollToDone();
         await RevealPrivateKey.tapDoneButton();
-        await Assertions.expectElementToBeVisible(WalletView.container);
+        await Assertions.expectElementToBeVisible(AccountDetails.container);
       },
     );
   });
@@ -130,7 +130,7 @@ describe(Regression('reveal private key'), () => {
           IMPORTED_ACCOUNT_1_INDEX,
         );
 
-        await AccountActionsBottomSheet.tapShowPrivateKey();
+        await AccountDetails.tapExportPrivateKeyButton();
         await RevealPrivateKey.enterPasswordToRevealSecretCredential(PASSWORD);
         await RevealPrivateKey.tapToReveal();
         await Assertions.expectElementToBeVisible(RevealPrivateKey.container);
@@ -150,7 +150,7 @@ describe(Regression('reveal private key'), () => {
         );
         await RevealPrivateKey.scrollToDone();
         await RevealPrivateKey.tapDoneButton();
-        await Assertions.expectElementToBeVisible(WalletView.container);
+        await Assertions.expectElementToBeVisible(AccountDetails.container);
       },
     );
   });
