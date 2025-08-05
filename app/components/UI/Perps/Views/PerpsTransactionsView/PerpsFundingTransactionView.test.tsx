@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import PerpsFundingTransactionView from './PerpsFundingTransactionView';
+import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const mockTransaction = {
   id: 'funding-123',
@@ -94,7 +95,9 @@ describe('PerpsFundingTransactionView', () => {
     const { getByText, getByTestId } = render(<PerpsFundingTransactionView />);
 
     // Assert
-    expect(getByTestId('perps-funding-transaction-view')).toBeTruthy();
+    expect(
+      getByTestId(PerpsTransactionSelectorsIDs.FUNDING_TRANSACTION_VIEW),
+    ).toBeTruthy();
     expect(getByText('Date')).toBeTruthy();
     expect(getByText('Fee')).toBeTruthy();
     expect(getByText('Rate')).toBeTruthy();
@@ -202,7 +205,9 @@ describe('PerpsFundingTransactionView', () => {
     const { getByTestId } = render(<PerpsFundingTransactionView />);
 
     // Act
-    const blockExplorerButton = getByTestId('block-explorer-button');
+    const blockExplorerButton = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
     fireEvent.press(blockExplorerButton);
 
     // Assert
@@ -221,7 +226,9 @@ describe('PerpsFundingTransactionView', () => {
     const { getByTestId } = render(<PerpsFundingTransactionView />);
 
     // Act
-    const blockExplorerButton = getByTestId('block-explorer-button');
+    const blockExplorerButton = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
     fireEvent.press(blockExplorerButton);
 
     // Assert
@@ -237,7 +244,9 @@ describe('PerpsFundingTransactionView', () => {
     const { getByTestId } = render(<PerpsFundingTransactionView />);
 
     // Act
-    const blockExplorerButton = getByTestId('block-explorer-button');
+    const blockExplorerButton = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
     fireEvent.press(blockExplorerButton);
 
     // Assert
@@ -354,7 +363,9 @@ describe('PerpsFundingTransactionView', () => {
     const { getByTestId } = render(<PerpsFundingTransactionView />);
 
     // Assert
-    const button = getByTestId('block-explorer-button');
+    const button = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
     expect(button).toBeTruthy();
   });
 });

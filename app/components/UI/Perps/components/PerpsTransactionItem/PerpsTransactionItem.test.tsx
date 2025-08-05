@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import PerpsTransactionItem from './PerpsTransactionItem';
+import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const mockColors = {
   black: '#000000',
@@ -97,7 +98,9 @@ describe('PerpsTransactionItem', () => {
 
     expect(getByText('Opened ETH long')).toBeTruthy();
     expect(getByText('1.5 ETH')).toBeTruthy();
-    expect(getByTestId('transaction-item-avatar')).toBeTruthy();
+    expect(
+      getByTestId(PerpsTransactionSelectorsIDs.TRANSACTION_ITEM_AVATAR),
+    ).toBeTruthy();
     expect(mockRenderRightContent).toHaveBeenCalledWith(mockTransaction);
   });
 
@@ -111,7 +114,9 @@ describe('PerpsTransactionItem', () => {
       />,
     );
 
-    const touchable = getByTestId('transaction-item');
+    const touchable = getByTestId(
+      PerpsTransactionSelectorsIDs.TRANSACTION_ITEM,
+    );
     fireEvent.press(touchable);
 
     expect(mockOnPress).toHaveBeenCalledWith(mockTransaction);
@@ -314,6 +319,8 @@ describe('PerpsTransactionItem', () => {
       />,
     );
 
-    expect(getByTestId('transaction-item')).toBeTruthy();
+    expect(
+      getByTestId(PerpsTransactionSelectorsIDs.TRANSACTION_ITEM),
+    ).toBeTruthy();
   });
 });

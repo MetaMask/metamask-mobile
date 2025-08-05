@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import PerpsOrderTransactionView from './PerpsOrderTransactionView';
 import { usePerpsNetwork, usePerpsOrderFees } from '../../hooks';
+import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const mockTransaction = {
   id: 'order-123',
@@ -129,8 +130,12 @@ describe('PerpsOrderTransactionView', () => {
   it('should render order transaction details correctly', () => {
     const { getByText, getByTestId } = render(<PerpsOrderTransactionView />);
 
-    expect(getByTestId('perps-order-transaction-view')).toBeTruthy();
-    expect(getByTestId('perps-transaction-detail-asset-hero')).toBeTruthy();
+    expect(
+      getByTestId(PerpsTransactionSelectorsIDs.ORDER_TRANSACTION_VIEW),
+    ).toBeTruthy();
+    expect(
+      getByTestId(PerpsTransactionSelectorsIDs.TRANSACTION_DETAIL_ASSET_HERO),
+    ).toBeTruthy();
 
     // Check transaction details
     expect(getByText('Date')).toBeTruthy();
@@ -192,7 +197,9 @@ describe('PerpsOrderTransactionView', () => {
   it('should open block explorer when button is pressed', () => {
     const { getByTestId } = render(<PerpsOrderTransactionView />);
 
-    const blockExplorerButton = getByTestId('block-explorer-button');
+    const blockExplorerButton = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
     fireEvent.press(blockExplorerButton);
 
     expect(Linking.openURL).toHaveBeenCalledWith(
@@ -205,7 +212,9 @@ describe('PerpsOrderTransactionView', () => {
 
     const { getByTestId } = render(<PerpsOrderTransactionView />);
 
-    const blockExplorerButton = getByTestId('block-explorer-button');
+    const blockExplorerButton = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
     fireEvent.press(blockExplorerButton);
 
     expect(Linking.openURL).toHaveBeenCalledWith(
@@ -218,7 +227,9 @@ describe('PerpsOrderTransactionView', () => {
 
     const { getByTestId } = render(<PerpsOrderTransactionView />);
 
-    const blockExplorerButton = getByTestId('block-explorer-button');
+    const blockExplorerButton = getByTestId(
+      PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON,
+    );
     fireEvent.press(blockExplorerButton);
 
     expect(Linking.openURL).not.toHaveBeenCalled();

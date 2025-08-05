@@ -32,6 +32,7 @@ import {
   formatPerpsFiat,
   formatTransactionDate,
 } from '../../utils/formatUtils';
+import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Interface now imported from PerpsTransactionsView
 
@@ -144,7 +145,7 @@ const PerpsOrderTransactionView: React.FC = () => {
   return (
     <ScreenView>
       <ScrollView
-        testID="perps-order-transaction-view"
+        testID={PerpsTransactionSelectorsIDs.ORDER_TRANSACTION_VIEW}
         style={styles.container}
       >
         <View style={styles.content}>
@@ -202,7 +203,7 @@ const PerpsOrderTransactionView: React.FC = () => {
 
           {/* Block explorer button */}
           <Button
-            testID="block-explorer-button"
+            testID={PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON}
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}

@@ -31,6 +31,7 @@ import {
   formatTransactionDate,
 } from '../../utils/formatUtils';
 import { BigNumber } from 'bignumber.js';
+import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Interface now imported from PerpsTransactionsView
 
@@ -119,7 +120,7 @@ const PerpsFundingTransactionView: React.FC = () => {
   return (
     <ScreenView>
       <ScrollView
-        testID="perps-funding-transaction-view"
+        testID={PerpsTransactionSelectorsIDs.FUNDING_TRANSACTION_VIEW}
         style={styles.container}
       >
         <View style={styles.content}>
@@ -142,7 +143,7 @@ const PerpsFundingTransactionView: React.FC = () => {
 
           {/* Block explorer button */}
           <Button
-            testID="block-explorer-button"
+            testID={PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON}
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}

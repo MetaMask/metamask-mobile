@@ -7,6 +7,7 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
+import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock the hooks
 jest.mock('../../hooks/usePerpsAssetsMetadata');
@@ -99,7 +100,7 @@ describe('PerpsTransactionDetailAssetHero', () => {
 
     // Assert
     expect(
-      getByTestId('perps-transaction-detail-asset-hero'),
+      getByTestId(PerpsTransactionSelectorsIDs.TRANSACTION_DETAIL_ASSET_HERO),
     ).toBeOnTheScreen();
     expect(getByText('1.5 ETH')).toBeOnTheScreen();
   });
@@ -124,7 +125,9 @@ describe('PerpsTransactionDetailAssetHero', () => {
     );
 
     // Assert
-    expect(getByTestId('asset-icon-container')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsTransactionSelectorsIDs.ASSET_ICON_CONTAINER),
+    ).toBeOnTheScreen();
     expect(getByText('1.5 ETH')).toBeOnTheScreen();
   });
 
@@ -148,7 +151,9 @@ describe('PerpsTransactionDetailAssetHero', () => {
     );
 
     // Assert
-    expect(getByTestId('asset-icon-container')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsTransactionSelectorsIDs.ASSET_ICON_CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   it('should display correct subtitle from transaction', () => {
@@ -260,6 +265,8 @@ describe('PerpsTransactionDetailAssetHero', () => {
     );
 
     // Assert
-    expect(getByTestId('asset-icon-container')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsTransactionSelectorsIDs.ASSET_ICON_CONTAINER),
+    ).toBeOnTheScreen();
   });
 });

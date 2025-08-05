@@ -10,6 +10,7 @@ import Avatar, {
 import RemoteImage from '../../../../Base/RemoteImage';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { PerpsTransaction } from '../../Views/PerpsTransactionsView/PerpsTransactionsView';
+import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface PerpsTransactionDetailAssetHeroProps {
   transaction: PerpsTransaction;
@@ -23,10 +24,13 @@ const PerpsTransactionDetailAssetHero: React.FC<
 
   return (
     <View
-      testID="perps-transaction-detail-asset-hero"
+      testID={PerpsTransactionSelectorsIDs.TRANSACTION_DETAIL_ASSET_HERO}
       style={styles.assetContainer}
     >
-      <View testID="asset-icon-container" style={styles.assetIconContainer}>
+      <View
+        testID={PerpsTransactionSelectorsIDs.ASSET_ICON_CONTAINER}
+        style={styles.assetIconContainer}
+      >
         {assetUrl ? (
           <RemoteImage
             source={{ uri: assetUrl }}
