@@ -2,15 +2,15 @@
 /* eslint-disable no-console */
 import { Mockttp } from 'mockttp';
 import { loginToApp } from '../../viewHelper.js';
-import FixtureBuilder from '../../fixtures/fixture-builder.js';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
 import Ganache from '../../../app/util/test/ganache';
 import {
   loadFixture,
-  startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper.js';
+  startFixtureServer,
+} from '../../framework/fixtures/FixtureHelper.ts';
 import TestHelpers from '../../helpers.js';
-import FixtureServer from '../../fixtures/fixture-server.js';
+import FixtureServer from '../../framework/fixtures/FixtureServer.ts';
 import {
   getFixturesServerPort,
   getMockServerPort,
@@ -23,10 +23,8 @@ import Matchers from '../../utils/Matchers.js';
 import Gestures from '../../utils/Gestures.js';
 import { Assertions as FrameworkAssertions } from '../../framework';
 import { startMockServer } from '../swaps/helpers/swap-mocks.ts';
-import {
-  localNodeOptions,
-  testSpecificMock,
-} from '../swaps/helpers/constants.ts';
+import { testSpecificMock } from '../swaps/helpers/constants.ts';
+import { localNodeOptions } from '../bridge/constants.ts';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
