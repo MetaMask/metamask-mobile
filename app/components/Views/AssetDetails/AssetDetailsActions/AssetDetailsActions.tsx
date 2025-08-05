@@ -7,7 +7,7 @@ import WalletAction from '../../../../components/UI/WalletAction';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import CLText, {
+import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
@@ -71,9 +71,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             disabled={!canSignTransactions}
             actionID={buyButtonActionID}
           />
-          <CLText variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.fund_button')}
-          </CLText>
+          </Text>
         </View>
       )}
       {displaySwapsButton && (
@@ -87,9 +87,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             disabled={!canSignTransactions || !swapsIsLive}
             actionID={swapButtonActionID}
           />
-          <CLText variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.swap')}
-          </CLText>
+          </Text>
         </View>
       )}
       {displayBridgeButton ? (
@@ -103,9 +103,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             disabled={!canSignTransactions}
             actionID={bridgeButtonActionID}
           />
-          <CLText variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('asset_overview.bridge')}
-          </CLText>
+          </Text>
         </View>
       ) : null}
       <View style={styles.buttonWrapper}>
@@ -118,9 +118,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           disabled={!canSignTransactions}
           actionID={sendButtonActionID}
         />
-        <CLText variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.send_button')}
-        </CLText>
+        </Text>
       </View>
       <View style={styles.buttonWrapper}>
         <WalletAction
@@ -132,9 +132,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           disabled={false}
           actionID={receiveButtonActionID}
         />
-        <CLText variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMD}>
           {strings('asset_overview.receive_button')}
-        </CLText>
+        </Text>
       </View>
     </View>
   );

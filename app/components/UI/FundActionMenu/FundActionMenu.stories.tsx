@@ -50,7 +50,6 @@ const createMockStore = () => {
   const mockState = {
     engine: {
       backgroundState: {
-        AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         NetworkController: {
           selectedNetworkClientId: 'mainnet',
           networkConfigurationsByChainId: {

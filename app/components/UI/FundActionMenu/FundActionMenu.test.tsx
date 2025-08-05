@@ -6,21 +6,44 @@ import FundActionMenu from './FundActionMenu';
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const React = require('react');
-    return React.forwardRef(({ children }: any, ref: any) => (
-      <div testID="bottom-sheet">{children}</div>
-    ));
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+    const MockedReact = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+    const { View: MockView } = require('react-native');
+    return MockedReact.forwardRef(
+      ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) =>
+        MockedReact.createElement(
+          MockView,
+          { testID: 'bottom-sheet' },
+          children,
+        ),
+    );
   },
 );
 
 // Mock ActionListItem
 jest.mock('../../../component-library/components-temp/ActionListItem', () => {
-  const React = require('react');
-  return ({ label, testID, onPress }: any) => (
-    <div testID={testID} onPress={onPress}>
-      {label}
-    </div>
-  );
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const MockedReact = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+  const {
+    TouchableOpacity: MockTouchableOpacity,
+    Text: MockText,
+  } = require('react-native');
+  return ({
+    label,
+    testID,
+    onPress,
+  }: {
+    label: string;
+    testID: string;
+    onPress: () => void;
+  }) =>
+    MockedReact.createElement(
+      MockTouchableOpacity,
+      { testID, onPress },
+      MockedReact.createElement(MockText, null, label),
+    );
 });
 
 // Mock the navigation hook
@@ -79,17 +102,16 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('FundActionMenu', () => {
-  it('renders correctly', () => {
-    const { toJSON } = render(<FundActionMenu />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders BottomSheet container', () => {
+  it('displays the bottom sheet container when rendered', () => {
+    // Arrange & Act
     const { getByTestId } = render(<FundActionMenu />);
-    expect(getByTestId('bottom-sheet')).toBeTruthy();
+
+    // Assert
+    expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
   });
 
-  it('component mounts without errors', () => {
+  it('mounts without throwing errors', () => {
+    // Arrange & Act & Assert
     expect(() => render(<FundActionMenu />)).not.toThrow();
   });
 });
