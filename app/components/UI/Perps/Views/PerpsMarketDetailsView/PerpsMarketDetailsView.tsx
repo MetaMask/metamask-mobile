@@ -29,7 +29,11 @@ import type {
 } from '../../controllers/types';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
-import { getDefaultCandlePeriodForDuration } from '../../constants/chartConfig';
+import {
+  getDefaultCandlePeriodForDuration,
+  TimeDuration,
+  CandlePeriod,
+} from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 interface MarketDetailsRouteParams {
@@ -44,10 +48,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { market } = route.params || {};
   const { top } = useSafeAreaInsets();
 
-  const [selectedDuration, setSelectedDuration] = useState('1d');
-  const [selectedCandlePeriod, setSelectedCandlePeriod] = useState(() =>
-    getDefaultCandlePeriodForDuration('1d'),
+  const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
+    TimeDuration.ONE_DAY,
   );
+  const [selectedCandlePeriod, setSelectedCandlePeriod] =
+    useState<CandlePeriod>(() =>
+      getDefaultCandlePeriodForDuration(TimeDuration.ONE_DAY),
+    );
   const [
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
@@ -63,14 +70,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
   });
 
-  const handleDurationChange = useCallback((newDuration: string) => {
+  const handleDurationChange = useCallback((newDuration: TimeDuration) => {
     setSelectedDuration(newDuration);
     // Auto-update candle period to the appropriate default for the new duration
     const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
     setSelectedCandlePeriod(defaultPeriod);
   }, []);
 
-  const handleCandlePeriodChange = useCallback((newPeriod: string) => {
+  const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
     setSelectedCandlePeriod(newPeriod);
   }, []);
 

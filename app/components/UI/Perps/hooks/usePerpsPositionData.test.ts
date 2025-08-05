@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePerpsPositionData } from './usePerpsPositionData';
 import Engine from '../../../../core/Engine';
+import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -42,8 +43,8 @@ describe('usePerpsPositionData', () => {
     const { waitForNextUpdate } = renderHook(() =>
       usePerpsPositionData({
         coin: 'ETH',
-        selectedInterval: '1h',
-        selectedDuration: '1d',
+        selectedInterval: CandlePeriod.ONE_HOUR,
+        selectedDuration: TimeDuration.ONE_DAY,
       }),
     );
 
@@ -56,8 +57,8 @@ describe('usePerpsPositionData', () => {
     renderHook(() =>
       usePerpsPositionData({
         coin: 'ETH',
-        selectedInterval: '1h',
-        selectedDuration: '1d',
+        selectedInterval: CandlePeriod.ONE_HOUR,
+        selectedDuration: TimeDuration.ONE_DAY,
       }),
     );
 
@@ -71,8 +72,8 @@ describe('usePerpsPositionData', () => {
     const { result } = renderHook(() =>
       usePerpsPositionData({
         coin: 'ETH',
-        selectedInterval: '1h',
-        selectedDuration: '1d',
+        selectedInterval: CandlePeriod.ONE_HOUR,
+        selectedDuration: TimeDuration.ONE_DAY,
       }),
     );
 
@@ -91,8 +92,8 @@ describe('usePerpsPositionData', () => {
     const { result, waitForNextUpdate } = renderHook(() =>
       usePerpsPositionData({
         coin: 'ETH',
-        selectedInterval: '1h',
-        selectedDuration: '1d',
+        selectedInterval: CandlePeriod.ONE_HOUR,
+        selectedDuration: TimeDuration.ONE_DAY,
       }),
     );
 
@@ -110,8 +111,8 @@ describe('usePerpsPositionData', () => {
     const { unmount } = renderHook(() =>
       usePerpsPositionData({
         coin: 'ETH',
-        selectedInterval: '1h',
-        selectedDuration: '1d',
+        selectedInterval: CandlePeriod.ONE_HOUR,
+        selectedDuration: TimeDuration.ONE_DAY,
       }),
     );
 
@@ -127,8 +128,8 @@ describe('usePerpsPositionData', () => {
     const { result, waitForNextUpdate } = renderHook(() =>
       usePerpsPositionData({
         coin: 'ETH',
-        selectedInterval: '1h',
-        selectedDuration: '1d',
+        selectedInterval: CandlePeriod.ONE_HOUR,
+        selectedDuration: TimeDuration.ONE_DAY,
       }),
     );
 

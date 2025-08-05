@@ -7,13 +7,13 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
-import { TIME_DURATIONS } from '../../constants/chartConfig';
+import { TIME_DURATIONS, TimeDuration } from '../../constants/chartConfig';
 import { getPerpsTimeDurationSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { timeDurationSelectorStyleSheet } from './PerpsTimeDurationSelector.styles';
 
 interface PerpsTimeDurationSelectorProps {
-  selectedDuration: string;
-  onDurationChange?: (duration: string) => void;
+  selectedDuration: TimeDuration | string;
+  onDurationChange?: (duration: TimeDuration) => void;
   onGearPress?: () => void;
   testID?: string;
 }

@@ -14,7 +14,11 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { getCandlePeriodsForDuration } from '../../constants/chartConfig';
+import {
+  getCandlePeriodsForDuration,
+  CandlePeriod,
+  TimeDuration,
+} from '../../constants/chartConfig';
 import { getPerpsCandlePeriodBottomSheetSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { Box } from '@metamask/design-system-react-native';
 import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
@@ -22,9 +26,9 @@ import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
-  selectedPeriod: string;
-  selectedDuration: string;
-  onPeriodChange?: (period: string) => void;
+  selectedPeriod: CandlePeriod;
+  selectedDuration: TimeDuration;
+  onPeriodChange?: (period: CandlePeriod) => void;
   testID?: string;
 }
 
@@ -50,7 +54,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   // Get available periods for the selected duration
   const availablePeriods = getCandlePeriodsForDuration(selectedDuration);
 
-  const handlePeriodSelect = (period: string) => {
+  const handlePeriodSelect = (period: CandlePeriod) => {
     onPeriodChange?.(period);
     onClose();
   };

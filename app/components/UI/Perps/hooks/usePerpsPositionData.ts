@@ -2,13 +2,17 @@ import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import type { PriceUpdate } from '../controllers/types';
 import type { CandleData } from '../types';
-import { calculateCandleCount } from '../constants/chartConfig';
+import {
+  calculateCandleCount,
+  TimeDuration,
+  CandlePeriod,
+} from '../constants/chartConfig';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface UsePerpsPositionDataProps {
   coin: string;
-  selectedDuration: string;
-  selectedInterval: string;
+  selectedDuration: TimeDuration;
+  selectedInterval: CandlePeriod;
 }
 
 export const usePerpsPositionData = ({

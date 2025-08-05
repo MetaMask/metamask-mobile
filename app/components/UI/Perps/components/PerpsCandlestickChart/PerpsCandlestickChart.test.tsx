@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { PerpsCandlestickChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import CandlestickChartComponent from './PerpsCandlectickChart';
 
 // Minimal mock - only what we actually test
@@ -125,7 +126,7 @@ const renderWithWrapper = (component: React.ReactElement) =>
 describe('CandlestickChartComponent', () => {
   const mockCandleData = {
     coin: 'BTC',
-    interval: '1h',
+    interval: CandlePeriod.ONE_HOUR,
     candles: [
       {
         time: 1640995200000,
@@ -150,7 +151,7 @@ describe('CandlestickChartComponent', () => {
     candleData: mockCandleData,
     isLoading: false,
     height: 300,
-    selectedDuration: '1d',
+    selectedDuration: TimeDuration.ONE_DAY,
     onDurationChange: jest.fn(),
     onGearPress: jest.fn(),
   };
@@ -348,7 +349,10 @@ describe('CandlestickChartComponent', () => {
 
     it('highlights selected duration', () => {
       // Arrange
-      const props = { ...defaultProps, selectedDuration: '1w' };
+      const props = {
+        ...defaultProps,
+        selectedDuration: TimeDuration.ONE_WEEK,
+      };
 
       // Act
       render(<CandlestickChartComponent {...props} />);
@@ -526,7 +530,7 @@ describe('CandlestickChartComponent', () => {
       // Arrange
       const candleDataWithStrings = {
         coin: 'BTC',
-        interval: '1h',
+        interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
             time: 1640995200000,
@@ -551,7 +555,10 @@ describe('CandlestickChartComponent', () => {
 
     it('handles invalid duration selection gracefully', () => {
       // Arrange
-      const props = { ...defaultProps, selectedDuration: 'invalid' };
+      const props = {
+        ...defaultProps,
+        selectedDuration: 'invalid' as TimeDuration,
+      };
 
       // Act
       renderWithWrapper(<CandlestickChartComponent {...props} />);

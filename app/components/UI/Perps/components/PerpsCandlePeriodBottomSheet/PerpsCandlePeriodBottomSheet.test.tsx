@@ -3,7 +3,11 @@ import { render, fireEvent, screen } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import PerpsCandlePeriodBottomSheet from './PerpsCandlePeriodBottomSheet';
-import { getCandlePeriodsForDuration } from '../../constants/chartConfig';
+import {
+  getCandlePeriodsForDuration,
+  CandlePeriod,
+  TimeDuration,
+} from '../../constants/chartConfig';
 
 // Mock the constants
 jest.mock('../../constants/chartConfig', () => ({
@@ -103,17 +107,17 @@ describe('PerpsCandlePeriodBottomSheet', () => {
   const defaultProps = {
     isVisible: true,
     onClose: mockOnClose,
-    selectedPeriod: '1h',
-    selectedDuration: '1d',
+    selectedPeriod: CandlePeriod.ONE_HOUR,
+    selectedDuration: TimeDuration.ONE_DAY,
     onPeriodChange: mockOnPeriodChange,
     testID: 'candle-period-bottom-sheet',
   };
 
   const mockPeriods = [
-    { label: '15min', value: '15m' },
-    { label: '1h', value: '1h' },
-    { label: '2h', value: '2h' },
-    { label: '4h', value: '4h' },
+    { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES },
+    { label: '1h', value: CandlePeriod.ONE_HOUR },
+    { label: '2h', value: CandlePeriod.TWO_HOURS },
+    { label: '4h', value: CandlePeriod.FOUR_HOURS },
   ] as const;
 
   beforeEach(() => {
@@ -208,7 +212,10 @@ describe('PerpsCandlePeriodBottomSheet', () => {
     it('highlights selected period', () => {
       render(
         <TestWrapper>
-          <PerpsCandlePeriodBottomSheet {...defaultProps} selectedPeriod="2h" />
+          <PerpsCandlePeriodBottomSheet
+            {...defaultProps}
+            selectedPeriod={CandlePeriod.TWO_HOURS}
+          />
         </TestWrapper>,
       );
 
@@ -222,7 +229,10 @@ describe('PerpsCandlePeriodBottomSheet', () => {
     it('shows check icon only for selected period', () => {
       render(
         <TestWrapper>
-          <PerpsCandlePeriodBottomSheet {...defaultProps} selectedPeriod="1h" />
+          <PerpsCandlePeriodBottomSheet
+            {...defaultProps}
+            selectedPeriod={CandlePeriod.ONE_HOUR}
+          />
         </TestWrapper>,
       );
 
@@ -244,18 +254,20 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         <TestWrapper>
           <PerpsCandlePeriodBottomSheet
             {...defaultProps}
-            selectedDuration="1w"
+            selectedDuration={TimeDuration.ONE_WEEK}
           />
         </TestWrapper>,
       );
 
-      expect(mockGetCandlePeriodsForDuration).toHaveBeenCalledWith('1w');
+      expect(mockGetCandlePeriodsForDuration).toHaveBeenCalledWith(
+        TimeDuration.ONE_WEEK,
+      );
 
       // Mock different periods for new duration
       const newMockPeriods = [
-        { label: '1h', value: '1h' },
-        { label: '4h', value: '4h' },
-        { label: '1D', value: '1d' },
+        { label: '1h', value: CandlePeriod.ONE_HOUR },
+        { label: '4h', value: CandlePeriod.FOUR_HOURS },
+        { label: '1D', value: CandlePeriod.ONE_DAY },
       ];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockGetCandlePeriodsForDuration.mockReturnValue(newMockPeriods as any);
@@ -264,12 +276,14 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         <TestWrapper>
           <PerpsCandlePeriodBottomSheet
             {...defaultProps}
-            selectedDuration="1m"
+            selectedDuration={TimeDuration.ONE_DAY}
           />
         </TestWrapper>,
       );
 
-      expect(mockGetCandlePeriodsForDuration).toHaveBeenCalledWith('1m');
+      expect(mockGetCandlePeriodsForDuration).toHaveBeenCalledWith(
+        TimeDuration.ONE_DAY,
+      );
     });
   });
 
@@ -349,7 +363,7 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         <TestWrapper>
           <PerpsCandlePeriodBottomSheet
             {...defaultProps}
-            selectedPeriod="invalid-period"
+            selectedPeriod={'invalid-period' as CandlePeriod}
           />
         </TestWrapper>,
       );
@@ -416,27 +430,27 @@ describe('PerpsCandlePeriodBottomSheet', () => {
   describe('Different Duration Scenarios', () => {
     const durationTestCases = [
       {
-        duration: '1hr',
+        duration: TimeDuration.ONE_HOUR,
         expectedPeriods: [
-          { label: '3min', value: '3m' },
-          { label: '5min', value: '5m' },
-          { label: '15min', value: '15m' },
+          { label: '3min', value: CandlePeriod.THREE_MINUTES },
+          { label: '5min', value: CandlePeriod.FIVE_MINUTES },
+          { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES },
         ] as const,
       },
       {
-        duration: '1w',
+        duration: TimeDuration.ONE_WEEK,
         expectedPeriods: [
-          { label: '1h', value: '1h' },
-          { label: '4h', value: '4h' },
-          { label: '1D', value: '1d' },
+          { label: '1h', value: CandlePeriod.ONE_HOUR },
+          { label: '4h', value: CandlePeriod.FOUR_HOURS },
+          { label: '1D', value: CandlePeriod.ONE_DAY },
         ] as const,
       },
       {
-        duration: '1m',
+        duration: TimeDuration.ONE_DAY,
         expectedPeriods: [
-          { label: '8h', value: '8h' },
-          { label: '1D', value: '1d' },
-          { label: '1W', value: '1w' },
+          { label: '8h', value: CandlePeriod.EIGHT_HOURS },
+          { label: '1D', value: CandlePeriod.ONE_DAY },
+          { label: '1W', value: CandlePeriod.ONE_WEEK },
         ] as const,
       },
     ] as const;

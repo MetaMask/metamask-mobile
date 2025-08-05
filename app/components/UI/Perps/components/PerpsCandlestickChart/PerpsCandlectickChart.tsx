@@ -9,6 +9,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import {
   PERPS_CHART_CONFIG,
+  TimeDuration,
   getCandlestickColors,
 } from '../../constants/chartConfig';
 import { PerpsCandlestickChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -21,9 +22,9 @@ interface CandlestickChartComponentProps {
   candleData: CandleData | null;
   isLoading?: boolean;
   height?: number;
-  selectedDuration?: string;
+  selectedDuration?: TimeDuration;
 
-  onDurationChange?: (duration: string) => void;
+  onDurationChange?: (duration: TimeDuration) => void;
   onGearPress?: () => void;
 }
 
@@ -34,7 +35,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   candleData,
   isLoading = false,
   height = PERPS_CHART_CONFIG.DEFAULT_HEIGHT,
-  selectedDuration = '1D',
+  selectedDuration = TimeDuration.ONE_DAY,
   onDurationChange,
   onGearPress,
 }) => {
