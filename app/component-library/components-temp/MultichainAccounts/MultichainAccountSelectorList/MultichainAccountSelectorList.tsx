@@ -8,7 +8,7 @@ import { useStyles } from '../../../hooks';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
 import AccountCell from '../AccountCell';
 import TextFieldSearch from '../../../components/Form/TextFieldSearch';
-import { selectAccountGroupsByWallet } from '../../../../multichain-accounts/selectors/accountTreeController';
+import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 import {
   MultichainAccountSelectorListProps,
