@@ -23,7 +23,8 @@ export const useInitialSlippage = () => {
   useEffect(() => {
     // Solana Swaps
     if (isSolanaSwap) {
-      dispatch(setSlippage('0.5'));
+      // We pass undefined to use dynamic slippage from providers
+      dispatch(setSlippage(undefined));
       return;
     }
     // EVM Swaps
