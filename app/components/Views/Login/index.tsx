@@ -350,6 +350,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setDisabledInput(true);
     while (Date.now() < lockEnd) {
       const remainingTime = Math.floor((lockEnd - Date.now()) / 1000);
+      if (remainingTime <= 0) {
+        break;
+      }
 
       if (!isMountedRef.current) {
         setError(null);
