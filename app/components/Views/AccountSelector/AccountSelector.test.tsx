@@ -41,6 +41,11 @@ const mockEnsByAccountAddress = {
   [internalAccount2.address]: 'test.eth',
 };
 
+const mockSelectedAccountGroup = {
+  id: 'keyring:selected-group/ethereum' as const,
+  accounts: [internalSolanaAccount1.id],
+};
+
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -66,11 +71,31 @@ const mockInitialState = {
 
 // Mock the Redux dispatch
 const mockDispatch = jest.fn();
+
+// Mock useSelector to return different values based on the selector
+const mockUseSelector = jest.fn((selector) => {
+  // Mock different selectors
+  if (selector.name === 'selectMultichainAccountsState2Enabled') {
+    return false; // Default to false, will be overridden in specific tests
+  }
+  if (selector.name === 'selectSelectedAccountGroup') {
+    return mockSelectedAccountGroup;
+  }
+  if (selector.name === 'selectPrivacyMode') {
+    return false;
+  }
+  if (selector.name === 'selectReloadAccounts') {
+    return false;
+  }
+
+  // Default fallback
+  return selector(mockInitialState);
+});
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useSelector: (selector: any) => selector(mockInitialState),
+  useSelector: mockUseSelector,
 }));
 
 jest.mock('../../hooks/useAccounts', () => ({
@@ -97,15 +122,24 @@ jest.mock('../../../core/Engine', () => {
           internalAccounts: AccountsControllerState.internalAccounts,
         },
       },
+      AccountTreeController: {
+        setSelectedAccountGroup: jest.fn(),
+      },
     },
     setSelectedAddress: jest.fn(),
   };
 });
 
 const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn(() => ({})),
+}));
+
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -123,6 +157,22 @@ const AccountSelectorWrapper = () => <AccountSelector route={mockRoute} />;
 describe('AccountSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset useSelector mock to default behavior
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector.name === 'selectMultichainAccountsState2Enabled') {
+        return false;
+      }
+      if (selector.name === 'selectSelectedAccountGroup') {
+        return mockSelectedAccountGroup;
+      }
+      if (selector.name === 'selectPrivacyMode') {
+        return false;
+      }
+      if (selector.name === 'selectReloadAccounts') {
+        return false;
+      }
+      return selector(mockInitialState);
+    });
   });
 
   it('should render correctly', () => {
@@ -200,5 +250,75 @@ describe('AccountSelector', () => {
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
     );
     expect(addButton).toBeDefined();
+  });
+
+  describe('Multichain Account Selector', () => {
+    it('should render MultichainAccountSelectorList when multichain feature is enabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.name === 'selectMultichainAccountsState2Enabled') {
+          return true;
+        }
+        if (selector.name === 'selectSelectedAccountGroup') {
+          return mockSelectedAccountGroup;
+        }
+        if (selector.name === 'selectPrivacyMode') {
+          return false;
+        }
+        if (selector.name === 'selectReloadAccounts') {
+          return false;
+        }
+        return selector(mockInitialState);
+      });
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeDefined();
+    });
+  });
+
+  describe('_onSelectMultichainAccount', () => {
+    it('should render with multichain feature enabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.name === 'selectMultichainAccountsState2Enabled') {
+          return true;
+        }
+        if (selector.name === 'selectSelectedAccountGroup') {
+          return mockSelectedAccountGroup;
+        }
+        if (selector.name === 'selectPrivacyMode') {
+          return false;
+        }
+        if (selector.name === 'selectReloadAccounts') {
+          return false;
+        }
+        return selector(mockInitialState);
+      });
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeDefined();
+    });
   });
 });
