@@ -1,7 +1,9 @@
 import { SmokeNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder, {
+  DEFAULT_FIXTURE_ACCOUNT,
+} from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
@@ -12,6 +14,7 @@ import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomShee
 import WalletView from '../../pages/wallet/WalletView';
 import { buildPermissions } from '../../fixtures/utils';
 import { DappVariants } from '../../framework/Constants';
+import { setEthAccounts } from '@metamask/chain-agnostic-permission';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -22,6 +25,16 @@ describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
   });
+
+  const buildERC20PermsForAddress = () => {
+    const perms = buildPermissions(['0x539']);
+    perms['endowment:caip25'].caveats[0].value = setEthAccounts(
+      perms['endowment:caip25'].caveats[0].value,
+      [DEFAULT_FIXTURE_ACCOUNT],
+    );
+
+    return perms;
+  };
 
   it('Should Import ERC20 Token via Dapp', async () => {
     await withFixtures(
@@ -34,7 +47,7 @@ describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
+            buildERC20PermsForAddress(),
           )
           .build(),
         restartDevice: true,
