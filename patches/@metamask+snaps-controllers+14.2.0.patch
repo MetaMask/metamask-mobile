@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs
-index 908f4e7..8f66c3f 100644
+index 190004e..e6e16c4 100644
 --- a/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs
 +++ b/node_modules/@metamask/snaps-controllers/dist/snaps/SnapController.cjs
-@@ -963,12 +963,7 @@ class SnapController extends base_controller_1.BaseController {
+@@ -955,12 +955,7 @@ class SnapController extends base_controller_1.BaseController {
       */
      async clearState() {
          const snapIds = Object.keys(this.state.snaps);

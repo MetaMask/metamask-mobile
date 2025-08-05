@@ -29,6 +29,8 @@ import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import confirmationMetricsReducer from '../core/redux/slices/confirmationMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
+import cronjobControllerStorageReducer from '../core/redux/slices/cronjobControllerStorage';
+
 import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
@@ -124,6 +126,9 @@ export interface RootState {
   bridge: StateFromReducer<typeof bridgeReducer>;
   banners: BannersState;
   performance?: PerformanceState;
+  cronjobControllerStorage: StateFromReducer<
+    typeof cronjobControllerStorageReducer
+  >;
 }
 
 const baseReducers = {
@@ -160,6 +165,7 @@ const baseReducers = {
   bridge: bridgeReducer,
   banners: bannersReducer,
   confirmationMetrics: confirmationMetricsReducer,
+  cronjobControllerStorage: cronjobControllerStorageReducer,
 };
 
 if (isTest) {
