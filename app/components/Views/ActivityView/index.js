@@ -175,11 +175,13 @@ const ActivityView = () => {
   useFocusEffect(
     useCallback(() => {
       if (hasOrders && params.redirectToOrders) {
+        const orderTabNumber = 1;
         navigation.setParams({ redirectToOrders: false });
-        tabViewRef.current?.goToPage(1);
+        tabViewRef.current?.goToPage(orderTabNumber);
       } else if (isPerpsEnabled && params.redirectToPerpsTransactions) {
+        const perpsTabNumber = isPerpsEnabled && hasOrders ? 2 : 1;
         navigation.setParams({ redirectToPerpsTransactions: false });
-        tabViewRef.current?.goToPage(1);
+        tabViewRef.current?.goToPage(perpsTabNumber);
       }
     }, [
       hasOrders,
