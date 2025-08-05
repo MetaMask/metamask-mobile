@@ -1,5 +1,3 @@
-import { getFixturesServerPort } from '../../../e2e/framework/fixtures/FixtureUtils';
-
 export const flushPromises = () => new Promise(setImmediate);
 
 export const FIXTURE_SERVER_PORT = 12345;
@@ -32,4 +30,4 @@ export const isE2E =
   process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
 export const enableApiCallLogs = process.env.LOG_API_CALLS === 'true';
 export const getFixturesServerPortInApp = () =>
-  testConfig.fixtureServerPort ?? getFixturesServerPort();
+  testConfig.fixtureServerPort ?? FIXTURE_SERVER_PORT;
