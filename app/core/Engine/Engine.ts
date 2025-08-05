@@ -798,6 +798,8 @@ export class Engine {
           ' and origin: ',
           origin,
         );
+
+        return null;
       },
       createInterface: this.controllerMessenger.call.bind(
         this.controllerMessenger,
