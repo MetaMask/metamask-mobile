@@ -299,7 +299,7 @@ describe('ActionListItem', () => {
         <ActionListItem
           {...SAMPLE_ACTIONLISTITEM_PROPS}
           onPress={mockOnPress}
-          disabled
+          isDisabled
           testID={ACTIONLISTITEM_TESTID}
         />,
       );

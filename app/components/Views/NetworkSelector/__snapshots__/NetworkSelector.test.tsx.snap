@@ -1372,7 +1372,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#3c4d9d1a",
+                                  "backgroundColor": "#3c4d9d0f",
                                   "borderColor": "transparent",
                                   "borderRadius": 12,
                                   "borderWidth": 1,
@@ -4658,7 +4658,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#3c4d9d1a",
+                                  "backgroundColor": "#3c4d9d0f",
                                   "borderColor": "transparent",
                                   "borderRadius": 12,
                                   "borderWidth": 1,
