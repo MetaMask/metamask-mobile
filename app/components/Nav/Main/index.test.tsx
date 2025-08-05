@@ -117,7 +117,7 @@ describe('Main', () => {
     const MainAppContainer = () => (
       <Provider store={mockStore(mockInitialState)}>
         <NavigationContainer>
-          <ConnectedMain />
+          <Main />
         </NavigationContainer>
       </Provider>
     );
@@ -154,7 +154,7 @@ describe('Main', () => {
     const MainAppContainerWithConnectionRemoved = () => (
       <Provider store={mockStore(mockInitialStateWithConnectionRemoved)}>
         <NavigationContainer>
-          <Main />
+          <ConnectedMain />
         </NavigationContainer>
       </Provider>
     );
@@ -164,6 +164,7 @@ describe('Main', () => {
 
     // Assert - Then component should render without errors
     expect(wrapper).toBeDefined();
+    expect(wrapper).toMatchSnapshot();
 
     // Assert - Then navigation should be called to SUCCESS_ERROR_SHEET
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
