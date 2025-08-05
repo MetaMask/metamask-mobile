@@ -65,7 +65,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           color="#ffffff"
           fill="currentColor"
           height={24}
-          name="Add"
+          name="Cash"
           style={
             {
               "height": 24,
@@ -114,7 +114,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
         }
       }
     >
-      Buy
+      Fund
     </Text>
   </View>
   <View

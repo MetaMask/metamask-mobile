@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FundActionMenu renders correctly 1`] = `
+<div
+  testID="bottom-sheet"
+>
+  <div
+    onPress={[Function]}
+    testID="wallet-deposit-action"
+  >
+    Deposit
+  </div>
+  <div
+    onPress={[Function]}
+    testID="wallet-buy-action"
+  >
+    Buy
+  </div>
+  <div
+    onPress={[Function]}
+    testID="wallet-sell-action"
+  >
+    Sell
+  </div>
+</div>
+`;

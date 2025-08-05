@@ -78,7 +78,7 @@ import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal
 import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
-import AssetDetailsActionsBottomSheet from '../../Views/AssetDetails/AssetDetailsActions/AssetDetailsActionsBottomSheet';
+import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -352,8 +352,8 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={WalletActions}
     />
     <Stack.Screen
-      name={Routes.MODAL.ASSET_DETAILS_ACTIONS}
-      component={AssetDetailsActionsBottomSheet}
+      name={Routes.MODAL.FUND_ACTION_MENU}
+      component={FundActionMenu}
     />
     <Stack.Screen
       name={Routes.MODAL.DELETE_WALLET}

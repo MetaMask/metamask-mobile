@@ -2,10 +2,10 @@
 import { StyleSheet as RNStyleSheet } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
+import { Theme } from '../../../util/theme/models';
 
 /**
- * Style sheet function for AssetDetailsActionsBottomSheet component.
+ * Style sheet function for FundActionMenu component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -17,9 +17,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return RNStyleSheet.create({
-    actionsContainer: {
+    container: {
+      flex: 1,
       paddingVertical: 16,
-      paddingHorizontal: 16,
     },
     icon: {
       color: colors.primary.inverse,

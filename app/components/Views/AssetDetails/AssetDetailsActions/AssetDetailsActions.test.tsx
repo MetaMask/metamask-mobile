@@ -10,18 +10,19 @@ import {
 import { EthMethod } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
+import Routes from '../../../../constants/navigation/Routes';
 
 // Mock the navigation hook
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
-    useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
+    useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
   };
 });
 
 describe('AssetDetailsActions', () => {
-  const mockOnBuy = jest.fn();
   const mockGoToSwaps = jest.fn();
   const mockGoToBridge = jest.fn();
   const mockOnSend = jest.fn();
@@ -32,7 +33,6 @@ describe('AssetDetailsActions', () => {
     displaySwapsButton: true,
     displayBridgeButton: true,
     swapsIsLive: true,
-    onBuy: mockOnBuy,
     goToSwaps: mockGoToSwaps,
     goToBridge: mockGoToBridge,
     onSend: mockOnSend,
@@ -41,6 +41,7 @@ describe('AssetDetailsActions', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    mockNavigate.mockClear();
   });
 
   it('should render correctly', () => {
@@ -57,21 +58,23 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
 
-    expect(getByText(strings('asset_overview.buy_button'))).toBeTruthy();
+    expect(getByText(strings('asset_overview.fund_button'))).toBeTruthy();
     expect(getByText(strings('asset_overview.swap'))).toBeTruthy();
     expect(getByText(strings('asset_overview.bridge'))).toBeTruthy();
     expect(getByText(strings('asset_overview.send_button'))).toBeTruthy();
     expect(getByText(strings('asset_overview.receive_button'))).toBeTruthy();
   });
 
-  it('calls onBuy when the buy button is pressed', () => {
+  it('navigates to FundActionMenu when the buy button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
       { state: initialRootState },
     );
 
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
-    expect(mockOnBuy).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.FUND_ACTION_MENU,
+    });
   });
 
   it('calls goToSwaps when the swap button is pressed', () => {

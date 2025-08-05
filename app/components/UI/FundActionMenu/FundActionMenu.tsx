@@ -6,29 +6,29 @@ import { useNavigation } from '@react-navigation/native';
 // External dependencies.
 import BottomSheet, {
   BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { selectChainId } from '../../../../selectors/networkController';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import { selectChainId } from '../../../selectors/networkController';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IconName } from '@metamask/design-system-react-native';
-import ActionListItem from '../../../../component-library/components-temp/ActionListItem';
-import useRampNetwork from '../../../UI/Ramp/Aggregator/hooks/useRampNetwork';
-import { getDecimalChainId } from '../../../../util/networks';
-import { WalletActionsBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
-import { strings } from '../../../../../locales/i18n';
+import ActionListItem from '../../../component-library/components-temp/ActionListItem';
+import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
+import { getDecimalChainId } from '../../../util/networks';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
+import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
-} from '../../../UI/Ramp/Aggregator/routes/utils';
-import { trace, TraceName } from '../../../../util/trace';
-import { selectCanSignTransactions } from '../../../../selectors/accountsController';
-import { RampType } from '../../../../reducers/fiatOrders/types';
-import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
-import Routes from '../../../../constants/navigation/Routes';
+} from '../Ramp/Aggregator/routes/utils';
+import { trace, TraceName } from '../../../util/trace';
+import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import { RampType } from '../../../reducers/fiatOrders/types';
+import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
+import Routes from '../../../constants/navigation/Routes';
 
-const AssetDetailsActionsBottomSheet = () => {
+const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
 
@@ -55,7 +55,7 @@ const AssetDetailsActionsBottomSheet = () => {
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
         .addProperties({
           text: 'Buy',
-          location: 'AssetDetailsActions',
+          location: 'FundActionMenu',
           chain_id_destination: getDecimalChainId(chainId),
         })
         .build(),
@@ -84,7 +84,7 @@ const AssetDetailsActionsBottomSheet = () => {
       createEventBuilder(MetaMetricsEvents.SELL_BUTTON_CLICKED)
         .addProperties({
           text: 'Sell',
-          location: 'AssetDetailsActions',
+          location: 'FundActionMenu',
           chain_id_source: getDecimalChainId(chainId),
         })
         .build(),
@@ -113,7 +113,7 @@ const AssetDetailsActionsBottomSheet = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
           text: 'Deposit',
-          location: 'AssetDetailsActions',
+          location: 'FundActionMenu',
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: 'DEPOSIT',
         })
@@ -137,7 +137,7 @@ const AssetDetailsActionsBottomSheet = () => {
         <ActionListItem
           label="Deposit"
           description={strings('asset_overview.deposit_description')}
-          iconName={IconName.Cash}
+          iconName={IconName.Money}
           onPress={onDeposit}
           testID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
         />
@@ -165,6 +165,6 @@ const AssetDetailsActionsBottomSheet = () => {
   );
 };
 
-AssetDetailsActionsBottomSheet.displayName = 'AssetDetailsActionsBottomSheet';
+FundActionMenu.displayName = 'FundActionMenu';
 
-export default AssetDetailsActionsBottomSheet;
+export default FundActionMenu;

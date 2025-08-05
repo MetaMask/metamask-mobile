@@ -7,7 +7,7 @@ import WalletAction from '../../../../components/UI/WalletAction';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import Text, {
+import CLText, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
@@ -20,7 +20,6 @@ export interface AssetDetailsActionsProps {
   displaySwapsButton: boolean | undefined;
   displayBridgeButton: boolean | undefined;
   swapsIsLive: boolean | undefined;
-  onBuy: () => void;
   goToSwaps: () => void;
   goToBridge: () => void;
   onSend: () => void;
@@ -38,7 +37,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displaySwapsButton,
   displayBridgeButton,
   swapsIsLive,
-  onBuy,
   goToSwaps,
   goToBridge,
   onSend,
@@ -53,18 +51,11 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { navigate } = useNavigation();
 
-  const isTestEnvironment = process.env.NODE_ENV === 'test';
-
   const handleBuyPress = () => {
-    if (isTestEnvironment) {
-      // In test environment, call the original onBuy function
-      onBuy();
-    } else {
-      // In normal environment, navigate to the AssetDetailsActions modal
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.ASSET_DETAILS_ACTIONS,
-      });
-    }
+    // Navigate to the FundActionMenu modal
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.FUND_ACTION_MENU,
+    });
   };
 
   return (
@@ -72,7 +63,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       {displayBuyButton && (
         <View style={styles.buttonWrapper}>
           <WalletAction
-            iconName={IconName.Add}
+            iconName={IconName.Money}
             onPress={handleBuyPress}
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
@@ -80,9 +71,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             disabled={!canSignTransactions}
             actionID={buyButtonActionID}
           />
-          <Text variant={TextVariant.BodyMD}>
-            {strings('asset_overview.buy_button')}
-          </Text>
+          <CLText variant={TextVariant.BodyMD}>
+            {strings('asset_overview.fund_button')}
+          </CLText>
         </View>
       )}
       {displaySwapsButton && (
@@ -96,9 +87,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             disabled={!canSignTransactions || !swapsIsLive}
             actionID={swapButtonActionID}
           />
-          <Text variant={TextVariant.BodyMD}>
+          <CLText variant={TextVariant.BodyMD}>
             {strings('asset_overview.swap')}
-          </Text>
+          </CLText>
         </View>
       )}
       {displayBridgeButton ? (
@@ -112,9 +103,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             disabled={!canSignTransactions}
             actionID={bridgeButtonActionID}
           />
-          <Text variant={TextVariant.BodyMD}>
+          <CLText variant={TextVariant.BodyMD}>
             {strings('asset_overview.bridge')}
-          </Text>
+          </CLText>
         </View>
       ) : null}
       <View style={styles.buttonWrapper}>
@@ -127,9 +118,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           disabled={!canSignTransactions}
           actionID={sendButtonActionID}
         />
-        <Text variant={TextVariant.BodyMD}>
+        <CLText variant={TextVariant.BodyMD}>
           {strings('asset_overview.send_button')}
-        </Text>
+        </CLText>
       </View>
       <View style={styles.buttonWrapper}>
         <WalletAction
@@ -141,9 +132,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           disabled={false}
           actionID={receiveButtonActionID}
         />
-        <Text variant={TextVariant.BodyMD}>
+        <CLText variant={TextVariant.BodyMD}>
           {strings('asset_overview.receive_button')}
-        </Text>
+        </CLText>
       </View>
     </View>
   );
