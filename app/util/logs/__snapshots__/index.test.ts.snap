@@ -13,6 +13,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "AccountTreeController": {
         "accountTree": {
+          "selectedAccountGroup": "",
           "wallets": {},
         },
       },
