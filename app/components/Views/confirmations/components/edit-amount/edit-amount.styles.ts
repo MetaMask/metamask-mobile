@@ -7,7 +7,6 @@ const styleSheet = (params: { theme: Theme; vars: { hasAlert: boolean } }) =>
       display: 'flex',
       gap: 8,
       marginTop: 16,
-      marginBottom: 16,
     },
     input: {
       textAlign: 'center',

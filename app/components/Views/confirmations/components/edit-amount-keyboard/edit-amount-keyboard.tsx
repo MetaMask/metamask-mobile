@@ -1,0 +1,69 @@
+import React, { useCallback } from 'react';
+import KeypadComponent, { KeypadChangeData } from '../../../../Base/Keypad';
+import { useStyles } from '../../../../hooks/useStyles';
+import styleSheet from './edit-amount-keyboard.styles';
+import Button, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
+import { Box } from '../../../../UI/Box/Box';
+import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
+
+const PERCENTAGE_BUTTONS = [10, 25, 50];
+
+export interface EditAmountKeyboardProps {
+  onChange: (value: number) => void;
+  onPercent: (percentage: number) => void;
+  onDone: () => void;
+  value: number;
+}
+
+export function EditAmountKeyboard({
+  onChange,
+  onDone,
+  onPercent,
+  value,
+}: EditAmountKeyboardProps) {
+  const { styles } = useStyles(styleSheet, {});
+
+  const valueString = value.toString();
+
+  const handleChange = useCallback(
+    (data: KeypadChangeData) => {
+      onChange(data.valueAsNumber);
+    },
+    [onChange],
+  );
+
+  return (
+    <>
+      <Box
+        flexDirection={FlexDirection.Row}
+        justifyContent={JustifyContent.spaceBetween}
+        gap={10}
+      >
+        {PERCENTAGE_BUTTONS.map((percentage) => (
+          <Button
+            key={percentage}
+            label={`${percentage}%`}
+            style={styles.percentageButton}
+            onPress={() => onPercent(percentage)}
+            variant={ButtonVariants.Secondary}
+          />
+        ))}
+        <Button
+          label="Done"
+          style={styles.percentageButton}
+          onPress={onDone}
+          variant={ButtonVariants.Secondary}
+        />
+      </Box>
+      <KeypadComponent
+        value={valueString}
+        onChange={handleChange}
+        style={styles.container}
+        digitButtonStyle={styles.digitButton}
+        currency="native"
+      />
+    </>
+  );
+}
