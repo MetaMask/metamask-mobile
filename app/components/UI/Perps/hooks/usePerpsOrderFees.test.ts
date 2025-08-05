@@ -402,4 +402,10 @@ describe('formatFeeRate', () => {
     expect(formatFeeRate(0.1)).toBe('10.000%');
     expect(formatFeeRate(1)).toBe('100.000%');
   });
+
+  it('should handle invalid values', () => {
+    expect(formatFeeRate(undefined)).toBe('N/A');
+    expect(formatFeeRate(null)).toBe('N/A');
+    expect(formatFeeRate(NaN)).toBe('N/A');
+  });
 });

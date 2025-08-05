@@ -766,6 +766,24 @@ describe('PerpsOrderView', () => {
       expect(usePerpsOrderFees).toHaveBeenCalled();
     });
 
+    it('should handle undefined fee rates gracefully', async () => {
+      // Mock undefined fee rates
+      (usePerpsOrderFees as jest.Mock).mockReturnValue({
+        totalFee: 0,
+        protocolFee: 0,
+        metamaskFee: 0,
+        protocolFeeRate: undefined,
+        metamaskFeeRate: null,
+        isLoadingMetamaskFee: true,
+        error: null,
+      });
+
+      render(<PerpsOrderView />);
+
+      // Component should render without errors
+      expect(screen.getByText('Fees')).toBeDefined();
+    });
+
     it('should use memoized createTooltipContent helper', () => {
       const { rerender } = render(<PerpsOrderView />);
 

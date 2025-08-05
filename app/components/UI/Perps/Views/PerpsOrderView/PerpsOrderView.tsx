@@ -81,6 +81,7 @@ import type {
   PerpsNavigationParamList,
 } from '../../controllers/types';
 import {
+  formatFeeRate,
   useHasExistingPosition,
   usePerpsAccount,
   usePerpsLiquidationPrice,
@@ -296,7 +297,7 @@ const PerpsOrderView: React.FC = () => {
               {strings('perps.tooltips.fees.metamask_fee')}
             </Text>
             <Text variant={TextVariant.BodyMD}>
-              {(feeResults.metamaskFeeRate * 100).toFixed(3)}%
+              {formatFeeRate(feeResults.metamaskFeeRate)}
             </Text>
           </View>
           <View style={styles.tooltipFeeRow}>
@@ -304,7 +305,7 @@ const PerpsOrderView: React.FC = () => {
               {strings('perps.tooltips.fees.provider_fee')}
             </Text>
             <Text variant={TextVariant.BodyMD}>
-              {(feeResults.protocolFeeRate * 100).toFixed(3)}%
+              {formatFeeRate(feeResults.protocolFeeRate)}
             </Text>
           </View>
         </View>,
