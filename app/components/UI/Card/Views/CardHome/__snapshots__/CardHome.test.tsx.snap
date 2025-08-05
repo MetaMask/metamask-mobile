@@ -327,7 +327,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#3c4d9d1a",
+                              "backgroundColor": "#3c4d9d0f",
                               "borderRadius": 8,
                               "justifyContent": "center",
                               "marginHorizontal": 16,
@@ -1400,7 +1400,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "backgroundColor": "#3c4d9d1a",
+                              "backgroundColor": "#3c4d9d0f",
                               "borderRadius": 8,
                               "justifyContent": "center",
                               "marginHorizontal": 16,
