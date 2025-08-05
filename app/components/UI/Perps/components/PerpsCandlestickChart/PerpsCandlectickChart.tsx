@@ -47,6 +47,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   onGearPress,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const [showTPSLLines, setShowTPSLLines] = React.useState(false);
 
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
@@ -86,6 +87,18 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         (candle): candle is NonNullable<typeof candle> => candle !== null,
       ); // Remove invalid candles
   }, [candleData]);
+
+  // Show TP/SL lines after a short delay to ensure chart is rendered
+  React.useEffect(() => {
+    if (tpslLines && !isLoading && transformedData.length > 0) {
+      const timeout = setTimeout(() => {
+        setShowTPSLLines(true);
+      }, 10);
+
+      return () => clearTimeout(timeout);
+    }
+    setShowTPSLLines(false);
+  }, [tpslLines, isLoading, transformedData.length]);
 
   // Calculate evenly spaced horizontal lines with better visibility
   const gridLines = React.useMemo(() => {
@@ -222,13 +235,17 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   }
 
   return (
-    <>
-      <CandlestickChart.Provider data={transformedData}>
-        <View style={styles.chartContainer}>
-          {/* Chart with Custom Grid Lines */}
-          <View style={styles.relativeContainer}>
+    <CandlestickChart.Provider data={transformedData}>
+      <View style={styles.chartContainer}>
+        {/* Chart with Custom Grid Lines */}
+        <View style={styles.relativeContainer}>
+          {/* Main Candlestick Chart */}
+          <CandlestickChart
+            height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
+            width={chartWidth}
+          >
             {/* TP/SL Lines - Render first so they're behind everything */}
-            {tpslLinePositions && (
+            {tpslLinePositions && showTPSLLines && (
               <View style={styles.tpslContainer}>
                 {tpslLinePositions.map((line, index) => (
                   <View
@@ -262,40 +279,33 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
                 />
               ))}
             </View>
+            {/* Candlestick Data */}
+            <CandlestickChart.Candles
+              positiveColor={candlestickColors.positive} // Green for positive candles
+              negativeColor={candlestickColors.negative} // Red for negative candles
+            />
 
-            {/* Main Candlestick Chart */}
-            <CandlestickChart
-              height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
-              width={chartWidth}
-            >
-              {/* Candlestick Data */}
-              <CandlestickChart.Candles
-                positiveColor={candlestickColors.positive} // Green for positive candles
-                negativeColor={candlestickColors.negative} // Red for negative candles
+            {/* Interactive Crosshair */}
+            <CandlestickChart.Crosshair>
+              <CandlestickChart.Tooltip
+                style={styles.tooltipContainer}
+                tooltipTextProps={{
+                  style: styles.tooltipText,
+                }}
               />
-
-              {/* Interactive Crosshair */}
-              <CandlestickChart.Crosshair>
-                <CandlestickChart.Tooltip
-                  style={styles.tooltipContainer}
-                  tooltipTextProps={{
-                    style: styles.tooltipText,
-                  }}
-                />
-              </CandlestickChart.Crosshair>
-            </CandlestickChart>
-          </View>
-
-          {/* Time Duration Selector */}
-          <PerpsTimeDurationSelector
-            selectedDuration={selectedDuration}
-            onDurationChange={onDurationChange}
-            onGearPress={onGearPress}
-            testID={PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR}
-          />
+            </CandlestickChart.Crosshair>
+          </CandlestickChart>
         </View>
-      </CandlestickChart.Provider>
-    </>
+
+        {/* Time Duration Selector */}
+        <PerpsTimeDurationSelector
+          selectedDuration={selectedDuration}
+          onDurationChange={onDurationChange}
+          onGearPress={onGearPress}
+          testID={PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR}
+        />
+      </View>
+    </CandlestickChart.Provider>
   );
 };
 
