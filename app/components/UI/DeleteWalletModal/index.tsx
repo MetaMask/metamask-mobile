@@ -68,6 +68,8 @@ const DeleteWalletModal: React.FC = () => {
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
 
+  const [isDeletingWallet, setIsDeletingWallet] = useState<boolean>(false);
+
   const { signOut } = useSignOut();
 
   const dismissModal = (cb?: () => void): void =>
@@ -108,12 +110,12 @@ const DeleteWalletModal: React.FC = () => {
   };
 
   const deleteWallet = async () => {
+    setIsDeletingWallet(true);
     await dispatch(
       clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
     );
     signOut();
     await CookieManager.clearAll(true);
-    triggerClose();
     await resetWalletState();
     await deleteUser();
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
@@ -121,6 +123,8 @@ const DeleteWalletModal: React.FC = () => {
     track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();
+      setIsDeletingWallet(false);
+      triggerClose();
     });
   };
 
@@ -268,6 +272,8 @@ const DeleteWalletModal: React.FC = () => {
                 width={ButtonWidthTypes.Full}
                 isDanger
                 testID={ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON}
+                loading={isDeletingWallet}
+                isDisabled={isDeletingWallet}
               />
               <Button
                 variant={ButtonVariants.Secondary}
