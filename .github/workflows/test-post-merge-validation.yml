@@ -36,7 +36,7 @@ jobs:
 
             // Check if PR title starts with "feat" or "perf" (conventional commits)
             const titleLower = title.toLowerCase();
-            if (!titleLower.startsWith('chore:') && !titleLower.startsWith('feat(') && 
+            if (!titleLower.startsWith('chore:') && !titleLower.startsWith('chore(') && 
                 !titleLower.startsWith('perf:') && !titleLower.startsWith('perf(')) {
               console.log(`❌ PR #${pull_number} title doesn't start with feat or perf - skipping.`);
               return;
