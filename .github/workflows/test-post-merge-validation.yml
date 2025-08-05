@@ -44,7 +44,7 @@ jobs:
 
             const body = `Hi @${author},
 
-            On the day following feat or perf PR merge, PM and author to test feature on main (feature+exploratory around the edges) using the latest [nightly build](https://consensys.slack.com/archives/C093JQSEPJL) with [casual user persona](https://consensyssoftware.atlassian.net/wiki/spaces/TL1/pages/400085221547/Mobile+User+Persona+Definition) and also a [power user persona](https://consensyssoftware.atlassian.net/wiki/spaces/TL1/pages/400085221547/Mobile+User+Persona+Definition) where performance might be a challenge. Record a video, check the relevant post-merge checklist box below, and post the video in the relevant comment at the bottom of the PR.
+            On the day following \`feat\` or \`perf\` PR merge, PM and author to test changes on main (feature + exploratory around the edges) using the latest [nightly build](https://consensys.slack.com/archives/C093JQSEPJL) with [casual user persona](https://consensyssoftware.atlassian.net/wiki/spaces/TL1/pages/400085221547/Mobile+User+Persona+Definition) and also a [power user persona](https://consensyssoftware.atlassian.net/wiki/spaces/TL1/pages/400085221547/Mobile+User+Persona+Definition) where performance might be a challenge. Please record the testing in a video, check the relevant post-merge checklist box below, and post the video in a comment at the bottom of this PR.
 
             ### Author validation checklist
             - [ ] Validated the changes in main branch using the nightly build
