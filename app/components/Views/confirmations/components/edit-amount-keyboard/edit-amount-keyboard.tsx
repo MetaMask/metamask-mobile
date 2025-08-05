@@ -7,20 +7,21 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
+import { strings } from '../../../../../../locales/i18n';
 
 const PERCENTAGE_BUTTONS = [10, 25, 50];
 
 export interface EditAmountKeyboardProps {
   onChange: (value: number) => void;
-  onPercent: (percentage: number) => void;
-  onDone: () => void;
+  onPercentagePress: (percentage: number) => void;
+  onDonePress: () => void;
   value: number;
 }
 
 export function EditAmountKeyboard({
   onChange,
-  onDone,
-  onPercent,
+  onDonePress,
+  onPercentagePress,
   value,
 }: EditAmountKeyboardProps) {
   const { styles } = useStyles(styleSheet, {});
@@ -46,14 +47,14 @@ export function EditAmountKeyboard({
             key={percentage}
             label={`${percentage}%`}
             style={styles.percentageButton}
-            onPress={() => onPercent(percentage)}
+            onPress={() => onPercentagePress(percentage)}
             variant={ButtonVariants.Secondary}
           />
         ))}
         <Button
-          label="Done"
+          label={strings('confirm.edit_amount_done')}
           style={styles.percentageButton}
-          onPress={onDone}
+          onPress={onDonePress}
           variant={ButtonVariants.Secondary}
         />
       </Box>
