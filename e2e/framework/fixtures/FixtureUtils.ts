@@ -1,6 +1,8 @@
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  type Caip25CaveatValue,
+  type InternalScopesObject,
 } from '@metamask/chain-agnostic-permission';
 
 import { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
@@ -86,14 +88,23 @@ export function getSecondTestDappPort(): number {
   return getServerPort(DEFAULT_DAPP_SERVER_PORT + 1);
 }
 
-export function buildPermissions(chainIds: string[]): Record<string, unknown> {
+interface Caip25Permission {
+  [Caip25EndowmentPermissionName]: {
+    caveats: {
+      type: string;
+      value: Caip25CaveatValue;
+    }[];
+  };
+}
+
+export function buildPermissions(chainIds: string[]): Caip25Permission {
   // default mainnet
-  const optionalScopes = { 'eip155:1': { accounts: [] } };
+  const optionalScopes: InternalScopesObject = {
+    'eip155:1': { accounts: [] },
+  };
 
   for (const chainId of chainIds) {
-    optionalScopes[
-      `eip155:${parseInt(chainId, 10)}` as keyof typeof optionalScopes
-    ] = {
+    optionalScopes[`eip155:${parseInt(chainId, 10)}`] = {
       accounts: [],
     };
   }
