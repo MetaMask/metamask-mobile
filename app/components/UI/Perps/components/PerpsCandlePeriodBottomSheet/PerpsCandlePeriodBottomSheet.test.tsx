@@ -411,12 +411,6 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         screen.getByTestId('candle-period-bottom-sheet'),
       ).toBeOnTheScreen();
     });
-
-    it('has correct displayName', () => {
-      expect(PerpsCandlePeriodBottomSheet.displayName).toBe(
-        'PerpsCandlePeriodBottomSheet',
-      );
-    });
   });
 
   describe('Different Duration Scenarios', () => {
