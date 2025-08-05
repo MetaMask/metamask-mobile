@@ -106,9 +106,9 @@ describe('PerpsTransactionsView', () => {
     });
 
     mockUsePerpsTrading.mockReturnValue({
-      getUserFills: mockGetUserFills,
-      getUserOrders: mockGetUserOrders,
-      getUserFunding: mockGetUserFunding,
+      getOrderFills: mockGetUserFills,
+      getOrders: mockGetUserOrders,
+      getFunding: mockGetUserFunding,
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
       closePosition: jest.fn(),

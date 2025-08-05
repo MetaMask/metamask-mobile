@@ -178,7 +178,7 @@ export function usePerpsTrading() {
     [],
   );
 
-  const getUserFills = useCallback(
+  const getOrderFills = useCallback(
     async (params?: GetOrderFillsParams): Promise<OrderFill[]> => {
       const controller = Engine.context.PerpsController;
       return controller.getOrderFills(params);
@@ -196,7 +196,7 @@ export function usePerpsTrading() {
     [],
   );
 
-  const getUserOrders = useCallback(
+  const getOrders = useCallback(
     async (params?: GetOrdersParams): Promise<Order[]> => {
       const controller = Engine.context.PerpsController;
       return controller.getOrders(params);
@@ -214,7 +214,7 @@ export function usePerpsTrading() {
     [],
   );
 
-  const getUserFunding = useCallback(
+  const getFunding = useCallback(
     async (params?: GetFundingParams): Promise<Funding[]> => {
       const controller = Engine.context.PerpsController;
       return controller.getFunding(params);
@@ -244,8 +244,8 @@ export function usePerpsTrading() {
     validateOrder,
     validateClosePosition,
     validateWithdrawal,
-    getUserFills,
-    getUserOrders,
-    getUserFunding,
+    getOrderFills,
+    getOrders,
+    getFunding,
   };
 }

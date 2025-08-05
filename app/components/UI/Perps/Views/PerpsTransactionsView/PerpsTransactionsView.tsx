@@ -231,7 +231,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const flashListRef = useRef(null);
 
   const { isConnected } = usePerpsConnection();
-  const { getUserFills, getUserOrders, getUserFunding } = usePerpsTrading();
+  const { getOrderFills, getOrders, getFunding } = usePerpsTrading();
 
   // Helper function to format date for section headers
   const formatDateSection = (timestamp: number): string => {
@@ -307,15 +307,15 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     try {
       // Fetch historical data in parallel
       const [fillsData, ordersData, fundingData] = await Promise.all([
-        getUserFills().catch((error) => {
+        getOrderFills().catch((error) => {
           console.warn('Failed to fetch fills:', error);
           return [];
         }),
-        getUserOrders().catch((error) => {
+        getOrders().catch((error) => {
           console.warn('Failed to fetch orders:', error);
           return [];
         }),
-        getUserFunding().catch((error) => {
+        getFunding().catch((error) => {
           console.warn('Failed to fetch funding:', error);
           return [];
         }),
@@ -344,7 +344,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [isConnected, getUserFills, getUserOrders, getUserFunding]);
+  }, [isConnected, getFunding, getOrders, getOrderFills]);
 
   // Memoized grouped transactions to avoid recalculation on every filter change
   const allGroupedTransactions = useMemo(
