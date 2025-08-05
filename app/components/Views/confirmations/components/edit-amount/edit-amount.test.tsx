@@ -12,10 +12,12 @@ import {
   AlertsContextParams,
   useAlerts,
 } from '../../context/alert-system-context';
+import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 
 jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/useTokenAsset');
 jest.mock('../../context/alert-system-context');
+jest.mock('../../hooks/pay/useTransactionPayToken');
 
 const VALUE_MOCK = '1.23';
 
@@ -32,6 +34,7 @@ describe('EditAmount', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
   const useTokenAssetMock = jest.mocked(useTokenAsset);
   const useAlertsMock = jest.mocked(useAlerts);
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const updateTokenAmountMock = jest.fn();
 
   beforeEach(() => {
@@ -52,6 +55,10 @@ describe('EditAmount', () => {
     useAlertsMock.mockReturnValue({
       fieldAlerts: [],
     } as unknown as AlertsContextParams);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      balanceFiat: '0',
+    } as ReturnType<typeof useTransactionPayToken>);
   });
 
   it('renders amount from current transaction data', () => {
@@ -112,5 +119,26 @@ describe('EditAmount', () => {
     });
 
     expect(queryByTestId('edit-amount-keyboard')).toBeNull();
+  });
+
+  it('updates token amount if percentage button pressed', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      balanceFiat: '1200.50',
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { getByTestId, getByText } = render();
+
+    const input = getByTestId('edit-amount-input');
+
+    await act(async () => {
+      fireEvent.press(input);
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('50%'));
+    });
+
+    expect(updateTokenAmountMock).toHaveBeenCalledWith('600.25');
+    expect(input).toHaveProp('value', '600.25');
   });
 });

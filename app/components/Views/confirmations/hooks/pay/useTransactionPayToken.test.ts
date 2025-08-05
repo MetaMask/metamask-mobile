@@ -60,6 +60,7 @@ describe('useTransactionPayToken', () => {
       {
         address: tokenAddress1Mock,
         balance: '123.456',
+        balanceFiat: '$456,123',
         decimals: 4,
         chainId: ChainId.mainnet,
       },
@@ -97,6 +98,14 @@ describe('useTransactionPayToken', () => {
     });
 
     expect(result.current.balanceHuman).toEqual('123.456');
+  });
+
+  it('returns fiat balance', () => {
+    const { result } = runHook({
+      payToken: PAY_TOKEN_MOCK,
+    });
+
+    expect(result.current.balanceFiat).toEqual('456.123');
   });
 
   it('sets token in state', () => {

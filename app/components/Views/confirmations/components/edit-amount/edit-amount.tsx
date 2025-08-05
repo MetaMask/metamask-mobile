@@ -7,7 +7,8 @@ import { useAlerts } from '../../context/alert-system-context';
 import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 import { EditAmountKeyboard } from '../edit-amount-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
-import { noop } from 'lodash';
+import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
+import { BigNumber } from 'bignumber.js';
 export interface EditAmountProps {
   autoKeyboard?: boolean;
   children?: React.ReactNode;
@@ -35,6 +36,7 @@ export function EditAmount({
     hasAlert,
   });
 
+  const { balanceFiat } = useTransactionPayToken();
   const { amountUnformatted, updateTokenAmount } = useTokenAmount();
 
   const [amountHuman, setAmountHuman] = useState<number>(
@@ -70,6 +72,17 @@ export function EditAmount({
     onKeyboardHide?.();
   }, [inputRef, onKeyboardHide, setIsFooterVisible]);
 
+  const handlePercentagePress = useCallback(
+    (percentage: number) => {
+      const percentageValue = new BigNumber(balanceFiat)
+        .multipliedBy(percentage)
+        .dividedBy(100);
+
+      handleChange(percentageValue.toNumber());
+    },
+    [balanceFiat, handleChange],
+  );
+
   const displayValue = `${prefix}${amountHuman}`;
 
   return (
@@ -88,7 +101,7 @@ export function EditAmount({
           value={amountHuman}
           onChange={handleChange}
           onDonePress={handleKeyboardDone}
-          onPercentagePress={noop}
+          onPercentagePress={handlePercentagePress}
         />
       )}
     </View>
