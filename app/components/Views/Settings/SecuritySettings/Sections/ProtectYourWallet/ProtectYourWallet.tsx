@@ -106,14 +106,20 @@ const ProtectYourWallet = ({
         style={styles.desc}
       >
         {strings('app_settings.protect_desc')}
+        {!oauthFlow && !srpBackedup ? (
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Primary}
+            onPress={() => Linking.openURL(LEARN_MORE_URL)}
+          >
+            {' '}
+            {strings('app_settings.learn_more')}
+          </Text>
+        ) : (
+          '.'
+        )}
       </Text>
-      {!oauthFlow && !srpBackedup && (
-        <Button
-          variant={ButtonVariants.Link}
-          onPress={() => Linking.openURL(LEARN_MORE_URL)}
-          label={strings('app_settings.learn_more')}
-        />
-      )}
+
       {!oauthFlow &&
         (srpBackedup ? (
           <Banner

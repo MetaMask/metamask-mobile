@@ -5,7 +5,7 @@ import { withSolanaAccountEnabled } from '../../../common-solana';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
-} from '../../../fixtures/fixture-builder';
+} from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -76,7 +76,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        // @ts-expect-error - FixtureBuilder is not typed correctly
         fixture: new FixtureBuilder()
           .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
           .withPermissionControllerConnectedToTestDapp({
@@ -133,7 +132,6 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        // @ts-expect-error - FixtureBuilder is not typed correctly
         fixture: new FixtureBuilder()
           .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
           .withPermissionControllerConnectedToTestDapp()

@@ -47,14 +47,24 @@ export interface CandleStick {
   volume: string;
 }
 
+import { CandlePeriod } from '../constants/chartConfig';
+
 /**
  * Represents historical candlestick data for a specific coin and interval
  */
 export interface CandleData {
   coin: string;
-  interval: string;
+  interval: CandlePeriod;
   candles: CandleStick[];
 }
 
 // Export all configuration types directly
 export * from './config';
+
+/**
+ * Standard Structure for Perps LaunchDarkly Feature Flags
+ */
+export interface PerpsLaunchDarklyFlag {
+  enabled: boolean;
+  minimumVersion: string;
+}

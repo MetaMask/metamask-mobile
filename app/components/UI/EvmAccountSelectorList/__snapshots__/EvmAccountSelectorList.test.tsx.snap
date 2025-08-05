@@ -493,7 +493,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -514,7 +514,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -912,7 +914,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -933,7 +935,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -1740,7 +1744,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -1761,7 +1765,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -2121,7 +2127,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -2142,7 +2148,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -2909,7 +2917,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -2930,7 +2938,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -3328,7 +3338,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -3349,7 +3359,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -4155,7 +4167,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -4176,7 +4188,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -4574,7 +4588,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -4595,7 +4609,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
