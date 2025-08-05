@@ -47,6 +47,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { selectExistingUser } from '../../../reducers/user';
 import Routes from '../../../constants/navigation/Routes';
+import ReduxService from '../../../core/redux';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -190,8 +191,8 @@ export const Fallback = (props) => {
     ? strings('onboarding_error_fallback.error_message_report')
     : strings('error_screen.error_message');
 
-  const isExistingUser = useSelector(selectExistingUser);
   const navigateToOnboarding = () => {
+    const isExistingUser = selectExistingUser(ReduxService.store.getState());
     if (isExistingUser) {
       props.onboardingErrorConfig?.navigation?.reset({
         routes: [{ name: Routes.ONBOARDING.LOGIN }],
