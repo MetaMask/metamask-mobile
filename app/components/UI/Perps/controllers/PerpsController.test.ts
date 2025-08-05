@@ -11,6 +11,7 @@ import {
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { DepositStatus } from './types';
+import { CandlePeriod } from '../constants/chartConfig';
 
 // Mock the HyperLiquid SDK first
 jest.mock('@deeeed/hyperliquid-node20', () => ({
@@ -1138,7 +1139,7 @@ describe('PerpsController', () => {
         // Arrange
         const mockCandleData = {
           coin: 'BTC',
-          interval: '1h',
+          interval: CandlePeriod.ONE_HOUR,
           candles: [
             {
               time: 1700000000000,
@@ -1172,7 +1173,7 @@ describe('PerpsController', () => {
         // Act
         const result = await controller.fetchHistoricalCandles(
           'BTC',
-          '1h',
+          CandlePeriod.ONE_HOUR,
           100,
         );
 
@@ -1180,7 +1181,7 @@ describe('PerpsController', () => {
         expect(result).toEqual(mockCandleData);
         expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
           'BTC',
-          '1h',
+          CandlePeriod.ONE_HOUR,
           100,
         );
       });
@@ -1203,11 +1204,11 @@ describe('PerpsController', () => {
 
         // Act & Assert
         await expect(
-          controller.fetchHistoricalCandles('BTC', '1h', 100),
+          controller.fetchHistoricalCandles('BTC', CandlePeriod.ONE_HOUR, 100),
         ).rejects.toThrow(errorMessage);
         expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
           'BTC',
-          '1h',
+          CandlePeriod.ONE_HOUR,
           100,
         );
       });
@@ -1223,7 +1224,7 @@ describe('PerpsController', () => {
 
         // Act & Assert
         await expect(
-          controller.fetchHistoricalCandles('BTC', '1h', 100),
+          controller.fetchHistoricalCandles('BTC', CandlePeriod.ONE_HOUR, 100),
         ).rejects.toThrow(
           'Historical candles not supported by current provider',
         );
@@ -1238,7 +1239,7 @@ describe('PerpsController', () => {
 
         // Act & Assert
         await expect(
-          controller.fetchHistoricalCandles('BTC', '1h', 100),
+          controller.fetchHistoricalCandles('BTC', CandlePeriod.ONE_HOUR, 100),
         ).rejects.toThrow('CLIENT_NOT_INITIALIZED');
       });
     });
@@ -1248,7 +1249,7 @@ describe('PerpsController', () => {
         // Arrange
         const mockCandleData = {
           coin: 'ETH',
-          interval: '15m',
+          interval: CandlePeriod.FIFTEEN_MINUTES,
           candles: [],
         };
 
@@ -1264,7 +1265,7 @@ describe('PerpsController', () => {
         // Act
         const result = await controller.fetchHistoricalCandles(
           'ETH',
-          '15m',
+          CandlePeriod.FIFTEEN_MINUTES,
           50,
         );
 
@@ -1272,7 +1273,7 @@ describe('PerpsController', () => {
         expect(result).toEqual(mockCandleData);
         expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
           'ETH',
-          '15m',
+          CandlePeriod.FIFTEEN_MINUTES,
           50,
         );
       });

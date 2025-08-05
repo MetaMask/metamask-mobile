@@ -10,6 +10,7 @@ import {
   HyperLiquidClientService,
   type ValidCandleInterval,
 } from './HyperLiquidClientService';
+import { CandlePeriod } from '../constants/chartConfig';
 
 // Mock HyperLiquid SDK
 const mockExchangeClient = { initialized: true };
@@ -503,24 +504,22 @@ describe('HyperLiquidClientService', () => {
     it('should handle different interval formats', async () => {
       // Arrange
       const testCases = [
-        { interval: '1m', expected: 60000 },
-        { interval: '1h', expected: 3600000 },
-        { interval: '1d', expected: 86400000 },
+        { interval: CandlePeriod.THREE_MINUTES, expected: 180000 }, // 3 minutes = 3 * 60 * 1000
+        { interval: CandlePeriod.ONE_HOUR, expected: 3600000 },
+        { interval: CandlePeriod.ONE_DAY, expected: 86400000 },
       ];
 
       for (const { interval, expected } of testCases) {
         const mockResponse: any[] = [];
 
+        // Reset mock before each iteration
+        jest.clearAllMocks();
         mockInfoClient.candleSnapshot = jest
           .fn()
           .mockResolvedValue(mockResponse);
 
         // Act
-        await service.fetchHistoricalCandles(
-          'BTC',
-          interval as ValidCandleInterval,
-          10,
-        );
+        await service.fetchHistoricalCandles('BTC', interval, 10);
 
         // Assert
         const callArgs = mockInfoClient.candleSnapshot.mock.calls[0][0];
