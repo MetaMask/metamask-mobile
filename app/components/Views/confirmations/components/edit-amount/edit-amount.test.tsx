@@ -12,15 +12,12 @@ import {
   AlertsContextParams,
   useAlerts,
 } from '../../context/alert-system-context';
-import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 
 jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/useTokenAsset');
 jest.mock('../../context/alert-system-context');
 
 const VALUE_MOCK = '1.23';
-const VALUE_2_MOCK = '2.34';
-const ALERT_MESSAGE_MOCK = 'Test Message';
 
 const state = merge(
   simpleSendTransactionControllerMock,
@@ -41,7 +38,7 @@ describe('EditAmount', () => {
     jest.resetAllMocks();
 
     useTokenAmountMock.mockReturnValue({
-      amountPrecise: VALUE_MOCK,
+      amountUnformatted: VALUE_MOCK,
       updateTokenAmount: updateTokenAmountMock,
     } as unknown as ReturnType<typeof useTokenAmount>);
 
@@ -71,54 +68,49 @@ describe('EditAmount', () => {
   });
 
   it('calls updateTokenAmount when input changes', async () => {
-    const { getByTestId } = render();
-    const input = getByTestId('edit-amount-input');
+    const { getByTestId, getByText } = render();
 
     await act(async () => {
-      fireEvent(input, 'changeText', VALUE_2_MOCK);
+      fireEvent.press(getByTestId('edit-amount-input'));
     });
 
-    expect(updateTokenAmountMock).toHaveBeenCalledWith(VALUE_2_MOCK);
+    await act(async () => {
+      fireEvent.press(getByText('5'));
+    });
+
+    expect(updateTokenAmountMock).toHaveBeenCalledWith(VALUE_MOCK + '5');
   });
 
   it('updates amount when input changes', async () => {
-    const { getByTestId } = render();
-    const input = getByTestId('edit-amount-input');
+    const { getByTestId, getByText } = render();
 
     await act(async () => {
-      fireEvent(input, 'changeText', VALUE_2_MOCK);
+      fireEvent.press(getByTestId('edit-amount-input'));
     });
 
-    expect(getByTestId('edit-amount-input')).toHaveProp('value', VALUE_2_MOCK);
+    await act(async () => {
+      fireEvent.press(getByText('5'));
+    });
+
+    expect(getByTestId('edit-amount-input')).toHaveProp(
+      'value',
+      VALUE_MOCK + '5',
+    );
   });
 
-  it('renders alert if field is amount', () => {
-    useAlertsMock.mockReturnValue({
-      fieldAlerts: [
-        {
-          field: RowAlertKey.Amount,
-          message: ALERT_MESSAGE_MOCK,
-        },
-      ],
-    } as unknown as AlertsContextParams);
+  it('displays keyboard automatically when autoKeyboard is true', () => {
+    const { getByTestId } = render({ autoKeyboard: true });
 
-    const { getByText } = render();
-
-    expect(getByText(ALERT_MESSAGE_MOCK)).toBeDefined();
+    expect(getByTestId('edit-amount-keyboard')).toBeDefined();
   });
 
-  it('does not render alert if field is not amount', () => {
-    useAlertsMock.mockReturnValue({
-      fieldAlerts: [
-        {
-          field: RowAlertKey.AccountTypeUpgrade,
-          message: ALERT_MESSAGE_MOCK,
-        },
-      ],
-    } as unknown as AlertsContextParams);
+  it('hides keyboard if done button pressed', async () => {
+    const { queryByTestId, getByText } = render({ autoKeyboard: true });
 
-    const { queryByText } = render();
+    await act(async () => {
+      fireEvent.press(getByText('Done'));
+    });
 
-    expect(queryByText(ALERT_MESSAGE_MOCK)).toBeNull();
+    expect(queryByTestId('edit-amount-keyboard')).toBeNull();
   });
 });

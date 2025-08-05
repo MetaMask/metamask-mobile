@@ -87,8 +87,8 @@ export function EditAmount({
         <EditAmountKeyboard
           value={amountHuman}
           onChange={handleChange}
-          onDone={handleKeyboardDone}
-          onPercent={noop}
+          onDonePress={handleKeyboardDone}
+          onPercentagePress={noop}
         />
       )}
     </View>

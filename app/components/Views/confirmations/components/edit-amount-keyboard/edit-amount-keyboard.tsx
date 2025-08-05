@@ -38,6 +38,7 @@ export function EditAmountKeyboard({
   return (
     <>
       <Box
+        testID="edit-amount-keyboard"
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
         gap={10}
