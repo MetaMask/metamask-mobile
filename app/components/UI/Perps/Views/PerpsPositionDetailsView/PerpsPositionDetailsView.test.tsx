@@ -48,8 +48,14 @@ jest.mock('../../components/PerpsTPSLBottomSheet', () => ({
   }) => {
     if (!isVisible) return null;
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    const {
+      PerpsPositionDetailsViewSelectorsIDs:
+        PerpsPositionDetailsViewSelectorsIDsMock,
+    } = jest.requireActual(
+      '../../../../../../e2e/selectors/Perps/Perps.selectors',
+    );
     return (
-      <View testID={PerpsPositionDetailsViewSelectorsIDs.TPSL_BOTTOMSHEET}>
+      <View testID={PerpsPositionDetailsViewSelectorsIDsMock.TPSL_BOTTOMSHEET}>
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
         </TouchableOpacity>
@@ -74,16 +80,26 @@ jest.mock('../../components/PerpsClosePositionBottomSheet', () => ({
   }) => {
     if (!isVisible) return null;
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    const {
+      PerpsPositionDetailsViewSelectorsIDs:
+        PerpsPositionDetailsViewSelectorsIDsMock,
+    } = jest.requireActual(
+      '../../../../../../e2e/selectors/Perps/Perps.selectors',
+    );
     return (
       <View
-        testID={PerpsPositionDetailsViewSelectorsIDs.CLOSE_POSITION_BOTTOMSHEET}
+        testID={
+          PerpsPositionDetailsViewSelectorsIDsMock.CLOSE_POSITION_BOTTOMSHEET
+        }
       >
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onConfirm}
-          testID={PerpsPositionDetailsViewSelectorsIDs.CONFIRM_CLOSE_POSITION}
+          testID={
+            PerpsPositionDetailsViewSelectorsIDsMock.CONFIRM_CLOSE_POSITION
+          }
         >
           <Text>Confirm</Text>
         </TouchableOpacity>
@@ -95,6 +111,12 @@ jest.mock('../../components/PerpsClosePositionBottomSheet', () => ({
 // Mock the wagmi charts library to fix missing getDomain function
 jest.mock('react-native-wagmi-charts', () => {
   const { View } = jest.requireActual('react-native');
+  const {
+    PerpsPositionDetailsViewSelectorsIDs:
+      PerpsPositionDetailsViewSelectorsIDsMock,
+  } = jest.requireActual(
+    '../../../../../../e2e/selectors/Perps/Perps.selectors',
+  );
 
   const MockChart = ({
     children,
@@ -106,7 +128,7 @@ jest.mock('react-native-wagmi-charts', () => {
     width: number;
   }) => (
     <View
-      testID={PerpsPositionDetailsViewSelectorsIDs.CANDLESTICK_CHART}
+      testID={PerpsPositionDetailsViewSelectorsIDsMock.CANDLESTICK_CHART}
       data-height={height}
       data-width={width}
     >
@@ -122,7 +144,7 @@ jest.mock('react-native-wagmi-charts', () => {
     data: unknown[];
   }) => (
     <View
-      testID={PerpsPositionDetailsViewSelectorsIDs.CHART_PROVIDER}
+      testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_PROVIDER}
       data-data-points={data?.length || 0}
     >
       {children}
@@ -137,14 +159,14 @@ jest.mock('react-native-wagmi-charts', () => {
     negativeColor: string;
   }) => (
     <View
-      testID={PerpsPositionDetailsViewSelectorsIDs.CHART_CANDLES}
+      testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_CANDLES}
       data-positive-color={positiveColor}
       data-negative-color={negativeColor}
     />
   );
 
   MockChart.Crosshair = ({ children }: { children: React.ReactNode }) => (
-    <View testID={PerpsPositionDetailsViewSelectorsIDs.CHART_CROSSHAIR}>
+    <View testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_CROSSHAIR}>
       {children}
     </View>
   );
@@ -159,7 +181,7 @@ jest.mock('react-native-wagmi-charts', () => {
     tooltipTextProps?: unknown;
   }) => (
     <View
-      testID={PerpsPositionDetailsViewSelectorsIDs.CHART_TOOLTIP}
+      testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_TOOLTIP}
       data-style={style}
       data-text-props={tooltipTextProps}
     >

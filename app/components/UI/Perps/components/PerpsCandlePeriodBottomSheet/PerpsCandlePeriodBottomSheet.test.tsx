@@ -1,3 +1,15 @@
+// Mock the constants
+jest.mock('../../constants/chartConfig', () => {
+  const actual = jest.requireActual('../../constants/chartConfig');
+  return {
+    ...actual,
+    getCandlePeriodsForDuration: jest
+      .fn()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .mockReturnValue([]) as jest.MockedFunction<any>,
+  };
+});
+
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
@@ -8,14 +20,6 @@ import {
   CandlePeriod,
   TimeDuration,
 } from '../../constants/chartConfig';
-
-// Mock the constants
-jest.mock('../../constants/chartConfig', () => ({
-  getCandlePeriodsForDuration: jest
-    .fn()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockReturnValue([]) as jest.MockedFunction<any>,
-}));
 
 // Mock react-native-safe-area-context first
 jest.mock('react-native-safe-area-context', () => ({
