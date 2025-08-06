@@ -2,6 +2,7 @@ import compareVersions from 'compare-versions';
 import { createSelector } from 'reselect';
 import packageJson from '../../../../package.json';
 import { selectRemoteFeatureFlags } from '..';
+import { isProduction } from '../../../util/environment';
 
 /**
  * Multichain accounts feature flag
@@ -13,6 +14,11 @@ export interface MultichainAccountsFeatureFlag {
 }
 
 const APP_VERSION = packageJson.version;
+const overrideRemoteFeatureFlags =
+  process.env.MM_REMOTE_FEATURE_FLAGS === 'true' && !isProduction();
+const enabledMultichainAccountsState2Local =
+  process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'true';
+
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1 = '1';
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2 = '2';
 
@@ -97,6 +103,8 @@ export const selectMultichainAccountsState1Enabled =
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
 export const selectMultichainAccountsState2Enabled =
-  createMultichainAccountsStateSelector([
-    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
-  ]);
+  overrideRemoteFeatureFlags && enabledMultichainAccountsState2Local
+    ? true
+    : createMultichainAccountsStateSelector([
+        MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+      ]);
