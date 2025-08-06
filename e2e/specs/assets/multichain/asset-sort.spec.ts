@@ -66,6 +66,9 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
         await loginToApp();
         await WalletView.tapSortBy();
         await SortModal.tapSortAlphabetically();
+        // Relaunching the app since the tree is not re-rendered with FlashList v2.
+        await device.launchApp({ newInstance: true });
+        await loginToApp();
 
         const tokens =
           (await WalletView.getTokensInWallet()) as IndexableNativeElement;
