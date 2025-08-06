@@ -15,6 +15,7 @@ export const TestSnapViewSelectorWebIDS = {
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
   connectStateButton: 'connectstate',
+  connectWasmButton: 'connectwasm',
   getPreferencesButton: 'getPreferences',
   getPublicKeyBip44Button: 'sendBip44Test',
   signMessageBip44Button: 'signBip44Message',
@@ -39,6 +40,7 @@ export const TestSnapViewSelectorWebIDS = {
   getChainIdButton: 'sendEthprovider',
   getAccountsButton: 'sendEthproviderAccounts',
   personalSignButton: 'signPersonalSignMessage',
+  sendWasmMessageButton: 'sendWasmMessage',
   signTypedDataButton: 'signTypedDataButton',
 };
 
@@ -59,6 +61,7 @@ export const TestSnapInputSelectorWebIDS = {
   webSocketUrlInput: 'webSocketUrl',
   personalSignMessageInput: 'personalSignMessage',
   signTypedDataMessageInput: 'signTypedData',
+  wasmInput: 'wasmInput',
 };
 
 export const EntropyDropDownSelectorWebIDS = {
@@ -94,6 +97,7 @@ export const TestSnapResultSelectorWebIDS = {
   sendUnencryptedManageStateResultSpan: 'sendUnencryptedManageStateResult',
   signTypedDataResultSpan: 'signTypedDataResult',
   unencryptedStateResultSpan: 'unencryptedStateResult',
+  wasmResultSpan: 'wasmResult',
 };
 
 export const TestSnapBottomSheetSelectorWebIDS = {

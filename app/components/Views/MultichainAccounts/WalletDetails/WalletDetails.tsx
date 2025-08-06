@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { BaseWalletDetails } from './BaseWalletDetails';
-import { selectWalletById } from '../../../../multichain-accounts/selectors/accountTreeController';
+import { selectWalletById } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { AccountWalletId } from '@metamask/account-api';
 
 interface WalletDetailsProps {

@@ -1314,7 +1314,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d1a",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -2712,7 +2712,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d1a",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -4118,7 +4118,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d1a",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -5514,7 +5514,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d1a",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
