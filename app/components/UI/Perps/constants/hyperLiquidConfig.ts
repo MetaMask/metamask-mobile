@@ -89,8 +89,8 @@ export const TRADING_DEFAULTS: TradingDefaultsConfig = {
   stopLossPercent: 0.1, // 10% stop loss
   slippage: 0.05, // 5% max slippage protection
   amount: {
-    mainnet: 5, // $5 minimum order size
-    testnet: 11, // Default USD amount for testnet
+    mainnet: 6, // $6 minimum order size (normally 5 but adding 1 for fees)
+    testnet: 11, // $11 minimum order size (normally 10 but adding 1 for fees)
   },
 };
 

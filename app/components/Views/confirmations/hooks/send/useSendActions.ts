@@ -9,10 +9,9 @@ import { MMM_ORIGIN } from '../../constants/confirmations';
 import { prepareEVMTransaction } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 
-const useSendActions = () => {
-  const { asset, from, to, value } = useSendContext();
+export const useSendActions = () => {
+  const { asset, chainId, from, to, value } = useSendContext();
   const navigation = useNavigation();
-  const { chainId } = asset ?? { chainId: undefined };
   const { NetworkController } = Engine.context;
 
   const handleSubmitPress = useCallback(async () => {
@@ -39,5 +38,3 @@ const useSendActions = () => {
 
   return { handleSubmitPress, handleCancelPress };
 };
-
-export default useSendActions;

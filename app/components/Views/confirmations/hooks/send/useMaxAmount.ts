@@ -75,11 +75,10 @@ export const getMaxValueFn = ({
   );
 };
 
-const useMaxAmount = () => {
+export const useMaxAmount = () => {
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
-  const { asset, from, updateValue } = useSendContext();
-  const { chainId } = asset ?? { chainId: undefined };
+  const { asset, chainId, from } = useSendContext();
   const { NetworkController } = Engine.context;
   const networkClientId = useMemo(
     () =>
@@ -90,18 +89,17 @@ const useMaxAmount = () => {
   );
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId ?? '');
 
-  const updateToMaxAmount = useCallback(() => {
-    const value = getMaxValueFn({
-      accounts,
-      asset,
-      contractBalances,
-      from: from as Hex,
-      gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
-    });
-    updateValue(value);
-  }, [accounts, asset, contractBalances, from, gasFeeEstimates, updateValue]);
+  const getMaxAmount = useCallback(
+    () =>
+      getMaxValueFn({
+        accounts,
+        asset,
+        contractBalances,
+        from: from as Hex,
+        gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
+      }),
+    [accounts, asset, contractBalances, from, gasFeeEstimates],
+  );
 
-  return { updateToMaxAmount };
+  return { getMaxAmount };
 };
-
-export default useMaxAmount;
