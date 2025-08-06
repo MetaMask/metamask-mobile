@@ -232,12 +232,17 @@ describe('AssetOverview', () => {
     const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
     fireEvent.press(buyButton);
 
-    expect(navigate).toHaveBeenCalledWith(
-      ...createBuyNavigationDetails({
-        address: asset.address,
-        chainId: getDecimalChainId(MOCK_CHAIN_ID),
-      }),
-    );
+    // Now expects navigation to FundActionMenu with onBuy function and asset context
+    expect(navigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'FundActionMenu',
+      params: {
+        onBuy: expect.any(Function),
+        asset: {
+          address: asset.address,
+          chainId: MOCK_CHAIN_ID,
+        },
+      },
+    });
   });
 
   it('should handle send button press', async () => {
