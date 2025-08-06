@@ -16,6 +16,7 @@ import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { generateTransferData } from '../../../../util/transactions';
 import type { CandleData } from '../types';
+import { CandlePeriod } from '../constants/chartConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -594,7 +595,7 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
 
       // Validate deposit parameters
-      const validation = provider.validateDeposit(params);
+      const validation = await provider.validateDeposit(params);
       if (!validation.isValid) {
         this.update((state) => {
           state.depositStatus = 'error';
@@ -896,17 +897,17 @@ export class PerpsController extends BaseController<
    */
   async fetchHistoricalCandles(
     coin: string,
-    interval: string,
+    interval: CandlePeriod,
     limit: number = 100,
-  ): Promise<CandleData | null> {
+  ): Promise<CandleData> {
     try {
       const provider = this.getActiveProvider() as IPerpsProvider & {
         clientService?: {
           fetchHistoricalCandles: (
             coin: string,
-            interval: string,
+            interval: CandlePeriod,
             limit: number,
-          ) => Promise<CandleData | null>;
+          ) => Promise<CandleData>;
         };
       };
 
@@ -972,6 +973,36 @@ export class PerpsController extends BaseController<
   async getMaxLeverage(asset: string): Promise<number> {
     const provider = this.getActiveProvider();
     return provider.getMaxLeverage(asset);
+  }
+
+  /**
+   * Validate order parameters according to protocol-specific rules
+   */
+  async validateOrder(
+    params: OrderParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
+    const provider = this.getActiveProvider();
+    return provider.validateOrder(params);
+  }
+
+  /**
+   * Validate close position parameters according to protocol-specific rules
+   */
+  async validateClosePosition(
+    params: ClosePositionParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
+    const provider = this.getActiveProvider();
+    return provider.validateClosePosition(params);
+  }
+
+  /**
+   * Validate withdrawal parameters according to protocol-specific rules
+   */
+  async validateWithdrawal(
+    params: WithdrawParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
+    const provider = this.getActiveProvider();
+    return provider.validateWithdrawal(params);
   }
 
   /**

@@ -72,12 +72,31 @@ const CellSelectWithMenu = ({
           ) : (
             title
           )}
-          {!!secondaryText && (
-            <TouchableWithoutFeedback>
-              <TouchableOpacity
-                style={styles.containerRow}
-                onPress={props.onTextClick}
-              >
+          {!!secondaryText &&
+            (props.onTextClick ? (
+              <TouchableWithoutFeedback>
+                <TouchableOpacity
+                  style={styles.containerRow}
+                  onPress={props.onTextClick}
+                >
+                  <Text
+                    numberOfLines={1}
+                    variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
+                    style={styles.secondaryText}
+                  >
+                    {secondaryText}
+                  </Text>
+                  {showSecondaryTextIcon && (
+                    <Icon
+                      name={IconName.ArrowDown}
+                      size={IconSize.Xss}
+                      style={styles.arrowStyle}
+                    />
+                  )}
+                </TouchableOpacity>
+              </TouchableWithoutFeedback>
+            ) : (
+              <View style={styles.containerRow}>
                 <Text
                   numberOfLines={1}
                   variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
@@ -92,9 +111,8 @@ const CellSelectWithMenu = ({
                     style={styles.arrowStyle}
                   />
                 )}
-              </TouchableOpacity>
-            </TouchableWithoutFeedback>
-          )}
+              </View>
+            ))}
           {!!tagLabel && (
             <Tag
               testID={CellComponentSelectorsIDs.TAG_LABEL}
