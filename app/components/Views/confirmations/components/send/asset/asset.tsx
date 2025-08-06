@@ -4,9 +4,9 @@ import { View } from 'react-native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useSendContext } from '../../../context/send-context';
-import styleSheet from './asset.styles';
+import { styleSheet } from './asset.styles';
 
-const Asset = () => {
+export const Asset = () => {
   const { styles } = useStyles(styleSheet, {});
   const { asset } = useSendContext();
 
@@ -16,5 +16,3 @@ const Asset = () => {
     </View>
   );
 };
-
-export default Asset;
