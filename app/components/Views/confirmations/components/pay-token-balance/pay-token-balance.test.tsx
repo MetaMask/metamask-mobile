@@ -20,6 +20,7 @@ describe('PayTokenBalance', () => {
     jest.resetAllMocks();
 
     useTransactionPayTokenMock.mockReturnValue({
+      balanceHuman: '1.23',
       decimals: 4,
       payToken: {
         address: TOKEN_ADDRESS_MOCK,
