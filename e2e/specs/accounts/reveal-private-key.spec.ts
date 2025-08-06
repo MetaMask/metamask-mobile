@@ -10,7 +10,8 @@ import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPriv
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
+import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 // These keys are from the fixture and are used to test the reveal private key functionality
 const HD_ACCOUNT_1_PRIVATE_KEY =
@@ -31,6 +32,11 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
+        testSpecificMock: {
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
+        },
       },
       async () => {
         await loginToApp();
@@ -80,6 +86,11 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
+        testSpecificMock: {
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
+        },
       },
       async () => {
         await loginToApp();
@@ -89,7 +100,7 @@ describe(Regression('reveal private key'), () => {
           IMPORTED_ACCOUNT_0_INDEX,
         );
 
-        await AccountDetails.tapExportPrivateKeyButton();
+        await AccountActionsBottomSheet.tapShowPrivateKey();
         await RevealPrivateKey.enterPasswordToRevealSecretCredential(PASSWORD);
         await RevealPrivateKey.tapToReveal();
         await Assertions.expectElementToBeVisible(RevealPrivateKey.container);
@@ -109,7 +120,7 @@ describe(Regression('reveal private key'), () => {
         );
         await RevealPrivateKey.scrollToDone();
         await RevealPrivateKey.tapDoneButton();
-        await Assertions.expectElementToBeVisible(AccountDetails.container);
+        await Assertions.expectElementToBeVisible(WalletView.container);
       },
     );
   });
@@ -121,6 +132,11 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
+        testSpecificMock: {
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
+        },
       },
       async () => {
         await loginToApp();
@@ -130,7 +146,7 @@ describe(Regression('reveal private key'), () => {
           IMPORTED_ACCOUNT_1_INDEX,
         );
 
-        await AccountDetails.tapExportPrivateKeyButton();
+        await AccountActionsBottomSheet.tapShowPrivateKey();
         await RevealPrivateKey.enterPasswordToRevealSecretCredential(PASSWORD);
         await RevealPrivateKey.tapToReveal();
         await Assertions.expectElementToBeVisible(RevealPrivateKey.container);
@@ -150,7 +166,7 @@ describe(Regression('reveal private key'), () => {
         );
         await RevealPrivateKey.scrollToDone();
         await RevealPrivateKey.tapDoneButton();
-        await Assertions.expectElementToBeVisible(AccountDetails.container);
+        await Assertions.expectElementToBeVisible(WalletView.container);
       },
     );
   });
@@ -162,6 +178,11 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
+        testSpecificMock: {
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
+        },
       },
       async () => {
         await loginToApp();

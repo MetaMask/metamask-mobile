@@ -10,6 +10,8 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import Assertions from '../../framework/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
+import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token
@@ -27,6 +29,13 @@ describe(
             .withImportedAccountKeyringController()
             .build(),
           restartDevice: true,
+          testSpecificMock: {
+            GET: [
+              mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(
+                false,
+              ),
+            ],
+          },
         },
         async () => {
           await loginToApp();
@@ -53,11 +62,13 @@ describe(
           await SuccessImportAccountView.tapCloseButton();
 
           // Check if the account type label is visible
-          //ToDo: Imported label is not visible in the account list bottom sheet
-          await Assertions.expectTextDisplayed('Account 2');
-
-          await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
-          await Assertions.expectTextDisplayed('Imported accounts');
+          await Assertions.expectElementToHaveLabel(
+            AccountListBottomSheet.accountTagLabel,
+            AccountListBottomSheetSelectorsText.ACCOUNT_TYPE_LABEL_TEXT,
+            {
+              description: 'Account type label',
+            },
+          );
         },
       );
     });

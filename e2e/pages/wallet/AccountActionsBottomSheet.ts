@@ -5,11 +5,11 @@ import Utilities from '../../framework/Utilities';
 import EditAccountNameView from './EditAccountNameView';
 import MultichainAccountDetails from '../MultichainAccounts/AccountDetails';
 import MultichainEditAccountName from '../MultichainAccounts/EditAccountName';
-import { AccountDetailsIds } from '../../selectors/MultichainAccounts/AccountDetails.selectors';
-
 class AccountActionsBottomSheet {
   get editAccount(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_NAME_LINK);
+    return Matchers.getElementByID(
+      AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT,
+    );
   }
 
   get showPrivateKey(): DetoxElement {
