@@ -390,6 +390,20 @@ describe('FundActionMenu', () => {
       expect(createBuyNavigationDetails).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
+
+    it('shows buy button with custom onBuy even when ramp network is not supported', () => {
+      const customOnBuy = jest.fn();
+      mockUseRoute.mockReturnValue({
+        params: { onBuy: customOnBuy },
+      } as never);
+      mockUseRampNetwork.mockReturnValue([false, false]);
+
+      const { getByTestId } = render(<FundActionMenu />);
+
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('Analytics Tracking', () => {

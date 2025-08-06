@@ -111,7 +111,7 @@ const FundActionMenu = () => {
         description: strings('fund_actionmenu.buy_description'),
         iconName: IconName.Add,
         testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-        isVisible: isNetworkRampSupported,
+        isVisible: isNetworkRampSupported || !!customOnBuy,
         analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
         analyticsProperties: {
           text: 'Buy',

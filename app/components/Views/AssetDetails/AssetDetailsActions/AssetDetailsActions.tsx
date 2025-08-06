@@ -7,7 +7,7 @@ import WalletAction from '../../../../components/UI/WalletAction';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import Text, {
+import MMText, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
@@ -66,13 +66,18 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const { isDepositEnabled } = useDepositEnabled();
   const isFundMenuAvailable = isDepositEnabled || isNetworkRampSupported;
 
+  // Button should be enabled if we have standard funding options OR a custom onBuy function
+  const isFundingAvailable = isFundMenuAvailable || !!onBuy;
+
   const handleBuyPress = () => {
-    // Always navigate to FundActionMenu, but pass both onBuy function and asset context
+    // Navigate to FundActionMenu with both custom onBuy and asset context
+    // The menu will prioritize custom onBuy over standard funding options
+    // This allows custom funding flows even when deposit/ramp are unavailable
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.FUND_ACTION_MENU,
       params: {
-        onBuy, // Pass the onBuy function (if provided)
-        asset, // Pass asset context as fallback
+        onBuy, // Custom buy function (takes priority if provided)
+        asset, // Asset context for standard funding flows
       },
     });
   };
@@ -87,12 +92,12 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
-            disabled={!canSignTransactions || !isFundMenuAvailable}
+            disabled={!canSignTransactions || !isFundingAvailable}
             actionID={buyButtonActionID}
           />
-          <Text variant={TextVariant.BodyMD}>
+          <MMText variant={TextVariant.BodyMD}>
             {strings('asset_overview.fund_button')}
-          </Text>
+          </MMText>
         </View>
       )}
       {displaySwapsButton && (
@@ -106,9 +111,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             disabled={!canSignTransactions || !swapsIsLive}
             actionID={swapButtonActionID}
           />
-          <Text variant={TextVariant.BodyMD}>
+          <MMText variant={TextVariant.BodyMD}>
             {strings('asset_overview.swap')}
-          </Text>
+          </MMText>
         </View>
       )}
       {displayBridgeButton ? (
@@ -122,9 +127,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             disabled={!canSignTransactions}
             actionID={bridgeButtonActionID}
           />
-          <Text variant={TextVariant.BodyMD}>
+          <MMText variant={TextVariant.BodyMD}>
             {strings('asset_overview.bridge')}
-          </Text>
+          </MMText>
         </View>
       ) : null}
       <View style={styles.buttonWrapper}>
@@ -137,9 +142,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           disabled={!canSignTransactions}
           actionID={sendButtonActionID}
         />
-        <Text variant={TextVariant.BodyMD}>
+        <MMText variant={TextVariant.BodyMD}>
           {strings('asset_overview.send_button')}
-        </Text>
+        </MMText>
       </View>
       <View style={styles.buttonWrapper}>
         <WalletAction
@@ -151,9 +156,9 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           disabled={false}
           actionID={receiveButtonActionID}
         />
-        <Text variant={TextVariant.BodyMD}>
+        <MMText variant={TextVariant.BodyMD}>
           {strings('asset_overview.receive_button')}
-        </Text>
+        </MMText>
       </View>
     </View>
   );
