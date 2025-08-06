@@ -38,6 +38,9 @@ describe('usePerpsOrderFees', () => {
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
+      validateOrder: jest.fn(),
+      validateClosePosition: jest.fn(),
+      validateWithdrawal: jest.fn(),
     });
   });
 
