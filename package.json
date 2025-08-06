@@ -182,7 +182,8 @@
     "@ethereumjs/tx": "^5.4.0",
     "@metamask/controller-utils": "npm:@metamask/controller-utils@^11.11.0",
     "appium-adb/@appium/support/form-data": "^4.0.4",
-    "appium/@appium/support/form-data": "^4.0.0"
+    "appium/@appium/support/form-data": "^4.0.0",
+    "@metamask/network-controller": "npm:@metamask-previews/network-controller@24.0.1-preview-889b5df9"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
