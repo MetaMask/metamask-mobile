@@ -50,7 +50,6 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
         await AddAccountBottomSheet.tapCreateEthereumAccount();
         await AccountListBottomSheet.tapEditAccountActionsAtIndex(0);
         await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
-        await WalletView.tapIdenticon();
         const visibleAccounts = [NEW_ACCOUNT_NAME, SECOND_ACCOUNT_NAME];
         for (const accountName of visibleAccounts) {
           await Assertions.expectElementToBeVisible(
@@ -96,12 +95,9 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
         const visibleAccounts = [NEW_ACCOUNT_NAME, SECOND_ACCOUNT_NAME];
 
         for (const accountName of visibleAccounts) {
-          await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountName(accountName),
-            {
-              description: `Account with name "${accountName}" should be visible`,
-            },
-          );
+          await Assertions.expectTextDisplayed(accountName, {
+            description: `Account with name "${accountName}" should be visible`,
+          });
         }
       },
     );
