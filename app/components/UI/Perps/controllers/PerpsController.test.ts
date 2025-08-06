@@ -125,6 +125,9 @@ describe('PerpsController', () => {
       calculateFees: jest.fn(),
       getMarketDataWithPrices: jest.fn(),
       getBlockExplorerUrl: jest.fn(),
+      getOrderFills: jest.fn(),
+      getOrders: jest.fn(),
+      getFunding: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -2470,6 +2473,227 @@ describe('PerpsController', () => {
         expect(
           mockHyperLiquidProvider.getBlockExplorerUrl,
         ).toHaveBeenCalledWith('0x456');
+      });
+    });
+  });
+
+  describe('getOrderFills', () => {
+    it('should retrieve order fills correctly', async () => {
+      const mockOrderFills = [
+        {
+          coin: 'BTC',
+          size: '0.1',
+          price: '50000',
+          quoteAmount: '5000',
+          timestamp: 1700000000000,
+          isBuy: true,
+          fee: '2.5',
+          orderId: 'order-123',
+          orderType: 'market' as const,
+          symbol: 'BTC',
+          side: 'buy' as const,
+          pnl: '0',
+          direction: 'buy' as const,
+          feeToken: 'BTC',
+        },
+        {
+          coin: 'ETH',
+          size: '1.5',
+          price: '3000',
+          quoteAmount: '4500',
+          timestamp: 1700000001000,
+          isBuy: false,
+          fee: '2.25',
+          orderId: 'order-456',
+          orderType: 'limit' as const,
+          symbol: 'ETH',
+          side: 'sell' as const,
+          pnl: '0',
+          direction: 'sell' as const,
+          feeToken: 'ETH',
+        },
+      ];
+
+      const params = { limit: 10, user: '0x123' as Hex };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.getOrderFills.mockResolvedValue(mockOrderFills);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.getOrderFills(params);
+
+        expect(result).toEqual(mockOrderFills);
+        expect(mockHyperLiquidProvider.getOrderFills).toHaveBeenCalledWith(
+          params,
+        );
+      });
+    });
+
+    it('should handle errors when getting order fills', async () => {
+      const errorMessage = 'Failed to fetch order fills';
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.getOrderFills.mockRejectedValue(
+          new Error(errorMessage),
+        );
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        try {
+          await controller.getOrderFills();
+          // Should not reach here
+          fail('Expected getOrderFills to throw an error');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe(errorMessage);
+        }
+      });
+    });
+  });
+
+  describe('getOrders', () => {
+    it('should retrieve orders correctly', async () => {
+      const mockOrders = [
+        {
+          id: 'order-123',
+          coin: 'BTC',
+          size: '0.1',
+          price: '50000',
+          limitPrice: '50000',
+          timestamp: 1700000000000,
+          isBuy: true,
+          type: 'limit' as const,
+          status: 'open' as const,
+          filled: '0',
+          symbol: 'BTC',
+          side: 'buy' as const,
+          orderType: 'limit' as const,
+          orderId: 'order-123',
+          pnl: '0',
+          direction: 'buy' as const,
+          originalSize: '0.1',
+          filledSize: '0',
+          remainingSize: '0.1',
+          lastUpdated: 1700000000000,
+        },
+        {
+          id: 'order-456',
+          coin: 'ETH',
+          size: '1.5',
+          price: '3000',
+          timestamp: 1700000001000,
+          isBuy: false,
+          type: 'market' as const,
+          status: 'filled' as const,
+          filled: '1.5',
+          symbol: 'ETH',
+          side: 'sell' as const,
+          orderType: 'market' as const,
+          orderId: 'order-456',
+          pnl: '0',
+          direction: 'sell' as const,
+          originalSize: '1.5',
+          filledSize: '1.5',
+          remainingSize: '0',
+          lastUpdated: 1700000001000,
+        },
+      ];
+
+      const params = { limit: 10, status: 'all' };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.getOrders.mockResolvedValue(mockOrders);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.getOrders(params);
+
+        expect(result).toEqual(mockOrders);
+        expect(mockHyperLiquidProvider.getOrders).toHaveBeenCalledWith(params);
+      });
+    });
+
+    it('should handle errors when getting orders', async () => {
+      const errorMessage = 'Failed to fetch orders';
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.getOrders.mockRejectedValue(
+          new Error(errorMessage),
+        );
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        try {
+          await controller.getOrders();
+          // Should not reach here
+          fail('Expected getOrders to throw an error');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe(errorMessage);
+        }
+      });
+    });
+  });
+
+  describe('getFunding', () => {
+    it('should retrieve funding data correctly', async () => {
+      const mockFunding = [
+        {
+          coin: 'BTC',
+          amount: '10.5',
+          timestamp: 1700000000000,
+          rate: '0.01',
+          positionSize: '1.0',
+          symbol: 'BTC',
+          amountUsd: '10.5',
+        },
+        {
+          coin: 'ETH',
+          amount: '-5.2',
+          timestamp: 1700000001000,
+          rate: '-0.005',
+          positionSize: '10.0',
+          symbol: 'ETH',
+          amountUsd: '10.0',
+        },
+      ];
+
+      const params = { limit: 20 };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.getFunding.mockResolvedValue(mockFunding);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.getFunding(params);
+
+        expect(result).toEqual(mockFunding);
+        expect(mockHyperLiquidProvider.getFunding).toHaveBeenCalledWith(params);
+      });
+    });
+
+    it('should handle errors when getting funding data', async () => {
+      const errorMessage = 'Failed to fetch funding data';
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.getFunding.mockRejectedValue(
+          new Error(errorMessage),
+        );
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        try {
+          await controller.getFunding();
+          // Should not reach here
+          fail('Expected getFunding to throw an error');
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe(errorMessage);
+        }
       });
     });
   });

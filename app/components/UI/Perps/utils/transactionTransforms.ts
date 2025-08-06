@@ -51,24 +51,19 @@ export function transformFillsToTransactions(
       return acc;
     }
 
-    let amount = '';
+    let amount = 0;
     let amountBN = BigNumber(0);
 
     if (isFlipped) {
       amountBN = BigNumber(fill.startPosition || '0')
         .minus(fill.size)
         .times(fill.price);
-      amount = `${isPositive ? '+' : '-'}${amountBN
-        .absoluteValue()
-        .toString()} ${fill.symbol}`;
     } else {
       amountBN = BigNumber(fill.size).times(fill.price).plus(fill.fee);
-      amount = `${isPositive ? '+' : '-'}${amountBN.toString()} ${
-        fill.feeToken
-      }`;
     }
+    amount = amountBN.toNumber();
 
-    const absAmount = Math.abs(parseFloat(amount)).toFixed(2);
+    const absAmount = Math.abs(amount).toFixed(2);
     const amountUSD = `${isPositive ? '+' : '-'}$${absAmount}`;
 
     acc.push({
