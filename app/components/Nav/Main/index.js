@@ -90,15 +90,10 @@ import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { Authentication } from '../../../core';
-import {
-  IconName,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
-import { selectIsConnectionRemoved } from '../../../reducers/user/selectors';
-import { setIsConnectionRemoved } from '../../../actions/user';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { handleShowNetworkActiveToast } from './utils';
 
@@ -126,7 +121,7 @@ const Main = (props) => {
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
-  const { isConnectionRemoved, setIsConnectionRemoved } = props;
+  // const { isConnectionRemoved, setIsConnectionRemoved } = props;
 
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
@@ -168,30 +163,6 @@ const Main = (props) => {
     };
     checkIsSeedlessPasswordOutdated();
   }, [isSeedlessPasswordOutdated, props.navigation]);
-
-  useEffect(() => {
-    const showConnectionRemovedPopup = () => {
-      if (isConnectionRemoved) {
-        props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params: {
-            title: strings('connection_removed_modal.title'),
-            description: strings('connection_removed_modal.content'),
-            primaryButtonLabel: strings('connection_removed_modal.tryAgain'),
-            type: 'error',
-            icon: IconName.Danger,
-            iconColor: IconColor.Warning,
-            isInteractable: false,
-            onPrimaryButtonPress: () => {
-              setIsConnectionRemoved(false);
-            },
-            closeOnPrimaryButtonPress: true,
-          },
-        });
-      }
-    };
-    showConnectionRemovedPopup();
-  }, [props.navigation, setIsConnectionRemoved, isConnectionRemoved]);
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
@@ -570,14 +541,6 @@ Main.propTypes = {
    * Network configurations
    */
   networkConfigurations: PropTypes.object,
-  /**
-   * Is connection removed
-   */
-  isConnectionRemoved: PropTypes.bool,
-  /**
-   * Set is connection removed
-   */
-  setIsConnectionRemoved: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -586,7 +549,6 @@ const mapStateToProps = (state) => ({
   networkClientId: selectNetworkClientId(state),
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
   networkConfigurations: selectNetworkConfigurations(state),
-  isConnectionRemoved: selectIsConnectionRemoved(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -600,8 +562,6 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setInfuraAvailabilityNotBlocked()),
   removeNotVisibleNotifications: () =>
     dispatch(removeNotVisibleNotifications()),
-  setIsConnectionRemoved: (isConnectionRemoved) =>
-    dispatch(setIsConnectionRemoved(isConnectionRemoved)),
 });
 
 const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);

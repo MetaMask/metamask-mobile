@@ -143,6 +143,12 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import { selectIsConnectionRemoved } from '../../../reducers/user';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { setIsConnectionRemoved } from '../../../actions/user';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -487,6 +493,33 @@ const Wallet = ({
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
     });
   }, [addTraitsToUser, hdKeyrings.length]);
+
+  const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
+
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('isConnectionRemoved useEffect wallet', isConnectionRemoved);
+    if (isConnectionRemoved) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings('connection_removed_modal.title'),
+          description: strings('connection_removed_modal.content'),
+          primaryButtonLabel: strings('connection_removed_modal.tryAgain'),
+          type: 'error',
+          icon: IconName.Danger,
+          iconColor: IconColor.Warning,
+          isInteractable: false,
+          closeOnPrimaryButtonPress: true,
+          onPrimaryButtonPress: () => {
+            // eslint-disable-next-line no-console
+            console.log('isConnectionRemoved 2', isConnectionRemoved);
+            dispatch(setIsConnectionRemoved(false));
+          },
+        },
+      });
+    }
+  }, [navigation, isConnectionRemoved, dispatch]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;

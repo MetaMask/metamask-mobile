@@ -13,6 +13,7 @@ import {
   logOut,
   passwordSet,
   setExistingUser,
+  setIsConnectionRemoved,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -503,8 +504,7 @@ class AuthenticationService {
   userEntryAuth = async (
     password: string,
     authData: AuthData,
-  ): Promise<boolean> => {
-    let isConnectionRemoved = false;
+  ): Promise<void> => {
     try {
       trace({
         name: TraceName.VaultCreation,
@@ -516,10 +516,7 @@ class AuthenticationService {
         await this.rehydrateSeedPhrase(password, authData);
       } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-        isConnectionRemoved = await this.syncPasswordAndUnlockWallet(
-          password,
-          authData,
-        );
+        await this.syncPasswordAndUnlockWallet(password, authData);
       } else {
         // else srp flow
         await this.loginVaultCreation(password);
@@ -553,7 +550,6 @@ class AuthenticationService {
       );
     }
     password = this.wipeSensitiveData();
-    return isConnectionRemoved;
   };
 
   /**
@@ -998,7 +994,7 @@ class AuthenticationService {
   syncPasswordAndUnlockWallet = async (
     globalPassword: string,
     authData: AuthData,
-  ): Promise<boolean> => {
+  ): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
 
     const { success: isKeyringPasswordValid } =
@@ -1014,7 +1010,7 @@ class AuthenticationService {
     const { success, error: seedlessSyncError } =
       await SeedlessOnboardingController.submitGlobalPassword({
         globalPassword,
-        maxKeyChainLength: 20,
+        maxKeyChainLength: 1,
       })
         .then(() => ({ success: true, error: null }))
         .catch((err) => ({ success: false, error: err }));
@@ -1038,7 +1034,7 @@ class AuthenticationService {
         await SeedlessOnboardingController.refreshAuthTokens();
         await this.rehydrateSeedPhrase(globalPassword, authData);
         // skip the rest of the flow ( change password and sync keyring encryption key)
-        return true;
+        ReduxService.store.dispatch(setIsConnectionRemoved(true));
       } else if (
         errorMessage ===
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword
@@ -1087,7 +1083,6 @@ class AuthenticationService {
       const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
       await StorageWrapper.setItem(discoveryStorageId, TRUE);
     }
-    return false;
   };
 
   /**
