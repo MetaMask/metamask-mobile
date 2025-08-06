@@ -16,6 +16,7 @@ import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { generateTransferData } from '../../../../util/transactions';
 import type { CandleData } from '../types';
+import { CandlePeriod } from '../constants/chartConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -896,17 +897,17 @@ export class PerpsController extends BaseController<
    */
   async fetchHistoricalCandles(
     coin: string,
-    interval: string,
+    interval: CandlePeriod,
     limit: number = 100,
-  ): Promise<CandleData | null> {
+  ): Promise<CandleData> {
     try {
       const provider = this.getActiveProvider() as IPerpsProvider & {
         clientService?: {
           fetchHistoricalCandles: (
             coin: string,
-            interval: string,
+            interval: CandlePeriod,
             limit: number,
-          ) => Promise<CandleData | null>;
+          ) => Promise<CandleData>;
         };
       };
 

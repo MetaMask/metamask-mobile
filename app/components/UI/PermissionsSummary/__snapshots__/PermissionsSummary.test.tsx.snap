@@ -1084,7 +1084,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d1a",
+              "backgroundColor": "#3c4d9d0f",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -1806,7 +1806,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d1a",
+              "backgroundColor": "#3c4d9d0f",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -2593,7 +2593,7 @@ exports[`PermissionsSummary should render only the account permissions card when
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d1a",
+              "backgroundColor": "#3c4d9d0f",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -3172,7 +3172,7 @@ exports[`PermissionsSummary should render only the network permissions card when
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d1a",
+              "backgroundColor": "#3c4d9d0f",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -4439,7 +4439,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d1a",
+              "backgroundColor": "#3c4d9d0f",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -5706,7 +5706,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d1a",
+              "backgroundColor": "#3c4d9d0f",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
