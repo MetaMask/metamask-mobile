@@ -26,11 +26,16 @@ import {
   SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
 } from '@metamask/smart-transactions-controller';
 import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
+import {
+  BridgeStatusControllerActions,
+  BridgeStatusControllerEvents,
+} from '@metamask/bridge-status-controller';
 
 type MessengerActions =
   | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
   | ApprovalControllerActions
+  | BridgeStatusControllerActions
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | KeyringControllerSignEip7702AuthorizationAction
   | NetworkControllerGetEIP1559CompatibilityAction
@@ -38,6 +43,7 @@ type MessengerActions =
   | RemoteFeatureFlagControllerGetStateAction;
 
 type MessengerEvents =
+  | BridgeStatusControllerEvents
   | TransactionControllerTransactionApprovedEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionDroppedEvent
@@ -56,7 +62,6 @@ export type TransactionControllerInitMessenger = ReturnType<
 export function getTransactionControllerMessenger(
   messenger: Messenger<MessengerActions, MessengerEvents>,
 ): TransactionControllerMessenger {
-  // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
   return messenger.getRestricted({
     name: 'TransactionController',
     allowedActions: [
@@ -78,6 +83,7 @@ export function getTransactionControllerInitMessenger(
   return messenger.getRestricted({
     name: 'TransactionControllerInit',
     allowedEvents: [
+      'BridgeStatusController:stateChange',
       'TransactionController:transactionApproved',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionDropped',
@@ -93,6 +99,7 @@ export function getTransactionControllerInitMessenger(
       'ApprovalController:endFlow',
       'ApprovalController:startFlow',
       'ApprovalController:updateRequestState',
+      'BridgeStatusController:submitTx',
       'NetworkController:getEIP1559Compatibility',
     ],
   });

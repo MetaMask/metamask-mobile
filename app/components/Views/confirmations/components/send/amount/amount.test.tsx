@@ -3,7 +3,7 @@ import React from 'react';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { SendContextProvider } from '../../../context/send-context';
-import Amount from './amount';
+import { Amount } from './amount';
 
 jest.mock(
   '../../../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
@@ -54,5 +54,11 @@ describe('Amount', () => {
     const { getByText } = renderComponent();
 
     expect(getByText('Max')).toBeTruthy();
+  });
+
+  it('display option for fiat toggle', async () => {
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('fiat_toggle')).toBeTruthy();
   });
 });

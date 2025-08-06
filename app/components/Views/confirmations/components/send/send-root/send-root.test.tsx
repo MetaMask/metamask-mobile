@@ -3,15 +3,19 @@ import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { act, fireEvent } from '@testing-library/react-native';
 
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import Engine from '../../../../../../core/Engine';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
-import * as TransactionUtils from '../../../../../util/transaction-controller';
-import { SendContextProvider } from '../../context/send-context';
-import { Send } from './send';
-import Engine from '../../../../../core/Engine';
+import * as TransactionUtils from '../../../../../../util/transaction-controller';
+import { SendContextProvider } from '../../../context/send-context';
+import {
+  ACCOUNT_ADDRESS_MOCK_1,
+  TOKEN_ADDRESS_MOCK_1,
+  evmSendStateMock,
+} from '../../../__mocks__/send.mock';
+import { SendRoot } from './send-root';
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('../../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
@@ -23,7 +27,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock(
-  '../../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
+  '../../../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
   () => ({
     useGasFeeEstimates: () => ({
       gasFeeEstimates: { medium: { suggestedMaxFeePerGas: 1.5 } },
@@ -51,51 +55,14 @@ jest.mock('@react-navigation/native', () => ({
 const renderComponent = () =>
   renderWithProvider(
     <SendContextProvider>
-      <Send />
+      <SendRoot />
     </SendContextProvider>,
     {
-      state: {
-        engine: {
-          backgroundState: {
-            ...backgroundState,
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: 'evm-account-id',
-                accounts: {
-                  'evm-account-id': {
-                    id: 'evm-account-id',
-                    type: 'eip155:eoa',
-                    address: '0x12345',
-                    metadata: {},
-                  },
-                },
-              },
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                '0x12345': {
-                  '0x1': {
-                    '0x123': '0x5',
-                  },
-                },
-              },
-            },
-            AccountTrackerController: {
-              accountsByChainId: {
-                '0x1': {
-                  '0x12345': {
-                    balance: '0xDE0B6B3A7640000',
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+      state: evmSendStateMock,
     },
   );
 
-describe('Send', () => {
+describe('SendRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -112,7 +79,7 @@ describe('Send', () => {
     const { getByText } = renderComponent();
 
     expect(getByText('From:')).toBeTruthy();
-    expect(getByText('0x12345')).toBeTruthy();
+    expect(getByText(ACCOUNT_ADDRESS_MOCK_1)).toBeTruthy();
   });
 
   it('navigate back when cancel is clicked', async () => {
@@ -127,6 +94,16 @@ describe('Send', () => {
     const { getByText, getByTestId } = renderComponent();
     fireEvent.changeText(getByTestId('send_amount'), 'abc');
     expect(getByText('Invalid amount')).toBeTruthy();
+    expect(mockAddTransaction).not.toHaveBeenCalled();
+  });
+
+  it('confirm button is disabled for invalid to address value', async () => {
+    const mockAddTransaction = jest.spyOn(TransactionUtils, 'addTransaction');
+    const { getByText, getByTestId } = renderComponent();
+    await act(async () => {
+      fireEvent.changeText(getByTestId('send_to_address'), 'abc');
+    });
+    expect(getByText('Invalid address')).toBeTruthy();
     expect(mockAddTransaction).not.toHaveBeenCalled();
   });
 
@@ -155,7 +132,7 @@ describe('Send', () => {
         }),
       );
     const { getByText, getByTestId } = renderComponent();
-    fireEvent.changeText(getByTestId('send_to_address'), '0x123');
+    fireEvent.changeText(getByTestId('send_to_address'), TOKEN_ADDRESS_MOCK_1);
     fireEvent.changeText(getByTestId('send_amount'), '.01');
     fireEvent.press(getByText('Confirm'));
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
@@ -190,7 +167,7 @@ describe('Send', () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
         asset: {
-          address: '0x123',
+          address: TOKEN_ADDRESS_MOCK_1,
           decimals: 2,
         },
       },
@@ -206,7 +183,7 @@ describe('Send', () => {
       params: {
         asset: {
           name: 'Ethereum',
-          address: '0x123',
+          address: TOKEN_ADDRESS_MOCK_1,
           isNative: true,
           chainId: '0x1',
         },
@@ -222,7 +199,7 @@ describe('Send', () => {
         }),
       );
     const { getByText, getByTestId } = renderComponent();
-    fireEvent.changeText(getByTestId('send_to_address'), '0x123');
+    fireEvent.changeText(getByTestId('send_to_address'), TOKEN_ADDRESS_MOCK_1);
     fireEvent.changeText(getByTestId('send_amount'), '1');
     fireEvent.press(getByText('Confirm'));
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
@@ -233,7 +210,7 @@ describe('Send', () => {
       params: {
         asset: {
           name: 'MyNFT',
-          address: '0x123',
+          address: TOKEN_ADDRESS_MOCK_1,
           chainId: '0x1',
           tokenId: '0x1',
         },
@@ -249,7 +226,7 @@ describe('Send', () => {
         }),
       );
     const { getByText, getByTestId } = renderComponent();
-    fireEvent.changeText(getByTestId('send_to_address'), '0x123');
+    fireEvent.changeText(getByTestId('send_to_address'), TOKEN_ADDRESS_MOCK_1);
     fireEvent.press(getByText('Confirm'));
     expect(mockAddTransaction).toHaveBeenCalledTimes(1);
   });
@@ -259,28 +236,29 @@ describe('Send', () => {
       params: {
         asset: {
           name: 'Ethereum',
-          address: '0x123',
+          address: TOKEN_ADDRESS_MOCK_1,
         },
       },
     } as RouteProp<ParamListBase, string>);
     const { getByText } = renderComponent();
-    expect(getByText('Asset: 0x123')).toBeTruthy();
+    expect(getByText(`Asset: ${TOKEN_ADDRESS_MOCK_1}`)).toBeTruthy();
   });
 
   it('pressing Max uses max balance of ERC20 token', () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
         asset: {
-          address: '0x123',
+          address: TOKEN_ADDRESS_MOCK_1,
           decimals: 2,
         },
       },
     } as RouteProp<ParamListBase, string>);
 
     const { getByText, getByTestId } = renderComponent();
-    expect(getByTestId('send_amount').props.value).toBe(undefined);
+    expect(getByTestId('send_amount').props.value).toBe('');
     fireEvent.press(getByText('Max'));
     expect(getByTestId('send_amount').props.value).toBe('0.05');
+    expect(getByText('$ 0.05')).toBeTruthy();
   });
 
   it('pressing Max uses max balance minus gas for native token', () => {
@@ -294,8 +272,67 @@ describe('Send', () => {
     } as RouteProp<ParamListBase, string>);
 
     const { getByText, getByTestId } = renderComponent();
-    expect(getByTestId('send_amount').props.value).toBe(undefined);
+    expect(getByTestId('send_amount').props.value).toBe('');
     fireEvent.press(getByText('Max'));
     expect(getByTestId('send_amount').props.value).toBe('0.9999685');
+    expect(getByText('$ 0.99')).toBeTruthy();
+  });
+
+  it('display fiat conversion of amount entered', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: TOKEN_ADDRESS_MOCK_1,
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '1');
+    expect(getByText('$ 3890')).toBeTruthy();
+  });
+
+  it('if fiatmode is enabled display native conversion of amount entered', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: TOKEN_ADDRESS_MOCK_1,
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.press(getByTestId('fiat_toggle'));
+    fireEvent.changeText(getByTestId('send_amount'), '7780');
+    expect(getByText('ETH 2')).toBeTruthy();
+  });
+
+  it('pressing Max in fiat mode should work as expected', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: TOKEN_ADDRESS_MOCK_1,
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    expect(getByTestId('send_amount').props.value).toBe('');
+    fireEvent.press(getByTestId('fiat_toggle'));
+    fireEvent.press(getByText('Max'));
+    expect(getByTestId('send_amount').props.value).toBe('3889.87746');
+    expect(getByText('ETH 0.99997')).toBeTruthy();
   });
 });

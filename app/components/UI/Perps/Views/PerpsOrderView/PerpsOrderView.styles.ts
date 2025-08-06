@@ -494,6 +494,23 @@ const createStyles = (colors: Colors) =>
     keypad: {
       backgroundColor: colors.background.default,
     },
+    tooltipContent: {
+      paddingBottom: 16,
+    },
+    tooltipButtonContainer: {
+      paddingTop: 8,
+      paddingBottom: 8,
+    },
+    tooltipFeeRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+      width: '100%',
+    },
+    tooltipFeesContainer: {
+      width: '100%',
+    },
   });
 
 export default createStyles;
