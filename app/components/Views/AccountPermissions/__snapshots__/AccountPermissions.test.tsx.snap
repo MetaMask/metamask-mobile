@@ -471,25 +471,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                         >
                           Account 1
                         </Text>
-                        <TouchableOpacity
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": undefined,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessible={true}
-                          focusable={false}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
+                        <View
                           style={
                             {
                               "alignItems": "flex-start",
@@ -514,7 +496,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                           >
                             0xC4955...4D272
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                       <View
                         style={
@@ -783,7 +765,7 @@ exports[`AccountPermissions renders correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

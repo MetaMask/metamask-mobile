@@ -26,6 +26,7 @@ import {
   DappOptions,
   AnvilNodeOptions,
   GanacheNodeOptions,
+  TestSpecificMock,
 } from '../types';
 import {
   TestDapps,
@@ -36,6 +37,8 @@ import {
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
+import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
+import { type Mockttp } from 'mockttp';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -314,6 +317,67 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   logger.debug('The fixture server is stopped');
 };
 
+export const createMockAPIServer = async (
+  mockServerInstance?: Mockttp,
+  testSpecificMock?: TestSpecificMock,
+) => {
+  // Handle mock server
+  let mockServer: Mockttp | undefined;
+  let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
+
+  // Both
+  if (mockServerInstance && testSpecificMock) {
+    throw new Error(
+      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
+    );
+  }
+
+  // mockServerInstance only
+  if (mockServerInstance && !testSpecificMock) {
+    mockServer = mockServerInstance;
+    mockServerPort = mockServer.port;
+    logger.debug(
+      `Mock server started from mockServerInstance on port ${mockServerPort}`,
+    );
+
+    const endpoints = await mockServer.getMockedEndpoints();
+
+    logger.debug(`Mocked endpoints: ${endpoints.length}`);
+  }
+
+  // testSpecificMock only
+  if (!mockServerInstance && testSpecificMock) {
+    mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+
+    logger.debug(
+      `Mock server started from testSpecificMock on port ${mockServerPort}`,
+    );
+  }
+
+  // neither
+  if (!mockServerInstance && !testSpecificMock) {
+    mockServerPort = getMockServerPort();
+    mockServer = await startMockServer({}, mockServerPort);
+
+    logger.debug(
+      `Mock server started from testSpecificMock on port ${mockServerPort}`,
+    );
+  }
+
+  if (!mockServer) {
+    throw new Error('Test setup failure, no mock server setup');
+  }
+
+  // Additional Global Mocks
+  await mockNotificationServices(mockServer);
+
+  return {
+    mockServer,
+    mockServerPort,
+  };
+};
+
 /**
  * Executes a test suite with fixtures by setting up a fixture server, loading a specified fixture,
  * and running the test suite. After the test suite execution, it stops the fixture server.
@@ -349,36 +413,13 @@ export async function withFixtures(
     endTestfn,
   } = options;
 
-  if (mockServerInstance && testSpecificMock) {
-    throw new Error(
-      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
-    );
-  }
+  const { mockServer, mockServerPort } = await createMockAPIServer(
+    mockServerInstance,
+    testSpecificMock,
+  );
 
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
-
-  // Handle mock server
-  let mockServer;
-  let mockServerPort = DEFAULT_MOCKSERVER_PORT;
-
-  if (mockServerInstance && !testSpecificMock) {
-    mockServer = mockServerInstance;
-    mockServerPort = mockServer.port;
-    logger.debug(
-      `Mock server started from mockServerInstance on port ${mockServerPort}`,
-    );
-    const endpoints = await mockServer.getMockedEndpoints();
-    logger.debug(`Mocked endpoints: ${endpoints.length}`);
-  }
-
-  if (testSpecificMock && !mockServerInstance) {
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
-    logger.debug(
-      `Mock server started from testSpecificMock on port ${mockServerPort}`,
-    );
-  }
 
   // Handle local nodes
   let localNodes;

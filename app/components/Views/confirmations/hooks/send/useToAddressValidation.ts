@@ -145,11 +145,10 @@ export const validateToAddress = async (
 
 // todo: to address validation assumees `to` is the input from the user
 // depending on implementation we may need to have 2 fields for receipient `toInput` and `toResolved`
-const useToAddressValidation = () => {
+export const useToAddressValidation = () => {
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const { to, asset } = useSendContext();
-  const { chainId } = asset ?? { chainId: undefined };
+  const { chainId, to } = useSendContext();
 
   const { value } = useAsyncResult(async () => {
     if (
@@ -171,5 +170,3 @@ const useToAddressValidation = () => {
     toAddressWarning: warning,
   };
 };
-
-export default useToAddressValidation;

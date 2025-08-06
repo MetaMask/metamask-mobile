@@ -112,9 +112,6 @@ const copyAndSourceEnvVarsTask = {
 const buildPpomTask = {
   title: 'Build PPOM',
   task: (_, task) => {
-    if (IS_NODE) {
-      return task.skip('Skipping building PPOM.');
-    }
     const $ppom = $({ cwd: 'ppom' });
 
     return task.newListr(
