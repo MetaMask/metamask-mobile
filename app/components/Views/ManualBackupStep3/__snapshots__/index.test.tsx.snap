@@ -27,6 +27,6 @@ exports[`ManualBackupStep3 should render correctly 1`] = `
     }
   }
 >
-  <ManualBackupStep3 />
+  <Component />
 </ContextProvider>
 `;
