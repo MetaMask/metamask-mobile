@@ -16,32 +16,44 @@ import Routes from '../../../constants/navigation/Routes';
 import { useMetrics } from '../../hooks/useMetrics';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
-import { createBuyNavigationDetails, createSellNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import {
+  createBuyNavigationDetails,
+  createSellNavigationDetails,
+} from '../Ramp/Aggregator/routes/utils';
 import { trace, TraceName } from '../../../util/trace';
 import { getDecimalChainId } from '../../../util/networks';
 import FundActionMenu from './FundActionMenu';
 
 // Mock BottomSheet component
-jest.mock('../../../component-library/components/BottomSheets/BottomSheet', () => {
-  const { View } = jest.requireActual('react-native');
-  const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    const { forwardRef, useImperativeHandle } = jest.requireActual('react');
 
-  const MockBottomSheet = forwardRef((props: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
-    useImperativeHandle(ref, () => ({
-      onOpenBottomSheet: jest.fn(),
-      onCloseBottomSheet: jest.fn((callback?: () => void) => {
-        if (callback) callback();
-      }),
-    }));
+    const MockBottomSheet = forwardRef(
+      (props: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
+        useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: jest.fn(),
+          onCloseBottomSheet: jest.fn((callback?: () => void) => {
+            if (callback) callback();
+          }),
+        }));
 
-    return <View testID="bottom-sheet" {...props}>{props.children}</View>;
-  });
+        return (
+          <View testID="bottom-sheet" {...props}>
+            {props.children}
+          </View>
+        );
+      },
+    );
 
-  return {
-    __esModule: true,
-    default: MockBottomSheet,
-  };
-});
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
 
 // Mock ActionListItem component
 jest.mock('../../../component-library/components-temp/ActionListItem', () => {
@@ -68,7 +80,9 @@ jest.mock('../../../component-library/components-temp/ActionListItem', () => {
       accessibilityState={{ disabled: isDisabled }}
     >
       <RNText testID={`${testID}-label`}>{label}</RNText>
-      {description && <RNText testID={`${testID}-description`}>{description}</RNText>}
+      {description && (
+        <RNText testID={`${testID}-description`}>{description}</RNText>
+      )}
       <RNText testID={`${testID}-icon`}>{iconName}</RNText>
     </TouchableOpacity>
   );
@@ -88,16 +102,30 @@ jest.mock('../../../selectors/accountsController');
 jest.mock('../../../../locales/i18n');
 
 // Type the mocked functions
-const mockUseNavigation = useNavigation as jest.MockedFunction<typeof useNavigation>;
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
 const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
-const mockUseRampNetwork = useRampNetwork as jest.MockedFunction<typeof useRampNetwork>;
-const mockUseDepositEnabled = useDepositEnabled as jest.MockedFunction<typeof useDepositEnabled>;
+const mockUseRampNetwork = useRampNetwork as jest.MockedFunction<
+  typeof useRampNetwork
+>;
+const mockUseDepositEnabled = useDepositEnabled as jest.MockedFunction<
+  typeof useDepositEnabled
+>;
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
-const mockGetDecimalChainId = getDecimalChainId as jest.MockedFunction<typeof getDecimalChainId>;
-const mockCreateBuyNavigationDetails = createBuyNavigationDetails as jest.MockedFunction<typeof createBuyNavigationDetails>;
-const mockCreateSellNavigationDetails = createSellNavigationDetails as jest.MockedFunction<typeof createSellNavigationDetails>;
+const mockGetDecimalChainId = getDecimalChainId as jest.MockedFunction<
+  typeof getDecimalChainId
+>;
+const mockCreateBuyNavigationDetails =
+  createBuyNavigationDetails as jest.MockedFunction<
+    typeof createBuyNavigationDetails
+  >;
+const mockCreateSellNavigationDetails =
+  createSellNavigationDetails as jest.MockedFunction<
+    typeof createSellNavigationDetails
+  >;
 
 describe('FundActionMenu', () => {
   // Mock functions
@@ -145,10 +173,15 @@ describe('FundActionMenu', () => {
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
     mockGetDecimalChainId.mockReturnValue(1);
     mockCreateBuyNavigationDetails.mockReturnValue(['BuyScreen', {}] as never);
-    mockCreateSellNavigationDetails.mockReturnValue(['SellScreen', {}] as never);
+    mockCreateSellNavigationDetails.mockReturnValue([
+      'SellScreen',
+      {},
+    ] as never);
 
     // Mock strings
-    (strings as jest.MockedFunction<typeof strings>).mockImplementation((key: string) => key);
+    (strings as jest.MockedFunction<typeof strings>).mockImplementation(
+      (key: string) => key,
+    );
   });
 
   describe('Component Rendering', () => {
@@ -165,10 +198,24 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Assert
-      expect(getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON)).toBeOnTheScreen();
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}-label`)).toHaveTextContent('fund_actionmenu.deposit');
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}-description`)).toHaveTextContent('fund_actionmenu.deposit_description');
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}-icon`)).toHaveTextContent(IconName.Money);
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          `${WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}-label`,
+        ),
+      ).toHaveTextContent('fund_actionmenu.deposit');
+      expect(
+        getByTestId(
+          `${WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}-description`,
+        ),
+      ).toHaveTextContent('fund_actionmenu.deposit_description');
+      expect(
+        getByTestId(
+          `${WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}-icon`,
+        ),
+      ).toHaveTextContent(IconName.Money);
     });
 
     it('does not render deposit button when deposit is disabled', () => {
@@ -179,7 +226,9 @@ describe('FundActionMenu', () => {
       const { queryByTestId } = render(<FundActionMenu />);
 
       // Assert
-      expect(queryByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+      ).toBeNull();
     });
 
     it('renders buy button when ramp network is supported', () => {
@@ -187,10 +236,20 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Assert
-      expect(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON)).toBeOnTheScreen();
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}-label`)).toHaveTextContent('fund_actionmenu.buy');
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}-description`)).toHaveTextContent('fund_actionmenu.buy_description');
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}-icon`)).toHaveTextContent(IconName.Add);
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(`${WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}-label`),
+      ).toHaveTextContent('fund_actionmenu.buy');
+      expect(
+        getByTestId(
+          `${WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}-description`,
+        ),
+      ).toHaveTextContent('fund_actionmenu.buy_description');
+      expect(
+        getByTestId(`${WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}-icon`),
+      ).toHaveTextContent(IconName.Add);
     });
 
     it('does not render buy button when ramp network is not supported', () => {
@@ -201,7 +260,9 @@ describe('FundActionMenu', () => {
       const { queryByTestId } = render(<FundActionMenu />);
 
       // Assert
-      expect(queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
     });
 
     it('renders sell button when ramp network is supported', () => {
@@ -209,10 +270,22 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Assert
-      expect(getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON)).toBeOnTheScreen();
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}-label`)).toHaveTextContent('fund_actionmenu.sell');
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}-description`)).toHaveTextContent('fund_actionmenu.sell_description');
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}-icon`)).toHaveTextContent(IconName.MinusBold);
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          `${WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}-label`,
+        ),
+      ).toHaveTextContent('fund_actionmenu.sell');
+      expect(
+        getByTestId(
+          `${WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}-description`,
+        ),
+      ).toHaveTextContent('fund_actionmenu.sell_description');
+      expect(
+        getByTestId(`${WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}-icon`),
+      ).toHaveTextContent(IconName.MinusBold);
     });
 
     it('does not render sell button when ramp network is not supported', () => {
@@ -223,7 +296,9 @@ describe('FundActionMenu', () => {
       const { queryByTestId } = render(<FundActionMenu />);
 
       // Assert
-      expect(queryByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+      ).toBeNull();
     });
 
     it('renders sell button as disabled when user cannot sign transactions', () => {
@@ -239,7 +314,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Assert
-      const sellButton = getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON);
+      const sellButton = getByTestId(
+        WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+      );
       expect(sellButton).toBeOnTheScreen();
       expect(sellButton.props.accessibilityState.disabled).toBe(true);
     });
@@ -249,9 +326,15 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Assert
-      expect(getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON)).toBeOnTheScreen();
-      expect(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON)).toBeOnTheScreen();
-      expect(getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON)).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -261,7 +344,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -274,7 +359,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -287,7 +374,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -305,7 +394,9 @@ describe('FundActionMenu', () => {
       });
 
       const { getByTestId } = render(<FundActionMenu />);
-      const sellButton = getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON);
+      const sellButton = getByTestId(
+        WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+      );
 
       // Act
       // Note: Even though the button is marked as disabled, fireEvent.press can still trigger the onPress
@@ -330,7 +421,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -353,7 +446,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -378,7 +473,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -398,7 +495,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -418,7 +517,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -435,11 +536,15 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(MetaMetricsEvents.RAMPS_BUTTON_CLICKED);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+        );
         expect(mockAddProperties).toHaveBeenCalledWith({
           text: 'Deposit',
           location: 'FundActionMenu',
@@ -455,11 +560,15 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(MetaMetricsEvents.BUY_BUTTON_CLICKED);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.BUY_BUTTON_CLICKED,
+        );
         expect(mockAddProperties).toHaveBeenCalledWith({
           text: 'Buy',
           location: 'FundActionMenu',
@@ -479,7 +588,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -502,7 +613,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -519,11 +632,15 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(MetaMetricsEvents.SELL_BUTTON_CLICKED);
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.SELL_BUTTON_CLICKED,
+        );
         expect(mockAddProperties).toHaveBeenCalledWith({
           text: 'Sell',
           location: 'FundActionMenu',
@@ -540,7 +657,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -555,7 +674,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -573,7 +694,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -607,7 +730,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -628,7 +753,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      );
 
       // Assert
       await waitFor(() => {
@@ -652,7 +779,9 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Act
-      fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON));
+      fireEvent.press(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+      );
 
       // Assert
       expect(mockAddProperties).toHaveBeenCalledWith(
@@ -672,9 +801,15 @@ describe('FundActionMenu', () => {
 
       // Assert
       expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
-      expect(queryByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON)).toBeNull();
-      expect(queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON)).toBeNull();
-      expect(queryByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+      ).toBeNull();
     });
   });
 
@@ -693,9 +828,19 @@ describe('FundActionMenu', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       // Assert
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}-label`)).toHaveTextContent('fund_actionmenu.deposit');
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}-label`)).toHaveTextContent('fund_actionmenu.buy');
-      expect(getByTestId(`${WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}-label`)).toHaveTextContent('fund_actionmenu.sell');
+      expect(
+        getByTestId(
+          `${WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}-label`,
+        ),
+      ).toHaveTextContent('fund_actionmenu.deposit');
+      expect(
+        getByTestId(`${WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}-label`),
+      ).toHaveTextContent('fund_actionmenu.buy');
+      expect(
+        getByTestId(
+          `${WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}-label`,
+        ),
+      ).toHaveTextContent('fund_actionmenu.sell');
     });
 
     it('properly handles selector updates', () => {
@@ -714,7 +859,9 @@ describe('FundActionMenu', () => {
 
       // Assert
       const { getByTestId } = render(<FundActionMenu />);
-      const sellButton = getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON);
+      const sellButton = getByTestId(
+        WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+      );
       expect(sellButton.props.accessibilityState.disabled).toBe(true);
     });
   });
