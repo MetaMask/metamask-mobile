@@ -382,7 +382,7 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       >
         <TouchableOpacity
-          disabled={true}
+          disabled={false}
           onPress={[Function]}
           style={
             [
@@ -401,9 +401,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 "paddingVertical": 2,
                 "width": "100%",
               },
-              {
-                "opacity": 0.5,
-              },
+              false,
             ]
           }
           testID="token-buy-button"
@@ -1538,7 +1536,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         }
       >
         <TouchableOpacity
-          disabled={true}
+          disabled={false}
           onPress={[Function]}
           style={
             [
@@ -1557,9 +1555,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "paddingVertical": 2,
                 "width": "100%",
               },
-              {
-                "opacity": 0.5,
-              },
+              false,
             ]
           }
           testID="token-buy-button"
@@ -2730,7 +2726,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         }
       >
         <TouchableOpacity
-          disabled={true}
+          disabled={false}
           onPress={[Function]}
           style={
             [
@@ -2749,9 +2745,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "paddingVertical": 2,
                 "width": "100%",
               },
-              {
-                "opacity": 0.5,
-              },
+              false,
             ]
           }
           testID="token-buy-button"
