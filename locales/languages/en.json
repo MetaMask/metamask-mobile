@@ -4762,7 +4762,9 @@
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",
-      "switching_to": "Switching To"
+      "switching_to": "Switching To",
+      "bridge_estimated_time": "Est. time",
+      "pay_with": "Pay with"
     },
     "title": {
       "signature": "Signature request",
@@ -4774,7 +4776,8 @@
       "contract_deployment": "Deploy a contract",
       "transfer": "Transfer request",
       "switch_account_type": "Account update",
-      "approve": "Approve request"
+      "approve": "Approve request",
+      "perps_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
