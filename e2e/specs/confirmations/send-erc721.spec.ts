@@ -1,6 +1,5 @@
 import { SmokeConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
