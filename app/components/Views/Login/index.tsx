@@ -391,53 +391,45 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       | SeedlessOnboardingControllerError,
   ) => {
     setLoading(false);
-    if (isMetricsEnabled()) {
-      if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
-        if (
-          seedlessError.message ===
-          SeedlessOnboardingControllerErrorMessage.IncorrectPassword
-        ) {
-          setError(strings('login.invalid_password'));
-          return;
-        } else if (
-          seedlessError.message ===
-          SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
-        ) {
-          // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
-          if (seedlessError.data?.numberOfAttempts !== undefined) {
-            setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
-          }
-          if (typeof seedlessError.data?.remainingTime === 'number') {
-            tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
-              () => null,
-            );
-          }
-        } else {
-          const errMessage = seedlessError.message.replace(
-            'SeedlessOnboardingController - ',
-            '',
-          );
-          setError(errMessage);
+    const defaultSeedlessErrorHandler = (defaultSeedlessError: Error) => {
+      const errMessage = defaultSeedlessError.message.replace(
+        'SeedlessOnboardingController - ',
+        '',
+      );
+      setError(errMessage);
+    };
+
+    if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
+      if (
+        seedlessError.message ===
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword
+      ) {
+        setError(strings('login.invalid_password'));
+      } else if (
+        seedlessError.message ===
+        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
+      ) {
+        // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
+        if (seedlessError.data?.numberOfAttempts !== undefined) {
+          setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
         }
-        // return - skip
-      } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
-        if (
-          seedlessError.code ===
-          SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
-        ) {
-          setError(strings('login.seedless_password_outdated'));
+        if (typeof seedlessError.data?.remainingTime === 'number') {
+          tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
+            () => null,
+          );
         }
       } else {
-        const errMessage = seedlessError.message.replace(
-          'SeedlessOnboardingController - ',
-          '',
-        );
-        setError(errMessage);
+        defaultSeedlessErrorHandler(seedlessError);
       }
+    } else if (
+      seedlessError instanceof SeedlessOnboardingControllerError &&
+      seedlessError.code ===
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+    ) {
+      setError(strings('login.seedless_password_outdated'));
+    } else {
+      defaultSeedlessErrorHandler(seedlessError);
     }
-
-    // if metric not enable handleSentryCapture will throw error to ErrorBoundary onboarding flow
-    handleSentryCapture(seedlessError);
   };
 
   const handlePasswordError = (loginErrorMessage: string) => {
@@ -470,7 +462,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
 
     if (loginErrorMessage.includes('SeedlessOnboardingController')) {
-      handleSeedlessOnboardingControllerError(loginError);
+      setLoading(false);
+      handleSentryCapture(loginError);
+
+      if (isMetricsEnabled()) {
+        handleSeedlessOnboardingControllerError(loginError);
+      }
       return;
     }
 
