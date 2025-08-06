@@ -14,6 +14,8 @@ import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/T
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import Routes from '../../../../constants/navigation/Routes';
+import useRampNetwork from '../../../UI/Ramp/Aggregator/hooks/useRampNetwork';
+import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -59,6 +61,11 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { navigate } = useNavigation();
 
+  // Check if FundActionMenu would be empty
+  const [isNetworkRampSupported] = useRampNetwork();
+  const { isDepositEnabled } = useDepositEnabled();
+  const isFundMenuAvailable = isDepositEnabled || isNetworkRampSupported;
+
   const handleBuyPress = () => {
     // Always navigate to FundActionMenu, but pass both onBuy function and asset context
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -80,7 +87,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             iconStyle={styles.icon}
             containerStyle={styles.containerStyle}
             iconSize={AvatarSize.Lg}
-            disabled={!canSignTransactions}
+            disabled={!canSignTransactions || !isFundMenuAvailable}
             actionID={buyButtonActionID}
           />
           <Text variant={TextVariant.BodyMD}>

@@ -22,6 +22,16 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Mock the ramp hooks
+jest.mock('../../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => () => [
+  true,
+]);
+
+jest.mock('../../../UI/Ramp/Deposit/hooks/useDepositEnabled', () => ({
+  __esModule: true,
+  default: () => ({ isDepositEnabled: true }),
+}));
+
 describe('AssetDetailsActions', () => {
   const mockOnBuy = jest.fn();
   const mockGoToSwaps = jest.fn();
@@ -259,4 +269,7 @@ describe('AssetDetailsActions', () => {
       getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON).props.disabled,
     ).toBe(false);
   });
+
+  // TODO: Add test for disabled fund button when both deposit and ramp are unavailable
+  // This would require more complex mock setup that doesn't interfere with other tests
 });
