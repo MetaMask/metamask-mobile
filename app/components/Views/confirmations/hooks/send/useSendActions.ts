@@ -9,7 +9,7 @@ import { MMM_ORIGIN } from '../../constants/confirmations';
 import { prepareEVMTransaction } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 
-const useSendActions = () => {
+export const useSendActions = () => {
   const { asset, chainId, from, to, value } = useSendContext();
   const navigation = useNavigation();
   const { NetworkController } = Engine.context;
@@ -38,5 +38,3 @@ const useSendActions = () => {
 
   return { handleSubmitPress, handleCancelPress };
 };
-
-export default useSendActions;
