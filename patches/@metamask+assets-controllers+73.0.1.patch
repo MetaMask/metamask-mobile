@@ -150,7 +150,7 @@ index 3e7b205..00ad856 100644
          }
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
-index e16e91f..3168b35 100644
+index 4a81bbc..6cd5476 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 @@ -110,6 +110,7 @@ export type NftMetadata = {

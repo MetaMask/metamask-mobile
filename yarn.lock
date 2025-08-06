@@ -4857,10 +4857,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^73.0.1":
-  version "73.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-73.0.1.tgz#b95d54f1f2bd12903e795e4c0eec69dcdbd29d63"
-  integrity sha512-K5ffE+wavPIKXjVny0cbAwM5zguyQ0qAkBs22zIqpke0ai50WXDyIeJym742An/UtISVij3saP62REGmgLzTPw==
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@73.0.1-preview-e4e5ca5c":
+  version "73.0.1-preview-e4e5ca5c"
+  resolved "https://registry.npmjs.org/@metamask-previews/assets-controllers/-/assets-controllers-73.0.1-preview-e4e5ca5c.tgz#54e7a11ef6f29d9236591bb8dca4b845d5bb4207"
+  integrity sha512-/WwfhWhXCUXoDOFKyAx6cWZ405RDvMOeM3/j/y4cOMMeHwm07oziSqyzjFd0u6hRjeZE+Rbfv6UepDiX35ELhQ==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4888,6 +4888,7 @@
     immer "^9.0.6"
     lodash "^4.17.21"
     multiformats "^13.1.0"
+    reselect "^5.1.1"
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
