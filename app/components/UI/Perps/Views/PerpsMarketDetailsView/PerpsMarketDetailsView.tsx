@@ -22,6 +22,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
@@ -29,6 +30,11 @@ import type {
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
+import {
+  getDefaultCandlePeriodForDuration,
+  TimeDuration,
+  CandlePeriod,
+} from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 interface MarketDetailsRouteParams {
@@ -43,7 +49,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { market } = route.params || {};
   const { top } = useSafeAreaInsets();
 
-  const [selectedInterval, setSelectedInterval] = useState('1h');
+  const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
+    TimeDuration.ONE_DAY,
+  );
+  const [selectedCandlePeriod, setSelectedCandlePeriod] =
+    useState<CandlePeriod>(() =>
+      getDefaultCandlePeriodForDuration(TimeDuration.ONE_DAY),
+    );
+  const [
+    isCandlePeriodBottomSheetVisible,
+    setIsCandlePeriodBottomSheetVisible,
+  ] = useState(false);
 
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
@@ -51,7 +67,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get candlestick data
   const { candleData, isLoadingHistory } = usePerpsPositionData({
     coin: market?.symbol || '',
-    selectedInterval,
+    selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
+    selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
   });
 
   // Check if user has an existing position for this market
@@ -61,8 +78,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       loadOnMount: true,
     });
 
-  const handleIntervalChange = useCallback((newInterval: string) => {
-    setSelectedInterval(newInterval);
+  const handleDurationChange = useCallback((newDuration: TimeDuration) => {
+    setSelectedDuration(newDuration);
+    // Auto-update candle period to the appropriate default for the new duration
+    const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
+    setSelectedCandlePeriod(defaultPeriod);
+  }, []);
+
+  const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
+    setSelectedCandlePeriod(newPeriod);
+  }, []);
+
+  const handleGearPress = useCallback(() => {
+    setIsCandlePeriodBottomSheetVisible(true);
   }, []);
 
   const handleBackPress = () => {
@@ -118,8 +146,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             candleData={candleData}
             isLoading={isLoadingHistory}
             height={350}
-            selectedInterval={selectedInterval}
-            onIntervalChange={handleIntervalChange}
+            selectedDuration={selectedDuration}
+            onDurationChange={handleDurationChange}
+            onGearPress={handleGearPress}
           />
         </View>
 
@@ -294,6 +323,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           </>
         )}
       </View>
+
+      {/* Candle Period Bottom Sheet */}
+      {isCandlePeriodBottomSheetVisible && (
+        <PerpsCandlePeriodBottomSheet
+          isVisible
+          onClose={() => setIsCandlePeriodBottomSheetVisible(false)}
+          selectedPeriod={selectedCandlePeriod}
+          selectedDuration={selectedDuration}
+          onPeriodChange={handleCandlePeriodChange}
+          testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
+        />
+      )}
     </SafeAreaView>
   );
 };
