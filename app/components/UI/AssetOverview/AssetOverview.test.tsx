@@ -11,8 +11,6 @@ import {
   MOCK_ADDRESS_2,
   createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
-import { getDecimalChainId } from '../../../util/networks';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 // eslint-disable-next-line import/no-namespace
 import * as transactions from '../../../util/transactions';
