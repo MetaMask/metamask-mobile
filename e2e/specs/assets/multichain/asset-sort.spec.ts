@@ -70,6 +70,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
         await WalletView.tapSortBy();
         await SortModal.tapSortAlphabetically();
         // Relaunching the app since the tree is not re-rendered with FlashList v2.
+        await device.terminateApp();
         await TestHelpers.launchApp({
           launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
         });
