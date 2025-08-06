@@ -88,6 +88,9 @@ const mockProvider = {
     status: 'pending',
     metadata: {},
   }),
+  validateOrder: jest.fn().mockResolvedValue({ isValid: true }),
+  validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
+  validateWithdrawal: jest.fn().mockResolvedValue({ isValid: true }),
 } as const;
 
 const mockPerpsController = Engine.context.PerpsController as jest.Mocked<
