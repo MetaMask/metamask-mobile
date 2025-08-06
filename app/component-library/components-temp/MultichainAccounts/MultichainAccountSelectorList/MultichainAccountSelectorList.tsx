@@ -62,7 +62,7 @@ const MultichainAccountSelectorList = ({
 
       section.data.forEach((accountGroup) => {
         items.push({
-          type: 'account',
+          type: 'cell',
           data: accountGroup,
           walletName: section.walletName,
         });
@@ -105,7 +105,7 @@ const MultichainAccountSelectorList = ({
             );
           }
 
-          case 'account': {
+          case 'cell': {
             const isSelected = item.data.id === selectedAccountGroup?.id;
             return (
               <TouchableOpacity
@@ -178,7 +178,7 @@ const MultichainAccountSelectorList = ({
             switch (item.type) {
               case 'header':
                 return `header-${item.data.walletName}`;
-              case 'account':
+              case 'cell':
                 return `account-${item.data.id}`;
               case 'footer':
                 return `footer-${item.data.walletName}`;

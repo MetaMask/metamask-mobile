@@ -6,7 +6,7 @@ import { FlashList, FlashListProps } from '@shopify/flash-list';
  * Flattened item type for the account list
  */
 export type FlattenedMultichainAccountListItem =
-  | { type: 'account'; data: AccountGroupObject; walletName: string }
+  | { type: 'cell'; data: AccountGroupObject; walletName: string }
   | { type: 'header'; data: { title: string; walletName: string } }
   | { type: 'footer'; data: { walletName: string } };
 
@@ -22,7 +22,7 @@ export interface MultichainAccountSelectorListProps
   /**
    * Selected account group
    */
-  selectedAccountGroup?: AccountGroupObject;
+  selectedAccountGroup: AccountGroupObject;
   /**
    * Test ID for the component
    */

@@ -101,14 +101,7 @@ export default MultichainAccountSelectorListMeta;
 
 export const Default = {
   args: {
-    selectedAccountGroup: null,
-    privacyMode: false,
-  },
-};
-
-export const WithSelectedAccount = {
-  args: {
-    ...Default.args,
     selectedAccountGroup: mockAccountGroup1,
+    privacyMode: false,
   },
 };

@@ -82,7 +82,10 @@ describe('MultichainAccountSelectorList', () => {
     };
 
     const { getByText } = renderWithProvider(
-      <MultichainAccountSelectorList onSelectAccount={mockOnSelectAccount} />,
+      <MultichainAccountSelectorList
+        onSelectAccount={mockOnSelectAccount}
+        selectedAccountGroup={account1}
+      />,
       { state: mockState },
     );
 
@@ -115,7 +118,10 @@ describe('MultichainAccountSelectorList', () => {
     };
 
     const { getByText } = renderWithProvider(
-      <MultichainAccountSelectorList onSelectAccount={mockOnSelectAccount} />,
+      <MultichainAccountSelectorList
+        onSelectAccount={mockOnSelectAccount}
+        selectedAccountGroup={srpAccount}
+      />,
       { state: mockState },
     );
 
@@ -151,7 +157,10 @@ describe('MultichainAccountSelectorList', () => {
     };
 
     const { getByText } = renderWithProvider(
-      <MultichainAccountSelectorList onSelectAccount={mockOnSelectAccount} />,
+      <MultichainAccountSelectorList
+        onSelectAccount={mockOnSelectAccount}
+        selectedAccountGroup={srpAccount}
+      />,
       { state: mockState },
     );
 
@@ -183,7 +192,10 @@ describe('MultichainAccountSelectorList', () => {
     };
 
     const { getAllByTestId } = renderWithProvider(
-      <MultichainAccountSelectorList onSelectAccount={mockOnSelectAccount} />,
+      <MultichainAccountSelectorList
+        onSelectAccount={mockOnSelectAccount}
+        selectedAccountGroup={account2}
+      />,
       { state: mockState },
     );
 
