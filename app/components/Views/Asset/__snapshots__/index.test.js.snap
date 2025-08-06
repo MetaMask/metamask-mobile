@@ -1213,7 +1213,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 color="#ffffff"
                                                 fill="currentColor"
                                                 height={24}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 24,
@@ -1262,7 +1262,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               }
                                             }
                                           >
-                                            Buy
+                                            Fund
                                           </Text>
                                         </View>
                                         <View
@@ -3337,7 +3337,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 color="#ffffff"
                                                 fill="currentColor"
                                                 height={24}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 24,
@@ -3386,7 +3386,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               }
                                             }
                                           >
-                                            Buy
+                                            Fund
                                           </Text>
                                         </View>
                                         <View
@@ -5461,7 +5461,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 color="#ffffff"
                                                 fill="currentColor"
                                                 height={24}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 24,
@@ -5510,7 +5510,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               }
                                             }
                                           >
-                                            Buy
+                                            Fund
                                           </Text>
                                         </View>
                                         <View
@@ -7624,7 +7624,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 color="#ffffff"
                                                 fill="currentColor"
                                                 height={24}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 24,
@@ -7673,7 +7673,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               }
                                             }
                                           >
-                                            Buy
+                                            Fund
                                           </Text>
                                         </View>
                                         <View
@@ -9748,7 +9748,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 color="#ffffff"
                                                 fill="currentColor"
                                                 height={24}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 24,
@@ -9797,7 +9797,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               }
                                             }
                                           >
-                                            Buy
+                                            Fund
                                           </Text>
                                         </View>
                                         <View
@@ -11872,7 +11872,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 color="#ffffff"
                                                 fill="currentColor"
                                                 height={24}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 24,
@@ -11921,7 +11921,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               }
                                             }
                                           >
-                                            Buy
+                                            Fund
                                           </Text>
                                         </View>
                                         <View
@@ -14565,7 +14565,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 color="#ffffff"
                                                 fill="currentColor"
                                                 height={24}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 24,
@@ -14614,7 +14614,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               }
                                             }
                                           >
-                                            Buy
+                                            Fund
                                           </Text>
                                         </View>
                                         <View
@@ -16689,7 +16689,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 color="#ffffff"
                                                 fill="currentColor"
                                                 height={24}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 24,
@@ -16738,7 +16738,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               }
                                             }
                                           >
-                                            Buy
+                                            Fund
                                           </Text>
                                         </View>
                                         <View

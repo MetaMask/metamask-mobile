@@ -382,7 +382,7 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       >
         <TouchableOpacity
-          disabled={false}
+          disabled={true}
           onPress={[Function]}
           style={
             [
@@ -401,7 +401,9 @@ exports[`AssetOverview should render correctly 1`] = `
                 "paddingVertical": 2,
                 "width": "100%",
               },
-              false,
+              {
+                "opacity": 0.5,
+              },
             ]
           }
           testID="token-buy-button"
@@ -424,7 +426,7 @@ exports[`AssetOverview should render correctly 1`] = `
               color="#ffffff"
               fill="currentColor"
               height={24}
-              name="Add"
+              name="Money"
               style={
                 {
                   "height": 24,
@@ -473,7 +475,7 @@ exports[`AssetOverview should render correctly 1`] = `
             }
           }
         >
-          Buy
+          Fund
         </Text>
       </View>
       <View
@@ -1536,7 +1538,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         }
       >
         <TouchableOpacity
-          disabled={false}
+          disabled={true}
           onPress={[Function]}
           style={
             [
@@ -1555,7 +1557,9 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "paddingVertical": 2,
                 "width": "100%",
               },
-              false,
+              {
+                "opacity": 0.5,
+              },
             ]
           }
           testID="token-buy-button"
@@ -1578,7 +1582,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               color="#ffffff"
               fill="currentColor"
               height={24}
-              name="Add"
+              name="Money"
               style={
                 {
                   "height": 24,
@@ -1627,7 +1631,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             }
           }
         >
-          Buy
+          Fund
         </Text>
       </View>
       <View
@@ -2726,7 +2730,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
         }
       >
         <TouchableOpacity
-          disabled={false}
+          disabled={true}
           onPress={[Function]}
           style={
             [
@@ -2745,7 +2749,9 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 "paddingVertical": 2,
                 "width": "100%",
               },
-              false,
+              {
+                "opacity": 0.5,
+              },
             ]
           }
           testID="token-buy-button"
@@ -2768,7 +2774,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               color="#ffffff"
               fill="currentColor"
               height={24}
-              name="Add"
+              name="Money"
               style={
                 {
                   "height": 24,
@@ -2817,7 +2823,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
             }
           }
         >
-          Buy
+          Fund
         </Text>
       </View>
       <View
