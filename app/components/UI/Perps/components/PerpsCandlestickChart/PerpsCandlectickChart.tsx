@@ -216,7 +216,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         dataWindowSize,
       });
 
-      const stepSize = 20; // Number of candles to move per swipe
+      const stepSize = 1; // Move by single candle/time period per swipe
       const loadMoreThreshold = 10; // Trigger loading when within 10 candles of boundary
 
       if (direction === 'left' && canNavigateLeft) {
