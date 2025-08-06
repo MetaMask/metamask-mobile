@@ -9,15 +9,9 @@ import FixtureBuilder, {
 import { getCardholderApiMocks } from '../../api-mocking/mock-responses/cardholder-mocks';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { getMockServerPort } from '../../fixtures/utils';
-import { startMockServer } from '../../api-mocking/mock-server';
-import { Mockttp } from 'mockttp';
 import CardHomeView from '../../pages/Card/CardHomeView';
 import SoftAssert from '../../utils/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
-
-let mockServer: Mockttp;
-let mockServerPort: number;
 
 const cardApiMocks = getCardholderApiMocks([
   `eip155:0:${DEFAULT_FIXTURE_ACCOUNT.toLowerCase()}`,
@@ -25,6 +19,10 @@ const cardApiMocks = getCardholderApiMocks([
 
 describe(SmokeCard('CardHome - Manage Card'), () => {
   const eventsToCheck: EventPayload[] = [];
+  const cardholderApiWithSegmentMock = {
+    ...cardApiMocks,
+    POST: [mockEvents.POST.segmentTrack],
+  };
 
   const setupCardTest = async (testFunction: () => Promise<void>) => {
     await withFixtures(
@@ -34,7 +32,7 @@ describe(SmokeCard('CardHome - Manage Card'), () => {
           .withNetworkController(CustomNetworks.Tenderly.Linea)
           .build(),
         restartDevice: true,
-        mockServerInstance: mockServer,
+        testSpecificMock: cardholderApiWithSegmentMock,
         endTestfn: async ({ mockServer: mockServerInstance }) => {
           const events = await getEventsPayloads(mockServerInstance);
           eventsToCheck.push(...events);
@@ -46,19 +44,6 @@ describe(SmokeCard('CardHome - Manage Card'), () => {
       },
     );
   };
-
-  beforeAll(async () => {
-    const cardholderApiWithSegmentMock = {
-      ...cardApiMocks,
-      POST: [mockEvents.POST.segmentTrack],
-    };
-
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(
-      cardholderApiWithSegmentMock,
-      mockServerPort,
-    );
-  });
 
   beforeEach(async () => {
     jest.setTimeout(150000);
