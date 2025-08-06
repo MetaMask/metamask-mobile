@@ -1,15 +1,9 @@
 import { constants } from 'ethers';
-import { createTokenFromCaip, getNativeSourceToken } from './tokenUtils';
-import {
-  isCaipAssetType,
-  parseCaipAssetType,
-  parseCaipChainId,
-} from '@metamask/utils';
+import { getNativeSourceToken } from './tokenUtils';
 import {
   getNativeAssetForChainId,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
-import { safeToChecksumAddress } from '../../../../util/address';
 
 // Mock dependencies
 jest.mock('@metamask/utils', () => ({
@@ -32,145 +26,6 @@ jest.mock('../../../../util/address', () => ({
 describe('tokenUtils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('createTokenFromCaip', () => {
-    it('returns null for invalid CAIP format', () => {
-      (isCaipAssetType as unknown as jest.Mock).mockReturnValue(false);
-
-      const result = createTokenFromCaip('invalid-format');
-
-      expect(result).toBeNull();
-      expect(isCaipAssetType).toHaveBeenCalledWith('invalid-format');
-    });
-
-    it('creates native token from slip44 namespace', () => {
-      const mockNativeAsset = {
-        address: constants.AddressZero,
-        name: 'Ethereum',
-        symbol: 'ETH',
-        decimals: 18,
-      };
-
-      (isCaipAssetType as unknown as jest.Mock).mockReturnValue(true);
-      (parseCaipAssetType as jest.Mock).mockReturnValue({
-        assetNamespace: 'slip44',
-        assetReference: '60',
-        chainId: 'eip155:1',
-      });
-      (getNativeAssetForChainId as jest.Mock).mockReturnValue(mockNativeAsset);
-      (isSolanaChainId as jest.Mock).mockReturnValue(false);
-
-      const result = createTokenFromCaip('eip155:1/slip44:60');
-
-      expect(result).toEqual({
-        address: mockNativeAsset.address,
-        name: mockNativeAsset.name,
-        symbol: mockNativeAsset.symbol,
-        image: undefined,
-        decimals: mockNativeAsset.decimals,
-        chainId: 'eip155:1',
-      });
-      expect(getNativeAssetForChainId).toHaveBeenCalledWith('eip155:1');
-    });
-
-    it('creates ERC20 token with checksum address and hex chain ID', () => {
-      const checksumAddress = '0xA0b86a33E6776d02b5C07b4E92b1B3a8E1B9b1A4';
-
-      (isCaipAssetType as unknown as jest.Mock).mockReturnValue(true);
-      (parseCaipAssetType as jest.Mock).mockReturnValue({
-        assetNamespace: 'erc20',
-        assetReference: '0xa0b86a33e6776d02b5c07b4e92b1b3a8e1b9b1a4',
-        chainId: 'eip155:1',
-      });
-      (parseCaipChainId as jest.Mock).mockReturnValue({
-        namespace: 'eip155',
-        reference: '1',
-      });
-      (safeToChecksumAddress as jest.Mock).mockReturnValue(checksumAddress);
-
-      const result = createTokenFromCaip(
-        'eip155:1/erc20:0xa0b86a33e6776d02b5c07b4e92b1b3a8e1b9b1a4',
-      );
-
-      expect(result).toEqual({
-        address: checksumAddress,
-        symbol: '',
-        name: '',
-        decimals: 18,
-        chainId: '0x1',
-        balance: '0',
-      });
-      expect(safeToChecksumAddress).toHaveBeenCalledWith(
-        '0xa0b86a33e6776d02b5c07b4e92b1b3a8e1b9b1a4',
-      );
-    });
-
-    it('creates ERC20 token with original address when checksum fails', () => {
-      const originalAddress = '0xa0b86a33e6776d02b5c07b4e92b1b3a8e1b9b1a4';
-
-      (isCaipAssetType as unknown as jest.Mock).mockReturnValue(true);
-      (parseCaipAssetType as jest.Mock).mockReturnValue({
-        assetNamespace: 'erc20',
-        assetReference: originalAddress,
-        chainId: 'eip155:1',
-      });
-      (parseCaipChainId as jest.Mock).mockReturnValue({
-        namespace: 'eip155',
-        reference: '1',
-      });
-      (safeToChecksumAddress as jest.Mock).mockReturnValue(null);
-
-      const result = createTokenFromCaip(
-        'eip155:1/erc20:0xa0b86a33e6776d02b5c07b4e92b1b3a8e1b9b1a4',
-      );
-
-      expect(result).toEqual({
-        address: originalAddress,
-        symbol: '',
-        name: '',
-        decimals: 18,
-        chainId: '0x1',
-        balance: '0',
-      });
-      expect(safeToChecksumAddress).toHaveBeenCalledWith(originalAddress);
-    });
-
-    it('creates non-EVM chain token with raw address', () => {
-      const caipAssetType =
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/spltoken:4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R';
-
-      (isCaipAssetType as unknown as jest.Mock).mockReturnValue(true);
-      (parseCaipAssetType as jest.Mock).mockReturnValue({
-        assetNamespace: 'spltoken',
-        assetReference: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R',
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      });
-
-      const result = createTokenFromCaip(caipAssetType);
-
-      expect(result).toEqual({
-        address: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R',
-        symbol: '',
-        name: '',
-        decimals: 18,
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        balance: '0',
-      });
-    });
-
-    it('returns null when parsing throws error', () => {
-      (isCaipAssetType as unknown as jest.Mock).mockReturnValue(true);
-      (parseCaipAssetType as jest.Mock).mockImplementation(() => {
-        throw new Error('Parse error');
-      });
-
-      const result = createTokenFromCaip(
-        'eip155:1/erc20:0xa0b86a33e6776d02b5c07b4e92b1b3a8e1b9b1a4',
-      );
-
-      expect(result).toBeNull();
-    });
   });
 
   describe('getNativeSourceToken', () => {
