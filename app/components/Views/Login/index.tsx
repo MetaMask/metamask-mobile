@@ -463,9 +463,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
     if (loginErrorMessage.includes('SeedlessOnboardingController')) {
       setLoading(false);
-      handleSentryCapture(loginError);
-
-      if (isMetricsEnabled()) {
+      if (oauthLoginSuccess) {
+        handleSentryCapture(loginError);
+        if (isMetricsEnabled()) {
+          handleSeedlessOnboardingControllerError(loginError);
+        }
+      } else {
         handleSeedlessOnboardingControllerError(loginError);
       }
       return;
