@@ -5,12 +5,6 @@ name: Build Android E2E APKs
 
 on:
   workflow_call:
-    inputs:
-      build-type:
-        description: 'Build type (main, flask, qa)'
-        required: false
-        type: string
-        default: 'main'
     outputs:
       apk-uploaded:
         description: 'Whether the APK was successfully uploaded'
@@ -62,12 +56,12 @@ jobs:
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
-          yarn build:android:${{ inputs.build-type }}:e2e
+          yarn build:android:main:e2e
         shell: bash
         env:
           PLATFORM: android
           METAMASK_ENVIRONMENT: qa
-          METAMASK_BUILD_TYPE: ${{ inputs.build-type }}
+          METAMASK_BUILD_TYPE: main
           IS_TEST: true
           E2E: "true"
           IGNORE_BOXLOGS_DEVELOPMENT: true
