@@ -14,15 +14,28 @@ JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 
-echo "PLATFORM = $PLATFORM"
-echo "MODE = $MODE"
-echo "ENVIRONMENT = $ENVIRONMENT"
+loadJSEnv(){
+	# Load JS specific env variables
+	if [ "$PRE_RELEASE" = false ] ; then
+		if [ -e $JS_ENV_FILE ]
+		then
+			source $JS_ENV_FILE
+		fi
+	fi
+}
+
+# Load JS env variables
+loadJSEnv
 
 # Enable Sentry to auto upload source maps and debug symbols
 export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
 export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
 export EXPO_NO_TYPESCRIPT_SETUP=1
+
+echo "PLATFORM = $PLATFORM"
+echo "MODE = $METAMASK_BUILD_TYPE"
+echo "ENVIRONMENT = $METAMASK_ENVIRONMENT"
 
 envFileMissing() {
 	FILE="$1"
@@ -113,11 +126,23 @@ checkParameters(){
 	# Validate platform-specific flags
 	if [ "$PLATFORM" == "android" ]; then
 		if [ "$DEVICE_TYPE" == "device" ] || [ "$DEVICE_TYPE" == "simulator" ]; then
-			printError "--device and --simulator flags are not supported for Android builds at this moment. Please use --auto instead."
-			echo "Android builds automatically detect connected devices and emulators"
+			printError "--device and --simulator flags are not supported for Android builds at this moment. Please use --auto instead. Android builds are configured to automatically detect connected devices and emulators."
 			exit 1
 		fi
 	fi
+
+	# Check if the METAMASK_ENVIRONMENT is valid
+	VALID_METAMASK_ENVIRONMENTS="production|beta|rc|exp|test|e2e|dev"
+	case "${METAMASK_ENVIRONMENT}" in
+		production|beta|rc|exp|test|e2e|dev)
+			# Valid environment - continue
+			;;
+		*)
+			# Invalid environment - exit with error
+			printError "METAMASK_ENVIRONMENT "${METAMASK_ENVIRONMENT}" is not valid. Please set it to one of the following: ${VALID_METAMASK_ENVIRONMENTS}"
+			exit 1
+			;;
+	esac
 }
 
 remapEnvVariable() {
@@ -298,17 +323,6 @@ remapMainExperimentalEnvVariables() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-loadJSEnv(){
-	# Load JS specific env variables
-	if [ "$PRE_RELEASE" = false ] ; then
-		if [ -e $JS_ENV_FILE ]
-		then
-			source $JS_ENV_FILE
-		fi
-	fi
-}
-
-
 prebuild(){
   WATCHER_PORT=${WATCHER_PORT:-8081}
 }
@@ -425,7 +439,10 @@ buildIosSimulatorQA(){
 
 buildIosSimulatorFlask(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	device_args=()
+	if [ -n "$IOS_SIMULATOR" ]; then
+		device_args=(--device "$IOS_SIMULATOR")
+	fi
 	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
 }
 
@@ -763,7 +780,6 @@ checkParameters "$@"
 
 
 printTitle
-loadJSEnv
 
 # Map environment variables based on mode.
 # TODO: MODE should be renamed to TARGET

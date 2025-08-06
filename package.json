@@ -30,7 +30,7 @@
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:e2e:qa": "./scripts/build.sh ios qadebugE2E",
     "start:ios:e2e:flask": "./scripts/build.sh ios flaskDebugE2E",
-    "start:ios:device": "./scripts/build.sh ios main dev --prebuild --device",
+    "start:ios:device": "./scripts/build.sh ios main dev --device",
     "start:ios:flask": "./scripts/build.sh ios flask dev --simulator",
     "start:android": "./scripts/build.sh android main dev --auto",
     "start:android:qa": "./scripts/build.sh android qaDebug",
