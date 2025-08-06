@@ -29,6 +29,7 @@ jest.mock('../../../component-library/components-temp/ActionListItem', () => {
   const {
     TouchableOpacity: MockTouchableOpacity,
     Text: MockText,
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   } = require('react-native');
   return ({
     label,
@@ -50,6 +51,9 @@ jest.mock('../../../component-library/components-temp/ActionListItem', () => {
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
+  })),
+  useRoute: jest.fn(() => ({
+    params: {},
   })),
 }));
 
