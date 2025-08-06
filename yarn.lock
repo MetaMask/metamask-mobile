@@ -5011,10 +5011,10 @@
     "@metamask/utils" "^11.2.0"
     lodash "^4.17.21"
 
-"@metamask/chain-agnostic-permission@npm:@metamask-previews/chain-agnostic-permission@1.0.0-preview-a811c5b7":
-  version "1.0.0-preview-a811c5b7"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/chain-agnostic-permission/-/chain-agnostic-permission-1.0.0-preview-a811c5b7.tgz#fb58eb00a479d1fbe4687e430d9d7aa2ac404fff"
-  integrity sha512-yOFsCpZVY9DfY4AoQUNIAl90enW/E09iSkJGze7p6i+XAz7VYDz9zqAG/3yGQjumdIE/WAAWP7pdpGQPIIgA6Q==
+"@metamask/chain-agnostic-permission@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-1.1.0.tgz#1d92fd4fe23e54e92c3e8079cf54d47a09ebd204"
+  integrity sha512-xr5y8sXn/pCgwJbbhK3VvIrB/Xejvsnr3So9iPnlJ7to3EDxLi/8g0VOqFXwghoKkSGZLCmobaf7lJlZ+hpUvw==
   dependencies:
     "@metamask/api-specs" "^0.14.0"
     "@metamask/controller-utils" "^11.11.0"
