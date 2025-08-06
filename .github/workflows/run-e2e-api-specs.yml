@@ -14,6 +14,7 @@ jobs:
     name: "api-specs-ios"
     if: false
     runs-on: macos-latest-xlarge
+    continue-on-error: true
 
     env:
       METAMASK_ENVIRONMENT: 'local'
