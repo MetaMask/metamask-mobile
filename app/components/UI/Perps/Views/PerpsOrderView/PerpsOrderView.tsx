@@ -445,13 +445,17 @@ const PerpsOrderView: React.FC = () => {
     orderType,
   ]);
 
-  const handleTooltipPress = (contentKey: PerpsTooltipContentKey) => {
-    setSelectedTooltip(contentKey);
-  };
+  // Memoize the tooltip handlers to prevent recreating them on every render
+  const handleTooltipPress = useCallback(
+    (contentKey: PerpsTooltipContentKey) => {
+      setSelectedTooltip(contentKey);
+    },
+    [],
+  );
 
-  const handleTooltipClose = () => {
+  const handleTooltipClose = useCallback(() => {
     setSelectedTooltip(null);
-  };
+  }, []);
 
   return (
     <SafeAreaView style={[styles.container, { marginTop: top }]}>
@@ -910,12 +914,15 @@ const PerpsOrderView: React.FC = () => {
         }}
         currentOrderType={orderType}
       />
-      <PerpsBottomSheetTooltip
-        isVisible={selectedTooltip !== null}
-        onClose={handleTooltipClose}
-        contentKey={selectedTooltip || 'leverage'}
-        testID={PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
-      />
+      {selectedTooltip && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={handleTooltipClose}
+          contentKey={selectedTooltip}
+          testID={PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+          key={selectedTooltip}
+        />
+      )}
     </SafeAreaView>
   );
 };

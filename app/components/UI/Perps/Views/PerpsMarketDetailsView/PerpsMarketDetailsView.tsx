@@ -124,13 +124,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
-  const handleTooltipPress = (contentKey: PerpsTooltipContentKey) => {
-    setSelectedTooltip(contentKey);
-  };
+  const handleTooltipPress = useCallback(
+    (contentKey: PerpsTooltipContentKey) => {
+      setSelectedTooltip(contentKey);
+    },
+    [],
+  );
 
-  const handleTooltipClose = () => {
+  const handleTooltipClose = useCallback(() => {
     setSelectedTooltip(null);
-  };
+  }, []);
 
   if (!market) {
     return (
@@ -378,12 +381,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
         />
       )}
-      <PerpsBottomSheetTooltip
-        isVisible={selectedTooltip !== null}
-        onClose={handleTooltipClose}
-        contentKey={selectedTooltip || 'leverage'}
-        testID={PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
-      />
+      {selectedTooltip && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={handleTooltipClose}
+          contentKey={selectedTooltip}
+          testID={PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+          key={selectedTooltip}
+        />
+      )}
     </SafeAreaView>
   );
 };

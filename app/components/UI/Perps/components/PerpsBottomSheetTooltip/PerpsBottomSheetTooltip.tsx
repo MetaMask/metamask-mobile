@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -23,81 +23,96 @@ import createStyles from './PerpsBottomSheetTooltip.styles';
 import { tooltipContentRegistry } from './content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
-const PerpsBottomSheetTooltip = ({
-  isVisible,
-  onClose,
-  contentKey,
-  testID = PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP,
-}: PerpsBottomSheetTooltipProps) => {
-  const { styles } = useStyles(createStyles, {});
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
+  ({
+    isVisible,
+    onClose,
+    contentKey,
+    testID = PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP,
+  }) => {
+    const { styles } = useStyles(createStyles, {});
+    const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  // Get localized content
-  const title = strings(`perps.tooltips.${contentKey}.title`);
-
-  // Render content using registry system - supports both custom components and default strings
-  const renderContent = () => {
-    const CustomRenderer = tooltipContentRegistry[contentKey];
-
-    if (CustomRenderer) {
-      // Use custom component renderer
-      return (
-        <CustomRenderer testID={PerpsBottomSheetTooltipSelectorsIDs.CONTENT} />
-      );
-    }
-
-    // Fall back to default string-based content
-    return (
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        testID={PerpsBottomSheetTooltipSelectorsIDs.CONTENT}
-      >
-        {strings(`perps.tooltips.${contentKey}.content`)}
-      </Text>
+    // Memoize the title to prevent recalculation on every render
+    const title = useMemo(
+      () => strings(`perps.tooltips.${contentKey}.title`),
+      [contentKey],
     );
-  };
 
-  const buttonLabel = strings('perps.tooltips.got_it_button');
+    // Memoize the content renderer to prevent recreation
+    const renderContent = () => {
+      const CustomRenderer = tooltipContentRegistry[contentKey];
 
-  const footerButtons: ButtonProps[] = [
-    {
-      label: buttonLabel,
-      onPress: () => {
-        bottomSheetRef.current?.onCloseBottomSheet();
-      },
-      variant: ButtonVariants.Primary,
-      size: ButtonSize.Lg,
-      testID: PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON,
-    },
-  ];
+      if (CustomRenderer) {
+        return (
+          <CustomRenderer
+            testID={PerpsBottomSheetTooltipSelectorsIDs.CONTENT}
+          />
+        );
+      }
 
-  // Only render when visible and title is defined
-  if (!isVisible || !title) return null;
-
-  return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={onClose}
-      testID={testID}
-    >
-      <BottomSheetHeader>
+      return (
         <Text
-          variant={TextVariant.HeadingMD}
-          testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          testID={PerpsBottomSheetTooltipSelectorsIDs.CONTENT}
         >
-          {title}
+          {strings(`perps.tooltips.${contentKey}.content`)}
         </Text>
-      </BottomSheetHeader>
-      <View style={styles.contentContainer}>{renderContent()}</View>
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={footerButtons}
-        style={styles.footerContainer}
-      />
-    </BottomSheet>
-  );
-};
+      );
+    };
+
+    // Memoize the button handler to prevent recreation
+    const handleGotItPress = useCallback(() => {
+      bottomSheetRef.current?.onCloseBottomSheet();
+    }, []);
+
+    // Memoize button label and footer buttons
+    const buttonLabel = useMemo(
+      () => strings('perps.tooltips.got_it_button'),
+      [],
+    );
+
+    const footerButtons = useMemo<ButtonProps[]>(
+      () => [
+        {
+          label: buttonLabel,
+          onPress: handleGotItPress,
+          variant: ButtonVariants.Primary,
+          size: ButtonSize.Lg,
+          testID: PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON,
+        },
+      ],
+      [buttonLabel, handleGotItPress],
+    );
+
+    // Only render when visible and title is defined
+    if (!isVisible || !title) return null;
+
+    return (
+      <BottomSheet
+        ref={bottomSheetRef}
+        shouldNavigateBack={false}
+        onClose={onClose}
+        testID={testID}
+      >
+        <BottomSheetHeader>
+          <Text
+            variant={TextVariant.HeadingMD}
+            testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
+          >
+            {title}
+          </Text>
+        </BottomSheetHeader>
+        <View style={styles.contentContainer}>{renderContent()}</View>
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          buttonPropsArray={footerButtons}
+          style={styles.footerContainer}
+        />
+      </BottomSheet>
+    );
+  },
+);
 
 export default PerpsBottomSheetTooltip;
