@@ -1,7 +1,6 @@
 name: Test Android Build QA App
 
 on:
-  push:
   workflow_dispatch:
     inputs:
       retention_days:
