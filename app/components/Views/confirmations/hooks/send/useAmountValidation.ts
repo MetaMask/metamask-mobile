@@ -64,7 +64,7 @@ export const validateAmountFn = ({
   return undefined;
 };
 
-const useAmountValidation = () => {
+export const useAmountValidation = () => {
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
   const { asset, from, value } = useSendContext();
@@ -83,5 +83,3 @@ const useAmountValidation = () => {
 
   return { amountError };
 };
-
-export default useAmountValidation;

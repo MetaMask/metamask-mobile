@@ -11,13 +11,13 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import { useStyles } from '../../../../../hooks/useStyles';
-import useAmountValidation from '../../../hooks/send/useAmountValidation';
-import useConversions from '../../../hooks/send/useConversions';
-import useMaxAmount from '../../../hooks/send/useMaxAmount';
+import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
+import { useConversions } from '../../../hooks/send/useConversions';
+import { useMaxAmount } from '../../../hooks/send/useMaxAmount';
 import { useSendContext } from '../../../context/send-context';
-import styleSheet from './amount.styles';
+import { styleSheet } from './amount.styles';
 
-const Amount = () => {
+export const Amount = () => {
   const { styles } = useStyles(styleSheet, {});
   const { updateValue } = useSendContext();
   const { getMaxAmount } = useMaxAmount();
@@ -88,5 +88,3 @@ const Amount = () => {
     </View>
   );
 };
-
-export default Amount;

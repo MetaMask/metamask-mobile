@@ -7,11 +7,11 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
-import useToAddressValidation from '../../../hooks/send/useToAddressValidation';
 import { useSendContext } from '../../../context/send-context';
-import styleSheet from './to.styles';
+import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
+import { styleSheet } from './send-to.styles';
 
-const To = () => {
+export const SendTo = () => {
   const { styles } = useStyles(styleSheet, {});
   const { to, updateTo } = useSendContext();
   const { toAddressError, toAddressWarning } = useToAddressValidation();
@@ -32,5 +32,3 @@ const To = () => {
     </View>
   );
 };
-
-export default To;

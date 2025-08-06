@@ -75,7 +75,7 @@ export const getMaxValueFn = ({
   );
 };
 
-const useMaxAmount = () => {
+export const useMaxAmount = () => {
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
   const { asset, chainId, from } = useSendContext();
@@ -103,5 +103,3 @@ const useMaxAmount = () => {
 
   return { getMaxAmount };
 };
-
-export default useMaxAmount;
