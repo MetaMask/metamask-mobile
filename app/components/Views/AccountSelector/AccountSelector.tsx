@@ -204,10 +204,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => (
       <Fragment>
         <SheetHeader title={strings('accounts.accounts_title')} />
-        {isMultichainAccountsState2Enabled ? (
+        {isMultichainAccountsState2Enabled && selectedAccountGroup ? (
           <MultichainAccountSelectorList
             onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroup={selectedAccountGroup || undefined}
+            selectedAccountGroup={selectedAccountGroup}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
         ) : (
@@ -229,8 +229,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     ),
     [
       isMultichainAccountsState2Enabled,
-      _onSelectMultichainAccount,
       selectedAccountGroup,
+      _onSelectMultichainAccount,
       accounts,
       _onSelectAccount,
       ensByAccountAddress,

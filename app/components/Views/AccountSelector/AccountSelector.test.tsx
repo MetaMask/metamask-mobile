@@ -235,7 +235,7 @@ describe('AccountSelector', () => {
     expect(addButton).toBeDefined();
   });
 
-  it('should render account selector with multichain support', () => {
+  it('renders account selector with multichain support', () => {
     renderScreen(
       AccountSelectorWrapper,
       {
