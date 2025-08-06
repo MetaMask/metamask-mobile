@@ -7,6 +7,7 @@ import {
 import { cronjobControllerInit } from './cronjob-controller-init';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import ReduxService, { ReduxStore } from '../../../redux';
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<CronjobControllerMessenger>
@@ -23,6 +24,18 @@ function getInitRequestMock(): jest.Mocked<
 }
 
 describe('CronjobControllerInit', () => {
+  beforeEach(() => {
+    ReduxService.store = {
+      dispatch: jest.fn(),
+      getState: jest.fn(() => ({
+        // Mock the initial state for CronjobController
+        cronjobController: { storage: undefined },
+      })),
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+    } as unknown as ReduxStore;
+  });
+
   it('initializes the controller', () => {
     const { controller } = cronjobControllerInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(CronjobController);
