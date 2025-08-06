@@ -121,8 +121,6 @@ const Main = (props) => {
   const locale = useRef(I18n.locale);
   const removeConnectionStatusListener = useRef();
 
-  // const { isConnectionRemoved, setIsConnectionRemoved } = props;
-
   const isSeedlessPasswordOutdated = useSelector(
     selectIsSeedlessPasswordOutdated,
   );
