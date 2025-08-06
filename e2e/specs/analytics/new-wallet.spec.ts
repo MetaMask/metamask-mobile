@@ -155,6 +155,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           Assertions.checkIfValueIsDefined(walletCreatedEvent);
           Assertions.checkIfObjectsMatch(walletCreatedEvent!.properties, {
             biometrics_enabled: false,
+            account_type: 'metamask',
           });
         }, 'Wallet Created: Should be present with correct properties');
 
