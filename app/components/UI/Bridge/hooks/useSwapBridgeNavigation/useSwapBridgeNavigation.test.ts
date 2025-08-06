@@ -2,7 +2,7 @@ import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
 import { waitFor } from '@testing-library/react-native';
-import { BridgeToken } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
@@ -105,6 +105,7 @@ describe('useSwapBridgeNavigation', () => {
           chainId: mockChainId,
         },
         sourcePage: mockSourcePage,
+        bridgeViewMode: BridgeViewMode.Bridge,
       },
     });
   });
@@ -135,6 +136,7 @@ describe('useSwapBridgeNavigation', () => {
       params: {
         sourceToken: mockToken,
         sourcePage: mockSourcePage,
+        bridgeViewMode: BridgeViewMode.Bridge,
       },
     });
   });
@@ -156,6 +158,7 @@ describe('useSwapBridgeNavigation', () => {
       params: {
         sourceToken: mockNativeAsset,
         sourcePage: mockSourcePage,
+        bridgeViewMode: BridgeViewMode.Bridge,
       },
     });
   });
@@ -285,6 +288,7 @@ describe('useSwapBridgeNavigation', () => {
         params: {
           sourceToken: mockNativeAsset,
           sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
         },
       });
     });
@@ -319,6 +323,7 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Swap,
         },
       });
     });
@@ -351,6 +356,7 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Swap,
         },
       });
     });
